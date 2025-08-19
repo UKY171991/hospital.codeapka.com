@@ -1,3 +1,8 @@
+if ($action === 'delete' && isset($_POST['id'])) {
+    $stmt = $pdo->prepare('DELETE FROM users WHERE id = ?');
+    $stmt->execute([$_POST['id']]);
+    exit('success');
+}
 <?php
 // ajax/user_ajax.php
 require_once '../inc/auth.php';
