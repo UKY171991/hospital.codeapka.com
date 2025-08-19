@@ -21,14 +21,15 @@ if ($method === 'POST') {
     $phone = trim($data['phone'] ?? '');
     $email = trim($data['email'] ?? '');
     $address = trim($data['address'] ?? '');
+    $registration_no = trim($data['registration_no'] ?? '');
     $added_by = isset($data['added_by']) ? (int)$data['added_by'] : 0;
     if (!$name) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Name is required.']);
         exit;
     }
-    $stmt = $pdo->prepare('INSERT INTO doctors (name, qualification, specialization, phone, email, address, added_by) VALUES (?, ?, ?, ?, ?, ?, ?)');
-    $stmt->execute([$name, $qualification, $specialization, $phone, $email, $address, $added_by]);
+    $stmt = $pdo->prepare('INSERT INTO doctors (name, qualification, specialization, phone, email, address, registration_no, added_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$name, $qualification, $specialization, $phone, $email, $address, $registration_no, $added_by]);
     echo json_encode(['success' => true, 'message' => 'Doctor added successfully.']);
     exit;
 }
