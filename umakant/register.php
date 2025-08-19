@@ -1,5 +1,39 @@
 <?php
 // register.php
+require_once 'inc/connection.php';
+$success = '';
+$error = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
+
+    if ($password !== $confirm_password) {
+        $error = 'Passwords do not match!';
+    } elseif (strlen($username) < 3) {
+        $error = 'Username must be at least 3 characters.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Invalid email address.';
+    } elseif (strlen($password) < 6) {
+        $error = 'Password must be at least 6 characters.';
+    } else {
+        // Check if username or email exists
+        $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ? OR email = ?');
+        $stmt->execute([$username, $email]);
+        if ($stmt->fetch()) {
+            $error = 'Username or email already exists!';
+        } else {
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare('INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)');
+            if ($stmt->execute([$username, $hash, $email])) {
+                $success = 'Registration successful! You can now <a href="login.php">login</a>.';
+            } else {
+                $error = 'Registration failed. Please try again.';
+            }
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -132,6 +166,11 @@
 </head>
 <body>
     <div class="register-container">
+        <?php if ($success): ?>
+            <div style="color:green; margin-bottom:12px; text-align:center;"> <?= $success ?> </div>
+        <?php elseif ($error): ?>
+            <div style="color:red; margin-bottom:12px; text-align:center;"> <?= $error ?> </div>
+        <?php endif; ?>
         <div class="register-icon">
             <i class="fas fa-plus"></i>
         </div>
