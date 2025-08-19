@@ -137,13 +137,15 @@ $(function() {
                 var id = $(this).data('id');
                 $.get('ajax/test_ajax.php', {action: 'get', id: id}, function(test) {
                         $('#testId').val(test.id);
-                        $('#name').val(test.name);
+                        $('#test_name').val(test.test_name);
                         $('#category').val(test.category);
                         $('#description').val(test.description);
                         $('#price').val(test.price);
-                        $('#sample_type').val(test.sample_type);
-                        $('#normal_range').val(test.normal_range);
                         $('#unit').val(test.unit);
+                        $('#reference_range').val(test.reference_range);
+                        $('#min_value').val(test.min_value);
+                        $('#max_value').val(test.max_value);
+                        $('#method').val(test.method);
                         $('#testModalLabel').text('Edit Test');
                         $('#testModal').modal('show');
                 }, 'json');
