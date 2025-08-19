@@ -17,41 +17,52 @@
               <p>Dashboard</p>
             </a>
           </li>
-          <li class="nav-item">
-            <a href="user.php" class="nav-link">
-              <i class="nav-icon fas fa-users"></i>
-              <p>Users</p>
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-flask"></i>
+              <p>
+                Patho
+                <i class="right fas fa-angle-left"></i>
+              </p>
             </a>
-          </li>
-          <li class="nav-item">
-            <a href="doctor.php" class="nav-link">
-              <i class="nav-icon fas fa-user-md"></i>
-              <p>Doctors</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="patient.php" class="nav-link">
-              <i class="nav-icon fas fa-procedures"></i>
-              <p>Patients</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="test.php" class="nav-link">
-              <i class="nav-icon fas fa-vials"></i>
-              <p>Tests</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="test-category.php" class="nav-link">
-              <i class="nav-icon fas fa-th-list"></i>
-              <p>Test Categories</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="entry-list.php" class="nav-link">
-              <i class="nav-icon fas fa-list-alt"></i>
-              <p>Entry List</p>
-            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="user.php" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Users</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="doctor.php" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Doctors</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="patient.php" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Patients</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="test.php" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Tests</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="test-category.php" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Test Categories</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="entry-list.php" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Entry List</p>
+                </a>
+              </li>
+            </ul>
           </li>
           <!-- Add more menu items here -->
         </ul>
