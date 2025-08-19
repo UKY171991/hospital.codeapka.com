@@ -28,6 +28,14 @@ if ($method === 'POST') {
         echo json_encode(['success' => false, 'message' => 'Name is required.']);
         exit;
     }
+    // Prevent duplicate doctor for same user by name and phone/email
+    $dupStmt = $pdo->prepare('SELECT id FROM doctors WHERE name = ? AND (phone = ? OR email = ?) AND added_by = ?');
+    $dupStmt->execute([$name, $phone, $email, $added_by]);
+    if ($dupStmt->fetch()) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'message' => 'Doctor already exists for this user.']);
+        exit;
+    }
     $stmt = $pdo->prepare('INSERT INTO doctors (name, qualification, specialization, phone, email, address, registration_no, added_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
     $stmt->execute([$name, $qualification, $specialization, $phone, $email, $address, $registration_no, $added_by]);
     echo json_encode(['success' => true, 'message' => 'Doctor added successfully.']);
