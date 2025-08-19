@@ -13,6 +13,19 @@
   </ul>
   <!-- Right navbar links -->
   <ul class="navbar-nav ml-auto">
-    <!-- Add more right navbar items here -->
+    <li class="nav-item dropdown">
+      <a class="nav-link" data-toggle="dropdown" href="#" role="button">
+        <i class="fas fa-user-circle"></i> <span class="d-none d-md-inline">Profile</span>
+      </a>
+      <div class="dropdown-menu dropdown-menu-right">
+        <a href="profile.php" class="dropdown-item">
+          <i class="fas fa-user mr-2"></i> My Profile
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="logout.php" class="dropdown-item">
+          <i class="fas fa-sign-out-alt mr-2"></i> Logout
+        </a>
+      </div>
+    </li>
   </ul>
 </nav>
