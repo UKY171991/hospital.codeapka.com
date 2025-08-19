@@ -24,9 +24,15 @@
                                                 <thead class="thead-light">
                                                         <tr>
                                                                 <th>ID</th>
-                                                                <th>Name</th>
+                                                                <th>Test Name</th>
                                                                 <th>Category</th>
+                                                                <th>Description</th>
                                                                 <th>Price (₹)</th>
+                                                                <th>Unit</th>
+                                                                <th>Reference Range</th>
+                                                                <th>Min Value</th>
+                                                                <th>Max Value</th>
+                                                                <th>Method</th>
                                                                 <th>Actions</th>
                                                         </tr>
                                                 </thead>
@@ -53,43 +59,42 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="id" id="testId">
-                    <div class="form-group">
-                        <label>Name</label>
-                        <input type="text" class="form-control" name="name" id="name" required>
-                    </div>
+                                        <div class="form-group">
+                                                <label>Test Name</label>
+                                                <input type="text" class="form-control" name="test_name" id="test_name" required>
+                                        </div>
                                         <div class="form-group">
                                                 <label>Category</label>
-                                                <select class="form-control" name="category" id="category" required>
-                                                        <option value="">Select Category</option>
-                                                        <?php
-                                                        require_once 'inc/connection.php';
-                                                        $catStmt = $pdo->query('SELECT id, name FROM test_categories ORDER BY name');
-                                                        while ($cat = $catStmt->fetch()) {
-                                                                echo '<option value="' . htmlspecialchars($cat['id']) . '">' . htmlspecialchars($cat['name']) . '</option>';
-                                                        }
-                                                        ?>
-                                                </select>
+                                                <input type="text" class="form-control" name="category" id="category">
                                         </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea class="form-control" name="description" id="description"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Price</label>
-                        <input type="number" step="0.01" class="form-control" name="price" id="price" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Sample Type</label>
-                        <input type="text" class="form-control" name="sample_type" id="sample_type">
-                    </div>
-                    <div class="form-group">
-                        <label>Normal Range</label>
-                        <input type="text" class="form-control" name="normal_range" id="normal_range">
-                    </div>
-                    <div class="form-group">
-                        <label>Unit</label>
-                        <input type="text" class="form-control" name="unit" id="unit">
-                    </div>
+                                        <div class="form-group">
+                                                <label>Description</label>
+                                                <textarea class="form-control" name="description" id="description"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                                <label>Price</label>
+                                                <input type="number" step="0.01" class="form-control" name="price" id="price" required>
+                                        </div>
+                                        <div class="form-group">
+                                                <label>Unit</label>
+                                                <input type="text" class="form-control" name="unit" id="unit">
+                                        </div>
+                                        <div class="form-group">
+                                                <label>Reference Range</label>
+                                                <input type="text" class="form-control" name="reference_range" id="reference_range">
+                                        </div>
+                                        <div class="form-group">
+                                                <label>Min Value</label>
+                                                <input type="number" step="0.01" class="form-control" name="min_value" id="min_value">
+                                        </div>
+                                        <div class="form-group">
+                                                <label>Max Value</label>
+                                                <input type="number" step="0.01" class="form-control" name="max_value" id="max_value">
+                                        </div>
+                                        <div class="form-group">
+                                                <label>Method</label>
+                                                <input type="text" class="form-control" name="method" id="method">
+                                        </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
