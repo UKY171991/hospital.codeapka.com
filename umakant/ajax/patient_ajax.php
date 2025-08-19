@@ -41,12 +41,13 @@ if ($action === 'save') {
     $age = trim($_POST['age'] ?? '');
     $age_unit = trim($_POST['age_unit'] ?? '');
     $uhid = trim($_POST['uhid'] ?? '');
+    $added_by = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
     if ($id) {
         $stmt = $pdo->prepare('UPDATE patients SET client_name=?, mobile_number=?, father_or_husband=?, address=?, gender=?, age=?, age_unit=?, uhid=? WHERE id=?');
         $stmt->execute([$client_name, $mobile_number, $father_or_husband, $address, $gender, $age, $age_unit, $uhid, $id]);
     } else {
-        $stmt = $pdo->prepare('INSERT INTO patients (client_name, mobile_number, father_or_husband, address, gender, age, age_unit, uhid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-        $stmt->execute([$client_name, $mobile_number, $father_or_husband, $address, $gender, $age, $age_unit, $uhid]);
+        $stmt = $pdo->prepare('INSERT INTO patients (client_name, mobile_number, father_or_husband, address, gender, age, age_unit, uhid, added_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt->execute([$client_name, $mobile_number, $father_or_husband, $address, $gender, $age, $age_unit, $uhid, $added_by]);
     }
     exit('success');
 }
