@@ -1,3 +1,4 @@
+<?php require_once 'inc/auth.php'; ?>
 <?php
 // patient.php
 // Dummy patient data for demonstration

@@ -1,3 +1,4 @@
+<?php require_once 'inc/auth.php'; ?>
 <?php
 // test.php
 // Dummy test data for demonstration

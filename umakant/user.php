@@ -1,3 +1,4 @@
+<?php require_once 'inc/auth.php'; ?>
 <?php
 // user-list.php
 // Dummy user data for demonstration

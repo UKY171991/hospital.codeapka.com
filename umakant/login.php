@@ -2,6 +2,10 @@
 // login.php
 require_once 'inc/connection.php';
 session_start();
+if (isset($_SESSION['user_id'])) {
+    header('Location: index.php');
+    exit;
+}
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
