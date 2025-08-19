@@ -15,10 +15,67 @@
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
-        <!-- Add your page content here -->
-        <div class="card">
-          <div class="card-body">
-            Welcome to AdminLTE 3 PHP Template!
+        <!-- Dashboard Cards -->
+        <div class="row">
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-info">
+              <div class="inner">
+                <h3>4</h3>
+                <p>Users</p>
+              </div>
+              <div class="icon">
+                <i class="fas fa-users"></i>
+              </div>
+              <a href="user.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-success">
+              <div class="inner">
+                <h3>3</h3>
+                <p>Doctors</p>
+              </div>
+              <div class="icon">
+                <i class="fas fa-user-md"></i>
+              </div>
+              <a href="doctor.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-warning">
+              <div class="inner">
+                <h3>3</h3>
+                <p>Patients</p>
+              </div>
+              <div class="icon">
+                <i class="fas fa-procedures"></i>
+              </div>
+              <a href="patient.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-danger">
+              <div class="inner">
+                <h3>3</h3>
+                <p>Tests</p>
+              </div>
+              <div class="icon">
+                <i class="fas fa-vials"></i>
+              </div>
+              <a href="test.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-primary">
+              <div class="inner">
+                <h3>3</h3>
+                <p>Entries</p>
+              </div>
+              <div class="icon">
+                <i class="fas fa-list-alt"></i>
+              </div>
+              <a href="entry-list.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
           </div>
         </div>
       </div>
