@@ -29,6 +29,30 @@
               <p>Doctors</p>
             </a>
           </li>
+          <li class="nav-item">
+            <a href="patient.php" class="nav-link">
+              <i class="nav-icon fas fa-procedures"></i>
+              <p>Patients</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="test.php" class="nav-link">
+              <i class="nav-icon fas fa-vials"></i>
+              <p>Tests</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="test-category.php" class="nav-link">
+              <i class="nav-icon fas fa-th-list"></i>
+              <p>Test Categories</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="entry-list.php" class="nav-link">
+              <i class="nav-icon fas fa-list-alt"></i>
+              <p>Entry List</p>
+            </a>
+          </li>
           <!-- Add more menu items here -->
         </ul>
       </nav>
