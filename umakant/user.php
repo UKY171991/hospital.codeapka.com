@@ -136,14 +136,23 @@ $(function() {
                         });
                 });
 
-                $('#userTable').on('click', '.delete-btn', function() {
-                        if (confirm('Are you sure you want to delete this user?')) {
-                                var id = $(this).data('id');
-                                $.post('ajax/user_ajax.php', {action: 'delete', id: id}, function(resp) {
-                                        loadUsers();
-                                });
-                        }
-                });
+                        $('#userTable').on('click', '.delete-btn', function() {
+                                if (confirm('Are you sure you want to delete this user?')) {
+                                        var id = $(this).data('id');
+                                        $.ajax({
+                                                url: 'ajax/user_ajax.php',
+                                                type: 'POST',
+                                                data: {action: 'delete', id: id},
+                                                success: function(resp) {
+                                                        loadUsers();
+                                                        alert('User deleted successfully!');
+                                                },
+                                                error: function(xhr, status, error) {
+                                                        alert('Delete failed: ' + error);
+                                                }
+                                        });
+                                }
+                        });
 });
 </script>
 <?php include 'inc/footer.php'; ?>
