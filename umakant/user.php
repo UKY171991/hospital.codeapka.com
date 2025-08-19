@@ -90,18 +90,9 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 function loadUsers() {
-                $.get('ajax/user_ajax.php', {action: 'list'}, function(data) {
-                        // Add Delete button to each row
-                        data = data.replace(/(<\/td>\s*<\/tr>)/g, function(match, p1, offset, string) {
-                                var idMatch = string.substring(0, offset).match(/data-id=\"(\d+)\"/);
-                                var id = idMatch ? idMatch[1] : '';
-                                if (id) {
-                                        return '<button class="btn btn-sm btn-danger delete-btn" data-id="' + id + '"><i class="fas fa-trash"></i> Delete</button>' + p1;
-                                }
-                                return p1;
-                        });
-                        $('#userTable tbody').html(data);
-                });
+        $.get('ajax/user_ajax.php', {action: 'list'}, function(data) {
+                $('#userTable tbody').html(data);
+        });
 }
 
 $(function() {

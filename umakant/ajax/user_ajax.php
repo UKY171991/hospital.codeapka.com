@@ -18,7 +18,10 @@ if ($action === 'list') {
         echo '<td>' . htmlspecialchars($row['username']) . '</td>';
         echo '<td>' . htmlspecialchars($row['email']) . '</td>';
         echo '<td>' . htmlspecialchars($row['role']) . '</td>';
-        echo '<td><button class="btn btn-sm btn-info edit-btn" data-id="' . $row['id'] . '"><i class="fas fa-edit"></i> Edit</button></td>';
+    echo '<td>';
+    echo '<button class="btn btn-sm btn-info edit-btn" data-id="' . $row['id'] . '"><i class="fas fa-edit"></i> Edit</button> ';
+    echo '<button class="btn btn-sm btn-danger delete-btn" data-id="' . $row['id'] . '"><i class="fas fa-trash"></i> Delete</button>';
+    echo '</td>';
         echo '</tr>';
     }
     exit;
