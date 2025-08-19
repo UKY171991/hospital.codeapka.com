@@ -40,12 +40,13 @@ if ($action === 'save') {
     $sample_type = trim($_POST['sample_type'] ?? '');
     $normal_range = trim($_POST['normal_range'] ?? '');
     $unit = trim($_POST['unit'] ?? '');
-    if ($id) {
-        $stmt = $pdo->prepare('UPDATE tests SET name=?, category=?, description=?, price=?, sample_type=?, normal_range=?, unit=? WHERE id=?');
-        $stmt->execute([$name, $category, $description, $price, $sample_type, $normal_range, $unit, $id]);
-    } else {
-        $stmt = $pdo->prepare('INSERT INTO tests (name, category, description, price, sample_type, normal_range, unit) VALUES (?, ?, ?, ?, ?, ?, ?)');
-        $stmt->execute([$name, $category, $description, $price, $sample_type, $normal_range, $unit]);
+        $added_by = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
+        if ($id) {
+            $stmt = $pdo->prepare('UPDATE tests SET name=?, category=?, description=?, price=?, sample_type=?, normal_range=?, unit=? WHERE id=?');
+            $stmt->execute([$name, $category, $description, $price, $sample_type, $normal_range, $unit, $id]);
+        } else {
+            $stmt = $pdo->prepare('INSERT INTO tests (name, category, description, price, sample_type, normal_range, unit, added_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt->execute([$name, $category, $description, $price, $sample_type, $normal_range, $unit, $added_by]);
     }
     exit('success');
 }
