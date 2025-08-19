@@ -23,6 +23,12 @@
               <p>Users</p>
             </a>
           </li>
+          <li class="nav-item">
+            <a href="doctor.php" class="nav-link">
+              <i class="nav-icon fas fa-user-md"></i>
+              <p>Doctors</p>
+            </a>
+          </li>
           <!-- Add more menu items here -->
         </ul>
       </nav>
