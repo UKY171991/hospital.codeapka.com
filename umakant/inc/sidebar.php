@@ -17,6 +17,12 @@
               <p>Dashboard</p>
             </a>
           </li>
+          <li class="nav-item">
+            <a href="user.php" class="nav-link">
+              <i class="nav-icon fas fa-users"></i>
+              <p>Users</p>
+            </a>
+          </li>
           <!-- Add more menu items here -->
         </ul>
       </nav>
