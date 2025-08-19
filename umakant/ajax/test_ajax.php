@@ -6,12 +6,12 @@ require_once '../inc/connection.php';
 $action = $_REQUEST['action'] ?? '';
 
 if ($action === 'list') {
-    $stmt = $pdo->query('SELECT * FROM tests ORDER BY id DESC');
+    $stmt = $pdo->query('SELECT t.*, c.name AS category_name FROM tests t LEFT JOIN test_categories c ON t.category = c.id ORDER BY t.id DESC');
     while ($row = $stmt->fetch()) {
         echo '<tr>';
         echo '<td>' . htmlspecialchars($row['id']) . '</td>';
         echo '<td>' . htmlspecialchars($row['name']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['category']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['category_name'] ?? '') . '</td>';
         echo '<td>' . htmlspecialchars($row['price']) . '</td>';
         echo '<td>';
         echo '<button class="btn btn-sm btn-info edit-btn" data-id="' . $row['id'] . '"><i class="fas fa-edit"></i> Edit</button> ';
