@@ -34,12 +34,13 @@ if ($action === 'save') {
     $id = $_POST['id'] ?? '';
     $name = trim($_POST['name'] ?? '');
     $description = trim($_POST['description'] ?? '');
+    $added_by = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
     if ($id) {
         $stmt = $pdo->prepare('UPDATE test_categories SET name=?, description=? WHERE id=?');
         $stmt->execute([$name, $description, $id]);
     } else {
-        $stmt = $pdo->prepare('INSERT INTO test_categories (name, description) VALUES (?, ?)');
-        $stmt->execute([$name, $description]);
+        $stmt = $pdo->prepare('INSERT INTO test_categories (name, description, added_by) VALUES (?, ?, ?)');
+        $stmt->execute([$name, $description, $added_by]);
     }
     exit('success');
 }
