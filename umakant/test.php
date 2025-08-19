@@ -57,10 +57,19 @@
                         <label>Name</label>
                         <input type="text" class="form-control" name="name" id="name" required>
                     </div>
-                    <div class="form-group">
-                        <label>Category</label>
-                        <input type="text" class="form-control" name="category" id="category">
-                    </div>
+                                        <div class="form-group">
+                                                <label>Category</label>
+                                                <select class="form-control" name="category" id="category" required>
+                                                        <option value="">Select Category</option>
+                                                        <?php
+                                                        require_once 'inc/connection.php';
+                                                        $catStmt = $pdo->query('SELECT id, name FROM test_categories ORDER BY name');
+                                                        while ($cat = $catStmt->fetch()) {
+                                                                echo '<option value="' . htmlspecialchars($cat['id']) . '">' . htmlspecialchars($cat['name']) . '</option>';
+                                                        }
+                                                        ?>
+                                                </select>
+                                        </div>
                     <div class="form-group">
                         <label>Description</label>
                         <textarea class="form-control" name="description" id="description"></textarea>
