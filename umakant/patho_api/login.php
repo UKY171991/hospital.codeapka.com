@@ -22,12 +22,24 @@ if ($user && password_verify($password, $user['password_hash'])) {
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];
     $_SESSION['role'] = $user['role'];
+    $_SESSION['full_name'] = $user['full_name'];
+    $_SESSION['email'] = $user['email'];
+    $_SESSION['created_at'] = $user['created_at'];
+    $_SESSION['updated_at'] = $user['updated_at'];
+    $_SESSION['expire'] = $user['expire'];
+    $_SESSION['added_by'] = $user['added_by'];
     echo json_encode([
         'success' => true,
         'user' => [
             'id' => $user['id'],
             'username' => $user['username'],
-            'role' => $user['role']
+            'role' => $user['role'],
+            'full_name' => $user['full_name'],
+            'email' => $user['email'],
+            'created_at' => $user['created_at'],
+            'updated_at' => $user['updated_at'],
+            'expire' => $user['expire'],
+            'added_by' => $user['added_by']
         ]
     ]);
 } else {

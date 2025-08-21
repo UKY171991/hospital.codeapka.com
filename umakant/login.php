@@ -14,12 +14,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute([$username]);
     $user = $stmt->fetch();
     if ($user && password_verify($password, $user['password_hash'])) {
-        // Login success
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['role'] = $user['role'];
-        header('Location: index.php');
-        exit;
+        // Only allow admin login
+        if ($user['role'] === 'admin') {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['role'] = $user['role'];
+            $_SESSION['full_name'] = $user['full_name'];
+            $_SESSION['email'] = $user['email'];
+            $_SESSION['created_at'] = $user['created_at'];
+            $_SESSION['updated_at'] = $user['updated_at'];
+           // $_SESSION['expire'] = $user['expire'];
+            $_SESSION['added_by'] = $user['added_by'];
+            header('Location: index.php');
+            exit;
+        } else {
+            $error = 'Only admin users are allowed to login.';
+        }
     } else {
         $error = 'Invalid username or password!';
     }
