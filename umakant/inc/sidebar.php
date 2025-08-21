@@ -62,6 +62,12 @@
                   <p>Entry List</p>
                 </a>
               </li>
+                <li class="nav-item">
+                  <a href="plan.php" class="nav-link">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Menu Plan</p>
+                  </a>
+                </li>
             </ul>
           </li>
           <!-- Add more menu items here -->
