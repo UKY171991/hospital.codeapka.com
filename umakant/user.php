@@ -95,7 +95,7 @@ function loadUsers() {
         });
 }
 
-$(function() {
+$(document).ready(function() {
         loadUsers();
 
         $('#addUserBtn').click(function() {
@@ -105,7 +105,10 @@ $(function() {
                 $('#userModal').modal('show');
         });
 
+        // Use event delegation for dynamically loaded content
         $('#userTable').on('click', '.edit-btn', function() {
+                // Debug: alert to check if handler is firing
+                // alert('Edit button clicked');
                 var id = $(this).data('id');
                 $.get('ajax/user_ajax.php', {action: 'get', id: id}, function(user) {
                         $('#userId').val(user.id);
@@ -115,35 +118,36 @@ $(function() {
                         $('#role').val(user.role);
                         $('#password').val('');
                         $('#userModalLabel').text('Edit User');
-                        $('#userModal').modal('show');
+                        // Ensure modal is properly initialized
+                        $('#userModal').modal({show:true, backdrop:'static'});
                 }, 'json');
         });
 
-                $('#userForm').submit(function(e) {
-                        e.preventDefault();
-                        $.post('ajax/user_ajax.php', $(this).serialize() + '&action=save', function(resp) {
-                                $('#userModal').modal('hide');
-                                loadUsers();
-                        });
+        $('#userForm').submit(function(e) {
+                e.preventDefault();
+                $.post('ajax/user_ajax.php', $(this).serialize() + '&action=save', function(resp) {
+                        $('#userModal').modal('hide');
+                        loadUsers();
                 });
+        });
 
-                        $('#userTable').on('click', '.delete-btn', function() {
-                                if (confirm('Are you sure you want to delete this user?')) {
-                                        var id = $(this).data('id');
-                                        $.ajax({
-                                                url: 'ajax/user_ajax.php',
-                                                type: 'POST',
-                                                data: {action: 'delete', id: id},
-                                                success: function(resp) {
-                                                        loadUsers();
-                                                        alert('User deleted successfully!');
-                                                },
-                                                error: function(xhr, status, error) {
-                                                        alert('Delete failed: ' + error);
-                                                }
-                                        });
+        $('#userTable').on('click', '.delete-btn', function() {
+                if (confirm('Are you sure you want to delete this user?')) {
+                        var id = $(this).data('id');
+                        $.ajax({
+                                url: 'ajax/user_ajax.php',
+                                type: 'POST',
+                                data: {action: 'delete', id: id},
+                                success: function(resp) {
+                                        loadUsers();
+                                        alert('User deleted successfully!');
+                                },
+                                error: function(xhr, status, error) {
+                                        alert('Delete failed: ' + error);
                                 }
                         });
+                }
+        });
 });
 </script>
 <?php include 'inc/footer.php'; ?>
