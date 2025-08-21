@@ -6,7 +6,7 @@ require_once '../inc/connection.php';
 $action = $_REQUEST['action'] ?? '';
 
 if ($action === 'list') {
-    $stmt = $pdo->query('SELECT * FROM tests ORDER BY id DESC');
+    $stmt = $pdo->query('SELECT t.*, u.username AS added_by_username FROM tests t LEFT JOIN users u ON t.added_by = u.id ORDER BY t.id DESC');
     while ($row = $stmt->fetch()) {
         echo '<tr>';
         echo '<td>' . htmlspecialchars($row['id']) . '</td>';
@@ -19,6 +19,7 @@ if ($action === 'list') {
         echo '<td>' . htmlspecialchars($row['min_value']) . '</td>';
         echo '<td>' . htmlspecialchars($row['max_value']) . '</td>';
         echo '<td>' . htmlspecialchars($row['method']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['added_by_username'] ?? '') . '</td>';
         echo '<td>';
         echo '<button class="btn btn-sm btn-info edit-btn" data-id="' . $row['id'] . '"><i class="fas fa-edit"></i> Edit</button> ';
         echo '<button class="btn btn-sm btn-danger delete-btn" data-id="' . $row['id'] . '"><i class="fas fa-trash"></i> Delete</button>';

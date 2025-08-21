@@ -33,6 +33,7 @@
                                                                 <th>Min Value</th>
                                                                 <th>Max Value</th>
                                                                 <th>Method</th>
+                                                                <th>Added By</th>
                                                                 <th>Actions</th>
                                                         </tr>
                                                 </thead>

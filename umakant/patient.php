@@ -27,6 +27,7 @@
                                 <th>Gender</th>
                                 <th>Age</th>
                                 <th>UHID</th>
+                                <th>Added By</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>

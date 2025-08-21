@@ -4,10 +4,11 @@ require_once '../inc/connection.php';
 $action = $_REQUEST['action'] ?? '';
 
 if ($action === 'list') {
-    $stmt = $pdo->query('SELECT e.*, p.client_name AS patient_name, t.test_name, d.name AS doctor_name FROM entries e
+    $stmt = $pdo->query('SELECT e.*, p.client_name AS patient_name, t.test_name, d.name AS doctor_name, u.username AS added_by_username FROM entries e
         LEFT JOIN patients p ON e.patient_id = p.id
         LEFT JOIN tests t ON e.test_id = t.id
         LEFT JOIN doctors d ON e.doctor_id = d.id
+        LEFT JOIN users u ON e.added_by = u.id
         ORDER BY e.id DESC');
     while ($row = $stmt->fetch()) {
         echo '<tr>';
@@ -16,6 +17,7 @@ if ($action === 'list') {
         echo '<td>' . htmlspecialchars($row['test_name']) . '</td>';
         echo '<td>' . htmlspecialchars($row['entry_date']) . '</td>';
         echo '<td>' . htmlspecialchars($row['status']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['added_by_username'] ?? '') . '</td>';
         echo '<td>';
         echo '<button class="btn btn-sm btn-info edit-btn" data-id="' . $row['id'] . '"><i class="fas fa-edit"></i> Edit</button> ';
         echo '<button class="btn btn-sm btn-danger delete-btn" data-id="' . $row['id'] . '"><i class="fas fa-trash"></i> Delete</button>';

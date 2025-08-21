@@ -27,6 +27,7 @@
                                                                 <th>Name</th>
                                                                 <th>Specialization</th>
                                                                 <th>Email</th>
+                                                                <th>Added By</th>
                                                                 <th>Actions</th>
                                                         </tr>
                                                 </thead>

@@ -26,6 +26,7 @@
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Description</th>
+                                <th>Added By</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>

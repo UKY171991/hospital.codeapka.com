@@ -26,6 +26,7 @@
                                 <th>Test</th>
                                 <th>Date</th>
                                 <th>Status</th>
+                                <th>Added By</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>

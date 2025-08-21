@@ -4,7 +4,7 @@ require_once '../inc/connection.php';
 $action = $_REQUEST['action'] ?? '';
 
 if ($action === 'list') {
-    $stmt = $pdo->query('SELECT * FROM patients ORDER BY id DESC');
+    $stmt = $pdo->query('SELECT p.*, u.username AS added_by_username FROM patients p LEFT JOIN users u ON p.added_by = u.id ORDER BY p.id DESC');
     while ($row = $stmt->fetch()) {
         echo '<tr>';
         echo '<td>' . htmlspecialchars($row['id']) . '</td>';
@@ -13,6 +13,7 @@ if ($action === 'list') {
         echo '<td>' . htmlspecialchars($row['gender']) . '</td>';
         echo '<td>' . htmlspecialchars($row['mobile_number']) . '</td>';
         echo '<td>' . htmlspecialchars($row['uhid']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['added_by_username'] ?? '') . '</td>';
         echo '<td>';
         echo '<button class="btn btn-sm btn-info edit-btn" data-id="' . $row['id'] . '"><i class="fas fa-edit"></i> Edit</button> ';
         echo '<button class="btn btn-sm btn-danger delete-btn" data-id="' . $row['id'] . '"><i class="fas fa-trash"></i> Delete</button>';
