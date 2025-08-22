@@ -10,9 +10,15 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    $stmt = $pdo->prepare('SELECT * FROM users WHERE username = ?');
-    $stmt->execute([$username]);
-    $user = $stmt->fetch();
+    
+    try {
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE username = ?');
+        $stmt->execute([$username]);
+        $user = $stmt->fetch();
+    } catch (PDOException $e) {
+        $error = 'Database error: ' . $e->getMessage();
+        $user = false;
+    }
     if ($user && password_verify($password, $user['password_hash'])) {
         // Only allow admin login
         if ($user['role'] === 'admin') {
