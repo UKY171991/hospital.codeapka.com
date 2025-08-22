@@ -6,15 +6,18 @@ require_once '../inc/connection.php';
 $action = $_REQUEST['action'] ?? '';
 
 if ($action === 'list') {
-    $stmt = $pdo->query('SELECT id, username, email, role FROM users ORDER BY id DESC');
+    $stmt = $pdo->query('SELECT id, username, email, full_name, role, created_at FROM users ORDER BY id DESC');
     while ($row = $stmt->fetch()) {
         echo '<tr>';
         echo '<td>' . htmlspecialchars($row['id']) . '</td>';
         echo '<td>' . htmlspecialchars($row['username']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['email']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['role']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['email'] ?? 'N/A') . '</td>';
+        echo '<td>' . htmlspecialchars($row['full_name'] ?? 'N/A') . '</td>';
+        echo '<td><span class="badge badge-' . ($row['role'] === 'admin' ? 'danger' : 'info') . '">' . htmlspecialchars($row['role']) . '</span></td>';
+        echo '<td>' . date('d M Y', strtotime($row['created_at'])) . '</td>';
         echo '<td>';
-        echo '<button class="btn btn-sm btn-info edit-btn" data-id="' . $row['id'] . '"><i class="fas fa-edit"></i> Edit</button> ';
+        echo '<button class="btn btn-sm btn-info" onclick="viewUser(' . $row['id'] . ')"><i class="fas fa-eye"></i> View</button> ';
+        echo '<a href="../user.php?id=' . $row['id'] . '" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a> ';
         echo '<button class="btn btn-sm btn-danger delete-btn" data-id="' . $row['id'] . '"><i class="fas fa-trash"></i> Delete</button>';
         echo '</td>';
         echo '</tr>';
@@ -52,8 +55,8 @@ if ($action === 'save') {
     } else {
         // Add
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare('INSERT INTO users (username, email, full_name, role, password_hash) VALUES (?, ?, ?, ?, ?)');
-        $stmt->execute([$username, $email, $full_name, $role, $hash]);
+        $stmt = $pdo->prepare('INSERT INTO users (username, email, full_name, role, password_hash, added_by) VALUES (?, ?, ?, ?, ?, ?)');
+        $stmt->execute([$username, $email, $full_name, $role, $hash, $_SESSION['user_id']]);
     }
     exit('success');
 }

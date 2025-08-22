@@ -2,6 +2,7 @@
 <?php include 'inc/header.php'; ?>
 <?php include 'inc/navbar.php'; ?>
 <?php include 'inc/sidebar.php'; ?>
+
 <div class="content-wrapper">
     <section class="content-header">
         <div class="container-fluid">
@@ -9,126 +10,73 @@
                 <div class="col-sm-6">
                     <h1>Entry List</h1>
                 </div>
+                <div class="col-sm-6 text-right">
+                    <a href="entry.php" class="btn btn-primary"><i class="fas fa-plus"></i> Add New Entry</a>
+                    <a href="dashboard.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+                </div>
             </div>
         </div>
     </section>
+    
     <section class="content">
         <div class="container-fluid">
             <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">All Entries</h3>
+                    <div class="card-tools">
+                        <div class="input-group input-group-sm" style="width: 250px;">
+                            <input type="text" name="table_search" class="form-control float-right" placeholder="Search entries...">
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-default">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="card-body">
-                    <button class="btn btn-primary mb-2" id="addEntryBtn"><i class="fas fa-plus"></i> Add Entry</button>
-                    <table class="table table-bordered table-hover" id="entryTable">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>Patient</th>
-                                <th>Test</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Added By</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <!-- Entry rows will be loaded here by AJAX -->
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="entryTable">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Patient Name</th>
+                                    <th>Doctor Name</th>
+                                    <th>Test Name</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Entry rows will be loaded here by AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 </div>
 
-<!-- Add/Edit Entry Modal -->
+<!-- Entry Details Modal -->
 <div class="modal fade" id="entryModal" tabindex="-1" role="dialog" aria-labelledby="entryModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
-            <form id="entryForm">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="entryModalLabel">Add Entry</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="id" id="entryId">
-                    <div class="form-group">
-                        <label>Patient</label>
-                        <select class="form-control" name="patient_id" id="patient_id" required>
-                            <option value="">Select Patient</option>
-                            <?php
-                            try {
-                                $stmt = $pdo->query('SELECT id, client_name FROM patients ORDER BY client_name');
-                                while ($row = $stmt->fetch()) {
-                                    echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['client_name']) . '</option>';
-                                }
-                            } catch (PDOException $e) {
-                                echo '<option value="">No patients available</option>';
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Doctor</label>
-                        <select class="form-control" name="doctor_id" id="doctor_id">
-                            <option value="">Select Doctor</option>
-                            <?php
-                            try {
-                                $stmt = $pdo->query('SELECT id, name FROM doctors ORDER BY name');
-                                while ($row = $stmt->fetch()) {
-                                    echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['name']) . '</option>';
-                                }
-                            } catch (PDOException $e) {
-                                echo '<option value="">No doctors available</option>';
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Test</label>
-                        <select class="form-control" name="test_id" id="test_id" required>
-                            <option value="">Select Test</option>
-                            <?php
-                            try {
-                                $stmt = $pdo->query('SELECT id, test_name FROM tests ORDER BY test_name');
-                                while ($row = $stmt->fetch()) {
-                                    echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['test_name']) . '</option>';
-                                }
-                            } catch (PDOException $e) {
-                                echo '<option value="">No tests available</option>';
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Entry Date</label>
-                        <input type="datetime-local" class="form-control" name="entry_date" id="entry_date">
-                    </div>
-                    <div class="form-group">
-                        <label>Result Value</label>
-                        <input type="text" class="form-control" name="result_value" id="result_value">
-                    </div>
-                    <div class="form-group">
-                        <label>Unit</label>
-                        <input type="text" class="form-control" name="unit" id="unit">
-                    </div>
-                    <div class="form-group">
-                        <label>Remarks</label>
-                        <textarea class="form-control" name="remarks" id="remarks"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select class="form-control" name="status" id="status">
-                            <option value="pending">Pending</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
+            <div class="modal-header">
+                <h5 class="modal-title" id="entryModalLabel">Entry Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="entryModalBody">
+                <!-- Entry details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="editEntryBtn">Edit Entry</button>
+            </div>
         </div>
     </div>
 </div>
@@ -137,54 +85,64 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 function loadEntries() {
-        $.get('ajax/entry_ajax.php', {action: 'list'}, function(data) {
-                $('#entryTable tbody').html(data);
-        });
+    $.get('ajax/entry_ajax.php', {action: 'list'}, function(data) {
+        $('#entryTable tbody').html(data);
+    });
 }
 
-$(function() {
-        loadEntries();
+function viewEntry(id) {
+    $.get('ajax/entry_ajax.php', {action: 'get', id: id}, function(data) {
+        if (data) {
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr><td><strong>ID:</strong></td><td>${data.id}</td></tr>
+                            <tr><td><strong>Patient Name:</strong></td><td>${data.patient_name || 'N/A'}</td></tr>
+                            <tr><td><strong>Doctor Name:</strong></td><td>${data.doctor_name || 'N/A'}</td></tr>
+                            <tr><td><strong>Test Name:</strong></td><td>${data.test_name || 'N/A'}</td></tr>
+                            <tr><td><strong>Amount:</strong></td><td>₹${data.amount || 'N/A'}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr><td><strong>Status:</strong></td><td><span class="badge badge-${data.status === 'completed' ? 'success' : 'warning'}">${data.status || 'N/A'}</span></td></tr>
+                            <tr><td><strong>Added By:</strong></td><td>${data.added_by || 'N/A'}</td></tr>
+                            <tr><td><strong>Created At:</strong></td><td>${data.created_at || 'N/A'}</td></tr>
+                            <tr><td><strong>Updated At:</strong></td><td>${data.updated_at || 'N/A'}</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6><strong>Notes:</strong></h6>
+                        <p>${data.notes || 'No notes available'}</p>
+                    </div>
+                </div>
+            `;
+            $('#entryModalBody').html(html);
+            $('#entryModal').modal('show');
+        }
+    });
+}
 
-        $('#addEntryBtn').click(function() {
-                $('#entryForm')[0].reset();
-                $('#entryId').val('');
-                $('#entryModalLabel').text('Add Entry');
-                $('#entryModal').modal('show');
+$(document).ready(function() {
+    loadEntries();
+    
+    // Search functionality
+    $('input[name="table_search"]').on('keyup', function() {
+        let value = $(this).val().toLowerCase();
+        $('#entryTable tbody tr').filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
         });
-
-        $('#entryTable').on('click', '.edit-btn', function() {
-                var id = $(this).data('id');
-                $.get('ajax/entry_ajax.php', {action: 'get', id: id}, function(entry) {
-                        $('#entryId').val(entry.id);
-                        $('#patient_id').val(entry.patient_id);
-                        $('#doctor_id').val(entry.doctor_id);
-                        $('#test_id').val(entry.test_id);
-                        $('#entry_date').val(entry.entry_date ? entry.entry_date.replace(' ', 'T') : '');
-                        $('#result_value').val(entry.result_value);
-                        $('#unit').val(entry.unit);
-                        $('#remarks').val(entry.remarks);
-                        $('#status').val(entry.status);
-                        $('#entryModalLabel').text('Edit Entry');
-                        $('#entryModal').modal('show');
-                }, 'json');
-        });
-
-        $('#entryForm').submit(function(e) {
-                e.preventDefault();
-                $.post('ajax/entry_ajax.php', $(this).serialize() + '&action=save', function(resp) {
-                        $('#entryModal').modal('hide');
-                        loadEntries();
-                });
-        });
-
-        $('#entryTable').on('click', '.delete-btn', function() {
-                if (confirm('Are you sure you want to delete this entry?')) {
-                        var id = $(this).data('id');
-                        $.post('ajax/entry_ajax.php', {action: 'delete', id: id}, function(resp) {
-                                loadEntries();
-                        });
-                }
-        });
+    });
+    
+    // Edit button in modal
+    $('#editEntryBtn').click(function() {
+        let entryId = $('#entryModalBody').find('td:first').text();
+        window.location.href = 'entry.php?id=' + entryId;
+    });
 });
 </script>
+
 <?php include 'inc/footer.php'; ?>

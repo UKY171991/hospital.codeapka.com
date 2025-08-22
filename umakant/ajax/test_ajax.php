@@ -6,22 +6,23 @@ require_once '../inc/connection.php';
 $action = $_REQUEST['action'] ?? '';
 
 if ($action === 'list') {
-    $stmt = $pdo->query('SELECT t.*, u.username AS added_by_username FROM tests t LEFT JOIN users u ON t.added_by = u.id ORDER BY t.id DESC');
+    $stmt = $pdo->query('SELECT id, test_name, category, price, unit, reference_range, min_value, max_value, method, added_by, created_at FROM tests ORDER BY id DESC');
     while ($row = $stmt->fetch()) {
         echo '<tr>';
         echo '<td>' . htmlspecialchars($row['id']) . '</td>';
         echo '<td>' . htmlspecialchars($row['test_name']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['category']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['description']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['price']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['unit']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['reference_range']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['min_value']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['max_value']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['method']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['added_by_username'] ?? '') . '</td>';
+        echo '<td>' . htmlspecialchars($row['category'] ?? 'N/A') . '</td>';
+        echo '<td>₹' . htmlspecialchars($row['price']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['unit'] ?? 'N/A') . '</td>';
+        echo '<td>' . htmlspecialchars($row['reference_range'] ?? 'N/A') . '</td>';
+        echo '<td>' . htmlspecialchars($row['min_value'] ?? 'N/A') . '</td>';
+        echo '<td>' . htmlspecialchars($row['max_value'] ?? 'N/A') . '</td>';
+        echo '<td>' . htmlspecialchars($row['method'] ?? 'N/A') . '</td>';
+        echo '<td>' . htmlspecialchars($row['added_by']) . '</td>';
+        echo '<td>' . date('d M Y', strtotime($row['created_at'])) . '</td>';
         echo '<td>';
-        echo '<button class="btn btn-sm btn-info edit-btn" data-id="' . $row['id'] . '"><i class="fas fa-edit"></i> Edit</button> ';
+        echo '<button class="btn btn-sm btn-info" onclick="viewTest(' . $row['id'] . ')"><i class="fas fa-eye"></i> View</button> ';
+        echo '<a href="../test.php?id=' . $row['id'] . '" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a> ';
         echo '<button class="btn btn-sm btn-danger delete-btn" data-id="' . $row['id'] . '"><i class="fas fa-trash"></i> Delete</button>';
         echo '</td>';
         echo '</tr>';
@@ -49,13 +50,15 @@ if ($action === 'save') {
     $min_value = trim($_POST['min_value'] ?? '');
     $max_value = trim($_POST['max_value'] ?? '');
     $method = trim($_POST['method'] ?? '');
-    $added_by = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
+    
     if ($id) {
+        // Edit
         $stmt = $pdo->prepare('UPDATE tests SET test_name=?, category=?, description=?, price=?, unit=?, reference_range=?, min_value=?, max_value=?, method=? WHERE id=?');
         $stmt->execute([$test_name, $category, $description, $price, $unit, $reference_range, $min_value, $max_value, $method, $id]);
     } else {
+        // Add
         $stmt = $pdo->prepare('INSERT INTO tests (test_name, category, description, price, unit, reference_range, min_value, max_value, method, added_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        $stmt->execute([$test_name, $category, $description, $price, $unit, $reference_range, $min_value, $max_value, $method, $added_by]);
+        $stmt->execute([$test_name, $category, $description, $price, $unit, $reference_range, $min_value, $max_value, $method, $_SESSION['user_id']]);
     }
     exit('success');
 }
