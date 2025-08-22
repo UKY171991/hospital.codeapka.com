@@ -64,65 +64,9 @@
               </li>
             </ul>
           </li>
-          <li class="nav-item has-treeview">
-            <a href="#" class="nav-link">
-              <i class="nav-icon fas fa-plus"></i>
-              <p>
-                Add New
-                <i class="right fas fa-angle-left"></i>
-              </p>
-            </a>
-            <ul class="nav nav-treeview">
-              <li class="nav-item">
-                <a href="user.php" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Add User</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="doctor.php" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Add Doctor</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="patient.php" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Add Patient</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="test.php" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Add Test</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="test-category.php" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Add Test Category</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="entry.php" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Add Entry</p>
-                </a>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-item">
-            <a href="data-export.php" class="nav-link">
-              <i class="nav-icon fas fa-download"></i>
-              <p>Data Export</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="plan.php" class="nav-link">
-              <i class="nav-icon fas fa-calendar"></i>
-              <p>Menu Plan</p>
-            </a>
-          </li>
+
+
+
           <!-- Add more menu items here -->
         </ul>
       </nav>
