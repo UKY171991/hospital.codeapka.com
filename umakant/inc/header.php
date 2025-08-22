@@ -15,6 +15,31 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <!-- AdminLTE CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    
+    <!-- Custom CSS for Sidebar -->
+    <style>
+    /* Menu open/close state */
+    .nav-sidebar .nav-item .nav-treeview {
+        display: none;
+    }
+    .nav-sidebar .nav-item.menu-open > .nav-treeview {
+        display: block !important;
+    }
+    
+    /* Arrow rotation */
+    .nav-sidebar .nav-link > .right {
+        transition: transform .3s ease-in-out;
+    }
+    .nav-sidebar .nav-item.menu-open > .nav-link > .right {
+        transform: rotate(-90deg);
+    }
+    
+    /* Active menu styling */
+    .nav-sidebar .nav-link.active {
+        background-color: #007bff !important;
+        color: #fff !important;
+    }
+    </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">

@@ -1,11 +1,7 @@
 <?php
 // adminlte3/sidebar.php
-// Get current page filename
-$current_page = basename($_SERVER['PHP_SELF']);
-// Define pages that should open the Pathology Management menu
-$pathology_pages = ['user-list.php', 'doctor-list.php', 'patient-list.php', 'test-list.php', 'test-category-list.php', 'entry-list.php', 'user.php', 'doctor.php', 'patient.php', 'test.php', 'test-category.php', 'entry.php'];
-// Check if current page is in the pathology pages array
-$is_pathology_page = in_array($current_page, $pathology_pages);
+// Include the sidebar helper functions
+require_once 'sidebar-helper.php';
 ?>
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
@@ -22,7 +18,7 @@ $is_pathology_page = in_array($current_page, $pathology_pages);
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <!-- Dashboard -->
                 <li class="nav-item">
-                    <a href="dashboard.php" class="nav-link <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>">
+                    <a href="dashboard.php" class="nav-link <?php echo is_menu_active('dashboard.php') ? 'active' : ''; ?>">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>Dashboard</p>
                     </a>
@@ -39,37 +35,37 @@ $is_pathology_page = in_array($current_page, $pathology_pages);
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="user-list.php" class="nav-link <?php echo ($current_page == 'user-list.php' || $current_page == 'user.php') ? 'active' : ''; ?>">
+                            <a href="user-list.php" class="nav-link <?php echo is_menu_active(['user-list.php', 'user.php']) ? 'active' : ''; ?>">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Users Management</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="doctor-list.php" class="nav-link <?php echo ($current_page == 'doctor-list.php' || $current_page == 'doctor.php') ? 'active' : ''; ?>">
+                            <a href="doctor-list.php" class="nav-link <?php echo is_menu_active(['doctor-list.php', 'doctor.php']) ? 'active' : ''; ?>">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Doctors Management</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="patient-list.php" class="nav-link <?php echo ($current_page == 'patient-list.php' || $current_page == 'patient.php') ? 'active' : ''; ?>">
+                            <a href="patient-list.php" class="nav-link <?php echo is_menu_active(['patient-list.php', 'patient.php']) ? 'active' : ''; ?>">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Patients Management</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="test-list.php" class="nav-link <?php echo ($current_page == 'test-list.php' || $current_page == 'test.php') ? 'active' : ''; ?>">
+                            <a href="test-list.php" class="nav-link <?php echo is_menu_active(['test-list.php', 'test.php']) ? 'active' : ''; ?>">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Tests Management</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="test-category-list.php" class="nav-link <?php echo ($current_page == 'test-category-list.php' || $current_page == 'test-category.php') ? 'active' : ''; ?>">
+                            <a href="test-category-list.php" class="nav-link <?php echo is_menu_active(['test-category-list.php', 'test-category.php']) ? 'active' : ''; ?>">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Test Categories</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="entry-list.php" class="nav-link <?php echo ($current_page == 'entry-list.php' || $current_page == 'entry.php') ? 'active' : ''; ?>">
+                            <a href="entry-list.php" class="nav-link <?php echo is_menu_active(['entry-list.php', 'entry.php']) ? 'active' : ''; ?>">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Entry Management</p>
                             </a>
