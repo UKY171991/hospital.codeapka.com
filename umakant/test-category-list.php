@@ -11,7 +11,7 @@
                     <h1>Test Categories List</h1>
                 </div>
                 <div class="col-sm-6 text-right">
-                    <a href="test-category.php" class="btn btn-primary"><i class="fas fa-plus"></i> Add New Category</a>
+                    <button class="btn btn-primary" onclick="addCategory()"><i class="fas fa-plus"></i> Add New Category</button>
                     <a href="dashboard.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
                 </div>
             </div>
@@ -44,7 +44,6 @@
                                     <th>Description</th>
                                     <th>Added By</th>
                                     <th>Created At</th>
-                                    <th>Updated At</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -74,10 +73,51 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="editCategoryBtn">Edit Category</button>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Add/Edit Category Modal -->
+<div class="modal fade" id="categoryFormModal" tabindex="-1" role="dialog" aria-labelledby="categoryFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form id="categoryForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="categoryFormModalLabel">Add New Category</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="categoryId">
+                    <div class="form-group">
+                        <label for="name">Category Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Alert -->
+<div class="alert alert-success alert-dismissible fade" id="successAlert" style="display: none;">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <span id="successMessage"></span>
+</div>
+
+<div class="alert alert-danger alert-dismissible fade" id="errorAlert" style="display: none;">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <span id="errorMessage"></span>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -86,6 +126,26 @@
 function loadCategories() {
     $.get('ajax/test_category_ajax.php', {action: 'list'}, function(data) {
         $('#categoryTable tbody').html(data);
+    });
+}
+
+function addCategory() {
+    $('#categoryForm')[0].reset();
+    $('#categoryId').val('');
+    $('#categoryFormModalLabel').text('Add New Category');
+    $('#categoryFormModal').modal('show');
+}
+
+function editCategory(id) {
+    $.get('ajax/test_category_ajax.php', {action: 'get', id: id}, function(data) {
+        if (data) {
+            $('#categoryId').val(data.id);
+            $('#name').val(data.name);
+            $('#description').val(data.description);
+            
+            $('#categoryFormModalLabel').text('Edit Category');
+            $('#categoryFormModal').modal('show');
+        }
     });
 }
 
@@ -121,6 +181,35 @@ function viewCategory(id) {
     });
 }
 
+function deleteCategory(id) {
+    if (confirm('Are you sure you want to delete this test category?')) {
+        $.post('ajax/test_category_ajax.php', {action: 'delete', id: id}, function(response) {
+            if (response.status === 'success') {
+                showAlert('success', response.message);
+                loadCategories();
+            } else {
+                showAlert('error', response.message);
+            }
+        }, 'json');
+    }
+}
+
+function showAlert(type, message) {
+    if (type === 'success') {
+        $('#successMessage').text(message);
+        $('#successAlert').show().addClass('show');
+        setTimeout(function() {
+            $('#successAlert').hide().removeClass('show');
+        }, 3000);
+    } else {
+        $('#errorMessage').text(message);
+        $('#errorAlert').show().addClass('show');
+        setTimeout(function() {
+            $('#errorAlert').hide().removeClass('show');
+        }, 3000);
+    }
+}
+
 $(document).ready(function() {
     loadCategories();
     
@@ -132,10 +221,19 @@ $(document).ready(function() {
         });
     });
     
-    // Edit button in modal
-    $('#editCategoryBtn').click(function() {
-        let categoryId = $('#categoryModalBody').find('td:first').text();
-        window.location.href = 'test-category.php?id=' + categoryId;
+    // Form submission
+    $('#categoryForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.post('ajax/test_category_ajax.php', $(this).serialize() + '&action=save', function(response) {
+            if (response.status === 'success') {
+                showAlert('success', response.message);
+                $('#categoryFormModal').modal('hide');
+                loadCategories();
+            } else {
+                showAlert('error', response.message);
+            }
+        }, 'json');
     });
 });
 </script>

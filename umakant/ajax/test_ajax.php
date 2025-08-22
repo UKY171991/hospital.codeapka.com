@@ -22,8 +22,8 @@ if ($action === 'list') {
         echo '<td>' . date('d M Y', strtotime($row['created_at'])) . '</td>';
         echo '<td>';
         echo '<button class="btn btn-sm btn-info" onclick="viewTest(' . $row['id'] . ')"><i class="fas fa-eye"></i> View</button> ';
-        echo '<a href="../test.php?id=' . $row['id'] . '" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a> ';
-        echo '<button class="btn btn-sm btn-danger delete-btn" data-id="' . $row['id'] . '"><i class="fas fa-trash"></i> Delete</button>';
+        echo '<button class="btn btn-sm btn-warning" onclick="editTest(' . $row['id'] . ')"><i class="fas fa-edit"></i> Edit</button> ';
+        echo '<button class="btn btn-sm btn-danger" onclick="deleteTest(' . $row['id'] . ')"><i class="fas fa-trash"></i> Delete</button>';
         echo '</td>';
         echo '</tr>';
     }
@@ -55,16 +55,29 @@ if ($action === 'save') {
         // Edit
         $stmt = $pdo->prepare('UPDATE tests SET test_name=?, category=?, description=?, price=?, unit=?, reference_range=?, min_value=?, max_value=?, method=? WHERE id=?');
         $stmt->execute([$test_name, $category, $description, $price, $unit, $reference_range, $min_value, $max_value, $method, $id]);
+        $message = 'Test updated successfully!';
     } else {
         // Add
         $stmt = $pdo->prepare('INSERT INTO tests (test_name, category, description, price, unit, reference_range, min_value, max_value, method, added_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([$test_name, $category, $description, $price, $unit, $reference_range, $min_value, $max_value, $method, $_SESSION['user_id']]);
+        $message = 'Test added successfully!';
     }
-    exit('success');
+    
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'success', 'message' => $message]);
+    exit;
 }
 
 if ($action === 'delete' && isset($_POST['id'])) {
-    $stmt = $pdo->prepare('DELETE FROM tests WHERE id = ?');
-    $stmt->execute([$_POST['id']]);
-    exit('success');
+    try {
+        $stmt = $pdo->prepare('DELETE FROM tests WHERE id = ?');
+        $stmt->execute([$_POST['id']]);
+        
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'success', 'message' => 'Test deleted successfully!']);
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'error', 'message' => 'Error deleting test: ' . $e->getMessage()]);
+    }
+    exit;
 }

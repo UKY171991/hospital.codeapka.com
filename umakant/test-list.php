@@ -11,7 +11,7 @@
                     <h1>Test List</h1>
                 </div>
                 <div class="col-sm-6 text-right">
-                    <a href="test.php" class="btn btn-primary"><i class="fas fa-plus"></i> Add New Test</a>
+                    <button class="btn btn-primary" onclick="addTest()"><i class="fas fa-plus"></i> Add New Test</button>
                     <a href="dashboard.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
                 </div>
             </div>
@@ -79,10 +79,103 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="editTestBtn">Edit Test</button>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Add/Edit Test Modal -->
+<div class="modal fade" id="testFormModal" tabindex="-1" role="dialog" aria-labelledby="testFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <form id="testForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="testFormModalLabel">Add New Test</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="testId">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="test_name">Test Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="test_name" name="test_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="category">Category</label>
+                                <input type="text" class="form-control" id="category" name="category">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="price">Price <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="unit">Unit</label>
+                                <input type="text" class="form-control" id="unit" name="unit">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="reference_range">Reference Range</label>
+                                <input type="text" class="form-control" id="reference_range" name="reference_range">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="method">Method</label>
+                                <input type="text" class="form-control" id="method" name="method">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="min_value">Min Value</label>
+                                <input type="number" class="form-control" id="min_value" name="min_value" step="0.01">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="max_value">Max Value</label>
+                                <input type="number" class="form-control" id="max_value" name="max_value" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Test</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Alert -->
+<div class="alert alert-success alert-dismissible fade" id="successAlert" style="display: none;">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <span id="successMessage"></span>
+</div>
+
+<div class="alert alert-danger alert-dismissible fade" id="errorAlert" style="display: none;">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <span id="errorMessage"></span>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -91,6 +184,33 @@
 function loadTests() {
     $.get('ajax/test_ajax.php', {action: 'list'}, function(data) {
         $('#testTable tbody').html(data);
+    });
+}
+
+function addTest() {
+    $('#testForm')[0].reset();
+    $('#testId').val('');
+    $('#testFormModalLabel').text('Add New Test');
+    $('#testFormModal').modal('show');
+}
+
+function editTest(id) {
+    $.get('ajax/test_ajax.php', {action: 'get', id: id}, function(data) {
+        if (data) {
+            $('#testId').val(data.id);
+            $('#test_name').val(data.test_name);
+            $('#category').val(data.category);
+            $('#description').val(data.description);
+            $('#price').val(data.price);
+            $('#unit').val(data.unit);
+            $('#reference_range').val(data.reference_range);
+            $('#min_value').val(data.min_value);
+            $('#max_value').val(data.max_value);
+            $('#method').val(data.method);
+            
+            $('#testFormModalLabel').text('Edit Test');
+            $('#testFormModal').modal('show');
+        }
     });
 }
 
@@ -133,6 +253,35 @@ function viewTest(id) {
     });
 }
 
+function deleteTest(id) {
+    if (confirm('Are you sure you want to delete this test?')) {
+        $.post('ajax/test_ajax.php', {action: 'delete', id: id}, function(response) {
+            if (response.status === 'success') {
+                showAlert('success', response.message);
+                loadTests();
+            } else {
+                showAlert('error', response.message);
+            }
+        }, 'json');
+    }
+}
+
+function showAlert(type, message) {
+    if (type === 'success') {
+        $('#successMessage').text(message);
+        $('#successAlert').show().addClass('show');
+        setTimeout(function() {
+            $('#successAlert').hide().removeClass('show');
+        }, 3000);
+    } else {
+        $('#errorMessage').text(message);
+        $('#errorAlert').show().addClass('show');
+        setTimeout(function() {
+            $('#errorAlert').hide().removeClass('show');
+        }, 3000);
+    }
+}
+
 $(document).ready(function() {
     loadTests();
     
@@ -144,10 +293,19 @@ $(document).ready(function() {
         });
     });
     
-    // Edit button in modal
-    $('#editTestBtn').click(function() {
-        let testId = $('#testModalBody').find('td:first').text();
-        window.location.href = 'test.php?id=' + testId;
+    // Form submission
+    $('#testForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.post('ajax/test_ajax.php', $(this).serialize() + '&action=save', function(response) {
+            if (response.status === 'success') {
+                showAlert('success', response.message);
+                $('#testFormModal').modal('hide');
+                loadTests();
+            } else {
+                showAlert('error', response.message);
+            }
+        }, 'json');
     });
 });
 </script>
