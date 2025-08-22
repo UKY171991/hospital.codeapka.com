@@ -20,8 +20,8 @@ if ($action === 'list') {
         echo '<td>' . date('d M Y', strtotime($row['created_at'])) . '</td>';
         echo '<td>';
         echo '<button class="btn btn-sm btn-info" onclick="viewDoctor(' . $row['id'] . ')"><i class="fas fa-eye"></i> View</button> ';
-        echo '<a href="../doctor.php?id=' . $row['id'] . '" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a> ';
-        echo '<button class="btn btn-sm btn-danger delete-btn" data-id="' . $row['id'] . '"><i class="fas fa-trash"></i> Delete</button>';
+        echo '<button class="btn btn-sm btn-warning" onclick="editDoctor(' . $row['id'] . ')"><i class="fas fa-edit"></i> Edit</button> ';
+        echo '<button class="btn btn-sm btn-danger" onclick="deleteDoctor(' . $row['id'] . ')"><i class="fas fa-trash"></i> Delete</button>';
         echo '</td>';
         echo '</tr>';
     }
@@ -51,16 +51,29 @@ if ($action === 'save') {
         // Edit
         $stmt = $pdo->prepare('UPDATE doctors SET name=?, qualification=?, specialization=?, phone=?, email=?, address=?, registration_no=? WHERE id=?');
         $stmt->execute([$name, $qualification, $specialization, $phone, $email, $address, $registration_no, $id]);
+        $message = 'Doctor updated successfully!';
     } else {
         // Add
         $stmt = $pdo->prepare('INSERT INTO doctors (name, qualification, specialization, phone, email, address, registration_no, added_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([$name, $qualification, $specialization, $phone, $email, $address, $registration_no, $_SESSION['user_id']]);
+        $message = 'Doctor added successfully!';
     }
-    exit('success');
+    
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'success', 'message' => $message]);
+    exit;
 }
 
 if ($action === 'delete' && isset($_POST['id'])) {
-    $stmt = $pdo->prepare('DELETE FROM doctors WHERE id = ?');
-    $stmt->execute([$_POST['id']]);
-    exit('success');
+    try {
+        $stmt = $pdo->prepare('DELETE FROM doctors WHERE id = ?');
+        $stmt->execute([$_POST['id']]);
+        
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'success', 'message' => 'Doctor deleted successfully!']);
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'error', 'message' => 'Error deleting doctor: ' . $e->getMessage()]);
+    }
+    exit;
 }

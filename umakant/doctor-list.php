@@ -11,7 +11,7 @@
                     <h1>Doctor List</h1>
                 </div>
                 <div class="col-sm-6 text-right">
-                    <a href="doctor.php" class="btn btn-primary"><i class="fas fa-plus"></i> Add New Doctor</a>
+                    <button class="btn btn-primary" onclick="addDoctor()"><i class="fas fa-plus"></i> Add New Doctor</button>
                     <a href="dashboard.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
                 </div>
             </div>
@@ -77,10 +77,89 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="editDoctorBtn">Edit Doctor</button>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Add/Edit Doctor Modal -->
+<div class="modal fade" id="doctorFormModal" tabindex="-1" role="dialog" aria-labelledby="doctorFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form id="doctorForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="doctorFormModalLabel">Add New Doctor</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="doctorId">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="name">Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="qualification">Qualification</label>
+                                <input type="text" class="form-control" id="qualification" name="qualification">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="specialization">Specialization</label>
+                                <input type="text" class="form-control" id="specialization" name="specialization">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="phone">Phone</label>
+                                <input type="text" class="form-control" id="phone" name="phone">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="registration_no">Registration No</label>
+                                <input type="text" class="form-control" id="registration_no" name="registration_no">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Doctor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Alert -->
+<div class="alert alert-success alert-dismissible fade" id="successAlert" style="display: none;">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <span id="successMessage"></span>
+</div>
+
+<div class="alert alert-danger alert-dismissible fade" id="errorAlert" style="display: none;">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <span id="errorMessage"></span>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -89,6 +168,31 @@
 function loadDoctors() {
     $.get('ajax/doctor_ajax.php', {action: 'list'}, function(data) {
         $('#doctorTable tbody').html(data);
+    });
+}
+
+function addDoctor() {
+    $('#doctorForm')[0].reset();
+    $('#doctorId').val('');
+    $('#doctorFormModalLabel').text('Add New Doctor');
+    $('#doctorFormModal').modal('show');
+}
+
+function editDoctor(id) {
+    $.get('ajax/doctor_ajax.php', {action: 'get', id: id}, function(data) {
+        if (data) {
+            $('#doctorId').val(data.id);
+            $('#name').val(data.name);
+            $('#qualification').val(data.qualification);
+            $('#specialization').val(data.specialization);
+            $('#phone').val(data.phone);
+            $('#email').val(data.email);
+            $('#address').val(data.address);
+            $('#registration_no').val(data.registration_no);
+            
+            $('#doctorFormModalLabel').text('Edit Doctor');
+            $('#doctorFormModal').modal('show');
+        }
     });
 }
 
@@ -124,6 +228,35 @@ function viewDoctor(id) {
     });
 }
 
+function deleteDoctor(id) {
+    if (confirm('Are you sure you want to delete this doctor?')) {
+        $.post('ajax/doctor_ajax.php', {action: 'delete', id: id}, function(response) {
+            if (response.status === 'success') {
+                showAlert('success', response.message);
+                loadDoctors();
+            } else {
+                showAlert('error', response.message);
+            }
+        }, 'json');
+    }
+}
+
+function showAlert(type, message) {
+    if (type === 'success') {
+        $('#successMessage').text(message);
+        $('#successAlert').show().addClass('show');
+        setTimeout(function() {
+            $('#successAlert').hide().removeClass('show');
+        }, 3000);
+    } else {
+        $('#errorMessage').text(message);
+        $('#errorAlert').show().addClass('show');
+        setTimeout(function() {
+            $('#errorAlert').hide().removeClass('show');
+        }, 3000);
+    }
+}
+
 $(document).ready(function() {
     loadDoctors();
     
@@ -135,10 +268,19 @@ $(document).ready(function() {
         });
     });
     
-    // Edit button in modal
-    $('#editDoctorBtn').click(function() {
-        let doctorId = $('#doctorModalBody').find('td:first').text();
-        window.location.href = 'doctor.php?id=' + doctorId;
+    // Form submission
+    $('#doctorForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.post('ajax/doctor_ajax.php', $(this).serialize() + '&action=save', function(response) {
+            if (response.status === 'success') {
+                showAlert('success', response.message);
+                $('#doctorFormModal').modal('hide');
+                loadDoctors();
+            } else {
+                showAlert('error', response.message);
+            }
+        }, 'json');
     });
 });
 </script>

@@ -20,8 +20,8 @@ if ($action === 'list') {
         echo '<td>' . date('d M Y', strtotime($row['created_at'])) . '</td>';
         echo '<td>';
         echo '<button class="btn btn-sm btn-info" onclick="viewPatient(' . $row['id'] . ')"><i class="fas fa-eye"></i> View</button> ';
-        echo '<a href="../patient.php?id=' . $row['id'] . '" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a> ';
-        echo '<button class="btn btn-sm btn-danger delete-btn" data-id="' . $row['id'] . '"><i class="fas fa-trash"></i> Delete</button>';
+        echo '<button class="btn btn-sm btn-warning" onclick="editPatient(' . $row['id'] . ')"><i class="fas fa-edit"></i> Edit</button> ';
+        echo '<button class="btn btn-sm btn-danger" onclick="deletePatient(' . $row['id'] . ')"><i class="fas fa-trash"></i> Delete</button>';
         echo '</td>';
         echo '</tr>';
     }
@@ -52,16 +52,29 @@ if ($action === 'save') {
         // Edit
         $stmt = $pdo->prepare('UPDATE patients SET client_name=?, mobile_number=?, father_or_husband=?, address=?, gender=?, age=?, age_unit=?, uhid=? WHERE id=?');
         $stmt->execute([$client_name, $mobile_number, $father_or_husband, $address, $gender, $age, $age_unit, $uhid, $id]);
+        $message = 'Patient updated successfully!';
     } else {
         // Add
         $stmt = $pdo->prepare('INSERT INTO patients (client_name, mobile_number, father_or_husband, address, gender, age, age_unit, uhid, added_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([$client_name, $mobile_number, $father_or_husband, $address, $gender, $age, $age_unit, $uhid, $_SESSION['user_id']]);
+        $message = 'Patient added successfully!';
     }
-    exit('success');
+    
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'success', 'message' => $message]);
+    exit;
 }
 
 if ($action === 'delete' && isset($_POST['id'])) {
-    $stmt = $pdo->prepare('DELETE FROM patients WHERE id = ?');
-    $stmt->execute([$_POST['id']]);
-    exit('success');
+    try {
+        $stmt = $pdo->prepare('DELETE FROM patients WHERE id = ?');
+        $stmt->execute([$_POST['id']]);
+        
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'success', 'message' => 'Patient deleted successfully!']);
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'error', 'message' => 'Error deleting patient: ' . $e->getMessage()]);
+    }
+    exit;
 }
