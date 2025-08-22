@@ -57,10 +57,13 @@
                         <select class="form-control" name="patient_id" id="patient_id" required>
                             <option value="">Select Patient</option>
                             <?php
-                            require_once 'inc/connection.php';
-                            $stmt = $pdo->query('SELECT id, client_name FROM patients ORDER BY client_name');
-                            while ($row = $stmt->fetch()) {
-                                echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['client_name']) . '</option>';
+                            try {
+                                $stmt = $pdo->query('SELECT id, client_name FROM patients ORDER BY client_name');
+                                while ($row = $stmt->fetch()) {
+                                    echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['client_name']) . '</option>';
+                                }
+                            } catch (PDOException $e) {
+                                echo '<option value="">No patients available</option>';
                             }
                             ?>
                         </select>
@@ -70,9 +73,13 @@
                         <select class="form-control" name="doctor_id" id="doctor_id">
                             <option value="">Select Doctor</option>
                             <?php
-                            $stmt = $pdo->query('SELECT id, name FROM doctors ORDER BY name');
-                            while ($row = $stmt->fetch()) {
-                                echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['name']) . '</option>';
+                            try {
+                                $stmt = $pdo->query('SELECT id, name FROM doctors ORDER BY name');
+                                while ($row = $stmt->fetch()) {
+                                    echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['name']) . '</option>';
+                                }
+                            } catch (PDOException $e) {
+                                echo '<option value="">No doctors available</option>';
                             }
                             ?>
                         </select>
@@ -82,9 +89,13 @@
                         <select class="form-control" name="test_id" id="test_id" required>
                             <option value="">Select Test</option>
                             <?php
-                            $stmt = $pdo->query('SELECT id, test_name FROM tests ORDER BY test_name');
-                            while ($row = $stmt->fetch()) {
-                                echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['test_name']) . '</option>';
+                            try {
+                                $stmt = $pdo->query('SELECT id, test_name FROM tests ORDER BY test_name');
+                                while ($row = $stmt->fetch()) {
+                                    echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['test_name']) . '</option>';
+                                }
+                            } catch (PDOException $e) {
+                                echo '<option value="">No tests available</option>';
                             }
                             ?>
                         </select>
