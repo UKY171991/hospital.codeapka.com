@@ -154,8 +154,6 @@
     <span id="errorMessage"></span>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 function loadUsers() {
     $.get('ajax/user_ajax.php', {action: 'list'}, function(data) {
@@ -199,18 +197,17 @@ function viewUser(id) {
                     <div class="col-md-6">
                         <table class="table table-borderless">
                             <tr><td><strong>ID:</strong></td><td>${data.id}</td></tr>
-                            <tr><td><strong>Username:</strong></td><td>${data.username || 'N/A'}</td></tr>
+                            <tr><td><strong>Username:</strong></td><td>${data.username}</td></tr>
                             <tr><td><strong>Email:</strong></td><td>${data.email || 'N/A'}</td></tr>
                             <tr><td><strong>Full Name:</strong></td><td>${data.full_name || 'N/A'}</td></tr>
+                            <tr><td><strong>Role:</strong></td><td>${data.role}</td></tr>
                         </table>
                     </div>
                     <div class="col-md-6">
                         <table class="table table-borderless">
-                            <tr><td><strong>Role:</strong></td><td><span class="badge badge-${data.role === 'admin' ? 'danger' : 'info'}">${data.role || 'N/A'}</span></td></tr>
                             <tr><td><strong>Added By:</strong></td><td>${data.added_by || 'N/A'}</td></tr>
                             <tr><td><strong>Created At:</strong></td><td>${data.created_at || 'N/A'}</td></tr>
                             <tr><td><strong>Updated At:</strong></td><td>${data.updated_at || 'N/A'}</td></tr>
-                            <tr><td><strong>Expire:</strong></td><td>${data.expire || 'N/A'}</td></tr>
                         </table>
                     </div>
                 </div>

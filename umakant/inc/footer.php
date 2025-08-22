@@ -22,17 +22,13 @@
 <!-- AdminLTE App -->
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 
-<!-- AdminLTE for demo purposes -->
-<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/demo.js"></script>
-
 <script>
 $(document).ready(function() {
-    // AdminLTE initialization
-    $('body').Layout();
-    $('.nav-sidebar').Treeview('init');
+    // AdminLTE initialization for sidebar
     $('[data-widget="pushmenu"]').PushMenu();
+    $('[data-widget="treeview"]').Treeview('init');
     
-    console.log('AdminLTE components initialized successfully');
+    console.log('AdminLTE sidebar components initialized');
 });
 </script>
 </body>
