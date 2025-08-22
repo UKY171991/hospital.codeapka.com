@@ -3,11 +3,20 @@
 require_once 'inc/connection.php';
 
 // Get counts from database
-$userCount = $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
-$doctorCount = $pdo->query('SELECT COUNT(*) FROM doctors')->fetchColumn();
-$patientCount = $pdo->query('SELECT COUNT(*) FROM patients')->fetchColumn();
-$testCount = $pdo->query('SELECT COUNT(*) FROM tests')->fetchColumn();
-$entryCount = $pdo->query('SELECT COUNT(*) FROM entries')->fetchColumn();
+try {
+    $userCount = $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
+    $doctorCount = $pdo->query('SELECT COUNT(*) FROM doctors')->fetchColumn();
+    $patientCount = $pdo->query('SELECT COUNT(*) FROM patients')->fetchColumn();
+    $testCount = $pdo->query('SELECT COUNT(*) FROM tests')->fetchColumn();
+    $entryCount = $pdo->query('SELECT COUNT(*) FROM entries')->fetchColumn();
+} catch (PDOException $e) {
+    // Set default values if tables don't exist yet
+    $userCount = 0;
+    $doctorCount = 0;
+    $patientCount = 0;
+    $testCount = 0;
+    $entryCount = 0;
+}
 ?>
 <div class="content-wrapper">
     <!-- Content Header (Page header) -->
