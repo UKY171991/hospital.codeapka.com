@@ -23,8 +23,8 @@
                 </li>
                 
                 <!-- Pathology Menu -->
-                <li class="nav-item menu-open">
-                    <a href="#" class="nav-link">
+                <li class="nav-item <?php echo (in_array(basename($_SERVER['PHP_SELF']), ['user-list.php', 'doctor-list.php', 'patient-list.php', 'test-list.php', 'test-category-list.php', 'entry-list.php'])) ? 'menu-open' : ''; ?>">
+                    <a href="#" class="nav-link <?php echo (in_array(basename($_SERVER['PHP_SELF']), ['user-list.php', 'doctor-list.php', 'patient-list.php', 'test-list.php', 'test-category-list.php', 'entry-list.php'])) ? 'active' : ''; ?>">
                         <i class="nav-icon fas fa-flask"></i>
                         <p>
                             Pathology Management
