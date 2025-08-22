@@ -65,16 +65,19 @@
                                         </div>
                                                                 <div class="form-group">
                                                                         <label>Category</label>
-                                                                        <select class="form-control" name="category" id="category" required>
-                                                                                <option value="">Select Category</option>
-                                                                                <?php
-                                                                                require_once 'inc/connection.php';
-                                                                                $catStmt = $pdo->query('SELECT id, name FROM test_categories ORDER BY name');
-                                                                                while ($cat = $catStmt->fetch()) {
-                                                                                        echo '<option value="' . htmlspecialchars($cat['name']) . '">' . htmlspecialchars($cat['name']) . '</option>';
-                                                                                }
-                                                                                ?>
-                                                                        </select>
+                                                                                                                <select class="form-control" name="category" id="category" required>
+                                                <option value="">Select Category</option>
+                                                <?php
+                                                try {
+                                                    $catStmt = $pdo->query('SELECT id, name FROM test_categories ORDER BY name');
+                                                    while ($cat = $catStmt->fetch()) {
+                                                        echo '<option value="' . htmlspecialchars($cat['name']) . '">' . htmlspecialchars($cat['name']) . '</option>';
+                                                    }
+                                                } catch (PDOException $e) {
+                                                    echo '<option value="">No categories available</option>';
+                                                }
+                                                ?>
+                                        </select>
                                                                 </div>
                                         <div class="form-group">
                                                 <label>Description</label>
