@@ -64,7 +64,7 @@ $entryCount = $pdo->query('SELECT COUNT(*) FROM entries')->fetchColumn();
           <div class="col-lg-3 col-6">
             <div class="small-box bg-danger">
               <div class="inner">
-                <h3>3</h3>
+                <h3><?= $testCount ?></h3>
                 <p>Tests</p>
               </div>
               <div class="icon">
@@ -76,7 +76,7 @@ $entryCount = $pdo->query('SELECT COUNT(*) FROM entries')->fetchColumn();
           <div class="col-lg-3 col-6">
             <div class="small-box bg-primary">
               <div class="inner">
-                <h3>3</h3>
+                <h3><?= $entryCount ?></h3>
                 <p>Entries</p>
               </div>
               <div class="icon">
