@@ -10,5 +10,16 @@
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
     <!-- Popper.js for Bootstrap 4 -->
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    
+    <!-- Initialize AdminLTE components -->
+    <script>
+    $(document).ready(function() {
+        // Initialize AdminLTE treeview
+        $('[data-widget="treeview"]').Treeview('init');
+        
+        // Make sure sidebar toggle works
+        $('[data-widget="pushmenu"]').PushMenu('init');
+    });
+    </script>
 </body>
 </html>
