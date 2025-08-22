@@ -1,5 +1,4 @@
 <?php require_once 'inc/auth.php'; ?>
-?>
 <?php include 'inc/header.php'; ?>
 <?php include 'inc/navbar.php'; ?>
 <?php include 'inc/sidebar.php'; ?>
@@ -34,6 +33,10 @@
                         <!-- Entry rows will be loaded here by AJAX -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
 
 <!-- Add/Edit Entry Modal -->
@@ -173,9 +176,4 @@ $(function() {
         });
 });
 </script>
-                </div>
-            </div>
-        </div>
-    </section>
-</div>
 <?php include 'inc/footer.php'; ?>

@@ -2,7 +2,6 @@
 <?php include 'inc/header.php'; ?>
 <?php include 'inc/navbar.php'; ?>
 <?php include 'inc/sidebar.php'; ?>
-?>
 <div class="content-wrapper">
         <section class="content-header">
                 <div class="container-fluid">

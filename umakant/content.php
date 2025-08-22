@@ -1,5 +1,13 @@
 <?php
 // adminlte3/content.php
+require_once 'inc/connection.php';
+
+// Get counts from database
+$userCount = $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
+$doctorCount = $pdo->query('SELECT COUNT(*) FROM doctors')->fetchColumn();
+$patientCount = $pdo->query('SELECT COUNT(*) FROM patients')->fetchColumn();
+$testCount = $pdo->query('SELECT COUNT(*) FROM tests')->fetchColumn();
+$entryCount = $pdo->query('SELECT COUNT(*) FROM entries')->fetchColumn();
 ?>
 <div class="content-wrapper">
     <!-- Content Header (Page header) -->
@@ -20,7 +28,7 @@
           <div class="col-lg-3 col-6">
             <div class="small-box bg-info">
               <div class="inner">
-                <h3>4</h3>
+                <h3><?= $userCount ?></h3>
                 <p>Users</p>
               </div>
               <div class="icon">
@@ -32,7 +40,7 @@
           <div class="col-lg-3 col-6">
             <div class="small-box bg-success">
               <div class="inner">
-                <h3>3</h3>
+                <h3><?= $doctorCount ?></h3>
                 <p>Doctors</p>
               </div>
               <div class="icon">
@@ -44,7 +52,7 @@
           <div class="col-lg-3 col-6">
             <div class="small-box bg-warning">
               <div class="inner">
-                <h3>3</h3>
+                <h3><?= $patientCount ?></h3>
                 <p>Patients</p>
               </div>
               <div class="icon">

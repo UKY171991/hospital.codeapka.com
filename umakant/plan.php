@@ -1,5 +1,6 @@
 <?php
 // plan.php - Menu Plan Page
+require_once 'inc/auth.php';
 include_once 'inc/header.php';
 include_once 'inc/navbar.php';
 include_once 'inc/sidebar.php';

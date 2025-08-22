@@ -1,8 +1,3 @@
-if ($action === 'delete' && isset($_POST['id'])) {
-    $stmt = $pdo->prepare('DELETE FROM users WHERE id = ?');
-    $stmt->execute([$_POST['id']]);
-    exit('success');
-}
 <?php
 // ajax/user_ajax.php
 require_once '../inc/auth.php';
@@ -18,10 +13,10 @@ if ($action === 'list') {
         echo '<td>' . htmlspecialchars($row['username']) . '</td>';
         echo '<td>' . htmlspecialchars($row['email']) . '</td>';
         echo '<td>' . htmlspecialchars($row['role']) . '</td>';
-    echo '<td>';
-    echo '<button class="btn btn-sm btn-info edit-btn" data-id="' . $row['id'] . '"><i class="fas fa-edit"></i> Edit</button> ';
-    echo '<button class="btn btn-sm btn-danger delete-btn" data-id="' . $row['id'] . '"><i class="fas fa-trash"></i> Delete</button>';
-    echo '</td>';
+        echo '<td>';
+        echo '<button class="btn btn-sm btn-info edit-btn" data-id="' . $row['id'] . '"><i class="fas fa-edit"></i> Edit</button> ';
+        echo '<button class="btn btn-sm btn-danger delete-btn" data-id="' . $row['id'] . '"><i class="fas fa-trash"></i> Delete</button>';
+        echo '</td>';
         echo '</tr>';
     }
     exit;
@@ -43,6 +38,7 @@ if ($action === 'save') {
     $full_name = trim($_POST['full_name'] ?? '');
     $role = $_POST['role'] ?? 'user';
     $password = $_POST['password'] ?? '';
+    
     if ($id) {
         // Edit
         if ($password) {
@@ -59,5 +55,11 @@ if ($action === 'save') {
         $stmt = $pdo->prepare('INSERT INTO users (username, email, full_name, role, password_hash) VALUES (?, ?, ?, ?, ?)');
         $stmt->execute([$username, $email, $full_name, $role, $hash]);
     }
+    exit('success');
+}
+
+if ($action === 'delete' && isset($_POST['id'])) {
+    $stmt = $pdo->prepare('DELETE FROM users WHERE id = ?');
+    $stmt->execute([$_POST['id']]);
     exit('success');
 }

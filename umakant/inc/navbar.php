@@ -18,7 +18,7 @@
         <i class="fas fa-user-circle"></i> <span class="d-none d-md-inline">Profile</span>
       </a>
       <div class="dropdown-menu dropdown-menu-right">
-        <a href="profile.php" class="dropdown-item">
+        <a href="#" class="dropdown-item" onclick="alert('Profile feature coming soon!')">
           <i class="fas fa-user mr-2"></i> My Profile
         </a>
         <div class="dropdown-divider"></div>
