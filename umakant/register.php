@@ -230,7 +230,7 @@ render_page:
         </div>
         <div class="register-title">Create Account</div>
         <div class="register-subtitle">Pathology Lab Management System</div>
-        <div class="register-note">Complete the form below to register<br>(Your account will expire after 30 days)</div>
+        <div class="register-note">Complete the form below to register<br>(Your account will expire after 30 days)<br><small>Note: Only admin accounts can login to the system</small></div>
         
         <form method="post" autocomplete="off">
             <div class="form-group">

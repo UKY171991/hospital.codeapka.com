@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     
     try {
-        $stmt = $pdo->prepare('SELECT * FROM users WHERE username = ? AND is_active = 1');
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE username = ? AND is_active = 1 AND role = "admin"');
         $stmt->execute([$username]);
         $user = $stmt->fetch();
     } catch (PDOException $e) {
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
     } else {
-        $error = 'Invalid username or password!';
+        $error = 'Invalid username or password! Only admin users can login.';
     }
 }
 ?>
@@ -194,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <i class="fas fa-plus"></i>
         </div>
         <div class="login-title">Pathology Lab</div>
-        <div class="login-subtitle">Management System</div>
+        <div class="login-subtitle">Management System (Admin Only)</div>
         <form method="post" autocomplete="off">
             <div class="form-group input-group">
                 <span class="input-icon"><i class="far fa-user"></i></span>
