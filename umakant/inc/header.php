@@ -19,19 +19,13 @@
     
     <!-- Custom CSS for Sidebar -->
     <style>
-    /* Menu open/close state */
+    /* Menu open/close state - Always display submenu */
     .nav-sidebar .nav-item .nav-treeview {
-        display: none;
-    }
-    .nav-sidebar .nav-item.menu-open > .nav-treeview {
         display: block !important;
     }
     
-    /* Arrow rotation */
+    /* Arrow rotation - Always show rotated for open state */
     .nav-sidebar .nav-link > .right {
-        transition: transform .3s ease-in-out;
-    }
-    .nav-sidebar .nav-item.menu-open > .nav-link > .right {
         transform: rotate(-90deg);
     }
     

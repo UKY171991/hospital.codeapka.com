@@ -37,42 +37,22 @@
 <!-- Custom Sidebar Menu Script -->
 <script>
 $(document).ready(function() {
-    // Initialize sidebar menu
+    // Initialize sidebar menu - disable menu toggle on click
     
-    // Click handler for parent menu items
-    $('.nav-sidebar .nav-item > .nav-link').on('click', function(e) {
-        var $this = $(this);
-        var $parent = $this.parent('.nav-item');
-        var $treeview = $parent.find('.nav-treeview').first();
-        
-        if ($treeview.length > 0) {
-            e.preventDefault(); // Prevent navigation for parent menu items
-            
-            // Toggle menu-open class
-            $parent.toggleClass('menu-open');
-            
-            // Toggle submenu visibility with animation
-            if ($parent.hasClass('menu-open')) {
-                $treeview.slideDown(300);
-            } else {
-                $treeview.slideUp(300);
-            }
-            
-            console.log('Menu toggled');
-        }
-    });
+    // Remove click handler for parent menu items to prevent them from opening/closing
+    // This effectively makes the menu items not toggle on click
     
-    // Ensure sidebar toggle button works
+    // Ensure sidebar toggle button still works
     $('[data-widget="pushmenu"]').on('click', function(e) {
         e.preventDefault();
         $('body').toggleClass('sidebar-collapse');
         console.log('Sidebar toggle clicked');
     });
     
-    // Make sure submenus of active menu items are visible
+    // Make sure active menu items are visible by default
     $('.nav-sidebar .nav-item.menu-open > .nav-treeview').show();
     
-    console.log('Sidebar initialization complete');
+    console.log('Sidebar initialization complete with menu click disabled');
 });
 </script>
 </body>

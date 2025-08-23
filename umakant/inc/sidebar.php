@@ -36,8 +36,8 @@ require_once 'sidebar-helper.php';
                     </a>
                 </li>
                 
-                <!-- Pathology Menu -->
-                <li class="nav-item <?php echo $is_pathology_page ? 'menu-open' : ''; ?>">
+                <!-- Pathology Menu - Always add menu-open class regardless of current page -->
+                <li class="nav-item menu-open">
                     <a href="#" class="nav-link <?php echo $is_pathology_page ? 'active' : ''; ?>">
                         <i class="nav-icon fas fa-flask"></i>
                         <p>
@@ -45,7 +45,7 @@ require_once 'sidebar-helper.php';
                             <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
-                    <ul class="nav nav-treeview">
+                    <ul class="nav nav-treeview" style="display: block;">
                         <li class="nav-item">
                             <a href="user-list.php" class="nav-link <?php echo is_menu_active(['user-list.php', 'user.php']) ? 'active' : ''; ?>">
                                 <i class="far fa-circle nav-icon"></i>
@@ -85,8 +85,8 @@ require_once 'sidebar-helper.php';
                     </ul>
                 </li>
                 
-                <!-- Reports Menu -->
-                <li class="nav-item">
+                <!-- Reports Menu - Always add menu-open class -->
+                <li class="nav-item menu-open">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-chart-bar"></i>
                         <p>
@@ -94,9 +94,9 @@ require_once 'sidebar-helper.php';
                             <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
-                    <ul class="nav nav-treeview">
+                    <ul class="nav nav-treeview" style="display: block;">
                         <li class="nav-item">
-                            <a href="data-export.php" class="nav-link">
+                            <a href="data-export.php" class="nav-link <?php echo is_menu_active(['data-export.php']) ? 'active' : ''; ?>">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Data Export</p>
                             </a>
@@ -116,8 +116,8 @@ require_once 'sidebar-helper.php';
                     </ul>
                 </li>
                 
-                <!-- Settings Menu -->
-                <li class="nav-item">
+                <!-- Settings Menu - Always add menu-open class -->
+                <li class="nav-item menu-open">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-cog"></i>
                         <p>
@@ -125,7 +125,7 @@ require_once 'sidebar-helper.php';
                             <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
-                    <ul class="nav nav-treeview">
+                    <ul class="nav nav-treeview" style="display: block;">
                         <li class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
