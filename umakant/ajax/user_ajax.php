@@ -6,16 +6,19 @@ require_once '../inc/connection.php';
 $action = $_REQUEST['action'] ?? '';
 
 if ($action === 'list') {
-    $stmt = $pdo->query('SELECT id, username, email, full_name, role, added_by, created_at FROM users ORDER BY id DESC');
+    $stmt = $pdo->query('SELECT id, username, password_hash, full_name, email, role, added_by, created_at, updated_at, expire FROM users ORDER BY created_at DESC, id DESC');
     while ($row = $stmt->fetch()) {
         echo '<tr>';
         echo '<td>' . htmlspecialchars($row['id']) . '</td>';
         echo '<td>' . htmlspecialchars($row['username']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['email'] ?? 'N/A') . '</td>';
+        echo '<td>' . (isset($row['password_hash']) ? htmlspecialchars(substr($row['password_hash'], 0, 20) . '...') : 'N/A') . '</td>';
         echo '<td>' . htmlspecialchars($row['full_name'] ?? 'N/A') . '</td>';
+        echo '<td>' . htmlspecialchars($row['email'] ?? 'N/A') . '</td>';
         echo '<td><span class="badge badge-' . ($row['role'] === 'admin' ? 'danger' : 'info') . '">' . htmlspecialchars($row['role']) . '</span></td>';
-        echo '<td>' . htmlspecialchars($row['added_by']) . '</td>';
-        echo '<td>' . date('d M Y', strtotime($row['created_at'])) . '</td>';
+        echo '<td>' . htmlspecialchars($row['added_by'] ?? 'N/A') . '</td>';
+        echo '<td>' . ($row['created_at'] ? date('Y-m-d H:i:s', strtotime($row['created_at'])) : 'N/A') . '</td>';
+        echo '<td>' . ($row['updated_at'] ? date('Y-m-d H:i:s', strtotime($row['updated_at'])) : 'N/A') . '</td>';
+        echo '<td>' . ($row['expire'] ? date('Y-m-d H:i:s', strtotime($row['expire'])) : 'N/A') . '</td>';
         echo '<td>';
         echo '<button class="btn btn-sm btn-info" onclick="viewUser(' . $row['id'] . ')"><i class="fas fa-eye"></i> View</button> ';
         echo '<button class="btn btn-sm btn-warning" onclick="editUser(' . $row['id'] . ')"><i class="fas fa-edit"></i> Edit</button> ';

@@ -36,16 +36,19 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover" id="userTable">
+                        <table class="table table-bordered table-hover table-striped" id="userTable">
                             <thead class="thead-light">
                                 <tr>
                                     <th>ID</th>
                                     <th>Username</th>
-                                    <th>Email</th>
+                                    <th>Password Hash</th>
                                     <th>Full Name</th>
+                                    <th>Email</th>
                                     <th>Role</th>
                                     <th>Added By</th>
                                     <th>Created At</th>
+                                    <th>Updated At</th>
+                                    <th>Expire</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -198,6 +201,7 @@ function viewUser(id) {
                         <table class="table table-borderless">
                             <tr><td><strong>ID:</strong></td><td>${data.id}</td></tr>
                             <tr><td><strong>Username:</strong></td><td>${data.username}</td></tr>
+                            <tr><td><strong>Password Hash:</strong></td><td>${data.password_hash ? data.password_hash.substring(0, 20) + '...' : 'N/A'}</td></tr>
                             <tr><td><strong>Email:</strong></td><td>${data.email || 'N/A'}</td></tr>
                             <tr><td><strong>Full Name:</strong></td><td>${data.full_name || 'N/A'}</td></tr>
                             <tr><td><strong>Role:</strong></td><td>${data.role}</td></tr>
@@ -208,6 +212,7 @@ function viewUser(id) {
                             <tr><td><strong>Added By:</strong></td><td>${data.added_by || 'N/A'}</td></tr>
                             <tr><td><strong>Created At:</strong></td><td>${data.created_at || 'N/A'}</td></tr>
                             <tr><td><strong>Updated At:</strong></td><td>${data.updated_at || 'N/A'}</td></tr>
+                            <tr><td><strong>Expire:</strong></td><td>${data.expire || 'N/A'}</td></tr>
                         </table>
                     </div>
                 </div>
