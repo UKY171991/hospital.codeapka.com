@@ -210,6 +210,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="demo-credentials">Admin: <b>admin</b> / <b>admin123</b></div>
             <div class="demo-credentials">User: <b>user</b> / <b>user123</b></div>
         </div>
+        <div class="login-link" style="text-align: center; margin-top: 15px; font-size: 0.95rem; color: #555;">
+            Don't have an account? <a href="register.php" style="color: #2196f3; text-decoration: none; font-weight: 500;">Register here</a>
+        </div>
     </div>
     <script>
         function togglePassword() {

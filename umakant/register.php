@@ -1,39 +1,63 @@
 <?php
 // register.php
 require_once 'inc/connection.php';
-$success = '';
+session_start();
+
+// Redirect to dashboard if already logged in
+if (isset($_SESSION['user_id'])) {
+    header('Location: index.php');
+    exit;
+}
+
 $error = '';
+$success = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $email = trim($_POST['email'] ?? '');
+    $full_name = trim($_POST['full_name'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
-
-    if ($password !== $confirm_password) {
+    $role = 'user'; // Default role for new registrations
+    
+    // Validation
+    if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
+        $error = 'All fields are required!';
+    } elseif ($password !== $confirm_password) {
         $error = 'Passwords do not match!';
-    } elseif (strlen($username) < 3) {
-        $error = 'Username must be at least 3 characters.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Invalid email address.';
     } elseif (strlen($password) < 6) {
-        $error = 'Password must be at least 6 characters.';
+        $error = 'Password must be at least 6 characters long!';
     } else {
-        // Check if username or email exists
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ? OR email = ?');
-        $stmt->execute([$username, $email]);
-        if ($stmt->fetch()) {
-            $error = 'Username or email already exists!';
-        } else {
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare('INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)');
-            if ($stmt->execute([$username, $hash, $email])) {
-                $success = 'Registration successful! You can now <a href="login.php">login</a>.';
-            } else {
-                $error = 'Registration failed. Please try again.';
+        try {
+            // Check if username already exists
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE username = ?');
+            $stmt->execute([$username]);
+            if ($stmt->fetchColumn() > 0) {
+                $error = 'Username already exists!';
+                goto render_page;
             }
+            
+            // Check if email already exists
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE email = ?');
+            $stmt->execute([$email]);
+            if ($stmt->fetchColumn() > 0) {
+                $error = 'Email already exists!';
+                goto render_page;
+            }
+            
+            // Create new user
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare('INSERT INTO users (username, email, full_name, password_hash, role, added_by) VALUES (?, ?, ?, ?, ?, ?)');
+            $stmt->execute([$username, $email, $full_name, $hashed_password, $role, 0]); // 0 for self-registration
+            
+            $success = 'Account created successfully! You can now login.';
+        } catch (PDOException $e) {
+            $error = 'Registration failed: ' . $e->getMessage();
         }
     }
 }
+
+render_page:
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,6 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             justify-content: center;
             font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
         }
         .register-container {
             background: #f9f6fb;
@@ -92,6 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-group {
             width: 100%;
             margin-bottom: 18px;
+            position: relative;
         }
         .form-control {
             width: 100%;
@@ -113,9 +140,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: translateY(-50%);
             color: #b0b0b0;
             font-size: 1.1rem;
-        }
-        .input-group {
-            position: relative;
         }
         .toggle-password {
             position: absolute;
@@ -146,15 +170,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: #1769aa;
         }
         .login-link {
-            color: #1769aa;
             text-align: center;
-            font-size: 1rem;
-            text-decoration: none;
-            display: block;
-            margin-top: 8px;
+            margin-top: 15px;
+            font-size: 0.95rem;
+            color: #555;
         }
-        .login-link:hover {
+        .login-link a {
+            color: #2196f3;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .login-link a:hover {
             text-decoration: underline;
+        }
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+        }
+        .alert-error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
         }
         @media (max-width: 480px) {
             .register-container {
@@ -166,42 +210,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="register-container">
-        <?php if ($success): ?>
-            <div style="color:green; margin-bottom:12px; text-align:center;"> <?= $success ?> </div>
-        <?php elseif ($error): ?>
-            <div style="color:red; margin-bottom:12px; text-align:center;"> <?= $error ?> </div>
+        <?php if ($error): ?>
+            <div class="alert alert-error"> <?= $error ?> </div>
         <?php endif; ?>
+        
+        <?php if ($success): ?>
+            <div class="alert alert-success"> <?= $success ?> </div>
+        <?php endif; ?>
+        
         <div class="register-icon">
-            <i class="fas fa-plus"></i>
+            <i class="fas fa-user-plus"></i>
         </div>
-        <div class="register-title">Pathology Lab</div>
-        <div class="register-subtitle">Create Your Account</div>
+        <div class="register-title">Create Account</div>
+        <div class="register-subtitle">Pathology Lab Management System</div>
+        
         <form method="post" autocomplete="off">
-            <div class="form-group input-group">
-                <span class="input-icon"><i class="far fa-user"></i></span>
-                <input type="text" class="form-control" name="username" placeholder="Username" required>
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-icon"><i class="fas fa-user"></i></span>
+                    <input type="text" class="form-control" name="username" placeholder="Username" value="<?= htmlspecialchars($username ?? '') ?>" required>
+                </div>
             </div>
-            <div class="form-group input-group">
-                <span class="input-icon"><i class="far fa-envelope"></i></span>
-                <input type="email" class="form-control" name="email" placeholder="Email" required>
+            
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-icon"><i class="fas fa-envelope"></i></span>
+                    <input type="email" class="form-control" name="email" placeholder="Email" value="<?= htmlspecialchars($email ?? '') ?>" required>
+                </div>
             </div>
-            <div class="form-group input-group">
-                <span class="input-icon"><i class="fas fa-lock"></i></span>
-                <input type="password" class="form-control" name="password" id="password" placeholder="Password" required>
-                <button type="button" class="toggle-password" onclick="togglePassword()"><i class="far fa-eye" id="eyeIcon"></i></button>
+            
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-icon"><i class="fas fa-signature"></i></span>
+                    <input type="text" class="form-control" name="full_name" placeholder="Full Name" value="<?= htmlspecialchars($full_name ?? '') ?>">
+                </div>
             </div>
-            <div class="form-group input-group">
-                <span class="input-icon"><i class="fas fa-lock"></i></span>
-                <input type="password" class="form-control" name="confirm_password" id="confirm_password" placeholder="Confirm Password" required>
+            
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-icon"><i class="fas fa-lock"></i></span>
+                    <input type="password" class="form-control" name="password" id="password" placeholder="Password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('password', 'eyeIcon')">
+                        <i class="far fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
             </div>
-            <button type="submit" class="register-btn">Register</button>
+            
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-icon"><i class="fas fa-lock"></i></span>
+                    <input type="password" class="form-control" name="confirm_password" id="confirm_password" placeholder="Confirm Password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('confirm_password', 'confirmEyeIcon')">
+                        <i class="far fa-eye" id="confirmEyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <button type="submit" class="register-btn">Create Account</button>
         </form>
-        <a href="login.php" class="login-link">Already have an account? Sign In</a>
+        
+        <div class="login-link">
+            Already have an account? <a href="login.php">Sign In</a>
+        </div>
     </div>
+    
     <script>
-        function togglePassword() {
-            var pwd = document.getElementById('password');
-            var eye = document.getElementById('eyeIcon');
+        function togglePassword(inputId, eyeId) {
+            var pwd = document.getElementById(inputId);
+            var eye = document.getElementById(eyeId);
             if (pwd.type === 'password') {
                 pwd.type = 'text';
                 eye.classList.remove('fa-eye');
