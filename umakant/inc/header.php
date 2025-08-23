@@ -12,6 +12,8 @@
     
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
     <!-- Theme style -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
     <!-- Google Font: Source Sans Pro -->
@@ -62,6 +64,41 @@
     /* Smooth transition for menu items */
     .nav-treeview {
         transition: all 0.3s ease;
+    }
+    
+    /* Dropdown styling fixes */
+    .dropdown-menu {
+        z-index: 1000;
+    }
+    .dropdown.show .dropdown-menu {
+        display: block;
+    }
+    .dropdown-toggle::after {
+        display: inline-block;
+        margin-left: 0.255em;
+        vertical-align: 0.255em;
+        content: "";
+        border-top: 0.3em solid;
+        border-right: 0.3em solid transparent;
+        border-bottom: 0;
+        border-left: 0.3em solid transparent;
+    }
+    
+    /* Fix for user menu dropdown */
+    .user-menu.show .dropdown-menu {
+        display: block;
+    }
+    .user-header {
+        padding: 10px;
+        text-align: center;
+    }
+    .user-body {
+        padding: 10px;
+    }
+    .user-footer {
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
     }
     </style>
 </head>

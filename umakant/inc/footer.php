@@ -33,6 +33,15 @@
 <!-- OPTIONAL SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
 
+<!-- Debug script to check what's loaded -->
+<script>
+    $(function() {
+        console.log('jQuery version: ' + $.fn.jquery);
+        console.log('Bootstrap dropdown plugin: ' + (typeof $.fn.dropdown === 'function' ? 'Loaded' : 'Not loaded'));
+        console.log('AdminLTE version: ' + (typeof $.fn.Layout === 'function' ? 'Loaded' : 'Not available'));
+    });
+</script>
+
 <!-- Custom Scripts -->
 <script src="js/sidebar-menu.js"></script>
 <script src="js/admin-init.js"></script>

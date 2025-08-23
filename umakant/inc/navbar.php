@@ -31,7 +31,7 @@
   <ul class="navbar-nav ml-auto">
     <!-- Messages Dropdown Menu -->
     <li class="nav-item dropdown">
-      <a class="nav-link" data-toggle="dropdown" href="#">
+      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
         <i class="far fa-comments"></i>
         <span class="badge badge-danger navbar-badge">3</span>
       </a>
@@ -71,7 +71,7 @@
     </li>
     <!-- Notifications Dropdown Menu -->
     <li class="nav-item dropdown">
-      <a class="nav-link" data-toggle="dropdown" href="#">
+      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
         <i class="far fa-bell"></i>
         <span class="badge badge-warning navbar-badge">15</span>
       </a>
@@ -98,7 +98,7 @@
     </li>
     <!-- User Account Menu -->
     <li class="nav-item dropdown user-menu">
-      <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+      <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
         <i class="fas fa-user-circle fa-lg mr-1"></i>
         <span class="d-none d-md-inline">
           <?php 
