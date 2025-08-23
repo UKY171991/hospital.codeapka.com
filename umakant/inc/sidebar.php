@@ -37,7 +37,7 @@ require_once 'sidebar-helper.php';
                 </li>
                 
                 <!-- Pathology Menu - Only add menu-open class when on a pathology page -->
-                <li class="nav-item <?php echo $is_pathology_page ? 'menu-open' : ''; ?>">
+                <li class="nav-item has-treeview <?php echo $is_pathology_page ? 'menu-open' : ''; ?>">
                     <a href="#" class="nav-link <?php echo $is_pathology_page ? 'active' : ''; ?>">
                         <i class="nav-icon fas fa-flask"></i>
                         <p>
@@ -86,7 +86,7 @@ require_once 'sidebar-helper.php';
                 </li>
                 
                 <!-- Reports Menu - Only add menu-open class when on a report page -->
-                <li class="nav-item <?php echo $is_report_page ? 'menu-open' : ''; ?>">
+                <li class="nav-item has-treeview <?php echo $is_report_page ? 'menu-open' : ''; ?>">
                     <a href="#" class="nav-link <?php echo $is_report_page ? 'active' : ''; ?>">
                         <i class="nav-icon fas fa-chart-bar"></i>
                         <p>
@@ -117,7 +117,7 @@ require_once 'sidebar-helper.php';
                 </li>
                 
                 <!-- Settings Menu - Only add menu-open class when on a settings page -->
-                <li class="nav-item <?php echo $is_settings_page ? 'menu-open' : ''; ?>">
+                <li class="nav-item has-treeview <?php echo $is_settings_page ? 'menu-open' : ''; ?>">
                     <a href="#" class="nav-link <?php echo $is_settings_page ? 'active' : ''; ?>">
                         <i class="nav-icon fas fa-cog"></i>
                         <p>

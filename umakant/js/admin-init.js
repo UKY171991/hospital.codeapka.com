@@ -5,68 +5,48 @@
  */
 
 $(function() {
-    console.log('Initializing AdminLTE components...');
+    console.log('Initializing AdminLTE components with direct DOM methods...');
     
-    // Direct initialization of AdminLTE components
-    if ($.fn.AdminLTE) {
-        console.log('Using AdminLTE native initialization');
-    }
-    
-    // Initialize all dropdowns
+    // Ensure Bootstrap jQuery plugins are loaded
     if ($.fn.dropdown) {
         console.log('Bootstrap dropdown plugin loaded');
-        $('.dropdown-toggle').dropdown();
     } else {
-        console.error('Bootstrap dropdown plugin not available');
+        console.error('Bootstrap dropdown plugin not loaded!');
     }
     
-    // Initialize Layout and PushMenu
-    if ($.fn.Layout) {
-        $('body').Layout();
-        console.log('AdminLTE Layout initialized');
-    }
+    // Force initialize all dropdown toggles
+    $('.dropdown-toggle').dropdown();
     
-    if ($.fn.pushMenu) {
-        $('[data-widget="pushmenu"]').pushMenu();
-        console.log('AdminLTE PushMenu initialized');
-    }
-    
-    // Initialize the sidebar toggle manually if AdminLTE's PushMenu is not available
+    // Simple direct handler for sidebar toggle button
     $('#sidebarToggle, [data-widget="pushmenu"]').on('click', function(e) {
         e.preventDefault();
-        console.log('Sidebar toggle clicked');
+        e.stopPropagation();
+        console.log('Sidebar toggle button clicked');
         $('body').toggleClass('sidebar-collapse');
-        $('.main-sidebar').toggleClass('sidebar-closed sidebar-collapse');
-        
-        // Store state in localStorage
-        var sidebarState = $('body').hasClass('sidebar-collapse') ? 'collapsed' : 'expanded';
-        localStorage.setItem('sidebar-state', sidebarState);
-        
         return false;
     });
     
-    // Restore sidebar state from localStorage
-    var savedSidebarState = localStorage.getItem('sidebar-state');
-    if (savedSidebarState === 'collapsed') {
-        $('body').addClass('sidebar-collapse');
-        $('.main-sidebar').addClass('sidebar-closed sidebar-collapse');
-    }
-    
-    // Handle all dropdowns manually
-    $('.nav-item.dropdown').each(function() {
-        var $dropdown = $(this);
-        var $toggle = $dropdown.find('.dropdown-toggle');
-        var $menu = $dropdown.find('.dropdown-menu');
+    // Direct DOM handlers for top navbar dropdowns
+    $('.navbar .nav-item.dropdown > .nav-link').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         
-        $toggle.on('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            $dropdown.toggleClass('show');
-            $menu.toggleClass('show');
-        });
+        var $dropdown = $(this).parent();
+        var $menu = $dropdown.find('.dropdown-menu').first();
+        
+        // Close all other dropdowns
+        $('.navbar .dropdown').not($dropdown).removeClass('show');
+        $('.navbar .dropdown-menu').not($menu).removeClass('show');
+        
+        // Toggle this dropdown
+        $dropdown.toggleClass('show');
+        $menu.toggleClass('show');
+        
+        console.log('Navbar dropdown clicked:', $dropdown.hasClass('show') ? 'opened' : 'closed');
+        return false;
     });
     
-    // Close dropdowns when clicking outside
+    // Close dropdowns when clicking elsewhere on the page
     $(document).on('click', function(e) {
         if (!$(e.target).closest('.dropdown').length) {
             $('.dropdown').removeClass('show');
@@ -74,30 +54,13 @@ $(function() {
         }
     });
     
-    // Enable control sidebar
-    $('[data-widget="control-sidebar"]').on('click', function(e) {
-        e.preventDefault();
-        $('body').toggleClass('control-sidebar-slide-open');
-        $('.control-sidebar').toggleClass('control-sidebar-open');
-    });
-    
-    // Initialize other AdminLTE components
-    if ($.fn.Toasts) {
-        $('.toasts-top-right').Toasts();
+    // Initialize AdminLTE sidebar menu
+    if ($.fn.Treeview) {
+        $('[data-widget="treeview"]').Treeview('init');
+        console.log('AdminLTE Treeview initialized via plugin');
     }
     
-    // Initialize treeview menus
-    $('.nav-treeview').each(function() {
-        var $treeview = $(this);
-        var $parent = $treeview.closest('.nav-item');
-        
-        if ($parent.hasClass('menu-open') || $treeview.find('.nav-link.active').length > 0) {
-            $treeview.show();
-            $parent.addClass('menu-open');
-        } else {
-            $treeview.hide();
-        }
-    });
-    
+    // Debug output
+    console.log('Body classes:', $('body').attr('class'));
     console.log('AdminLTE component initialization complete');
 });

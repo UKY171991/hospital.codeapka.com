@@ -11,61 +11,48 @@ $(function() {
     enhanceSidebar();
     
     function enhanceSidebar() {
-        // Handle parent menu item clicks for toggle behavior
-        $('.nav-sidebar .has-treeview > .nav-link, .nav-sidebar .nav-item > .nav-link').off('click').on('click', function(e) {
+        // Simple click handler for all parent menu items
+        $('.nav-sidebar .nav-item > .nav-link').on('click', function(e) {
             var $navItem = $(this).parent('.nav-item');
-            var $treeview = $navItem.find('.nav-treeview').first();
+            var $treeview = $navItem.children('.nav-treeview').first();
             
-            // Only handle if this item has a submenu
+            // Only handle toggle if this item has a submenu
             if ($treeview.length > 0) {
                 e.preventDefault();
-                console.log('Menu item with submenu clicked');
+                e.stopPropagation(); // Prevent event bubbling
+                console.log('Menu item with submenu clicked:', $navItem.find('p').first().text());
                 
-                // Toggle the menu-open class and slide animation
+                $navItem.toggleClass('menu-open');
+                
                 if ($navItem.hasClass('menu-open')) {
-                    if ($(e.target).closest('.nav-treeview').length === 0) {
-                        $navItem.removeClass('menu-open');
-                        $treeview.slideUp(300);
-                        $(this).find('.right').removeClass('rotate-90');
-                    }
-                } else {
-                    // Optionally close other open menus at the same level
-                    $navItem.siblings('.menu-open').each(function() {
-                        $(this).removeClass('menu-open');
-                        $(this).find('.nav-treeview').first().slideUp(300);
-                        $(this).find('.nav-link .right').removeClass('rotate-90');
-                    });
-                    
-                    // Open this menu
-                    $navItem.addClass('menu-open');
                     $treeview.slideDown(300);
                     $(this).find('.right').addClass('rotate-90');
+                } else {
+                    $treeview.slideUp(300);
+                    $(this).find('.right').removeClass('rotate-90');
                 }
                 
                 return false;
             }
-            
-            // Allow default link behavior for items without submenu
         });
         
-        // Ensure initially active menu is visible
-        var $activeLinks = $('.nav-sidebar .nav-link.active');
-        
-        $activeLinks.each(function() {
+        // Force all active menu paths to be visible on page load
+        $('.nav-treeview .nav-link.active').each(function() {
             var $link = $(this);
-            var $parentItem = $link.closest('.nav-item');
-            var $parentTreeview = $link.closest('.nav-treeview');
+            var $parentItem = $link.closest('.nav-item').parent('.nav-treeview').parent('.nav-item');
             
-            if ($parentTreeview.length > 0) {
-                // This is a submenu item
-                console.log('Active submenu item found');
-                $parentTreeview.show();
-                $parentTreeview.parents('.nav-item').addClass('menu-open');
-                $parentTreeview.parents('.nav-item').children('.nav-link').addClass('active');
-                $parentTreeview.parents('.nav-item').find('.right').addClass('rotate-90');
+            // Make sure parent menu is open
+            if ($parentItem.length > 0) {
+                console.log('Setting parent menu open:', $parentItem.find('p').first().text());
+                $parentItem.addClass('menu-open');
+                $parentItem.children('.nav-treeview').show();
+                $parentItem.children('.nav-link').find('.right').addClass('rotate-90');
             }
         });
         
+        // Debug logging to check what's active
+        console.log('Active menu items:', $('.nav-link.active').length);
+        console.log('Menu items with treeview:', $('.nav-item').has('.nav-treeview').length);
         console.log('Sidebar enhancements complete');
     }
 });

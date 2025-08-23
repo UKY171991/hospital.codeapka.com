@@ -22,8 +22,38 @@
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
-    <!-- Custom CSS for Sidebar -->
     <style>
+    /* Critical dropdown menu fixes */
+    .dropdown-menu.show {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        z-index: 1000 !important;
+    }
+    
+    /* Fix dropdown toggle arrow */
+    .dropdown-toggle::after {
+        display: inline-block;
+        margin-left: 0.255em;
+        vertical-align: 0.255em;
+        content: "";
+        border-top: 0.3em solid;
+        border-right: 0.3em solid transparent;
+        border-bottom: 0;
+        border-left: 0.3em solid transparent;
+    }
+    
+    /* Fix sidebar menu arrow rotation */
+    .nav-sidebar .nav-item.menu-open > .nav-link > .right {
+        transform: rotate(-90deg);
+    }
+    
+    /* Ensure submenus appear on top of content */
+    .nav-treeview {
+        z-index: 10;
+        position: relative;
+    }
+    
     /* Menu open/close state - Display submenu only when menu-open class is present */
     .nav-sidebar .nav-item.menu-open > .nav-treeview {
         display: block !important;
@@ -72,16 +102,6 @@
     }
     .dropdown.show .dropdown-menu {
         display: block;
-    }
-    .dropdown-toggle::after {
-        display: inline-block;
-        margin-left: 0.255em;
-        vertical-align: 0.255em;
-        content: "";
-        border-top: 0.3em solid;
-        border-right: 0.3em solid transparent;
-        border-bottom: 0;
-        border-left: 0.3em solid transparent;
     }
     
     /* Fix for user menu dropdown */
