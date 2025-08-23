@@ -12,29 +12,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     
     try {
-        $stmt = $pdo->prepare('SELECT * FROM users WHERE username = ?');
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE username = ? AND is_active = 1');
         $stmt->execute([$username]);
         $user = $stmt->fetch();
     } catch (PDOException $e) {
         $error = 'Database error: ' . $e->getMessage();
         $user = false;
     }
-    if ($user && password_verify($password, $user['password_hash'])) {
-        // Only allow admin login
-        if ($user['role'] === 'admin') {
+    if ($user && $password === $user['password']) {
+        // Update last login time
+        $updateStmt = $pdo->prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP() WHERE id = ?');
+        $updateStmt->execute([$user['id']]);
+        
+        // Check if account is expired
+        if (!empty($user['expire_date']) && strtotime($user['expire_date']) < time()) {
+            $error = 'Your account has expired. Please contact the administrator.';
+        } else {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['full_name'] = $user['full_name'];
             $_SESSION['email'] = $user['email'];
             $_SESSION['created_at'] = $user['created_at'];
-            $_SESSION['updated_at'] = $user['updated_at'];
-           // $_SESSION['expire'] = $user['expire'];
-            $_SESSION['added_by'] = $user['added_by'];
+            
             header('Location: index.php');
             exit;
-        } else {
-            $error = 'Only admin users are allowed to login.';
         }
     } else {
         $error = 'Invalid username or password!';
@@ -207,8 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
         <div class="demo-box">
             <div class="demo-title"><i class="fas fa-info-circle"></i> Demo Credentials</div>
-            <div class="demo-credentials">Admin: <b>admin</b> / <b>admin123</b></div>
-            <div class="demo-credentials">User: <b>user</b> / <b>user123</b></div>
+            <div class="demo-credentials">Username: <b>admin</b> / Password: <b>admin123</b></div>
         </div>
         <div class="login-link" style="text-align: center; margin-top: 15px; font-size: 0.95rem; color: #555;">
             Don't have an account? <a href="register.php" style="color: #2196f3; text-decoration: none; font-weight: 500;">Register here</a>

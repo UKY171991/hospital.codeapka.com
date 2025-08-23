@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
     $role = 'user'; // Default role for new registrations
+    $is_active = 1; // Default active status
     
     // Validation
     if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
@@ -46,9 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             // Create new user
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare('INSERT INTO users (username, email, full_name, password_hash, role, added_by) VALUES (?, ?, ?, ?, ?, ?)');
-            $stmt->execute([$username, $email, $full_name, $hashed_password, $role, 0]); // 0 for self-registration
+            $stmt = $pdo->prepare('INSERT INTO users (username, password, full_name, email, role, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP())');
+            $stmt->execute([$username, $password, $full_name, $email, $role, $is_active]);
             
             $success = 'Account created successfully! You can now login.';
         } catch (PDOException $e) {
@@ -83,7 +83,7 @@ render_page:
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
             padding: 40px 32px 32px 32px;
-            width: 370px;
+            width: 400px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -112,6 +112,12 @@ render_page:
         .register-subtitle {
             color: #7a7a7a;
             font-size: 1rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .register-note {
+            color: #888;
+            font-size: 0.9rem;
             margin-bottom: 22px;
             text-align: center;
         }
@@ -223,6 +229,7 @@ render_page:
         </div>
         <div class="register-title">Create Account</div>
         <div class="register-subtitle">Pathology Lab Management System</div>
+        <div class="register-note">Complete the form below to register</div>
         
         <form method="post" autocomplete="off">
             <div class="form-group">
@@ -234,15 +241,15 @@ render_page:
             
             <div class="form-group">
                 <div class="input-group">
-                    <span class="input-icon"><i class="fas fa-envelope"></i></span>
-                    <input type="email" class="form-control" name="email" placeholder="Email" value="<?= htmlspecialchars($email ?? '') ?>" required>
+                    <span class="input-icon"><i class="fas fa-signature"></i></span>
+                    <input type="text" class="form-control" name="full_name" placeholder="Full Name" value="<?= htmlspecialchars($full_name ?? '') ?>" required>
                 </div>
             </div>
             
             <div class="form-group">
                 <div class="input-group">
-                    <span class="input-icon"><i class="fas fa-signature"></i></span>
-                    <input type="text" class="form-control" name="full_name" placeholder="Full Name" value="<?= htmlspecialchars($full_name ?? '') ?>">
+                    <span class="input-icon"><i class="fas fa-envelope"></i></span>
+                    <input type="email" class="form-control" name="email" placeholder="Email" value="<?= htmlspecialchars($email ?? '') ?>" required>
                 </div>
             </div>
             
