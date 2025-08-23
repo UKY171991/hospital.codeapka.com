@@ -2,7 +2,7 @@
  * Sidebar Menu Functionality
  * 
  * This script enhances AdminLTE's sidebar with custom behavior
- * - Always keep submenus of menu-open items visible
+ * - Handle menu open/close toggle properly
  * - Ensure proper styling for active menu items
  */
 
@@ -14,26 +14,41 @@ $(document).ready(function() {
     function enhanceSidebar() {
         console.log('Enhancing sidebar menu...');
         
-        // Make sure all menu-open items have their submenus visible
-        $('.nav-sidebar .nav-item.menu-open > .nav-treeview').show();
+        // Handle menu item clicks for proper toggle behavior
+        $('.nav-sidebar .nav-item > .nav-link').on('click', function(e) {
+            var $parent = $(this).parent('.nav-item');
+            var $treeview = $parent.find('.nav-treeview').first();
+            
+            // If this menu item has a submenu
+            if ($treeview.length > 0) {
+                e.preventDefault();
+                
+                // If this is the currently active menu, don't close it
+                if ($parent.hasClass('menu-open')) {
+                    // Allow closing if clicked directly on the parent menu item
+                    if ($(e.target).closest('.nav-treeview').length === 0) {
+                        $parent.removeClass('menu-open');
+                        $treeview.slideUp();
+                        $(this).find('.right').removeClass('rotate-90');
+                    }
+                } else {
+                    // Close all other open menus at the same level
+                    $parent.siblings('.menu-open').removeClass('menu-open').find('.nav-treeview').slideUp();
+                    
+                    // Open this menu
+                    $parent.addClass('menu-open');
+                    $treeview.slideDown();
+                    $(this).find('.right').addClass('rotate-90');
+                }
+            }
+        });
         
-        // Add proper active class to parent menu items when a child is active
+        // Ensure active menu is visible
         if ($('.nav-treeview .nav-link.active').length > 0) {
             $('.nav-treeview .nav-link.active').parents('.nav-item').addClass('menu-open');
             $('.nav-treeview .nav-link.active').parents('.nav-treeview').show();
             $('.nav-treeview .nav-link.active').parents('.nav-item').children('.nav-link').addClass('active');
         }
-        
-        // Allow parent menu items to be clickable but prevent toggle
-        $('.nav-sidebar .nav-item > .nav-link').on('click', function(e) {
-            var $parent = $(this).parent('.nav-item');
-            if ($parent.find('.nav-treeview').length > 0) {
-                // Only prevent default if submenu exists and we're clicking directly on parent menu
-                if($(e.target).closest('.nav-treeview').length === 0) {
-                    e.preventDefault();
-                }
-            }
-        });
         
         console.log('Sidebar enhancements complete');
     }

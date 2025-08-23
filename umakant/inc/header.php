@@ -22,14 +22,16 @@
     
     <!-- Custom CSS for Sidebar -->
     <style>
-    /* Menu open/close state - Always display submenu */
+    /* Menu open/close state - Display submenu only when menu-open class is present */
     .nav-sidebar .nav-item.menu-open > .nav-treeview {
         display: block !important;
     }
     
-    /* Arrow rotation - Always show rotated for open state */
-    .nav-sidebar .menu-open > .nav-link > .right {
+    /* Arrow rotation - Show rotated for open state */
+    .nav-sidebar .menu-open > .nav-link > .right,
+    .rotate-90 {
         transform: rotate(-90deg);
+        transition: transform 0.3s ease;
     }
     
     /* Active menu styling */
@@ -55,6 +57,11 @@
     .nav-sidebar .nav-treeview .nav-item {
         z-index: 1;
         position: relative;
+    }
+    
+    /* Smooth transition for menu items */
+    .nav-treeview {
+        transition: all 0.3s ease;
     }
     </style>
 </head>
