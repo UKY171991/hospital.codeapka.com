@@ -1,234 +1,134 @@
 <?php
-// login.php
-require_once 'inc/connection.php';
 session_start();
+
+// If user is already logged in, redirect to dashboard
 if (isset($_SESSION['user_id'])) {
     header('Location: index.php');
-    exit;
+    exit();
 }
+
 $error = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    require_once 'inc/connection.php';
     
-    try {
-        $stmt = $pdo->prepare('SELECT * FROM users WHERE username = ? AND is_active = 1 AND role = "admin"');
-        $stmt->execute([$username]);
-        $user = $stmt->fetch();
-    } catch (PDOException $e) {
-        $error = 'Database error: ' . $e->getMessage();
-        $user = false;
-    }
-    if ($user && $password === $user['password']) {
-        // Update last login time
-        $updateStmt = $pdo->prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP() WHERE id = ?');
-        $updateStmt->execute([$user['id']]);
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+    
+    // Check if user exists and is active
+    $stmt = $conn->prepare("SELECT id, username, password, role, is_active FROM users WHERE username = ? AND is_active = 1 AND role = 'admin'");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows == 1) {
+        $user = $result->fetch_assoc();
         
-        // Check if account is expired
-        if (!empty($user['expire_date']) && strtotime($user['expire_date']) < time()) {
-            $error = 'Your account has expired. Please contact the administrator.';
-        } else {
+        // Verify password
+        if (password_verify($password, $user['password'])) {
+            // Update last login
+            $updateStmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+            $updateStmt->bind_param("i", $user['id']);
+            $updateStmt->execute();
+            
+            // Set session variables
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
-            $_SESSION['full_name'] = $user['full_name'];
-            $_SESSION['email'] = $user['email'];
-            $_SESSION['created_at'] = $user['created_at'];
             
+            // Redirect to dashboard
             header('Location: index.php');
-            exit;
+            exit();
+        } else {
+            $error = 'Invalid username or password';
         }
     } else {
-        $error = 'Invalid username or password! Only admin users can login.';
+        $error = 'Invalid username or password';
     }
+    
+    $stmt->close();
+    $conn->close();
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Pathology Lab Management System</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pathology Lab Management System | Log in</title>
+
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
-        body {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #6a8dff 0%, #a084ee 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Segoe UI', Arial, sans-serif;
-        }
-        .login-container {
-            background: #f9f6fb;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-            padding: 40px 32px 32px 32px;
-            width: 370px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .login-icon {
-            background: #cbe7ff;
-            border-radius: 50%;
-            width: 70px;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 18px;
-        }
-        .login-icon i {
-            color: #3498f3;
-            font-size: 2.2rem;
-        }
-        .login-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #22223b;
-            margin-bottom: 4px;
-            text-align: center;
-        }
-        .login-subtitle {
-            color: #7a7a7a;
-            font-size: 1rem;
-            margin-bottom: 22px;
-            text-align: center;
-        }
-        .form-group {
-            width: 100%;
-            margin-bottom: 18px;
-        }
-        .form-control {
-            width: 100%;
-            padding: 12px 40px 12px 38px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1rem;
-            background: #fff;
-            outline: none;
-            transition: border 0.2s;
-        }
-        .form-control:focus {
-            border-color: #3498f3;
-        }
-        .input-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #b0b0b0;
-            font-size: 1.1rem;
-        }
-        .input-group {
-            position: relative;
-        }
-        .toggle-password {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #b0b0b0;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.1rem;
-        }
-        .login-btn {
-            width: 100%;
-            background: #2196f3;
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            padding: 12px 0;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-top: 8px;
-            margin-bottom: 18px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .login-btn:hover {
-            background: #1769aa;
-        }
-        .demo-box {
-            width: 100%;
-            background: #eaf4ff;
-            border: 1px solid #b3d8fd;
-            border-radius: 10px;
-            padding: 14px 18px;
-            color: #1769aa;
-            font-size: 0.98rem;
-            margin-top: 8px;
-        }
-        .demo-title {
-            font-weight: 500;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            font-size: 1rem;
-        }
-        .demo-title i {
-            margin-right: 6px;
-        }
-        .demo-credentials {
-            margin-left: 18px;
-            font-size: 0.97rem;
-        }
-        @media (max-width: 480px) {
-            .login-container {
-                width: 98vw;
-                padding: 24px 4vw 18px 4vw;
-            }
-        }
-    </style>
+    <!-- icheck bootstrap -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/icheck-bootstrap/3.0.1/icheck-bootstrap.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/css/adminlte.min.css">
 </head>
-<body>
-    <div class="login-container">
-        <?php if ($error): ?>
-            <div style="color:red; margin-bottom:12px; text-align:center;"> <?= $error ?> </div>
-        <?php endif; ?>
-        <div class="login-icon">
-            <i class="fas fa-plus"></i>
-        </div>
-        <div class="login-title">Pathology Lab</div>
-        <div class="login-subtitle">Management System (Admin Only)</div>
-        <form method="post" autocomplete="off">
-            <div class="form-group input-group">
-                <span class="input-icon"><i class="far fa-user"></i></span>
-                <input type="text" class="form-control" name="username" placeholder="Username" required>
-            </div>
-            <div class="form-group input-group">
-                <span class="input-icon"><i class="fas fa-lock"></i></span>
-                <input type="password" class="form-control" name="password" id="password" placeholder="Password" required>
-                <button type="button" class="toggle-password" onclick="togglePassword()"><i class="far fa-eye" id="eyeIcon"></i></button>
-            </div>
-            <button type="submit" class="login-btn">Sign In</button>
-        </form>
-        <div class="demo-box">
-            <div class="demo-title"><i class="fas fa-info-circle"></i> Demo Credentials</div>
-            <div class="demo-credentials">Username: <b>admin</b> / Password: <b>admin123</b></div>
-        </div>
-        <div class="login-link" style="text-align: center; margin-top: 15px; font-size: 0.95rem; color: #555;">
-            Don't have an account? <a href="register.php" style="color: #2196f3; text-decoration: none; font-weight: 500;">Register here</a>
-        </div>
+<body class="hold-transition login-page">
+<div class="login-box">
+    <div class="login-logo">
+        <a href="login.php"><b>Pathology Lab</b> Management</a>
     </div>
-    <script>
-        function togglePassword() {
-            var pwd = document.getElementById('password');
-            var eye = document.getElementById('eyeIcon');
-            if (pwd.type === 'password') {
-                pwd.type = 'text';
-                eye.classList.remove('fa-eye');
-                eye.classList.add('fa-eye-slash');
-            } else {
-                pwd.type = 'password';
-                eye.classList.remove('fa-eye-slash');
-                eye.classList.add('fa-eye');
-            }
-        }
-    </script>
+    <!-- /.login-logo -->
+    <div class="card">
+        <div class="card-body login-card-body">
+            <p class="login-box-msg">Sign in to start your session</p>
+
+            <?php if ($error): ?>
+                <div class="alert alert-danger"><?php echo $error; ?></div>
+            <?php endif; ?>
+
+            <form action="login.php" method="post">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Username" name="username" required>
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-user"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="password" class="form-control" placeholder="Password" name="password" required>
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-lock"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-8">
+                        <div class="icheck-primary">
+                            <input type="checkbox" id="remember">
+                            <label for="remember">
+                                Remember Me
+                            </label>
+                        </div>
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-4">
+                        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                    </div>
+                    <!-- /.col -->
+                </div>
+            </form>
+
+            <p class="mb-1">
+                <a href="#">I forgot my password</a>
+            </p>
+        </div>
+        <!-- /.login-card-body -->
+    </div>
+</div>
+<!-- /.login-box -->
+
+<!-- jQuery -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/adminlte.min.js"></script>
 </body>
 </html>

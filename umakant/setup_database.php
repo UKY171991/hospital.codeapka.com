@@ -1,116 +1,119 @@
 <?php
-// setup_database.php
-// Run this file once to set up the database tables
-
 require_once 'inc/connection.php';
 
-echo "<h2>Setting up database tables...</h2>";
+// Create tables
+$tables = [];
 
-try {
-    // Create users table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(50) UNIQUE NOT NULL,
-        email VARCHAR(100) UNIQUE NOT NULL,
-        full_name VARCHAR(100),
-        password_hash VARCHAR(255) NOT NULL,
-        role ENUM('user', 'admin') DEFAULT 'user',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        added_by INT
-    )");
-    echo "<p>✓ Users table created/verified</p>";
+// Users table
+$tables[] = "CREATE TABLE IF NOT EXISTS users (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    full_name VARCHAR(100) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('admin', 'user') DEFAULT 'user',
+    is_active TINYINT(1) DEFAULT 1,
+    last_login DATETIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    account_expires DATE
+)";
 
-    // Create doctors table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS doctors (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        qualification VARCHAR(100),
-        specialization VARCHAR(100),
-        phone VARCHAR(20),
-        email VARCHAR(100),
-        address TEXT,
-        registration_no VARCHAR(50),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        added_by INT
-    )");
-    echo "<p>✓ Doctors table created/verified</p>";
+// Doctors table
+$tables[] = "CREATE TABLE IF NOT EXISTS doctors (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    specialization VARCHAR(100),
+    phone VARCHAR(20),
+    email VARCHAR(100),
+    address TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)";
 
-    // Create patients table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS patients (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        client_name VARCHAR(100) NOT NULL,
-        mobile_number VARCHAR(20),
-        father_or_husband VARCHAR(100),
-        address TEXT,
-        gender ENUM('Male', 'Female', 'Other'),
-        age INT,
-        age_unit ENUM('Years', 'Months') DEFAULT 'Years',
-        uhid VARCHAR(50),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        added_by INT
-    )");
-    echo "<p>✓ Patients table created/verified</p>";
+// Patients table
+$tables[] = "CREATE TABLE IF NOT EXISTS patients (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    uhid VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    age INT(3),
+    gender ENUM('Male', 'Female', 'Other'),
+    phone VARCHAR(20),
+    email VARCHAR(100),
+    address TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)";
 
-    // Create test_categories table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS test_categories (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        description TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        added_by INT
-    )");
-    echo "<p>✓ Test categories table created/verified</p>";
+// Test categories table
+$tables[] = "CREATE TABLE IF NOT EXISTS test_categories (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)";
 
-    // Create tests table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS tests (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        test_name VARCHAR(100) NOT NULL,
-        category VARCHAR(100),
-        description TEXT,
-        price DECIMAL(10,2),
-        unit VARCHAR(50),
-        reference_range VARCHAR(100),
-        min_value DECIMAL(10,2),
-        max_value DECIMAL(10,2),
-        method VARCHAR(100),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        added_by INT
-    )");
-    echo "<p>✓ Tests table created/verified</p>";
+// Tests table
+$tables[] = "CREATE TABLE IF NOT EXISTS tests (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    category_id INT(11),
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) DEFAULT 0.00,
+    normal_range VARCHAR(100),
+    unit VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES test_categories(id)
+)";
 
-    // Create entries table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS entries (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        patient_id INT,
-        doctor_id INT,
-        test_id INT,
-        entry_date DATETIME,
-        result_value VARCHAR(100),
-        unit VARCHAR(50),
-        remarks TEXT,
-        status ENUM('pending', 'completed') DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        added_by INT
-    )");
-    echo "<p>✓ Entries table created/verified</p>";
+// Test entries table
+$tables[] = "CREATE TABLE IF NOT EXISTS entries (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT(11),
+    doctor_id INT(11),
+    test_id INT(11),
+    referring_doctor VARCHAR(100),
+    entry_date DATE,
+    result TEXT,
+    status ENUM('Pending', 'Completed') DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id),
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id),
+    FOREIGN KEY (test_id) REFERENCES tests(id)
+)";
 
-    // Insert default admin user if not exists
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username = 'admin'");
-    $stmt->execute();
-    if ($stmt->fetchColumn() == 0) {
-        $hash = password_hash('admin123', PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare("INSERT INTO users (username, email, full_name, password_hash, role) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute(['admin', 'admin@example.com', 'Administrator', $hash, 'admin']);
-        echo "<p>✓ Default admin user created (username: admin, password: admin123)</p>";
+$success = 0;
+$errors = [];
+
+foreach ($tables as $sql) {
+    if ($conn->query($sql) === TRUE) {
+        $success++;
     } else {
-        echo "<p>✓ Admin user already exists</p>";
+        $errors[] = $conn->error;
     }
-
-    echo "<h3>Database setup completed successfully!</h3>";
-    echo "<p><a href='login.php'>Go to Login</a></p>";
-
-} catch (PDOException $e) {
-    echo "<p style='color: red;'>Error setting up database: " . $e->getMessage() . "</p>";
 }
+
+// Insert default admin user
+$adminPassword = password_hash('admin123', PASSWORD_DEFAULT);
+$adminQuery = "INSERT IGNORE INTO users (username, email, full_name, password, role, is_active, account_expires) 
+               VALUES ('admin', 'admin@pathologylab.com', 'Administrator', '$adminPassword', 'admin', 1, DATE_ADD(NOW(), INTERVAL 365 DAY))";
+
+if ($conn->query($adminQuery) === TRUE) {
+    echo "Default admin user created successfully<br>";
+} else {
+    echo "Error creating admin user: " . $conn->error . "<br>";
+}
+
+$conn->close();
+
+echo "<h2>Database Setup Results</h2>";
+echo "<p>Successfully created $success tables</p>";
+
+if (!empty($errors)) {
+    echo "<h3>Errors:</h3>";
+    foreach ($errors as $error) {
+        echo "<p>$error</p>";
+    }
+} else {
+    echo "<p>All tables created successfully!</p>";
+}
+
+echo "<p><a href='login.php'>Go to Login</a></p>";
 ?>

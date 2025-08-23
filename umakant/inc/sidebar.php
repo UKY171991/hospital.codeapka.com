@@ -1,13 +1,12 @@
 <?php
-// adminlte3/sidebar.php
-// Include the sidebar helper functions
-require_once 'sidebar-helper.php';
+// Determine active page for menu highlighting
+$activePage = basename($_SERVER['PHP_SELF']);
 ?>
+
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
-    <a href="dashboard.php" class="brand-link">
-        <i class="fas fa-microscope brand-image img-circle elevation-3" style="opacity: .8; margin-left: 10px;"></i>
+    <a href="index.php" class="brand-link">
         <span class="brand-text font-weight-light">Pathology Lab</span>
     </a>
 
@@ -15,13 +14,9 @@ require_once 'sidebar-helper.php';
     <div class="sidebar">
         <!-- Sidebar user panel (optional) -->
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-            <div class="image">
-                <i class="fas fa-user-circle fa-2x text-light"></i>
-            </div>
             <div class="info">
-                <a href="#" class="d-block">
-                    <?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'User'; ?>
-                </a>
+                <a href="#" class="d-block"><?php echo htmlspecialchars($username); ?></a>
+                <small class="text-muted"><?php echo htmlspecialchars($role); ?></small>
             </div>
         </div>
 
@@ -30,124 +25,61 @@ require_once 'sidebar-helper.php';
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <!-- Dashboard -->
                 <li class="nav-item">
-                    <a href="dashboard.php" class="nav-link <?php echo is_menu_active('dashboard.php') ? 'active' : ''; ?>">
+                    <a href="index.php" class="nav-link <?php echo ($activePage == 'index.php') ? 'active' : ''; ?>">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>Dashboard</p>
                     </a>
                 </li>
-                
-                <!-- Pathology Menu - Only add menu-open class when on a pathology page -->
-                <li class="nav-item has-treeview <?php echo $is_pathology_page ? 'menu-open' : ''; ?>">
-                    <a href="#" class="nav-link <?php echo $is_pathology_page ? 'active' : ''; ?>">
-                        <i class="nav-icon fas fa-flask"></i>
-                        <p>
-                            Pathology Management
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview" style="display: <?php echo $is_pathology_page ? 'block' : 'none'; ?>;">
-                        <li class="nav-item">
-                            <a href="user-list.php" class="nav-link <?php echo is_menu_active(['user-list.php', 'user.php']) ? 'active' : ''; ?>">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Users Management</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="doctor-list.php" class="nav-link <?php echo is_menu_active(['doctor-list.php', 'doctor.php']) ? 'active' : ''; ?>">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Doctors Management</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="patient-list.php" class="nav-link <?php echo is_menu_active(['patient-list.php', 'patient.php']) ? 'active' : ''; ?>">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Patients Management</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="test-list.php" class="nav-link <?php echo is_menu_active(['test-list.php', 'test.php']) ? 'active' : ''; ?>">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Tests Management</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="test-category-list.php" class="nav-link <?php echo is_menu_active(['test-category-list.php', 'test-category.php']) ? 'active' : ''; ?>">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Test Categories</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="entry-list.php" class="nav-link <?php echo is_menu_active(['entry-list.php', 'entry.php']) ? 'active' : ''; ?>">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Entry Management</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <!-- Reports Menu - Only add menu-open class when on a report page -->
-                <li class="nav-item has-treeview <?php echo $is_report_page ? 'menu-open' : ''; ?>">
-                    <a href="#" class="nav-link <?php echo $is_report_page ? 'active' : ''; ?>">
-                        <i class="nav-icon fas fa-chart-bar"></i>
-                        <p>
-                            Reports
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview" style="display: <?php echo $is_report_page ? 'block' : 'none'; ?>;">
-                        <li class="nav-item">
-                            <a href="data-export.php" class="nav-link <?php echo is_menu_active(['data-export.php']) ? 'active' : ''; ?>">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Data Export</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Test Reports</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Financial Reports</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <!-- Settings Menu - Only add menu-open class when on a settings page -->
-                <li class="nav-item has-treeview <?php echo $is_settings_page ? 'menu-open' : ''; ?>">
-                    <a href="#" class="nav-link <?php echo $is_settings_page ? 'active' : ''; ?>">
-                        <i class="nav-icon fas fa-cog"></i>
-                        <p>
-                            Settings
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview" style="display: <?php echo $is_settings_page ? 'block' : 'none'; ?>;">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>System Settings</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>User Preferences</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <!-- Help Menu -->
+
+                <!-- Doctors -->
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-question-circle"></i>
-                        <p>Help & Support</p>
+                    <a href="doctor.php" class="nav-link <?php echo ($activePage == 'doctor.php') ? 'active' : ''; ?>">
+                        <i class="nav-icon fas fa-user-md"></i>
+                        <p>Doctors</p>
                     </a>
                 </li>
+
+                <!-- Patients -->
+                <li class="nav-item">
+                    <a href="patient.php" class="nav-link <?php echo ($activePage == 'patient.php') ? 'active' : ''; ?>">
+                        <i class="nav-icon fas fa-procedures"></i>
+                        <p>Patients</p>
+                    </a>
+                </li>
+
+                <!-- Test Categories -->
+                <li class="nav-item">
+                    <a href="test-category.php" class="nav-link <?php echo ($activePage == 'test-category.php') ? 'active' : ''; ?>">
+                        <i class="nav-icon fas fa-list"></i>
+                        <p>Test Categories</p>
+                    </a>
+                </li>
+
+                <!-- Tests -->
+                <li class="nav-item">
+                    <a href="test.php" class="nav-link <?php echo ($activePage == 'test.php') ? 'active' : ''; ?>">
+                        <i class="nav-icon fas fa-vial"></i>
+                        <p>Tests</p>
+                    </a>
+                </li>
+
+                <!-- Entries -->
+                <li class="nav-item">
+                    <a href="entry-list.php" class="nav-link <?php echo ($activePage == 'entry-list.php') ? 'active' : ''; ?>">
+                        <i class="nav-icon fas fa-file-medical"></i>
+                        <p>Test Entries</p>
+                    </a>
+                </li>
+
+                <!-- Users (Admin only) -->
+                <?php if ($role == 'admin'): ?>
+                <li class="nav-item">
+                    <a href="user.php" class="nav-link <?php echo ($activePage == 'user.php') ? 'active' : ''; ?>">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>Users</p>
+                    </a>
+                </li>
+                <?php endif; ?>
             </ul>
         </nav>
         <!-- /.sidebar-menu -->

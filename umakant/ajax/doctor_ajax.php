@@ -1,79 +1,115 @@
 <?php
-// ajax/doctor_ajax.php
-require_once '../inc/auth.php';
 require_once '../inc/connection.php';
 
-$action = $_REQUEST['action'] ?? '';
-
-if ($action === 'list') {
-    $stmt = $pdo->query('SELECT id, name, qualification, specialization, phone, email, registration_no, added_by, created_at FROM doctors ORDER BY id DESC');
-    while ($row = $stmt->fetch()) {
-        echo '<tr>';
-        echo '<td>' . htmlspecialchars($row['id']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['name']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['qualification'] ?? 'N/A') . '</td>';
-        echo '<td>' . htmlspecialchars($row['specialization'] ?? 'N/A') . '</td>';
-        echo '<td>' . htmlspecialchars($row['phone'] ?? 'N/A') . '</td>';
-        echo '<td>' . htmlspecialchars($row['email'] ?? 'N/A') . '</td>';
-        echo '<td>' . htmlspecialchars($row['registration_no'] ?? 'N/A') . '</td>';
-        echo '<td>' . htmlspecialchars($row['added_by']) . '</td>';
-        echo '<td>' . date('d M Y', strtotime($row['created_at'])) . '</td>';
-        echo '<td>';
-        echo '<button class="btn btn-sm btn-info" onclick="viewDoctor(' . $row['id'] . ')"><i class="fas fa-eye"></i> View</button> ';
-        echo '<button class="btn btn-sm btn-warning" onclick="editDoctor(' . $row['id'] . ')"><i class="fas fa-edit"></i> Edit</button> ';
-        echo '<button class="btn btn-sm btn-danger" onclick="deleteDoctor(' . $row['id'] . ')"><i class="fas fa-trash"></i> Delete</button>';
-        echo '</td>';
-        echo '</tr>';
-    }
-    exit;
+// Check if request is AJAX
+if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
+    header('HTTP/1.0 403 Forbidden');
+    exit('Access denied');
 }
 
-if ($action === 'get' && isset($_GET['id'])) {
-    $stmt = $pdo->prepare('SELECT * FROM doctors WHERE id = ?');
-    $stmt->execute([$_GET['id']]);
-    $doctor = $stmt->fetch();
-    header('Content-Type: application/json');
-    echo json_encode($doctor);
-    exit;
-}
-
-if ($action === 'save') {
-    $id = $_POST['id'] ?? '';
-    $name = trim($_POST['name'] ?? '');
-    $qualification = trim($_POST['qualification'] ?? '');
-    $specialization = trim($_POST['specialization'] ?? '');
-    $phone = trim($_POST['phone'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $address = trim($_POST['address'] ?? '');
-    $registration_no = trim($_POST['registration_no'] ?? '');
+// Handle different actions
+if (isset($_POST['action'])) {
+    $action = $_POST['action'];
     
-    if ($id) {
-        // Edit
-        $stmt = $pdo->prepare('UPDATE doctors SET name=?, qualification=?, specialization=?, phone=?, email=?, address=?, registration_no=? WHERE id=?');
-        $stmt->execute([$name, $qualification, $specialization, $phone, $email, $address, $registration_no, $id]);
-        $message = 'Doctor updated successfully!';
+    switch ($action) {
+        case 'add':
+            addDoctor($conn);
+            break;
+        case 'edit':
+            editDoctor($conn);
+            break;
+        case 'delete':
+            deleteDoctor($conn);
+            break;
+        case 'get':
+            getDoctor($conn);
+            break;
+        default:
+            echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
+    }
+} else {
+    echo json_encode(['status' => 'error', 'message' => 'No action specified']);
+}
+
+// Add doctor function
+function addDoctor($conn) {
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $specialization = mysqli_real_escape_string($conn, $_POST['specialization']);
+    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $address = mysqli_real_escape_string($conn, $_POST['address']);
+    
+    $sql = "INSERT INTO doctors (name, specialization, phone, email, address) VALUES (?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sssss", $name, $specialization, $phone, $email, $address);
+    
+    if ($stmt->execute()) {
+        echo json_encode(['status' => 'success', 'message' => 'Doctor added successfully', 'id' => $stmt->insert_id]);
     } else {
-        // Add
-        $stmt = $pdo->prepare('INSERT INTO doctors (name, qualification, specialization, phone, email, address, registration_no, added_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-        $stmt->execute([$name, $qualification, $specialization, $phone, $email, $address, $registration_no, $_SESSION['user_id']]);
-        $message = 'Doctor added successfully!';
+        echo json_encode(['status' => 'error', 'message' => 'Error adding doctor: ' . $conn->error]);
     }
     
-    header('Content-Type: application/json');
-    echo json_encode(['status' => 'success', 'message' => $message]);
-    exit;
+    $stmt->close();
 }
 
-if ($action === 'delete' && isset($_POST['id'])) {
-    try {
-        $stmt = $pdo->prepare('DELETE FROM doctors WHERE id = ?');
-        $stmt->execute([$_POST['id']]);
-        
-        header('Content-Type: application/json');
-        echo json_encode(['status' => 'success', 'message' => 'Doctor deleted successfully!']);
-    } catch (Exception $e) {
-        header('Content-Type: application/json');
-        echo json_encode(['status' => 'error', 'message' => 'Error deleting doctor: ' . $e->getMessage()]);
+// Edit doctor function
+function editDoctor($conn) {
+    $id = intval($_POST['id']);
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $specialization = mysqli_real_escape_string($conn, $_POST['specialization']);
+    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $address = mysqli_real_escape_string($conn, $_POST['address']);
+    
+    $sql = "UPDATE doctors SET name=?, specialization=?, phone=?, email=?, address=? WHERE id=?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sssssi", $name, $specialization, $phone, $email, $address, $id);
+    
+    if ($stmt->execute()) {
+        echo json_encode(['status' => 'success', 'message' => 'Doctor updated successfully']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Error updating doctor: ' . $conn->error]);
     }
-    exit;
+    
+    $stmt->close();
 }
+
+// Delete doctor function
+function deleteDoctor($conn) {
+    $id = intval($_POST['id']);
+    
+    $sql = "DELETE FROM doctors WHERE id=?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    
+    if ($stmt->execute()) {
+        echo json_encode(['status' => 'success', 'message' => 'Doctor deleted successfully']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Error deleting doctor: ' . $conn->error]);
+    }
+    
+    $stmt->close();
+}
+
+// Get doctor function
+function getDoctor($conn) {
+    $id = intval($_POST['id']);
+    
+    $sql = "SELECT * FROM doctors WHERE id=?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $doctor = $result->fetch_assoc();
+        echo json_encode(['status' => 'success', 'data' => $doctor]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Doctor not found']);
+    }
+    
+    $stmt->close();
+}
+
+$conn->close();
+?>

@@ -1,173 +1,106 @@
-<?php require_once 'inc/auth.php'; ?>
-<?php include 'inc/header.php'; ?>
-<?php include 'inc/navbar.php'; ?>
-<?php include 'inc/sidebar.php'; ?>
+<?php
+require_once 'inc/header.php';
+require_once 'inc/sidebar.php';
+?>
+
+<!-- Content Wrapper. Contains page content -->
 <div class="content-wrapper">
-        <section class="content-header">
-                <div class="container-fluid">
-                        <div class="row mb-2">
-                                <div class="col-sm-6">
-                                        <h1>Test List</h1>
-                                </div>
-                                <div class="col-sm-6 text-right">
-                                        <button class="btn btn-primary" id="addTestBtn"><i class="fas fa-plus"></i> Add Test</button>
-                                </div>
-                        </div>
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Tests</h1>
                 </div>
-        </section>
-        <section class="content">
-                <div class="container-fluid">
-                        <div class="card">
-                                <div class="card-body">
-                                        <table class="table table-bordered table-hover" id="testTable">
-                                                <thead class="thead-light">
-                                                        <tr>
-                                                                <th>ID</th>
-                                                                <th>Test Name</th>
-                                                                <th>Category</th>
-                                                                <th>Description</th>
-                                                                <th>Price (₹)</th>
-                                                                <th>Unit</th>
-                                                                <th>Reference Range</th>
-                                                                <th>Min Value</th>
-                                                                <th>Max Value</th>
-                                                                <th>Method</th>
-                                                                <th>Added By</th>
-                                                                <th>Actions</th>
-                                                        </tr>
-                                                </thead>
-                                                <tbody>
-                                                <!-- Test rows will be loaded here by AJAX -->
-                                                </tbody>
-                                        </table>
-                                </div>
-                        </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="index.php">Home</a></li>
+                        <li class="breadcrumb-item active">Tests</li>
+                    </ol>
                 </div>
-        </section>
-</div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
 
-<!-- Add/Edit Test Modal -->
-<div class="modal fade" id="testModal" tabindex="-1" role="dialog" aria-labelledby="testModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form id="testForm">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="testModalLabel">Add Test</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Test Management</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <table id="testsTable" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Category</th>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Price</th>
+                                        <th>Normal Range</th>
+                                        <th>Unit</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    require_once 'inc/connection.php';
+                                    
+                                    $sql = "SELECT t.id, tc.name as category_name, t.name, t.description, t.price, t.normal_range, t.unit 
+                                            FROM tests t 
+                                            LEFT JOIN test_categories tc ON t.category_id = tc.id 
+                                            ORDER BY t.id DESC";
+                                    $result = $conn->query($sql);
+                                    
+                                    if ($result->num_rows > 0) {
+                                        while($row = $result->fetch_assoc()) {
+                                            echo "<tr>";
+                                            echo "<td>" . $row['id'] . "</td>";
+                                            echo "<td>" . htmlspecialchars($row['category_name']) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row['description']) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row['price']) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row['normal_range']) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row['unit']) . "</td>";
+                                            echo "<td>";
+                                            echo "<a href='#' class='btn btn-info btn-sm' title='View'><i class='fas fa-eye'></i></a> ";
+                                            echo "<a href='#' class='btn btn-warning btn-sm' title='Edit'><i class='fas fa-edit'></i></a> ";
+                                            echo "<a href='#' class='btn btn-danger btn-sm' title='Delete'><i class='fas fa-trash'></i></a>";
+                                            echo "</td>";
+                                            echo "</tr>";
+                                        }
+                                    } else {
+                                        echo "<tr><td colspan='8' class='text-center'>No tests found</td></tr>";
+                                    }
+                                    $conn->close();
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                    <!-- /.card -->
                 </div>
-                <div class="modal-body">
-                    <input type="hidden" name="id" id="testId">
-                                        <div class="form-group">
-                                                <label>Test Name</label>
-                                                <input type="text" class="form-control" name="test_name" id="test_name" required>
-                                        </div>
-                                                                <div class="form-group">
-                                                                        <label>Category</label>
-                                                                                                                <select class="form-control" name="category" id="category" required>
-                                                <option value="">Select Category</option>
-                                                <?php
-                                                try {
-                                                    $catStmt = $pdo->query('SELECT id, name FROM test_categories ORDER BY name');
-                                                    while ($cat = $catStmt->fetch()) {
-                                                        echo '<option value="' . htmlspecialchars($cat['name']) . '">' . htmlspecialchars($cat['name']) . '</option>';
-                                                    }
-                                                } catch (PDOException $e) {
-                                                    echo '<option value="">No categories available</option>';
-                                                }
-                                                ?>
-                                        </select>
-                                                                </div>
-                                        <div class="form-group">
-                                                <label>Description</label>
-                                                <textarea class="form-control" name="description" id="description"></textarea>
-                                        </div>
-                                        <div class="form-group">
-                                                <label>Price</label>
-                                                <input type="number" step="0.01" class="form-control" name="price" id="price" required>
-                                        </div>
-                                        <div class="form-group">
-                                                <label>Unit</label>
-                                                <input type="text" class="form-control" name="unit" id="unit">
-                                        </div>
-                                        <div class="form-group">
-                                                <label>Reference Range</label>
-                                                <input type="text" class="form-control" name="reference_range" id="reference_range">
-                                        </div>
-                                        <div class="form-group">
-                                                <label>Min Value</label>
-                                                <input type="number" step="0.01" class="form-control" name="min_value" id="min_value">
-                                        </div>
-                                        <div class="form-group">
-                                                <label>Max Value</label>
-                                                <input type="number" step="0.01" class="form-control" name="max_value" id="max_value">
-                                        </div>
-                                        <div class="form-group">
-                                                <label>Method</label>
-                                                <input type="text" class="form-control" name="method" id="method">
-                                        </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
         </div>
-    </div>
+        <!-- /.container-fluid -->
+    </section>
+    <!-- /.content -->
 </div>
+<!-- /.content-wrapper -->
 
-<script>
-function loadTests() {
-        $.get('ajax/test_ajax.php', {action: 'list'}, function(data) {
-                $('#testTable tbody').html(data);
-        });
-}
-
-$(function() {
-        loadTests();
-
-        $('#addTestBtn').click(function() {
-                $('#testForm')[0].reset();
-                $('#testId').val('');
-                $('#testModalLabel').text('Add Test');
-                $('#testModal').modal('show');
-        });
-
-        $('#testTable').on('click', '.edit-btn', function() {
-                var id = $(this).data('id');
-                $.get('ajax/test_ajax.php', {action: 'get', id: id}, function(test) {
-                        $('#testId').val(test.id);
-                        $('#test_name').val(test.test_name);
-                        $('#category').val(test.category);
-                        $('#description').val(test.description);
-                        $('#price').val(test.price);
-                        $('#unit').val(test.unit);
-                        $('#reference_range').val(test.reference_range);
-                        $('#min_value').val(test.min_value);
-                        $('#max_value').val(test.max_value);
-                        $('#method').val(test.method);
-                        $('#testModalLabel').text('Edit Test');
-                        $('#testModal').modal('show');
-                }, 'json');
-        });
-
-        $('#testForm').submit(function(e) {
-                e.preventDefault();
-                $.post('ajax/test_ajax.php', $(this).serialize() + '&action=save', function(resp) {
-                        $('#testModal').modal('hide');
-                        loadTests();
-                });
-        });
-
-        $('#testTable').on('click', '.delete-btn', function() {
-                if (confirm('Are you sure you want to delete this test?')) {
-                        var id = $(this).data('id');
-                        $.post('ajax/test_ajax.php', {action: 'delete', id: id}, function(resp) {
-                                loadTests();
-                        });
-                }
-        });
-});
-</script>
-<?php include 'inc/footer.php'; ?>
+<?php require_once 'inc/footer.php'; ?>

@@ -1,0 +1,39 @@
+/* Custom CSS for Pathology Lab Management System */
+
+/* Ensure the sidebar is properly displayed */
+.main-sidebar {
+    min-height: 100vh;
+}
+
+/* Style for the brand logo */
+.brand-link {
+    border-bottom: 1px solid #4b545c;
+}
+
+/* Style for the user panel in sidebar */
+.user-panel {
+    border-bottom: 1px solid #4f5962;
+}
+
+/* Table styling */
+.table th {
+    background-color: #f8f9fa;
+}
+
+/* Card header styling */
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Button styling */
+.btn {
+    margin-right: 5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+    .main-sidebar {
+        min-height: auto;
+    }
+}

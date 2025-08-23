@@ -1,119 +1,97 @@
-<?php require_once 'inc/auth.php'; ?>
-<?php include 'inc/header.php'; ?>
-<?php include 'inc/navbar.php'; ?>
-<?php include 'inc/sidebar.php'; ?>
+<?php
+require_once 'inc/header.php';
+require_once 'inc/sidebar.php';
+?>
+
+<!-- Content Wrapper. Contains page content -->
 <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Test Category List</h1>
+                    <h1>Test Categories</h1>
                 </div>
-                <div class="col-sm-6 text-right">
-                    <button class="btn btn-primary" id="addCatBtn"><i class="fas fa-plus"></i> Add Category</button>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="index.php">Home</a></li>
+                        <li class="breadcrumb-item active">Test Categories</li>
+                    </ol>
                 </div>
             </div>
-        </div>
+        </div><!-- /.container-fluid -->
     </section>
+
+    <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
-            <div class="card">
-                <div class="card-body">
-                    <table class="table table-bordered table-hover" id="catTable">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th>Added By</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <!-- Category rows will be loaded here by AJAX -->
-                        </tbody>
-                    </table>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Test Category Management</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <table id="categoriesTable" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Created At</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    require_once 'inc/connection.php';
+                                    
+                                    $sql = "SELECT id, name, description, created_at FROM test_categories ORDER BY id DESC";
+                                    $result = $conn->query($sql);
+                                    
+                                    if ($result->num_rows > 0) {
+                                        while($row = $result->fetch_assoc()) {
+                                            echo "<tr>";
+                                            echo "<td>" . $row['id'] . "</td>";
+                                            echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row['description']) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row['created_at']) . "</td>";
+                                            echo "<td>";
+                                            echo "<a href='#' class='btn btn-info btn-sm' title='View'><i class='fas fa-eye'></i></a> ";
+                                            echo "<a href='#' class='btn btn-warning btn-sm' title='Edit'><i class='fas fa-edit'></i></a> ";
+                                            echo "<a href='#' class='btn btn-danger btn-sm' title='Delete'><i class='fas fa-trash'></i></a>";
+                                            echo "</td>";
+                                            echo "</tr>";
+                                        }
+                                    } else {
+                                        echo "<tr><td colspan='5' class='text-center'>No test categories found</td></tr>";
+                                    }
+                                    $conn->close();
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                    <!-- /.card -->
                 </div>
+                <!-- /.col -->
             </div>
+            <!-- /.row -->
         </div>
+        <!-- /.container-fluid -->
     </section>
+    <!-- /.content -->
 </div>
+<!-- /.content-wrapper -->
 
-<!-- Add/Edit Category Modal -->
-<div class="modal fade" id="catModal" tabindex="-1" role="dialog" aria-labelledby="catModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <form id="catForm">
-        <div class="modal-header">
-          <h5 class="modal-title" id="catModalLabel">Add Category</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" name="id" id="catId">
-          <div class="form-group">
-            <label>Name</label>
-            <input type="text" class="form-control" name="name" id="name" required>
-          </div>
-          <div class="form-group">
-            <label>Description</label>
-            <textarea class="form-control" name="description" id="description"></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<script>
-function loadCats() {
-    $.get('ajax/test_category_ajax.php', {action: 'list'}, function(data) {
-        $('#catTable tbody').html(data);
-    });
-}
-
-$(function() {
-    loadCats();
-
-    $('#addCatBtn').click(function() {
-        $('#catForm')[0].reset();
-        $('#catId').val('');
-        $('#catModalLabel').text('Add Category');
-        $('#catModal').modal('show');
-    });
-
-    $('#catTable').on('click', '.edit-btn', function() {
-        var id = $(this).data('id');
-        $.get('ajax/test_category_ajax.php', {action: 'get', id: id}, function(cat) {
-            $('#catId').val(cat.id);
-            $('#name').val(cat.name);
-            $('#description').val(cat.description);
-            $('#catModalLabel').text('Edit Category');
-            $('#catModal').modal('show');
-        }, 'json');
-    });
-
-    $('#catForm').submit(function(e) {
-        e.preventDefault();
-        $.post('ajax/test_category_ajax.php', $(this).serialize() + '&action=save', function(resp) {
-            $('#catModal').modal('hide');
-            loadCats();
-        });
-    });
-
-    $('#catTable').on('click', '.delete-btn', function() {
-        if (confirm('Are you sure you want to delete this category?')) {
-            var id = $(this).data('id');
-            $.post('ajax/test_category_ajax.php', {action: 'delete', id: id}, function(resp) {
-                loadCats();
-            });
-        }
-    });
-});
-</script>
-<?php include 'inc/footer.php'; ?>
+<?php require_once 'inc/footer.php'; ?>
