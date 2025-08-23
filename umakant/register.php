@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirm_password = $_POST['confirm_password'] ?? '';
     $role = 'user'; // Default role for new registrations
     $is_active = 1; // Default active status
+    $expire_date = date('Y-m-d', strtotime('+30 days')); // Set expiry date to 30 days from now
     
     // Validation
     if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
@@ -47,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             // Create new user
-            $stmt = $pdo->prepare('INSERT INTO users (username, password, full_name, email, role, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP())');
-            $stmt->execute([$username, $password, $full_name, $email, $role, $is_active]);
+            $stmt = $pdo->prepare('INSERT INTO users (username, password, full_name, email, role, is_active, created_at, expire_date) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(), ?)');
+            $stmt->execute([$username, $password, $full_name, $email, $role, $is_active, $expire_date]);
             
             $success = 'Account created successfully! You can now login.';
         } catch (PDOException $e) {
@@ -229,7 +230,7 @@ render_page:
         </div>
         <div class="register-title">Create Account</div>
         <div class="register-subtitle">Pathology Lab Management System</div>
-        <div class="register-note">Complete the form below to register</div>
+        <div class="register-note">Complete the form below to register<br>(Your account will expire after 30 days)</div>
         
         <form method="post" autocomplete="off">
             <div class="form-group">
