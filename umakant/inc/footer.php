@@ -35,5 +35,6 @@
 
 <!-- Custom Scripts -->
 <script src="js/sidebar-menu.js"></script>
+<script src="js/admin-init.js"></script>
 </body>
 </html>

@@ -6,7 +6,7 @@
   <!-- Left navbar links -->
   <ul class="navbar-nav">
     <li class="nav-item">
-      <a class="nav-link" data-widget="pushmenu" href="#" role="button">
+      <a class="nav-link" data-widget="pushmenu" href="#" role="button" id="sidebarToggle">
         <i class="fas fa-bars"></i>
       </a>
     </li>
@@ -98,7 +98,7 @@
     </li>
     <!-- User Account Menu -->
     <li class="nav-item dropdown user-menu">
-      <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+      <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
         <i class="fas fa-user-circle fa-lg mr-1"></i>
         <span class="d-none d-md-inline">
           <?php 
@@ -107,35 +107,35 @@
           ?>
         </span>
       </a>
-      <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
         <!-- User image -->
-        <li class="user-header bg-primary">
-          <i class="fas fa-user-circle fa-6x text-light"></i>
-          <p>
+        <div class="user-header bg-primary p-3 text-center">
+          <i class="fas fa-user-circle fa-6x text-light mb-2"></i>
+          <p class="mb-0">
             <?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'User'; ?>
-            <small>Member since <?php echo isset($_SESSION['created_at']) ? date('M Y', strtotime($_SESSION['created_at'])) : date('M Y'); ?></small>
+            <small class="d-block mt-1">Member since <?php echo isset($_SESSION['created_at']) ? date('M Y', strtotime($_SESSION['created_at'])) : date('M Y'); ?></small>
           </p>
-        </li>
+        </div>
         <!-- Menu Body -->
-        <li class="user-body">
-          <div class="row">
-            <div class="col-4 text-center">
-              <a href="#">Profile</a>
+        <div class="user-body p-2">
+          <div class="row text-center">
+            <div class="col-4">
+              <a href="#" class="btn btn-link btn-sm">Profile</a>
             </div>
-            <div class="col-4 text-center">
-              <a href="#">Settings</a>
+            <div class="col-4">
+              <a href="#" class="btn btn-link btn-sm">Settings</a>
             </div>
-            <div class="col-4 text-center">
-              <a href="#">Activity</a>
+            <div class="col-4">
+              <a href="#" class="btn btn-link btn-sm">Activity</a>
             </div>
           </div>
-        </li>
+        </div>
         <!-- Menu Footer-->
-        <li class="user-footer">
-          <a href="#" class="btn btn-default btn-flat" onclick="alert('Profile feature coming soon!')">Profile</a>
-          <a href="logout.php" class="btn btn-default btn-flat float-right">Sign out</a>
-        </li>
-      </ul>
+        <div class="user-footer d-flex justify-content-between p-2 border-top">
+          <a href="#" class="btn btn-default btn-sm" onclick="alert('Profile feature coming soon!')">Profile</a>
+          <a href="logout.php" class="btn btn-default btn-sm">Sign out</a>
+        </div>
+      </div>
     </li>
     <!-- Control Sidebar Toggle Button -->
     <li class="nav-item">
