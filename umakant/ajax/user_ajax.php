@@ -29,6 +29,26 @@ if ($action === 'list') {
     exit;
 }
 
+// This will be used for user.php table output
+if ($action === 'list_basic') {
+    $stmt = $pdo->query('SELECT id, username, email, full_name, role, expire FROM users ORDER BY created_at DESC, id DESC');
+    while ($row = $stmt->fetch()) {
+        echo '<tr>';
+        echo '<td>' . htmlspecialchars($row['id']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['username']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['email'] ?? 'N/A') . '</td>';
+        echo '<td>' . htmlspecialchars($row['full_name'] ?? 'N/A') . '</td>';
+        echo '<td><span class="badge badge-' . ($row['role'] === 'admin' ? 'danger' : 'info') . '">' . htmlspecialchars($row['role']) . '</span></td>';
+        echo '<td>' . ($row['expire'] ? date('Y-m-d H:i:s', strtotime($row['expire'])) : 'N/A') . '</td>';
+        echo '<td>';
+        echo '<button class="btn btn-sm btn-warning edit-btn" data-id="' . $row['id'] . '"><i class="fas fa-edit"></i> Edit</button> ';
+        echo '<button class="btn btn-sm btn-danger delete-btn" data-id="' . $row['id'] . '"><i class="fas fa-trash"></i> Delete</button>';
+        echo '</td>';
+        echo '</tr>';
+    }
+    exit;
+}
+
 if ($action === 'get' && isset($_GET['id'])) {
     $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
     $stmt->execute([$_GET['id']]);
@@ -45,16 +65,17 @@ if ($action === 'save') {
     $full_name = trim($_POST['full_name'] ?? '');
     $role = trim($_POST['role'] ?? '');
     $password = trim($_POST['password'] ?? '');
+    $expire = !empty($_POST['expire']) ? $_POST['expire'] : null;
     
     if ($id) {
         // Edit
         if ($password) {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare('UPDATE users SET username=?, email=?, full_name=?, role=?, password=? WHERE id=?');
-            $stmt->execute([$username, $email, $full_name, $role, $hashed_password, $id]);
+            $stmt = $pdo->prepare('UPDATE users SET username=?, email=?, full_name=?, role=?, password_hash=?, expire=? WHERE id=?');
+            $stmt->execute([$username, $email, $full_name, $role, $hashed_password, $expire, $id]);
         } else {
-            $stmt = $pdo->prepare('UPDATE users SET username=?, email=?, full_name=?, role=? WHERE id=?');
-            $stmt->execute([$username, $email, $full_name, $role, $id]);
+            $stmt = $pdo->prepare('UPDATE users SET username=?, email=?, full_name=?, role=?, expire=? WHERE id=?');
+            $stmt->execute([$username, $email, $full_name, $role, $expire, $id]);
         }
         $message = 'User updated successfully!';
     } else {
@@ -65,8 +86,8 @@ if ($action === 'save') {
             exit;
         }
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare('INSERT INTO users (username, email, full_name, role, password, added_by) VALUES (?, ?, ?, ?, ?, ?)');
-        $stmt->execute([$username, $email, $full_name, $role, $hashed_password, $_SESSION['user_id']]);
+        $stmt = $pdo->prepare('INSERT INTO users (username, email, full_name, role, password_hash, added_by, expire) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        $stmt->execute([$username, $email, $full_name, $role, $hashed_password, $_SESSION['user_id'], $expire]);
         $message = 'User added successfully!';
     }
     

@@ -87,7 +87,7 @@ require_once 'sidebar-helper.php';
                 
                 <!-- Reports Menu - Always add menu-open class -->
                 <li class="nav-item menu-open">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link <?php echo $is_report_page ? 'active' : ''; ?>">
                         <i class="nav-icon fas fa-chart-bar"></i>
                         <p>
                             Reports
@@ -118,7 +118,7 @@ require_once 'sidebar-helper.php';
                 
                 <!-- Settings Menu - Always add menu-open class -->
                 <li class="nav-item menu-open">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link <?php echo $is_settings_page ? 'active' : ''; ?>">
                         <i class="nav-icon fas fa-cog"></i>
                         <p>
                             Settings

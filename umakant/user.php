@@ -25,7 +25,9 @@
                                                                 <th>ID</th>
                                                                 <th>Username</th>
                                                                 <th>Email</th>
+                                                                <th>Full Name</th>
                                                                 <th>Role</th>
+                                                                <th>Expire</th>
                                                                 <th>Actions</th>
                                                         </tr>
                                                 </thead>
@@ -75,6 +77,10 @@
                             <option value="admin">Admin</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label>Expire Date</label>
+                        <input type="datetime-local" class="form-control" name="expire" id="expire">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -87,7 +93,7 @@
 
 <script>
 function loadUsers() {
-        $.get('ajax/user_ajax.php', {action: 'list'}, function(data) {
+        $.get('ajax/user_ajax.php', {action: 'list_basic'}, function(data) {
                 $('#userTable tbody').html(data);
         });
 }
@@ -114,6 +120,16 @@ $(document).ready(function() {
                         $('#full_name').val(user.full_name);
                         $('#role').val(user.role);
                         $('#password').val('');
+                        
+                        // Format expire date for datetime-local input
+                        if (user.expire) {
+                            var expireDate = new Date(user.expire);
+                            var formattedDate = expireDate.toISOString().slice(0, 16);
+                            $('#expire').val(formattedDate);
+                        } else {
+                            $('#expire').val('');
+                        }
+                        
                         $('#userModalLabel').text('Edit User');
                         // Ensure modal is properly initialized
                         $('#userModal').modal({show:true, backdrop:'static'});

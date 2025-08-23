@@ -50,6 +50,12 @@
         background-color: rgba(0,0,0,.03);
         border-bottom: 1px solid rgba(0,0,0,.125);
     }
+    
+    /* Ensure submenu items are clickable */
+    .nav-sidebar .nav-treeview .nav-item {
+        z-index: 1;
+        position: relative;
+    }
     </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
