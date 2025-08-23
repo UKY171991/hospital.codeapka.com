@@ -17,15 +17,18 @@
     <!-- Google Font: Source Sans Pro -->
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
     
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
     <!-- Custom CSS for Sidebar -->
     <style>
     /* Menu open/close state - Always display submenu */
-    .nav-sidebar .nav-item .nav-treeview {
+    .nav-sidebar .nav-item.menu-open > .nav-treeview {
         display: block !important;
     }
     
     /* Arrow rotation - Always show rotated for open state */
-    .nav-sidebar .nav-link > .right {
+    .nav-sidebar .menu-open > .nav-link > .right {
         transform: rotate(-90deg);
     }
     

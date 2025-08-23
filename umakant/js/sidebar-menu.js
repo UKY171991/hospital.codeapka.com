@@ -1,50 +1,32 @@
 /**
  * Sidebar Menu Functionality
  * 
- * This script handles the expanding/collapsing of sidebar menu items
- * and ensures proper menu state management.
+ * This script enhances AdminLTE's sidebar with custom behavior
+ * - Always keep submenus of menu-open items visible
+ * - Ensure proper styling for active menu items
  */
 
 $(document).ready(function() {
-    // Initialize sidebar menu
-    initSidebar();
+    // Let AdminLTE handle the basic initialization
+    // We'll just add our custom enhancements
+    enhanceSidebar();
     
-    function initSidebar() {
-        console.log('Initializing sidebar menu...');
+    function enhanceSidebar() {
+        console.log('Enhancing sidebar menu...');
         
-        // Click handler for parent menu items
-        $('.nav-sidebar .nav-item > .nav-link').on('click', function(e) {
-            var $this = $(this);
-            var $parent = $this.parent('.nav-item');
-            var $treeview = $parent.find('.nav-treeview').first();
-            
-            if ($treeview.length > 0) {
-                e.preventDefault(); // Prevent navigation for parent menu items
-                
-                // Toggle menu-open class
-                $parent.toggleClass('menu-open');
-                
-                // Toggle submenu visibility with animation
-                if ($parent.hasClass('menu-open')) {
-                    $treeview.slideDown(300);
-                } else {
-                    $treeview.slideUp(300);
-                }
-                
-                console.log('Menu toggled: ' + $this.find('p').text());
-            }
-        });
-        
-        // Ensure sidebar toggle button works
-        $('[data-widget="pushmenu"]').on('click', function(e) {
-            e.preventDefault();
-            $('body').toggleClass('sidebar-collapse');
-            console.log('Sidebar toggle clicked');
-        });
-        
-        // Make sure submenus of active menu items are visible
+        // Make sure all menu-open items have their submenus visible
         $('.nav-sidebar .nav-item.menu-open > .nav-treeview').show();
         
-        console.log('Sidebar initialization complete');
+        // Add proper active class to parent menu items when a child is active
+        if ($('.nav-treeview .nav-link.active').length > 0) {
+            $('.nav-treeview .nav-link.active').parents('.nav-item').addClass('menu-open');
+            $('.nav-treeview .nav-link.active').parents('.nav-treeview').show();
+        }
+        
+        // Remove default click behavior for sidebar items with submenus
+        // to keep them always expanded
+        $('.nav-sidebar .nav-item.has-treeview > .nav-link').off('click');
+        
+        console.log('Sidebar enhancements complete');
     }
 });

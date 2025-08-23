@@ -24,8 +24,7 @@
 </div> <!-- /.wrapper -->
 
 <!-- REQUIRED SCRIPTS -->
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- jQuery - already loaded in header -->
 <!-- Bootstrap 4 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <!-- AdminLTE App -->
@@ -34,26 +33,7 @@
 <!-- OPTIONAL SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
 
-<!-- Custom Sidebar Menu Script -->
-<script>
-$(document).ready(function() {
-    // Initialize sidebar menu - disable menu toggle on click
-    
-    // Remove click handler for parent menu items to prevent them from opening/closing
-    // This effectively makes the menu items not toggle on click
-    
-    // Ensure sidebar toggle button still works
-    $('[data-widget="pushmenu"]').on('click', function(e) {
-        e.preventDefault();
-        $('body').toggleClass('sidebar-collapse');
-        console.log('Sidebar toggle clicked');
-    });
-    
-    // Make sure active menu items are visible by default
-    $('.nav-sidebar .nav-item.menu-open > .nav-treeview').show();
-    
-    console.log('Sidebar initialization complete with menu click disabled');
-});
-</script>
+<!-- Custom Scripts -->
+<script src="js/sidebar-menu.js"></script>
 </body>
 </html>
