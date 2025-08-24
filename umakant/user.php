@@ -31,6 +31,9 @@ require_once 'inc/sidebar.php';
                         <div class="card-header">
                             <h3 class="card-title">User Management</h3>
                             <div class="card-tools">
+                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#userModal" onclick="openAddUserModal()">
+                                    <i class="fas fa-plus"></i> Add User
+                                </button>
                                 <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
                                     <i class="fas fa-minus"></i>
                                 </button>
@@ -72,9 +75,9 @@ require_once 'inc/sidebar.php';
                                         echo "<td>" . ($row['is_active'] ? 'Active' : 'Inactive') . "</td>";
                                         echo "<td>" . ($row['last_login'] ? $row['last_login'] : 'Never') . "</td>";
                                         echo "<td>";
-                                        echo "<a href='#' class='btn btn-info btn-sm' title='View'><i class='fas fa-eye'></i></a> ";
-                                        echo "<a href='#' class='btn btn-warning btn-sm' title='Edit'><i class='fas fa-edit'></i></a> ";
-                                        echo "<a href='#' class='btn btn-danger btn-sm' title='Delete'><i class='fas fa-trash'></i></a>";
+                                        echo "<a href='#' class='btn btn-info btn-sm view-user' data-id='" . $row['id'] . "' title='View'><i class='fas fa-eye'></i></a> ";
+                                        echo "<a href='#' class='btn btn-warning btn-sm edit-user' data-id='" . $row['id'] . "' title='Edit'><i class='fas fa-edit'></i></a> ";
+                                        echo "<a href='#' class='btn btn-danger btn-sm delete-user' data-id='" . $row['id'] . "' title='Delete'><i class='fas fa-trash'></i></a>";
                                         echo "</td>";
                                         echo "</tr>";
                                     }
@@ -95,5 +98,59 @@ require_once 'inc/sidebar.php';
     <!-- /.content -->
 </div>
 <!-- /.content-wrapper -->
+
+<!-- User Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" role="dialog" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userModalLabel">Add User</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="userId" name="id">
+                    <div class="form-group">
+                        <label for="userUsername">Username *</label>
+                        <input type="text" class="form-control" id="userUsername" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userPassword">Password *</label>
+                        <input type="password" class="form-control" id="userPassword" name="password" required>
+                        <small class="form-text text-muted">Leave blank to keep current password when editing</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="userFullName">Full Name *</label>
+                        <input type="text" class="form-control" id="userFullName" name="full_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userEmail">Email</label>
+                        <input type="email" class="form-control" id="userEmail" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="userRole">Role *</label>
+                        <select class="form-control" id="userRole" name="role" required>
+                            <option value="admin">Admin</option>
+                            <option value="user">User</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="userIsActive">Status *</label>
+                        <select class="form-control" id="userIsActive" name="is_active" required>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveUserBtn">Save User</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php require_once 'inc/footer.php'; ?>
