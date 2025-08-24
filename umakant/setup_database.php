@@ -116,12 +116,13 @@ $tables[] = "CREATE TABLE IF NOT EXISTS reports (
 $tables[] = "CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports (created_at)";
 $tables[] = "CREATE INDEX IF NOT EXISTS idx_reports_added_by ON reports (added_by)";
 
-// Entries table (Version 11)
+// Entries table (Version 12)
 $tables[] = "CREATE TABLE IF NOT EXISTS entries (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     patient_id INTEGER,
     doctor_id INTEGER,
     test_id INTEGER,
+    referring_doctor TEXT,
     entry_date TEXT,
     result_value TEXT,
     unit TEXT,

@@ -36,16 +36,17 @@ function addEntry($conn) {
     $patient_id = $_POST['patient_id'];
     $doctor_id = $_POST['doctor_id'];
     $test_id = $_POST['test_id'];
+    $referring_doctor = $_POST['referring_doctor'] ?? '';
     $entry_date = $_POST['entry_date'];
     $result_value = $_POST['result_value'];
     $unit = $_POST['unit'];
     $remarks = $_POST['remarks'];
     $status = $_POST['status'];
     
-    $stmt = $conn->prepare("INSERT INTO entries (patient_id, doctor_id, test_id, entry_date, result_value, unit, remarks, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO entries (patient_id, doctor_id, test_id, referring_doctor, entry_date, result_value, unit, remarks, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
     
     try {
-        $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $result_value, $unit, $remarks, $status]);
+        $stmt->execute([$patient_id, $doctor_id, $test_id, $referring_doctor, $entry_date, $result_value, $unit, $remarks, $status]);
         echo json_encode(['status' => 'success', 'message' => 'Entry added successfully', 'id' => $conn->lastInsertId()]);
     } catch (PDOException $e) {
         echo json_encode(['status' => 'error', 'message' => 'Error adding entry: ' . $e->getMessage()]);
@@ -58,16 +59,17 @@ function editEntry($conn) {
     $patient_id = $_POST['patient_id'];
     $doctor_id = $_POST['doctor_id'];
     $test_id = $_POST['test_id'];
+    $referring_doctor = $_POST['referring_doctor'] ?? '';
     $entry_date = $_POST['entry_date'];
     $result_value = $_POST['result_value'];
     $unit = $_POST['unit'];
     $remarks = $_POST['remarks'];
     $status = $_POST['status'];
     
-    $stmt = $conn->prepare("UPDATE entries SET patient_id=?, doctor_id=?, test_id=?, entry_date=?, result_value=?, unit=?, remarks=?, status=? WHERE id=?");
+    $stmt = $conn->prepare("UPDATE entries SET patient_id=?, doctor_id=?, test_id=?, referring_doctor=?, entry_date=?, result_value=?, unit=?, remarks=?, status=? WHERE id=?");
     
     try {
-        $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $result_value, $unit, $remarks, $status, $id]);
+        $stmt->execute([$patient_id, $doctor_id, $test_id, $referring_doctor, $entry_date, $result_value, $unit, $remarks, $status, $id]);
         echo json_encode(['status' => 'success', 'message' => 'Entry updated successfully']);
     } catch (PDOException $e) {
         echo json_encode(['status' => 'error', 'message' => 'Error updating entry: ' . $e->getMessage()]);
