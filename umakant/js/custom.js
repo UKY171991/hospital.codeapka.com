@@ -517,4 +517,100 @@ $(document).ready(function() {
             });
         }
     });
+    
+    // Entry Management Functions
+    // Open Add Entry Modal
+    window.openAddEntryModal = function() {
+        $('#entryModalLabel').text('Add Entry');
+        $('#entryForm')[0].reset();
+        $('#entryId').val('');
+        $('#entryModal').modal('show');
+    };
+    
+    // Save Entry (Add or Edit)
+    $('#saveEntryBtn').on('click', function() {
+        const formData = $('#entryForm').serialize();
+        const entryId = $('#entryId').val();
+        const action = entryId ? 'edit' : 'add';
+        
+        $.ajax({
+            url: 'ajax/entry_ajax.php',
+            type: 'POST',
+            data: formData + '&action=' + action,
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    $('#entryModal').modal('hide');
+                    alert(response.message);
+                    location.reload(); // Reload the page to show updated data
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('An error occurred while processing your request.');
+            }
+        });
+    });
+    
+    // Edit Entry
+    $(document).on('click', '.edit-entry', function(e) {
+        e.preventDefault();
+        const entryId = $(this).data('id');
+        
+        $.ajax({
+            url: 'ajax/entry_ajax.php',
+            type: 'POST',
+            data: { id: entryId, action: 'get' },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    const entry = response.data;
+                    $('#entryModalLabel').text('Edit Entry');
+                    $('#entryId').val(entry.id);
+                    $('#entryPatientId').val(entry.patient_id);
+                    $('#entryDoctorId').val(entry.doctor_id);
+                    $('#entryTestId').val(entry.test_id);
+                    $('#entryReferringDoctor').val(entry.referring_doctor);
+                    $('#entryEntryDate').val(entry.entry_date);
+                    $('#entryResultValue').val(entry.result_value);
+                    $('#entryUnit').val(entry.unit);
+                    $('#entryRemarks').val(entry.remarks);
+                    $('#entryStatus').val(entry.status);
+                    $('#entryModal').modal('show');
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('An error occurred while fetching entry data.');
+            }
+        });
+    });
+    
+    // Delete Entry
+    $(document).on('click', '.delete-entry', function(e) {
+        e.preventDefault();
+        const entryId = $(this).data('id');
+        
+        if (confirm('Are you sure you want to delete this entry?')) {
+            $.ajax({
+                url: 'ajax/entry_ajax.php',
+                type: 'POST',
+                data: { id: entryId, action: 'delete' },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alert(response.message);
+                        location.reload(); // Reload the page to show updated data
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while deleting the entry.');
+                }
+            });
+        }
+    });
 });

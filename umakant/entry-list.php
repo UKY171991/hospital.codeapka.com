@@ -31,6 +31,9 @@ require_once 'inc/sidebar.php';
                         <div class="card-header">
                             <h3 class="card-title">Test Entry Management</h3>
                             <div class="card-tools">
+                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#entryModal" onclick="openAddEntryModal()">
+                                    <i class="fas fa-plus"></i> Add Entry
+                                </button>
                                 <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
                                     <i class="fas fa-minus"></i>
                                 </button>
@@ -78,9 +81,9 @@ require_once 'inc/sidebar.php';
                                         echo "<td>" . htmlspecialchars($row['entry_date']) . "</td>";
                                         echo "<td>" . htmlspecialchars($row['status']) . "</td>";
                                         echo "<td>";
-                                        echo "<a href='#' class='btn btn-info btn-sm' title='View'><i class='fas fa-eye'></i></a> ";
-                                        echo "<a href='#' class='btn btn-warning btn-sm' title='Edit'><i class='fas fa-edit'></i></a> ";
-                                        echo "<a href='#' class='btn btn-danger btn-sm' title='Delete'><i class='fas fa-trash'></i></a>";
+                                        echo "<a href='#' class='btn btn-info btn-sm view-entry' data-id='" . $row['id'] . "' title='View'><i class='fas fa-eye'></i></a> ";
+                                        echo "<a href='#' class='btn btn-warning btn-sm edit-entry' data-id='" . $row['id'] . "' title='Edit'><i class='fas fa-edit'></i></a> ";
+                                        echo "<a href='#' class='btn btn-danger btn-sm delete-entry' data-id='" . $row['id'] . "' title='Delete'><i class='fas fa-trash'></i></a>";
                                         echo "</td>";
                                         echo "</tr>";
                                     }
@@ -101,5 +104,101 @@ require_once 'inc/sidebar.php';
     <!-- /.content -->
 </div>
 <!-- /.content-wrapper -->
+
+<!-- Entry Modal -->
+<div class="modal fade" id="entryModal" tabindex="-1" role="dialog" aria-labelledby="entryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="entryModalLabel">Add Entry</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="entryForm">
+                    <input type="hidden" id="entryId" name="id">
+                    <div class="form-group">
+                        <label for="entryPatientId">Patient *</label>
+                        <select class="form-control" id="entryPatientId" name="patient_id" required>
+                            <option value="">Select Patient</option>
+                            <?php
+                            // Get patients for dropdown
+                            $stmt = $conn->prepare("SELECT id, name FROM patients ORDER BY name");
+                            $stmt->execute();
+                            $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            foreach ($patients as $patient) {
+                                echo "<option value='" . $patient['id'] . "'>" . htmlspecialchars($patient['name']) . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="entryDoctorId">Doctor *</label>
+                        <select class="form-control" id="entryDoctorId" name="doctor_id" required>
+                            <option value="">Select Doctor</option>
+                            <?php
+                            // Get doctors for dropdown
+                            $stmt = $conn->prepare("SELECT id, name FROM doctors ORDER BY name");
+                            $stmt->execute();
+                            $doctors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            foreach ($doctors as $doctor) {
+                                echo "<option value='" . $doctor['id'] . "'>" . htmlspecialchars($doctor['name']) . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="entryTestId">Test *</label>
+                        <select class="form-control" id="entryTestId" name="test_id" required>
+                            <option value="">Select Test</option>
+                            <?php
+                            // Get tests for dropdown
+                            $stmt = $conn->prepare("SELECT id, name FROM tests ORDER BY name");
+                            $stmt->execute();
+                            $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            foreach ($tests as $test) {
+                                echo "<option value='" . $test['id'] . "'>" . htmlspecialchars($test['name']) . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="entryReferringDoctor">Referring Doctor</label>
+                        <input type="text" class="form-control" id="entryReferringDoctor" name="referring_doctor">
+                    </div>
+                    <div class="form-group">
+                        <label for="entryEntryDate">Entry Date *</label>
+                        <input type="date" class="form-control" id="entryEntryDate" name="entry_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="entryResultValue">Result Value</label>
+                        <input type="text" class="form-control" id="entryResultValue" name="result_value">
+                    </div>
+                    <div class="form-group">
+                        <label for="entryUnit">Unit</label>
+                        <input type="text" class="form-control" id="entryUnit" name="unit">
+                    </div>
+                    <div class="form-group">
+                        <label for="entryRemarks">Remarks</label>
+                        <textarea class="form-control" id="entryRemarks" name="remarks" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="entryStatus">Status *</label>
+                        <select class="form-control" id="entryStatus" name="status" required>
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveEntryBtn">Save Entry</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php require_once 'inc/footer.php'; ?>
