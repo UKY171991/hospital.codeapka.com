@@ -33,83 +33,67 @@ if (isset($_POST['action'])) {
 
 // Add doctor function
 function addDoctor($conn) {
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-    $specialization = mysqli_real_escape_string($conn, $_POST['specialization']);
-    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $address = mysqli_real_escape_string($conn, $_POST['address']);
+    $name = $_POST['name'];
+    $specialization = $_POST['specialization'];
+    $phone = $_POST['phone'];
+    $email = $_POST['email'];
+    $address = $_POST['address'];
     
-    $sql = "INSERT INTO doctors (name, specialization, phone, email, address) VALUES (?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssss", $name, $specialization, $phone, $email, $address);
+    $stmt = $conn->prepare("INSERT INTO doctors (name, specialization, phone, email, address) VALUES (?, ?, ?, ?, ?)");
     
-    if ($stmt->execute()) {
-        echo json_encode(['status' => 'success', 'message' => 'Doctor added successfully', 'id' => $stmt->insert_id]);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Error adding doctor: ' . $conn->error]);
+    try {
+        $stmt->execute([$name, $specialization, $phone, $email, $address]);
+        echo json_encode(['status' => 'success', 'message' => 'Doctor added successfully', 'id' => $conn->lastInsertId()]);
+    } catch (PDOException $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Error adding doctor: ' . $e->getMessage()]);
     }
-    
-    $stmt->close();
 }
 
 // Edit doctor function
 function editDoctor($conn) {
     $id = intval($_POST['id']);
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-    $specialization = mysqli_real_escape_string($conn, $_POST['specialization']);
-    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $address = mysqli_real_escape_string($conn, $_POST['address']);
+    $name = $_POST['name'];
+    $specialization = $_POST['specialization'];
+    $phone = $_POST['phone'];
+    $email = $_POST['email'];
+    $address = $_POST['address'];
     
-    $sql = "UPDATE doctors SET name=?, specialization=?, phone=?, email=?, address=? WHERE id=?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssi", $name, $specialization, $phone, $email, $address, $id);
+    $stmt = $conn->prepare("UPDATE doctors SET name=?, specialization=?, phone=?, email=?, address=? WHERE id=?");
     
-    if ($stmt->execute()) {
+    try {
+        $stmt->execute([$name, $specialization, $phone, $email, $address, $id]);
         echo json_encode(['status' => 'success', 'message' => 'Doctor updated successfully']);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Error updating doctor: ' . $conn->error]);
+    } catch (PDOException $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Error updating doctor: ' . $e->getMessage()]);
     }
-    
-    $stmt->close();
 }
 
 // Delete doctor function
 function deleteDoctor($conn) {
     $id = intval($_POST['id']);
     
-    $sql = "DELETE FROM doctors WHERE id=?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id);
+    $stmt = $conn->prepare("DELETE FROM doctors WHERE id=?");
     
-    if ($stmt->execute()) {
+    try {
+        $stmt->execute([$id]);
         echo json_encode(['status' => 'success', 'message' => 'Doctor deleted successfully']);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Error deleting doctor: ' . $conn->error]);
+    } catch (PDOException $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Error deleting doctor: ' . $e->getMessage()]);
     }
-    
-    $stmt->close();
 }
 
 // Get doctor function
 function getDoctor($conn) {
     $id = intval($_POST['id']);
     
-    $sql = "SELECT * FROM doctors WHERE id=?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $stmt = $conn->prepare("SELECT * FROM doctors WHERE id=?");
+    $stmt->execute([$id]);
+    $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    if ($result->num_rows > 0) {
-        $doctor = $result->fetch_assoc();
+    if ($doctor) {
         echo json_encode(['status' => 'success', 'data' => $doctor]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Doctor not found']);
     }
-    
-    $stmt->close();
 }
-
-$conn->close();
 ?>

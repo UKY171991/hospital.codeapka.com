@@ -56,28 +56,24 @@ require_once 'inc/sidebar.php';
                                     <?php
                                     require_once 'inc/connection.php';
                                     
-                                    $sql = "SELECT id, name, specialization, phone, email FROM doctors ORDER BY id DESC";
-                                    $result = $conn->query($sql);
+                                    $stmt = $conn->prepare("SELECT id, name, specialization, phone, email FROM doctors ORDER BY id DESC");
+                                    $stmt->execute();
+                                    $doctors = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     
-                                    if ($result->num_rows > 0) {
-                                        while($row = $result->fetch_assoc()) {
-                                            echo "<tr>";
-                                            echo "<td>" . $row['id'] . "</td>";
-                                            echo "<td>" . htmlspecialchars($row['name']) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row['specialization']) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row['phone']) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                                            echo "<td>";
-                                            echo "<a href='#' class='btn btn-info btn-sm' title='View'><i class='fas fa-eye'></i></a> ";
-                                            echo "<a href='#' class='btn btn-warning btn-sm' title='Edit'><i class='fas fa-edit'></i></a> ";
-                                            echo "<a href='#' class='btn btn-danger btn-sm' title='Delete'><i class='fas fa-trash'></i></a>";
-                                            echo "</td>";
-                                            echo "</tr>";
-                                        }
-                                    } else {
-                                        echo "<tr><td colspan='6' class='text-center'>No doctors found</td></tr>";
+                                    foreach ($doctors as $row) {
+                                        echo "<tr>";
+                                        echo "<td>" . $row['id'] . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['specialization']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['phone']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+                                        echo "<td>";
+                                        echo "<a href='#' class='btn btn-info btn-sm' title='View'><i class='fas fa-eye'></i></a> ";
+                                        echo "<a href='#' class='btn btn-warning btn-sm' title='Edit'><i class='fas fa-edit'></i></a> ";
+                                        echo "<a href='#' class='btn btn-danger btn-sm' title='Delete'><i class='fas fa-trash'></i></a>";
+                                        echo "</td>";
+                                        echo "</tr>";
                                     }
-                                    $conn->close();
                                     ?>
                                 </tbody>
                             </table>

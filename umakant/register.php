@@ -29,11 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         // Check if username or email already exists
         $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-        $stmt->bind_param("ss", $username, $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $stmt->execute([$username, $email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($result->num_rows > 0) {
+        if ($user) {
             $error = 'Username or email already exists';
         } else {
             // Hash password
@@ -43,20 +42,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $account_expires = date('Y-m-d', strtotime('+30 days'));
             
             // Insert new user
-            $stmt = $conn->prepare("INSERT INTO users (username, email, full_name, password, role, is_active, account_expires) VALUES (?, ?, ?, ?, 'user', 1, ?)");
-            $stmt->bind_param("sssss", $username, $email, $full_name, $hashed_password, $account_expires);
+            $stmt = $conn->prepare("INSERT INTO users (username, email, full_name, password, role, is_active, expire_date) VALUES (?, ?, ?, ?, 'user', 1, ?)");
             
-            if ($stmt->execute()) {
+            try {
+                $stmt->execute([$username, $email, $full_name, $hashed_password, $account_expires]);
                 $success = 'Registration successful! You can now login.';
-            } else {
+            } catch (PDOException $e) {
                 $error = 'Registration failed. Please try again.';
             }
         }
-        
-        $stmt->close();
     }
-    
-    $conn->close();
 }
 ?>
 

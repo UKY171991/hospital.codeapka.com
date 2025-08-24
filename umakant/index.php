@@ -111,6 +111,13 @@ require_once 'inc/sidebar.php';
                                     <li>Test Entries</li>
                                     <li>Users (Admin only)</li>
                                 </ul>
+                                <h4>API Access</h4>
+                                <p>The system also provides a RESTful API for programmatic access:</p>
+                                <ul>
+                                    <li><a href="patho_api/" target="_blank">API Documentation</a></li>
+                                    <li><a href="patho_api/test.html" target="_blank">API Test Page</a></li>
+                                    <li><a href="patho_api/health.php" target="_blank">API Health Check</a></li>
+                                </ul>
                             </div>
                         </div><!-- /.card-body -->
                     </div>

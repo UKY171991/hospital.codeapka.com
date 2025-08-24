@@ -58,33 +58,29 @@ require_once 'inc/sidebar.php';
                                     <?php
                                     require_once 'inc/connection.php';
                                     
-                                    $sql = "SELECT t.id, tc.name as category_name, t.name, t.description, t.price, t.normal_range, t.unit 
+                                    $stmt = $conn->prepare("SELECT t.id, tc.name as category_name, t.name, t.description, t.price, t.normal_range, t.unit 
                                             FROM tests t 
-                                            LEFT JOIN test_categories tc ON t.category_id = tc.id 
-                                            ORDER BY t.id DESC";
-                                    $result = $conn->query($sql);
+                                            LEFT JOIN categories tc ON t.category_id = tc.id 
+                                            ORDER BY t.id DESC");
+                                    $stmt->execute();
+                                    $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     
-                                    if ($result->num_rows > 0) {
-                                        while($row = $result->fetch_assoc()) {
-                                            echo "<tr>";
-                                            echo "<td>" . $row['id'] . "</td>";
-                                            echo "<td>" . htmlspecialchars($row['category_name']) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row['name']) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row['description']) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row['price']) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row['normal_range']) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row['unit']) . "</td>";
-                                            echo "<td>";
-                                            echo "<a href='#' class='btn btn-info btn-sm' title='View'><i class='fas fa-eye'></i></a> ";
-                                            echo "<a href='#' class='btn btn-warning btn-sm' title='Edit'><i class='fas fa-edit'></i></a> ";
-                                            echo "<a href='#' class='btn btn-danger btn-sm' title='Delete'><i class='fas fa-trash'></i></a>";
-                                            echo "</td>";
-                                            echo "</tr>";
-                                        }
-                                    } else {
-                                        echo "<tr><td colspan='8' class='text-center'>No tests found</td></tr>";
+                                    foreach ($tests as $row) {
+                                        echo "<tr>";
+                                        echo "<td>" . $row['id'] . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['category_name']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['description']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['price']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['normal_range']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['unit']) . "</td>";
+                                        echo "<td>";
+                                        echo "<a href='#' class='btn btn-info btn-sm' title='View'><i class='fas fa-eye'></i></a> ";
+                                        echo "<a href='#' class='btn btn-warning btn-sm' title='Edit'><i class='fas fa-edit'></i></a> ";
+                                        echo "<a href='#' class='btn btn-danger btn-sm' title='Delete'><i class='fas fa-trash'></i></a>";
+                                        echo "</td>";
+                                        echo "</tr>";
                                     }
-                                    $conn->close();
                                     ?>
                                 </tbody>
                             </table>

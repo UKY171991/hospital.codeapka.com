@@ -12,7 +12,7 @@ if (version_compare(PHP_VERSION, '7.4.0') >= 0) {
 }
 
 echo "<h2>Step 2: Checking Required Extensions</h2>";
-$required_extensions = ['mysqli', 'json', 'session'];
+$required_extensions = ['pdo', 'pdo_sqlite', 'json', 'session'];
 $missing_extensions = [];
 
 foreach ($required_extensions as $extension) {
@@ -29,7 +29,7 @@ if (empty($missing_extensions)) {
 }
 
 echo "<h2>Step 3: Checking File Permissions</h2>";
-$writable_dirs = ['inc', 'ajax', 'js', 'css'];
+$writable_dirs = ['inc', 'ajax', 'js', 'css', 'patho_api'];
 $not_writable = [];
 
 foreach ($writable_dirs as $dir) {
@@ -46,7 +46,7 @@ if (empty($not_writable)) {
 }
 
 echo "<h2>Step 4: Database Configuration</h2>";
-echo "<p>Please verify your database configuration in <code>inc/connection.php</code></p>";
+echo "<p>The system uses SQLite database which will be created automatically.</p>";
 
 echo "<h2>Next Steps</h2>";
 echo "<ol>";

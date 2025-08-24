@@ -17,19 +17,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     // Check if user exists and is active
     $stmt = $conn->prepare("SELECT id, username, password, role, is_active FROM users WHERE username = ? AND is_active = 1 AND role = 'admin'");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $stmt->execute([$username]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    if ($result->num_rows == 1) {
-        $user = $result->fetch_assoc();
-        
+    if ($user) {
         // Verify password
         if (password_verify($password, $user['password'])) {
             // Update last login
-            $updateStmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
-            $updateStmt->bind_param("i", $user['id']);
-            $updateStmt->execute();
+            $updateStmt = $conn->prepare("UPDATE users SET last_login = datetime('now') WHERE id = ?");
+            $updateStmt->execute([$user['id']]);
             
             // Set session variables
             $_SESSION['user_id'] = $user['id'];
@@ -45,9 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         $error = 'Invalid username or password';
     }
-    
-    $stmt->close();
-    $conn->close();
 }
 ?>
 

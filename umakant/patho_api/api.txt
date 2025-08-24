@@ -1,0 +1,388 @@
+# Pathology Lab Management System - API Documentation
+
+Base URL: https://hospital.codeapka.com/umakant/patho_api/
+
+## Categories API
+
+### Get All Categories
+- **URL**: /categories.php
+- **Method**: GET
+- **Description**: Retrieve all categories
+- **Response**: JSON array of categories
+
+### Get Category by ID
+- **URL**: /categories.php?id={category_id}
+- **Method**: GET
+- **Description**: Retrieve a specific category by ID
+- **Parameters**: 
+  - id (integer) - Category ID
+- **Response**: JSON object of category
+
+### Create Category
+- **URL**: /categories.php
+- **Method**: POST
+- **Description**: Create a new category
+- **Parameters** (JSON in request body):
+  - name (string, required) - Category name
+  - description (string, optional) - Category description
+  - added_by (integer, optional) - User ID who added the category
+- **Response**: JSON with status and message
+
+### Update Category
+- **URL**: /categories.php
+- **Method**: PUT
+- **Description**: Update an existing category
+- **Parameters** (JSON in request body):
+  - id (integer, required) - Category ID
+  - name (string, optional) - Category name
+  - description (string, optional) - Category description
+  - added_by (integer, optional) - User ID who added the category
+- **Response**: JSON with status and message
+
+### Delete Category
+- **URL**: /categories.php?id={category_id}
+- **Method**: DELETE
+- **Description**: Delete a category by ID
+- **Parameters**: 
+  - id (integer) - Category ID
+- **Response**: JSON with status and message
+
+## Tests API
+
+### Get All Tests
+- **URL**: /tests.php
+- **Method**: GET
+- **Description**: Retrieve all tests
+- **Response**: JSON array of tests
+
+### Get Test by ID
+- **URL**: /tests.php?id={test_id}
+- **Method**: GET
+- **Description**: Retrieve a specific test by ID
+- **Parameters**: 
+  - id (integer) - Test ID
+- **Response**: JSON object of test
+
+### Create Test
+- **URL**: /tests.php
+- **Method**: POST
+- **Description**: Create a new test
+- **Parameters** (JSON in request body):
+  - name (string, required) - Test name
+  - category_id (integer, optional) - Category ID
+  - price (float, optional) - Test price (default: 0)
+  - unit (string, optional) - Unit of measurement
+  - specimen (string, optional) - Specimen type
+  - default_result (string, optional) - Default result value
+  - reference_range (string, optional) - Reference range
+  - min (float, optional) - Minimum normal value
+  - max (float, optional) - Maximum normal value
+  - sub_heading (integer, optional) - Sub-heading flag (0 or 1, default: 0)
+  - test_code (string, optional) - Test code
+  - method (string, optional) - Test method
+  - print_new_page (integer, optional) - Print on new page flag (0 or 1, default: 0)
+  - shortcut (string, optional) - Shortcut key
+  - added_by (integer, optional) - User ID who added the test
+- **Response**: JSON with status and message
+
+### Update Test
+- **URL**: /tests.php
+- **Method**: PUT
+- **Description**: Update an existing test
+- **Parameters** (JSON in request body):
+  - id (integer, required) - Test ID
+  - name (string, optional) - Test name
+  - category_id (integer, optional) - Category ID
+  - price (float, optional) - Test price
+  - unit (string, optional) - Unit of measurement
+  - specimen (string, optional) - Specimen type
+  - default_result (string, optional) - Default result value
+  - reference_range (string, optional) - Reference range
+  - min (float, optional) - Minimum normal value
+  - max (float, optional) - Maximum normal value
+  - sub_heading (integer, optional) - Sub-heading flag (0 or 1)
+  - test_code (string, optional) - Test code
+  - method (string, optional) - Test method
+  - print_new_page (integer, optional) - Print on new page flag (0 or 1)
+  - shortcut (string, optional) - Shortcut key
+  - added_by (integer, optional) - User ID who added the test
+- **Response**: JSON with status and message
+
+### Delete Test
+- **URL**: /tests.php?id={test_id}
+- **Method**: DELETE
+- **Description**: Delete a test by ID
+- **Parameters**: 
+  - id (integer) - Test ID
+- **Response**: JSON with status and message
+
+## Patients API
+
+### Get All Patients
+- **URL**: /patients.php
+- **Method**: GET
+- **Description**: Retrieve all patients
+- **Response**: JSON array of patients
+
+### Get Patient by ID
+- **URL**: /patients.php?id={patient_id}
+- **Method**: GET
+- **Description**: Retrieve a specific patient by ID
+- **Parameters**: 
+  - id (integer) - Patient ID
+- **Response**: JSON object of patient
+
+### Create Patient
+- **URL**: /patients.php
+- **Method**: POST
+- **Description**: Create a new patient
+- **Parameters** (JSON in request body):
+  - name (string, required) - Patient name
+  - mobile (string, required) - Patient mobile number
+  - father_husband (string, optional) - Father's or husband's name
+  - address (string, optional) - Patient address
+  - sex (string, optional) - Patient gender
+  - age (integer, optional) - Patient age
+  - age_unit (string, optional) - Age unit (Years/Months/Days)
+  - uhid (string, optional) - Unique Health ID
+  - added_by (integer, optional) - User ID who added the patient
+- **Response**: JSON with status and message
+
+### Update Patient
+- **URL**: /patients.php
+- **Method**: PUT
+- **Description**: Update an existing patient
+- **Parameters** (JSON in request body):
+  - id (integer, required) - Patient ID
+  - name (string, optional) - Patient name
+  - mobile (string, optional) - Patient mobile number
+  - father_husband (string, optional) - Father's or husband's name
+  - address (string, optional) - Patient address
+  - sex (string, optional) - Patient gender
+  - age (integer, optional) - Patient age
+  - age_unit (string, optional) - Age unit (Years/Months/Days)
+  - uhid (string, optional) - Unique Health ID
+  - added_by (integer, optional) - User ID who added the patient
+- **Response**: JSON with status and message
+
+### Delete Patient
+- **URL**: /patients.php?id={patient_id}
+- **Method**: DELETE
+- **Description**: Delete a patient by ID
+- **Parameters**: 
+  - id (integer) - Patient ID
+- **Response**: JSON with status and message
+
+## Doctors API
+
+### Get All Doctors
+- **URL**: /doctors.php
+- **Method**: GET
+- **Description**: Retrieve all doctors
+- **Response**: JSON array of doctors
+
+### Get Doctor by ID
+- **URL**: /doctors.php?id={doctor_id}
+- **Method**: GET
+- **Description**: Retrieve a specific doctor by ID
+- **Parameters**: 
+  - id (integer) - Doctor ID
+- **Response**: JSON object of doctor
+
+### Create Doctor
+- **URL**: /doctors.php
+- **Method**: POST
+- **Description**: Create a new doctor
+- **Parameters** (JSON in request body):
+  - name (string, required) - Doctor name
+  - qualification (string, optional) - Doctor qualification
+  - specialization (string, optional) - Doctor specialization
+  - hospital (string, optional) - Hospital name
+  - contact_no (string, optional) - Contact number
+  - phone (string, optional) - Phone number
+  - email (string, optional) - Email address
+  - address (string, optional) - Doctor address
+  - registration_no (string, optional) - Medical registration number
+  - percent (float, optional) - Commission percentage (default: 0)
+  - added_by (integer, optional) - User ID who added the doctor
+- **Response**: JSON with status and message
+
+### Update Doctor
+- **URL**: /doctors.php
+- **Method**: PUT
+- **Description**: Update an existing doctor
+- **Parameters** (JSON in request body):
+  - id (integer, required) - Doctor ID
+  - name (string, optional) - Doctor name
+  - qualification (string, optional) - Doctor qualification
+  - specialization (string, optional) - Doctor specialization
+  - hospital (string, optional) - Hospital name
+  - contact_no (string, optional) - Contact number
+  - phone (string, optional) - Phone number
+  - email (string, optional) - Email address
+  - address (string, optional) - Doctor address
+  - registration_no (string, optional) - Medical registration number
+  - percent (float, optional) - Commission percentage
+  - added_by (integer, optional) - User ID who added the doctor
+- **Response**: JSON with status and message
+
+### Delete Doctor
+- **URL**: /doctors.php?id={doctor_id}
+- **Method**: DELETE
+- **Description**: Delete a doctor by ID
+- **Parameters**: 
+  - id (integer) - Doctor ID
+- **Response**: JSON with status and message
+
+## Reports API
+
+### Get All Reports
+- **URL**: /reports.php
+- **Method**: GET
+- **Description**: Retrieve all reports
+- **Response**: JSON array of reports
+
+### Get Report by ID
+- **URL**: /reports.php?id={report_id}
+- **Method**: GET
+- **Description**: Retrieve a specific report by ID
+- **Parameters**: 
+  - id (integer) - Report ID
+- **Response**: JSON object of report
+
+### Create Report
+- **URL**: /reports.php
+- **Method**: POST
+- **Description**: Create a new report
+- **Parameters** (JSON in request body):
+  - data (string, required) - JSON data containing the report content
+  - added_by (integer, optional) - User ID who added the report
+- **Response**: JSON with status and message
+
+### Update Report
+- **URL**: /reports.php
+- **Method**: PUT
+- **Description**: Update an existing report
+- **Parameters** (JSON in request body):
+  - id (integer, required) - Report ID
+  - data (string, optional) - JSON data containing the report content
+  - added_by (integer, optional) - User ID who added the report
+- **Response**: JSON with status and message
+
+### Delete Report
+- **URL**: /reports.php?id={report_id}
+- **Method**: DELETE
+- **Description**: Delete a report by ID
+- **Parameters**: 
+  - id (integer) - Report ID
+- **Response**: JSON with status and message
+
+## Users API
+
+### Get All Users
+- **URL**: /users.php
+- **Method**: GET
+- **Description**: Retrieve all users
+- **Response**: JSON array of users (without passwords)
+
+### Get User by ID
+- **URL**: /users.php?id={user_id}
+- **Method**: GET
+- **Description**: Retrieve a specific user by ID
+- **Parameters**: 
+  - id (integer) - User ID
+- **Response**: JSON object of user (without password)
+
+### Create User
+- **URL**: /users.php
+- **Method**: POST
+- **Description**: Create a new user
+- **Parameters** (JSON in request body):
+  - username (string, required) - Username
+  - password (string, required) - Password
+  - full_name (string, required) - Full name
+  - email (string, optional) - Email address
+  - role (string, optional) - User role (default: 'user')
+  - is_active (integer, optional) - Active status (0 or 1, default: 1)
+  - expire_date (string, optional) - Account expiration date
+- **Response**: JSON with status and message
+
+### Update User
+- **URL**: /users.php
+- **Method**: PUT
+- **Description**: Update an existing user
+- **Parameters** (JSON in request body):
+  - id (integer, required) - User ID
+  - username (string, optional) - Username
+  - password (string, optional) - Password (only include if changing)
+  - full_name (string, optional) - Full name
+  - email (string, optional) - Email address
+  - role (string, optional) - User role
+  - is_active (integer, optional) - Active status (0 or 1)
+  - expire_date (string, optional) - Account expiration date
+- **Response**: JSON with status and message
+
+### Delete User
+- **URL**: /users.php?id={user_id}
+- **Method**: DELETE
+- **Description**: Delete a user by ID
+- **Parameters**: 
+  - id (integer) - User ID
+- **Response**: JSON with status and message
+
+## Entries API
+
+### Get All Entries
+- **URL**: /entries.php
+- **Method**: GET
+- **Description**: Retrieve all entries
+- **Response**: JSON array of entries
+
+### Get Entry by ID
+- **URL**: /entries.php?id={entry_id}
+- **Method**: GET
+- **Description**: Retrieve a specific entry by ID
+- **Parameters**: 
+  - id (integer) - Entry ID
+- **Response**: JSON object of entry
+
+### Create Entry
+- **URL**: /entries.php
+- **Method**: POST
+- **Description**: Create a new entry
+- **Parameters** (JSON in request body):
+  - patient_id (integer, required) - Patient ID
+  - doctor_id (integer, required) - Doctor ID
+  - test_id (integer, required) - Test ID
+  - entry_date (string, optional) - Entry date
+  - result_value (string, optional) - Test result value
+  - unit (string, optional) - Result unit
+  - remarks (string, optional) - Additional remarks
+  - status (string, optional) - Entry status (default: 'pending')
+  - added_by (integer, optional) - User ID who added the entry
+- **Response**: JSON with status and message
+
+### Update Entry
+- **URL**: /entries.php
+- **Method**: PUT
+- **Description**: Update an existing entry
+- **Parameters** (JSON in request body):
+  - id (integer, required) - Entry ID
+  - patient_id (integer, optional) - Patient ID
+  - doctor_id (integer, optional) - Doctor ID
+  - test_id (integer, optional) - Test ID
+  - entry_date (string, optional) - Entry date
+  - result_value (string, optional) - Test result value
+  - unit (string, optional) - Result unit
+  - remarks (string, optional) - Additional remarks
+  - status (string, optional) - Entry status
+  - added_by (integer, optional) - User ID who added the entry
+- **Response**: JSON with status and message
+
+### Delete Entry
+- **URL**: /entries.php?id={entry_id}
+- **Method**: DELETE
+- **Description**: Delete an entry by ID
+- **Parameters**: 
+  - id (integer) - Entry ID
+- **Response**: JSON with status and message

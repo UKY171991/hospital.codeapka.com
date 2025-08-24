@@ -23,12 +23,11 @@ A web-based system designed to streamline pathology laboratory operations using 
 ## Installation
 
 1. Clone or download the project to your web server directory
-2. Update database credentials in `inc/connection.php` if needed
-3. Run `init.php` to check system requirements
-4. Run `create_database.php` in your browser to create the database
-5. Run `setup_database.php` in your browser to initialize tables
-6. Access the system via your web server URL
-7. Login with default credentials:
+2. Run `init.php` to check system requirements
+3. Run `create_database.php` in your browser to create the database
+4. Run `setup_database.php` in your browser to initialize tables
+5. Access the system via your web server URL
+6. Login with default credentials:
    - Username: `admin`
    - Password: `admin123`
 
@@ -48,6 +47,17 @@ New users can register at `register.php`.
 ├── ajax/                # AJAX handlers
 ├── js/                  # JavaScript files
 ├── css/                 # CSS files
+├── patho_api/           # RESTful API endpoints
+│   ├── api.txt          # API documentation
+│   ├── index.html       # API endpoint reference
+│   ├── db_connection.php # API database connection
+│   ├── categories.php   # Categories API endpoints
+│   ├── tests.php        # Tests API endpoints
+│   ├── patients.php     # Patients API endpoints
+│   ├── doctors.php      # Doctors API endpoints
+│   ├── reports.php      # Reports API endpoints
+│   ├── users.php        # Users API endpoints
+│   └── entries.php      # Entries API endpoints
 ├── index.php            # Main dashboard
 ├── login.php            # Authentication page
 ├── logout.php           # Logout functionality
@@ -61,8 +71,26 @@ New users can register at `register.php`.
 ├── entry-list.php       # Test entry management
 ├── create_database.php  # Database creation script
 ├── setup_database.php   # Database initialization script
+├── reset_db.php         # Database reset script
+├── backup_db.php        # Database backup script
+├── list_backups.php     # List database backups
+├── download_backup.php  # Download database backups
 ├── README.md            # This file
 ```
+
+## API Endpoints
+
+The system includes a complete RESTful API for all entities:
+
+- Categories API
+- Tests API
+- Patients API
+- Doctors API
+- Reports API
+- Users API
+- Entries API
+
+See `patho_api/api.txt` for detailed documentation.
 
 ## Security Features
 

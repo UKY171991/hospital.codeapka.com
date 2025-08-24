@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .test-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .test-button:hover {
+            background-color: #0056b3;
+        }
+        .response {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            padding: 10px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+        .endpoint-url {
+            font-family: monospace;
+            background-color: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pathology Lab API Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Categories API Test</h2>
+        <p>Endpoint: <span class="endpoint-url">/categories.php</span></p>
+        <button class="test-button" onclick="testGetCategories()">GET All</button>
+        <button class="test-button" onclick="testCreateCategory()">POST Create</button>
+        <div id="categories-response" class="response"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Tests API Test</h2>
+        <p>Endpoint: <span class="endpoint-url">/tests.php</span></p>
+        <button class="test-button" onclick="testGetTests()">GET All</button>
+        <button class="test-button" onclick="testCreateTest()">POST Create</button>
+        <div id="tests-response" class="response"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Patients API Test</h2>
+        <p>Endpoint: <span class="endpoint-url">/patients.php</span></p>
+        <button class="test-button" onclick="testGetPatients()">GET All</button>
+        <button class="test-button" onclick="testCreatePatient()">POST Create</button>
+        <div id="patients-response" class="response"></div>
+    </div>
+    
+    <script>
+        // Base URL for API
+        const baseURL = 'http://localhost/umakant/patho_api';
+        
+        // Helper function to display response
+        function displayResponse(elementId, response) {
+            document.getElementById(elementId).textContent = JSON.stringify(response, null, 2);
+        }
+        
+        // Categories API Tests
+        function testGetCategories() {
+            fetch(`${baseURL}/categories.php`)
+                .then(response => response.json())
+                .then(data => displayResponse('categories-response', data))
+                .catch(error => displayResponse('categories-response', {error: error.message}));
+        }
+        
+        function testCreateCategory() {
+            const data = {
+                name: 'Blood Test',
+                description: 'Tests related to blood analysis'
+            };
+            
+            fetch(`${baseURL}/categories.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => displayResponse('categories-response', data))
+                .catch(error => displayResponse('categories-response', {error: error.message}));
+        }
+        
+        // Tests API Tests
+        function testGetTests() {
+            fetch(`${baseURL}/tests.php`)
+                .then(response => response.json())
+                .then(data => displayResponse('tests-response', data))
+                .catch(error => displayResponse('tests-response', {error: error.message}));
+        }
+        
+        function testCreateTest() {
+            const data = {
+                name: 'Complete Blood Count',
+                price: 150.00,
+                unit: 'mg/dL'
+            };
+            
+            fetch(`${baseURL}/tests.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => displayResponse('tests-response', data))
+                .catch(error => displayResponse('tests-response', {error: error.message}));
+        }
+        
+        // Patients API Tests
+        function testGetPatients() {
+            fetch(`${baseURL}/patients.php`)
+                .then(response => response.json())
+                .then(data => displayResponse('patients-response', data))
+                .catch(error => displayResponse('patients-response', {error: error.message}));
+        }
+        
+        function testCreatePatient() {
+            const data = {
+                name: 'John Doe',
+                mobile: '1234567890',
+                age: 30,
+                sex: 'Male'
+            };
+            
+            fetch(`${baseURL}/patients.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => displayResponse('patients-response', data))
+                .catch(error => displayResponse('patients-response', {error: error.message}));
+        }
+    </script>
+</body>
+</html>

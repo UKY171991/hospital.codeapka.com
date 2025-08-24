@@ -58,28 +58,26 @@ require_once 'inc/sidebar.php';
                                     <?php
                                     require_once 'inc/connection.php';
                                     
-                                    $sql = "SELECT id, username, email, full_name, role, is_active, last_login FROM users ORDER BY id DESC";
-                                    $result = $conn->query($sql);
+                                    $stmt = $conn->prepare("SELECT id, username, email, full_name, role, is_active, last_login FROM users ORDER BY id DESC");
+                                    $stmt->execute();
+                                    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     
-                                    if ($result->num_rows > 0) {
-                                        while($row = $result->fetch_assoc()) {
-                                            echo "<tr>";
-                                            echo "<td>" . $row['id'] . "</td>";
-                                            echo "<td>" . htmlspecialchars($row['username']) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row['full_name']) . "</td>";
-                                            echo "<td>" . ucfirst($row['role']) . "</td>";
-                                            echo "<td>" . ($row['is_active'] ? 'Active' : 'Inactive') . "</td>";
-                                            echo "<td>" . ($row['last_login'] ? $row['last_login'] : 'Never') . "</td>";
-                                            echo "<td>";
-                                            echo "<a href='#' class='btn btn-info btn-sm' title='View'><i class='fas fa-eye'></i></a> ";
-                                            echo "<a href='#' class='btn btn-warning btn-sm' title='Edit'><i class='fas fa-edit'></i></a> ";
-                                            echo "<a href='#' class='btn btn-danger btn-sm' title='Delete'><i class='fas fa-trash'></i></a>";
-                                            echo "</td>";
-                                            echo "</tr>";
-                                        }
+                                    foreach ($users as $row) {
+                                        echo "<tr>";
+                                        echo "<td>" . $row['id'] . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['username']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['full_name']) . "</td>";
+                                        echo "<td>" . ucfirst($row['role']) . "</td>";
+                                        echo "<td>" . ($row['is_active'] ? 'Active' : 'Inactive') . "</td>";
+                                        echo "<td>" . ($row['last_login'] ? $row['last_login'] : 'Never') . "</td>";
+                                        echo "<td>";
+                                        echo "<a href='#' class='btn btn-info btn-sm' title='View'><i class='fas fa-eye'></i></a> ";
+                                        echo "<a href='#' class='btn btn-warning btn-sm' title='Edit'><i class='fas fa-edit'></i></a> ";
+                                        echo "<a href='#' class='btn btn-danger btn-sm' title='Delete'><i class='fas fa-trash'></i></a>";
+                                        echo "</td>";
+                                        echo "</tr>";
                                     }
-                                    $conn->close();
                                     ?>
                                 </tbody>
                             </table>
