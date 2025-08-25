@@ -20,6 +20,11 @@ if ($action === 'get' && isset($_GET['id'])) {
 }
 
 if ($action === 'save') {
+    // only admin can save
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+        json_response(['success' => false, 'message' => 'Unauthorized'], 401);
+    }
+
     $id = $_POST['id'] ?? '';
     $name = trim($_POST['name'] ?? '');
     $qualification = trim($_POST['qualification'] ?? '');
@@ -42,6 +47,10 @@ if ($action === 'save') {
 }
 
 if ($action === 'delete' && isset($_POST['id'])) {
+    // only admin can delete
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+        json_response(['success' => false, 'message' => 'Unauthorized'], 401);
+    }
     $stmt = $pdo->prepare('DELETE FROM doctors WHERE id = ?');
     $stmt->execute([$_POST['id']]);
     json_response(['success' => true, 'message' => 'Doctor deleted']);

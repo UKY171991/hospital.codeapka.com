@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
   <style>body{background:#f4f6f9}</style>
 </head>
+<?php if(session_status() === PHP_SESSION_NONE) session_start(); ?>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
