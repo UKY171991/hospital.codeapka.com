@@ -50,10 +50,13 @@ $role = $_SESSION['role'] ?? 'user';
           <a href="plan.php" class="nav-link <?php echo ($activePage == 'plan.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-calendar-alt"></i><p>Menu Plan</p></a>
         </li>
 
-        <?php if ($role === 'admin'): ?>
+        <?php if (isset($_SESSION['user_id'])): ?>
         <li class="nav-item">
           <a href="user.php" class="nav-link <?php echo ($activePage == 'user.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-users"></i><p>Users</p></a>
         </li>
+        <?php endif; ?>
+
+        <?php if ($role === 'master'): ?>
         <li class="nav-item">
           <a href="admins.php" class="nav-link <?php echo ($activePage == 'admins.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-user-shield"></i><p>Admins</p></a>
         </li>
