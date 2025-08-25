@@ -134,6 +134,20 @@ require_once 'inc/sidebar.php';
                             <option value="0">Inactive</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="userAddedBy">Added By</label>
+                        <input type="number" class="form-control" id="userAddedBy" name="added_by" placeholder="User ID who added this user">
+                    </div>
+                    <div class="form-group">
+                        <label for="userLastLoginDisplay">Last Login</label>
+                        <input type="datetime-local" class="form-control" id="userLastLoginDisplay">
+                        <input type="hidden" id="userLastLogin" name="last_login">
+                    </div>
+                    <div class="form-group">
+                        <label for="userExpireDateDisplay">Expire Date</label>
+                        <input type="datetime-local" class="form-control" id="userExpireDateDisplay">
+                        <input type="hidden" id="userExpireDate" name="expire_date">
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -177,7 +191,15 @@ $(function(){
     loadUsers();
 
     $('#saveUserBtn').click(function(){
-        var data = $('#userForm').serialize() + '&action=save&ajax=1';
+    // copy datetime-local values into hidden inputs in server-friendly format
+    var lastLoginVal = $('#userLastLoginDisplay').val();
+    var expireVal = $('#userExpireDateDisplay').val();
+    // browser returns local datetime like 2025-08-25T18:00; convert to 'YYYY-MM-DD HH:MM:SS' when present
+    function toSqlDatetime(v){ if(!v) return ''; return v.replace('T',' ') + ':00'; }
+    $('#userLastLogin').val(toSqlDatetime(lastLoginVal));
+    $('#userExpireDate').val(toSqlDatetime(expireVal));
+
+    var data = $('#userForm').serialize() + '&action=save&ajax=1';
         $.post('ajax/user_api.php', data, function(resp){
             if(resp.success){ toastr.success(resp.message||'Saved'); $('#userModal').modal('hide'); loadUsers(); }
             else toastr.error(resp.message||'Save failed');
@@ -190,7 +212,22 @@ $(function(){
     $('#usersTable').on('click', '.edit-user', function(){
         var id = $(this).data('id');
         $.get('ajax/user_api.php',{action:'get',id:id,ajax:1}, function(resp){
-            if(resp.success){ var d=resp.data; $('#userId').val(d.id); $('#userUsername').val(d.username); $('#userFullName').val(d.full_name); $('#userEmail').val(d.email); $('#userRole').val(d.role); $('#userIsActive').val(d.is_active?1:0); $('#userPassword').attr('required',false); $('#userModal').modal('show'); }
+        if(resp.success){ var d=resp.data;
+            $('#userId').val(d.id);
+            $('#userUsername').val(d.username);
+            $('#userFullName').val(d.full_name);
+            $('#userEmail').val(d.email);
+            $('#userRole').val(d.role);
+            $('#userIsActive').val(d.is_active?1:0);
+            $('#userAddedBy').val(d.added_by||'');
+            // convert server datetime 'YYYY-MM-DD HH:MM:SS' to datetime-local 'YYYY-MM-DDTHH:MM'
+            function toLocalDatetime(v){ if(!v) return ''; return v.replace(' ','T').slice(0,16); }
+            $('#userLastLoginDisplay').val(toLocalDatetime(d.last_login||''));
+            $('#userLastLogin').val(d.last_login||'');
+            $('#userExpireDateDisplay').val(toLocalDatetime(d.expire_date||''));
+            $('#userExpireDate').val(d.expire_date||'');
+            $('#userPassword').attr('required',false);
+            $('#userModal').modal('show'); }
             else toastr.error(resp.message||'User not found');
         },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
     });
