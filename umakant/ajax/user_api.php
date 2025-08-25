@@ -7,28 +7,52 @@ session_start();
 $action = $_REQUEST['action'] ?? 'list';
 
 if ($action === 'list') {
-    // optional role filter
-    $role = $_GET['role'] ?? null;
-    if ($role) {
-        $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, is_active, last_login FROM users WHERE role = ? ORDER BY id DESC');
-        $stmt->execute([$role]);
+    // Role-based visibility
+    $viewerRole = $_SESSION['role'] ?? 'user';
+    $viewerId = $_SESSION['user_id'] ?? null;
+
+    $roleFilter = $_GET['role'] ?? null;
+    if ($viewerRole === 'master') {
+        // master sees everything (optionally filter by role)
+        if ($roleFilter) {
+            $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, added_by, is_active, last_login FROM users WHERE role = ? ORDER BY id DESC');
+            $stmt->execute([$roleFilter]);
+        } else {
+            $stmt = $pdo->query('SELECT id, username, email, full_name, role, added_by, is_active, last_login FROM users ORDER BY id DESC');
+        }
+        $rows = $stmt->fetchAll();
+    } elseif ($viewerRole === 'admin') {
+        // admin sees users they added and themselves
+        $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, added_by, is_active, last_login FROM users WHERE added_by = ? OR id = ? ORDER BY id DESC');
+        $stmt->execute([$viewerId, $viewerId]);
         $rows = $stmt->fetchAll();
     } else {
-        $stmt = $pdo->query('SELECT id, username, email, full_name, role, is_active, last_login FROM users ORDER BY id DESC');
+        // regular user sees users they added and themselves
+        $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, added_by, is_active, last_login FROM users WHERE added_by = ? OR id = ? ORDER BY id DESC');
+        $stmt->execute([$viewerId, $viewerId]);
         $rows = $stmt->fetchAll();
     }
     json_response(['success' => true, 'data' => $rows]);
 }
 
 if ($action === 'get' && isset($_GET['id'])) {
-    $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, is_active, last_login FROM users WHERE id = ?');
+    $viewerRole = $_SESSION['role'] ?? 'user';
+    $viewerId = $_SESSION['user_id'] ?? null;
+    $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, added_by, is_active, last_login FROM users WHERE id = ?');
     $stmt->execute([$_GET['id']]);
     $row = $stmt->fetch();
-    json_response(['success' => true, 'data' => $row]);
+    if (!$row) json_response(['success' => false, 'message' => 'User not found'],404);
+    // enforce visibility: master sees all, admin/user only see their added users or themselves
+    if ($viewerRole === 'master' || $row['added_by'] == $viewerId || $row['id'] == $viewerId) {
+        json_response(['success' => true, 'data' => $row]);
+    } else {
+        json_response(['success' => false, 'message' => 'Unauthorized'],403);
+    }
 }
 
 if ($action === 'save') {
-    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') json_response(['success'=>false,'message'=>'Unauthorized'],401);
+    // allow any authenticated user to create/update users, but enforce visibility elsewhere
+    if (!isset($_SESSION['user_id'])) json_response(['success'=>false,'message'=>'Unauthorized'],401);
 
     $id = $_POST['id'] ?? '';
     $username = trim($_POST['username'] ?? '');
@@ -37,6 +61,7 @@ if ($action === 'save') {
     $email = trim($_POST['email'] ?? '');
     $role = $_POST['role'] ?? 'user';
     $is_active = isset($_POST['is_active']) ? (int)$_POST['is_active'] : 0;
+    $creatorId = $_SESSION['user_id'];
 
     if ($id) {
         // update (only change password if provided)
@@ -52,14 +77,15 @@ if ($action === 'save') {
     } else {
         // create
         $hash = password_hash($password ?: 'password', PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare('INSERT INTO users (username, password, full_name, email, role, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())');
-        $stmt->execute([$username, $hash, $full_name, $email, $role, $is_active]);
+        $stmt = $pdo->prepare('INSERT INTO users (username, password, full_name, email, role, added_by, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())');
+        $stmt->execute([$username, $hash, $full_name, $email, $role, $creatorId, $is_active]);
         json_response(['success' => true, 'message' => 'User created']);
     }
 }
 
 if ($action === 'delete' && isset($_POST['id'])) {
-    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') json_response(['success'=>false,'message'=>'Unauthorized'],401);
+    // only master may delete users
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'master') json_response(['success'=>false,'message'=>'Unauthorized'],401);
     $stmt = $pdo->prepare('DELETE FROM users WHERE id = ?');
     $stmt->execute([$_POST['id']]);
     json_response(['success' => true, 'message' => 'User deleted']);

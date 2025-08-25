@@ -107,8 +107,24 @@ require_once 'inc/sidebar.php';
                     <div class="form-group">
                         <label for="userRole">Role *</label>
                         <select class="form-control" id="userRole" name="role" required>
-                            <option value="admin">Admin</option>
-                            <option value="user">User</option>
+                            <?php
+                            $curRole = $_SESSION['role'] ?? 'user';
+                            // master can create master, admin, user
+                            if ($curRole === 'master') {
+                                echo "<option value=\"master\">Master</option>";
+                                echo "<option value=\"admin\">Admin</option>";
+                                echo "<option value=\"user\">User</option>";
+                            } elseif ($curRole === 'admin') {
+                                // admin can create admin and user
+                                echo "<option value=\"admin\">Admin</option>";
+                                echo "<option value=\"user\">User</option>";
+                            } else {
+                                // user can create master and admin per request
+                                echo "<option value=\"master\">Master</option>";
+                                echo "<option value=\"admin\">Admin</option>";
+                                echo "<option value=\"user\">User</option>";
+                            }
+                            ?>
                         </select>
                     </div>
                     <div class="form-group">
@@ -161,23 +177,26 @@ $(function(){
     loadUsers();
 
     $('#saveUserBtn').click(function(){
-        var data = $('#userForm').serialize() + '&action=save';
+        var data = $('#userForm').serialize() + '&action=save&ajax=1';
         $.post('ajax/user_api.php', data, function(resp){
             if(resp.success){ toastr.success(resp.message||'Saved'); $('#userModal').modal('hide'); loadUsers(); }
             else toastr.error(resp.message||'Save failed');
-        },'json');
+        },'json').fail(function(xhr){
+            var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){}
+            toastr.error(msg);
+        });
     });
 
     $('#usersTable').on('click', '.edit-user', function(){
         var id = $(this).data('id');
-        $.get('ajax/user_api.php',{action:'get',id:id}, function(resp){
+        $.get('ajax/user_api.php',{action:'get',id:id,ajax:1}, function(resp){
             if(resp.success){ var d=resp.data; $('#userId').val(d.id); $('#userUsername').val(d.username); $('#userFullName').val(d.full_name); $('#userEmail').val(d.email); $('#userRole').val(d.role); $('#userIsActive').val(d.is_active?1:0); $('#userPassword').attr('required',false); $('#userModal').modal('show'); }
-            else toastr.error('User not found');
-        },'json');
+            else toastr.error(resp.message||'User not found');
+        },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
     });
 
     $('#usersTable').on('click', '.delete-user', function(){
-        if(!confirm('Delete user?')) return; var id=$(this).data('id'); $.post('ajax/user_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadUsers(); } else toastr.error(resp.message||'Delete failed'); },'json');
+    if(!confirm('Delete user?')) return; var id=$(this).data('id'); $.post('ajax/user_api.php',{action:'delete',id:id,ajax:1}, function(resp){ if(resp.success){ toastr.success(resp.message); loadUsers(); } else toastr.error(resp.message||'Delete failed'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
     });
 });
 </script>
