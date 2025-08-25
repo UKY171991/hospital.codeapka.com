@@ -12,32 +12,49 @@ $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     require_once 'inc/connection.php';
+    // detect AJAX either via X-Requested-With or explicit ajax param
+    $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || (!empty($_REQUEST['ajax']) && $_REQUEST['ajax'] == 1);
 
-    $username = trim($_POST['username']);
-    $password = $_POST['password'];
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
     $full_name = trim($_POST['full_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
 
     if ($username == '' || $password == '') {
         $error = 'Username and password are required.';
     } else {
-        // check username uniqueness
-        $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
-        $stmt->execute([$username]);
-        if ($stmt->fetch()) {
-            $error = 'Username is already taken.';
-        } else {
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-            $insert = $pdo->prepare("INSERT INTO users (username, password, full_name, email, role, is_active, created_at) VALUES (?, ?, ?, ?, 'user', 1, NOW())");
-            $res = $insert->execute([$username, $hash, $full_name, $email]);
-            if ($res) {
-                    $success = 'Registration successful. You can now login.';
-                    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-                    if($isAjax){ header('Content-Type: application/json'); echo json_encode(['success'=>true,'message'=>$success,'redirect'=>'login.php']); exit; }
+        try {
+            // check username uniqueness
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
+            $stmt->execute([$username]);
+            if ($stmt->fetch()) {
+                $error = 'Username is already taken.';
             } else {
-                $error = 'Failed to register. Please try again.';
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+                $insert = $pdo->prepare("INSERT INTO users (username, password, full_name, email, role, is_active, created_at) VALUES (?, ?, ?, ?, 'user', 1, NOW())");
+                $res = $insert->execute([$username, $hash, $full_name, $email]);
+                if ($res) {
+                    $success = 'Registration successful. You can now login.';
+                } else {
+                    $error = 'Failed to register. Please try again.';
+                }
+            }
+        } catch (Exception $e) {
+            // on exception, set a safe message; include exception message when running locally only
+            $error = 'Server error while registering.';
+            // If ajax, include the exception text for debugging (non-production use)
+            if ($isAjax) {
+                $error .= ' ' . $e->getMessage();
             }
         }
+    }
+
+    // If this was an AJAX request, always respond with JSON (success or error)
+    if ($isAjax) {
+        header('Content-Type: application/json');
+        $ok = empty($error) && !empty($success);
+        echo json_encode(['success' => $ok, 'message' => $ok ? $success : $error, 'redirect' => $ok ? 'login.php' : null]);
+        exit;
     }
 }
 ?>
@@ -128,7 +145,31 @@ $(function(){
     $('#registerForm').on('submit', function(e){
         e.preventDefault();
         var $f = $(this);
-        $.ajax({ url: 'register.php', type: 'POST', data: $f.serialize(), dataType: 'json', success: function(resp){ if(resp.success){ toastr.success(resp.message||'Registered'); setTimeout(function(){ window.location = resp.redirect || 'login.php'; },700); } else { toastr.error(resp.message||'Register failed'); } }, error: function(){ toastr.error('Server error'); } });
+        $.ajax({
+            url: 'register.php',
+            type: 'POST',
+            data: $f.serialize() + '&ajax=1',
+            dataType: 'json',
+            success: function(resp){
+                if(resp.success){
+                    toastr.success(resp.message||'Registered');
+                    setTimeout(function(){ window.location = resp.redirect || 'login.php'; },700);
+                } else {
+                    toastr.error(resp.message||'Register failed');
+                }
+            },
+            error: function(xhr){
+                var msg = 'Server error';
+                try {
+                    var json = JSON.parse(xhr.responseText || '{}');
+                    if (json && json.message) msg = json.message;
+                } catch(e) {
+                    // not JSON, show responseText if short
+                    if (xhr.responseText && xhr.responseText.length < 500) msg = xhr.responseText;
+                }
+                toastr.error(msg);
+            }
+        });
     });
 });
 </script>

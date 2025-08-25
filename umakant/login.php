@@ -150,10 +150,23 @@ $(function(){
         $.ajax({
             url: 'login.php', type: 'POST', data: data, dataType: 'json',
             success: function(resp){
-                if(resp.success){ toastr.success(resp.message||'Logged in'); setTimeout(function(){ window.location = resp.redirect || 'index.php'; }, 600);
-                } else { toastr.error(resp.message || 'Login failed'); }
+                if(resp.success){
+                    toastr.success(resp.message||'Logged in');
+                    setTimeout(function(){ window.location = resp.redirect || 'index.php'; }, 600);
+                } else {
+                    toastr.error(resp.message || 'Login failed');
+                }
             },
-            error: function(){ toastr.error('Server error'); }
+            error: function(xhr){
+                var msg = 'Server error';
+                try {
+                    var json = JSON.parse(xhr.responseText || '{}');
+                    if (json && json.message) msg = json.message;
+                } catch(e) {
+                    if (xhr.responseText && xhr.responseText.length < 500) msg = xhr.responseText;
+                }
+                toastr.error(msg);
+            }
         });
     });
 });
