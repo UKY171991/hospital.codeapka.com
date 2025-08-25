@@ -22,13 +22,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = 'Username and password are required.';
     } else {
         // check username uniqueness
-        $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
         $stmt->execute([$username]);
         if ($stmt->fetch()) {
             $error = 'Username is already taken.';
         } else {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $insert = $conn->prepare("INSERT INTO users (username, password, full_name, email, role, is_active, created_at) VALUES (?, ?, ?, ?, 'user', 1, NOW())");
+            $insert = $pdo->prepare("INSERT INTO users (username, password, full_name, email, role, is_active, created_at) VALUES (?, ?, ?, ?, 'user', 1, NOW())");
             $res = $insert->execute([$username, $hash, $full_name, $email]);
             if ($res) {
                     $success = 'Registration successful. You can now login.';
