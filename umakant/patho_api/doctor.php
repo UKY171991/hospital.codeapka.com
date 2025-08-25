@@ -24,15 +24,19 @@ try {
     if ($action === 'save') {
         // allow authenticated users to create doctors; you can restrict to admin/master if needed
         if (!isset($_SESSION['user_id'])) json_response(['success'=>false,'message'=>'Unauthorized'],401);
-        // Accept JSON body as well as form-encoded
-        $input = $_POST;
+    // Accept JSON body as well as form-encoded
+    $input = $_POST;
         if (stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== false) {
             $raw = file_get_contents('php://input');
             $json = json_decode($raw, true);
             if (is_array($json)) $input = array_merge($input, $json);
         }
 
-        $name = trim($input['name'] ?? '');
+    // Prevent importing client-supplied id or added_by values — server controls these
+    if (isset($input['id'])) unset($input['id']);
+    if (isset($input['added_by'])) unset($input['added_by']);
+
+    $name = trim($input['name'] ?? '');
         $qualification = trim($input['qualification'] ?? '');
         $specialization = trim($input['specialization'] ?? '');
         $hospital = trim($input['hospital'] ?? '');
@@ -41,14 +45,17 @@ try {
         $email = trim($input['email'] ?? '');
         $address = trim($input['address'] ?? '');
         $registration_no = trim($input['registration_no'] ?? '');
-        $percent = isset($input['percent']) ? $input['percent'] : null;
+    $percent = isset($input['percent']) ? $input['percent'] : null;
+    if ($percent === '') $percent = null;
+    if ($percent !== null) $percent = (float)$percent;
         $added_by = $_SESSION['user_id'];
 
         if ($name === '') {
             json_response(['success'=>false,'message'=>'Name is required'],400);
         }
-        $stmt = $pdo->prepare('INSERT INTO doctors (name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, percent, added_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $percent, $added_by]);
+    // Use server-side added_by only — ignore any client-provided added_by
+    $stmt = $pdo->prepare('INSERT INTO doctors (name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, percent, added_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $percent, $added_by]);
         $newId = $pdo->lastInsertId();
         json_response(['success'=>true,'message'=>'Doctor added','id'=>$newId]);
     }
