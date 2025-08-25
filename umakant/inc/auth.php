@@ -8,6 +8,7 @@ $isAjaxHeader = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER
 
 $allowPatterns = [
     'login.php',
+    'register.php',
     '/patho_api/',
     '/ajax/',
     '/assets/',
