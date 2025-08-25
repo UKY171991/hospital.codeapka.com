@@ -31,7 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $error = 'Username is already taken.';
             } else {
                 $hash = password_hash($password, PASSWORD_DEFAULT);
-                $insert = $pdo->prepare("INSERT INTO users (username, password, full_name, email, role, is_active, created_at) VALUES (?, ?, ?, ?, 'user', 1, NOW())");
+                // Insert with explicit columns that exist in the users table (match table structure)
+                $insert = $pdo->prepare("INSERT INTO users (username, password, full_name, email, role, added_by, is_active, created_at) VALUES (?, ?, ?, ?, 'user', NULL, 1, NOW())");
                 $res = $insert->execute([$username, $hash, $full_name, $email]);
                 if ($res) {
                     $success = 'Registration successful. You can now login.';
