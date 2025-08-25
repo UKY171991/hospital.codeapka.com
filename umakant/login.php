@@ -24,7 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         try {
             // Check if user exists and is active (only admin allowed to access admin UI)
                 // Note: the users table uses 'expire_date' for the expiry column and contains last_login/updated_at
-                $stmt = $pdo->prepare("SELECT id, username, password, role, is_active, full_name, email, created_at, updated_at, expire_date, last_login, added_by FROM users WHERE username = ? AND is_active = 1 AND role = 'admin'");
+                // allow any active user to authenticate (admins are still recognized via role)
+                $stmt = $pdo->prepare("SELECT id, username, password, role, is_active, full_name, email, created_at, updated_at, expire_date, last_login, added_by FROM users WHERE username = ? AND is_active = 1");
             $stmt->execute([$username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
