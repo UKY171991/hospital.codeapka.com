@@ -53,7 +53,7 @@ require_once 'inc/sidebar.php';
                                         <th>Full Name</th>
                                         <th>Role</th>
                                         <th>Status</th>
-                                        <th>Last Login</th>
+                                        <th>Expire Date</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -135,15 +135,6 @@ require_once 'inc/sidebar.php';
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="userAddedBy">Added By</label>
-                        <input type="number" class="form-control" id="userAddedBy" name="added_by" placeholder="User ID who added this user">
-                    </div>
-                    <div class="form-group">
-                        <label for="userLastLoginDisplay">Last Login</label>
-                        <input type="datetime-local" class="form-control" id="userLastLoginDisplay">
-                        <input type="hidden" id="userLastLogin" name="last_login">
-                    </div>
-                    <div class="form-group">
                         <label for="userExpireDateDisplay">Expire Date</label>
                         <input type="datetime-local" class="form-control" id="userExpireDateDisplay">
                         <input type="hidden" id="userExpireDate" name="expire_date">
@@ -172,7 +163,7 @@ function loadUsers(){
                          '<td>'+ (u.full_name||'') +'</td>'+
                          '<td>'+ (u.role||'') +'</td>'+
                          '<td>'+ (u.is_active==1? 'Active':'Inactive') +'</td>'+
-                         '<td>'+ (u.last_login||'Never') +'</td>'+
+                         '<td>'+ (u.expire_date||'') +'</td>'+
                          '<td><button class="btn btn-sm btn-info view-user" data-id="'+u.id+'">View</button> '+
                                     '<button class="btn btn-sm btn-warning edit-user" data-id="'+u.id+'">Edit</button> '+
                                     '<button class="btn btn-sm btn-danger delete-user" data-id="'+u.id+'">Delete</button></td>'+
@@ -191,12 +182,9 @@ $(function(){
     loadUsers();
 
     $('#saveUserBtn').click(function(){
-    // copy datetime-local values into hidden inputs in server-friendly format
-    var lastLoginVal = $('#userLastLoginDisplay').val();
+    // copy datetime-local value into hidden input in server-friendly format
     var expireVal = $('#userExpireDateDisplay').val();
-    // browser returns local datetime like 2025-08-25T18:00; convert to 'YYYY-MM-DD HH:MM:SS' when present
     function toSqlDatetime(v){ if(!v) return ''; return v.replace('T',' ') + ':00'; }
-    $('#userLastLogin').val(toSqlDatetime(lastLoginVal));
     $('#userExpireDate').val(toSqlDatetime(expireVal));
 
     var data = $('#userForm').serialize() + '&action=save&ajax=1';
@@ -219,11 +207,8 @@ $(function(){
             $('#userEmail').val(d.email);
             $('#userRole').val(d.role);
             $('#userIsActive').val(d.is_active?1:0);
-            $('#userAddedBy').val(d.added_by||'');
             // convert server datetime 'YYYY-MM-DD HH:MM:SS' to datetime-local 'YYYY-MM-DDTHH:MM'
             function toLocalDatetime(v){ if(!v) return ''; return v.replace(' ','T').slice(0,16); }
-            $('#userLastLoginDisplay').val(toLocalDatetime(d.last_login||''));
-            $('#userLastLogin').val(d.last_login||'');
             $('#userExpireDateDisplay').val(toLocalDatetime(d.expire_date||''));
             $('#userExpireDate').val(d.expire_date||'');
             $('#userPassword').attr('required',false);
@@ -234,6 +219,33 @@ $(function(){
 
     $('#usersTable').on('click', '.delete-user', function(){
     if(!confirm('Delete user?')) return; var id=$(this).data('id'); $.post('ajax/user_api.php',{action:'delete',id:id,ajax:1}, function(resp){ if(resp.success){ toastr.success(resp.message); loadUsers(); } else toastr.error(resp.message||'Delete failed'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+    });
+    // view-user: show modal in read-only mode
+    $('#usersTable').on('click', '.view-user', function(){
+        var id = $(this).data('id');
+        $.get('ajax/user_api.php',{action:'get',id:id,ajax:1}, function(resp){
+            if(resp.success){ var d=resp.data;
+                // populate fields
+                $('#userId').val(d.id);
+                $('#userUsername').val(d.username).prop('disabled',true);
+                $('#userFullName').val(d.full_name).prop('disabled',true);
+                $('#userEmail').val(d.email).prop('disabled',true);
+                $('#userRole').val(d.role).prop('disabled',true);
+                $('#userIsActive').val(d.is_active?1:0).prop('disabled',true);
+                function toLocalDatetime(v){ if(!v) return ''; return v.replace(' ','T').slice(0,16); }
+                $('#userExpireDateDisplay').val(toLocalDatetime(d.expire_date||'')).prop('disabled',true);
+                $('#userModal .modal-title').text('View User');
+                $('#saveUserBtn').hide();
+                $('#userModal').modal('show');
+            } else toastr.error(resp.message||'User not found');
+        },'json');
+    });
+
+    // when modal hides, re-enable inputs and restore Save button
+    $('#userModal').on('hidden.bs.modal', function(){
+        $('#userForm input, #userForm select').prop('disabled', false);
+        $('#saveUserBtn').show();
+        $('#userModal .modal-title').text('Add User');
     });
 });
 </script>
