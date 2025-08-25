@@ -7,8 +7,16 @@ session_start();
 $action = $_REQUEST['action'] ?? 'list';
 
 if ($action === 'list') {
-    $stmt = $pdo->query('SELECT id, username, email, full_name, role, is_active, last_login FROM users ORDER BY id DESC');
-    $rows = $stmt->fetchAll();
+    // optional role filter
+    $role = $_GET['role'] ?? null;
+    if ($role) {
+        $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, is_active, last_login FROM users WHERE role = ? ORDER BY id DESC');
+        $stmt->execute([$role]);
+        $rows = $stmt->fetchAll();
+    } else {
+        $stmt = $pdo->query('SELECT id, username, email, full_name, role, is_active, last_login FROM users ORDER BY id DESC');
+        $rows = $stmt->fetchAll();
+    }
     json_response(['success' => true, 'data' => $rows]);
 }
 

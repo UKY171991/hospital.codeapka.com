@@ -54,6 +54,9 @@ $role = $_SESSION['role'] ?? 'user';
         <li class="nav-item">
           <a href="user.php" class="nav-link <?php echo ($activePage == 'user.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-users"></i><p>Users</p></a>
         </li>
+        <li class="nav-item">
+          <a href="admins.php" class="nav-link <?php echo ($activePage == 'admins.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-user-shield"></i><p>Admins</p></a>
+        </li>
         <?php endif; ?>
 
         <li class="nav-item mt-2">
