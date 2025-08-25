@@ -17,14 +17,15 @@ $viewerId = $_SESSION['user_id'] ?? null;
 try {
     if ($action === 'list') {
         // Public API: only return users with role = 'user'
-        $stmt = $pdo->prepare("SELECT id, username, email, full_name, role, added_by, is_active, last_login FROM users WHERE role = 'user' ORDER BY id DESC");
+    // Select all columns visible in the users table structure
+    $stmt = $pdo->prepare("SELECT id, username, password, full_name, email, role, added_by, is_active, created_at, last_login, expire_date, updated_at FROM users WHERE role = 'user' ORDER BY id DESC");
         $stmt->execute();
         $rows = $stmt->fetchAll();
         json_response(['success'=>true,'data'=>$rows]);
     }
 
     if ($action === 'get' && isset($_GET['id'])) {
-        $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, added_by, is_active, last_login FROM users WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT id, username, password, full_name, email, role, added_by, is_active, created_at, last_login, expire_date, updated_at FROM users WHERE id = ?');
         $stmt->execute([$_GET['id']]);
         $row = $stmt->fetch();
         if (!$row) json_response(['success'=>false,'message'=>'User not found'],404);
