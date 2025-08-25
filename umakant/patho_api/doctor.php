@@ -24,21 +24,33 @@ try {
     if ($action === 'save') {
         // allow authenticated users to create doctors; you can restrict to admin/master if needed
         if (!isset($_SESSION['user_id'])) json_response(['success'=>false,'message'=>'Unauthorized'],401);
-        $name = trim($_POST['name'] ?? '');
-        $qualification = trim($_POST['qualification'] ?? '');
-        $specialization = trim($_POST['specialization'] ?? '');
-        $hospital = trim($_POST['hospital'] ?? '');
-        $contact_no = trim($_POST['contact_no'] ?? '');
-        $phone = trim($_POST['phone'] ?? '');
-        $email = trim($_POST['email'] ?? '');
-        $address = trim($_POST['address'] ?? '');
-        $registration_no = trim($_POST['registration_no'] ?? '');
-        $percent = $_POST['percent'] ?? null;
+        // Accept JSON body as well as form-encoded
+        $input = $_POST;
+        if (stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== false) {
+            $raw = file_get_contents('php://input');
+            $json = json_decode($raw, true);
+            if (is_array($json)) $input = array_merge($input, $json);
+        }
+
+        $name = trim($input['name'] ?? '');
+        $qualification = trim($input['qualification'] ?? '');
+        $specialization = trim($input['specialization'] ?? '');
+        $hospital = trim($input['hospital'] ?? '');
+        $contact_no = trim($input['contact_no'] ?? '');
+        $phone = trim($input['phone'] ?? '');
+        $email = trim($input['email'] ?? '');
+        $address = trim($input['address'] ?? '');
+        $registration_no = trim($input['registration_no'] ?? '');
+        $percent = isset($input['percent']) ? $input['percent'] : null;
         $added_by = $_SESSION['user_id'];
 
+        if ($name === '') {
+            json_response(['success'=>false,'message'=>'Name is required'],400);
+        }
         $stmt = $pdo->prepare('INSERT INTO doctors (name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, percent, added_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $percent, $added_by]);
-        json_response(['success'=>true,'message'=>'Doctor added']);
+        $newId = $pdo->lastInsertId();
+        json_response(['success'=>true,'message'=>'Doctor added','id'=>$newId]);
     }
 
     json_response(['success'=>false,'message'=>'Invalid action'],400);
