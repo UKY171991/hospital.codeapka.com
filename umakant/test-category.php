@@ -50,7 +50,7 @@ require_once 'inc/sidebar.php';
                                         <th>ID</th>
                                         <th>Name</th>
                                         <th>Description</th>
-                                        <th>Created At</th>
+                                        <th>Added By</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -107,15 +107,15 @@ require_once 'inc/sidebar.php';
 <script>
 function loadCategories(){
     $.get('ajax/test_category_api.php',{action:'list'},function(resp){
-        if(resp.success){ var t=''; resp.data.forEach(function(c){ t += '<tr>'+
-                '<td>'+c.id+'</td>'+
-                '<td>'+ (c.name||'') +'</td>'+
-                '<td>'+ (c.description||'') +'</td>'+
-                '<td>'+ (c.created_at||'') +'</td>'+
-                '<td><button class="btn btn-sm btn-info view-category" data-id="'+c.id+'">View</button> '+
-                        '<button class="btn btn-sm btn-warning edit-category" data-id="'+c.id+'">Edit</button> '+
-                        '<button class="btn btn-sm btn-danger delete-category" data-id="'+c.id+'">Delete</button></td>'+
-                '</tr>'; }); $('#categoriesTable tbody').html(t);
+    if(resp.success){ var t=''; resp.data.forEach(function(c){ t += '<tr>'+
+        '<td>'+c.id+'</td>'+
+        '<td>'+ (c.name||'') +'</td>'+
+        '<td>'+ (c.description||'') +'</td>'+
+        '<td>'+ ((c.added_by_username && c.added_by_username!='')?c.added_by_username:(c.added_by||'')) +'</td>'+
+        '<td><button class="btn btn-sm btn-info view-category" data-id="'+c.id+'">View</button> '+
+            '<button class="btn btn-sm btn-warning edit-category" data-id="'+c.id+'">Edit</button> '+
+            '<button class="btn btn-sm btn-danger delete-category" data-id="'+c.id+'">Delete</button></td>'+
+        '</tr>'; }); $('#categoriesTable tbody').html(t);
         } else toastr.error('Failed to load categories');
     },'json');
 }

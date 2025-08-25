@@ -7,13 +7,14 @@ session_start();
 $action = $_REQUEST['action'] ?? 'list';
 
 if ($action === 'list') {
-    $stmt = $pdo->query('SELECT id, name, description, created_at FROM categories ORDER BY id DESC');
+    // include added_by and added_by_username from users table when available
+    $stmt = $pdo->query('SELECT c.id, c.name, c.description, c.added_by, u.username as added_by_username FROM categories c LEFT JOIN users u ON c.added_by = u.id ORDER BY c.id DESC');
     $rows = $stmt->fetchAll();
     json_response(['success' => true, 'data' => $rows]);
 }
 
 if ($action === 'get' && isset($_GET['id'])) {
-    $stmt = $pdo->prepare('SELECT * FROM categories WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT c.*, u.username as added_by_username FROM categories c LEFT JOIN users u ON c.added_by = u.id WHERE c.id = ?');
     $stmt->execute([$_GET['id']]);
     $row = $stmt->fetch();
     json_response(['success' => true, 'data' => $row]);
@@ -27,12 +28,14 @@ if ($action === 'save') {
     $description = trim($_POST['description'] ?? '');
 
     if ($id) {
-        $stmt = $pdo->prepare('UPDATE categories SET name=?, description=? WHERE id=?');
+        $stmt = $pdo->prepare('UPDATE categories SET name=?, description=?, updated_at=NOW() WHERE id=?');
         $stmt->execute([$name, $description, $id]);
         json_response(['success' => true, 'message' => 'Category updated']);
     } else {
-        $stmt = $pdo->prepare('INSERT INTO categories (name, description, created_at) VALUES (?, ?, NOW())');
-        $stmt->execute([$name, $description]);
+        // set added_by from session user id when creating
+        $added_by = $_SESSION['user_id'] ?? null;
+        $stmt = $pdo->prepare('INSERT INTO categories (name, description, added_by, created_at) VALUES (?, ?, ?, NOW())');
+        $stmt->execute([$name, $description, $added_by]);
         json_response(['success' => true, 'message' => 'Category created']);
     }
 }
