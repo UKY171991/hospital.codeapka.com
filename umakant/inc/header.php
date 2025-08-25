@@ -18,6 +18,7 @@
   <style>body{background:#f4f6f9}</style>
 </head>
 <?php if(session_status() === PHP_SESSION_NONE) session_start(); ?>
+<?php include_once __DIR__ . '/auth.php'; ?>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
