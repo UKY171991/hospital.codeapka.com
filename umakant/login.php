@@ -23,7 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         require_once 'inc/connection.php';
         try {
             // Check if user exists and is active (only admin allowed to access admin UI)
-            $stmt = $pdo->prepare("SELECT id, username, password, role, is_active, full_name, email, created_at, updated_at, expire, added_by FROM users WHERE username = ? AND is_active = 1 AND role = 'admin'");
+                // Note: the users table uses 'expire_date' for the expiry column and contains last_login/updated_at
+                $stmt = $pdo->prepare("SELECT id, username, password, role, is_active, full_name, email, created_at, updated_at, expire_date, last_login, added_by FROM users WHERE username = ? AND is_active = 1 AND role = 'admin'");
             $stmt->execute([$username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -40,7 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['email'] = $user['email'] ?? '';
                 $_SESSION['created_at'] = $user['created_at'] ?? '';
                 $_SESSION['updated_at'] = $user['updated_at'] ?? '';
-                $_SESSION['expire'] = $user['expire'] ?? '';
+                // map expire_date from DB into session key 'expire' for backward compatibility
+                $_SESSION['expire'] = $user['expire_date'] ?? '';
                 $_SESSION['added_by'] = $user['added_by'] ?? null;
 
                 if ($isAjax) {
