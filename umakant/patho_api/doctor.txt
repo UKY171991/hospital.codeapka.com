@@ -1,0 +1,135 @@
+Doctor API - patho_api/doctor.php
+
+Base URL:
+https://hospital.codeapka.com/umakant/patho_api/doctor.php
+
+Actions supported: list, get, save, delete
+
+1) List doctors (fetch)
+- Method: GET
+- URL: /patho_api/doctor.php?action=list
+- Optional query:
+  - user_id (int) - return doctors added by this user. If omitted and you are authenticated, returns doctors added by the current session user.
+- Auth: If you want to fetch another user's doctors, you must be master/admin or specify user_id if allowed. By default unauthenticated requests will be rejected.
+- Response:
+  {
+    "success": true,
+    "data": [
+      {"id":1,"name":"Dr X","qualification":"MBBS","specialization":"Cardio","hospital":"H1","contact_no":"...","phone":"...","email":"...","address":"...","registration_no":"...","percent":0.00,"added_by":3,"added_by_username":"admin"},
+      Doctor API - patho_api/doctor.php (FULL)
+
+      Base URL:
+      https://hospital.codeapka.com/umakant/patho_api/doctor.php
+
+      Supported actions: list, get, save, delete
+
+      Schema (doctors table columns to follow screenshot):
+      - id (int)
+      - name (varchar)
+      - qualification (varchar)
+      - specialization (varchar)
+      - hospital (varchar)
+      - contact_no (varchar)
+      - phone (varchar)
+      - email (varchar)
+      - address (text)
+      - registration_no (varchar)
+      - percent (decimal)
+      - added_by (int)
+      - created_at (timestamp)
+      - updated_at (timestamp)
+
+      1) List doctors
+      - Method: GET
+      - URL: /patho_api/doctor.php?action=list
+      - Query params:
+        - user_id (optional): return doctors added by this user. If omitted, the API uses the authenticated session user_id.
+        - all=1 (optional): if viewer is `master` and all=1, returns all doctors.
+      - Auth: session required for listing (unless you make it public)
+      - Response:
+        { "success": true, "data": [ { /* doctor columns + added_by_username */ }, ... ] }
+
+      Examples:
+      - List current user's doctors (authenticated):
+        GET https://.../patho_api/doctor.php?action=list
+      - List for a specific user (master/admin or owner):
+        GET https://.../patho_api/doctor.php?action=list&user_id=5
+      - Master list all:
+        GET https://.../patho_api/doctor.php?action=list&all=1  (requires session role 'master')
+
+      2) Get single doctor
+      - Method: GET
+      - URL: /patho_api/doctor.php?action=get&id=<id>
+      - Response:
+        { "success": true, "data": { /* doctor columns + added_by_username */ } }
+
+      3) Create doctor (insert)
+      - Method: POST
+      - URL: /patho_api/doctor.php?action=save
+      - Auth: requires session cookie (PHPSESSID)
+      - Content-Type: application/json or application/x-www-form-urlencoded
+      - Body keys:
+        - name (required)
+        - qualification
+        - specialization
+        - hospital
+        - contact_no
+        - phone
+        - email
+        - address
+        - registration_no
+        - percent
+      - Notes: API ignores client-supplied `id` and `added_by`. `added_by` set from session user id. `created_at` is set by server.
+      - Successful response:
+        { "success": true, "message": "Doctor added", "id": 123 }
+
+      4) Update doctor (edit)
+      - Method: POST
+      - URL: /patho_api/doctor.php?action=save
+      - Body: same as create but include id=<existing id>
+      - Behavior: if id present and numeric, API updates that doctor and returns {success:true,message:'Doctor updated',id:<id>}
+      - Auth/permission: updates allowed if authenticated; you can add extra restrictions (owner/admin/master) if desired.
+
+      5) Delete doctor
+      - Method: POST
+      - URL: /patho_api/doctor.php?action=delete
+      - Body: id=<id>
+      - Auth/permission: only master/admin or the creator (added_by) can delete
+      - Response: {"success":true,"message":"Doctor deleted"}
+
+      Postman testing examples
+      - 1) Login (to get session cookie)
+        POST https://hospital.codeapka.com/umakant/login.php
+        Body x-www-form-urlencoded: username=admin, password=pass, ajax=1
+
+      - 2) Create (JSON)
+        POST https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=save
+        Headers: Content-Type: application/json
+        Body (raw):
+        {
+          "name":"Dr. A Kumar",
+          "qualification":"MBBS",
+          "specialization":"Cardiology",
+          "hospital":"City Hospital",
+          "phone":"9876543210",
+          "email":"doc@example.com",
+          "address":"Some address",
+          "registration_no":"REG-100",
+          "percent":10
+        }
+
+      - 3) Update (form-encoded)
+        POST https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=save
+        Body x-www-form-urlencoded: id=123&name=Dr X&phone=999
+
+      - 4) List current user
+        GET https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=list
+
+      - 5) Delete
+        POST https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=delete
+        Body x-www-form-urlencoded: id=123
+
+      Security note
+      - Protect these endpoints via session cookies or API keys for production.
+
+      If you want, I can export these as Postman requests (collection JSON) and upload it here.
