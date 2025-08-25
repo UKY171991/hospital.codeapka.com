@@ -10,48 +10,62 @@ if (isset($_SESSION['user_id'])) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    require_once 'inc/connection.php';
+    // detect AJAX either via X-Requested-With or explicit ajax param
+    $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || (!empty($_REQUEST['ajax']) && $_REQUEST['ajax'] == 1);
 
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
 
-    // Check if user exists and is active (only admin allowed to access admin UI)
-    $stmt = $pdo->prepare("SELECT id, username, password, role, is_active, full_name, email, created_at, updated_at, expire, added_by FROM users WHERE username = ? AND is_active = 1 AND role = 'admin'");
-    $stmt->execute([$username]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if ($user) {
-        // Verify password
-    if (password_verify($password, $user['password'])) {
-            // Update last login (MySQL)
-            $updateStmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
-            $updateStmt->execute([$user['id']]);
+    if ($username === '' || $password === '') {
+        $error = 'Username and password are required.';
+        if ($isAjax) { header('Content-Type: application/json'); echo json_encode(['success'=>false,'message'=>$error]); exit; }
+    } else {
+        require_once 'inc/connection.php';
+        try {
+            // Check if user exists and is active (only admin allowed to access admin UI)
+            $stmt = $pdo->prepare("SELECT id, username, password, role, is_active, full_name, email, created_at, updated_at, expire, added_by FROM users WHERE username = ? AND is_active = 1 AND role = 'admin'");
+            $stmt->execute([$username]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // Set session variables (include a few helpful fields)
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $user['role'];
-            $_SESSION['full_name'] = $user['full_name'] ?? '';
-            $_SESSION['email'] = $user['email'] ?? '';
-            $_SESSION['created_at'] = $user['created_at'] ?? '';
-            $_SESSION['updated_at'] = $user['updated_at'] ?? '';
-            $_SESSION['expire'] = $user['expire'] ?? '';
-            $_SESSION['added_by'] = $user['added_by'] ?? null;
+            if ($user && password_verify($password, $user['password'])) {
+                // Update last login (MySQL)
+                $updateStmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+                $updateStmt->execute([$user['id']]);
 
-            // Redirect to dashboard (or return JSON for AJAX)
-            $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+                // Set session variables (include a few helpful fields)
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['full_name'] = $user['full_name'] ?? '';
+                $_SESSION['email'] = $user['email'] ?? '';
+                $_SESSION['created_at'] = $user['created_at'] ?? '';
+                $_SESSION['updated_at'] = $user['updated_at'] ?? '';
+                $_SESSION['expire'] = $user['expire'] ?? '';
+                $_SESSION['added_by'] = $user['added_by'] ?? null;
+
+                if ($isAjax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success'=>true,'message'=>'Login successful','redirect'=>'index.php']);
+                    exit();
+                }
+                header('Location: index.php');
+                exit();
+            } else {
+                $error = 'Invalid username or password';
+                if ($isAjax) { header('Content-Type: application/json'); echo json_encode(['success'=>false,'message'=>$error]); exit; }
+            }
+        } catch (Exception $e) {
+            // return JSON for AJAX, avoid 500 which triggers generic error in browser
+            $msg = 'Server error while authenticating.';
+            // append debug message for local troubleshooting
             if ($isAjax) {
                 header('Content-Type: application/json');
-                echo json_encode(['success'=>true,'message'=>'Login successful','redirect'=>'index.php']);
-                exit();
+                echo json_encode(['success'=>false,'message'=>$msg . ' ' . $e->getMessage()]);
+                exit;
             }
-            header('Location: index.php');
-            exit();
-        } else {
-            $error = 'Invalid username or password';
+            // Non-AJAX: set error to show on page
+            $error = $msg;
         }
-    } else {
-        $error = 'Invalid username or password';
     }
 }
 ?>
@@ -146,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 $(function(){
     $('#loginForm').on('submit', function(e){
         e.preventDefault();
-        var data = $(this).serialize();
+    var data = $(this).serialize() + '&ajax=1';
         $.ajax({
             url: 'login.php', type: 'POST', data: data, dataType: 'json',
             success: function(resp){
