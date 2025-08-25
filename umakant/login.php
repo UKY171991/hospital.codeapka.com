@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];
 
     // Check if user exists and is active (only admin allowed to access admin UI)
-    $stmt = $conn->prepare("SELECT id, username, password, role, is_active, full_name, email, created_at, updated_at, expire, added_by FROM users WHERE username = ? AND is_active = 1 AND role = 'admin'");
+    $stmt = $pdo->prepare("SELECT id, username, password, role, is_active, full_name, email, created_at, updated_at, expire, added_by FROM users WHERE username = ? AND is_active = 1 AND role = 'admin'");
     $stmt->execute([$username]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Verify password
     if (password_verify($password, $user['password'])) {
             // Update last login (MySQL)
-            $updateStmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+            $updateStmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
             $updateStmt->execute([$user['id']]);
 
             // Set session variables (include a few helpful fields)
