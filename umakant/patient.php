@@ -172,12 +172,37 @@ function loadPatients(){
             '<td>'+ (p.age||'') +'</td>'+
             '<td>'+ (p.gender||'') +'</td>'+
             '<td>'+ (p.phone||'') +'</td>'+
-            '<td><button class="btn btn-sm btn-info view-patient" data-id="'+p.id+'">View</button> '+
+            '<td><button class="btn btn-sm btn-info view-patient" data-id="'+p.id+'" onclick="viewPatient('+p.id+')">View</button> '+
                 '<button class="btn btn-sm btn-warning edit-patient" data-id="'+p.id+'">Edit</button> '+
                 '<button class="btn btn-sm btn-danger delete-patient" data-id="'+p.id+'">Delete</button></td>'+
             '</tr>'; }); $('#patientsTable tbody').html(t);
         } else toastr.error('Failed to load patients');
     },'json');
+}
+
+// fallback global function used by inline onclick on View buttons
+function viewPatient(id){
+    try{
+        console.debug('viewPatient() called', id);
+        $.get('ajax/patient_api.php',{action:'get',id:id}, function(resp){
+            if(resp.success){
+                var d=resp.data;
+                $('#patientId').val(d.id);
+                $('#patientName').val(d.name);
+                $('#patientMobile').val(d.mobile);
+                $('#patientFatherHusband').val(d.father_husband);
+                $('#patientAddress').val(d.address);
+                $('#patientSex').val(d.sex);
+                $('#patientAge').val(d.age);
+                $('#patientAgeUnit').val(d.age_unit||'Years');
+                $('#patientUHID').val(d.uhid);
+                $('#patientModalLabel').text('View Patient');
+                $('#patientForm').find('input,textarea,select').prop('disabled', true);
+                $('#savePatientBtn').hide();
+                $('#patientModal').modal('show');
+            } else toastr.error('Patient not found');
+        },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+    }catch(err){ console.error('viewPatient error', err); toastr.error('Error: '+(err.message||err)); }
 }
 
 function openAddPatientModal(){
@@ -199,54 +224,67 @@ $(function(){
 
     $('#savePatientBtn').click(function(){ var data = $('#patientForm').serialize() + '&action=save'; $.post('ajax/patient_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#patientModal').modal('hide'); loadPatients(); } else toastr.error(resp.message||'Save failed'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
 
-    $('#patientsTable').on('click', '.edit-patient', function(){
-        var id=$(this).data('id');
-        $.get('ajax/patient_api.php',{action:'get',id:id}, function(resp){
-            if(resp.success){
-                var d=resp.data;
-                $('#patientId').val(d.id);
-                $('#patientName').val(d.name);
-                $('#patientMobile').val(d.mobile);
-                $('#patientFatherHusband').val(d.father_husband);
-                $('#patientAddress').val(d.address);
-                $('#patientSex').val(d.sex);
-                $('#patientAge').val(d.age);
-                $('#patientAgeUnit').val(d.age_unit||'Years');
-                $('#patientUHID').val(d.uhid);
-                // make editable for edit
-                $('#patientModalLabel').text('Edit Patient');
-                $('#patientForm').find('input,textarea,select').prop('disabled', false);
-                $('#savePatientBtn').show();
-                $('#patientModal').modal('show');
-            } else toastr.error('Patient not found');
-        },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+    // edit - use document delegation to be robust against dynamic table rebuilds
+    $(document).on('click', '.edit-patient', function(){
+        try{
+            console.debug('edit-patient clicked', this, $(this).data('id'));
+            var id=$(this).data('id');
+            $.get('ajax/patient_api.php',{action:'get',id:id}, function(resp){
+                if(resp.success){
+                    var d=resp.data;
+                    $('#patientId').val(d.id);
+                    $('#patientName').val(d.name);
+                    $('#patientMobile').val(d.mobile);
+                    $('#patientFatherHusband').val(d.father_husband);
+                    $('#patientAddress').val(d.address);
+                    $('#patientSex').val(d.sex);
+                    $('#patientAge').val(d.age);
+                    $('#patientAgeUnit').val(d.age_unit||'Years');
+                    $('#patientUHID').val(d.uhid);
+                    // make editable for edit
+                    $('#patientModalLabel').text('Edit Patient');
+                    $('#patientForm').find('input,textarea,select').prop('disabled', false);
+                    $('#savePatientBtn').show();
+                    $('#patientModal').modal('show');
+                } else toastr.error('Patient not found');
+            },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+        }catch(err){ console.error('edit handler error', err); toastr.error('Error: '+(err.message||err)); }
     });
 
-    // view handler - opens modal in read-only mode
-    $('#patientsTable').on('click', '.view-patient', function(){
-        var id=$(this).data('id');
-        $.get('ajax/patient_api.php',{action:'get',id:id}, function(resp){
-            if(resp.success){
-                var d=resp.data;
-                $('#patientId').val(d.id);
-                $('#patientName').val(d.name);
-                $('#patientMobile').val(d.mobile);
-                $('#patientFatherHusband').val(d.father_husband);
-                $('#patientAddress').val(d.address);
-                $('#patientSex').val(d.sex);
-                $('#patientAge').val(d.age);
-                $('#patientAgeUnit').val(d.age_unit||'Years');
-                $('#patientUHID').val(d.uhid);
-                // make read-only for view
-                $('#patientModalLabel').text('View Patient');
-                $('#patientForm').find('input,textarea,select').prop('disabled', true);
-                $('#savePatientBtn').hide();
-                $('#patientModal').modal('show');
-            } else toastr.error('Patient not found');
-        },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+    // view handler - opens modal in read-only mode; attach to document for robustness
+    $(document).on('click', '.view-patient', function(){
+        try{
+            console.debug('view-patient clicked', this, $(this).data('id'));
+            var id=$(this).data('id');
+            $.get('ajax/patient_api.php',{action:'get',id:id}, function(resp){
+                if(resp.success){
+                    var d=resp.data;
+                    $('#patientId').val(d.id);
+                    $('#patientName').val(d.name);
+                    $('#patientMobile').val(d.mobile);
+                    $('#patientFatherHusband').val(d.father_husband);
+                    $('#patientAddress').val(d.address);
+                    $('#patientSex').val(d.sex);
+                    $('#patientAge').val(d.age);
+                    $('#patientAgeUnit').val(d.age_unit||'Years');
+                    $('#patientUHID').val(d.uhid);
+                    // make read-only for view
+                    $('#patientModalLabel').text('View Patient');
+                    $('#patientForm').find('input,textarea,select').prop('disabled', true);
+                    $('#savePatientBtn').hide();
+                    $('#patientModal').modal('show');
+                } else toastr.error('Patient not found');
+            },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+        }catch(err){ console.error('view handler error', err); toastr.error('Error: '+(err.message||err)); }
     });
 
-    $('#patientsTable').on('click', '.delete-patient', function(){ if(!confirm('Delete patient?')) return; var id=$(this).data('id'); $.post('ajax/patient_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadPatients(); } else toastr.error(resp.message||'Delete failed'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+    $(document).on('click', '.delete-patient', function(){
+        try{
+            if(!confirm('Delete patient?')) return;
+            var id=$(this).data('id');
+            $.post('ajax/patient_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadPatients(); } else toastr.error(resp.message||'Delete failed'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+        }catch(err){ console.error('delete handler error', err); toastr.error('Error: '+(err.message||err)); }
+    });
 
     // restore modal to editable default when closed
     $('#patientModal').on('hidden.bs.modal', function(){
