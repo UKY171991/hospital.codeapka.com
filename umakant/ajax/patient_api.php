@@ -20,7 +20,7 @@ if ($action === 'get' && isset($_GET['id'])) {
 }
 
 if ($action === 'save') {
-    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') json_response(['success'=>false,'message'=>'Unauthorized'],401);
+    if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) json_response(['success'=>false,'message'=>'Unauthorized'],401);
 
     $id = $_POST['id'] ?? '';
     $name = trim($_POST['name'] ?? '');
@@ -44,7 +44,7 @@ if ($action === 'save') {
 }
 
 if ($action === 'delete' && isset($_POST['id'])) {
-    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') json_response(['success'=>false,'message'=>'Unauthorized'],401);
+    if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) json_response(['success'=>false,'message'=>'Unauthorized'],401);
     $stmt = $pdo->prepare('DELETE FROM patients WHERE id = ?');
     $stmt->execute([$_POST['id']]);
     json_response(['success' => true, 'message' => 'Patient deleted']);

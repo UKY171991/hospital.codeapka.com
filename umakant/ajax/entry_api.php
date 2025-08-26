@@ -20,7 +20,7 @@ if ($action === 'get' && isset($_GET['id'])) {
 }
 
 if ($action === 'save') {
-    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') json_response(['success'=>false,'message'=>'Unauthorized'],401);
+    if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) json_response(['success'=>false,'message'=>'Unauthorized'],401);
     $id = $_POST['id'] ?? '';
     $patient_id = $_POST['patient_id'] ?? null;
     $doctor_id = $_POST['doctor_id'] ?? null;
@@ -46,7 +46,7 @@ if ($action === 'save') {
 }
 
 if ($action === 'delete' && isset($_POST['id'])) {
-    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') json_response(['success'=>false,'message'=>'Unauthorized'],401);
+    if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) json_response(['success'=>false,'message'=>'Unauthorized'],401);
     $stmt = $pdo->prepare('DELETE FROM entries WHERE id = ?');
     $stmt->execute([$_POST['id']]);
     json_response(['success'=>true,'message'=>'Entry deleted']);
