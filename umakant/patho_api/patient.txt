@@ -1,0 +1,100 @@
+Patient API (https://hospital.codeapka.com/umakant/patho_api/patient.php)
+
+Overview
+- JSON API for Patients located at: /patho_api/patient.php
+- Mirrors behavior of `ajax/patient_api.php` but exposed for external/testing use.
+- Content-Type: application/json; charset=utf-8
+- Session-based auth: actions that modify data (`save`, `delete`) require session role `admin` or `master`.
+
+Actions / Endpoints
+
+1) list
+- Method: GET
+- Description: Returns list of patients with columns used by UI.
+- Query parameters: action=list
+- Response (200):
+  {
+    "success": true,
+    "data": [
+      { "id": 1, "uhid": "U001", "name": "John Doe", "age": 30, "age_unit": "Years", "gender": "Male", "phone": "1234567890", "father_husband": "Mr X", "address": "Addr", "created_at": "2025-08-01 12:00:00" },
+      ...
+    ]
+  }
+- Notes: This endpoint is public (no role required) and returns the fields used by the UI table and modals.
+
+2) get
+- Method: GET
+- Description: Return a single patient by id with full fields the UI expects.
+- Query parameters: action=get&id=<id>
+- Response (200): { "success": true, "data": { <patient object> } }
+- Error: 404 if not found
+
+3) save
+- Method: POST
+- Description: Create or update a patient.
+- Required auth: session with `role` equal to `admin` or `master`.
+- Form fields (application/x-www-form-urlencoded):
+  - action=save
+  - id (optional): when present, update the patient; otherwise create.
+  - name (string) - patient name
+  - uhid (string) - patient UHID
+  - mobile (string) - phone
+  - father_husband (string)
+  - address (string)
+  - sex (string): expected values like 'Male','Female','Other'
+  - age (number)
+  - age_unit (string): e.g., 'Years', 'Months', 'Days'
+
+- Success response (200): { "success": true, "message": "Patient created" } or { "success": true, "message": "Patient updated" }
+- Error: 401 Unauthorized if session role not admin/master.
+
+4) delete
+- Method: POST
+- Description: Delete a patient by id.
+- Required auth: session with role `admin` or `master`.
+- Form fields: action=delete&id=<id>
+- Success response: { "success": true, "message": "Patient deleted" }
+
+Postman / curl examples
+- List patients (GET):
+  curl -v "https://yourhost/patho_api/patient.php?action=list"
+
+- Get patient (GET):
+  curl -v "https://yourhost/patho_api/patient.php?action=get&id=5"
+
+- Create patient (POST form):
+  curl -v -X POST "https://yourhost/patho_api/patient.php" \
+    -d "action=save" \
+    -d "name=Test Patient" \
+    -d "uhid=U123" \
+    -d "mobile=9876543210" \
+    -d "father_husband=Mr Test" \
+    -d "address=Some Address" \
+    -d "sex=Male" \
+    -d "age=30" \
+    -d "age_unit=Years" \
+    --cookie "PHPSESSID=<your session id here>"
+
+- Update patient (POST form):
+  curl -v -X POST "https://yourhost/patho_api/patient.php" \
+    -d "action=save" \
+    -d "id=5" \
+    -d "name=Updated Name" \
+    --cookie "PHPSESSID=<your session id here>"
+
+- Delete patient (POST form):
+  curl -v -X POST "https://yourhost/patho_api/patient.php" \
+    -d "action=delete" \
+    -d "id=5" \
+    --cookie "PHPSESSID=<your session id here>"
+
+Notes and testing tips
+- The API uses PHP session auth. To test protected endpoints in Postman/curl, authenticate via the web app to obtain a session cookie (or export an existing session cookie from your browser) and include it in requests using the `Cookie: PHPSESSID=...` header.
+- Return values and field names follow the database columns and the UI form field names. If your UI expects different keys, map them client-side or adjust the API accordingly.
+- The API returns JSON errors with HTTP status codes. For debugging, inspect the response body for the error message.
+
+File location
+- API: patho_api/patient.php
+- Documentation: patho_api/patient.txt
+
+Generated: Aug 26, 2025
