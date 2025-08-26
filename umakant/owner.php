@@ -102,12 +102,40 @@ function openAddOwnerModal(){ $('#ownerForm')[0].reset(); $('#ownerId').val('');
 
 $(function(){
   loadOwners();
+  // Edit handler: load data and ensure form is editable
+  $(document).on('click','.edit-owner', function(){
+    var id=$(this).data('id');
+    $.get('ajax/owner_api.php',{action:'get',id:id}, function(resp){
+      if(resp.success){ var o=resp.data;
+        $('#ownerForm').find('input,textarea,select').prop('disabled', false);
+        $('#saveOwnerBtn').show();
+        $('#ownerId').val(o.id); $('#ownerName').val(o.name); $('#ownerPhone').val(o.phone); $('#ownerWhatsapp').val(o.whatsapp||''); $('#ownerEmail').val(o.email); $('#ownerAddress').val(o.address);
+        $('#ownerModal').modal('show');
+      } else toastr.error('Not found');
+    },'json');
+  });
 
-  $(document).on('click','.edit-owner', function(){ var id=$(this).data('id'); $.get('ajax/owner_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var o=resp.data; $('#ownerId').val(o.id); $('#ownerName').val(o.name); $('#ownerPhone').val(o.phone); $('#ownerEmail').val(o.email); $('#ownerAddress').val(o.address); $('#ownerModal').modal('show'); } else toastr.error('Not found'); },'json'); });
+  // Delete via AJAX and refresh table (no page reload)
+  $(document).on('click','.delete-owner', function(){
+    if(!confirm('Delete?')) return;
+    var id=$(this).data('id');
+    $.post('ajax/owner_api.php',{action:'delete',id:id}, function(resp){
+      if(resp.success){ toastr.success(resp.message); loadOwners(); }
+      else toastr.error(resp.message||'Delete failed');
+    },'json');
+  });
 
-  $(document).on('click','.delete-owner', function(){ if(!confirm('Delete?')) return; var id=$(this).data('id'); $.post('ajax/owner_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); location.reload(); } else toastr.error(resp.message||'Delete failed'); },'json'); });
+  // Save via AJAX and refresh table
+  $('#saveOwnerBtn').click(function(){
+    var data=$('#ownerForm').serialize()+'&action=save';
+    $.post('ajax/owner_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message); $('#ownerModal').modal('hide'); loadOwners(); } else toastr.error(resp.message||'Save failed'); },'json');
+  });
 
-  $('#saveOwnerBtn').click(function(){ var data=$('#ownerForm').serialize()+'&action=save'; $.post('ajax/owner_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message); $('#ownerModal').modal('hide'); loadOwners(); } else toastr.error(resp.message||'Save failed'); },'json'); });
+  // When modal closes, reset form state so next open is editable
+  $('#ownerModal').on('hidden.bs.modal', function(){
+    $('#ownerForm').find('input,textarea,select').prop('disabled', false);
+    $('#saveOwnerBtn').show();
+  });
 });
 
 function viewOwner(id){ $.get('ajax/owner_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var o=resp.data; $('#ownerId').val(o.id); $('#ownerName').val(o.name); $('#ownerPhone').val(o.phone); $('#ownerEmail').val(o.email); $('#ownerAddress').val(o.address); $('#ownerModal').modal('show'); $('#ownerForm').find('input,textarea,select').prop('disabled', true); $('#saveOwnerBtn').hide(); } else toastr.error('Not found'); },'json'); }
