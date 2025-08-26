@@ -79,7 +79,10 @@ require_once 'inc/sidebar.php';
 <script>
 function loadOwners(){
   $.get('ajax/owner_api.php',{action:'list'},function(resp){
-   if(resp.success){ var t=''; resp.data.forEach(function(o,idx){
+   if(resp.success){ 
+    // destroy existing DataTable instance if present to ensure clean re-init
+    try{ if ($.fn.dataTable && $.fn.dataTable.isDataTable('#ownersTable')){ $('#ownersTable').DataTable().clear().destroy(); $('#ownersTable tbody').empty(); } }catch(e){}
+    var t=''; resp.data.forEach(function(o,idx){
     t += '<tr>'+
     '<td>'+(idx+1)+'</td>'+
     '<td>'+o.id+'</td>'+
@@ -125,10 +128,10 @@ $(function(){
     },'json');
   });
 
-  // Save via AJAX and refresh table
+  // Save via AJAX and refresh table (hide modal first, then reload table)
   $('#saveOwnerBtn').click(function(){
     var data=$('#ownerForm').serialize()+'&action=save';
-    $.post('ajax/owner_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message); $('#ownerModal').modal('hide'); loadOwners(); } else toastr.error(resp.message||'Save failed'); },'json');
+    $.post('ajax/owner_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message); $('#ownerModal').modal('hide'); setTimeout(loadOwners, 250); } else toastr.error(resp.message||'Save failed'); },'json');
   });
 
   // When modal closes, reset form state so next open is editable
@@ -138,5 +141,5 @@ $(function(){
   });
 });
 
-function viewOwner(id){ $.get('ajax/owner_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var o=resp.data; $('#ownerId').val(o.id); $('#ownerName').val(o.name); $('#ownerPhone').val(o.phone); $('#ownerEmail').val(o.email); $('#ownerAddress').val(o.address); $('#ownerModal').modal('show'); $('#ownerForm').find('input,textarea,select').prop('disabled', true); $('#saveOwnerBtn').hide(); } else toastr.error('Not found'); },'json'); }
+function viewOwner(id){ $.get('ajax/owner_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var o=resp.data; $('#ownerId').val(o.id); $('#ownerName').val(o.name); $('#ownerPhone').val(o.phone); $('#ownerWhatsapp').val(o.whatsapp||''); $('#ownerEmail').val(o.email); $('#ownerAddress').val(o.address); $('#ownerModal').modal('show'); $('#ownerForm').find('input,textarea,select').prop('disabled', true); $('#saveOwnerBtn').hide(); } else toastr.error('Not found'); },'json'); }
 </script>
