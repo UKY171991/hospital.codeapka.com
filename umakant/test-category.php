@@ -67,9 +67,11 @@ require_once 'inc/sidebar.php';
                             <table id="categoriesTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
+                                        <th>S.No.</th>
                                         <th class="sortable" data-key="id">ID <span class="sort-indicator"></span></th>
                                         <th class="sortable" data-key="name">Name <span class="sort-indicator"></span></th>
                                         <th class="sortable" data-key="description">Description <span class="sort-indicator"></span></th>
+                                        <th>Test Count</th>
                                         <th class="sortable" data-key="added_by_username">Added By <span class="sort-indicator"></span></th>
                                         <th>Actions</th>
                                     </tr>
@@ -163,14 +165,16 @@ $(function(){
         if(resp.success && Array.isArray(resp.data)){
             var $tbody = $('#categoriesTable tbody');
             $tbody.empty();
-            resp.data.forEach(function(c){
+            resp.data.forEach(function(c, idx){
                 var tr = $('<tr>').attr('data-id', c.id)
                     .attr('data-name', c.name)
                     .attr('data-description', c.description)
                     .attr('data-added_by_username', c.added_by_username);
+                tr.append($('<td>').text(idx+1)); // S.No.
                 tr.append($('<td>').text(c.id));
                 tr.append($('<td>').text(c.name));
                 tr.append($('<td>').text(c.description));
+                tr.append($('<td>').text(c.test_count || 0)); // Test Count
                 tr.append($('<td>').text(c.added_by_username));
                 var actions = '<button class="btn btn-sm btn-info" onclick="viewCategory('+c.id+')">View</button> '
                     +'<button class="btn btn-sm btn-primary edit-category" data-id="'+c.id+'">Edit</button> '

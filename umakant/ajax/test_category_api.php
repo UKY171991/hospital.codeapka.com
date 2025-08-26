@@ -7,8 +7,12 @@ session_start();
 $action = $_REQUEST['action'] ?? 'list';
 
 if ($action === 'list') {
-    // include added_by and added_by_username from users table when available
-    $stmt = $pdo->query('SELECT c.id, c.name, c.description, c.added_by, u.username as added_by_username FROM categories c LEFT JOIN users u ON c.added_by = u.id ORDER BY c.id DESC');
+    // include added_by, added_by_username, and test_count for each category
+    $stmt = $pdo->query('SELECT c.id, c.name, c.description, c.added_by, u.username as added_by_username, 
+        (SELECT COUNT(*) FROM tests t WHERE t.category_id = c.id) as test_count
+        FROM categories c 
+        LEFT JOIN users u ON c.added_by = u.id 
+        ORDER BY c.id DESC');
     $rows = $stmt->fetchAll();
     json_response(['success' => true, 'data' => $rows]);
 }
