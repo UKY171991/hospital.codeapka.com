@@ -156,6 +156,20 @@ function loadUsers(){
     $.get('ajax/user_api.php',{action:'list'},function(resp){
         if(resp.success){
             var t=''; resp.data.forEach(function(u){
+                // color-code expire_date: red if expired, yellow if within 7 days, green otherwise
+                var ed = u.expire_date || '';
+                var edClass = '';
+                var edDisplay = '';
+                if (ed) {
+                    // convert server 'YYYY-MM-DD HH:MM:SS' to ISO-ish for Date parsing
+                    var d = new Date(ed.replace(' ', 'T'));
+                    var now = new Date();
+                    var diffDays = (d - now) / (1000*60*60*24);
+                    if (d < now) edClass = 'text-danger';
+                    else if (diffDays <= 7) edClass = 'text-warning';
+                    else edClass = 'text-success';
+                    try { edDisplay = d.toLocaleString(); } catch(e) { edDisplay = ed; }
+                }
                 t += '<tr>'+
                          '<td>'+u.id+'</td>'+
                          '<td>'+ (u.username||'') +'</td>'+
@@ -163,7 +177,7 @@ function loadUsers(){
                          '<td>'+ (u.full_name||'') +'</td>'+
                          '<td>'+ (u.role||'') +'</td>'+
                          '<td>'+ (u.is_active==1? 'Active':'Inactive') +'</td>'+
-                         '<td>'+ (u.expire_date||'') +'</td>'+
+                         '<td class="'+edClass+'">'+ edDisplay +'</td>'+
                          '<td><button class="btn btn-sm btn-info view-user" data-id="'+u.id+'">View</button> '+
                                     '<button class="btn btn-sm btn-warning edit-user" data-id="'+u.id+'">Edit</button> '+
                                     '<button class="btn btn-sm btn-danger delete-user" data-id="'+u.id+'">Delete</button></td>'+
