@@ -132,7 +132,7 @@ function loadCategories(){
         '<td>'+ (c.name||'') +'</td>'+
         '<td>'+ (c.description||'') +'</td>'+
         '<td>'+ ((c.added_by_username && c.added_by_username!='')?c.added_by_username:(c.added_by||'')) +'</td>'+
-        '<td><button class="btn btn-sm btn-info view-category" data-id="'+c.id+'">View</button> '+
+        '<td><button class="btn btn-sm btn-info view-category" data-id="'+c.id+'" onclick="viewCategory('+c.id+')">View</button> '+
             '<button class="btn btn-sm btn-warning edit-category" data-id="'+c.id+'">Edit</button> '+
             '<button class="btn btn-sm btn-danger delete-category" data-id="'+c.id+'">Delete</button></td>'+
         '</tr>'; }); $('#categoriesTable tbody').html(t);
@@ -141,6 +141,14 @@ function loadCategories(){
 }
 
 function openAddCategoryModal(){ $('#categoryForm')[0].reset(); $('#categoryId').val(''); $('#categoryModal').modal('show'); }
+
+// global fallback used by inline onclick on View buttons
+function viewCategory(id){
+    try{
+        console.debug('viewCategory() called', id);
+        $.get('ajax/test_category_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#categoryId').val(d.id); $('#categoryName').val(d.name); $('#categoryDescription').val(d.description); $('#categoryModalLabel').text('View Category'); $('#categoryForm').find('input,textarea,select').prop('disabled', true); $('#saveCategoryBtn').hide(); $('#categoryModal').modal('show'); } else toastr.error('Category not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+    }catch(err){ console.error('viewCategory error', err); toastr.error('Error: '+(err.message||err)); }
+}
 
 $(function(){
     loadCategories();
@@ -155,8 +163,31 @@ $(function(){
 
     $('#saveCategoryBtn').click(function(){ var data=$('#categoryForm').serialize() + '&action=save'; $.post('ajax/test_category_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#categoryModal').modal('hide'); loadCategories(); } else toastr.error(resp.message||'Save failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
 
-    $('#categoriesTable').on('click', '.edit-category', function(){ var id=$(this).data('id'); $.get('ajax/test_category_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#categoryId').val(d.id); $('#categoryName').val(d.name); $('#categoryDescription').val(d.description); $('#categoryModal').modal('show'); } else toastr.error('Category not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+    // delegated edit handler
+    $(document).on('click', '.edit-category', function(){
+        try{
+            console.debug('edit-category clicked', $(this).data('id'));
+            var id=$(this).data('id');
+            $.get('ajax/test_category_api.php',{action:'get',id:id}, function(resp){
+                if(resp.success){ var d=resp.data; $('#categoryId').val(d.id); $('#categoryName').val(d.name); $('#categoryDescription').val(d.description); $('#categoryModalLabel').text('Edit Category'); $('#saveCategoryBtn').show(); $('#categoryForm').find('input,textarea,select').prop('disabled', false); $('#categoryModal').modal('show'); } else toastr.error('Category not found');
+            },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+        }catch(err){ console.error('edit-category handler error', err); toastr.error('Error: '+(err.message||err)); }
+    });
 
-    $('#categoriesTable').on('click', '.delete-category', function(){ if(!confirm('Delete category?')) return; var id=$(this).data('id'); $.post('ajax/test_category_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadCategories(); } else toastr.error(resp.message||'Delete failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+    // delegated delete handler
+    $(document).on('click', '.delete-category', function(){
+        try{
+            if(!confirm('Delete category?')) return; var id=$(this).data('id'); $.post('ajax/test_category_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadCategories(); } else toastr.error(resp.message||'Delete failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+        }catch(err){ console.error('delete-category handler error', err); toastr.error('Error: '+(err.message||err)); }
+    });
+
+    // delegated view handler fallback is provided by global function viewCategory(id)
+    
+    // restore modal state on close
+    $('#categoryModal').on('hidden.bs.modal', function(){
+        $('#categoryForm').find('input,textarea,select').prop('disabled', false);
+        $('#saveCategoryBtn').show();
+        $('#categoryModalLabel').text('Add Category');
+    });
 });
 </script>
