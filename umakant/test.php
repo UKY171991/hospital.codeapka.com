@@ -114,20 +114,10 @@ require_once 'inc/sidebar.php';
                                     <label for="testUnit">Unit</label>
                                     <input type="text" class="form-control" id="testUnit" name="unit">
                                 </div>
-                                <div class="form-group">
-                                    <label for="testSpecimen">Specimen</label>
-                                    <input type="text" class="form-control" id="testSpecimen" name="specimen">
-                                </div>
+                                <!-- specimen removed -->
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="testDefaultResult">Default Result</label>
-                                    <input type="text" class="form-control" id="testDefaultResult" name="default_result">
-                                </div>
-                                <div class="form-group">
-                                    <label for="testReferenceRange">Reference Range</label>
-                                    <input type="text" class="form-control" id="testReferenceRange" name="reference_range">
-                                </div>
+                                <!-- Default Result and Reference Range removed -->
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
                                         <label for="testMin">Min Value</label>
@@ -147,12 +137,9 @@ require_once 'inc/sidebar.php';
                                 </div>
                                 <div class="form-group">
                                     <label for="testCode">Test Code</label>
-                                    <input type="text" class="form-control" id="testCode" name="test_code">
+                                    <!-- removed -->
                                 </div>
-                                <div class="form-group">
-                                    <label for="testMethod">Method</label>
-                                    <input type="text" class="form-control" id="testMethod" name="method">
-                                </div>
+                                <!-- method removed -->
                                 <div class="form-group">
                                     <label for="testPrintNewPage">Print on New Page</label>
                                     <select class="form-control" id="testPrintNewPage" name="print_new_page">
@@ -162,7 +149,7 @@ require_once 'inc/sidebar.php';
                                 </div>
                                 <div class="form-group">
                                     <label for="testShortcut">Shortcut</label>
-                                    <input type="text" class="form-control" id="testShortcut" name="shortcut">
+                                    <!-- removed -->
                                 </div>
                             </div>
                         </div>
@@ -196,8 +183,8 @@ function loadTests(){
                         '<td>'+ (x.category_name||'') +'</td>'+
                         '<td>'+ (x.name||'') +'</td>'+
                         '<td>'+ (x.price||'') +'</td>'+
-                        '<td>'+ (x.test_code||'') +'</td>'+
-                        '<td>'+ (x.method||'') +'</td>'+
+                        '<td>'+ '' +'</td>'+
+                        '<td>'+ '' +'</td>'+
                         '<td>'+ (x.added_by_username||'') +'</td>'+
                         '<td><button class="btn btn-sm btn-info view-test" data-id="'+x.id+'" onclick="viewTest('+x.id+')">View</button> '+
                             '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
@@ -240,7 +227,7 @@ $(function(){
         try{
             console.debug('edit-test clicked', $(this).data('id'));
             var id=$(this).data('id');
-            $.get('ajax/test_api.php',{action:'get',id:id,ajax:1}, function(resp){ if(resp.success){ var d=resp.data; $('#testId').val(d.id); $('#testCategoryId').val(d.category_id); $('#testName').val(d.name); $('#testDescription').val(d.description); $('#testPrice').val(d.price); $('#testUnit').val(d.unit); $('#testSpecimen').val(d.specimen); $('#testDefaultResult').val(d.default_result); $('#testReferenceRange').val(d.reference_range); $('#testMin').val(d.min); $('#testMax').val(d.max); $('#testSubHeading').val(d.sub_heading); $('#testCode').val(d.test_code); $('#testMethod').val(d.method); $('#testPrintNewPage').val(d.print_new_page); $('#testShortcut').val(d.shortcut); $('#testModal').modal('show'); } else toastr.error('Test not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+            $.get('ajax/test_api.php',{action:'get',id:id,ajax:1}, function(resp){ if(resp.success){ var d=resp.data; $('#testId').val(d.id); $('#testCategoryId').val(d.category_id); $('#testName').val(d.name); $('#testDescription').val(d.description); $('#testPrice').val(d.price); $('#testUnit').val(d.unit); $('#testMin').val(d.min); $('#testMax').val(d.max); $('#testSubHeading').val(d.sub_heading); $('#testPrintNewPage').val(d.print_new_page); $('#testModal').modal('show'); } else toastr.error('Test not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
         }catch(err){ console.error('edit-test handler error', err); toastr.error('Error: '+(err.message||err)); }
     });
 
@@ -265,16 +252,10 @@ $(function(){
                     $('#testDescription').val(d.description);
                     $('#testPrice').val(d.price);
                     $('#testUnit').val(d.unit);
-                    $('#testSpecimen').val(d.specimen);
-                    $('#testDefaultResult').val(d.default_result);
-                    $('#testReferenceRange').val(d.reference_range);
                     $('#testMin').val(d.min);
                     $('#testMax').val(d.max);
                     $('#testSubHeading').val(d.sub_heading);
-                    $('#testCode').val(d.test_code);
-                    $('#testMethod').val(d.method);
                     $('#testPrintNewPage').val(d.print_new_page);
-                    $('#testShortcut').val(d.shortcut);
                     // disable inputs and show modal
                     $('#testForm').find('input,textarea,select').prop('disabled', true);
                     $('#saveTestBtn').hide();
