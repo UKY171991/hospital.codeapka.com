@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS `owners` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
   `phone` VARCHAR(50) DEFAULT NULL,
+  `whatsapp` VARCHAR(50) DEFAULT NULL,
   `email` VARCHAR(255) DEFAULT NULL,
   `address` TEXT,
   `added_by` INT DEFAULT NULL,
@@ -14,3 +15,6 @@ CREATE TABLE IF NOT EXISTS `owners` (
 
 -- Optionally add foreign key if you want strict constraints:
 -- ALTER TABLE owners ADD CONSTRAINT fk_owners_added_by FOREIGN KEY (added_by) REFERENCES users(id);
+
+-- If the table already exists and you just want to add the whatsapp column:
+-- ALTER TABLE owners ADD COLUMN IF NOT EXISTS whatsapp VARCHAR(50) DEFAULT NULL;

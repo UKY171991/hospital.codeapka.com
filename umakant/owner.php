@@ -32,6 +32,7 @@ require_once 'inc/sidebar.php';
                                         <th>ID</th>
                                         <th>Name</th>
                                         <th>Phone</th>
+                                        <th>WhatsApp</th>
                                         <th>Email</th>
                                         <th>Address</th>
                                         <th>Added By</th>
@@ -59,7 +60,11 @@ require_once 'inc/sidebar.php';
           <div class="form-row">
             <div class="form-group col-md-6"><label>Name</label><input class="form-control" name="name" id="ownerName" required></div>
             <div class="form-group col-md-3"><label>Phone</label><input class="form-control" name="phone" id="ownerPhone" type="text"></div>
-            <div class="form-group col-md-3"><label>Email</label><input class="form-control" name="email" id="ownerEmail" type="email"></div>
+            <div class="form-group col-md-3"><label>WhatsApp</label><input class="form-control" name="whatsapp" id="ownerWhatsapp" type="text"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-6"></div>
+            <div class="form-group col-md-6"><label>Email</label><input class="form-control" name="email" id="ownerEmail" type="email"></div>
           </div>
           <div class="form-group"><label>Address</label><textarea class="form-control" name="address" id="ownerAddress"></textarea></div>
         </form>
@@ -74,19 +79,20 @@ require_once 'inc/sidebar.php';
 <script>
 function loadOwners(){
   $.get('ajax/owner_api.php',{action:'list'},function(resp){
-    if(resp.success){ var t=''; resp.data.forEach(function(o,idx){
-      t += '<tr>'+
-      '<td>'+(idx+1)+'</td>'+
-      '<td>'+o.id+'</td>'+
-      '<td>'+(o.name||'')+'</td>'+
-      '<td>'+(o.phone||'')+'</td>'+
-      '<td>'+(o.email||'')+'</td>'+
-      '<td>'+(o.address||'')+'</td>'+
-      '<td>'+(o.added_by_username||'')+'</td>'+
-      '<td><button class="btn btn-sm btn-info" onclick="viewOwner('+o.id+')">View</button> '
-         +'<button class="btn btn-sm btn-warning edit-owner" data-id="'+o.id+'">Edit</button> '
-         +'<button class="btn btn-sm btn-danger delete-owner" data-id="'+o.id+'">Delete</button></td>'+
-      '</tr>';
+   if(resp.success){ var t=''; resp.data.forEach(function(o,idx){
+    t += '<tr>'+
+    '<td>'+(idx+1)+'</td>'+
+    '<td>'+o.id+'</td>'+
+    '<td>'+(o.name||'')+'</td>'+
+    '<td>'+(o.phone||'')+'</td>'+
+    '<td>'+(o.whatsapp||'')+'</td>'+
+    '<td>'+(o.email||'')+'</td>'+
+    '<td>'+(o.address||'')+'</td>'+
+    '<td>'+(o.added_by_username||'')+'</td>'+
+    '<td><button class="btn btn-sm btn-info" onclick="viewOwner('+o.id+')">View</button> '
+      +'<button class="btn btn-sm btn-warning edit-owner" data-id="'+o.id+'">Edit</button> '
+      +'<button class="btn btn-sm btn-danger delete-owner" data-id="'+o.id+'">Delete</button></td>'+
+    '</tr>';
     }); $('#ownersTable tbody').html(t); initDataTable('#ownersTable'); }
     else toastr.error(resp.message||'Failed to load');
   },'json');

@@ -6,7 +6,7 @@ session_start();
 $action = $_REQUEST['action'] ?? 'list';
 
 if ($action === 'list'){
-    $stmt = $pdo->query('SELECT o.id, o.name, o.phone, o.email, o.address, o.added_by, u.username as added_by_username FROM owners o LEFT JOIN users u ON o.added_by = u.id ORDER BY o.id DESC');
+    $stmt = $pdo->query('SELECT o.id, o.name, o.phone, o.whatsapp, o.email, o.address, o.added_by, u.username as added_by_username FROM owners o LEFT JOIN users u ON o.added_by = u.id ORDER BY o.id DESC');
     $rows = $stmt->fetchAll();
     json_response(['success'=>true,'data'=>$rows]);
 }
@@ -23,18 +23,19 @@ if ($action === 'save'){
     $id = $_POST['id'] ?? '';
     $name = trim($_POST['name'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
+    $whatsapp = trim($_POST['whatsapp'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $address = trim($_POST['address'] ?? '');
     if ($name === '') json_response(['success'=>false,'message'=>'Name required'],400);
     try{
         if ($id){
-            $stmt = $pdo->prepare('UPDATE owners SET name=?, phone=?, email=?, address=?, updated_at=NOW() WHERE id=?');
-            $stmt->execute([$name,$phone,$email,$address,$id]);
+            $stmt = $pdo->prepare('UPDATE owners SET name=?, phone=?, whatsapp=?, email=?, address=?, updated_at=NOW() WHERE id=?');
+            $stmt->execute([$name,$phone,$whatsapp,$email,$address,$id]);
             json_response(['success'=>true,'message'=>'Owner updated']);
         } else {
             $added_by = $_SESSION['user_id'] ?? null;
-            $stmt = $pdo->prepare('INSERT INTO owners (name,phone,email,address,added_by,created_at) VALUES (?,?,?,?,?,NOW())');
-            $stmt->execute([$name,$phone,$email,$address,$added_by]);
+            $stmt = $pdo->prepare('INSERT INTO owners (name,phone,whatsapp,email,address,added_by,created_at) VALUES (?,?,?,?,?,?,NOW())');
+            $stmt->execute([$name,$phone,$whatsapp,$email,$address,$added_by]);
             json_response(['success'=>true,'message'=>'Owner created']);
         }
     }catch(PDOException $e){ json_response(['success'=>false,'message'=>'Server error: '.$e->getMessage()],500); }
