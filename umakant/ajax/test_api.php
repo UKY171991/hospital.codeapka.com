@@ -8,7 +8,7 @@ try {
     $action = $_REQUEST['action'] ?? 'list';
 
     if ($action === 'list') {
-        // return all relevant columns so UI can render full test table
+        // return only important columns to reduce payload
         $stmt = $pdo->query("SELECT t.id,
             tc.name as category_name,
             t.category_id,
@@ -16,16 +16,10 @@ try {
             t.description,
             t.price,
             t.unit,
-            t.specimen,
-            t.default_result,
-            t.reference_range as normal_range,
             t.min,
             t.max,
             t.sub_heading,
-            t.test_code,
-            t.method,
             t.print_new_page,
-            t.shortcut,
             t.added_by,
             u.username as added_by_username
             FROM tests t
@@ -37,6 +31,7 @@ try {
     }
 
     if ($action === 'get' && isset($_GET['id'])) {
+        // return full record for edit/view (keeps all columns available when needed)
         $stmt = $pdo->prepare('SELECT * FROM tests WHERE id = ?');
         $stmt->execute([$_GET['id']]);
         $row = $stmt->fetch();
