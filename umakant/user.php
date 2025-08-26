@@ -170,13 +170,14 @@ function loadUsers(){
                     else edClass = 'text-success';
                     try { edDisplay = d.toLocaleString(); } catch(e) { edDisplay = ed; }
                 }
+                var statusClass = (u.is_active==1) ? 'text-success' : 'text-danger';
                 t += '<tr>'+
                          '<td>'+u.id+'</td>'+
                          '<td>'+ (u.username||'') +'</td>'+
                          '<td>'+ (u.email||'') +'</td>'+
                          '<td>'+ (u.full_name||'') +'</td>'+
                          '<td>'+ (u.role||'') +'</td>'+
-                         '<td>'+ (u.is_active==1? 'Active':'Inactive') +'</td>'+
+                         '<td class="'+statusClass+'">'+ (u.is_active==1? 'Active':'Inactive') +'</td>'+
                          '<td class="'+edClass+'">'+ edDisplay +'</td>'+
                          '<td><button class="btn btn-sm btn-info view-user" data-id="'+u.id+'">View</button> '+
                                     '<button class="btn btn-sm btn-warning edit-user" data-id="'+u.id+'">Edit</button> '+
