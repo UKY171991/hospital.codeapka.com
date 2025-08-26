@@ -51,11 +51,11 @@ Actions supported: list, get, save, delete
 
       Examples:
       - List current user's doctors (authenticated):
-        GET https://.../patho_api/doctor.php?action=list
+        GET https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=list
       - List for a specific user (master/admin or owner):
-        GET https://.../patho_api/doctor.php?action=list&user_id=5
+        GET https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=list&user_id=5
       - Master list all:
-        GET https://.../patho_api/doctor.php?action=list&all=1  (requires session role 'master')
+        GET https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=list&all=1  (requires session role 'master')
 
       2) Get single doctor
       - Method: GET

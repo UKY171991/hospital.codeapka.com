@@ -54,10 +54,10 @@ Actions / Usage
 
 Postman / curl examples
 - List tests:
-  curl "https://yourhost/patho_api/test.php?action=list"
+  curl "https://hospital.codeapka.com/umakant/patho_api/test.php?action=list"
 
 - Get test:
-  curl "https://yourhost/patho_api/test.php?action=get&id=10"
+  curl "https://hospital.codeapka.com/umakant/patho_api/test.php?action=get&id=10"
 
 - Create test (POST):
   curl -X POST "https://yourhost/patho_api/test.php" \

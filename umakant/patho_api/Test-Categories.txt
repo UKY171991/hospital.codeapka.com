@@ -35,10 +35,10 @@ Actions
 
 Postman / curl examples
 - List categories:
-  curl "https://yourhost/patho_api/test_category.php?action=list"
+  curl "https://hospital.codeapka.com/umakant/patho_api/test_category.php?action=list"
 
 - Get category:
-  curl "https://yourhost/patho_api/test_category.php?action=get&id=3"
+  curl "https://hospital.codeapka.com/umakant/patho_api/test_category.php?action=get&id=3"
 
 - Create category (POST):
   curl -X POST "https://yourhost/patho_api/test_category.php" \

@@ -1,4 +1,4 @@
-Test Entries API (patho_api/entry.php)
+Test Entries API (https://hospital.codeapka.com/umakant/patho_api/entry.php)
 
 Overview
 - JSON API endpoint: /patho_api/entry.php
@@ -44,13 +44,13 @@ Actions / Usage
 
 Postman / curl examples
 - List entries:
-  curl "https://yourhost/patho_api/entry.php?action=list"
+  curl "https://hospital.codeapka.com/umakant/patho_api/entry.php?action=list"
 
 - Get entry:
-  curl "https://yourhost/patho_api/entry.php?action=get&id=7"
+  curl "https://hospital.codeapka.com/umakant/patho_api/entry.php?action=get&id=7"
 
 - Create entry (POST):
-  curl -X POST "https://yourhost/patho_api/entry.php" \
+  curl -X POST "https://hospital.codeapka.com/umakant/patho_api/entry.php" \
     -d "action=save" \
     -d "patient_id=3" \
     -d "doctor_id=2" \
@@ -63,12 +63,12 @@ Postman / curl examples
     --cookie "PHPSESSID=<session id>"
 
 - Update entry (POST):
-  curl -X POST "https://yourhost/patho_api/entry.php" \
+  curl -X POST "https://hospital.codeapka.com/umakant/patho_api/entry.php" \
     -d "action=save" -d "id=7" -d "result_value=5.8" \
     --cookie "PHPSESSID=<session id>"
 
 - Delete entry (POST):
-  curl -X POST "https://yourhost/patho_api/entry.php" \
+  curl -X POST "https://hospital.codeapka.com/umakant/patho_api/entry.php" \
     -d "action=delete" -d "id=7" \
     --cookie "PHPSESSID=<session id>"
 

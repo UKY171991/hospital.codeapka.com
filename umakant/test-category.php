@@ -67,10 +67,10 @@ require_once 'inc/sidebar.php';
                             <table id="categoriesTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>Description</th>
-                                        <th>Added By</th>
+                                        <th class="sortable" data-key="id">ID <span class="sort-indicator"></span></th>
+                                        <th class="sortable" data-key="name">Name <span class="sort-indicator"></span></th>
+                                        <th class="sortable" data-key="description">Description <span class="sort-indicator"></span></th>
+                                        <th class="sortable" data-key="added_by_username">Added By <span class="sort-indicator"></span></th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -189,5 +189,105 @@ $(function(){
         $('#saveCategoryBtn').show();
         $('#categoryModalLabel').text('Add Category');
     });
+            // Sorting state
+            var categories = []; // full data as returned by server
+            var sortState = { key: 'id', dir: 'asc' };
+
+            // Header click -> toggle sort
+            $('#categoriesTable thead').on('click', 'th.sortable', function(){
+                var key = $(this).data('key');
+                if(sortState.key === key){
+                    sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortState.key = key;
+                    sortState.dir = 'asc';
+                }
+                updateSortIndicators();
+                renderCategories();
+            });
+
+            function updateSortIndicators(){
+                $('#categoriesTable thead th.sortable').each(function(){
+                    var $s = $(this).find('.sort-indicator');
+                    var key = $(this).data('key');
+                    $s.text('');
+                    if(key === sortState.key){
+                        $s.text(sortState.dir === 'asc' ? '▲' : '▼');
+                    }
+                });
+            }
+
+            // Replace previous loadCategories implementation to store data
+            function loadCategories(){
+                $.get('ajax/test_category_api.php', { action: 'list' }, function(resp){
+                    if(resp.success){
+                        categories = resp.data || [];
+                        renderCategories();
+                    } else {
+                        toastr.error(resp.message || 'Failed to load categories');
+                    }
+                }).fail(function(){
+                    toastr.error('Unable to reach server');
+                });
+            }
+
+            function renderCategories(){
+                var q = $('#categoriesSearch').val().toLowerCase();
+                var perPage = parseInt($('#categoriesPerPage').val()) || 10;
+
+                // filter
+                var filtered = categories.filter(function(c){
+                    if(!q) return true;
+                    return (''+c.id).toLowerCase().indexOf(q) !== -1
+                        || (c.name||'').toLowerCase().indexOf(q) !== -1
+                        || (c.description||'').toLowerCase().indexOf(q) !== -1
+                        || (c.added_by_username||'').toLowerCase().indexOf(q) !== -1;
+                });
+
+                // sort
+                filtered.sort(function(a,b){
+                    var k = sortState.key;
+                    var av = a[k] == null ? '' : a[k];
+                    var bv = b[k] == null ? '' : b[k];
+                    // numeric compare for id
+                    if(k === 'id'){
+                        av = parseInt(av) || 0;
+                        bv = parseInt(bv) || 0;
+                    } else {
+                        av = (''+av).toLowerCase();
+                        bv = (''+bv).toLowerCase();
+                    }
+                    if(av < bv) return sortState.dir === 'asc' ? -1 : 1;
+                    if(av > bv) return sortState.dir === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                // pagination (client-side)
+                var page = 1; // could extend to support pages
+                var start = (page-1)*perPage;
+                var paged = filtered.slice(start, start+perPage);
+
+                var $tbody = $('#categoriesTable tbody');
+                $tbody.empty();
+                paged.forEach(function(c){
+                    var tr = $('<tr>').attr('data-id', c.id)
+                        .attr('data-name', c.name)
+                        .attr('data-description', c.description)
+                        .attr('data-added_by_username', c.added_by_username);
+
+                    tr.append($('<td>').text(c.id));
+                    tr.append($('<td>').text(c.name));
+                    tr.append($('<td>').text(c.description));
+                    tr.append($('<td>').text(c.added_by_username));
+
+                    var actions = '<button class="btn btn-sm btn-info" onclick="viewCategory('+c.id+')">View</button> '
+                        +'<button class="btn btn-sm btn-primary edit-category" data-id="'+c.id+'">Edit</button> '
+                        +'<button class="btn btn-sm btn-danger delete-category" data-id="'+c.id+'">Delete</button>';
+                    tr.append($('<td>').html(actions));
+                    $tbody.append(tr);
+                });
+
+                updateSortIndicators();
+            }
 });
 </script>
