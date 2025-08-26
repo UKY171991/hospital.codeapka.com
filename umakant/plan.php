@@ -1,0 +1,103 @@
+<?php
+require_once 'inc/header.php';
+require_once 'inc/sidebar.php';
+?>
+
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6"><h1>Menu Plan</h1></div>
+                <div class="col-sm-6"><ol class="breadcrumb float-sm-right"><li class="breadcrumb-item"><a href="index.php">Home</a></li><li class="breadcrumb-item active">Menu Plan</li></ol></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Plan Management</h3>
+                            <div class="card-tools">
+                                <button class="btn btn-primary" onclick="openAddPlanModal()"><i class="fas fa-plus"></i> Add Plan</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <table id="plansTable" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>S.No.</th>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Added By</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Plan Modal -->
+<div class="modal fade" id="planModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="planModalLabel">Add Plan</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
+      <div class="modal-body">
+        <form id="planForm">
+          <input type="hidden" name="id" id="planId">
+          <div class="form-group"><label>Name</label><input class="form-control" name="name" id="planName" required></div>
+          <div class="form-group"><label>Description</label><textarea class="form-control" name="description" id="planDescription"></textarea></div>
+          <div class="form-row">
+            <div class="form-group col-md-6"><label>Start Date</label><input type="date" class="form-control" name="start_date" id="planStart"></div>
+            <div class="form-group col-md-6"><label>End Date</label><input type="date" class="form-control" name="end_date" id="planEnd"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal">Cancel</button><button id="savePlanBtn" class="btn btn-primary">Save Plan</button></div>
+    </div>
+  </div>
+</div>
+
+<?php require_once 'inc/footer.php'; ?>
+
+<script>
+function loadPlans(){
+  $.get('ajax/plan_api.php',{action:'list'},function(resp){
+    if(resp.success){ var t=''; resp.data.forEach(function(p,idx){ t += '<tr>'+
+      '<td>'+(idx+1)+'</td>'+
+      '<td>'+p.id+'</td>'+
+      '<td>'+ (p.name||'') +'</td>'+
+      '<td>'+ (p.start_date||'') +'</td>'+
+      '<td>'+ (p.end_date||'') +'</td>'+
+      '<td>'+ (p.added_by_username||'') +'</td>'+
+      '<td><button class="btn btn-sm btn-info" onclick="viewPlan('+p.id+')">View</button> '+
+         '<button class="btn btn-sm btn-warning edit-plan" data-id="'+p.id+'">Edit</button> '+
+         '<button class="btn btn-sm btn-danger delete-plan" data-id="'+p.id+'">Delete</button></td>'+
+      '</tr>'; }); $('#plansTable tbody').html(t); initDataTable('#plansTable'); }
+    else toastr.error(resp.message||'Failed');
+  },'json');
+}
+
+function openAddPlanModal(){ $('#planForm')[0].reset(); $('#planId').val(''); $('#planModal').modal('show'); }
+
+$(function(){ loadPlans();
+  $(document).on('click','.edit-plan', function(){ var id=$(this).data('id'); $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var p=resp.data; $('#planId').val(p.id); $('#planName').val(p.name); $('#planDescription').val(p.description); $('#planStart').val(p.start_date); $('#planEnd').val(p.end_date); $('#planModal').modal('show'); } else toastr.error('Not found'); },'json'); });
+
+  $(document).on('click','.delete-plan', function(){ if(!confirm('Delete?')) return; var id=$(this).data('id'); $.post('ajax/plan_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); location.reload(); } else toastr.error(resp.message||'Delete failed'); },'json'); });
+
+  $('#savePlanBtn').click(function(){ var data=$('#planForm').serialize()+'&action=save'; $.post('ajax/plan_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message); $('#planModal').modal('hide'); location.reload(); } else toastr.error(resp.message||'Save failed'); },'json'); });
+});
+
+function viewPlan(id){ $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var p=resp.data; $('#planId').val(p.id); $('#planName').val(p.name); $('#planDescription').val(p.description); $('#planStart').val(p.start_date); $('#planEnd').val(p.end_date); $('#planModal').modal('show'); $('#planForm').find('input,textarea,select').prop('disabled', true); $('#savePlanBtn').hide(); } else toastr.error('Not found'); },'json'); }
+</script>
