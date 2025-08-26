@@ -7,6 +7,13 @@ function initDataTable(selector, options) {
         console.error('DataTables library is not loaded.');
         return;
     }
+    // If table is already a DataTable, destroy it first to allow re-init
+    try{
+        if ($.fn.dataTable.isDataTable(selector)){
+            try { $(selector).DataTable().clear().destroy(); } catch(e){ console.warn('failed to destroy existing DataTable', e); }
+        }
+    }catch(e){}
+
     var defaultOptions = {
         paging: true,
         searching: true,
@@ -15,6 +22,8 @@ function initDataTable(selector, options) {
         autoWidth: false,
         responsive: true,
         lengthMenu: [10, 25, 50, 100],
+        // make last column (actions) non-orderable by default
+        columnDefs: [ { orderable: false, targets: -1 } ],
         language: {
             search: "Search:",
             lengthMenu: "Show _MENU_ entries",

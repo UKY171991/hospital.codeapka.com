@@ -203,8 +203,8 @@ function loadTests(){
                             '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
                             '<button class="btn btn-sm btn-danger delete-test" data-id="'+x.id+'">Delete</button></td>'+
                     '</tr>'; }); $('#testsTable tbody').html(t);
-            // initialize DataTable
-            initDataTable('#testsTable');
+            // initialize DataTable (default order by ID desc — column index 1)
+            initDataTable('#testsTable', { order: [[1, 'desc']] });
         } else toastr.error('Failed to load tests');
     },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
 }
