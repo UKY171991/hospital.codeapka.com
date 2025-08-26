@@ -53,8 +53,6 @@ require_once 'inc/sidebar.php';
                                         <th>Category</th>
                                         <th>Name</th>
                                         <th>Price</th>
-                                        <th>Test Code</th>
-                                        <th>Method</th>
                                         <th>Added By</th>
                                         <th>Actions</th>
                                     </tr>
@@ -183,8 +181,6 @@ function loadTests(){
                         '<td>'+ (x.category_name||'') +'</td>'+
                         '<td>'+ (x.name||'') +'</td>'+
                         '<td>'+ (x.price||'') +'</td>'+
-                        '<td>'+ '' +'</td>'+
-                        '<td>'+ '' +'</td>'+
                         '<td>'+ (x.added_by_username||'') +'</td>'+
                         '<td><button class="btn btn-sm btn-info view-test" data-id="'+x.id+'" onclick="viewTest('+x.id+')">View</button> '+
                             '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
