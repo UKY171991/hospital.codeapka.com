@@ -122,6 +122,13 @@ require_once 'inc/sidebar.php';
     </div>
 </div>
 
+
+<!-- DataTables CSS/JS (CDN) -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<!-- Global DataTable initializer -->
+<script src="assets/js/common.js"></script>
+
 <?php require_once 'inc/footer.php'; ?>
 
 <script>
@@ -151,143 +158,55 @@ function viewCategory(id){
 }
 
 $(function(){
-    loadCategories();
+    // Load categories and initialize DataTable after data is loaded
+    $.get('ajax/test_category_api.php', { action: 'list' }, function(resp){
+        if(resp.success && Array.isArray(resp.data)){
+            var $tbody = $('#categoriesTable tbody');
+            $tbody.empty();
+            resp.data.forEach(function(c){
+                var tr = $('<tr>').attr('data-id', c.id)
+                    .attr('data-name', c.name)
+                    .attr('data-description', c.description)
+                    .attr('data-added_by_username', c.added_by_username);
+                tr.append($('<td>').text(c.id));
+                tr.append($('<td>').text(c.name));
+                tr.append($('<td>').text(c.description));
+                tr.append($('<td>').text(c.added_by_username));
+                var actions = '<button class="btn btn-sm btn-info" onclick="viewCategory('+c.id+')">View</button> '
+                    +'<button class="btn btn-sm btn-primary edit-category" data-id="'+c.id+'">Edit</button> '
+                    +'<button class="btn btn-sm btn-danger delete-category" data-id="'+c.id+'">Delete</button>';
+                tr.append($('<td>').html(actions));
+                $tbody.append(tr);
+            });
+            // Initialize DataTable globally
+            initDataTable('#categoriesTable');
+        } else {
+            toastr.error(resp.message || 'Failed to load categories');
+        }
+    }, 'json');
 
-    // search/filter UI
-    $('#categoriesSearch').on('input', function(){
-        var q = $(this).val().toLowerCase().trim();
-        if(!q){ $('#categoriesTable tbody tr').show(); return; }
-        $('#categoriesTable tbody tr').each(function(){ var row=$(this); var text=row.text().toLowerCase(); row.toggle(text.indexOf(q) !== -1); });
-    });
-    $('#categoriesSearchClear').click(function(e){ e.preventDefault(); $('#categoriesSearch').val(''); $('#categoriesSearch').trigger('input'); });
+    // Save, edit, delete handlers remain unchanged
+    $('#saveCategoryBtn').click(function(){ var data=$('#categoryForm').serialize() + '&action=save'; $.post('ajax/test_category_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#categoryModal').modal('hide'); location.reload(); } else toastr.error(resp.message||'Save failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
 
-    $('#saveCategoryBtn').click(function(){ var data=$('#categoryForm').serialize() + '&action=save'; $.post('ajax/test_category_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#categoryModal').modal('hide'); loadCategories(); } else toastr.error(resp.message||'Save failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
-
-    // delegated edit handler
     $(document).on('click', '.edit-category', function(){
         try{
-            console.debug('edit-category clicked', $(this).data('id'));
             var id=$(this).data('id');
             $.get('ajax/test_category_api.php',{action:'get',id:id}, function(resp){
                 if(resp.success){ var d=resp.data; $('#categoryId').val(d.id); $('#categoryName').val(d.name); $('#categoryDescription').val(d.description); $('#categoryModalLabel').text('Edit Category'); $('#saveCategoryBtn').show(); $('#categoryForm').find('input,textarea,select').prop('disabled', false); $('#categoryModal').modal('show'); } else toastr.error('Category not found');
             },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
-        }catch(err){ console.error('edit-category handler error', err); toastr.error('Error: '+(err.message||err)); }
+        }catch(err){ toastr.error('Error: '+(err.message||err)); }
     });
 
-    // delegated delete handler
     $(document).on('click', '.delete-category', function(){
         try{
-            if(!confirm('Delete category?')) return; var id=$(this).data('id'); $.post('ajax/test_category_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadCategories(); } else toastr.error(resp.message||'Delete failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
-        }catch(err){ console.error('delete-category handler error', err); toastr.error('Error: '+(err.message||err)); }
+            if(!confirm('Delete category?')) return; var id=$(this).data('id'); $.post('ajax/test_category_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); location.reload(); } else toastr.error(resp.message||'Delete failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+        }catch(err){ toastr.error('Error: '+(err.message||err)); }
     });
 
-    // delegated view handler fallback is provided by global function viewCategory(id)
-    
-    // restore modal state on close
     $('#categoryModal').on('hidden.bs.modal', function(){
         $('#categoryForm').find('input,textarea,select').prop('disabled', false);
         $('#saveCategoryBtn').show();
         $('#categoryModalLabel').text('Add Category');
     });
-            // Sorting state
-            var categories = []; // full data as returned by server
-            var sortState = { key: 'id', dir: 'asc' };
-
-            // Header click -> toggle sort
-            $('#categoriesTable thead').on('click', 'th.sortable', function(){
-                var key = $(this).data('key');
-                if(sortState.key === key){
-                    sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
-                } else {
-                    sortState.key = key;
-                    sortState.dir = 'asc';
-                }
-                updateSortIndicators();
-                renderCategories();
-            });
-
-            function updateSortIndicators(){
-                $('#categoriesTable thead th.sortable').each(function(){
-                    var $s = $(this).find('.sort-indicator');
-                    var key = $(this).data('key');
-                    $s.text('');
-                    if(key === sortState.key){
-                        $s.text(sortState.dir === 'asc' ? '▲' : '▼');
-                    }
-                });
-            }
-
-            // Replace previous loadCategories implementation to store data
-            function loadCategories(){
-                $.get('ajax/test_category_api.php', { action: 'list' }, function(resp){
-                    if(resp.success){
-                        categories = resp.data || [];
-                        renderCategories();
-                    } else {
-                        toastr.error(resp.message || 'Failed to load categories');
-                    }
-                }).fail(function(){
-                    toastr.error('Unable to reach server');
-                });
-            }
-
-            function renderCategories(){
-                var q = $('#categoriesSearch').val().toLowerCase();
-                var perPage = parseInt($('#categoriesPerPage').val()) || 10;
-
-                // filter
-                var filtered = categories.filter(function(c){
-                    if(!q) return true;
-                    return (''+c.id).toLowerCase().indexOf(q) !== -1
-                        || (c.name||'').toLowerCase().indexOf(q) !== -1
-                        || (c.description||'').toLowerCase().indexOf(q) !== -1
-                        || (c.added_by_username||'').toLowerCase().indexOf(q) !== -1;
-                });
-
-                // sort
-                filtered.sort(function(a,b){
-                    var k = sortState.key;
-                    var av = a[k] == null ? '' : a[k];
-                    var bv = b[k] == null ? '' : b[k];
-                    // numeric compare for id
-                    if(k === 'id'){
-                        av = parseInt(av) || 0;
-                        bv = parseInt(bv) || 0;
-                    } else {
-                        av = (''+av).toLowerCase();
-                        bv = (''+bv).toLowerCase();
-                    }
-                    if(av < bv) return sortState.dir === 'asc' ? -1 : 1;
-                    if(av > bv) return sortState.dir === 'asc' ? 1 : -1;
-                    return 0;
-                });
-
-                // pagination (client-side)
-                var page = 1; // could extend to support pages
-                var start = (page-1)*perPage;
-                var paged = filtered.slice(start, start+perPage);
-
-                var $tbody = $('#categoriesTable tbody');
-                $tbody.empty();
-                paged.forEach(function(c){
-                    var tr = $('<tr>').attr('data-id', c.id)
-                        .attr('data-name', c.name)
-                        .attr('data-description', c.description)
-                        .attr('data-added_by_username', c.added_by_username);
-
-                    tr.append($('<td>').text(c.id));
-                    tr.append($('<td>').text(c.name));
-                    tr.append($('<td>').text(c.description));
-                    tr.append($('<td>').text(c.added_by_username));
-
-                    var actions = '<button class="btn btn-sm btn-info" onclick="viewCategory('+c.id+')">View</button> '
-                        +'<button class="btn btn-sm btn-primary edit-category" data-id="'+c.id+'">Edit</button> '
-                        +'<button class="btn btn-sm btn-danger delete-category" data-id="'+c.id+'">Delete</button>';
-                    tr.append($('<td>').html(actions));
-                    $tbody.append(tr);
-                });
-
-                updateSortIndicators();
-            }
 });
 </script>
