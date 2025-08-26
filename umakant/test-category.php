@@ -44,6 +44,26 @@ require_once 'inc/sidebar.php';
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
+                            <div class="row mb-3 align-items-center">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input id="categoriesSearch" class="form-control" placeholder="Search categories by name or description...">
+                                        <div class="input-group-append">
+                                            <button id="categoriesSearchClear" class="btn btn-outline-secondary">Clear</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 ml-auto text-right">
+                                    <div class="form-inline float-right">
+                                        <label class="mr-2">Per page</label>
+                                        <select id="categoriesPerPage" class="form-control">
+                                            <option value="10">10</option>
+                                            <option value="25">25</option>
+                                            <option value="50">50</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                             <table id="categoriesTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
@@ -124,10 +144,19 @@ function openAddCategoryModal(){ $('#categoryForm')[0].reset(); $('#categoryId')
 
 $(function(){
     loadCategories();
-    $('#saveCategoryBtn').click(function(){ var data=$('#categoryForm').serialize() + '&action=save'; $.post('ajax/test_category_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#categoryModal').modal('hide'); loadCategories(); } else toastr.error(resp.message||'Save failed'); }, 'json'); });
 
-    $('#categoriesTable').on('click', '.edit-category', function(){ var id=$(this).data('id'); $.get('ajax/test_category_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#categoryId').val(d.id); $('#categoryName').val(d.name); $('#categoryDescription').val(d.description); $('#categoryModal').modal('show'); } else toastr.error('Category not found'); },'json'); });
+    // search/filter UI
+    $('#categoriesSearch').on('input', function(){
+        var q = $(this).val().toLowerCase().trim();
+        if(!q){ $('#categoriesTable tbody tr').show(); return; }
+        $('#categoriesTable tbody tr').each(function(){ var row=$(this); var text=row.text().toLowerCase(); row.toggle(text.indexOf(q) !== -1); });
+    });
+    $('#categoriesSearchClear').click(function(e){ e.preventDefault(); $('#categoriesSearch').val(''); $('#categoriesSearch').trigger('input'); });
 
-    $('#categoriesTable').on('click', '.delete-category', function(){ if(!confirm('Delete category?')) return; var id=$(this).data('id'); $.post('ajax/test_category_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadCategories(); } else toastr.error(resp.message||'Delete failed'); }, 'json'); });
+    $('#saveCategoryBtn').click(function(){ var data=$('#categoryForm').serialize() + '&action=save'; $.post('ajax/test_category_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#categoryModal').modal('hide'); loadCategories(); } else toastr.error(resp.message||'Save failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+
+    $('#categoriesTable').on('click', '.edit-category', function(){ var id=$(this).data('id'); $.get('ajax/test_category_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#categoryId').val(d.id); $('#categoryName').val(d.name); $('#categoryDescription').val(d.description); $('#categoryModal').modal('show'); } else toastr.error('Category not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+
+    $('#categoriesTable').on('click', '.delete-category', function(){ if(!confirm('Delete category?')) return; var id=$(this).data('id'); $.post('ajax/test_category_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadCategories(); } else toastr.error(resp.message||'Delete failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
 });
 </script>

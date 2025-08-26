@@ -44,6 +44,26 @@ require_once 'inc/sidebar.php';
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
+                            <div class="row mb-3 align-items-center">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input id="patientsSearch" class="form-control" placeholder="Search patients by name, mobile or UHID...">
+                                        <div class="input-group-append">
+                                            <button id="patientsSearchClear" class="btn btn-outline-secondary">Clear</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 ml-auto text-right">
+                                    <div class="form-inline float-right">
+                                        <label class="mr-2">Per page</label>
+                                        <select id="patientsPerPage" class="form-control">
+                                            <option value="10">10</option>
+                                            <option value="25">25</option>
+                                            <option value="50">50</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                             <table id="patientsTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
@@ -53,7 +73,6 @@ require_once 'inc/sidebar.php';
                                         <th>Age</th>
                                         <th>Gender</th>
                                         <th>Phone</th>
-                                        <th>Email</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -146,18 +165,17 @@ require_once 'inc/sidebar.php';
 <script>
 function loadPatients(){
     $.get('ajax/patient_api.php',{action:'list'},function(resp){
-        if(resp.success){ var t=''; resp.data.forEach(function(p){ t += '<tr>'+
-                    '<td>'+p.id+'</td>'+
-                    '<td>'+ (p.uhid||'') +'</td>'+
-                    '<td>'+ (p.name||'') +'</td>'+
-                    '<td>'+ (p.age||'') +'</td>'+
-                    '<td>'+ (p.gender||'') +'</td>'+
-                    '<td>'+ (p.phone||'') +'</td>'+
-                    '<td>'+ (p.email||'') +'</td>'+
-                    '<td><button class="btn btn-sm btn-info view-patient" data-id="'+p.id+'">View</button> '+
-                            '<button class="btn btn-sm btn-warning edit-patient" data-id="'+p.id+'">Edit</button> '+
-                            '<button class="btn btn-sm btn-danger delete-patient" data-id="'+p.id+'">Delete</button></td>'+
-                    '</tr>'; }); $('#patientsTable tbody').html(t);
+    if(resp.success){ var t=''; resp.data.forEach(function(p){ t += '<tr>'+
+            '<td>'+p.id+'</td>'+
+            '<td>'+ (p.uhid||'') +'</td>'+
+            '<td>'+ (p.name||'') +'</td>'+
+            '<td>'+ (p.age||'') +'</td>'+
+            '<td>'+ (p.gender||'') +'</td>'+
+            '<td>'+ (p.phone||'') +'</td>'+
+            '<td><button class="btn btn-sm btn-info view-patient" data-id="'+p.id+'">View</button> '+
+                '<button class="btn btn-sm btn-warning edit-patient" data-id="'+p.id+'">Edit</button> '+
+                '<button class="btn btn-sm btn-danger delete-patient" data-id="'+p.id+'">Delete</button></td>'+
+            '</tr>'; }); $('#patientsTable tbody').html(t);
         } else toastr.error('Failed to load patients');
     },'json');
 }
@@ -166,10 +184,15 @@ function openAddPatientModal(){ $('#patientForm')[0].reset(); $('#patientId').va
 
 $(function(){
     loadPatients();
-    $('#savePatientBtn').click(function(){ var data = $('#patientForm').serialize() + '&action=save'; $.post('ajax/patient_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#patientModal').modal('hide'); loadPatients(); } else toastr.error(resp.message||'Save failed'); },'json'); });
 
-    $('#patientsTable').on('click', '.edit-patient', function(){ var id=$(this).data('id'); $.get('ajax/patient_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#patientId').val(d.id); $('#patientName').val(d.name); $('#patientMobile').val(d.mobile); $('#patientFatherHusband').val(d.father_husband); $('#patientAddress').val(d.address); $('#patientSex').val(d.sex); $('#patientAge').val(d.age); $('#patientAgeUnit').val(d.age_unit||'Years'); $('#patientUHID').val(d.uhid); $('#patientModal').modal('show'); } else toastr.error('Patient not found'); },'json'); });
+    // search/filter UI
+    $('#patientsSearch').on('input', function(){ var q=$(this).val().toLowerCase().trim(); if(!q){ $('#patientsTable tbody tr').show(); return; } $('#patientsTable tbody tr').each(function(){ var row=$(this); var text=row.text().toLowerCase(); row.toggle(text.indexOf(q)!==-1); }); });
+    $('#patientsSearchClear').click(function(e){ e.preventDefault(); $('#patientsSearch').val(''); $('#patientsSearch').trigger('input'); });
 
-    $('#patientsTable').on('click', '.delete-patient', function(){ if(!confirm('Delete patient?')) return; var id=$(this).data('id'); $.post('ajax/patient_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadPatients(); } else toastr.error(resp.message||'Delete failed'); },'json'); });
+    $('#savePatientBtn').click(function(){ var data = $('#patientForm').serialize() + '&action=save'; $.post('ajax/patient_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#patientModal').modal('hide'); loadPatients(); } else toastr.error(resp.message||'Save failed'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+
+    $('#patientsTable').on('click', '.edit-patient', function(){ var id=$(this).data('id'); $.get('ajax/patient_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#patientId').val(d.id); $('#patientName').val(d.name); $('#patientMobile').val(d.mobile); $('#patientFatherHusband').val(d.father_husband); $('#patientAddress').val(d.address); $('#patientSex').val(d.sex); $('#patientAge').val(d.age); $('#patientAgeUnit').val(d.age_unit||'Years'); $('#patientUHID').val(d.uhid); $('#patientModal').modal('show'); } else toastr.error('Patient not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+
+    $('#patientsTable').on('click', '.delete-patient', function(){ if(!confirm('Delete patient?')) return; var id=$(this).data('id'); $.post('ajax/patient_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadPatients(); } else toastr.error(resp.message||'Delete failed'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
 });
 </script>

@@ -44,6 +44,26 @@ require_once 'inc/sidebar.php';
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
+                            <div class="row mb-3 align-items-center">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input id="doctorsSearch" class="form-control" placeholder="Search doctors by name, specialization, email...">
+                                        <div class="input-group-append">
+                                            <button id="doctorsSearchClear" class="btn btn-outline-secondary">Clear</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 ml-auto text-right">
+                                    <div class="form-inline float-right">
+                                        <label class="mr-2">Per page</label>
+                                        <select id="doctorsPerPage" class="form-control">
+                                            <option value="10">10</option>
+                                            <option value="25">25</option>
+                                            <option value="50">50</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                             <table id="doctorsTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
@@ -88,51 +108,57 @@ require_once 'inc/sidebar.php';
             <div class="modal-body">
                 <form id="doctorForm">
                     <input type="hidden" id="doctorId" name="id">
-                    <div class="form-group">
-                        <label for="doctorName">Name *</label>
-                        <input type="text" class="form-control" id="doctorName" name="name" required>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="doctorQualification">Qualification</label>
-                            <input type="text" class="form-control" id="doctorQualification" name="qualification">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="doctorName">Name *</label>
+                                    <input type="text" class="form-control" id="doctorName" name="name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="doctorQualification">Qualification</label>
+                                    <input type="text" class="form-control" id="doctorQualification" name="qualification">
+                                </div>
+                                <div class="form-group">
+                                    <label for="doctorHospital">Hospital</label>
+                                    <input type="text" class="form-control" id="doctorHospital" name="hospital">
+                                </div>
+                                <div class="form-group">
+                                    <label for="doctorPhone">Phone</label>
+                                    <input type="text" class="form-control" id="doctorPhone" name="phone">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="doctorSpecialization">Specialization</label>
+                                    <input type="text" class="form-control" id="doctorSpecialization" name="specialization">
+                                </div>
+                                <div class="form-group">
+                                    <label for="doctorContact">Contact No</label>
+                                    <input type="text" class="form-control" id="doctorContact" name="contact_no">
+                                </div>
+                                <div class="form-group">
+                                    <label for="doctorPercent">Percent</label>
+                                    <input type="number" step="0.01" class="form-control" id="doctorPercent" name="percent" value="0.00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="doctorEmail">Email</label>
+                                    <input type="email" class="form-control" id="doctorEmail" name="email">
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group col-md-6">
-                            <label for="doctorSpecialization">Specialization</label>
-                            <input type="text" class="form-control" id="doctorSpecialization" name="specialization">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="doctorRegistration">Registration No</label>
+                                    <input type="text" class="form-control" id="doctorRegistration" name="registration_no">
+                                </div>
+                                <div class="form-group">
+                                    <label for="doctorAddress">Address</label>
+                                    <textarea class="form-control" id="doctorAddress" name="address" rows="3"></textarea>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="doctorHospital">Hospital</label>
-                            <input type="text" class="form-control" id="doctorHospital" name="hospital">
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="doctorContact">Contact No</label>
-                            <input type="text" class="form-control" id="doctorContact" name="contact_no">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="doctorPhone">Phone</label>
-                            <input type="text" class="form-control" id="doctorPhone" name="phone">
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="doctorPercent">Percent</label>
-                            <input type="number" step="0.01" class="form-control" id="doctorPercent" name="percent" value="0.00">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="doctorEmail">Email</label>
-                        <input type="email" class="form-control" id="doctorEmail" name="email">
-                    </div>
-                    <div class="form-group">
-                        <label for="doctorRegistration">Registration No</label>
-                        <input type="text" class="form-control" id="doctorRegistration" name="registration_no">
-                    </div>
-                    <div class="form-group">
-                        <label for="doctorAddress">Address</label>
-                        <textarea class="form-control" id="doctorAddress" name="address" rows="3"></textarea>
                     </div>
                 </form>
             </div>
@@ -168,7 +194,7 @@ function openAddDoctorModal(){ $('#doctorForm')[0].reset(); $('#doctorId').val('
 
 $(function(){
     loadDoctors();
-    $('#saveDoctorBtn').click(function(){ var data=$('#doctorForm').serialize() + '&action=save'; $.post('ajax/doctor_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#doctorModal').modal('hide'); loadDoctors(); } else toastr.error(resp.message||'Save failed'); }, 'json'); });
+    $('#saveDoctorBtn').click(function(){ var data=$('#doctorForm').serialize() + '&action=save'; $.post('ajax/doctor_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#doctorModal').modal('hide'); loadDoctors(); } else toastr.error(resp.message||'Save failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
 
     $('#doctorsTable').on('click', '.edit-doctor', function(){ var id=$(this).data('id'); $.get('ajax/doctor_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#doctorId').val(d.id); $('#doctorName').val(d.name); $('#doctorQualification').val(d.qualification); $('#doctorSpecialization').val(d.specialization); $('#doctorHospital').val(d.hospital); $('#doctorContact').val(d.contact_no); $('#doctorPhone').val(d.phone); $('#doctorPercent').val(d.percent); $('#doctorEmail').val(d.email); $('#doctorRegistration').val(d.registration_no); $('#doctorAddress').val(d.address); $('#doctorModal').modal('show'); } else toastr.error('Doctor not found'); },'json'); });
 
