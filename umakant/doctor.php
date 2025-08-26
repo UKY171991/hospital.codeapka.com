@@ -49,8 +49,11 @@ require_once 'inc/sidebar.php';
                                     <tr>
                                         <th>ID</th>
                                         <th>Name</th>
+                                        <th>Qualification</th>
                                         <th>Specialization</th>
-                                        <th>Phone</th>
+                                        <th>Hospital</th>
+                                        <th>Contact</th>
+                                        <th>Percent</th>
                                         <th>Email</th>
                                         <th>Actions</th>
                                     </tr>
@@ -89,17 +92,43 @@ require_once 'inc/sidebar.php';
                         <label for="doctorName">Name *</label>
                         <input type="text" class="form-control" id="doctorName" name="name" required>
                     </div>
-                    <div class="form-group">
-                        <label for="doctorSpecialization">Specialization</label>
-                        <input type="text" class="form-control" id="doctorSpecialization" name="specialization">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="doctorQualification">Qualification</label>
+                            <input type="text" class="form-control" id="doctorQualification" name="qualification">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="doctorSpecialization">Specialization</label>
+                            <input type="text" class="form-control" id="doctorSpecialization" name="specialization">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="doctorPhone">Phone</label>
-                        <input type="text" class="form-control" id="doctorPhone" name="phone">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="doctorHospital">Hospital</label>
+                            <input type="text" class="form-control" id="doctorHospital" name="hospital">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="doctorContact">Contact No</label>
+                            <input type="text" class="form-control" id="doctorContact" name="contact_no">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="doctorPhone">Phone</label>
+                            <input type="text" class="form-control" id="doctorPhone" name="phone">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="doctorPercent">Percent</label>
+                            <input type="number" step="0.01" class="form-control" id="doctorPercent" name="percent" value="0.00">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="doctorEmail">Email</label>
                         <input type="email" class="form-control" id="doctorEmail" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="doctorRegistration">Registration No</label>
+                        <input type="text" class="form-control" id="doctorRegistration" name="registration_no">
                     </div>
                     <div class="form-group">
                         <label for="doctorAddress">Address</label>
@@ -120,16 +149,19 @@ require_once 'inc/sidebar.php';
 <script>
 function loadDoctors(){
     $.get('ajax/doctor_api.php',{action:'list'},function(resp){
-        if(resp.success){ var t=''; resp.data.forEach(function(r){ t += '<tr>'+
-                    '<td>'+r.id+'</td>'+
-                    '<td>'+ (r.name||'') +'</td>'+
-                    '<td>'+ (r.specialization||'') +'</td>'+
-                    '<td>'+ (r.phone||'') +'</td>'+
-                    '<td>'+ (r.email||'') +'</td>'+
-                    '<td><button class="btn btn-sm btn-info view-doctor" data-id="'+r.id+'">View</button> '+
-                            '<button class="btn btn-sm btn-warning edit-doctor" data-id="'+r.id+'">Edit</button> '+
-                            '<button class="btn btn-sm btn-danger delete-doctor" data-id="'+r.id+'">Delete</button></td>'+
-                    '</tr>'; }); $('#doctorsTable tbody').html(t);} else toastr.error('Failed to load'); },'json');
+    if(resp.success){ var t=''; resp.data.forEach(function(r){ t += '<tr>'+
+            '<td>'+r.id+'</td>'+
+            '<td>'+ (r.name||'') +'</td>'+
+            '<td>'+ (r.qualification||'') +'</td>'+
+            '<td>'+ (r.specialization||'') +'</td>'+
+            '<td>'+ (r.hospital||'') +'</td>'+
+            '<td>'+ (r.contact_no||r.phone||'') +'</td>'+
+            '<td>'+ (r.percent||'') +'</td>'+
+            '<td>'+ (r.email||'') +'</td>'+
+            '<td><button class="btn btn-sm btn-info view-doctor" data-id="'+r.id+'">View</button> '+
+                '<button class="btn btn-sm btn-warning edit-doctor" data-id="'+r.id+'">Edit</button> '+
+                '<button class="btn btn-sm btn-danger delete-doctor" data-id="'+r.id+'">Delete</button></td>'+
+            '</tr>'; }); $('#doctorsTable tbody').html(t);} else toastr.error('Failed to load'); },'json');
 }
 
 function openAddDoctorModal(){ $('#doctorForm')[0].reset(); $('#doctorId').val(''); $('#doctorModal').modal('show'); }
@@ -138,7 +170,7 @@ $(function(){
     loadDoctors();
     $('#saveDoctorBtn').click(function(){ var data=$('#doctorForm').serialize() + '&action=save'; $.post('ajax/doctor_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#doctorModal').modal('hide'); loadDoctors(); } else toastr.error(resp.message||'Save failed'); }, 'json'); });
 
-    $('#doctorsTable').on('click', '.edit-doctor', function(){ var id=$(this).data('id'); $.get('ajax/doctor_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#doctorId').val(d.id); $('#doctorName').val(d.name); $('#doctorSpecialization').val(d.specialization); $('#doctorPhone').val(d.phone); $('#doctorEmail').val(d.email); $('#doctorAddress').val(d.address); $('#doctorModal').modal('show'); } else toastr.error('Doctor not found'); },'json'); });
+    $('#doctorsTable').on('click', '.edit-doctor', function(){ var id=$(this).data('id'); $.get('ajax/doctor_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#doctorId').val(d.id); $('#doctorName').val(d.name); $('#doctorQualification').val(d.qualification); $('#doctorSpecialization').val(d.specialization); $('#doctorHospital').val(d.hospital); $('#doctorContact').val(d.contact_no); $('#doctorPhone').val(d.phone); $('#doctorPercent').val(d.percent); $('#doctorEmail').val(d.email); $('#doctorRegistration').val(d.registration_no); $('#doctorAddress').val(d.address); $('#doctorModal').modal('show'); } else toastr.error('Doctor not found'); },'json'); });
 
     $('#doctorsTable').on('click', '.delete-doctor', function(){ if(!confirm('Delete doctor?')) return; var id=$(this).data('id'); $.post('ajax/doctor_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadDoctors(); } else toastr.error(resp.message||'Delete failed'); },'json'); });
 });

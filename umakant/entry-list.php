@@ -8,11 +8,7 @@ require_once 'inc/sidebar.php';
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">
-            <?php
-            require_once 'inc/header.php';
-            require_once 'inc/sidebar.php';
-            ?>
-
+            
             <!-- Content Wrapper. Contains page content -->
             <div class="content-wrapper">
                 <!-- Content Header (Page header) -->
@@ -61,8 +57,9 @@ require_once 'inc/sidebar.php';
                                                     <th>Patient</th>
                                                     <th>Doctor</th>
                                                     <th>Test</th>
-                                                    <th>Referring Doctor</th>
                                                     <th>Entry Date</th>
+                                                    <th>Result</th>
+                                                    <th>Unit</th>
                                                     <th>Status</th>
                                                     <th>Actions</th>
                                                 </tr>
@@ -115,13 +112,10 @@ require_once 'inc/sidebar.php';
                                         <option value="">Select Test</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label for="entryReferringDoctor">Referring Doctor</label>
-                                    <input type="text" class="form-control" id="entryReferringDoctor" name="referring_doctor">
-                                </div>
+                                
                                 <div class="form-group">
                                     <label for="entryEntryDate">Entry Date *</label>
-                                    <input type="date" class="form-control" id="entryEntryDate" name="entry_date" required>
+                                    <input type="datetime-local" class="form-control" id="entryEntryDate" name="entry_date" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="entryResultValue">Result Value</label>
@@ -131,6 +125,10 @@ require_once 'inc/sidebar.php';
                                     <label for="entryUnit">Unit</label>
                                     <input type="text" class="form-control" id="entryUnit" name="unit">
                                 </div>
+                                            <div class="form-group">
+                                                <label for="entryUnit">Unit</label>
+                                                <input type="text" class="form-control" id="entryUnit" name="unit">
+                                            </div>
                                 <div class="form-group">
                                     <label for="entryRemarks">Remarks</label>
                                     <textarea class="form-control" id="entryRemarks" name="remarks" rows="3"></textarea>
@@ -162,20 +160,21 @@ require_once 'inc/sidebar.php';
               $.get('ajax/test_api.php',{action:'list'},function(r){ if(r.success){ var s=''; r.data.forEach(function(p){ s += '<option value="'+p.id+'">'+(p.name||'')+'</option>'; }); $('#entryTestId').append(s);} },'json');
             }
 
-            function loadEntries(){
-              $.get('ajax/entry_api.php',{action:'list'},function(resp){ if(resp.success){ var t=''; resp.data.forEach(function(e){ t += '<tr>'+
-                    '<td>'+e.id+'</td>'+
-                    '<td>'+ (e.patient_name||'') +'</td>'+
-                    '<td>'+ (e.doctor_name||'') +'</td>'+
-                    '<td>'+ (e.test_name||'') +'</td>'+
-                    '<td>'+ (e.referring_doctor||'') +'</td>'+
-                    '<td>'+ (e.entry_date||'') +'</td>'+
-                    '<td>'+ (e.status||'') +'</td>'+
-                    '<td><button class="btn btn-sm btn-info view-entry" data-id="'+e.id+'">View</button> '+
-                        '<button class="btn btn-sm btn-warning edit-entry" data-id="'+e.id+'">Edit</button> '+
-                        '<button class="btn btn-sm btn-danger delete-entry" data-id="'+e.id+'">Delete</button></td>'+
-                    '</tr>'; }); $('#entriesTable tbody').html(t);} else toastr.error('Failed to load entries'); },'json');
-            }
+                        function loadEntries(){
+                            $.get('ajax/entry_api.php',{action:'list'},function(resp){ if(resp.success){ var t=''; resp.data.forEach(function(e){ t += '<tr>'+
+                                        '<td>'+e.id+'</td>'+
+                                        '<td>'+ (e.patient_name||'') +'</td>'+
+                                        '<td>'+ (e.doctor_name||'') +'</td>'+
+                                        '<td>'+ (e.test_name||'') +'</td>'+
+                                        '<td>'+ (e.entry_date||'') +'</td>'+
+                                        '<td>'+ (e.result_value||'') +'</td>'+
+                                        '<td>'+ (e.unit||'') +'</td>'+
+                                        '<td>'+ (e.status||'') +'</td>'+
+                                        '<td><button class="btn btn-sm btn-info view-entry" data-id="'+e.id+'">View</button> '+
+                                                '<button class="btn btn-sm btn-warning edit-entry" data-id="'+e.id+'">Edit</button> '+
+                                                '<button class="btn btn-sm btn-danger delete-entry" data-id="'+e.id+'">Delete</button></td>'+
+                                        '</tr>'; }); $('#entriesTable tbody').html(t);} else toastr.error('Failed to load entries'); },'json');
+                        }
 
             function openAddEntryModal(){ $('#entryForm')[0].reset(); $('#entryId').val(''); $('#entryModal').modal('show'); }
 
@@ -185,7 +184,7 @@ require_once 'inc/sidebar.php';
 
               $('#saveEntryBtn').click(function(){ var data=$('#entryForm').serialize() + '&action=save'; $.post('ajax/entry_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#entryModal').modal('hide'); loadEntries(); } else toastr.error(resp.message||'Save failed'); },'json'); });
 
-              $('#entriesTable').on('click', '.edit-entry', function(){ var id=$(this).data('id'); $.get('ajax/entry_api.php',{action:'get',id:id}, function(r){ if(r.success){ var d=r.data; $('#entryId').val(d.id); $('#entryPatientId').val(d.patient_id); $('#entryDoctorId').val(d.doctor_id); $('#entryTestId').val(d.test_id); $('#entryReferringDoctor').val(d.referring_doctor); $('#entryEntryDate').val(d.entry_date); $('#entryResultValue').val(d.result_value); $('#entryUnit').val(d.unit); $('#entryRemarks').val(d.remarks); $('#entryStatus').val(d.status); $('#entryModal').modal('show'); } else toastr.error('Entry not found'); },'json'); });
+              $('#entriesTable').on('click', '.edit-entry', function(){ var id=$(this).data('id'); $.get('ajax/entry_api.php',{action:'get',id:id}, function(r){ if(r.success){ var d=r.data; $('#entryId').val(d.id); $('#entryPatientId').val(d.patient_id); $('#entryDoctorId').val(d.doctor_id); $('#entryTestId').val(d.test_id); $('#entryEntryDate').val(d.entry_date); $('#entryResultValue').val(d.result_value); $('#entryUnit').val(d.unit); $('#entryRemarks').val(d.remarks); $('#entryStatus').val(d.status); $('#entryModal').modal('show'); } else toastr.error('Entry not found'); },'json'); });
 
               $('#entriesTable').on('click', '.delete-entry', function(){ if(!confirm('Delete entry?')) return; var id=$(this).data('id'); $.post('ajax/entry_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadEntries(); } else toastr.error(resp.message||'Delete failed'); },'json'); });
             });

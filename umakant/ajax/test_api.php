@@ -7,7 +7,8 @@ session_start();
 $action = $_REQUEST['action'] ?? 'list';
 
 if ($action === 'list') {
-    $stmt = $pdo->query("SELECT t.id, tc.name as category_name, t.name, t.description, t.price, t.normal_range, t.unit FROM tests t LEFT JOIN categories tc ON t.category_id = tc.id ORDER BY t.id DESC");
+    // return reference_range as normal_range for older UI compatibility
+    $stmt = $pdo->query("SELECT t.id, tc.name as category_name, t.name, t.description, t.price, t.reference_range as normal_range, t.unit FROM tests t LEFT JOIN categories tc ON t.category_id = tc.id ORDER BY t.id DESC");
     $rows = $stmt->fetchAll();
     json_response(['success'=>true,'data'=>$rows]);
 }
@@ -43,8 +44,9 @@ if ($action === 'save') {
         $stmt->execute([$category_id, $name, $description, $price, $unit, $specimen, $default_result, $reference_range, $min, $max, $sub_heading, $test_code, $method, $print_new_page, $shortcut, $id]);
         json_response(['success'=>true,'message'=>'Test updated']);
     } else {
-        $stmt = $pdo->prepare('INSERT INTO tests (category_id, name, description, price, unit, specimen, default_result, reference_range, min, max, sub_heading, test_code, method, print_new_page, shortcut, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())');
-        $stmt->execute([$category_id, $name, $description, $price, $unit, $specimen, $default_result, $reference_range, $min, $max, $sub_heading, $test_code, $method, $print_new_page, $shortcut]);
+        $added_by = $_SESSION['user_id'] ?? null;
+        $stmt = $pdo->prepare('INSERT INTO tests (category_id, name, description, price, unit, specimen, default_result, reference_range, min, max, sub_heading, test_code, method, print_new_page, shortcut, added_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+        $stmt->execute([$category_id, $name, $description, $price, $unit, $specimen, $default_result, $reference_range, $min, $max, $sub_heading, $test_code, $method, $print_new_page, $shortcut, $added_by]);
         json_response(['success'=>true,'message'=>'Test created']);
     }
 }
