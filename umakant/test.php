@@ -204,7 +204,11 @@ function loadTests(){
                             '<button class="btn btn-sm btn-danger delete-test" data-id="'+x.id+'">Delete</button></td>'+
                     '</tr>'; }); $('#testsTable tbody').html(t);
             // initialize DataTable (default order by ID desc — column index 1)
-            initDataTable('#testsTable', { order: [[1, 'desc']] });
+            if(typeof initDataTable === 'function'){
+                initDataTable('#testsTable', { order: [[1, 'desc']] });
+            } else {
+                console.warn('initDataTable is not defined; ensure assets/js/common.js is loaded');
+            }
         } else toastr.error('Failed to load tests');
     },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
 }
