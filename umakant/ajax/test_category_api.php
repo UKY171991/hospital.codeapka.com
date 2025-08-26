@@ -28,25 +28,42 @@ if ($action === 'save') {
     $name = trim($_POST['name'] ?? '');
     $description = trim($_POST['description'] ?? '');
 
+    // basic validation
+    if ($name === '') {
+        json_response(['success' => false, 'message' => 'Name is required'], 400);
+    }
+
     if ($id) {
-        $stmt = $pdo->prepare('UPDATE categories SET name=?, description=?, updated_at=NOW() WHERE id=?');
-        $stmt->execute([$name, $description, $id]);
-        json_response(['success' => true, 'message' => 'Category updated']);
+        try {
+            $stmt = $pdo->prepare('UPDATE categories SET name=?, description=?, updated_at=NOW() WHERE id=?');
+            $stmt->execute([$name, $description, $id]);
+            json_response(['success' => true, 'message' => 'Category updated']);
+        } catch (PDOException $e) {
+            json_response(['success' => false, 'message' => 'Server error: ' . $e->getMessage()], 500);
+        }
     } else {
         // set added_by from session user id when creating
         $added_by = $_SESSION['user_id'] ?? null;
-        $stmt = $pdo->prepare('INSERT INTO categories (name, description, added_by, created_at) VALUES (?, ?, ?, NOW())');
-        $stmt->execute([$name, $description, $added_by]);
-        json_response(['success' => true, 'message' => 'Category created']);
+        try {
+            $stmt = $pdo->prepare('INSERT INTO categories (name, description, added_by, created_at) VALUES (?, ?, ?, NOW())');
+            $stmt->execute([$name, $description, $added_by]);
+            json_response(['success' => true, 'message' => 'Category created']);
+        } catch (PDOException $e) {
+            json_response(['success' => false, 'message' => 'Server error: ' . $e->getMessage()], 500);
+        }
     }
 }
 
 if ($action === 'delete' && isset($_POST['id'])) {
     // allow master and admin to delete categories
     if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) json_response(['success'=>false,'message'=>'Unauthorized'],401);
-    $stmt = $pdo->prepare('DELETE FROM categories WHERE id = ?');
-    $stmt->execute([$_POST['id']]);
-    json_response(['success' => true, 'message' => 'Category deleted']);
+    try {
+        $stmt = $pdo->prepare('DELETE FROM categories WHERE id = ?');
+        $stmt->execute([$_POST['id']]);
+        json_response(['success' => true, 'message' => 'Category deleted']);
+    } catch (PDOException $e) {
+        json_response(['success' => false, 'message' => 'Server error: ' . $e->getMessage()], 500);
+    }
 }
 
 json_response(['success'=>false,'message'=>'Invalid action'],400);
