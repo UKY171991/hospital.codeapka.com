@@ -1,0 +1,34 @@
+Owner API
+
+Endpoint: patho_api/owner.php
+Content-Type: application/json
+
+Actions:
+- list (GET) -> returns list of owners
+  Example: patho_api/owner.php?action=list
+  Response: {"success":true,"data":[{id,name,phone,whatsapp,email,address,added_by,added_by_username}, ...]}
+
+- get (GET) -> returns single owner
+  Example: patho_api/owner.php?action=get&id=1
+  Response: {"success":true,"data":{"id":1,"name":"...","phone":"...","whatsapp":"...","email":"...","address":"...","added_by":1,"added_by_username":"admin"}}
+
+- save (POST) -> create or update owner (requires session role admin/master)
+  Example create (no id):
+    POST patho_api/owner.php
+    Content-Type: application/x-www-form-urlencoded
+    Body: action=save&name=John+Doe&phone=9876543210&whatsapp=9876543210&email=john@example.com&address=Some+addr
+  Example update (with id):
+    POST patho_api/owner.php
+    Body: action=save&id=3&name=John+X&phone=...&whatsapp=...
+  Success: {"success":true,"message":"Owner created"}
+
+- delete (POST) -> delete owner by id (requires session role admin/master)
+  Example:
+    POST patho_api/owner.php
+    Body: action=delete&id=3
+  Success: {"success":true,"message":"Owner deleted"}
+
+Notes:
+- All responses follow {success: boolean, data|message: ...}
+- save/delete require an active session with role 'admin' or 'master'.
+- For external testing with Postman, you may simulate a session by calling the webapp login first and exporting cookies, or adapt the API to accept a token (not implemented).

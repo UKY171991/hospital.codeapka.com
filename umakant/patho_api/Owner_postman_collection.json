@@ -1,0 +1,76 @@
+{
+  "info": {
+    "name": "Owner API",
+    "_postman_id": "owner-api-collection",
+    "description": "Simple Postman collection for Owner API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "List Owners",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/patho_api/owner.php?action=list",
+          "host": ["{{baseUrl}}"],
+          "path": ["patho_api","owner.php"],
+          "query": [{"key":"action","value":"list"}]
+        }
+      }
+    },
+    {
+      "name": "Get Owner",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/patho_api/owner.php?action=get&id=1",
+          "host": ["{{baseUrl}}"],
+          "path": ["patho_api","owner.php"],
+          "query": [{"key":"action","value":"get"},{"key":"id","value":"1"}]
+        }
+      }
+    },
+    {
+      "name": "Create Owner (POST)",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/x-www-form-urlencoded"}],
+        "body": {"mode":"urlencoded","urlencoded":[{"key":"action","value":"save"},{"key":"name","value":"John Doe"},{"key":"phone","value":"9876543210"},{"key":"whatsapp","value":"9876543210"},{"key":"email","value":"john@example.com"},{"key":"address","value":"Some address"}]},
+        "url": {
+          "raw": "{{baseUrl}}/patho_api/owner.php",
+          "host": ["{{baseUrl}}"],
+          "path": ["patho_api","owner.php"]
+        }
+      }
+    },
+    {
+      "name": "Update Owner (POST)",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/x-www-form-urlencoded"}],
+        "body": {"mode":"urlencoded","urlencoded":[{"key":"action","value":"save"},{"key":"id","value":"1"},{"key":"name","value":"John Updated"},{"key":"phone","value":"1234567890"},{"key":"whatsapp","value":"1234567890"},{"key":"email","value":"john.new@example.com"},{"key":"address","value":"New addr"}]},
+        "url": {
+          "raw": "{{baseUrl}}/patho_api/owner.php",
+          "host": ["{{baseUrl}}"],
+          "path": ["patho_api","owner.php"]
+        }
+      }
+    },
+    {
+      "name": "Delete Owner (POST)",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/x-www-form-urlencoded"}],
+        "body": {"mode":"urlencoded","urlencoded":[{"key":"action","value":"delete"},{"key":"id","value":"1"}]},
+        "url": {
+          "raw": "{{baseUrl}}/patho_api/owner.php",
+          "host": ["{{baseUrl}}"],
+          "path": ["patho_api","owner.php"]
+        }
+      }
+    }
+  ],
+  "variable": [{"key":"baseUrl","value":"http://localhost/umakant"}]
+}
