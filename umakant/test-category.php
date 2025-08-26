@@ -44,26 +44,7 @@ require_once 'inc/sidebar.php';
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
-                            <div class="row mb-3 align-items-center">
-                                <div class="col-md-6">
-                                    <div class="input-group">
-                                        <input id="categoriesSearch" class="form-control" placeholder="Search categories by name or description...">
-                                        <div class="input-group-append">
-                                            <button id="categoriesSearchClear" class="btn btn-outline-secondary">Clear</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 ml-auto text-right">
-                                    <div class="form-inline float-right">
-                                        <label class="mr-2">Per page</label>
-                                        <select id="categoriesPerPage" class="form-control">
-                                            <option value="10">10</option>
-                                            <option value="25">25</option>
-                                            <option value="50">50</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- Removed custom search and per-page controls; DataTables provides these -->
                             <table id="categoriesTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
