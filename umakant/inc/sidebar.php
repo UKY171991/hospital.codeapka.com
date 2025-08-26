@@ -56,11 +56,7 @@ $role = $_SESSION['role'] ?? 'user';
         </li>
         <?php endif; ?>
 
-        <?php if ($role === 'master'): ?>
-        <li class="nav-item">
-          <a href="admins.php" class="nav-link <?php echo ($activePage == 'admins.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-user-shield"></i><p>Admins</p></a>
-        </li>
-        <?php endif; ?>
+  <!-- Admins menu removed -->
 
         <li class="nav-item mt-2">
           <a href="logout.php" class="nav-link"><i class="nav-icon fas fa-sign-out-alt"></i><p>Logout</p></a>
