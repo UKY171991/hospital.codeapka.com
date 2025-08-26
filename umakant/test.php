@@ -181,17 +181,17 @@ function loadCategoriesForTests(){
 function loadTests(){
     $.get('ajax/test_api.php',{action:'list'},function(resp){
         if(resp.success){ var t=''; resp.data.forEach(function(x){ t += '<tr>'+
-                    '<td>'+x.id+'</td>'+
-                    '<td>'+ (x.category_name||'') +'</td>'+
-                    '<td>'+ (x.name||'') +'</td>'+
-                    '<td>'+ (x.description||'') +'</td>'+
-                    '<td>'+ (x.price||'') +'</td>'+
-                    '<td>'+ (x.normal_range||'') +'</td>'+
-                    '<td>'+ (x.unit||'') +'</td>'+
-                    '<td><button class="btn btn-sm btn-info view-test" data-id="'+x.id+'">View</button> '+
-                            '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
-                            '<button class="btn btn-sm btn-danger delete-test" data-id="'+x.id+'">Delete</button></td>'+
-                    '</tr>'; }); $('#testsTable tbody').html(t);
+                '<td>'+x.id+'</td>'+
+                '<td>'+ (x.category_name||'') +'</td>'+
+                '<td>'+ (x.name||'') +'</td>'+
+                '<td>'+ (x.description||'') +'</td>'+
+                '<td>'+ (x.price||'') +'</td>'+
+                '<td>'+ (x.normal_range||'') +'</td>'+
+                '<td>'+ (x.unit||'') +'</td>'+
+                '<td><button class="btn btn-sm btn-info view-test" data-id="'+x.id+'" onclick="viewTest('+x.id+')">View</button> '+
+                    '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
+                    '<button class="btn btn-sm btn-danger delete-test" data-id="'+x.id+'">Delete</button></td>'+
+                '</tr>'; }); $('#testsTable tbody').html(t);
         } else toastr.error('Failed to load tests');
     },'json');
 }
@@ -202,10 +202,37 @@ $(function(){
     loadCategoriesForTests();
     loadTests();
 
-    $('#saveTestBtn').click(function(){ var data = $('#testForm').serialize() + '&action=save'; $.post('ajax/test_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#testModal').modal('hide'); loadTests(); } else toastr.error(resp.message||'Save failed'); }, 'json'); });
+    $('#saveTestBtn').click(function(){ var data = $('#testForm').serialize() + '&action=save'; $.post('ajax/test_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#testModal').modal('hide'); loadTests(); } else toastr.error(resp.message||'Save failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
 
-    $('#testsTable').on('click', '.edit-test', function(){ var id=$(this).data('id'); $.get('ajax/test_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#testId').val(d.id); $('#testCategoryId').val(d.category_id); $('#testName').val(d.name); $('#testDescription').val(d.description); $('#testPrice').val(d.price); $('#testUnit').val(d.unit); $('#testSpecimen').val(d.specimen); $('#testDefaultResult').val(d.default_result); $('#testReferenceRange').val(d.reference_range); $('#testMin').val(d.min); $('#testMax').val(d.max); $('#testSubHeading').val(d.sub_heading); $('#testCode').val(d.test_code); $('#testMethod').val(d.method); $('#testPrintNewPage').val(d.print_new_page); $('#testShortcut').val(d.shortcut); $('#testModal').modal('show'); } else toastr.error('Test not found'); },'json'); });
+    // delegated edit handler
+    $(document).on('click', '.edit-test', function(){
+        try{
+            console.debug('edit-test clicked', $(this).data('id'));
+            var id=$(this).data('id');
+            $.get('ajax/test_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#testId').val(d.id); $('#testCategoryId').val(d.category_id); $('#testName').val(d.name); $('#testDescription').val(d.description); $('#testPrice').val(d.price); $('#testUnit').val(d.unit); $('#testSpecimen').val(d.specimen); $('#testDefaultResult').val(d.default_result); $('#testReferenceRange').val(d.reference_range); $('#testMin').val(d.min); $('#testMax').val(d.max); $('#testSubHeading').val(d.sub_heading); $('#testCode').val(d.test_code); $('#testMethod').val(d.method); $('#testPrintNewPage').val(d.print_new_page); $('#testShortcut').val(d.shortcut); $('#testModal').modal('show'); } else toastr.error('Test not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+        }catch(err){ console.error('edit-test handler error', err); toastr.error('Error: '+(err.message||err)); }
+    });
 
-    $('#testsTable').on('click', '.delete-test', function(){ if(!confirm('Delete test?')) return; var id=$(this).data('id'); $.post('ajax/test_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadTests(); } else toastr.error(resp.message||'Delete failed'); }, 'json'); });
+    // delegated delete handler
+    $(document).on('click', '.delete-test', function(){
+        try{
+            if(!confirm('Delete test?')) return; var id=$(this).data('id'); $.post('ajax/test_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadTests(); } else toastr.error(resp.message||'Delete failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+        }catch(err){ console.error('delete-test handler error', err); toastr.error('Error: '+(err.message||err)); }
+    });
+
+    // global fallback for view
+    function viewTest(id){
+        try{
+            console.debug('viewTest() called', id);
+            $.get('ajax/test_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#testId').val(d.id); $('#testCategoryId').val(d.category_id); $('#testName').val(d.name); $('#testDescription').val(d.description); $('#testPrice').val(d.price); $('#testUnit').val(d.unit); $('#testSpecimen').val(d.specimen); $('#testDefaultResult').val(d.default_result); $('#testReferenceRange').val(d.reference_range); $('#testMin').val(d.min); $('#testMax').val(d.max); $('#testSubHeading').val(d.sub_heading); $('#testCode').val(d.test_code); $('#testMethod').val(d.method); $('#testPrintNewPage').val(d.print_new_page); $('#testShortcut').val(d.shortcut); $('#testModalLabel').text('View Test'); $('#testForm').find('input,textarea,select').prop('disabled', true); $('#saveTestBtn').hide(); $('#testModal').modal('show'); } else toastr.error('Test not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+        }catch(err){ console.error('viewTest error', err); toastr.error('Error: '+(err.message||err)); }
+    }
+
+    // restore modal state on close
+    $('#testModal').on('hidden.bs.modal', function(){
+        $('#testForm').find('input,textarea,select').prop('disabled', false);
+        $('#saveTestBtn').show();
+        $('#testModalLabel').text('Add Test');
+    });
 });
 </script>
