@@ -6,7 +6,7 @@ session_start();
 $action = $_REQUEST['action'] ?? 'list';
 
 if ($action === 'list'){
-    $stmt = $pdo->query('SELECT o.id, o.name, o.phone, o.whatsapp, o.email, o.address FROM owners o LEFT JOIN users u ON o.added_by = u.id ORDER BY o.id DESC');
+    $stmt = $pdo->query('SELECT o.id, o.name, o.phone, o.whatsapp, o.email, o.address, o.added_by, u.username as added_by_username FROM owners o LEFT JOIN users u ON o.added_by = u.id ORDER BY o.id DESC');
     $rows = $stmt->fetchAll();
     json_response(['success'=>true,'data'=>$rows]);
 }
