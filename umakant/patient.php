@@ -180,7 +180,15 @@ function loadPatients(){
     },'json');
 }
 
-function openAddPatientModal(){ $('#patientForm')[0].reset(); $('#patientId').val(''); $('#patientModal').modal('show'); }
+function openAddPatientModal(){
+    $('#patientForm')[0].reset();
+    $('#patientId').val('');
+    // ensure modal is editable for add
+    $('#patientModalLabel').text('Add Patient');
+    $('#patientForm').find('input,textarea,select').prop('disabled', false);
+    $('#savePatientBtn').show();
+    $('#patientModal').modal('show');
+}
 
 $(function(){
     loadPatients();
@@ -191,8 +199,60 @@ $(function(){
 
     $('#savePatientBtn').click(function(){ var data = $('#patientForm').serialize() + '&action=save'; $.post('ajax/patient_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#patientModal').modal('hide'); loadPatients(); } else toastr.error(resp.message||'Save failed'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
 
-    $('#patientsTable').on('click', '.edit-patient', function(){ var id=$(this).data('id'); $.get('ajax/patient_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#patientId').val(d.id); $('#patientName').val(d.name); $('#patientMobile').val(d.mobile); $('#patientFatherHusband').val(d.father_husband); $('#patientAddress').val(d.address); $('#patientSex').val(d.sex); $('#patientAge').val(d.age); $('#patientAgeUnit').val(d.age_unit||'Years'); $('#patientUHID').val(d.uhid); $('#patientModal').modal('show'); } else toastr.error('Patient not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+    $('#patientsTable').on('click', '.edit-patient', function(){
+        var id=$(this).data('id');
+        $.get('ajax/patient_api.php',{action:'get',id:id}, function(resp){
+            if(resp.success){
+                var d=resp.data;
+                $('#patientId').val(d.id);
+                $('#patientName').val(d.name);
+                $('#patientMobile').val(d.mobile);
+                $('#patientFatherHusband').val(d.father_husband);
+                $('#patientAddress').val(d.address);
+                $('#patientSex').val(d.sex);
+                $('#patientAge').val(d.age);
+                $('#patientAgeUnit').val(d.age_unit||'Years');
+                $('#patientUHID').val(d.uhid);
+                // make editable for edit
+                $('#patientModalLabel').text('Edit Patient');
+                $('#patientForm').find('input,textarea,select').prop('disabled', false);
+                $('#savePatientBtn').show();
+                $('#patientModal').modal('show');
+            } else toastr.error('Patient not found');
+        },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+    });
+
+    // view handler - opens modal in read-only mode
+    $('#patientsTable').on('click', '.view-patient', function(){
+        var id=$(this).data('id');
+        $.get('ajax/patient_api.php',{action:'get',id:id}, function(resp){
+            if(resp.success){
+                var d=resp.data;
+                $('#patientId').val(d.id);
+                $('#patientName').val(d.name);
+                $('#patientMobile').val(d.mobile);
+                $('#patientFatherHusband').val(d.father_husband);
+                $('#patientAddress').val(d.address);
+                $('#patientSex').val(d.sex);
+                $('#patientAge').val(d.age);
+                $('#patientAgeUnit').val(d.age_unit||'Years');
+                $('#patientUHID').val(d.uhid);
+                // make read-only for view
+                $('#patientModalLabel').text('View Patient');
+                $('#patientForm').find('input,textarea,select').prop('disabled', true);
+                $('#savePatientBtn').hide();
+                $('#patientModal').modal('show');
+            } else toastr.error('Patient not found');
+        },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+    });
 
     $('#patientsTable').on('click', '.delete-patient', function(){ if(!confirm('Delete patient?')) return; var id=$(this).data('id'); $.post('ajax/patient_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadPatients(); } else toastr.error(resp.message||'Delete failed'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+
+    // restore modal to editable default when closed
+    $('#patientModal').on('hidden.bs.modal', function(){
+        $('#patientForm').find('input,textarea,select').prop('disabled', false);
+        $('#savePatientBtn').show();
+        $('#patientModalLabel').text('Add Patient');
+    });
 });
 </script>
