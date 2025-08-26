@@ -114,75 +114,83 @@ require_once 'inc/sidebar.php';
             <div class="modal-body">
                 <form id="testForm">
                     <input type="hidden" id="testId" name="id">
-                    <div class="form-group">
-                        <label for="testCategoryId">Category *</label>
-                        <select class="form-control" id="testCategoryId" name="category_id" required>
-                            <option value="">Select Category</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="testName">Name *</label>
-                        <input type="text" class="form-control" id="testName" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="testDescription">Description</label>
-                        <textarea class="form-control" id="testDescription" name="description" rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="testPrice">Price *</label>
-                        <input type="number" class="form-control" id="testPrice" name="price" step="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="testUnit">Unit</label>
-                        <input type="text" class="form-control" id="testUnit" name="unit">
-                    </div>
-                    <div class="form-group">
-                        <label for="testSpecimen">Specimen</label>
-                        <input type="text" class="form-control" id="testSpecimen" name="specimen">
-                    </div>
-                    <div class="form-group">
-                        <label for="testDefaultResult">Default Result</label>
-                        <input type="text" class="form-control" id="testDefaultResult" name="default_result">
-                    </div>
-                    <div class="form-group">
-                        <label for="testReferenceRange">Reference Range</label>
-                        <input type="text" class="form-control" id="testReferenceRange" name="reference_range">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="testMin">Min Value</label>
-                            <input type="number" class="form-control" id="testMin" name="min" step="0.01">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="testName">Name *</label>
+                                    <input type="text" class="form-control" id="testName" name="name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="testDescription">Description</label>
+                                    <textarea class="form-control" id="testDescription" name="description" rows="3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="testCategoryId">Category *</label>
+                                    <select class="form-control" id="testCategoryId" name="category_id" required>
+                                        <option value="">Select Category</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="testPrice">Price *</label>
+                                    <input type="number" class="form-control" id="testPrice" name="price" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="testUnit">Unit</label>
+                                    <input type="text" class="form-control" id="testUnit" name="unit">
+                                </div>
+                                <div class="form-group">
+                                    <label for="testSpecimen">Specimen</label>
+                                    <input type="text" class="form-control" id="testSpecimen" name="specimen">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="testDefaultResult">Default Result</label>
+                                    <input type="text" class="form-control" id="testDefaultResult" name="default_result">
+                                </div>
+                                <div class="form-group">
+                                    <label for="testReferenceRange">Reference Range</label>
+                                    <input type="text" class="form-control" id="testReferenceRange" name="reference_range">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="testMin">Min Value</label>
+                                        <input type="number" class="form-control" id="testMin" name="min" step="0.01">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="testMax">Max Value</label>
+                                        <input type="number" class="form-control" id="testMax" name="max" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="testSubHeading">Sub Heading</label>
+                                    <select class="form-control" id="testSubHeading" name="sub_heading">
+                                        <option value="0">No</option>
+                                        <option value="1">Yes</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="testCode">Test Code</label>
+                                    <input type="text" class="form-control" id="testCode" name="test_code">
+                                </div>
+                                <div class="form-group">
+                                    <label for="testMethod">Method</label>
+                                    <input type="text" class="form-control" id="testMethod" name="method">
+                                </div>
+                                <div class="form-group">
+                                    <label for="testPrintNewPage">Print on New Page</label>
+                                    <select class="form-control" id="testPrintNewPage" name="print_new_page">
+                                        <option value="0">No</option>
+                                        <option value="1">Yes</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="testShortcut">Shortcut</label>
+                                    <input type="text" class="form-control" id="testShortcut" name="shortcut">
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group col-md-6">
-                            <label for="testMax">Max Value</label>
-                            <input type="number" class="form-control" id="testMax" name="max" step="0.01">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="testSubHeading">Sub Heading</label>
-                        <select class="form-control" id="testSubHeading" name="sub_heading">
-                            <option value="0">No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="testCode">Test Code</label>
-                        <input type="text" class="form-control" id="testCode" name="test_code">
-                    </div>
-                    <div class="form-group">
-                        <label for="testMethod">Method</label>
-                        <input type="text" class="form-control" id="testMethod" name="method">
-                    </div>
-                    <div class="form-group">
-                        <label for="testPrintNewPage">Print on New Page</label>
-                        <select class="form-control" id="testPrintNewPage" name="print_new_page">
-                            <option value="0">No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="testShortcut">Shortcut</label>
-                        <input type="text" class="form-control" id="testShortcut" name="shortcut">
                     </div>
                 </form>
             </div>
