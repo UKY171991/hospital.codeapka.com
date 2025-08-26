@@ -52,16 +52,9 @@ require_once 'inc/sidebar.php';
                                         <th>ID</th>
                                         <th>Category</th>
                                         <th>Name</th>
-                                        <th>Description</th>
                                         <th>Price</th>
-                                        <th>Specimen</th>
-                                        <th>Default Result</th>
-                                        <th>Normal Range</th>
-                                        <th>Min</th>
-                                        <th>Max</th>
                                         <th>Test Code</th>
                                         <th>Method</th>
-                                        <th>Shortcut</th>
                                         <th>Added By</th>
                                         <th>Actions</th>
                                     </tr>
@@ -198,24 +191,17 @@ function loadTests(){
     $.get('ajax/test_api.php',{action:'list',ajax:1},function(resp){
         if(resp.success && Array.isArray(resp.data)){
             var t=''; resp.data.forEach(function(x, idx){ t += '<tr>'+
-                    '<td>'+(idx+1)+'</td>'+ // S.No.
-                    '<td>'+x.id+'</td>'+
-                    '<td>'+ (x.category_name||'') +'</td>'+
-                    '<td>'+ (x.name||'') +'</td>'+
-                    '<td>'+ (x.description||'') +'</td>'+
-                    '<td>'+ (x.price||'') +'</td>'+
-                    '<td>'+ (x.specimen||'') +'</td>'+
-                    '<td>'+ (x.default_result||'') +'</td>'+
-                    '<td>'+ (x.normal_range||'') +'</td>'+
-                    '<td>'+ (x.min||'') +'</td>'+
-                    '<td>'+ (x.max||'') +'</td>'+
-                    '<td>'+ (x.test_code||'') +'</td>'+
-                    '<td>'+ (x.method||'') +'</td>'+
-                    '<td>'+ (x.shortcut||'') +'</td>'+
-                    '<td>'+ (x.added_by_username||'') +'</td>'+
-                    '<td><button class="btn btn-sm btn-info view-test" data-id="'+x.id+'" onclick="viewTest('+x.id+')">View</button> '+
-                        '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
-                        '<button class="btn btn-sm btn-danger delete-test" data-id="'+x.id+'">Delete</button></td>'+
+                        '<td>'+(idx+1)+'</td>'+ // S.No.
+                        '<td>'+x.id+'</td>'+
+                        '<td>'+ (x.category_name||'') +'</td>'+
+                        '<td>'+ (x.name||'') +'</td>'+
+                        '<td>'+ (x.price||'') +'</td>'+
+                        '<td>'+ (x.test_code||'') +'</td>'+
+                        '<td>'+ (x.method||'') +'</td>'+
+                        '<td>'+ (x.added_by_username||'') +'</td>'+
+                        '<td><button class="btn btn-sm btn-info view-test" data-id="'+x.id+'" onclick="viewTest('+x.id+')">View</button> '+
+                            '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
+                            '<button class="btn btn-sm btn-danger delete-test" data-id="'+x.id+'">Delete</button></td>'+
                     '</tr>'; }); $('#testsTable tbody').html(t);
             // initialize DataTable
             initDataTable('#testsTable');
