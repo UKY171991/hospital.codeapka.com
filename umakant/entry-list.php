@@ -155,55 +155,61 @@ require_once 'inc/sidebar.php';
 
             <script>
             function loadDropdownsForEntry(){
-              $.get('ajax/patient_api.php',{action:'list'},function(r){ if(r.success){ var s=''; r.data.forEach(function(p){ s += '<option value="'+p.id+'">'+(p.name||'')+'</option>'; }); $('#entryPatientId').append(s);} },'json');
-              $.get('ajax/doctor_api.php',{action:'list'},function(r){ if(r.success){ var s=''; r.data.forEach(function(p){ s += '<option value="'+p.id+'">'+(p.name||'')+'</option>'; }); $('#entryDoctorId').append(s);} },'json');
-              $.get('ajax/test_api.php',{action:'list'},function(r){ if(r.success){ var s=''; r.data.forEach(function(p){ s += '<option value="'+p.id+'">'+(p.name||'')+'</option>'; }); $('#entryTestId').append(s);} },'json');
+                $.get('ajax/patient_api.php',{action:'list'},function(r){ if(r.success){ var s=''; r.data.forEach(function(p){ s += '<option value="'+p.id+'">'+(p.name||'')+'</option>'; }); $('#entryPatientId').append(s);} },'json');
+                $.get('ajax/doctor_api.php',{action:'list'},function(r){ if(r.success){ var s=''; r.data.forEach(function(p){ s += '<option value="'+p.id+'">'+(p.name||'')+'</option>'; }); $('#entryDoctorId').append(s);} },'json');
+                $.get('ajax/test_api.php',{action:'list'},function(r){ if(r.success){ var s=''; r.data.forEach(function(p){ s += '<option value="'+p.id+'">'+(p.name||'')+'</option>'; }); $('#entryTestId').append(s);} },'json');
             }
 
-                        function loadEntries(){
-                            $.get('ajax/entry_api.php',{action:'list'},function(resp){ if(resp.success){ var t=''; resp.data.forEach(function(e){ t += '<tr>'+
-                                        '<td>'+e.id+'</td>'+
-                                        '<td>'+ (e.patient_name||'') +'</td>'+
-                                        '<td>'+ (e.doctor_name||'') +'</td>'+
-                                        '<td>'+ (e.test_name||'') +'</td>'+
-                                        '<td>'+ (e.entry_date||'') +'</td>'+
-                                        '<td>'+ (e.result_value||'') +'</td>'+
-                                        '<td>'+ (e.unit||'') +'</td>'+
-                                        '<td>'+ (e.status||'') +'</td>'+
-                                        '<td><button class="btn btn-sm btn-info view-entry" data-id="'+e.id+'">View</button> '+
-                                                '<button class="btn btn-sm btn-warning edit-entry" data-id="'+e.id+'">Edit</button> '+
-                                                '<button class="btn btn-sm btn-danger delete-entry" data-id="'+e.id+'">Delete</button></td>'+
-                                        '</tr>'; }); $('#entriesTable tbody').html(t);} else toastr.error('Failed to load entries'); },'json');
-                        }
+            function loadEntries(){
+                    $.get('ajax/entry_api.php',{action:'list'},function(resp){
+                            if(resp.success){ var t=''; resp.data.forEach(function(e){ t += '<tr>'+
+                                                    '<td>'+e.id+'</td>'+
+                                                    '<td>'+ (e.patient_name||'') +'</td>'+
+                                                    '<td>'+ (e.doctor_name||'') +'</td>'+
+                                                    '<td>'+ (e.test_name||'') +'</td>'+
+                                                    '<td>'+ (e.entry_date||'') +'</td>'+
+                                                    '<td>'+ (e.result_value||'') +'</td>'+
+                                                    '<td>'+ (e.unit||'') +'</td>'+
+                                                    '<td>'+ (e.status||'') +'</td>'+
+                                                    '<td><button class="btn btn-sm btn-info view-entry" data-id="'+e.id+'" onclick="viewEntry('+e.id+')">View</button> '+
+                                                                    '<button class="btn btn-sm btn-warning edit-entry" data-id="'+e.id+'">Edit</button> '+
+                                                                    '<button class="btn btn-sm btn-danger delete-entry" data-id="'+e.id+'">Delete</button></td>'+
+                                                    '</tr>'; }); $('#entriesTable tbody').html(t);} else toastr.error('Failed to load entries');
+                    },'json');
+            }
 
             function openAddEntryModal(){ $('#entryForm')[0].reset(); $('#entryId').val(''); $('#entryModal').modal('show'); }
 
             $(function(){
-              loadDropdownsForEntry();
-              loadEntries();
+                loadDropdownsForEntry();
+                loadEntries();
 
-              $('#saveEntryBtn').click(function(){ var data=$('#entryForm').serialize() + '&action=save'; $.post('ajax/entry_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#entryModal').modal('hide'); loadEntries(); } else toastr.error(resp.message||'Save failed'); },'json'); });
+                $('#saveEntryBtn').click(function(){ var data=$('#entryForm').serialize() + '&action=save'; $.post('ajax/entry_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#entryModal').modal('hide'); loadEntries(); } else toastr.error(resp.message||'Save failed'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
 
-              $('#entriesTable').on('click', '.edit-entry', function(){ var id=$(this).data('id'); $.get('ajax/entry_api.php',{action:'get',id:id}, function(r){ if(r.success){ var d=r.data; $('#entryId').val(d.id); $('#entryPatientId').val(d.patient_id); $('#entryDoctorId').val(d.doctor_id); $('#entryTestId').val(d.test_id); $('#entryEntryDate').val(d.entry_date); $('#entryResultValue').val(d.result_value); $('#entryUnit').val(d.unit); $('#entryRemarks').val(d.remarks); $('#entryStatus').val(d.status); $('#entryModal').modal('show'); } else toastr.error('Entry not found'); },'json'); });
+                // delegated edit handler
+                $(document).on('click', '.edit-entry', function(){
+                    try{
+                        var id=$(this).data('id');
+                        console.debug('edit-entry clicked', id);
+                        $.get('ajax/entry_api.php',{action:'get',id:id}, function(r){ if(r.success){ var d=r.data; $('#entryId').val(d.id); $('#entryPatientId').val(d.patient_id); $('#entryDoctorId').val(d.doctor_id); $('#entryTestId').val(d.test_id); $('#entryEntryDate').val(d.entry_date); $('#entryResultValue').val(d.result_value); $('#entryUnit').val(d.unit); $('#entryRemarks').val(d.remarks); $('#entryStatus').val(d.status); $('#entryModal').modal('show'); } else toastr.error('Entry not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+                    }catch(err){ console.error('edit-entry handler error', err); toastr.error('Error: '+(err.message||err)); }
+                });
 
-              $('#entriesTable').on('click', '.delete-entry', function(){ if(!confirm('Delete entry?')) return; var id=$(this).data('id'); $.post('ajax/entry_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadEntries(); } else toastr.error(resp.message||'Delete failed'); },'json'); });
+                // delegated delete handler
+                $(document).on('click', '.delete-entry', function(){
+                    try{
+                        if(!confirm('Delete entry?')) return; var id=$(this).data('id'); $.post('ajax/entry_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadEntries(); } else toastr.error(resp.message||'Delete failed'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+                    }catch(err){ console.error('delete-entry handler error', err); toastr.error('Error: '+(err.message||err)); }
+                });
+
             });
-            </script>
-                        <label for="entryStatus">Status *</label>
-                        <select class="form-control" id="entryStatus" name="status" required>
-                            <option value="pending">Pending</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveEntryBtn">Save Entry</button>
-            </div>
-        </div>
-    </div>
-</div>
 
-<?php require_once 'inc/footer.php'; ?>
+            // global view fallback
+            window.viewEntry = function(id){
+                try{
+                    console.debug('viewEntry() called', id);
+                    $.get('ajax/entry_api.php',{action:'get',id:id}, function(r){ if(r.success){ var d=r.data; $('#entryId').val(d.id); $('#entryPatientId').val(d.patient_id); $('#entryDoctorId').val(d.doctor_id); $('#entryTestId').val(d.test_id); $('#entryEntryDate').val(d.entry_date); $('#entryResultValue').val(d.result_value); $('#entryUnit').val(d.unit); $('#entryRemarks').val(d.remarks); $('#entryStatus').val(d.status); $('#entryModalLabel').text('View Entry'); $('#entryForm').find('input,textarea,select').prop('disabled', true); $('#saveEntryBtn').hide(); $('#entryModal').modal('show'); } else toastr.error('Entry not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+                }catch(err){ console.error('viewEntry error', err); toastr.error('Error: '+(err.message||err)); }
+            }
+
+            </script>
