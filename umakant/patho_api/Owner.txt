@@ -1,6 +1,6 @@
 Owner API
 
-Endpoint: patho_api/owner.php
+Endpoint: https://hospital.codeapka.com/umakant/patho_api/owner.php
 Content-Type: application/json
 
 Actions:
@@ -9,7 +9,7 @@ Actions:
   Response: {"success":true,"data":[{id,name,phone,whatsapp,email,address,added_by,added_by_username}, ...]}
 
 - get (GET) -> returns single owner
-  Example: patho_api/owner.php?action=get&id=1
+  Example: https://hospital.codeapka.com/umakant/patho_api/owner.php?action=get&id=1
   Response: {"success":true,"data":{"id":1,"name":"...","phone":"...","whatsapp":"...","email":"...","address":"...","added_by":1,"added_by_username":"admin"}}
 
 - save (POST) -> create or update owner (requires session role admin/master)
