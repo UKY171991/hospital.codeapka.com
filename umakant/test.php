@@ -221,7 +221,7 @@ $(function(){
     });
 
     // global fallback for view
-    function viewTest(id){
+    window.viewTest = function(id){
         try{
             console.debug('viewTest() called', id);
             $.get('ajax/test_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#testId').val(d.id); $('#testCategoryId').val(d.category_id); $('#testName').val(d.name); $('#testDescription').val(d.description); $('#testPrice').val(d.price); $('#testUnit').val(d.unit); $('#testSpecimen').val(d.specimen); $('#testDefaultResult').val(d.default_result); $('#testReferenceRange').val(d.reference_range); $('#testMin').val(d.min); $('#testMax').val(d.max); $('#testSubHeading').val(d.sub_heading); $('#testCode').val(d.test_code); $('#testMethod').val(d.method); $('#testPrintNewPage').val(d.print_new_page); $('#testShortcut').val(d.shortcut); $('#testModalLabel').text('View Test'); $('#testForm').find('input,textarea,select').prop('disabled', true); $('#saveTestBtn').hide(); $('#testModal').modal('show'); } else toastr.error('Test not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
