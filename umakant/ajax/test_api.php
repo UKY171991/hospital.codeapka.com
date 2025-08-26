@@ -8,8 +8,30 @@ try {
     $action = $_REQUEST['action'] ?? 'list';
 
     if ($action === 'list') {
-        // return reference_range as normal_range for older UI compatibility
-        $stmt = $pdo->query("SELECT t.id, tc.name as category_name, t.name, t.description, t.price, t.reference_range as normal_range, t.unit FROM tests t LEFT JOIN categories tc ON t.category_id = tc.id ORDER BY t.id DESC");
+        // return all relevant columns so UI can render full test table
+        $stmt = $pdo->query("SELECT t.id,
+            tc.name as category_name,
+            t.category_id,
+            t.name,
+            t.description,
+            t.price,
+            t.unit,
+            t.specimen,
+            t.default_result,
+            t.reference_range as normal_range,
+            t.min,
+            t.max,
+            t.sub_heading,
+            t.test_code,
+            t.method,
+            t.print_new_page,
+            t.shortcut,
+            t.added_by,
+            u.username as added_by_username
+            FROM tests t
+            LEFT JOIN categories tc ON t.category_id = tc.id
+            LEFT JOIN users u ON t.added_by = u.id
+            ORDER BY t.id DESC");
         $rows = $stmt->fetchAll();
         json_response(['success'=>true,'data'=>$rows]);
     }

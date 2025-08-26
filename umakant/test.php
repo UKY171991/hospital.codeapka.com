@@ -44,6 +44,26 @@ require_once 'inc/sidebar.php';
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
+                            <div class="row mb-3 align-items-center">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input id="testsSearch" class="form-control" placeholder="Search tests by name, code or method...">
+                                        <div class="input-group-append">
+                                            <button id="testsSearchClear" class="btn btn-outline-secondary">Clear</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 ml-auto text-right">
+                                    <div class="form-inline float-right">
+                                        <label class="mr-2">Per page</label>
+                                        <select id="testsPerPage" class="form-control">
+                                            <option value="10">10</option>
+                                            <option value="25">25</option>
+                                            <option value="50">50</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                             <table id="testsTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
@@ -52,13 +72,19 @@ require_once 'inc/sidebar.php';
                                         <th>Name</th>
                                         <th>Description</th>
                                         <th>Price</th>
+                                        <th>Specimen</th>
+                                        <th>Default Result</th>
                                         <th>Normal Range</th>
-                                        <th>Unit</th>
+                                        <th>Min</th>
+                                        <th>Max</th>
+                                        <th>Test Code</th>
+                                        <th>Method</th>
+                                        <th>Shortcut</th>
+                                        <th>Added By</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
-                            </table>
                             </table>
                         </div>
                         <!-- /.card-body -->
@@ -172,28 +198,48 @@ require_once 'inc/sidebar.php';
 
 <script>
 function loadCategoriesForTests(){
-    $.get('ajax/test_category_api.php',{action:'list'},function(resp){
+    $.get('ajax/test_category_api.php',{action:'list',ajax:1},function(resp){
         if(resp.success){ var s=''; resp.data.forEach(function(c){ s += '<option value="'+c.id+'">'+(c.name||'')+'</option>'; }); $('#testCategoryId').append(s); }
         else toastr.error('Failed to load categories');
     },'json');
 }
 
 function loadTests(){
-    $.get('ajax/test_api.php',{action:'list'},function(resp){
+    $.get('ajax/test_api.php',{action:'list',ajax:1},function(resp){
         if(resp.success){ var t=''; resp.data.forEach(function(x){ t += '<tr>'+
                 '<td>'+x.id+'</td>'+
                 '<td>'+ (x.category_name||'') +'</td>'+
                 '<td>'+ (x.name||'') +'</td>'+
                 '<td>'+ (x.description||'') +'</td>'+
                 '<td>'+ (x.price||'') +'</td>'+
+                '<td>'+ (x.specimen||'') +'</td>'+
+                '<td>'+ (x.default_result||'') +'</td>'+
                 '<td>'+ (x.normal_range||'') +'</td>'+
-                '<td>'+ (x.unit||'') +'</td>'+
+                '<td>'+ (x.min||'') +'</td>'+
+                '<td>'+ (x.max||'') +'</td>'+
+                '<td>'+ (x.test_code||'') +'</td>'+
+                '<td>'+ (x.method||'') +'</td>'+
+                '<td>'+ (x.shortcut||'') +'</td>'+
+                '<td>'+ (x.added_by_username||'') +'</td>'+
                 '<td><button class="btn btn-sm btn-info view-test" data-id="'+x.id+'" onclick="viewTest('+x.id+')">View</button> '+
                     '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
                     '<button class="btn btn-sm btn-danger delete-test" data-id="'+x.id+'">Delete</button></td>'+
                 '</tr>'; }); $('#testsTable tbody').html(t);
+            applyTestsFilters();
         } else toastr.error('Failed to load tests');
-    },'json');
+    },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+}
+
+function applyTestsFilters(){
+    var q = $('#testsSearch').val().toLowerCase().trim();
+    var per = parseInt($('#testsPerPage').val()||10,10);
+    var shown = 0;
+    $('#testsTable tbody tr').each(function(){
+        var row = $(this);
+        var text = row.text().toLowerCase();
+        var matches = !q || text.indexOf(q) !== -1;
+        if(matches && shown < per){ row.show(); shown++; } else { row.toggle(matches && shown < per); }
+    });
 }
 
 function openAddTestModal(){ $('#testForm')[0].reset(); $('#testId').val(''); $('#testModal').modal('show'); }
@@ -202,21 +248,26 @@ $(function(){
     loadCategoriesForTests();
     loadTests();
 
-    $('#saveTestBtn').click(function(){ var data = $('#testForm').serialize() + '&action=save'; $.post('ajax/test_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#testModal').modal('hide'); loadTests(); } else toastr.error(resp.message||'Save failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+    $('#saveTestBtn').click(function(){ var data = $('#testForm').serialize() + '&action=save&ajax=1'; $.post('ajax/test_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#testModal').modal('hide'); loadTests(); } else toastr.error(resp.message||'Save failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+
+    // client-side search handlers
+    $('#testsSearch').on('input', function(){ applyTestsFilters(); });
+    $('#testsSearchClear').click(function(e){ e.preventDefault(); $('#testsSearch').val(''); applyTestsFilters(); });
+    $('#testsPerPage').change(function(){ applyTestsFilters(); });
 
     // delegated edit handler
     $(document).on('click', '.edit-test', function(){
         try{
             console.debug('edit-test clicked', $(this).data('id'));
             var id=$(this).data('id');
-            $.get('ajax/test_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#testId').val(d.id); $('#testCategoryId').val(d.category_id); $('#testName').val(d.name); $('#testDescription').val(d.description); $('#testPrice').val(d.price); $('#testUnit').val(d.unit); $('#testSpecimen').val(d.specimen); $('#testDefaultResult').val(d.default_result); $('#testReferenceRange').val(d.reference_range); $('#testMin').val(d.min); $('#testMax').val(d.max); $('#testSubHeading').val(d.sub_heading); $('#testCode').val(d.test_code); $('#testMethod').val(d.method); $('#testPrintNewPage').val(d.print_new_page); $('#testShortcut').val(d.shortcut); $('#testModal').modal('show'); } else toastr.error('Test not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+            $.get('ajax/test_api.php',{action:'get',id:id,ajax:1}, function(resp){ if(resp.success){ var d=resp.data; $('#testId').val(d.id); $('#testCategoryId').val(d.category_id); $('#testName').val(d.name); $('#testDescription').val(d.description); $('#testPrice').val(d.price); $('#testUnit').val(d.unit); $('#testSpecimen').val(d.specimen); $('#testDefaultResult').val(d.default_result); $('#testReferenceRange').val(d.reference_range); $('#testMin').val(d.min); $('#testMax').val(d.max); $('#testSubHeading').val(d.sub_heading); $('#testCode').val(d.test_code); $('#testMethod').val(d.method); $('#testPrintNewPage').val(d.print_new_page); $('#testShortcut').val(d.shortcut); $('#testModal').modal('show'); } else toastr.error('Test not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
         }catch(err){ console.error('edit-test handler error', err); toastr.error('Error: '+(err.message||err)); }
     });
 
     // delegated delete handler
     $(document).on('click', '.delete-test', function(){
         try{
-            if(!confirm('Delete test?')) return; var id=$(this).data('id'); $.post('ajax/test_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadTests(); } else toastr.error(resp.message||'Delete failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+            if(!confirm('Delete test?')) return; var id=$(this).data('id'); $.post('ajax/test_api.php',{action:'delete',id:id,ajax:1}, function(resp){ if(resp.success){ toastr.success(resp.message); loadTests(); } else toastr.error(resp.message||'Delete failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
         }catch(err){ console.error('delete-test handler error', err); toastr.error('Error: '+(err.message||err)); }
     });
 
