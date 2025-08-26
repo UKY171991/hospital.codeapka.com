@@ -33,6 +33,7 @@ require_once 'inc/sidebar.php';
                                         <th>ID</th>
                                         <th>Title</th>
                                         <th>Price</th>
+                                        <th>UPI</th>
                                         <th>Type</th>
                                         <th>Equivalent</th>
                                         <th>Start Date</th>
@@ -61,8 +62,9 @@ require_once 'inc/sidebar.php';
           <input type="hidden" name="id" id="planId">
           <div class="form-group"><label>Title</label><input class="form-control" name="name" id="planName" required></div>
           <div class="form-row">
-            <div class="form-group col-md-6"><label>Price</label><input class="form-control" name="price" id="planPrice" type="number" step="0.01" required></div>
-            <div class="form-group col-md-6"><label>Type</label><select class="form-control" name="time_type" id="planType"><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div>
+            <div class="form-group col-md-4"><label>Price</label><input class="form-control" name="price" id="planPrice" type="number" step="0.01" required></div>
+            <div class="form-group col-md-4"><label>UPI</label><input class="form-control" name="upi" id="planUpi" type="text"></div>
+            <div class="form-group col-md-4"><label>Type</label><select class="form-control" name="time_type" id="planType"><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div>
           </div>
           <div class="form-group"><label>Description</label><textarea class="form-control" name="description" id="planDescription"></textarea></div>
           <div class="form-row">
@@ -85,34 +87,35 @@ function loadPlans(){
       var eq = '';
       if(p.time_type === 'monthly') eq = (parseFloat(p.price||0)*12).toFixed(2) + ' / year';
       else if(p.time_type === 'yearly') eq = (parseFloat(p.price||0)/12).toFixed(2) + ' / month';
-      t += '<tr>'+
-      '<td>'+(idx+1)+'</td>'+
-      '<td>'+p.id+'</td>'+
-      '<td>'+ (p.name||'') +'</td>'+
-      '<td>'+ (p.price!=null?parseFloat(p.price).toFixed(2):'') +'</td>'+
-      '<td>'+ (p.time_type||'') +'</td>'+
-      '<td>'+ eq +'</td>'+
-      '<td>'+ (p.start_date||'') +'</td>'+
-      '<td>'+ (p.end_date||'') +'</td>'+
-      '<td>'+ (p.added_by_username||'') +'</td>'+
-      '<td><button class="btn btn-sm btn-info" onclick="viewPlan('+p.id+')">View</button> '+
-         '<button class="btn btn-sm btn-warning edit-plan" data-id="'+p.id+'">Edit</button> '+
-         '<button class="btn btn-sm btn-danger delete-plan" data-id="'+p.id+'">Delete</button></td>'+
-      '</tr>'; }); $('#plansTable tbody').html(t); initDataTable('#plansTable'); }
+    t += '<tr>'+
+    '<td>'+(idx+1)+'</td>'+
+    '<td>'+p.id+'</td>'+
+    '<td>'+ (p.name||'') +'</td>'+
+    '<td>'+ (p.price!=null?parseFloat(p.price).toFixed(2):'') +'</td>'+
+    '<td>'+ (p.upi||'') +'</td>'+
+    '<td>'+ (p.time_type||'') +'</td>'+
+    '<td>'+ eq +'</td>'+
+    '<td>'+ (p.start_date||'') +'</td>'+
+    '<td>'+ (p.end_date||'') +'</td>'+
+    '<td>'+ (p.added_by_username||'') +'</td>'+
+    '<td><button class="btn btn-sm btn-info" onclick="viewPlan('+p.id+')">View</button> '+
+      '<button class="btn btn-sm btn-warning edit-plan" data-id="'+p.id+'">Edit</button> '+
+      '<button class="btn btn-sm btn-danger delete-plan" data-id="'+p.id+'">Delete</button></td>'+
+    '</tr>'; }); $('#plansTable tbody').html(t); initDataTable('#plansTable'); }
     else toastr.error(resp.message||'Failed');
   },'json');
 }
 
 function openAddPlanModal(){ $('#planForm')[0].reset(); $('#planId').val(''); $('#planModal').modal('show'); }
 
-$(function(){ loadPlans();
-  $(document).on('click','.edit-plan', function(){ var id=$(this).data('id'); $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var p=resp.data; $('#planId').val(p.id); $('#planName').val(p.name); $('#planDescription').val(p.description); $('#planPrice').val(p.price); $('#planType').val(p.time_type||'monthly'); $('#planStart').val(p.start_date); $('#planEnd').val(p.end_date); $('#planModal').modal('show'); } else toastr.error('Not found'); },'json'); });
+  $(function(){ loadPlans();
+  $(document).on('click','.edit-plan', function(){ var id=$(this).data('id'); $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var p=resp.data; $('#planId').val(p.id); $('#planName').val(p.name); $('#planDescription').val(p.description); $('#planPrice').val(p.price); $('#planUpi').val(p.upi||''); $('#planType').val(p.time_type||'monthly'); $('#planStart').val(p.start_date); $('#planEnd').val(p.end_date); $('#planModal').modal('show'); } else toastr.error('Not found'); },'json'); });
 
   $(document).on('click','.delete-plan', function(){ if(!confirm('Delete?')) return; var id=$(this).data('id'); $.post('ajax/plan_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); location.reload(); } else toastr.error(resp.message||'Delete failed'); },'json'); });
 
   $('#savePlanBtn').click(function(){ var data=$('#planForm').serialize()+'&action=save'; $.post('ajax/plan_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message); $('#planModal').modal('hide'); location.reload(); } else toastr.error(resp.message||'Save failed'); },'json'); });
 });
 
-function viewPlan(id){ $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var p=resp.data; $('#planId').val(p.id); $('#planName').val(p.name); $('#planDescription').val(p.description); $('#planStart').val(p.start_date); $('#planEnd').val(p.end_date); $('#planModal').modal('show'); $('#planForm').find('input,textarea,select').prop('disabled', true); $('#savePlanBtn').hide(); } else toastr.error('Not found'); },'json'); }
+function viewPlan(id){ $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var p=resp.data; $('#planId').val(p.id); $('#planName').val(p.name); $('#planDescription').val(p.description); $('#planPrice').val(p.price); $('#planUpi').val(p.upi||''); $('#planType').val(p.time_type||'monthly'); var eq=''; if(p.time_type==='monthly') eq = (parseFloat(p.price||0)*12).toFixed(2)+' / year'; else eq = (parseFloat(p.price||0)/12).toFixed(2)+' / month'; $('#planStart').val(p.start_date); $('#planEnd').val(p.end_date); $('#planModal').modal('show'); $('#planForm').find('input,textarea,select').prop('disabled', true); $('#savePlanBtn').hide(); } else toastr.error('Not found'); },'json'); }
 function viewPlan(id){ $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var p=resp.data; $('#planId').val(p.id); $('#planName').val(p.name); $('#planDescription').val(p.description); $('#planPrice').val(p.price); $('#planType').val(p.time_type||'monthly'); var eq=''; if(p.time_type==='monthly') eq = (parseFloat(p.price||0)*12).toFixed(2)+' / year'; else eq = (parseFloat(p.price||0)/12).toFixed(2)+' / month'; $('#planStart').val(p.start_date); $('#planEnd').val(p.end_date); $('#planModal').modal('show'); $('#planForm').find('input,textarea,select').prop('disabled', true); $('#savePlanBtn').hide(); } else toastr.error('Not found'); },'json'); }
 </script>
