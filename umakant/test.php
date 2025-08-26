@@ -44,29 +44,11 @@ require_once 'inc/sidebar.php';
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
-                            <div class="row mb-3 align-items-center">
-                                <div class="col-md-6">
-                                    <div class="input-group">
-                                        <input id="testsSearch" class="form-control" placeholder="Search tests by name, code or method...">
-                                        <div class="input-group-append">
-                                            <button id="testsSearchClear" class="btn btn-outline-secondary">Clear</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 ml-auto text-right">
-                                    <div class="form-inline float-right">
-                                        <label class="mr-2">Per page</label>
-                                        <select id="testsPerPage" class="form-control">
-                                            <option value="10">10</option>
-                                            <option value="25">25</option>
-                                            <option value="50">50</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- Using DataTables for search, sorting and paging -->
                             <table id="testsTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
+                                        <th>S.No.</th>
                                         <th>ID</th>
                                         <th>Category</th>
                                         <th>Name</th>
@@ -214,26 +196,29 @@ function loadCategoriesForTests(){
 
 function loadTests(){
     $.get('ajax/test_api.php',{action:'list',ajax:1},function(resp){
-        if(resp.success){ var t=''; resp.data.forEach(function(x){ t += '<tr>'+
-                '<td>'+x.id+'</td>'+
-                '<td>'+ (x.category_name||'') +'</td>'+
-                '<td>'+ (x.name||'') +'</td>'+
-                '<td>'+ (x.description||'') +'</td>'+
-                '<td>'+ (x.price||'') +'</td>'+
-                '<td>'+ (x.specimen||'') +'</td>'+
-                '<td>'+ (x.default_result||'') +'</td>'+
-                '<td>'+ (x.normal_range||'') +'</td>'+
-                '<td>'+ (x.min||'') +'</td>'+
-                '<td>'+ (x.max||'') +'</td>'+
-                '<td>'+ (x.test_code||'') +'</td>'+
-                '<td>'+ (x.method||'') +'</td>'+
-                '<td>'+ (x.shortcut||'') +'</td>'+
-                '<td>'+ (x.added_by_username||'') +'</td>'+
-                '<td><button class="btn btn-sm btn-info view-test" data-id="'+x.id+'" onclick="viewTest('+x.id+')">View</button> '+
-                    '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
-                    '<button class="btn btn-sm btn-danger delete-test" data-id="'+x.id+'">Delete</button></td>'+
-                '</tr>'; }); $('#testsTable tbody').html(t);
-            applyTestsFilters();
+        if(resp.success && Array.isArray(resp.data)){
+            var t=''; resp.data.forEach(function(x, idx){ t += '<tr>'+
+                    '<td>'+(idx+1)+'</td>'+ // S.No.
+                    '<td>'+x.id+'</td>'+
+                    '<td>'+ (x.category_name||'') +'</td>'+
+                    '<td>'+ (x.name||'') +'</td>'+
+                    '<td>'+ (x.description||'') +'</td>'+
+                    '<td>'+ (x.price||'') +'</td>'+
+                    '<td>'+ (x.specimen||'') +'</td>'+
+                    '<td>'+ (x.default_result||'') +'</td>'+
+                    '<td>'+ (x.normal_range||'') +'</td>'+
+                    '<td>'+ (x.min||'') +'</td>'+
+                    '<td>'+ (x.max||'') +'</td>'+
+                    '<td>'+ (x.test_code||'') +'</td>'+
+                    '<td>'+ (x.method||'') +'</td>'+
+                    '<td>'+ (x.shortcut||'') +'</td>'+
+                    '<td>'+ (x.added_by_username||'') +'</td>'+
+                    '<td><button class="btn btn-sm btn-info view-test" data-id="'+x.id+'" onclick="viewTest('+x.id+')">View</button> '+
+                        '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
+                        '<button class="btn btn-sm btn-danger delete-test" data-id="'+x.id+'">Delete</button></td>'+
+                    '</tr>'; }); $('#testsTable tbody').html(t);
+            // initialize DataTable
+            initDataTable('#testsTable');
         } else toastr.error('Failed to load tests');
     },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
 }
@@ -258,10 +243,7 @@ $(function(){
 
     $('#saveTestBtn').click(function(){ var data = $('#testForm').serialize() + '&action=save&ajax=1'; $.post('ajax/test_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#testModal').modal('hide'); loadTests(); } else toastr.error(resp.message||'Save failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
 
-    // client-side search handlers
-    $('#testsSearch').on('input', function(){ applyTestsFilters(); });
-    $('#testsSearchClear').click(function(e){ e.preventDefault(); $('#testsSearch').val(''); applyTestsFilters(); });
-    $('#testsPerPage').change(function(){ applyTestsFilters(); });
+    // DataTables provides search and paging; removed custom filters
 
     // delegated edit handler
     $(document).on('click', '.edit-test', function(){
@@ -279,12 +261,39 @@ $(function(){
         }catch(err){ console.error('delete-test handler error', err); toastr.error('Error: '+(err.message||err)); }
     });
 
-    // global fallback for view
+    // global fallback for view - show full details in modal
     window.viewTest = function(id){
         try{
-            console.debug('viewTest() called', id);
-            $.get('ajax/test_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#testId').val(d.id); $('#testCategoryId').val(d.category_id); $('#testName').val(d.name); $('#testDescription').val(d.description); $('#testPrice').val(d.price); $('#testUnit').val(d.unit); $('#testSpecimen').val(d.specimen); $('#testDefaultResult').val(d.default_result); $('#testReferenceRange').val(d.reference_range); $('#testMin').val(d.min); $('#testMax').val(d.max); $('#testSubHeading').val(d.sub_heading); $('#testCode').val(d.test_code); $('#testMethod').val(d.method); $('#testPrintNewPage').val(d.print_new_page); $('#testShortcut').val(d.shortcut); $('#testModalLabel').text('View Test'); $('#testForm').find('input,textarea,select').prop('disabled', true); $('#saveTestBtn').hide(); $('#testModal').modal('show'); } else toastr.error('Test not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
-        }catch(err){ console.error('viewTest error', err); toastr.error('Error: '+(err.message||err)); }
+            $.get('ajax/test_api.php',{action:'get',id:id}, function(resp){
+                if(resp.success){
+                    var d = resp.data || {};
+                    $('#testModalLabel').text('View Test');
+                    // populate form fields for viewing
+                    $('#testId').val(d.id);
+                    $('#testCategoryId').val(d.category_id);
+                    $('#testName').val(d.name);
+                    $('#testDescription').val(d.description);
+                    $('#testPrice').val(d.price);
+                    $('#testUnit').val(d.unit);
+                    $('#testSpecimen').val(d.specimen);
+                    $('#testDefaultResult').val(d.default_result);
+                    $('#testReferenceRange').val(d.reference_range);
+                    $('#testMin').val(d.min);
+                    $('#testMax').val(d.max);
+                    $('#testSubHeading').val(d.sub_heading);
+                    $('#testCode').val(d.test_code);
+                    $('#testMethod').val(d.method);
+                    $('#testPrintNewPage').val(d.print_new_page);
+                    $('#testShortcut').val(d.shortcut);
+                    // disable inputs and show modal
+                    $('#testForm').find('input,textarea,select').prop('disabled', true);
+                    $('#saveTestBtn').hide();
+                    $('#testModal').modal('show');
+                } else {
+                    toastr.error('Test not found');
+                }
+            }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+        }catch(err){ toastr.error('Error: '+(err.message||err)); }
     }
 
     // restore modal state on close
