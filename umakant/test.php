@@ -133,10 +133,7 @@ require_once 'inc/sidebar.php';
                                         <option value="1">Yes</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label for="testCode">Test Code</label>
-                                    <!-- removed -->
-                                </div>
+                                
                                 <!-- method removed -->
                                 <div class="form-group">
                                     <label for="testPrintNewPage">Print on New Page</label>
@@ -145,10 +142,7 @@ require_once 'inc/sidebar.php';
                                         <option value="1">Yes</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label for="testShortcut">Shortcut</label>
-                                    <!-- removed -->
-                                </div>
+                                
                             </div>
                         </div>
                     </div>
