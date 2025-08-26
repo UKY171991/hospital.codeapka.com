@@ -44,6 +44,26 @@ require_once 'inc/sidebar.php';
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
+                            <div class="row mb-3 align-items-center">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input id="usersSearch" class="form-control" placeholder="Search users by username, email or name...">
+                                        <div class="input-group-append">
+                                            <button id="usersSearchClear" class="btn btn-outline-secondary">Clear</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 ml-auto text-right">
+                                    <div class="form-inline float-right">
+                                        <label class="mr-2">Per page</label>
+                                        <select id="usersPerPage" class="form-control">
+                                            <option value="10">10</option>
+                                            <option value="25">25</option>
+                                            <option value="50">50</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                             <table id="usersTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
@@ -84,60 +104,65 @@ require_once 'inc/sidebar.php';
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
+                <div class="modal-body">
                 <form id="userForm">
                     <input type="hidden" id="userId" name="id">
-                    <div class="form-group">
-                        <label for="userUsername">Username *</label>
-                        <input type="text" class="form-control" id="userUsername" name="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="userPassword">Password *</label>
-                        <input type="password" class="form-control" id="userPassword" name="password" required>
-                        <small class="form-text text-muted">Leave blank to keep current password when editing</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="userFullName">Full Name *</label>
-                        <input type="text" class="form-control" id="userFullName" name="full_name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="userEmail">Email</label>
-                        <input type="email" class="form-control" id="userEmail" name="email">
-                    </div>
-                    <div class="form-group">
-                        <label for="userRole">Role *</label>
-                        <select class="form-control" id="userRole" name="role" required>
-                            <?php
-                            $curRole = $_SESSION['role'] ?? 'user';
-                            // master can create master, admin, user
-                            if ($curRole === 'master') {
-                                echo "<option value=\"master\">Master</option>";
-                                echo "<option value=\"admin\">Admin</option>";
-                                echo "<option value=\"user\">User</option>";
-                            } elseif ($curRole === 'admin') {
-                                // admin can create admin and user
-                                echo "<option value=\"admin\">Admin</option>";
-                                echo "<option value=\"user\">User</option>";
-                            } else {
-                                // user can create master and admin per request
-                                echo "<option value=\"master\">Master</option>";
-                                echo "<option value=\"admin\">Admin</option>";
-                                echo "<option value=\"user\">User</option>";
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="userIsActive">Status *</label>
-                        <select class="form-control" id="userIsActive" name="is_active" required>
-                            <option value="1">Active</option>
-                            <option value="0">Inactive</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="userExpireDateDisplay">Expire Date</label>
-                        <input type="datetime-local" class="form-control" id="userExpireDateDisplay">
-                        <input type="hidden" id="userExpireDate" name="expire_date">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="userUsername">Username *</label>
+                                    <input type="text" class="form-control" id="userUsername" name="username" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="userPassword">Password *</label>
+                                    <input type="password" class="form-control" id="userPassword" name="password" required>
+                                    <small class="form-text text-muted">Leave blank to keep current password when editing</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="userFullName">Full Name *</label>
+                                    <input type="text" class="form-control" id="userFullName" name="full_name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="userEmail">Email</label>
+                                    <input type="email" class="form-control" id="userEmail" name="email">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="userRole">Role *</label>
+                                    <select class="form-control" id="userRole" name="role" required>
+                                        <?php
+                                        $curRole = $_SESSION['role'] ?? 'user';
+                                        if ($curRole === 'master') {
+                                            echo "<option value=\"master\">Master</option>";
+                                            echo "<option value=\"admin\">Admin</option>";
+                                            echo "<option value=\"user\">User</option>";
+                                        } elseif ($curRole === 'admin') {
+                                            echo "<option value=\"admin\">Admin</option>";
+                                            echo "<option value=\"user\">User</option>";
+                                        } else {
+                                            echo "<option value=\"master\">Master</option>";
+                                            echo "<option value=\"admin\">Admin</option>";
+                                            echo "<option value=\"user\">User</option>";
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="userIsActive">Status *</label>
+                                    <select class="form-control" id="userIsActive" name="is_active" required>
+                                        <option value="1">Active</option>
+                                        <option value="0">Inactive</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="userExpireDateDisplay">Expire Date</label>
+                                    <input type="datetime-local" class="form-control" id="userExpireDateDisplay">
+                                    <input type="hidden" id="userExpireDate" name="expire_date">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -211,6 +236,18 @@ $(function(){
             toastr.error(msg);
         });
     });
+
+    // client-side search
+    $('#usersSearch').on('input', function(){
+        var q = $(this).val().toLowerCase().trim();
+        if(!q){ $('#usersTable tbody tr').show(); return; }
+        $('#usersTable tbody tr').each(function(){
+            var row = $(this);
+            var text = row.text().toLowerCase();
+            row.toggle(text.indexOf(q) !== -1);
+        });
+    });
+    $('#usersSearchClear').click(function(e){ e.preventDefault(); $('#usersSearch').val(''); $('#usersSearch').trigger('input'); });
 
     $('#usersTable').on('click', '.edit-user', function(){
         var id = $(this).data('id');
