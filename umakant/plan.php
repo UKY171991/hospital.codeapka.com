@@ -134,10 +134,38 @@ function loadPlans(){
   },'json');
 }
 
-function openAddPlanModal(){ $('#planForm')[0].reset(); $('#planId').val(''); $('#planModal').modal('show'); }
+function openAddPlanModal(){
+  $('#planForm')[0].reset();
+  $('#planId').val('');
+  // ensure form inputs are enabled and Save button visible
+  $('#planForm').find('input,textarea,select').prop('disabled', false);
+  $('#savePlanBtn').show();
+  $('#planModalLabel').text('Add Plan');
+  $('#planModal').modal('show');
+}
 
   $(function(){ loadPlans();
-  $(document).on('click','.edit-plan', function(){ var id=$(this).data('id'); $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var p=resp.data; $('#planId').val(p.id); $('#planName').val(p.name); $('#planDescription').val(p.description); $('#planPrice').val(p.price); $('#planUpi').val(p.upi||''); $('#planType').val(p.time_type||'monthly'); $('#planStart').val(p.start_date); $('#planEnd').val(p.end_date); $('#planModal').modal('show'); } else toastr.error('Not found'); },'json'); });
+  $(document).on('click','.edit-plan', function(){
+    var id=$(this).data('id');
+    $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){
+      if(resp.success){
+        var p=resp.data;
+        $('#planId').val(p.id);
+        $('#planName').val(p.name);
+        $('#planDescription').val(p.description);
+        $('#planPrice').val(p.price);
+        $('#planUpi').val(p.upi||'');
+        $('#planType').val(p.time_type||'monthly');
+        $('#planStart').val(p.start_date);
+        $('#planEnd').val(p.end_date);
+        // ensure fields are editable and Save button visible for edit
+        $('#planForm').find('input,textarea,select').prop('disabled', false);
+        $('#savePlanBtn').show();
+        $('#planModalLabel').text('Edit Plan');
+        $('#planModal').modal('show');
+      } else toastr.error('Not found');
+    },'json');
+  });
 
   $(document).on('click','.delete-plan', function(){ if(!confirm('Delete?')) return; var id=$(this).data('id'); $.post('ajax/plan_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); location.reload(); } else toastr.error(resp.message||'Delete failed'); },'json'); });
 
