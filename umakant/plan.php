@@ -167,6 +167,8 @@ require_once 'inc/sidebar.php';
     </div>
   </div>
 
+  <script>
+  </script>
   <?php require_once 'inc/footer.php'; ?>
 
   <script>
