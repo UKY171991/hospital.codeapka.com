@@ -156,9 +156,29 @@ function openAddPlanModal(){
         $('#planDescription').val(p.description);
         $('#planPrice').val(p.price);
         $('#planUpi').val(p.upi||'');
-  // normalize time_type (accepts 'Monthly','monthly','YEARLY', etc.)
-  var chosenType = ((p.time_type||'monthly').toString().toLowerCase().indexOf('year') !== -1) ? 'yearly' : 'monthly';
-  $('#planType').val(chosenType);
+        // normalize time_type (accepts 'Monthly','monthly','YEARLY', etc.)
+        var chosenType = ((p.time_type||'monthly').toString().toLowerCase().indexOf('year') !== -1) ? 'yearly' : 'monthly';
+        // try set by value first
+        $('#planType').val(chosenType);
+        // fallback: if value didn't stick (somehow), try to match option by text or alt formats
+        if ($('#planType').val() !== chosenType) {
+          var matched = false;
+          $('#planType option').each(function(){
+            var opt = $(this);
+            var v = (opt.val()||'').toString().toLowerCase();
+            var t = (opt.text()||'').toString().toLowerCase();
+            if (v === chosenType || t.indexOf(chosenType.replace('ly','')) !== -1) { // match 'month' / 'year'
+              opt.prop('selected', true);
+              matched = true;
+              return false;
+            }
+          });
+          if (!matched) {
+            // as a last resort, add the expected option
+            $('#planType').append($('<option>',{value:chosenType, text: chosenType.charAt(0).toUpperCase()+chosenType.slice(1)})).val(chosenType);
+          }
+        }
+        $('#planType').trigger('change');
         $('#planStart').val(p.start_date);
         $('#planEnd').val(p.end_date);
         // ensure fields are editable and Save button visible for edit
