@@ -76,6 +76,8 @@ require_once 'inc/sidebar.php';
 
 <script>
 function renderNotices(data){
+  // destroy existing DataTable instance to allow clean DOM replace
+  try{ if ($.fn.dataTable && $.fn.dataTable.isDataTable('#noticesTable')){ $('#noticesTable').DataTable().clear().destroy(); $('#noticesTable tbody').empty(); } }catch(e){}
   var t=''; if(!data || data.length===0){ $('#noticesTable tbody').html(''); initDataTable('#noticesTable'); return; }
   data.forEach(function(n,idx){
     t += '<tr>'+
@@ -149,5 +151,5 @@ $(function(){
   $('#noticeModal').on('hidden.bs.modal', function(){ $('#noticeForm')[0].reset(); $('#noticeForm').find('input,textarea,select').prop('disabled', false); $('#saveNoticeBtn').show(); });
 });
 
-function viewNotice(id){ $.get('ajax/notice_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var n=resp.data; $('#noticeId').val(n.id); $('#noticeTitle').val(n.title); $('#noticeContent').val(n.content); $('#noticeStart').val(n.start_date? n.start_date.replace(' ', 'T') : ''); $('#noticeEnd').val(n.end_date? n.end_date.replace(' ', 'T') : ''); $('#noticeActive').val(n.active? '1':'0'); $('#noticeModal').modal('show'); $('#noticeForm').find('input,textarea,select').prop('disabled', true); $('#saveNoticeBtn').hide(); } else toastr.error('Not found'); },'json'); }
+// viewNotice handled via delegated handler above
 </script>
