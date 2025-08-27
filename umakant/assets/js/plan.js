@@ -24,7 +24,8 @@
       var rows = resp.data || [];
       var t = '';
       rows.forEach(function(p, idx){
-        var eq = tt = normalizeType(p.time_type);
+        var tt = normalizeType(p.time_type);
+        var eq = normalizeType(p.time_type);
         var priceNum = parsePrice(p.price);
         //var eq = tt === 'monthly'
           ? (priceNum * 12).toFixed(2) + ' / year'
