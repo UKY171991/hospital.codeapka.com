@@ -46,9 +46,9 @@ $role = $_SESSION['role'] ?? 'user';
           <a href="test.php" class="nav-link <?php echo ($activePage == 'test.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-vial"></i><p>Tests</p></a>
         </li>
 
-        <li class="nav-item">
+        <!-- <li class="nav-item">
           <a href="entry-list.php" class="nav-link <?php echo ($activePage == 'entry-list.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-file-medical"></i><p>Entries</p></a>
-        </li>
+        </li> -->
 
         <li class="nav-item">
           <a href="plan.php" class="nav-link <?php echo ($activePage == 'plan.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-calendar-alt"></i><p>Menu Plan</p></a>

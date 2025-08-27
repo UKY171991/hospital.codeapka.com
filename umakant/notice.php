@@ -76,7 +76,8 @@ require_once 'inc/sidebar.php';
 
 <script>
 function renderNotices(data){
-  var t=''; data.forEach(function(n,idx){
+  var t=''; if(!data || data.length===0){ $('#noticesTable tbody').html(''); initDataTable('#noticesTable'); return; }
+  data.forEach(function(n,idx){
     t += '<tr>'+
     '<td>'+(idx+1)+'</td>'+
     '<td>'+n.id+'</td>'+
@@ -130,7 +131,16 @@ $(function(){
   $(document).on('click','.delete-notice', function(){ if(!confirm('Delete?')) return; var id=$(this).data('id'); $.post('ajax/notice_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadNotices(); } else toastr.error(resp.message||'Delete failed'); },'json'); });
 
   // Save handler
-  $('#saveNoticeBtn').click(function(){ var data=$('#noticeForm').serialize()+'&action=save'; $.post('ajax/notice_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message); $('#noticeModal').modal('hide'); setTimeout(loadNotices,200); } else toastr.error(resp.message||'Save failed'); },'json'); });
+  $('#saveNoticeBtn').click(function(){ var data=$('#noticeForm').serialize()+'&action=save'; $.post('ajax/notice_api.php', data, function(resp){ console.log('save resp', resp); if(resp.success){ toastr.success(resp.message); // if row returned, refresh immediately
+      if(resp.data){ // add or update row exists on server, reload list
+        $('#noticeModal').modal('hide'); loadNotices();
+      } else {
+        $('#noticeModal').modal('hide'); setTimeout(loadNotices,200);
+      }
+    } else { toastr.error(resp.message||'Save failed'); } },'json').fail(function(jq){ console.error('save failed', jq.status, jq.responseText); }); });
+
+  // Debug: log load results
+  $(document).ajaxError(function(event, jqxhr, settings, thrownError){ console.error('AJAX error', settings.url, jqxhr.status, thrownError); });
 
   // View via delegated handler - shows modal readonly
   $(document).on('click','.view-notice', function(){ var id=$(this).data('id'); $.get('ajax/notice_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var n=resp.data; $('#noticeId').val(n.id); $('#noticeTitle').val(n.title); $('#noticeContent').val(n.content); $('#noticeStart').val(n.start_date? n.start_date.replace(' ', 'T') : ''); $('#noticeEnd').val(n.end_date? n.end_date.replace(' ', 'T') : ''); $('#noticeActive').val(n.active? '1':'0'); $('#noticeModal').modal('show'); $('#noticeForm').find('input,textarea,select').prop('disabled', true); $('#saveNoticeBtn').hide(); } else toastr.error('Not found'); },'json'); });
