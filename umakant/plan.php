@@ -112,16 +112,17 @@ require_once 'inc/sidebar.php';
 function loadPlans(){
   $.get('ajax/plan_api.php',{action:'list'},function(resp){
     if(resp.success){ var t=''; resp.data.forEach(function(p,idx){
+      var tt = (p.time_type||'monthly').toString().toLowerCase();
       var eq = '';
-      if(p.time_type === 'monthly') eq = (parseFloat(p.price||0)*12).toFixed(2) + ' / year';
-      else if(p.time_type === 'yearly') eq = (parseFloat(p.price||0)/12).toFixed(2) + ' / month';
+      if(tt.indexOf('month') !== -1) eq = (parseFloat(p.price||0)*12).toFixed(2) + ' / year';
+      else if(tt.indexOf('year') !== -1) eq = (parseFloat(p.price||0)/12).toFixed(2) + ' / month';
     t += '<tr>'+
     '<td>'+(idx+1)+'</td>'+
     '<td>'+p.id+'</td>'+
     '<td>'+ (p.name||'') +'</td>'+
     '<td>'+ (p.price!=null?parseFloat(p.price).toFixed(2):'') +'</td>'+
     '<td>'+ (p.upi||'') +'</td>'+
-    '<td>'+ (p.time_type||'') +'</td>'+
+  '<td>'+ (tt.indexOf('year') !== -1 ? 'Yearly' : 'Monthly') +'</td>'+
     '<td>'+ eq +'</td>'+
     '<td>'+ (p.start_date||'') +'</td>'+
     '<td>'+ (p.end_date||'') +'</td>'+
@@ -155,7 +156,9 @@ function openAddPlanModal(){
         $('#planDescription').val(p.description);
         $('#planPrice').val(p.price);
         $('#planUpi').val(p.upi||'');
-        $('#planType').val(p.time_type||'monthly');
+  // normalize time_type (accepts 'Monthly','monthly','YEARLY', etc.)
+  var chosenType = ((p.time_type||'monthly').toString().toLowerCase().indexOf('year') !== -1) ? 'yearly' : 'monthly';
+  $('#planType').val(chosenType);
         $('#planStart').val(p.start_date);
         $('#planEnd').val(p.end_date);
         // ensure fields are editable and Save button visible for edit
@@ -176,15 +179,16 @@ function viewPlan(id){
   $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){
     if(resp.success){
       var p = resp.data;
-      var eq = '';
-      if(p.time_type === 'monthly') eq = (parseFloat(p.price||0)*12).toFixed(2) + ' / year';
-      else if(p.time_type === 'yearly') eq = (parseFloat(p.price||0)/12).toFixed(2) + ' / month';
+  var tt = (p.time_type||'monthly').toString().toLowerCase();
+  var eq = '';
+  if(tt.indexOf('month') !== -1) eq = (parseFloat(p.price||0)*12).toFixed(2) + ' / year';
+  else if(tt.indexOf('year') !== -1) eq = (parseFloat(p.price||0)/12).toFixed(2) + ' / month';
 
-      $('#viewPlanName').text(p.name || '');
+  $('#viewPlanName').text(p.name || '');
       $('#viewPlanDescription').text(p.description || '');
       $('#viewPlanPrice').text(p.price != null ? parseFloat(p.price).toFixed(2) : '');
       $('#viewPlanUpi').text(p.upi || '');
-      $('#viewPlanType').text(p.time_type || '');
+  $('#viewPlanType').text(tt.indexOf('year') !== -1 ? 'Yearly' : 'Monthly');
       $('#viewPlanEq').text(eq);
       $('#viewPlanStart').text(p.start_date || '');
       $('#viewPlanEnd').text(p.end_date || '');
