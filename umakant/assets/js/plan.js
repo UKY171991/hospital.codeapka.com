@@ -24,12 +24,9 @@
       var rows = resp.data || [];
       var t = '';
       rows.forEach(function(p, idx){
-        var tt = normalizeType(p.time_type);
-        //var eq = normalizeType(p.time_type);
-        var priceNum = parsePrice(p.price);
-        var eq = tt === 'yearly'
-          ? (priceNum * 12).toFixed(2) + ' / year'
-          : (priceNum / 12).toFixed(2) + ' / month';
+  var tt = normalizeType(p.time_type);
+  var priceNum = parsePrice(p.price);
+  // Equivalent / start/end removed from table per UI change
         t += '<tr>'+
              '<td>'+(idx+1)+'</td>'+
              '<td>'+ (p.id||'') +'</td>'+
@@ -37,9 +34,6 @@
              '<td>'+ (p.price!=null?parsePrice(p.price).toFixed(2):'') +'</td>'+
              '<td>'+ (p.upi||'') +'</td>'+
              '<td>'+ (tt==='yearly' ? 'Yearly' : 'Monthly') +'</td>'+
-             '<td>'+ eq +'</td>'+
-             '<td>'+ (p.start_date||'') +'</td>'+
-             '<td>'+ (p.end_date||'') +'</td>'+
              '<td>'+ (p.added_by_username||'') +'</td>'+
              '<td>'+
                '<button class="btn btn-sm btn-info view-plan" data-id="'+p.id+'">View</button> '+
@@ -75,20 +69,14 @@
       $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){
         if(!resp.success){ toastr.error(resp.message||'Not found'); return; }
         var p = resp.data || {};
-        var tt = normalizeType(p.time_type);
-        var priceNum = parsePrice(p.price);
-        var eq = tt === 'monthly'
-          ? (priceNum * 12).toFixed(2) + ' / year'
-          : (priceNum / 12).toFixed(2) + ' / month';
-        $('#viewPlanName').text(p.name || '');
-        $('#viewPlanDescription').text(p.description || '');
-        $('#viewPlanPrice').text(p.price != null ? priceNum.toFixed(2) : '');
-        $('#viewPlanUpi').text(p.upi || '');
-        $('#viewPlanType').text(tt === 'yearly' ? 'Yearly' : 'Monthly');
-        $('#viewPlanEq').text(eq);
-        $('#viewPlanStart').text(p.start_date || '');
-        $('#viewPlanEnd').text(p.end_date || '');
-        $('#viewPlanAddedBy').text(p.added_by_username || '');
+  var tt = normalizeType(p.time_type);
+  var priceNum = parsePrice(p.price);
+  $('#viewPlanName').text(p.name || '');
+  $('#viewPlanDescription').text(p.description || '');
+  $('#viewPlanPrice').text(p.price != null ? priceNum.toFixed(2) : '');
+  $('#viewPlanUpi').text(p.upi || '');
+  $('#viewPlanType').text(tt === 'yearly' ? 'Yearly' : 'Monthly');
+  $('#viewPlanAddedBy').text(p.added_by_username || '');
         $('#planViewModal').modal('show');
       },'json');
     });
@@ -112,8 +100,7 @@
             if(opt.text().toLowerCase().indexOf(chosenType.replace('ly','')) !== -1) opt.prop('selected',true);
           });
         }
-        $('#planStart').val(p.start_date || '');
-        $('#planEnd').val(p.end_date || '');
+  // start/end inputs removed from form
         $('#planForm').find('input,textarea,select').prop('disabled', false);
         $('#savePlanBtn').show();
         $('#planModalLabel').text('Edit Plan');

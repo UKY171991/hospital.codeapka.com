@@ -28,19 +28,16 @@ require_once 'inc/sidebar.php';
                         <div class="card-body">
                             <table id="plansTable" class="table table-bordered table-striped">
                                 <thead>
-                                    <tr>
-                                        <th>S.No.</th>
-                                        <th>ID</th>
-                                        <th>Title</th>
-                                        <th>Price</th>
-                                        <th>UPI</th>
-                                        <th>Type</th>
-                                        <th>Equivalent</th>
-                                        <th>Start Date</th>
-                                        <th>End Date</th>
-                                        <th>Added By</th>
-                                        <th>Actions</th>
-                                    </tr>
+                  <tr>
+                    <th>S.No.</th>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Price</th>
+                    <th>UPI</th>
+                    <th>Type</th>
+                    <th>Added By</th>
+                    <th>Actions</th>
+                  </tr>
                                 </thead>
                                 <tbody></tbody>
                             </table>
@@ -72,10 +69,7 @@ require_once 'inc/sidebar.php';
             </div>
           </div>
           <div class="form-group"><label>Description</label><textarea class="form-control" name="description" id="planDescription"></textarea></div>
-          <div class="form-row">
-            <div class="form-group col-md-6"><label>Start Date</label><input type="date" class="form-control" name="start_date" id="planStart"></div>
-            <div class="form-group col-md-6"><label>End Date</label><input type="date" class="form-control" name="end_date" id="planEnd"></div>
-          </div>
+          <!-- start/end dates removed per UI change -->
         </form>
       </div>
       <div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal">Cancel</button><button id="savePlanBtn" class="btn btn-primary">Save Plan</button></div>
@@ -99,11 +93,7 @@ require_once 'inc/sidebar.php';
           <div class="form-group col-md-4"><label>Type</label><p id="viewPlanType" class="form-control-plaintext"></p></div>
         </div>
         <div class="form-group"><label>Description</label><p id="viewPlanDescription" class="form-control-plaintext"></p></div>
-        <div class="form-row">
-          <div class="form-group col-md-6"><label>Start Date</label><p id="viewPlanStart" class="form-control-plaintext"></p></div>
-          <div class="form-group col-md-6"><label>End Date</label><p id="viewPlanEnd" class="form-control-plaintext"></p></div>
-        </div>
-        <div class="form-group"><label>Equivalent</label><p id="viewPlanEq" class="form-control-plaintext"></p></div>
+  <!-- start/end and Equivalent view fields removed -->
         <div class="form-group"><label>Added By</label><p id="viewPlanAddedBy" class="form-control-plaintext"></p></div>
       </div>
       <div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal">Close</button></div>
