@@ -7,6 +7,16 @@
     return 'monthly';
   }
 
+  // Helper: parse price string into a safe number (remove commas/currency)
+  function parsePrice(v){
+    if (v === null || v === undefined || v === '') return 0;
+    var s = v.toString();
+    // remove any non-digit except dot and minus
+    s = s.replace(/[^0-9.\-]+/g, '');
+    var n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+  }
+
   function loadPlans(){
     $.get('ajax/plan_api.php',{action:'list'},function(resp){
       if(!resp.success){ toastr.error(resp.message||'Failed to load plans'); return; }
@@ -15,12 +25,15 @@
       var t = '';
       rows.forEach(function(p, idx){
         var tt = normalizeType(p.time_type);
-        var eq = tt === 'monthly' ? (parseFloat(p.price||0)*12).toFixed(2) + ' / year' : (parseFloat(p.price||0)/12).toFixed(2) + ' / month';
+        var priceNum = parsePrice(p.price);
+        var eq = tt === 'monthly'
+          ? (priceNum * 12).toFixed(2) + ' / year'
+          : (priceNum / 12).toFixed(2) + ' / month';
         t += '<tr>'+
              '<td>'+(idx+1)+'</td>'+
              '<td>'+ (p.id||'') +'</td>'+
              '<td>'+ (p.name||'') +'</td>'+
-             '<td>'+ (p.price!=null?parseFloat(p.price).toFixed(2):'') +'</td>'+
+             '<td>'+ (p.price!=null?parsePrice(p.price).toFixed(2):'') +'</td>'+
              '<td>'+ (p.upi||'') +'</td>'+
              '<td>'+ (tt==='yearly' ? 'Yearly' : 'Monthly') +'</td>'+
              '<td>'+ eq +'</td>'+
@@ -62,10 +75,13 @@
         if(!resp.success){ toastr.error(resp.message||'Not found'); return; }
         var p = resp.data || {};
         var tt = normalizeType(p.time_type);
-        var eq = tt === 'monthly' ? (parseFloat(p.price||0)*12).toFixed(2) + ' / year' : (parseFloat(p.price||0)/12).toFixed(2) + ' / month';
+        var priceNum = parsePrice(p.price);
+        var eq = tt === 'monthly'
+          ? (priceNum * 12).toFixed(2) + ' / year'
+          : (priceNum / 12).toFixed(2) + ' / month';
         $('#viewPlanName').text(p.name || '');
         $('#viewPlanDescription').text(p.description || '');
-        $('#viewPlanPrice').text(p.price != null ? parseFloat(p.price).toFixed(2) : '');
+        $('#viewPlanPrice').text(p.price != null ? priceNum.toFixed(2) : '');
         $('#viewPlanUpi').text(p.upi || '');
         $('#viewPlanType').text(tt === 'yearly' ? 'Yearly' : 'Monthly');
         $('#viewPlanEq').text(eq);
