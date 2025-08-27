@@ -23,24 +23,29 @@
 
       var rows = resp.data || [];
       var t = '';
+      // expected column count from thead
+      var thCount = $('#plansTable thead th').length || 0;
       rows.forEach(function(p, idx){
-  var tt = normalizeType(p.time_type);
-  var priceNum = parsePrice(p.price);
-  // Equivalent / start/end removed from table per UI change
-        t += '<tr>'+
-             '<td>'+(idx+1)+'</td>'+
-             '<td>'+ (p.id||'') +'</td>'+
-             '<td>'+ (p.name||'') +'</td>'+
-             '<td>'+ (p.price!=null?parsePrice(p.price).toFixed(2):'') +'</td>'+
-             '<td>'+ (p.upi||'') +'</td>'+
-             '<td>'+ (tt==='yearly' ? 'Yearly' : 'Monthly') +'</td>'+
-             '<td>'+ (p.added_by_username||'') +'</td>'+
-             '<td>'+
+        var tt = normalizeType(p.time_type);
+        var priceNum = parsePrice(p.price);
+        var cells = [];
+        cells.push('<td>'+(idx+1)+'</td>');
+        cells.push('<td>'+ (p.id||'') +'</td>');
+        cells.push('<td>'+ (p.name||'') +'</td>');
+        cells.push('<td>'+ (p.price!=null?priceNum.toFixed(2):'') +'</td>');
+        cells.push('<td>'+ (p.upi||'') +'</td>');
+        cells.push('<td>'+ (tt==='yearly' ? 'Yearly' : 'Monthly') +'</td>');
+        cells.push('<td>'+ (p.added_by_username||'') +'</td>');
+        cells.push('<td>'+
                '<button class="btn btn-sm btn-info view-plan" data-id="'+p.id+'">View</button> '+
                '<button class="btn btn-sm btn-warning edit-plan" data-id="'+p.id+'">Edit</button> '+
                '<button class="btn btn-sm btn-danger delete-plan" data-id="'+p.id+'">Delete</button>'+
-             '</td>'+
-           '</tr>';
+             '</td>');
+        // pad cells to match header count
+        while(cells.length < thCount) cells.push('<td></td>');
+        // if there are more cells than headers, slice to header count
+        if (cells.length > thCount) cells = cells.slice(0, thCount);
+        t += '<tr>' + cells.join('') + '</tr>';
       });
 
       $('#plansTable tbody').html(t);
