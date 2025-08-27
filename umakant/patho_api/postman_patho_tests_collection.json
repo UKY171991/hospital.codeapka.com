@@ -1,0 +1,7 @@
+{
+	"collections": [
+		{ "name": "Owner API", "file": "Owner_postman_collection.json" },
+		{ "name": "Test Category API", "file": "test_category.postman_collection.json" },
+		{ "name": "Notice API", "file": "notice_postman_collection.json" }
+	]
+}

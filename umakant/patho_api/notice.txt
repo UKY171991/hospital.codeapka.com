@@ -1,0 +1,32 @@
+Notice API
+
+Base URL: /patho_api/notice.php
+
+All responses are JSON with structure { success: boolean, data?: any, message?: string }
+
+Actions:
+
+- list (GET or POST) - returns all notices
+  - Request: /patho_api/notice.php?action=list
+  - Response: { success: true, data: [ { id, title, content, start_date, end_date, active, added_by, added_by_username, created_at, updated_at } ] }
+
+- get (GET) - fetch a single notice
+  - Request: /patho_api/notice.php?action=get&id=123
+  - Response: { success: true, data: { ...notice... } }
+
+- save (POST) - create or update a notice
+  - Requires session with role `admin` or `master` (cookie auth). If your app doesn't pass session cookie, test using a logged-in browser session or adapt auth.
+  - Create request (no id): POST /patho_api/notice.php?action=save
+    - form fields: title (required), content, start_date (YYYY-MM-DD), end_date (YYYY-MM-DD), active (0/1)
+  - Update request (with id): POST /patho_api/notice.php?action=save
+    - form fields: id, title (required), content, start_date, end_date, active
+  - Response (on success): { success: true, message: 'Notice created'|'Notice updated', data: { ...full notice row... } }
+
+- delete (POST) - delete a notice
+  - Requires admin/master
+  - Request: POST /patho_api/notice.php?action=delete with form field id
+  - Response: { success: true, message: 'Notice deleted' }
+
+Notes:
+- The API returns the saved/updated row in `data` so clients can immediately update UI without a second list fetch.
+- If you need token-based access for external tools, add an endpoint or modify session handling; currently it relies on PHP session cookie.

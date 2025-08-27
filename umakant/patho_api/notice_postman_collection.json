@@ -1,0 +1,83 @@
+{
+  "info": {
+    "name": "Patho API - Notice",
+    "_postman_id": "notice-collection",
+    "description": "Simple Postman collection to test /patho_api/notice.php endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "List Notices",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/patho_api/notice.php?action=list",
+          "host": ["{{baseUrl}}"],
+          "path": ["patho_api","notice.php"],
+          "query": [{"key":"action","value":"list"}]
+        }
+      }
+    },
+    {
+      "name": "Get Notice",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/patho_api/notice.php?action=get&id=1",
+          "host": ["{{baseUrl}}"],
+          "path": ["patho_api","notice.php"],
+          "query": [{"key":"action","value":"get"},{"key":"id","value":"1"}]
+        }
+      }
+    },
+    {
+      "name": "Create Notice (POST)",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/x-www-form-urlencoded"}],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {"key":"action","value":"save","type":"text"},
+            {"key":"title","value":"Test Notice from Postman","type":"text"},
+            {"key":"content","value":"This is a test notice.","type":"text"},
+            {"key":"start_date","value":"2025-08-27","type":"text"},
+            {"key":"end_date","value":"2025-09-30","type":"text"},
+            {"key":"active","value":"1","type":"text"}
+          ]
+        },
+        "url": {"raw":"{{baseUrl}}/patho_api/notice.php","host":["{{baseUrl}}"],"path":["patho_api","notice.php"]}
+      }
+    },
+    {
+      "name": "Update Notice (POST)",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/x-www-form-urlencoded"}],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {"key":"action","value":"save","type":"text"},
+            {"key":"id","value":"1","type":"text"},
+            {"key":"title","value":"Updated Title","type":"text"},
+            {"key":"content","value":"Updated content","type":"text"},
+            {"key":"active","value":"0","type":"text"}
+          ]
+        },
+        "url": {"raw":"{{baseUrl}}/patho_api/notice.php","host":["{{baseUrl}}"],"path":["patho_api","notice.php"]}
+      }
+    },
+    {
+      "name": "Delete Notice (POST)",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/x-www-form-urlencoded"}],
+        "body": {"mode":"urlencoded","urlencoded":[{"key":"action","value":"delete","type":"text"},{"key":"id","value":"1","type":"text"}]},
+        "url": {"raw":"{{baseUrl}}/patho_api/notice.php","host":["{{baseUrl}}"],"path":["patho_api","notice.php"]}
+      }
+    }
+  ],
+  "variable": [{"key":"baseUrl","value":"http://localhost/umakant"}]
+}
