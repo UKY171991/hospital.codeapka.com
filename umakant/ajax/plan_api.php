@@ -12,7 +12,7 @@ if ($action === 'list'){
 }
 
 if ($action === 'get' && isset($_GET['id'])){
-    $stmt = $pdo->prepare('SELECT * FROM plans WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT p.id, p.name, p.description, p.price, p.upi, p.time_type, p.start_date, p.end_date, p.added_by, u.username as added_by_username FROM plans p LEFT JOIN users u ON p.added_by = u.id WHERE p.id = ?');
     $stmt->execute([$_GET['id']]);
     $row = $stmt->fetch();
     json_response(['success'=>true,'data'=>$row]);
@@ -26,6 +26,10 @@ if ($action === 'save'){
     $price = $_POST['price'] ?? 0;
     $upi = trim($_POST['upi'] ?? '');
     $time_type = $_POST['time_type'] ?? 'monthly';
+    // normalize time_type to 'monthly' or 'yearly' to match DB conventions
+    $tt = strtolower(trim($time_type));
+    if (strpos($tt, 'year') !== false) $time_type = 'yearly';
+    else $time_type = 'monthly';
     $start = $_POST['start_date'] ?? null;
     $end = $_POST['end_date'] ?? null;
     if ($name === '') json_response(['success'=>false,'message'=>'Name required'],400);
