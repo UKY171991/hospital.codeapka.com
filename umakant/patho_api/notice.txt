@@ -1,6 +1,6 @@
 Notice API
 
-Base URL: /patho_api/notice.php
+Base URL: https://hospital.codeapka.com/umakant/patho_api/notice.php
 
 All responses are JSON with structure { success: boolean, data?: any, message?: string }
 

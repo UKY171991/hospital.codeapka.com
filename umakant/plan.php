@@ -78,6 +78,34 @@ require_once 'inc/sidebar.php';
   </div>
 </div>
 
+<!-- Plan View Modal (read-only) -->
+<div class="modal fade" id="planViewModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">View Plan</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group"><label>Title</label><p id="viewPlanName" class="form-control-plaintext"></p></div>
+        <div class="form-row">
+          <div class="form-group col-md-4"><label>Price</label><p id="viewPlanPrice" class="form-control-plaintext"></p></div>
+          <div class="form-group col-md-4"><label>UPI</label><p id="viewPlanUpi" class="form-control-plaintext"></p></div>
+          <div class="form-group col-md-4"><label>Type</label><p id="viewPlanType" class="form-control-plaintext"></p></div>
+        </div>
+        <div class="form-group"><label>Description</label><p id="viewPlanDescription" class="form-control-plaintext"></p></div>
+        <div class="form-row">
+          <div class="form-group col-md-6"><label>Start Date</label><p id="viewPlanStart" class="form-control-plaintext"></p></div>
+          <div class="form-group col-md-6"><label>End Date</label><p id="viewPlanEnd" class="form-control-plaintext"></p></div>
+        </div>
+        <div class="form-group"><label>Equivalent</label><p id="viewPlanEq" class="form-control-plaintext"></p></div>
+        <div class="form-group"><label>Added By</label><p id="viewPlanAddedBy" class="form-control-plaintext"></p></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal">Close</button></div>
+    </div>
+  </div>
+</div>
+
 <?php require_once 'inc/footer.php'; ?>
 
 <script>
@@ -116,6 +144,28 @@ function openAddPlanModal(){ $('#planForm')[0].reset(); $('#planId').val(''); $(
   $('#savePlanBtn').click(function(){ var data=$('#planForm').serialize()+'&action=save'; $.post('ajax/plan_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message); $('#planModal').modal('hide'); location.reload(); } else toastr.error(resp.message||'Save failed'); },'json'); });
 });
 
-function viewPlan(id){ $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var p=resp.data; $('#planId').val(p.id); $('#planName').val(p.name); $('#planDescription').val(p.description); $('#planPrice').val(p.price); $('#planUpi').val(p.upi||''); $('#planType').val(p.time_type||'monthly'); var eq=''; if(p.time_type==='monthly') eq = (parseFloat(p.price||0)*12).toFixed(2)+' / year'; else eq = (parseFloat(p.price||0)/12).toFixed(2)+' / month'; $('#planStart').val(p.start_date); $('#planEnd').val(p.end_date); $('#planModal').modal('show'); $('#planForm').find('input,textarea,select').prop('disabled', true); $('#savePlanBtn').hide(); } else toastr.error('Not found'); },'json'); }
-function viewPlan(id){ $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var p=resp.data; $('#planId').val(p.id); $('#planName').val(p.name); $('#planDescription').val(p.description); $('#planPrice').val(p.price); $('#planType').val(p.time_type||'monthly'); var eq=''; if(p.time_type==='monthly') eq = (parseFloat(p.price||0)*12).toFixed(2)+' / year'; else eq = (parseFloat(p.price||0)/12).toFixed(2)+' / month'; $('#planStart').val(p.start_date); $('#planEnd').val(p.end_date); $('#planModal').modal('show'); $('#planForm').find('input,textarea,select').prop('disabled', true); $('#savePlanBtn').hide(); } else toastr.error('Not found'); },'json'); }
+function viewPlan(id){
+  $.get('ajax/plan_api.php',{action:'get',id:id}, function(resp){
+    if(resp.success){
+      var p = resp.data;
+      var eq = '';
+      if(p.time_type === 'monthly') eq = (parseFloat(p.price||0)*12).toFixed(2) + ' / year';
+      else if(p.time_type === 'yearly') eq = (parseFloat(p.price||0)/12).toFixed(2) + ' / month';
+
+      $('#viewPlanName').text(p.name || '');
+      $('#viewPlanDescription').text(p.description || '');
+      $('#viewPlanPrice').text(p.price != null ? parseFloat(p.price).toFixed(2) : '');
+      $('#viewPlanUpi').text(p.upi || '');
+      $('#viewPlanType').text(p.time_type || '');
+      $('#viewPlanEq').text(eq);
+      $('#viewPlanStart').text(p.start_date || '');
+      $('#viewPlanEnd').text(p.end_date || '');
+      $('#viewPlanAddedBy').text(p.added_by_username || '');
+
+      $('#planViewModal').modal('show');
+    } else {
+      toastr.error('Not found');
+    }
+  },'json');
+}
 </script>
