@@ -48,7 +48,7 @@ if($hasTable){
       <div class="card">
         <div class="card-body">
           <table class="table table-bordered table-striped" id="uploadsTable">
-            <thead><tr><th>#</th><th>Name</th><th>Size</th><th>Uploaded</th><th>Uploaded By</th><th>Actions</th></tr></thead>
+            <thead><tr><th>#</th><th>Name</th><th>Size (MB)</th><th>Uploaded</th><th>Uploaded By</th><th>Actions</th></tr></thead>
             <tbody>
               <?php foreach($files as $i => $f): ?>
                 <tr>
@@ -58,7 +58,13 @@ if($hasTable){
                     &nbsp;
                     <a href="<?php echo htmlspecialchars($f['relative_path']); ?>" target="_blank"><?php echo htmlspecialchars($f['original_name'] ?? $f['file_name']); ?></a>
                   </td>
-                  <td><?php echo number_format($f['file_size'] ?? 0); ?></td>
+                  <td>
+                    <?php
+                      $bytes = isset($f['file_size']) ? floatval($f['file_size']) : 0;
+                      $mb = $bytes / (1024 * 1024);
+                      echo number_format($mb, 2) . ' MB';
+                    ?>
+                  </td>
                   <td><?php echo htmlspecialchars($f['created_at'] ?? ''); ?></td>
                   <td><?php echo htmlspecialchars($f['uploaded_by_username'] ?? ($f['uploaded_by'] ?? '')); ?></td>
                   <td>
