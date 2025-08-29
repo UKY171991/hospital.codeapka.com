@@ -95,25 +95,42 @@ document.getElementById('startUpload').addEventListener('click', function(){
     var progressWrap = document.querySelector('.progress');
     var bar = document.getElementById('uploadProgress');
     var startBtn = document.getElementById('startUpload');
-    // prepare UI
-    msg.innerHTML = '';
-    startBtn.disabled = true;
-    progressWrap.style.display = 'block';
-    bar.classList.add('progress-bar-striped','progress-bar-animated');
-    bar.style.width = '100%';
-    bar.textContent = 'Uploading...';
+        // prepare UI
+        msg.innerHTML = '';
+        startBtn.disabled = true;
+        progressWrap.style.display = 'block';
+        // start from 0% so percent is meaningful when available
+        bar.classList.add('progress-bar-striped');
+        bar.style.width = '0%';
+        bar.textContent = '0%';
+        // indeterminate animation fallback (cycles width) until we get lengthComputable
+        var indeterminateTimer = null;
+        function startIndeterminate(){
+            if(indeterminateTimer) return;
+            bar.classList.add('progress-bar-animated');
+            indeterminateTimer = setInterval(function(){
+                // oscillate between 20% and 80%
+                var w = 20 + Math.floor(Math.random() * 60);
+                bar.style.width = w + '%';
+            }, 600);
+        }
+        function stopIndeterminate(){
+            if(indeterminateTimer){ clearInterval(indeterminateTimer); indeterminateTimer = null; }
+            bar.classList.remove('progress-bar-animated');
+        }
+        // start the indeterminate animation immediately to give feedback
+        startIndeterminate();
 
     xhr.upload.addEventListener('progress', function(e){
         if(e.lengthComputable){
             var pct = Math.round((e.loaded / e.total) * 100);
             // switch to determinate mode
-            bar.classList.remove('progress-bar-animated');
+            stopIndeterminate();
             bar.style.width = pct + '%';
             bar.textContent = pct + '%';
         } else {
-            // indeterminate: keep animated full-width bar and message
-            bar.classList.add('progress-bar-animated');
-            bar.style.width = '100%';
+            // keep indeterminate animation running
+            startIndeterminate();
             bar.textContent = 'Uploading...';
         }
     });
@@ -130,29 +147,32 @@ document.getElementById('startUpload').addEventListener('click', function(){
         }catch(e){
             msg.innerHTML = '<div class="alert alert-danger">Unexpected server response</div>';
         }
-        // reset UI
-        bar.classList.remove('progress-bar-animated','progress-bar-striped');
-        bar.style.width = '0%'; bar.textContent = '0%';
-        progressWrap.style.display = 'none';
-        startBtn.disabled = false;
-        // clear file input
-        input.value = '';
+    // reset UI
+    stopIndeterminate();
+    bar.classList.remove('progress-bar-striped');
+    bar.style.width = '0%'; bar.textContent = '0%';
+    progressWrap.style.display = 'none';
+    startBtn.disabled = false;
+    // clear file input
+    input.value = '';
     });
 
     xhr.addEventListener('error', function(){
-        msg.innerHTML = '<div class="alert alert-danger">Upload failed due to a network error.</div>';
-        bar.classList.remove('progress-bar-animated','progress-bar-striped');
-        bar.style.width = '0%'; bar.textContent = '0%';
-        progressWrap.style.display = 'none';
-        startBtn.disabled = false;
+    msg.innerHTML = '<div class="alert alert-danger">Upload failed due to a network error.</div>';
+    stopIndeterminate();
+    bar.classList.remove('progress-bar-striped');
+    bar.style.width = '0%'; bar.textContent = '0%';
+    progressWrap.style.display = 'none';
+    startBtn.disabled = false;
     });
 
     xhr.addEventListener('abort', function(){
-        msg.innerHTML = '<div class="alert alert-warning">Upload canceled.</div>';
-        bar.classList.remove('progress-bar-animated','progress-bar-striped');
-        bar.style.width = '0%'; bar.textContent = '0%';
-        progressWrap.style.display = 'none';
-        startBtn.disabled = false;
+    msg.innerHTML = '<div class="alert alert-warning">Upload canceled.</div>';
+    stopIndeterminate();
+    bar.classList.remove('progress-bar-striped');
+    bar.style.width = '0%'; bar.textContent = '0%';
+    progressWrap.style.display = 'none';
+    startBtn.disabled = false;
     });
 
     xhr.send(form);
