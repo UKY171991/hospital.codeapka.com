@@ -64,6 +64,19 @@ try {
         $print_new_page = $_POST['print_new_page'] ?? 0;
         $shortcut = trim($_POST['shortcut'] ?? '');
 
+        // Server-side validation: ensure max >= min for each range when values provided
+        $ranges = [
+            ['min'=>$min, 'max'=>$max, 'label'=>'General'],
+            ['min'=>$min_male, 'max'=>$max_male, 'label'=>'Male'],
+            ['min'=>$min_female, 'max'=>$max_female, 'label'=>'Female']
+        ];
+        foreach($ranges as $r){
+            if($r['min'] !== null && $r['max'] !== null && $r['min'] !== '' && $r['max'] !== ''){
+                if(!is_numeric($r['min']) || !is_numeric($r['max'])) json_response(['success'=>false,'message'=>$r['label'].' range must be numeric'],400);
+                if(floatval($r['max']) < floatval($r['min'])) json_response(['success'=>false,'message'=>'Max Value ('.$r['label'].') cannot be less than Min Value ('.$r['label'].')'],400);
+            }
+        }
+
         if ($id) {
             $stmt = $pdo->prepare('UPDATE tests SET category_id=?, name=?, description=?, price=?, unit=?, default_result=?, reference_range=?, min=?, max=?, min_male=?, max_male=?, min_female=?, max_female=?, sub_heading=?, test_code=?, method=?, print_new_page=?, shortcut=? WHERE id=?');
             $stmt->execute([$category_id, $name, $description, $price, $unit, $default_result, $reference_range, $min, $max, $min_male, $max_male, $min_female, $max_female, $sub_heading, $test_code, $method, $print_new_page, $shortcut, $id]);

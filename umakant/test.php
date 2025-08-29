@@ -345,6 +345,36 @@ $(function(){
     loadTests();
 
     $('#saveTestBtn').click(function(){ 
+        // Validate min/max ranges before submitting
+        function validateTestRanges(){
+            var pairs = [
+                {min:'#testMin', max:'#testMax', label:'General'},
+                {min:'#testMinMale', max:'#testMaxMale', label:'Male'},
+                {min:'#testMinFemale', max:'#testMaxFemale', label:'Female'}
+            ];
+            for(var i=0;i<pairs.length;i++){
+                var p = pairs[i];
+                var vMin = $(p.min).val().trim();
+                var vMax = $(p.max).val().trim();
+                if(vMin === '' || vMax === '') continue; // nothing to validate
+                var nMin = parseFloat(vMin);
+                var nMax = parseFloat(vMax);
+                if(isNaN(nMin) || isNaN(nMax)){
+                    toastr.error(p.label + ' range must be numeric');
+                    $(p.min).focus();
+                    return false;
+                }
+                if(nMax < nMin){
+                    toastr.error('Max Value ('+p.label+') cannot be less than Min Value ('+p.label+').');
+                    $(p.max).focus();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        if(!validateTestRanges()) return; // abort save if invalid
+
         var isEdit = $('#testId').val() !== '';
         // ensure new gender fields are included
         var data = $('#testForm').serialize() + '&action=save&ajax=1'; 
