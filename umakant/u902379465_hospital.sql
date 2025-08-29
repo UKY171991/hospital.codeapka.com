@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Aug 29, 2025 at 05:37 AM
+-- Generation Time: Aug 29, 2025 at 06:00 AM
 -- Server version: 10.11.10-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -254,7 +254,6 @@ CREATE TABLE `tests` (
   `category_id` int(11) DEFAULT NULL,
   `price` decimal(10,2) NOT NULL DEFAULT 0.00,
   `unit` varchar(50) DEFAULT NULL,
-  `specimen` varchar(100) DEFAULT NULL,
   `default_result` text DEFAULT NULL,
   `reference_range` varchar(255) DEFAULT NULL,
   `min` decimal(10,2) DEFAULT NULL,
@@ -268,15 +267,25 @@ CREATE TABLE `tests` (
   `min_male` decimal(10,2) DEFAULT NULL,
   `max_male` decimal(10,2) DEFAULT NULL,
   `min_female` decimal(10,2) DEFAULT NULL,
-  `max_female` decimal(10,2) DEFAULT NULL
+  `max_female` decimal(10,2) DEFAULT NULL,
+  `specimen` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `tests`
 --
 
-INSERT INTO `tests` (`id`, `name`, `description`, `category_id`, `price`, `unit`, `specimen`, `default_result`, `reference_range`, `min`, `max`, `sub_heading`, `test_code`, `method`, `print_new_page`, `shortcut`, `added_by`, `min_male`, `max_male`, `min_female`, `max_female`) VALUES
-(19, 'Graham Sherman', 'Quibusdam est dolore', 45, 619.00, 'Laboris odio adipisi', '', '', '', 100.00, 110.00, 1, '', '', 0, '', 1, 74.00, 80.00, 74.00, 87.00);
+INSERT INTO `tests` (`id`, `name`, `description`, `category_id`, `price`, `unit`, `default_result`, `reference_range`, `min`, `max`, `sub_heading`, `test_code`, `method`, `print_new_page`, `shortcut`, `added_by`, `min_male`, `max_male`, `min_female`, `max_female`, `specimen`) VALUES
+(19, 'Graham Sherman', 'Quibusdam est dolore', 45, 619.00, 'Laboris odio adipisi', '', '', 100.00, 110.00, 1, '', '', 0, '', 1, 74.00, 80.00, 74.00, 87.00, NULL),
+(20, 'Aiko Willis', 'Quo sint repudianda', 3, 415.00, 'Ad quo cumque corrup', '', '', 93.00, 13.00, 1, '', '', 1, '', 1, 43.00, 99.00, 52.00, 71.00, ''),
+(21, 'Halla Ortega', 'Nihil ducimus ut qu', 19, 329.00, 'Amet veritatis reru', '', '', 28.00, 88.00, 1, '', '', 0, '', 1, 18.00, 68.00, 80.00, 98.00, ''),
+(22, 'Shea Reed', 'Libero mollit beatae', 27, 429.00, 'Consequatur Qui ame', '', '', 7.00, 8.00, 0, '', '', 1, '', 1, 13.00, 86.00, 52.00, 8.00, ''),
+(23, 'Dora Avila', 'Voluptate nulla opti', 32, 78.00, 'In nisi iure praesen', '', '', 68.00, 57.00, 1, '', '', 0, '', 1, 99.00, 56.00, 62.00, 60.00, ''),
+(24, 'Callie Gardner', 'Quia fuga Pariatur', 45, 668.00, 'Laboriosam cillum d', '', '', 24.00, 17.00, 1, '', '', 1, '', 1, 83.00, 27.00, 39.00, 84.00, NULL),
+(25, 'Flynn Simpson', 'Sit molestias ab ni', 3, 510.00, 'Sit ipsam eos vel ve', '', '', 72.00, 70.00, 1, '', '', 0, '', 1, 55.00, 58.00, 69.00, 89.00, NULL),
+(26, 'Zorita Melton', 'Ullamco aliqua Cons', 5, 92.00, 'Quibusdam rerum aut', '', '', 48.00, 43.00, 0, '', '', 0, '', 1, 25.00, 17.00, 93.00, 91.00, NULL),
+(27, 'Geoffrey Obrien', 'In dolorem alias odi', 28, 517.00, 'Saepe cumque quia cu', '', '', 77.00, 80.00, 0, '', '', 1, '', 1, 42.00, 60.00, 41.00, 41.00, NULL),
+(29, 'Ferris Huffman', 'Enim tenetur a atque', 18, 147.00, 'Velit aperiam velit', '', '', 0.00, 0.00, 0, '', '', 1, '', 1, 1.00, 51.00, 44.00, 80.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -453,7 +462,7 @@ ALTER TABLE `reports`
 -- AUTO_INCREMENT for table `tests`
 --
 ALTER TABLE `tests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `users`
