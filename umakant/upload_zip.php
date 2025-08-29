@@ -92,36 +92,68 @@ document.getElementById('startUpload').addEventListener('click', function(){
     var xhr = new XMLHttpRequest();
     xhr.open('POST','ajax/upload_file.php',true);
 
+    var progressWrap = document.querySelector('.progress');
+    var bar = document.getElementById('uploadProgress');
+    var startBtn = document.getElementById('startUpload');
+    // prepare UI
+    msg.innerHTML = '';
+    startBtn.disabled = true;
+    progressWrap.style.display = 'block';
+    bar.classList.add('progress-bar-striped','progress-bar-animated');
+    bar.style.width = '100%';
+    bar.textContent = 'Uploading...';
+
     xhr.upload.addEventListener('progress', function(e){
-        var progressWrap = document.querySelector('.progress');
-        var bar = document.getElementById('uploadProgress');
         if(e.lengthComputable){
             var pct = Math.round((e.loaded / e.total) * 100);
-            progressWrap.style.display = 'block';
+            // switch to determinate mode
+            bar.classList.remove('progress-bar-animated');
             bar.style.width = pct + '%';
             bar.textContent = pct + '%';
+        } else {
+            // indeterminate: keep animated full-width bar and message
+            bar.classList.add('progress-bar-animated');
+            bar.style.width = '100%';
+            bar.textContent = 'Uploading...';
         }
     });
 
-    xhr.onreadystatechange = function(){
-        if(xhr.readyState === 4){
-            var progressWrap = document.querySelector('.progress');
-            progressWrap.style.display = 'none';
-            try{
-                var res = JSON.parse(xhr.responseText || '{}');
-                if(res.success){
-                    msg.innerHTML = '<div class="alert alert-success">Upload successful: <a href="'+(res.relative_path||'')+'" target="_blank">'+(res.original_name||res.file_name||'file')+'</a></div>';
-                } else {
-                    msg.innerHTML = '<div class="alert alert-danger">Upload failed: '+(res.message||'Server error')+'</div>';
-                }
-            }catch(e){
-                msg.innerHTML = '<div class="alert alert-danger">Unexpected server response</div>';
+    xhr.addEventListener('load', function(){
+        // request finished (may be success or error)
+        try{
+            var res = JSON.parse(xhr.responseText || '{}');
+            if(res.success){
+                msg.innerHTML = '<div class="alert alert-success">Upload successful: <a href="'+(res.relative_path||'')+'" target="_blank">'+(res.original_name||res.file_name||'file')+'</a></div>';
+            } else {
+                msg.innerHTML = '<div class="alert alert-danger">Upload failed: '+(res.message||'Server error')+'</div>';
             }
-            // reset progress bar
-            var bar = document.getElementById('uploadProgress');
-            bar.style.width = '0%'; bar.textContent = '0%';
+        }catch(e){
+            msg.innerHTML = '<div class="alert alert-danger">Unexpected server response</div>';
         }
-    };
+        // reset UI
+        bar.classList.remove('progress-bar-animated','progress-bar-striped');
+        bar.style.width = '0%'; bar.textContent = '0%';
+        progressWrap.style.display = 'none';
+        startBtn.disabled = false;
+        // clear file input
+        input.value = '';
+    });
+
+    xhr.addEventListener('error', function(){
+        msg.innerHTML = '<div class="alert alert-danger">Upload failed due to a network error.</div>';
+        bar.classList.remove('progress-bar-animated','progress-bar-striped');
+        bar.style.width = '0%'; bar.textContent = '0%';
+        progressWrap.style.display = 'none';
+        startBtn.disabled = false;
+    });
+
+    xhr.addEventListener('abort', function(){
+        msg.innerHTML = '<div class="alert alert-warning">Upload canceled.</div>';
+        bar.classList.remove('progress-bar-animated','progress-bar-striped');
+        bar.style.width = '0%'; bar.textContent = '0%';
+        progressWrap.style.display = 'none';
+        startBtn.disabled = false;
+    });
 
     xhr.send(form);
 });

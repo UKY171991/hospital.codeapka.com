@@ -49,6 +49,9 @@ $role = $_SESSION['role'] ?? 'user';
         <li class="nav-item">
           <a href="upload_zip.php" class="nav-link <?php echo ($activePage == 'upload_zip.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-file-archive"></i><p>Upload ZIP</p></a>
         </li>
+        <li class="nav-item">
+          <a href="upload_list.php" class="nav-link <?php echo ($activePage == 'upload_list.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-folder-open"></i><p>Uploaded Files</p></a>
+        </li>
 
         <li class="nav-item">
           <a href="entry-list.php" class="nav-link <?php echo ($activePage == 'entry-list.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-file-medical"></i><p>Entries</p></a>

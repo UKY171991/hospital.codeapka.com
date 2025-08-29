@@ -6,6 +6,23 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 try{
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid method');
+
+    // delete action
+    if(isset($_POST['action']) && $_POST['action'] === 'delete'){
+        if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) throw new Exception('Unauthorized');
+        $file = $_POST['file'] ?? '';
+        if(!$file) throw new Exception('No file specified');
+        $safe = basename($file);
+        $path = __DIR__ . '/../uploads/' . $safe;
+        $deleted = false;
+        if(is_file($path)){
+            $deleted = unlink($path);
+        }
+        try{ $stmt = $pdo->prepare('DELETE FROM zip_uploads WHERE file_name = ? OR relative_path = ?'); $stmt->execute([$safe, 'uploads/'.$safe]); }catch(Throwable $e){}
+        echo json_encode(['success'=> (bool)$deleted ]);
+        exit;
+    }
+
     if (empty($_FILES['file'])) throw new Exception('No file uploaded');
 
     $file = $_FILES['file'];
