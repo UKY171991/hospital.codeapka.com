@@ -2,6 +2,18 @@
 // Global DataTable initializer for all pages
 // Requires jQuery and DataTables library to be loaded on the page
 
+// Utility: escape HTML to safely insert untrusted strings into DOM
+// Used by pages like `test.php` when rendering details into modals.
+function escapeHtml(input) {
+    if (input === null || input === undefined) return '';
+    return String(input)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function initDataTable(selector, options) {
     if (!window.jQuery || !$.fn.DataTable) {
         console.error('DataTables library is not loaded.');
