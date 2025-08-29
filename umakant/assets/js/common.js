@@ -7,6 +7,11 @@ function initDataTable(selector, options) {
         console.error('DataTables library is not loaded.');
         return;
     }
+    
+    // Check if table has content
+    var hasData = $(selector + ' tbody tr').length > 0 && 
+                  !$(selector + ' tbody tr:first td').attr('colspan');
+    
     // If table is already a DataTable, destroy it first to allow re-init
     try{
         if ($.fn.dataTable.isDataTable(selector)){
@@ -15,10 +20,10 @@ function initDataTable(selector, options) {
     }catch(e){}
 
     var defaultOptions = {
-        paging: true,
-        searching: true,
-        ordering: true,
-        info: true,
+        paging: hasData,
+        searching: hasData,
+        ordering: hasData,
+        info: hasData,
         autoWidth: false,
         responsive: true,
         lengthMenu: [10, 25, 50, 100],
@@ -38,7 +43,8 @@ function initDataTable(selector, options) {
             lengthMenu: "Show _MENU_ entries",
             info: "Showing _START_ to _END_ of _TOTAL_ entries",
             infoEmpty: "No entries to show",
-            zeroRecords: "No matching records found"
+            zeroRecords: "No matching records found",
+            emptyTable: "No data available in table"
         }
     };
     var dtOptions = $.extend(true, {}, defaultOptions, options || {});

@@ -160,6 +160,7 @@ require_once 'inc/sidebar.php';
 
 <script>
 function addTestToTable(testData) {
+    // Add row to table
     var newRow = '<tr>' +
         '<td></td>' + // S.No. will be handled by DataTable
         '<td>' + testData.id + '</td>' +
@@ -172,21 +173,20 @@ function addTestToTable(testData) {
             '<button class="btn btn-sm btn-danger delete-test" data-id="' + testData.id + '">Delete</button></td>' +
         '</tr>';
     
-    // Check if DataTable is initialized
+    // Destroy existing DataTable if it exists
     if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
-        try {
-            // Add row to DataTable
-            var table = $('#testsTable').DataTable();
-            table.row.add($(newRow)).draw();
-        } catch (e) {
-            console.error('Error adding row to DataTable:', e);
-            // Fallback: reload the table
-            loadTests();
-        }
+        $('#testsTable').DataTable().destroy();
+    }
+    
+    // Add new row to table
+    $('#testsTable tbody').prepend(newRow);
+    
+    // Reinitialize DataTable
+    if(typeof initDataTable === 'function'){
+        initDataTable('#testsTable', { order: [[1, 'desc']] });
     } else {
-        // Add row to regular table
-        $('#testsTable tbody').prepend(newRow);
-        // Update serial numbers
+        console.warn('initDataTable is not defined; ensure assets/js/common.js is loaded');
+        // Fallback: update serial numbers for regular table
         updateSerialNumbers();
     }
 }
@@ -207,25 +207,56 @@ function loadCategoriesForTests(){
 function loadTests(){
     $.get('ajax/test_api.php',{action:'list',ajax:1},function(resp){
         if(resp.success && Array.isArray(resp.data)){
-            var t=''; resp.data.forEach(function(x, idx){ t += '<tr>'+
-                        '<td></td>'+ // S.No. - will be handled by DataTable
-                        '<td>'+x.id+'</td>'+
-                        '<td>'+ (x.category_name||'') +'</td>'+
-                        '<td>'+ (x.name||'') +'</td>'+
-                        '<td>'+ (x.price||'') +'</td>'+
-                        '<td>'+ (x.added_by_username||'') +'</td>'+
-                        '<td><button class="btn btn-sm btn-info view-test" data-id="'+x.id+'" onclick="viewTest('+x.id+')">View</button> '+
-                            '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
-                            '<button class="btn btn-sm btn-danger delete-test" data-id="'+x.id+'">Delete</button></td>'+
-                    '</tr>'; }); $('#testsTable tbody').html(t);
-            // initialize DataTable (default order by ID desc — column index 1)
-            if(typeof initDataTable === 'function'){
+            var t=''; 
+            if(resp.data.length === 0) {
+                t = '<tr><td colspan="7" class="text-center">No tests found</td></tr>';
+            } else {
+                resp.data.forEach(function(x, idx){ t += '<tr>'+
+                            '<td></td>'+ // S.No. - will be handled by DataTable
+                            '<td>'+x.id+'</td>'+
+                            '<td>'+ (x.category_name||'') +'</td>'+
+                            '<td>'+ (x.name||'') +'</td>'+
+                            '<td>'+ (x.price||'') +'</td>'+
+                            '<td>'+ (x.added_by_username||'') +'</td>'+
+                            '<td><button class="btn btn-sm btn-info view-test" data-id="'+x.id+'" onclick="viewTest('+x.id+')">View</button> '+
+                                '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
+                                '<button class="btn btn-sm btn-danger delete-test" data-id="'+x.id+'">Delete</button></td>'+
+                        '</tr>'; });
+            }
+            
+            // Always destroy and recreate DataTable to avoid conflicts
+            if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
+                $('#testsTable').DataTable().destroy();
+            }
+            
+            // Set table content
+            $('#testsTable tbody').html(t);
+            
+            // Initialize DataTable only if there are records
+            if(resp.data.length > 0 && typeof initDataTable === 'function'){
                 initDataTable('#testsTable', { order: [[1, 'desc']] });
+            } else if(resp.data.length === 0 && typeof initDataTable === 'function'){
+                // For empty table, just initialize with basic DataTable for styling
+                initDataTable('#testsTable', { 
+                    paging: false,
+                    searching: false,
+                    ordering: false,
+                    info: false
+                });
             } else {
                 console.warn('initDataTable is not defined; ensure assets/js/common.js is loaded');
             }
-        } else toastr.error('Failed to load tests');
-    },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+        } else {
+            // Clear table and show error message
+            $('#testsTable tbody').html('<tr><td colspan="7" class="text-center text-danger">Failed to load tests</td></tr>');
+            toastr.error('Failed to load tests');
+        }
+    },'json').fail(function(xhr){ 
+        $('#testsTable tbody').html('<tr><td colspan="7" class="text-center text-danger">Error loading tests</td></tr>');
+        var msg = xhr.responseText || 'Server error'; 
+        try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} 
+        toastr.error(msg); 
+    });
 }
 
 function applyTestsFilters(){
@@ -290,8 +321,32 @@ $(function(){
     // delegated delete handler
     $(document).on('click', '.delete-test', function(){
         try{
-            if(!confirm('Delete test?')) return; var id=$(this).data('id'); $.post('ajax/test_api.php',{action:'delete',id:id,ajax:1}, function(resp){ if(resp.success){ toastr.success(resp.message); loadTests(); } else toastr.error(resp.message||'Delete failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
-        }catch(err){ console.error('delete-test handler error', err); toastr.error('Error: '+(err.message||err)); }
+            var id = $(this).data('id');
+            if(!confirm('Delete test?')) return;
+            
+            $.post('ajax/test_api.php', {
+                action: 'delete',
+                id: id,
+                ajax: 1
+            }, function(resp){
+                if(resp.success){
+                    toastr.success(resp.message || 'Test deleted successfully');
+                    loadTests(); // Reload the table
+                } else {
+                    toastr.error(resp.message || 'Delete failed');
+                }
+            }, 'json').fail(function(xhr){
+                var msg = xhr.responseText || 'Server error';
+                try{ 
+                    var j = JSON.parse(xhr.responseText || '{}'); 
+                    if(j.message) msg = j.message;
+                } catch(e){} 
+                toastr.error('Delete failed: ' + msg);
+            });
+        } catch(err){ 
+            console.error('delete-test handler error', err); 
+            toastr.error('Error: ' + (err.message || err)); 
+        }
     });
 
     // global fallback for view - show full details in modal
