@@ -65,7 +65,31 @@ if($hasTable){
                       echo number_format($mb, 2) . ' MB';
                     ?>
                   </td>
-                  <td><?php echo htmlspecialchars($f['created_at'] ?? ''); ?></td>
+                  <td>
+                    <?php
+                      $raw = $f['created_at'] ?? null;
+                      $out = '';
+                      if($raw){
+                        // Try parse common formats, prefer DB Y-m-d H:i:s
+                        $tz = new DateTimeZone('Asia/Kolkata');
+                        $dt = DateTime::createFromFormat('Y-m-d H:i:s', $raw, $tz);
+                        if(!$dt){
+                          // fallback: try strtotime
+                          $ts = strtotime($raw);
+                          if($ts !== false){
+                            $dt = new DateTime('@' . $ts);
+                            $dt->setTimezone($tz);
+                          }
+                        }
+                        if($dt){
+                          $out = $dt->format('d-m-Y H:i:s');
+                        } else {
+                          $out = htmlspecialchars($raw);
+                        }
+                      }
+                      echo $out;
+                    ?>
+                  </td>
                   <td><?php echo htmlspecialchars($f['uploaded_by_username'] ?? ($f['uploaded_by'] ?? '')); ?></td>
                   <td>
                     <button class="btn btn-sm btn-danger delete-upload" data-file="<?php echo htmlspecialchars($f['file_name']); ?>">Delete</button>
@@ -118,16 +142,4 @@ if($hasTable){
 </div>
 
 <?php require_once 'inc/footer.php'; ?>
-<script>
-$(function(){
-  $('#uploadsTable').DataTable();
-
-  $(document).on('click', '.delete-upload', function(){
-    if(!confirm('Delete file?')) return;
-    var file = $(this).data('file');
-    $.post('ajax/upload_file.php', { action: 'delete', file: file }, function(resp){
-      if(resp.success){ location.reload(); } else { toastr.error(resp.message||'Delete failed'); }
-    }, 'json').fail(function(){ toastr.error('Server error'); });
-  });
-});
-</script>
+<?php require_once 'inc/footer.php'; ?>
