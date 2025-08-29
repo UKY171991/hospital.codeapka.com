@@ -1,8 +1,11 @@
 <?php
 // ajax/upload_file.php - handles AJAX file uploads (ZIP or EXE)
+// return JSON and avoid accidental HTML from warnings
+@ini_set('display_errors', '0');
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../inc/connection.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
+ob_start();
 
 try{
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid method');
@@ -19,8 +22,9 @@ try{
             $deleted = unlink($path);
         }
         try{ $stmt = $pdo->prepare('DELETE FROM zip_uploads WHERE file_name = ? OR relative_path = ?'); $stmt->execute([$safe, 'uploads/'.$safe]); }catch(Throwable $e){}
-        echo json_encode(['success'=> (bool)$deleted ]);
-        exit;
+    echo json_encode(['success'=> (bool)$deleted ]);
+    ob_end_flush();
+    exit;
     }
 
     if (empty($_FILES['file'])) throw new Exception('No file uploaded');
@@ -63,7 +67,11 @@ try{
     }
 
     echo json_encode(['success'=>true,'file_name'=>$safeName,'original_name'=>$orig,'relative_path'=>$relative]);
+    ob_end_flush();
+    exit;
 } catch(Throwable $e){
     http_response_code(400);
     echo json_encode(['success'=>false,'message'=>$e->getMessage()]);
+    ob_end_flush();
+    exit;
 }
