@@ -65,7 +65,30 @@ try {
             $added_by = $_SESSION['user_id'] ?? null;
             $stmt = $pdo->prepare('INSERT INTO tests (category_id, name, description, price, unit, specimen, default_result, reference_range, min, max, sub_heading, test_code, method, print_new_page, shortcut, added_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
             $stmt->execute([$category_id, $name, $description, $price, $unit, $specimen, $default_result, $reference_range, $min, $max, $sub_heading, $test_code, $method, $print_new_page, $shortcut, $added_by]);
-            json_response(['success'=>true,'message'=>'Test created']);
+            
+            // Get the newly inserted record with joined data
+            $newId = $pdo->lastInsertId();
+            $stmt = $pdo->prepare("SELECT t.id,
+                tc.name as category_name,
+                t.category_id,
+                t.name,
+                t.description,
+                t.price,
+                t.unit,
+                t.min,
+                t.max,
+                t.sub_heading,
+                t.print_new_page,
+                t.added_by,
+                u.username as added_by_username
+                FROM tests t
+                LEFT JOIN categories tc ON t.category_id = tc.id
+                LEFT JOIN users u ON t.added_by = u.id
+                WHERE t.id = ?");
+            $stmt->execute([$newId]);
+            $newRecord = $stmt->fetch();
+            
+            json_response(['success'=>true,'message'=>'Test created', 'data'=>$newRecord]);
         }
     }
 

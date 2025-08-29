@@ -163,6 +163,23 @@ require_once 'inc/sidebar.php';
 <?php require_once 'inc/footer.php'; ?>
 
 <script>
+function addPatientToTable(patientData) {
+    var newRow = '<tr>' +
+        '<td>' + patientData.id + '</td>' +
+        '<td>' + (patientData.uhid || '') + '</td>' +
+        '<td>' + (patientData.name || '') + '</td>' +
+        '<td>' + (patientData.age || '') + '</td>' +
+        '<td>' + (patientData.gender || '') + '</td>' +
+        '<td>' + (patientData.phone || '') + '</td>' +
+        '<td><button class="btn btn-sm btn-info view-patient" data-id="' + patientData.id + '" onclick="viewPatient(' + patientData.id + ')">View</button> ' +
+            '<button class="btn btn-sm btn-warning edit-patient" data-id="' + patientData.id + '">Edit</button> ' +
+            '<button class="btn btn-sm btn-danger delete-patient" data-id="' + patientData.id + '">Delete</button></td>' +
+        '</tr>';
+    
+    // Add new row at the top of the table
+    $('#patientsTable tbody').prepend(newRow);
+}
+
 function loadPatients(){
     $.get('ajax/patient_api.php',{action:'list'},function(resp){
     if(resp.success){ var t=''; resp.data.forEach(function(p){ t += '<tr>'+
@@ -222,7 +239,15 @@ $(function(){
     $('#patientsSearch').on('input', function(){ var q=$(this).val().toLowerCase().trim(); if(!q){ $('#patientsTable tbody tr').show(); return; } $('#patientsTable tbody tr').each(function(){ var row=$(this); var text=row.text().toLowerCase(); row.toggle(text.indexOf(q)!==-1); }); });
     $('#patientsSearchClear').click(function(e){ e.preventDefault(); $('#patientsSearch').val(''); $('#patientsSearch').trigger('input'); });
 
-    $('#savePatientBtn').click(function(){ var data = $('#patientForm').serialize() + '&action=save'; $.post('ajax/patient_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#patientModal').modal('hide'); loadPatients(); } else toastr.error(resp.message||'Save failed'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+    $('#savePatientBtn').click(function(){ var data = $('#patientForm').serialize() + '&action=save'; $.post('ajax/patient_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#patientModal').modal('hide'); 
+        if(resp.data && !$('#patientId').val()) { 
+            // New record - add to table directly
+            addPatientToTable(resp.data); 
+        } else { 
+            // Update - reload table
+            loadPatients(); 
+        } 
+        $('#patientForm')[0].reset(); $('#patientId').val(''); } else toastr.error(resp.message||'Save failed'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
 
     // edit - use document delegation to be robust against dynamic table rebuilds
     $(document).on('click', '.edit-patient', function(){

@@ -83,7 +83,14 @@ if ($action === 'save') {
         $hash = password_hash($password ?: 'password', PASSWORD_DEFAULT);
         $stmt = $pdo->prepare('INSERT INTO users (username, password, full_name, email, role, added_by, is_active, last_login, expire_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())');
         $stmt->execute([$username, $hash, $full_name, $email, $role, $creatorId, $is_active, $last_login ?: null, $expire_date ?: null]);
-        json_response(['success' => true, 'message' => 'User created']);
+        
+        // Get the newly inserted record
+        $newId = $pdo->lastInsertId();
+        $stmt = $pdo->prepare('SELECT id, username, full_name, email, role, is_active FROM users WHERE id = ?');
+        $stmt->execute([$newId]);
+        $newRecord = $stmt->fetch();
+        
+        json_response(['success' => true, 'message' => 'User created', 'data' => $newRecord]);
     }
 }
 

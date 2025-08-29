@@ -41,7 +41,14 @@ try {
         } else {
             $stmt = $pdo->prepare('INSERT INTO patients (name, mobile, father_husband, address, sex, age, age_unit, uhid, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())');
             $stmt->execute([$name, $mobile, $father_husband, $address, $sex, $age, $age_unit, $uhid]);
-            json_response(['success' => true, 'message' => 'Patient created']);
+            
+            // Get the newly inserted record
+            $newId = $pdo->lastInsertId();
+            $stmt = $pdo->prepare('SELECT id, uhid, name, age, sex as gender, mobile as phone FROM patients WHERE id = ?');
+            $stmt->execute([$newId]);
+            $newRecord = $stmt->fetch();
+            
+            json_response(['success' => true, 'message' => 'Patient created', 'data' => $newRecord]);
         }
     }
 
