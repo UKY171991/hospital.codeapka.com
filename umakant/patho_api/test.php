@@ -41,7 +41,11 @@ try {
     }
 
     if ($action === 'get' && isset($_GET['id'])) {
-        $stmt = $pdo->prepare('SELECT * FROM tests WHERE id = ?');
+        $stmt = $pdo->prepare("SELECT t.*, tc.name as category_name, u.username as added_by_username
+            FROM tests t
+            LEFT JOIN categories tc ON t.category_id = tc.id
+            LEFT JOIN users u ON t.added_by = u.id
+            WHERE t.id = ?");
         $stmt->execute([$_GET['id']]);
         $row = $stmt->fetch();
         if (!$row) json_response(['success'=>false,'message'=>'Test not found'],404);
