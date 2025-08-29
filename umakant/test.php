@@ -226,19 +226,29 @@ function addTestToTable(testData) {
             var actions = '<button class="btn btn-sm btn-info view-test" data-id="' + testData.id + '" onclick="viewTest(' + testData.id + ')">View</button> ' +
                           '<button class="btn btn-sm btn-warning edit-test" data-id="' + testData.id + '">Edit</button> ' +
                           '<button class="btn btn-sm btn-danger delete-test" data-id="' + testData.id + '">Delete</button>';
-            var rowNode = table.row.add([
-                '', // placeholder for serial column (rendered by DataTable)
-                testData.id,
-                testData.category_name || '',
-                testData.name || '',
-                testData.price || '',
-                testData.added_by_username || '',
-                actions
-            ]).draw(false).node();
-            // Ensure newest appears at top: order by ID desc and go to first page
-            try{
-                table.order([[1, 'desc']]).page('first').draw(false);
-            }catch(e){ /* ignore */ }
+                // Add row without immediate draw to avoid inconsistent meta indexes
+                var rowNode = table.row.add([
+                    '', // placeholder for serial column (rendered by DataTable)
+                    testData.id,
+                    testData.category_name || '',
+                    testData.name || '',
+                    testData.price || '',
+                    testData.added_by_username || '',
+                    actions
+                ]).node();
+
+                // Ensure newest appears at top: order by ID desc and go to first page, then perform a full draw
+                try{
+                    table.order([[1, 'desc']]).page('first').draw();
+                    // Recompute serial numbers for visible page to avoid meta inconsistencies
+                    try{
+                        var nodes = table.rows({ order: 'applied', page: 'current' }).nodes();
+                        $(nodes).each(function(i, row){ $(row).find('td:first').text(i + 1); });
+                    }catch(eNum){ /* ignore numbering issues */ }
+                }catch(e){
+                    // fallback to drawing table to recalc numbering
+                    try{ table.draw(); }catch(e2){}
+                }
             return;
         } catch (e) {
             console.warn('Failed to add row via DataTable API, falling back to DOM:', e);
