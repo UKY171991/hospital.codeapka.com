@@ -176,6 +176,27 @@ require_once 'inc/sidebar.php';
     </div>
 </div>
 
+<!-- View Test Modal -->
+<div class="modal fade" id="viewTestModal" tabindex="-1" role="dialog" aria-labelledby="viewTestModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewTestModalLabel">Test Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="viewTestBody">
+                <!-- details injected by JS -->
+                <div class="text-center text-muted py-4">Loading...</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php require_once 'inc/footer.php'; ?>
 
 <script>
@@ -396,33 +417,30 @@ $(function(){
         }
     });
 
-    // global fallback for view - show full details in modal
+    // global view - show full details in dedicated view modal
     window.viewTest = function(id){
         try{
-            $.get('ajax/test_api.php',{action:'get',id:id}, function(resp){
+            $.get('ajax/test_api.php',{action:'get',id:id,ajax:1}, function(resp){
                 if(resp.success){
                     var d = resp.data || {};
-                    $('#testModalLabel').text('View Test');
-                    // populate form fields for viewing
-                    $('#testId').val(d.id);
-                    $('#testCategoryId').val(d.category_id);
-                    $('#testName').val(d.name);
-                    $('#testDescription').val(d.description);
-                    $('#testPrice').val(d.price);
-                    $('#testUnit').val(d.unit);
-                    $('#testMin').val(d.min);
-                    $('#testMax').val(d.max);
-                    // gender-specific ranges
-                    $('#testMinMale').val(d.min_male);
-                    $('#testMaxMale').val(d.max_male);
-                    $('#testMinFemale').val(d.min_female);
-                    $('#testMaxFemale').val(d.max_female);
-                    $('#testSubHeading').val(d.sub_heading);
-                    $('#testPrintNewPage').val(d.print_new_page);
-                    // disable inputs and show modal
-                    $('#testForm').find('input,textarea,select').prop('disabled', true);
-                    $('#saveTestBtn').hide();
-                    $('#testModal').modal('show');
+                    var html = '<dl class="dl-horizontal">';
+                    html += '<dt>Name</dt><dd>'+escapeHtml(d.name||'')+'</dd>';
+                    html += '<dt>Category</dt><dd>'+escapeHtml(d.category_name||'')+'</dd>';
+                    html += '<dt>Price</dt><dd>'+escapeHtml(d.price||'')+'</dd>';
+                    html += '<dt>Unit</dt><dd>'+escapeHtml(d.unit||'')+'</dd>';
+                    html += '<dt>Min (General)</dt><dd>'+escapeHtml(d.min||'')+'</dd>';
+                    html += '<dt>Max (General)</dt><dd>'+escapeHtml(d.max||'')+'</dd>';
+                    html += '<dt>Min (Male)</dt><dd>'+escapeHtml(d.min_male||'')+'</dd>';
+                    html += '<dt>Max (Male)</dt><dd>'+escapeHtml(d.max_male||'')+'</dd>';
+                    html += '<dt>Min (Female)</dt><dd>'+escapeHtml(d.min_female||'')+'</dd>';
+                    html += '<dt>Max (Female)</dt><dd>'+escapeHtml(d.max_female||'')+'</dd>';
+                    html += '<dt>Reference Range</dt><dd>'+escapeHtml(d.reference_range||'')+'</dd>';
+                    html += '<dt>Default Result</dt><dd>'+escapeHtml(d.default_result||'')+'</dd>';
+                    html += '<dt>Sub Heading</dt><dd>'+(d.sub_heading? 'Yes':'No')+'</dd>';
+                    html += '<dt>Print New Page</dt><dd>'+(d.print_new_page? 'Yes':'No')+'</dd>';
+                    html += '</dl>';
+                    $('#viewTestBody').html(html);
+                    $('#viewTestModal').modal('show');
                 } else {
                     toastr.error('Test not found');
                 }
