@@ -160,6 +160,10 @@ require_once 'inc/sidebar.php';
 
 <script>
 function addTestToTable(testData) {
+    // Check if table is currently empty (has only one row with colspan)
+    var isEmptyTable = $('#testsTable tbody tr').length === 1 && 
+                      $('#testsTable tbody tr:first td').attr('colspan') === '7';
+    
     // Add row to table
     var newRow = '<tr>' +
         '<td></td>' + // S.No. will be handled by DataTable
@@ -173,13 +177,18 @@ function addTestToTable(testData) {
             '<button class="btn btn-sm btn-danger delete-test" data-id="' + testData.id + '">Delete</button></td>' +
         '</tr>';
     
+    if (isEmptyTable) {
+        // Replace the empty message row with the new row
+        $('#testsTable tbody').html(newRow);
+    } else {
+        // Add new row to existing table
+        $('#testsTable tbody').prepend(newRow);
+    }
+    
     // Destroy existing DataTable if it exists
     if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
         $('#testsTable').DataTable().destroy();
     }
-    
-    // Add new row to table
-    $('#testsTable tbody').prepend(newRow);
     
     // Reinitialize DataTable
     if(typeof initDataTable === 'function'){
@@ -209,7 +218,7 @@ function loadTests(){
         if(resp.success && Array.isArray(resp.data)){
             var t=''; 
             if(resp.data.length === 0) {
-                t = '<tr><td colspan="7" class="text-center">No tests found</td></tr>';
+                t = '<tr><td colspan="7" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
             } else {
                 resp.data.forEach(function(x, idx){ t += '<tr>'+
                             '<td></td>'+ // S.No. - will be handled by DataTable
@@ -235,24 +244,15 @@ function loadTests(){
             // Initialize DataTable only if there are records
             if(resp.data.length > 0 && typeof initDataTable === 'function'){
                 initDataTable('#testsTable', { order: [[1, 'desc']] });
-            } else if(resp.data.length === 0 && typeof initDataTable === 'function'){
-                // For empty table, just initialize with basic DataTable for styling
-                initDataTable('#testsTable', { 
-                    paging: false,
-                    searching: false,
-                    ordering: false,
-                    info: false
-                });
-            } else {
-                console.warn('initDataTable is not defined; ensure assets/js/common.js is loaded');
             }
+            // Don't initialize DataTable for empty tables - let it show the message naturally
         } else {
             // Clear table and show error message
-            $('#testsTable tbody').html('<tr><td colspan="7" class="text-center text-danger">Failed to load tests</td></tr>');
+            $('#testsTable tbody').html('<tr><td colspan="7" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load tests</td></tr>');
             toastr.error('Failed to load tests');
         }
     },'json').fail(function(xhr){ 
-        $('#testsTable tbody').html('<tr><td colspan="7" class="text-center text-danger">Error loading tests</td></tr>');
+        $('#testsTable tbody').html('<tr><td colspan="7" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading tests</td></tr>');
         var msg = xhr.responseText || 'Server error'; 
         try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} 
         toastr.error(msg); 
