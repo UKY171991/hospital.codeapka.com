@@ -23,7 +23,16 @@ function initDataTable(selector, options) {
         responsive: true,
         lengthMenu: [10, 25, 50, 100],
         // make last column (actions) non-orderable by default
-        columnDefs: [ { orderable: false, targets: -1 } ],
+        columnDefs: [ 
+            { orderable: false, targets: -1 },
+            { 
+                targets: 0, // First column (S.No.)
+                orderable: false,
+                render: function(data, type, row, meta) {
+                    return meta.row + 1; // Row number starting from 1
+                }
+            }
+        ],
         language: {
             search: "Search:",
             lengthMenu: "Show _MENU_ entries",

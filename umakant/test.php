@@ -160,9 +160,8 @@ require_once 'inc/sidebar.php';
 
 <script>
 function addTestToTable(testData) {
-    var currentRowCount = $('#testsTable tbody tr').length;
     var newRow = '<tr>' +
-        '<td>' + (currentRowCount + 1) + '</td>' +
+        '<td></td>' + // S.No. will be handled by DataTable
         '<td>' + testData.id + '</td>' +
         '<td>' + (testData.category_name || '') + '</td>' +
         '<td>' + (testData.name || '') + '</td>' +
@@ -173,16 +172,29 @@ function addTestToTable(testData) {
             '<button class="btn btn-sm btn-danger delete-test" data-id="' + testData.id + '">Delete</button></td>' +
         '</tr>';
     
-    // Add new row at the top of the table
-    $('#testsTable tbody').prepend(newRow);
-    
-    // Re-initialize DataTable if it exists
-    if ($.fn.DataTable && $('#testsTable').hasClass('dataTable')) {
-        $('#testsTable').DataTable().destroy();
-        if (typeof initDataTable === 'function') {
-            initDataTable('#testsTable', { order: [[1, 'desc']] });
+    // Check if DataTable is initialized
+    if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
+        try {
+            // Add row to DataTable
+            var table = $('#testsTable').DataTable();
+            table.row.add($(newRow)).draw();
+        } catch (e) {
+            console.error('Error adding row to DataTable:', e);
+            // Fallback: reload the table
+            loadTests();
         }
+    } else {
+        // Add row to regular table
+        $('#testsTable tbody').prepend(newRow);
+        // Update serial numbers
+        updateSerialNumbers();
     }
+}
+
+function updateSerialNumbers() {
+    $('#testsTable tbody tr').each(function(index) {
+        $(this).find('td:first').text(index + 1);
+    });
 }
 
 function loadCategoriesForTests(){
@@ -196,7 +208,7 @@ function loadTests(){
     $.get('ajax/test_api.php',{action:'list',ajax:1},function(resp){
         if(resp.success && Array.isArray(resp.data)){
             var t=''; resp.data.forEach(function(x, idx){ t += '<tr>'+
-                        '<td>'+(idx+1)+'</td>'+ // S.No.
+                        '<td></td>'+ // S.No. - will be handled by DataTable
                         '<td>'+x.id+'</td>'+
                         '<td>'+ (x.category_name||'') +'</td>'+
                         '<td>'+ (x.name||'') +'</td>'+
@@ -234,15 +246,35 @@ $(function(){
     loadCategoriesForTests();
     loadTests();
 
-    $('#saveTestBtn').click(function(){ var data = $('#testForm').serialize() + '&action=save&ajax=1'; $.post('ajax/test_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#testModal').modal('hide'); 
-        if(resp.data && !$('#testId').val()) { 
-            // New record - add to table directly
-            addTestToTable(resp.data); 
-        } else { 
-            // Update - reload table
-            loadTests(); 
-        } 
-        $('#testForm')[0].reset(); $('#testId').val(''); } else toastr.error(resp.message||'Save failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+    $('#saveTestBtn').click(function(){ 
+        var isEdit = $('#testId').val() !== '';
+        var data = $('#testForm').serialize() + '&action=save&ajax=1'; 
+        
+        $.post('ajax/test_api.php', data, function(resp){ 
+            if(resp.success){ 
+                toastr.success(resp.message||'Saved'); 
+                $('#testModal').modal('hide'); 
+                
+                if(resp.data && !isEdit) { 
+                    // New record - add to table directly
+                    addTestToTable(resp.data); 
+                } else { 
+                    // Update - reload table
+                    loadTests(); 
+                } 
+                
+                // Reset form after successful save
+                $('#testForm')[0].reset(); 
+                $('#testId').val(''); 
+            } else { 
+                toastr.error(resp.message||'Save failed'); 
+            } 
+        }, 'json').fail(function(xhr){ 
+            var msg = xhr.responseText || 'Server error'; 
+            try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} 
+            toastr.error(msg); 
+        }); 
+    });
 
     // DataTables provides search and paging; removed custom filters
 
