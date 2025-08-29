@@ -423,22 +423,50 @@ $(function(){
             $.get('ajax/test_api.php',{action:'get',id:id,ajax:1}, function(resp){
                 if(resp.success){
                     var d = resp.data || {};
-                    var html = '<dl class="dl-horizontal">';
-                    html += '<dt>Name</dt><dd>'+escapeHtml(d.name||'')+'</dd>';
-                    html += '<dt>Category</dt><dd>'+escapeHtml(d.category_name||'')+'</dd>';
-                    html += '<dt>Price</dt><dd>'+escapeHtml(d.price||'')+'</dd>';
-                    html += '<dt>Unit</dt><dd>'+escapeHtml(d.unit||'')+'</dd>';
-                    html += '<dt>Min (General)</dt><dd>'+escapeHtml(d.min||'')+'</dd>';
-                    html += '<dt>Max (General)</dt><dd>'+escapeHtml(d.max||'')+'</dd>';
-                    html += '<dt>Min (Male)</dt><dd>'+escapeHtml(d.min_male||'')+'</dd>';
-                    html += '<dt>Max (Male)</dt><dd>'+escapeHtml(d.max_male||'')+'</dd>';
-                    html += '<dt>Min (Female)</dt><dd>'+escapeHtml(d.min_female||'')+'</dd>';
-                    html += '<dt>Max (Female)</dt><dd>'+escapeHtml(d.max_female||'')+'</dd>';
-                    html += '<dt>Reference Range</dt><dd>'+escapeHtml(d.reference_range||'')+'</dd>';
-                    html += '<dt>Default Result</dt><dd>'+escapeHtml(d.default_result||'')+'</dd>';
-                    html += '<dt>Sub Heading</dt><dd>'+(d.sub_heading? 'Yes':'No')+'</dd>';
-                    html += '<dt>Print New Page</dt><dd>'+(d.print_new_page? 'Yes':'No')+'</dd>';
-                    html += '</dl>';
+                    var html = '';
+                    html += '<div class="container-fluid">';
+                    html += '<div class="row">';
+                    // Left column: main info
+                    html += '<div class="col-md-7">';
+                    html += '  <h4 class="mb-1">' + escapeHtml(d.name || '') + ' <small class="text-muted">#' + escapeHtml(d.id || '') + '</small></h4>';
+                    if(d.description) html += '<p class="text-muted">' + escapeHtml(d.description) + '</p>';
+                    html += '  <div class="row">';
+                    html += '    <div class="col-sm-6"><strong>Category</strong><div>' + escapeHtml(d.category_name||'') + '</div></div>';
+                    html += '    <div class="col-sm-6"><strong>Price</strong><div>' + escapeHtml(d.price||'') + '</div></div>';
+                    html += '    <div class="col-sm-6 mt-2"><strong>Unit</strong><div>' + escapeHtml(d.unit||'') + '</div></div>';
+                    html += '    <div class="col-sm-6 mt-2"><strong>Sub Heading</strong><div>' + (d.sub_heading? 'Yes':'No') + '</div></div>';
+                    html += '  </div>'; // row
+                    html += '</div>'; // col-md-7
+
+                    // Right column: metadata and actions
+                    html += '<div class="col-md-5">';
+                    html += '  <div class="card border-0">';
+                    html += '    <div class="card-body p-2">';
+                    html += '      <p class="mb-1"><small class="text-muted">Added By</small><br><strong>' + escapeHtml(d.added_by_username||'') + '</strong></p>';
+                    html += '      <p class="mb-1"><small class="text-muted">Print New Page</small><br><strong>' + (d.print_new_page? 'Yes':'No') + '</strong></p>';
+                    html += '      <p class="mb-0"><small class="text-muted">Default Result</small><br>' + escapeHtml(d.default_result||'') + '</p>';
+                    html += '    </div>'; 
+                    html += '  </div>';
+                    html += '</div>'; // col-md-5
+
+                    html += '</div>'; // row
+
+                    // Ranges table
+                    html += '<hr/>';
+                    html += '<h6 class="mb-2">Reference Ranges</h6>';
+                    html += '<div class="table-responsive">';
+                    html += '<table class="table table-sm table-bordered">';
+                    html += '<thead class="thead-light"><tr><th>Scope</th><th>Min</th><th>Max</th></tr></thead>';
+                    html += '<tbody>';
+                    html += '<tr><td>General</td><td>' + escapeHtml(d.min||'') + '</td><td>' + escapeHtml(d.max||'') + '</td></tr>';
+                    html += '<tr><td>Male</td><td>' + escapeHtml(d.min_male||'') + '</td><td>' + escapeHtml(d.max_male||'') + '</td></tr>';
+                    html += '<tr><td>Female</td><td>' + escapeHtml(d.min_female||'') + '</td><td>' + escapeHtml(d.max_female||'') + '</td></tr>';
+                    html += '</tbody></table></div>';
+
+                    if(d.reference_range){ html += '<p class="mt-2"><strong>Reference Note:</strong> ' + escapeHtml(d.reference_range) + '</p>'; }
+
+                    html += '</div>'; // container-fluid
+
                     $('#viewTestBody').html(html);
                     $('#viewTestModal').modal('show');
                 } else {
