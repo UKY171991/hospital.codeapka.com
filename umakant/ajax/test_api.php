@@ -18,6 +18,10 @@ try {
             t.unit,
             t.min,
             t.max,
+            t.min_male,
+            t.max_male,
+            t.min_female,
+            t.max_female,
             t.sub_heading,
             t.print_new_page,
             t.added_by,
@@ -49,8 +53,12 @@ try {
         $specimen = trim($_POST['specimen'] ?? '');
         $default_result = trim($_POST['default_result'] ?? '');
         $reference_range = trim($_POST['reference_range'] ?? '');
-        $min = $_POST['min'] ?? null;
-        $max = $_POST['max'] ?? null;
+    $min = $_POST['min'] ?? null;
+    $max = $_POST['max'] ?? null;
+    $min_male = $_POST['min_male'] ?? null;
+    $max_male = $_POST['max_male'] ?? null;
+    $min_female = $_POST['min_female'] ?? null;
+    $max_female = $_POST['max_female'] ?? null;
         $sub_heading = $_POST['sub_heading'] ?? 0;
         $test_code = trim($_POST['test_code'] ?? '');
         $method = trim($_POST['method'] ?? '');
@@ -58,13 +66,13 @@ try {
         $shortcut = trim($_POST['shortcut'] ?? '');
 
         if ($id) {
-            $stmt = $pdo->prepare('UPDATE tests SET category_id=?, name=?, description=?, price=?, unit=?, specimen=?, default_result=?, reference_range=?, min=?, max=?, sub_heading=?, test_code=?, method=?, print_new_page=?, shortcut=? WHERE id=?');
-            $stmt->execute([$category_id, $name, $description, $price, $unit, $specimen, $default_result, $reference_range, $min, $max, $sub_heading, $test_code, $method, $print_new_page, $shortcut, $id]);
+            $stmt = $pdo->prepare('UPDATE tests SET category_id=?, name=?, description=?, price=?, unit=?, specimen=?, default_result=?, reference_range=?, min=?, max=?, min_male=?, max_male=?, min_female=?, max_female=?, sub_heading=?, test_code=?, method=?, print_new_page=?, shortcut=? WHERE id=?');
+            $stmt->execute([$category_id, $name, $description, $price, $unit, $specimen, $default_result, $reference_range, $min, $max, $min_male, $max_male, $min_female, $max_female, $sub_heading, $test_code, $method, $print_new_page, $shortcut, $id]);
             json_response(['success'=>true,'message'=>'Test updated']);
         } else {
             $added_by = $_SESSION['user_id'] ?? null;
-            $stmt = $pdo->prepare('INSERT INTO tests (category_id, name, description, price, unit, specimen, default_result, reference_range, min, max, sub_heading, test_code, method, print_new_page, shortcut, added_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-            $stmt->execute([$category_id, $name, $description, $price, $unit, $specimen, $default_result, $reference_range, $min, $max, $sub_heading, $test_code, $method, $print_new_page, $shortcut, $added_by]);
+            $stmt = $pdo->prepare('INSERT INTO tests (category_id, name, description, price, unit, specimen, default_result, reference_range, min, max, min_male, max_male, min_female, max_female, sub_heading, test_code, method, print_new_page, shortcut, added_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+            $stmt->execute([$category_id, $name, $description, $price, $unit, $specimen, $default_result, $reference_range, $min, $max, $min_male, $max_male, $min_female, $max_female, $sub_heading, $test_code, $method, $print_new_page, $shortcut, $added_by]);
             
             // Get the newly inserted record with joined data
             $newId = $pdo->lastInsertId();
@@ -77,6 +85,10 @@ try {
                 t.unit,
                 t.min,
                 t.max,
+                t.min_male,
+                t.max_male,
+                t.min_female,
+                t.max_female,
                 t.sub_heading,
                 t.print_new_page,
                 t.added_by,

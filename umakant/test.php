@@ -118,9 +118,9 @@ require_once 'inc/sidebar.php';
                                 <!-- Default Result and Reference Range removed -->
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
-                                        <label for="testMin">Min Value (General)</label>
-                                        <input type="number" class="form-control" id="testMin" name="min" step="0.01">
-                                    </div>
+                                            <label for="testMin">Min Value (General)</label>
+                                            <input type="number" class="form-control" id="testMin" name="min" step="0.01">
+                                        </div>
                                     <div class="form-group col-md-6">
                                         <label for="testMax">Max Value (General)</label>
                                         <input type="number" class="form-control" id="testMax" name="max" step="0.01">
@@ -299,6 +299,7 @@ $(function(){
 
     $('#saveTestBtn').click(function(){ 
         var isEdit = $('#testId').val() !== '';
+        // ensure new gender fields are included
         var data = $('#testForm').serialize() + '&action=save&ajax=1'; 
         
         $.post('ajax/test_api.php', data, function(resp){ 
@@ -334,7 +335,33 @@ $(function(){
         try{
             console.debug('edit-test clicked', $(this).data('id'));
             var id=$(this).data('id');
-            $.get('ajax/test_api.php',{action:'get',id:id,ajax:1}, function(resp){ if(resp.success){ var d=resp.data; $('#testId').val(d.id); $('#testCategoryId').val(d.category_id); $('#testName').val(d.name); $('#testDescription').val(d.description); $('#testPrice').val(d.price); $('#testUnit').val(d.unit); $('#testMin').val(d.min); $('#testMax').val(d.max); $('#testSubHeading').val(d.sub_heading); $('#testPrintNewPage').val(d.print_new_page); $('#testModal').modal('show'); } else toastr.error('Test not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+            $.get('ajax/test_api.php',{action:'get',id:id,ajax:1}, function(resp){
+                if(resp.success){
+                    var d = resp.data || {};
+                    // populate fields
+                    $('#testId').val(d.id);
+                    $('#testCategoryId').val(d.category_id);
+                    $('#testName').val(d.name);
+                    $('#testDescription').val(d.description);
+                    $('#testPrice').val(d.price);
+                    $('#testUnit').val(d.unit);
+                    $('#testMin').val(d.min);
+                    $('#testMax').val(d.max);
+                    // gender-specific ranges
+                    $('#testMinMale').val(d.min_male);
+                    $('#testMaxMale').val(d.max_male);
+                    $('#testMinFemale').val(d.min_female);
+                    $('#testMaxFemale').val(d.max_female);
+                    $('#testSubHeading').val(d.sub_heading);
+                    $('#testPrintNewPage').val(d.print_new_page);
+                    // ensure form inputs are enabled for editing and show save
+                    $('#testForm').find('input,textarea,select').prop('disabled', false);
+                    $('#saveTestBtn').show();
+                    $('#testModal').modal('show');
+                } else {
+                    toastr.error('Test not found');
+                }
+            },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
         }catch(err){ console.error('edit-test handler error', err); toastr.error('Error: '+(err.message||err)); }
     });
 
@@ -385,6 +412,11 @@ $(function(){
                     $('#testUnit').val(d.unit);
                     $('#testMin').val(d.min);
                     $('#testMax').val(d.max);
+                    // gender-specific ranges
+                    $('#testMinMale').val(d.min_male);
+                    $('#testMaxMale').val(d.max_male);
+                    $('#testMinFemale').val(d.min_female);
+                    $('#testMaxFemale').val(d.max_female);
                     $('#testSubHeading').val(d.sub_heading);
                     $('#testPrintNewPage').val(d.print_new_page);
                     // disable inputs and show modal
