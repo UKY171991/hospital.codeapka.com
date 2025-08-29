@@ -108,6 +108,9 @@ document.getElementById('startUpload').addEventListener('click', function(){
         bar.textContent = '0%';
         // indeterminate animation fallback (cycles width) until we get lengthComputable
         var indeterminateTimer = null;
+        var simTimer = null;
+        var simPct = 0;
+        var sawDeterminate = false;
             function startIndeterminate(){
             if(indeterminateTimer) return;
             bar.classList.add('progress-bar-animated');
@@ -123,21 +126,44 @@ document.getElementById('startUpload').addEventListener('click', function(){
             bar.classList.remove('progress-bar-animated');
                 if(progressText) { progressText.style.display = 'none'; }
         }
+
+            function startSimulation(bytes){
+                // only start if real progress isn't available
+                if(simTimer) return;
+                simPct = 0;
+                // estimate duration based on size at ~150 KB/s, clamp 2s..60s
+                var kb = Math.max(1, Math.round(bytes / 1024));
+                var speedKbPerSec = 150; // conservative
+                var estMs = Math.min(60000, Math.max(2000, Math.round((kb / speedKbPerSec) * 1000)));
+                var stepMs = 500;
+                var stepInc = (estMs > 0) ? (80 * stepMs / estMs) : 5; // aim to reach ~80%
+                simTimer = setInterval(function(){
+                    simPct = Math.min(95, simPct + stepInc + Math.random()*2);
+                    bar.style.width = Math.round(simPct) + '%';
+                    bar.textContent = Math.round(simPct) + '%';
+                    if(progressText) progressText.textContent = Math.round(simPct) + '% (estimating)';
+                }, stepMs);
+            }
+
+            function stopSimulation(){ if(simTimer){ clearInterval(simTimer); simTimer = null; simPct = 0; } }
         // start the indeterminate animation immediately to give feedback
         startIndeterminate();
 
     xhr.upload.addEventListener('progress', function(e){
-            if(e.lengthComputable){
+        if(e.lengthComputable){
+            sawDeterminate = true;
+            stopSimulation();
+            stopIndeterminate();
             var pct = Math.round((e.loaded / e.total) * 100);
             // switch to determinate mode
-            stopIndeterminate();
             bar.style.width = pct + '%';
             bar.textContent = pct + '%';
-                if(progressText) progressText.textContent = pct + '% (' + Math.round(e.loaded/1024) + ' KB / ' + Math.round(e.total/1024) + ' KB)';
+            if(progressText) progressText.textContent = pct + '% (' + Math.round(e.loaded/1024) + ' KB / ' + Math.round(e.total/1024) + ' KB)';
         } else {
-            // keep indeterminate animation running
+            // keep indeterminate animation running, but also start a simulated percent for better UX
             startIndeterminate();
             bar.textContent = 'Uploading...';
+            if(!sawDeterminate){ startSimulation(file.size); }
         }
     });
 
