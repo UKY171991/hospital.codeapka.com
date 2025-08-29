@@ -118,12 +118,32 @@ require_once 'inc/sidebar.php';
                                 <!-- Default Result and Reference Range removed -->
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
-                                        <label for="testMin">Min Value</label>
+                                        <label for="testMin">Min Value (General)</label>
                                         <input type="number" class="form-control" id="testMin" name="min" step="0.01">
                                     </div>
                                     <div class="form-group col-md-6">
-                                        <label for="testMax">Max Value</label>
+                                        <label for="testMax">Max Value (General)</label>
                                         <input type="number" class="form-control" id="testMax" name="max" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="testMinMale">Min Value (Male)</label>
+                                        <input type="number" class="form-control" id="testMinMale" name="min_male" step="0.01">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="testMaxMale">Max Value (Male)</label>
+                                        <input type="number" class="form-control" id="testMaxMale" name="max_male" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="testMinFemale">Min Value (Female)</label>
+                                        <input type="number" class="form-control" id="testMinFemale" name="min_female" step="0.01">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="testMaxFemale">Max Value (Female)</label>
+                                        <input type="number" class="form-control" id="testMaxFemale" name="max_female" step="0.01">
                                     </div>
                                 </div>
                                 <div class="form-group">
