@@ -111,6 +111,7 @@ document.getElementById('startUpload').addEventListener('click', function(){
         var simTimer = null;
         var simPct = 0;
         var sawDeterminate = false;
+        var simStarterTimer = null;
             function startIndeterminate(){
             if(indeterminateTimer) return;
             bar.classList.add('progress-bar-animated');
@@ -168,6 +169,7 @@ document.getElementById('startUpload').addEventListener('click', function(){
     });
 
     xhr.addEventListener('load', function(){
+        if(simStarterTimer){ clearTimeout(simStarterTimer); simStarterTimer = null; }
         // request finished (may be success or error)
         try{
             var res = JSON.parse(xhr.responseText || '{}');
@@ -190,6 +192,7 @@ document.getElementById('startUpload').addEventListener('click', function(){
     });
 
     xhr.addEventListener('error', function(){
+        if(simStarterTimer){ clearTimeout(simStarterTimer); simStarterTimer = null; }
     msg.innerHTML = '<div class="alert alert-danger">Upload failed due to a network error.</div>';
     stopIndeterminate();
     bar.classList.remove('progress-bar-striped');
@@ -199,6 +202,7 @@ document.getElementById('startUpload').addEventListener('click', function(){
     });
 
     xhr.addEventListener('abort', function(){
+        if(simStarterTimer){ clearTimeout(simStarterTimer); simStarterTimer = null; }
     msg.innerHTML = '<div class="alert alert-warning">Upload canceled.</div>';
     stopIndeterminate();
     bar.classList.remove('progress-bar-striped');
@@ -208,5 +212,7 @@ document.getElementById('startUpload').addEventListener('click', function(){
     });
 
     xhr.send(form);
+    // If no progress events arrive quickly, start the simulation so percent becomes visible
+    simStarterTimer = setTimeout(function(){ if(!sawDeterminate){ startSimulation(file.size); } }, 300);
 });
 </script>
