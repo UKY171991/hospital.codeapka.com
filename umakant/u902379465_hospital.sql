@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Aug 29, 2025 at 05:02 AM
+-- Generation Time: Aug 29, 2025 at 05:37 AM
 -- Server version: 10.11.10-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -264,8 +264,19 @@ CREATE TABLE `tests` (
   `method` varchar(100) DEFAULT NULL,
   `print_new_page` tinyint(1) NOT NULL DEFAULT 0,
   `shortcut` varchar(50) DEFAULT NULL,
-  `added_by` int(11) DEFAULT NULL
+  `added_by` int(11) DEFAULT NULL,
+  `min_male` decimal(10,2) DEFAULT NULL,
+  `max_male` decimal(10,2) DEFAULT NULL,
+  `min_female` decimal(10,2) DEFAULT NULL,
+  `max_female` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `tests`
+--
+
+INSERT INTO `tests` (`id`, `name`, `description`, `category_id`, `price`, `unit`, `specimen`, `default_result`, `reference_range`, `min`, `max`, `sub_heading`, `test_code`, `method`, `print_new_page`, `shortcut`, `added_by`, `min_male`, `max_male`, `min_female`, `max_female`) VALUES
+(19, 'Graham Sherman', 'Quibusdam est dolore', 45, 619.00, 'Laboris odio adipisi', '', '', '', 100.00, 110.00, 1, '', '', 0, '', 1, 74.00, 80.00, 74.00, 87.00);
 
 -- --------------------------------------------------------
 
@@ -442,7 +453,7 @@ ALTER TABLE `reports`
 -- AUTO_INCREMENT for table `tests`
 --
 ALTER TABLE `tests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `users`

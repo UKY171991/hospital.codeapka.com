@@ -218,6 +218,34 @@ function addTestToTable(testData) {
             '<button class="btn btn-sm btn-danger delete-test" data-id="' + testData.id + '">Delete</button></td>' +
         '</tr>';
     
+    // If DataTable is present, use its API to add the row for better UX
+    if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
+        try {
+            var table = $('#testsTable').DataTable();
+            // Build row data array matching columns: S.No. (auto), ID, Category, Name, Price, Added By, Actions
+            var actions = '<button class="btn btn-sm btn-info view-test" data-id="' + testData.id + '" onclick="viewTest(' + testData.id + ')">View</button> ' +
+                          '<button class="btn btn-sm btn-warning edit-test" data-id="' + testData.id + '">Edit</button> ' +
+                          '<button class="btn btn-sm btn-danger delete-test" data-id="' + testData.id + '">Delete</button>';
+            var rowNode = table.row.add([
+                '', // placeholder for serial column (rendered by DataTable)
+                testData.id,
+                testData.category_name || '',
+                testData.name || '',
+                testData.price || '',
+                testData.added_by_username || '',
+                actions
+            ]).draw(false).node();
+            // Ensure newest appears at top: order by ID desc and go to first page
+            try{
+                table.order([[1, 'desc']]).page('first').draw(false);
+            }catch(e){ /* ignore */ }
+            return;
+        } catch (e) {
+            console.warn('Failed to add row via DataTable API, falling back to DOM:', e);
+        }
+    }
+
+    // Fallback when no DataTable exists: insert into DOM
     if (isEmptyTable) {
         // Replace the empty message row with the new row
         $('#testsTable tbody').html(newRow);
@@ -225,20 +253,8 @@ function addTestToTable(testData) {
         // Add new row to existing table
         $('#testsTable tbody').prepend(newRow);
     }
-    
-    // Destroy existing DataTable if it exists
-    if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
-        $('#testsTable').DataTable().destroy();
-    }
-    
-    // Reinitialize DataTable
-    if(typeof initDataTable === 'function'){
-        initDataTable('#testsTable', { order: [[1, 'desc']] });
-    } else {
-        console.warn('initDataTable is not defined; ensure assets/js/common.js is loaded');
-        // Fallback: update serial numbers for regular table
-        updateSerialNumbers();
-    }
+    // update serial numbers for regular table
+    updateSerialNumbers();
 }
 
 function updateSerialNumbers() {

@@ -60,5 +60,6 @@ function initDataTable(selector, options) {
         }
     };
     var dtOptions = $.extend(true, {}, defaultOptions, options || {});
-    $(selector).DataTable(dtOptions);
+    var table = $(selector).DataTable(dtOptions);
+    return table; // return instance for programmatic updates
 }
