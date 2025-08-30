@@ -87,73 +87,43 @@ if($hasTable){
                           $out = htmlspecialchars($raw);
                         }
                       }
-                  </div>
-
-                <?php require_once 'inc/footer.php'; ?>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
-            </div>
-          </div>
+                      echo $out;
+                    ?>
+                  </td>
+                  <td><?php echo htmlspecialchars($f['uploaded_by_username'] ?? ($f['uploaded_by'] ?? '')); ?></td>
+                  <td>
+                    <button class="btn btn-sm btn-danger delete-upload" data-file="<?php echo htmlspecialchars($f['file_name']); ?>">Delete</button>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
         </div>
       </div>
+    </div>
+  </section>
 
-      <script>
-      $(function(){
-        $('#uploadsTable').DataTable();
+  <!-- Delete confirmation modal -->
+  <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmDeleteLabel">Confirm Delete</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to delete this uploaded file? This cannot be undone.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        $(document).on('click', '.delete-upload', function(){
-          var $btn = $(this);
-          var file = $btn.data('file');
-          var $row = $btn.closest('tr');
-          // store target row on modal for later removal
-          $('#confirmDeleteModal').data('targetRow', $row).data('targetFile', file).modal('show');
-        });
-
-        $('#confirmDeleteBtn').on('click', function(){
-          var $modal = $('#confirmDeleteModal');
-          var file = $modal.data('targetFile');
-          var $row = $modal.data('targetRow');
-          var $confirm = $(this);
-          if(!file){ toastr.error('No file selected'); return; }
-          // close modal and disable button while request runs
-          $modal.modal('hide');
-          $confirm.prop('disabled', true).text('Deleting...');
-
-          $.ajax({
-            url: 'ajax/upload_file.php',
-            method: 'POST',
-            data: { action: 'delete', file: file },
-            dataType: 'json'
-          }).done(function(resp){
-            console.log('Delete response:', resp);
-            if(resp && resp.success){
-              toastr.success('File deleted');
-              // remove row from table gracefully
-              if($row && $row.length){
-                $row.fadeOut(250, function(){
-                  var table = $('#uploadsTable').DataTable();
-                  // if DataTable exists remove row via API
-                  if($.fn.dataTable.isDataTable('#uploadsTable')){
-                    table.row($(this)).remove().draw(false);
-                  } else { $(this).remove(); }
-                });
-              } else {
-                setTimeout(function(){ location.reload(); }, 500);
-              }
-            } else {
-              toastr.error('Delete failed: ' + (resp && resp.message ? resp.message : 'Unknown'));
-              console.error('Delete error:', resp);
-            }
-          }).fail(function(xhr, status, err){
-            toastr.error('Server error while deleting');
-            console.error('AJAX fail:', xhr.status, xhr.responseText, status, err);
-          }).always(function(){
-            $confirm.prop('disabled', false).text('Delete');
-          });
-        });
-      });
-      </script>
 </div>
 
 <?php require_once 'inc/footer.php'; ?>
@@ -189,6 +159,32 @@ $(function(){
     }).done(function(resp){
       console.log('Delete response:', resp);
       if(resp && resp.success){
+        toastr.success('File deleted');
+        // remove row from table gracefully
+        if($row && $row.length){
+          $row.fadeOut(250, function(){
+            var table = $('#uploadsTable').DataTable();
+            // if DataTable exists remove row via API
+            if($.fn.dataTable.isDataTable('#uploadsTable')){
+              table.row($(this)).remove().draw(false);
+            } else { $(this).remove(); }
+          });
+        } else {
+          setTimeout(function(){ location.reload(); }, 500);
+        }
+      } else {
+        toastr.error('Delete failed: ' + (resp && resp.message ? resp.message : 'Unknown'));
+        console.error('Delete error:', resp);
+      }
+    }).fail(function(xhr, status, err){
+      toastr.error('Server error while deleting');
+      console.error('AJAX fail:', xhr.status, xhr.responseText, status, err);
+    }).always(function(){
+      $confirm.prop('disabled', false).text('Delete');
+    });
+  });
+});
+</script>
         toastr.success('File deleted');
         // remove row from table gracefully
         if($row && $row.length){
