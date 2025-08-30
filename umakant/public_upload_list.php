@@ -29,7 +29,14 @@ echo '<tbody>';
 foreach ($files as $f) {
     $url = $baseUrl . rawurlencode($f['name']);
     $sizeMB = number_format($f['size'] / (1024*1024), 2);
-    $time = date('Y-m-d H:i', $f['mtime']);
+    // Format modification time in Asia/Kolkata (IST) so displayed times match local expectations
+    try {
+        $dt = new DateTime('@' . $f['mtime']);
+        $dt->setTimezone(new DateTimeZone('Asia/Kolkata'));
+        $time = $dt->format('Y-m-d H:i') . ' IST';
+    } catch (Exception $e) {
+        $time = date('Y-m-d H:i', $f['mtime']);
+    }
     echo '<tr>';
     echo '<td style="padding:8px;border-bottom:1px solid #f1f1f1"><a href="' . htmlspecialchars($url) . '" target="_blank">' . htmlspecialchars($f['name']) . '</a></td>';
     echo '<td style="padding:8px;border-bottom:1px solid #f1f1f1">' . $sizeMB . ' MB</td>';
