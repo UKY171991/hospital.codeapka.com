@@ -58,7 +58,7 @@
       <div class="card-grid pricing-grid">
         <div class="card plan">
           <h3>Starter</h3>
-          <div class="price">$199 <span class="small">/ month</span></div>
+    <div class="price">₹16,499 <span class="small">/ month</span></div>
           <div class="features small">
             <div>• Up to 3 users</div>
             <div>• Basic pathology module</div>
@@ -69,7 +69,7 @@
 
         <div class="card plan">
           <h3>Professional</h3>
-          <div class="price">$499 <span class="small">/ month</span></div>
+          <div class="price">₹41,499 <span class="small">/ month</span></div>
           <div class="features small">
             <div>• Up to 15 users</div>
             <div>• Full pathology + hospital modules</div>
