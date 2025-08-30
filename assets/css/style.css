@@ -123,6 +123,22 @@ button[type=submit]{background:var(--primary);color:#fff;padding:0.7rem 1rem;bor
 .navbar .nav-link.active{background:rgba(255,255,255,0.12);border-radius:6px}
 .navbar .navbar-nav{align-items:center}
 
+/* Place the toggler on the right on narrow viewports */
+.navbar .navbar-toggler{margin-left:auto}
+
+/* Footer improvements */
+.site-footer{padding-top:2rem;padding-bottom:2rem}
+.site-footer .container{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;align-items:start}
+.site-footer .footer-grid h4{margin:0 0 .5rem 0}
+.site-footer a{color:var(--primary);text-decoration:none}
+.site-footer .small a{color:var(--muted)}
+
+@media (max-width:720px){
+  .site-footer .container{grid-template-columns:1fr !important}
+  .site-footer .footer-grid{grid-template-columns:1fr !important}
+  .site-footer{padding:1rem 0}
+}
+
 /* Bootstrap compatibility overrides */
 .navbar .logo{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fff;color:var(--primary);font-weight:700}
 .navbar .small{color:rgba(255,255,255,0.9)}
