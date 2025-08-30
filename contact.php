@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <div class="feature-icon mb-4" style="width: 120px; height: 120px; font-size: 4rem; margin: 0 auto;">✅</div>
               <h3>Message Sent Successfully!</h3>
               <p class="small">Thank you, <?php echo htmlspecialchars($name); ?>. Your message has been received. We'll get back to <?php echo htmlspecialchars($email); ?> soon.</p>
-              <p><a class="button" href="contact.php">Send Another Message</a></p>
+              <p><a class="btn" href="contact.php">Send Another Message</a></p>
             </div>
           <?php else: ?>
             <?php if ($error): ?>

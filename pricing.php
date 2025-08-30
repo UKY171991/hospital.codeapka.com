@@ -27,7 +27,7 @@ $plan = $_GET['plan'] ?? '';
           <div class="feature-icon mb-4" style="width: 120px; height: 120px; font-size: 4rem; margin: 0 auto;">📋</div>
           <h3>Selected Plan: <?php echo htmlspecialchars(ucfirst($plan)); ?></h3>
           <p class="small">Great choice! Our sales team will prepare your customized onboarding plan.</p>
-          <p><a class="button" href="contact.php">Contact Sales Team</a></p>
+          <p><a class="btn" href="contact.php">Contact Sales Team</a></p>
         </div>
       <?php else: ?>
         <div class="card">
@@ -67,7 +67,7 @@ $plan = $_GET['plan'] ?? '';
         <h3>Still Have Questions?</h3>
         <p class="small">Our sales team is ready to help you find the perfect solution for your facility.</p>
         <div class="mt-3">
-          <a class="button" href="contact.php">Contact Sales</a>
+          <a class="btn" href="contact.php">Contact Sales</a>
           <a class="button ghost ml-2" href="tel:+15551234567">Call Us</a>
         </div>
       </div>

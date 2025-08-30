@@ -59,7 +59,7 @@
           </div>
         </div>
         <div class="text-center mt-4">
-          <p><a class="button" href="contact.php">Contact Sales Team</a></p>
+          <p><a class="btn" href="contact.php">Contact Sales Team</a></p>
         </div>
       </div>
     </section>
@@ -68,20 +68,18 @@
       <div class="card text-center">
         <h3>Trusted by Healthcare Professionals</h3>
         <p class="small">Join thousands of medical professionals who rely on our platform daily to deliver exceptional patient care.</p>
-        <div class="mt-4">
-          <div style="display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap;">
-            <div>
-              <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary);">500+</div>
-              <div class="small">Healthcare Facilities</div>
-            </div>
-            <div>
-              <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary);">10K+</div>
-              <div class="small">Medical Professionals</div>
-            </div>
-            <div>
-              <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary);">99.9%</div>
-              <div class="small">Uptime Guarantee</div>
-            </div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-number">500+</div>
+            <div class="stat-label">Healthcare Facilities</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">10K+</div>
+            <div class="stat-label">Medical Professionals</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">99.9%</div>
+            <div class="stat-label">Uptime Guarantee</div>
           </div>
         </div>
       </div>
