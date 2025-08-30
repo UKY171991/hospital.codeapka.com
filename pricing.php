@@ -24,28 +24,6 @@ $plan = $_GET['plan'] ?? '';
           <p class="small">Please contact our sales team to finalize the purchase.</p>
           <p><a class="button" href="contact.php">Contact Sales</a></p>
         <?php else: ?>
-          <div class="card-grid pricing-grid">
-            <div class="card plan">
-              <h3>Starter</h3>
-              <div class="price">₹16,499 <span class="small">/ month</span></div>
-              <p class="small">Best for small clinics and labs.</p>
-              <p><a class="button" href="pricing.php?plan=starter">Choose</a></p>
-            </div>
-
-            <div class="card plan">
-              <h3>Professional</h3>
-              <div class="price">₹41,499 <span class="small">/ month</span></div>
-              <p class="small">For larger clinics and hospitals.</p>
-              <p><a class="button" href="pricing.php?plan=professional">Choose</a></p>
-            </div>
-
-            <div class="card plan">
-              <h3>Enterprise</h3>
-              <div class="price">Custom</div>
-              <p class="small">Tailored solutions for large organizations.</p>
-              <p><a class="button" href="pricing.php?plan=enterprise">Contact Sales</a></p>
-            </div>
-          </div>
           <div style="margin-top:1rem">
             <?php include __DIR__ . '/umakant/public_plans.php'; ?>
           </div>

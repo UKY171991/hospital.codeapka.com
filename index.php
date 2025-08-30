@@ -125,7 +125,7 @@ $uploadListHtml = fetch_upload_list_html();
       </div>
     </section>
 
-    <section id="pricing" class="section">
+    <!-- <section id="pricing" class="section">
       <h3 style="margin-top:0">Pricing Plans</h3>
       <p class="small">Flexible plans for clinics, laboratories and hospitals. All plans include basic support and regular updates. Choose a plan and contact our sales team to purchase or schedule a demo.</p>
       <div class="card-grid pricing-grid">
@@ -162,7 +162,7 @@ $uploadListHtml = fetch_upload_list_html();
           <p style="margin-top:0.75rem"><a class="button" href="pricing.php?plan=enterprise">Contact Sales</a></p>
         </div>
       </div>
-    </section>
+    </section> -->
 
     <section class="section">
       <h3 style="margin-top:0">Available Plans</h3>
