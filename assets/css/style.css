@@ -68,3 +68,37 @@ button[type=submit]{background:var(--primary);color:#fff;padding:0.7rem 1rem;bor
   .site-header .header-cta{order:2}
   .site-footer .container{padding:0 0.5rem}
 }
+
+/* Responsive adjustments for tablets and phones */
+@media (max-width:900px){
+  .container{max-width:880px;padding:1rem}
+  .card-grid, .plans-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .card{padding:1rem}
+  .price{font-size:1.25rem}
+  .hero{padding:1rem 0}
+  .button{padding:0.6rem 1rem}
+}
+
+@media (max-width:720px){
+  .container{max-width:100%;padding:0.75rem}
+  .card-grid, .plans-grid{grid-template-columns:1fr;gap:1rem}
+  .qr-thumb{max-width:120px;max-height:120px}
+  .card{padding:0.9rem}
+  .section{margin:1.25rem 0;padding:0.75rem 0}
+  .card h3{font-size:1.05rem}
+  .price{font-size:1.2rem}
+  .site-header .site-nav{display:flex;flex-direction:column;align-items:center;gap:0.5rem}
+  .site-header .header-cta{order:2}
+  nav.site-nav{margin-top:0}
+}
+
+@media (max-width:420px){
+  .logo{width:44px;height:44px}
+  .hero .lead{font-size:1rem}
+  .button{padding:0.5rem 0.9rem;font-size:0.95rem}
+  .qr-thumb{max-width:100px;max-height:100px}
+  .site-footer .container{padding:0 0.5rem}
+  /* make footer columns stack */
+  .site-footer .container > div > div{grid-template-columns:1fr !important}
+  .site-footer .container > div{grid-template-columns:1fr !important}
+}
