@@ -14,20 +14,27 @@
     <section class="section">
       <div class="card">
         <h2>Who we are</h2>
-        <p class="small">We provide a unified software solution for laboratories and hospitals to manage clinical workflows, reporting and administration. Our focus is usability, security and extensibility.</p>
-        <h3>Mission</h3>
-        <p class="small">Improve clinical outcomes by delivering tools that reduce administrative overhead and accelerate diagnostics.</p>
+        <p class="small">We build easy-to-use, secure software for laboratories, clinics and hospitals that streamlines patient workflows, laboratory processes and administrative operations. Our platform is modular so organizations can adopt the features they need and scale over time.</p>
+
+        <h3>Our mission</h3>
+        <p class="small">To enable faster and more accurate diagnostics by removing friction from clinical workflows and empowering healthcare teams with the right data at the right time.</p>
+
+        <h3>Our vision</h3>
+        <p class="small">A connected healthcare ecosystem where clinical teams collaborate seamlessly, patients receive timely care, and administrators can operate efficiently with confidence and compliance.</p>
       </div>
     </section>
 
     <section class="section">
       <div class="card">
-        <h3>Why choose us?</h3>
+        <h3>Core benefits</h3>
         <ul class="small">
-          <li>Modular features for clinics of every size</li>
-          <li>Secure patient data handling and audit logs</li>
-          <li>Customizable reports and integrations</li>
+          <li>Comprehensive test catalogue, sample tracking and automated reports</li>
+          <li>Modular hospital management tools — appointments, billing, inventory</li>
+          <li>Secure user roles, audit trails and data export for compliance</li>
+          <li>Flexible integrations (LIS, third-party labs, payment gateways)</li>
+          <li>Professional support, onboarding and optional custom development</li>
         </ul>
+        <p style="margin-top:0.75rem"><a class="button" href="contact.php">Contact Sales or Support</a></p>
       </div>
     </section>
   </main>
