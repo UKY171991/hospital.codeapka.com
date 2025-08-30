@@ -8,22 +8,7 @@
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-  <header class="header">
-    <div class="container">
-      <div class="brand">
-        <div class="logo">PH</div>
-        <div>
-          <h1 style="margin:0;font-size:1.25rem">Pathology & Hospital Management</h1>
-          <div class="small">A modern platform to manage labs, records and hospital workflows.</div>
-        </div>
-      </div>
-      <nav class="site-nav" aria-label="Main navigation">
-        <a href="index.php" class="<?php echo $page=='home' ? 'active' : '' ?>">Home</a>
-        <a href="about.php" class="<?php echo $page=='about' ? 'active' : '' ?>">About</a>
-        <a href="contact.php" class="<?php echo $page=='contact' ? 'active' : '' ?>">Contact</a>
-      </nav>
-    </div>
-  </header>
+  <?php include_once __DIR__ . '/inc/header.php'; ?>
 
   <main class="container">
     <section class="hero">
@@ -115,11 +100,6 @@
     </section>
   </main>
 
-  <footer>
-    <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
-      <div class="small">© <?php echo date('Y'); ?> Pathology & Hospital Management</div>
-      <div class="small">Made with care for better healthcare.</div>
-    </div>
-  </footer>
+  <?php include_once __DIR__ . '/inc/footer.php'; ?>
 </body>
 </html>
