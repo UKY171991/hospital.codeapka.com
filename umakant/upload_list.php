@@ -133,8 +133,18 @@ if($hasTable){
           $('#confirmDeleteModal').modal('show');
           $('#confirmDeleteBtn').off('click').on('click', function(){
             $.post('ajax/upload_file.php', { action: 'delete', file: file }, function(resp){
-              if(resp.success){ location.reload(); } else { toastr.error(resp.message||'Delete failed'); }
-            }, 'json').fail(function(){ toastr.error('Server error'); });
+              console.log('Delete response:', resp);
+              if(resp.success){ 
+                toastr.success('File deleted successfully');
+                setTimeout(function(){ location.reload(); }, 700);
+              } else { 
+                toastr.error('Delete failed: ' + (resp.message||'Unknown error'));
+                console.error('Delete error:', resp);
+              }
+            }, 'json').fail(function(xhr, status, err){
+              toastr.error('Server error: ' + (xhr.responseText||status));
+              console.error('AJAX fail:', xhr, status, err);
+            });
           });
         });
       });
