@@ -55,7 +55,7 @@ require_once 'inc/sidebar.php';
     <div class="modal-content">
       <div class="modal-header"><h5 class="modal-title" id="planModalLabel">Add Plan</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
       <div class="modal-body">
-        <form id="planForm">
+  <form id="planForm" enctype="multipart/form-data">
           <input type="hidden" name="id" id="planId">
           <div class="form-group"><label>Title</label><input class="form-control" name="name" id="planName" required></div>
           <div class="form-row">

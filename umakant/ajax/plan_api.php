@@ -34,16 +34,33 @@ if ($action === 'save'){
     $end = $_POST['end_date'] ?? null;
     // handle qr_code upload if provided
     $qr_path = null;
-    if (!empty($_FILES['qr_code']) && $_FILES['qr_code']['error'] === UPLOAD_ERR_OK) {
+    if (!empty($_FILES['qr_code']) && isset($_FILES['qr_code']['error'])) {
+        if ($_FILES['qr_code']['error'] !== UPLOAD_ERR_OK) {
+            json_response(['success'=>false,'message'=>'QR upload error: ' . $_FILES['qr_code']['error']],400);
+        }
+        // Basic validation: size (<2MB) and allow common image types
+        $maxBytes = 2 * 1024 * 1024;
+        if ($_FILES['qr_code']['size'] > $maxBytes) json_response(['success'=>false,'message'=>'QR image too large (max 2MB)'],400);
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $_FILES['qr_code']['tmp_name']);
+        finfo_close($finfo);
+        $allowed = ['image/png','image/jpeg','image/webp','image/gif'];
+        if (!in_array($mime, $allowed)) json_response(['success'=>false,'message'=>'Invalid QR image type'],400);
+
         $uploadDir = __DIR__ . '/../uploads/qr';
-        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+        if (!is_dir($uploadDir)) {
+            if (!mkdir($uploadDir, 0777, true) && !is_dir($uploadDir)) {
+                json_response(['success'=>false,'message'=>'Failed to create upload directory'],500);
+            }
+        }
         $orig = basename($_FILES['qr_code']['name']);
         $ext = pathinfo($orig, PATHINFO_EXTENSION);
         $safe = time() . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
         $target = $uploadDir . '/' . $safe;
-        if (move_uploaded_file($_FILES['qr_code']['tmp_name'], $target)) {
-            $qr_path = 'uploads/qr/' . $safe;
+        if (!move_uploaded_file($_FILES['qr_code']['tmp_name'], $target)) {
+            json_response(['success'=>false,'message'=>'Failed to move uploaded QR file'],500);
         }
+        $qr_path = 'uploads/qr/' . $safe;
     }
     if ($name === '') json_response(['success'=>false,'message'=>'Name required'],400);
     try{

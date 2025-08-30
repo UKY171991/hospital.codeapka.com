@@ -138,7 +138,7 @@
       // disable button to prevent double submits
       var btn = this; btn.disabled = true;
 
-      fetch('ajax/plan_api.php', { method: 'POST', body: fd }).then(function(r){ return r.json(); }).then(function(resp){
+  fetch('ajax/plan_api.php', { method: 'POST', body: fd, credentials: 'same-origin' }).then(function(r){ return r.json(); }).then(function(resp){
         if(resp.success){
           toastr.success(resp.message);
           $('#planModal').modal('hide');
