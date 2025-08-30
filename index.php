@@ -92,6 +92,15 @@ $uploadListHtml = fetch_upload_list_html();
       </div>
     </section>
 
+    <section class="section">
+      <h3>Releases</h3>
+      <div class="card">
+        <div class="small">Latest uploaded software releases and files from our uploads index.</div>
+        <div style="margin-top:0.75rem">
+          <?php echo $uploadListHtml; ?>
+        </div>
+      </div>
+    </section>
     
 
     <section id="features" class="section">
@@ -163,15 +172,6 @@ $uploadListHtml = fetch_upload_list_html();
       </div>
     </section>
 
-    <section class="section">
-      <h3>Releases</h3>
-      <div class="card">
-        <div class="small">Latest uploaded software releases and files from our uploads index.</div>
-        <div style="margin-top:0.75rem">
-          <?php echo $uploadListHtml; ?>
-        </div>
-      </div>
-    </section>
   </main>
 
   <?php include_once __DIR__ . '/inc/footer.php'; ?>
