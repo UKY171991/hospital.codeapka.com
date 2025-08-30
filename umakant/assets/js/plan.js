@@ -87,6 +87,13 @@
   $('#viewPlanUpi').text(p.upi || '');
   $('#viewPlanType').text(tt === 'yearly' ? 'Yearly' : 'Monthly');
   $('#viewPlanAddedBy').text(p.added_by_username || '');
+        if(p.qr_code){
+          $('#viewQrImg').attr('src', p.qr_code).show();
+          $('#viewQrNone').hide();
+        } else {
+          $('#viewQrImg').hide().attr('src','');
+          $('#viewQrNone').show();
+        }
         $('#planViewModal').modal('show');
       },'json');
     });
@@ -104,8 +111,10 @@
         $('#planUpi').val(p.upi || '');
         if (p.qr_code) {
           $('#existingQr').html('<a href="' + p.qr_code + '" target="_blank">View QR</a>');
+          $('#qrPreview').attr('src', p.qr_code).show();
         } else {
           $('#existingQr').text('(none)');
+          $('#qrPreview').hide().attr('src','');
         }
         var chosenType = normalizeType(p.time_type);
         $('#planType').val(chosenType);
@@ -153,6 +162,23 @@
           toastr.error(resp.message||'Save failed');
         }
       }).catch(function(){ toastr.error('Network error'); }).finally(function(){ btn.disabled = false; });
+    });
+
+    // QR preview for selected file in modal
+    $('#planQr').on('change', function(e){
+      var f = this.files && this.files[0];
+      if(!f){ $('#qrPreview').hide().attr('src',''); return; }
+      var allowed = ['image/png','image/jpeg','image/webp','image/gif'];
+      if(allowed.indexOf(f.type) === -1){ toastr.error('Invalid image type'); $(this).val(''); $('#qrPreview').hide(); return; }
+      if(f.size > 2 * 1024 * 1024){ toastr.error('File too large (max 2MB)'); $(this).val(''); $('#qrPreview').hide(); return; }
+      var reader = new FileReader();
+      reader.onload = function(ev){ $('#qrPreview').attr('src', ev.target.result).show(); };
+      reader.readAsDataURL(f);
+    });
+
+    // populate view modal QR
+    $(document).on('click', '.view-plan', function(){
+      // handler already does GET and shows modal; we will also set QR image there in the GET callback
     });
   });
 

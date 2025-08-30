@@ -1,0 +1,10 @@
+/* plan.css - styles for plan add/edit/view modals */
+#qrPreviewWrap { min-height: 120px; display:flex; align-items:center; justify-content:center; }
+#qrPreview { max-width:100%; max-height:220px; }
+#existingQr { margin-top:8px; }
+.modal-header.bg-primary { background: linear-gradient(90deg,#0275d8,#0056b3); }
+.modal-header.bg-info { background: linear-gradient(90deg,#17a2b8,#117a8b); }
+.card.shadow-sm { border-radius:6px; }
+
+/* Make large save button stand out */
+#savePlanBtn.btn-lg { padding: .6rem 1.2rem; }
