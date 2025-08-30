@@ -1,9 +1,29 @@
 <?php $page = 'home'; ?>
 <?php
 // Try to fetch the uploaded releases list from the umakant area
+function sanitize_upload_html($html){
+  if (!$html) return '';
+  // Remove script tags entirely
+  $html = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $html);
+
+  // If a full document is returned, try to extract the body content
+  if (stripos($html, '<body') !== false) {
+    if (preg_match('/<body[^>]*>(.*?)<\/body>/is', $html, $m)) {
+      $html = $m[1];
+    }
+  } else {
+    // Remove head and html wrappers if present
+    $html = preg_replace('/<head[^>]*>.*?<\/head>/is', '', $html);
+    $html = preg_replace('/<\/?html[^>]*>/is', '', $html);
+  }
+
+  // Trim and return
+  return trim($html);
+}
+
 function fetch_upload_list_html(){
   $host = $_SERVER['HTTP_HOST'] ?? 'hospital.codeapka.com';
-  $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'https') . '://' . $host . '/umakant/upload_list.php';
+  $url = 'https://' . $host . '/umakant/upload_list.php';
 
   // Try cURL first
   if (function_exists('curl_version')) {
@@ -13,11 +33,10 @@ function fetch_upload_list_html(){
     curl_setopt($ch, CURLOPT_TIMEOUT, 5);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     $resp = curl_exec($ch);
-    $err = curl_error($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     if ($resp !== false && $code >= 200 && $code < 400) {
-      return $resp;
+      return sanitize_upload_html($resp);
     }
   }
 
@@ -25,7 +44,7 @@ function fetch_upload_list_html(){
   if (ini_get('allow_url_fopen')) {
     $context = stream_context_create(['http' => ['timeout' => 5]]);
     $resp = @file_get_contents($url, false, $context);
-    if ($resp !== false) return $resp;
+    if ($resp !== false) return sanitize_upload_html($resp);
   }
 
   // As a last resort, try including the local file and capturing output (may require same permissions/session)
@@ -34,7 +53,7 @@ function fetch_upload_list_html(){
     ob_start();
     try { include $localPath; } catch (Throwable $e) { /* ignore */ }
     $out = ob_get_clean();
-    if ($out) return $out;
+    if ($out) return sanitize_upload_html($out);
   }
 
   return '<div class="small">No releases available or failed to fetch the uploads list.</div>';
