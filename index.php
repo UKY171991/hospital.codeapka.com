@@ -147,6 +147,22 @@ $uploadListHtml = fetch_upload_list_html();
         <div class="mt-2">
           <?php include __DIR__ . '/umakant/public_plans.php'; ?>
         </div>
+        <div class="text-center mt-4 pt-4" style="border-top: 1px solid rgba(16,24,40,0.08);">
+          <h4 style="margin-bottom: 1rem; color: var(--darker);">Need Help Choosing a Plan?</h4>
+          <p class="small mb-3">Our team is here to help you find the perfect solution for your healthcare facility.</p>
+          <div class="contact-buttons">
+            <a href="https://wa.me/919876543210?text=Hi! I'm interested in your hospital management plans. Can you help me choose the right one?" 
+               class="btn whatsapp-btn" 
+               target="_blank" 
+               rel="noopener noreferrer">
+              <span class="whatsapp-icon">📱</span>
+              Chat on WhatsApp
+            </a>
+            <a href="contact.php" class="button ghost ml-3">
+              Contact Sales Team
+            </a>
+          </div>
+        </div>
       </div>
     </section>
 
