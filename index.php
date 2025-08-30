@@ -23,7 +23,7 @@ function sanitize_upload_html($html){
 
 function fetch_upload_list_html(){
   $host = $_SERVER['HTTP_HOST'] ?? 'hospital.codeapka.com';
-  $url = 'https://' . $host . '/umakant/upload_list.php';
+  $url = 'https://' . $host . '/umakant/public_upload_list.php';
 
   // Try cURL first
   if (function_exists('curl_version')) {
