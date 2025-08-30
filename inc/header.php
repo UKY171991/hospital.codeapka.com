@@ -1,25 +1,31 @@
 <?php
 // Shared header: expects $page variable to be set (e.g. 'home','about','contact','pricing')
 ?>
-<header class="header site-header">
-  <div class="container" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
-    <div class="brand" style="display:flex;align-items:center;gap:0.75rem;">
-      <div class="logo">PH</div>
-      <div>
-        <h1 style="margin:0;font-size:1.15rem;line-height:1">Pathology & Hospital Management</h1>
-        <div class="small">Manage labs, records and hospital workflows with ease.</div>
+<header class="site-header">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="index.php">
+        <div class="logo me-2">PH</div>
+        <div>
+          <div style="font-weight:700;line-height:1">Pathology &amp; Hospital</div>
+          <div class="small">Manage labs & records</div>
+        </div>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="mainNavbar">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link <?php echo ($page=='home') ? 'active' : '' ?>" href="index.php">Home</a></li>
+          <li class="nav-item"><a class="nav-link <?php echo ($page=='about') ? 'active' : '' ?>" href="about.php">About</a></li>
+          <li class="nav-item"><a class="nav-link <?php echo ($page=='pricing') ? 'active' : '' ?>" href="pricing.php">Pricing</a></li>
+          <li class="nav-item"><a class="nav-link <?php echo ($page=='contact') ? 'active' : '' ?>" href="contact.php">Contact</a></li>
+        </ul>
+        <div class="d-flex ms-3">
+          <a class="btn btn-light btn-sm" href="contact.php">Get a Demo</a>
+        </div>
       </div>
     </div>
-
-    <nav class="site-nav" aria-label="Main navigation">
-      <a href="index.php" class="<?php echo ($page=='home') ? 'active' : '' ?>">Home</a>
-      <a href="about.php" class="<?php echo ($page=='about') ? 'active' : '' ?>">About</a>
-      <a href="pricing.php" class="<?php echo ($page=='pricing') ? 'active' : '' ?>">Pricing</a>
-      <a href="contact.php" class="<?php echo ($page=='contact') ? 'active' : '' ?>">Contact</a>
-    </nav>
-
-    <div class="header-cta">
-      <a class="button small" href="contact.php">Get a Demo</a>
-    </div>
-  </div>
+  </nav>
 </header>

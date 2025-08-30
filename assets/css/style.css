@@ -116,3 +116,10 @@ button[type=submit]{background:var(--primary);color:#fff;padding:0.7rem 1rem;bor
 
 /* Footer columns: use a grid so columns can collapse responsively */
 .site-footer .container{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;align-items:start}
+
+/* Bootstrap compatibility overrides */
+.navbar .logo{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fff;color:var(--primary);font-weight:700}
+.navbar .small{color:rgba(255,255,255,0.9)}
+.btn-light{color:var(--primary)}
+.button{ /* keep custom fancy button but allow Bootstrap buttons to work */
+  display:inline-block;background:linear-gradient(90deg,var(--primary),#4b7cff);color:#fff;padding:0.7rem 1.2rem;border-radius:12px;text-decoration:none;box-shadow:0 6px 18px rgba(11,42,74,0.12);transition:transform .12s ease,box-shadow .12s ease,opacity .12s ease;border:none;font-weight:600}
