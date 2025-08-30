@@ -53,3 +53,18 @@ button[type=submit]{background:var(--primary);color:#fff;padding:0.7rem 1rem;bor
  .hero{padding:1rem 0}
  .form-row{grid-template-columns:1fr}
 }
+
+/* Site header styles */
+.site-header{background:linear-gradient(90deg,var(--primary),#4b7cff);color:#fff;padding:1rem 0;box-shadow:0 6px 18px rgba(11,42,74,0.06)}
+.site-header .site-nav{display:flex;gap:1rem}
+.site-header .site-nav a{color:rgba(255,255,255,0.95);padding:0.45rem 0.75rem;border-radius:8px;text-decoration:none}
+.site-header .site-nav a.active, .site-header .site-nav a:hover{background:rgba(255,255,255,0.14)}
+.site-header .logo{background:#fff;color:var(--primary);font-weight:700}
+.site-header .header-cta .button{box-shadow:0 8px 28px rgba(11,42,74,0.16)}
+
+@media (max-width:720px){
+  .site-header .container{flex-direction:column;gap:0.75rem}
+  .site-header .site-nav{order:3}
+  .site-header .header-cta{order:2}
+  .site-footer .container{padding:0 0.5rem}
+}
