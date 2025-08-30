@@ -18,6 +18,8 @@ nav.site-nav a.active,nav.site-nav a:hover{background:rgba(255,255,255,0.12)}
 .hero{display:grid;grid-template-columns:1fr;gap:1.25rem;align-items:center;padding:2rem 0}
 .hero .lead{font-size:1.05rem;color:var(--muted)}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-top:1.25rem}
+
+.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-top:1rem}
 .card{background:var(--card);padding:1.25rem;border-radius:12px;box-shadow:0 6px 18px rgba(16,24,40,0.06);border:1px solid rgba(16,24,40,0.04)}
 .card h3{margin:0 0 0.5rem 0;color:var(--dark)}
 .feature-list{display:flex;flex-direction:column;gap:0.5rem;margin-top:0.75rem}

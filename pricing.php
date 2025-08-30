@@ -46,6 +46,9 @@ $plan = $_GET['plan'] ?? '';
               <p><a class="button" href="pricing.php?plan=enterprise">Contact Sales</a></p>
             </div>
           </div>
+          <div style="margin-top:1rem">
+            <?php include __DIR__ . '/umakant/public_plans.php'; ?>
+          </div>
         <?php endif; ?>
 
       </div>

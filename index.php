@@ -165,6 +165,16 @@ $uploadListHtml = fetch_upload_list_html();
     </section>
 
     <section class="section">
+      <h3 style="margin-top:0">Available Plans</h3>
+      <div class="card">
+        <div class="small">Browse the plans we currently offer. Click a plan to learn more or contact us to purchase.</div>
+        <div style="margin-top:0.75rem">
+          <?php include __DIR__ . '/umakant/public_plans.php'; ?>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
       <div class="card">
         <h3>Get Started</h3>
         <p class="small">Want to try the system or customize it for your facility? Contact our team to schedule a demo or request a quote.</p>
