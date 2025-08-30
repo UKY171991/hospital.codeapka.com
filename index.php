@@ -75,13 +75,31 @@ $uploadListHtml = fetch_upload_list_html();
   <?php include_once __DIR__ . '/inc/header.php'; ?>
 
   <main class="container">
+    <!-- Hero Section -->
     <section class="hero">
       <div class="hero-content">
+        <div class="hero-badge">
+          <span>🏆 Trusted by 500+ Healthcare Facilities</span>
+        </div>
         <h1>Transform Your Healthcare Operations</h1>
         <p class="lead">Streamline workflows, enhance patient care, and boost efficiency with our comprehensive hospital management system designed for modern healthcare facilities.</p>
         <div class="hero-buttons">
           <a class="button" href="#features">Explore Features</a>
           <a class="button ghost" href="contact.php">Schedule Demo</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-number">99.9%</div>
+            <div class="stat-label">Uptime</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">Support</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">500+</div>
+            <div class="stat-label">Facilities</div>
+          </div>
         </div>
       </div>
       <div class="hero-image">
@@ -89,28 +107,59 @@ $uploadListHtml = fetch_upload_list_html();
           <div class="hero-content-inner">
             <div class="hero-icon">🏥</div>
             <div class="hero-text">Advanced Healthcare Management</div>
+            <div class="hero-subtitle">AI-Powered • Secure • Scalable</div>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- Trust Indicators Section -->
+    <section class="section trust-section">
+      <div class="trust-logos">
+        <div class="trust-item">
+          <div class="trust-icon">🔒</div>
+          <span>HIPAA Compliant</span>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">🛡️</div>
+          <span>ISO 27001</span>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">⚡</div>
+          <span>99.9% Uptime</span>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">🌐</div>
+          <span>Global Support</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Latest Releases Section -->
     <section class="section releases-section">
       <div class="section-header scroll-reveal">
+        <div class="section-badge">🆕 Latest Updates</div>
         <h2>Latest Releases</h2>
         <p>Stay up-to-date with our latest software updates and features</p>
       </div>
       <div class="card hover-lift">
-        <h3>Software Releases</h3>
-        <p class="small">Access our most recent updates and enhancements to the platform.</p>
-        <div class="mt-3">
+        <div class="releases-header">
+          <h3>Software Releases</h3>
+          <p class="small">Access our most recent updates and enhancements to the platform.</p>
+        </div>
+        <div class="releases-content">
           <?php echo $uploadListHtml; ?>
+        </div>
+        <div class="releases-footer">
+          <a href="#" class="button ghost">View All Updates</a>
         </div>
       </div>
     </section>
     
-
+    <!-- Features Section -->
     <section id="features" class="section features-section">
       <div class="section-header scroll-reveal">
+        <div class="section-badge">✨ Core Features</div>
         <h2>Powerful Features</h2>
         <p>Everything you need to manage your healthcare facility efficiently</p>
       </div>
@@ -119,37 +168,63 @@ $uploadListHtml = fetch_upload_list_html();
           <div class="feature-icon">📋</div>
           <h3>Patient Records</h3>
           <p class="small">Centralized EHR for quick access to patient history, visits and reports with advanced search capabilities.</p>
+          <div class="feature-highlights">
+            <span>EHR Integration</span>
+            <span>Advanced Search</span>
+            <span>Secure Access</span>
+          </div>
         </div>
         <div class="card feature-card hover-scale">
           <div class="feature-icon">📅</div>
           <h3>Appointments</h3>
           <p class="small">Online booking, doctor schedules and automated reminders with calendar integration.</p>
+          <div class="feature-highlights">
+            <span>Online Booking</span>
+            <span>Auto Reminders</span>
+            <span>Calendar Sync</span>
+          </div>
         </div>
         <div class="card feature-card hover-scale">
           <div class="feature-icon">💰</div>
           <h3>Billing & Inventory</h3>
           <p class="small">Integrated billing, invoices and stock control for consumables with real-time tracking.</p>
+          <div class="feature-highlights">
+            <span>Auto Billing</span>
+            <span>Stock Tracking</span>
+            <span>Real-time Data</span>
+          </div>
         </div>
         <div class="card feature-card hover-scale">
           <div class="feature-icon">🔒</div>
           <h3>Secure Access</h3>
           <p class="small">Role-based access controls and audit logs to meet compliance needs with multi-factor authentication.</p>
+          <div class="feature-highlights">
+            <span>Role-based Access</span>
+            <span>Audit Logs</span>
+            <span>MFA Support</span>
+          </div>
         </div>
       </div>
     </section>
 
+    <!-- Pricing Section -->
     <section class="section pricing-section">
       <div class="section-header scroll-reveal">
+        <div class="section-badge">💎 Pricing Plans</div>
         <h2>Available Plans</h2>
         <p>Flexible solutions tailored to your facility's needs</p>
       </div>
       <div class="card hover-lift">
-        <div class="mt-2">
+        <div class="pricing-intro">
+          <h3>Choose Your Perfect Plan</h3>
+          <p class="small">All plans include core features with options to customize based on your facility's requirements.</p>
+        </div>
+        <div class="pricing-content">
           <?php include __DIR__ . '/umakant/public_plans.php'; ?>
         </div>
-        <div class="text-center mt-4 pt-4" style="border-top: 1px solid rgba(16,24,40,0.08);">
-          <h4 style="margin-bottom: 1rem; color: var(--darker);">Need Help Choosing a Plan?</h4>
-          <p class="small mb-3">Our team is here to help you find the perfect solution for your healthcare facility.</p>
+        <div class="pricing-contact">
+          <h4>Need Help Choosing a Plan?</h4>
+          <p class="small">Our team is here to help you find the perfect solution for your healthcare facility.</p>
           <div class="contact-buttons">
             <a href="https://wa.me/919876543210?text=Hi! I'm interested in your hospital management plans. Can you help me choose the right one?" 
                class="btn whatsapp-btn" 
@@ -158,7 +233,7 @@ $uploadListHtml = fetch_upload_list_html();
               <span class="whatsapp-icon">📱</span>
               Chat on WhatsApp
             </a>
-            <a href="contact.php" class="button ghost ml-3">
+            <a href="contact.php" class="button ghost">
               Contact Sales Team
             </a>
           </div>
@@ -166,17 +241,62 @@ $uploadListHtml = fetch_upload_list_html();
       </div>
     </section>
 
-    <section class="section cta-section">
-      <div class="card text-center hover-lift">
-        <div class="feature-icon mb-4 floating" style="width: 120px; height: 120px; font-size: 3.5rem; margin: 0 auto;">🚀</div>
-        <h3>Ready to Transform Your Healthcare Facility?</h3>
-        <p class="small">Join hundreds of healthcare providers who have revolutionized their operations with our platform. Schedule a demo today and see the difference.</p>
-        <div class="mt-4">
-          <a class="btn" href="contact.php">Schedule a Demo</a>
+    <!-- Testimonials Section -->
+    <section class="section testimonials-section">
+      <div class="section-header scroll-reveal">
+        <div class="section-badge">💬 Success Stories</div>
+        <h2>What Our Clients Say</h2>
+        <p>Real feedback from healthcare professionals using our platform</p>
+      </div>
+      <div class="testimonials-grid">
+        <div class="card testimonial-card hover-lift">
+          <div class="testimonial-content">
+            <p>"This platform has revolutionized our hospital operations. The efficiency gains are incredible!"</p>
+          </div>
+          <div class="testimonial-author">
+            <div class="author-avatar">👨‍⚕️</div>
+            <div class="author-info">
+              <div class="author-name">Dr. Sarah Johnson</div>
+              <div class="author-title">Chief Medical Officer</div>
+              <div class="author-hospital">City General Hospital</div>
+            </div>
+          </div>
+        </div>
+        <div class="card testimonial-card hover-lift">
+          <div class="testimonial-content">
+            <p>"The patient management features are intuitive and the support team is always helpful."</p>
+          </div>
+          <div class="testimonial-author">
+            <div class="author-avatar">👩‍⚕️</div>
+            <div class="author-info">
+              <div class="author-name">Dr. Michael Chen</div>
+              <div class="author-title">Hospital Administrator</div>
+              <div class="author-hospital">Regional Medical Center</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
+    <!-- CTA Section -->
+    <section class="section cta-section">
+      <div class="card text-center hover-lift">
+        <div class="cta-content">
+          <div class="feature-icon mb-4 floating" style="width: 120px; height: 120px; font-size: 3.5rem; margin: 0 auto;">🚀</div>
+          <h3>Ready to Transform Your Healthcare Facility?</h3>
+          <p class="small">Join hundreds of healthcare providers who have revolutionized their operations with our platform. Schedule a demo today and see the difference.</p>
+          <div class="cta-buttons">
+            <a class="btn" href="contact.php">Schedule a Demo</a>
+            <a class="button ghost" href="about.php">Learn More</a>
+          </div>
+          <div class="cta-features">
+            <span>✅ 14-Day Free Trial</span>
+            <span>✅ No Setup Fees</span>
+            <span>✅ 24/7 Support</span>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <?php include_once __DIR__ . '/inc/footer.php'; ?>
