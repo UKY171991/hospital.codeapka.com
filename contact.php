@@ -58,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>Contact — Pathology & Hospital Management</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
   <?php include_once __DIR__ . '/inc/header.php'; ?>
@@ -65,64 +66,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <main class="container">
     <section class="section">
       <div class="section-header">
-        <h2>Contact Us</h2>
+        <h2>Get In Touch</h2>
         <p>We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
       </div>
       
-      <div class="card">
-        <?php if ($sent): ?>
-          <div class="text-center">
-            <div class="feature-icon mb-3" style="width: 100px; height: 100px; font-size: 3rem; margin: 0 auto;">✅</div>
-            <h3>Thank You!</h3>
-            <p class="small">Thank you, <?php echo htmlspecialchars($name); ?>. Your message has been received. We'll get back to <?php echo htmlspecialchars($email); ?> soon.</p>
-            <p><a class="button" href="contact.php">Send Another Message</a></p>
-          </div>
-        <?php else: ?>
-          <?php if ($error): ?>
-            <div class="alert alert-danger small mb-4"><?php echo htmlspecialchars($error); ?></div>
-          <?php endif; ?>
-          
-          <form method="post" action="contact.php">
-            <div class="form-row">
-              <div>
-                <label for="name" class="small mb-1">Your Name *</label>
-                <input type="text" id="name" name="name" placeholder="Enter your name" required value="<?php echo htmlspecialchars($name); ?>" />
-              </div>
-              <div>
-                <label for="email" class="small mb-1">Your Email *</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email" required value="<?php echo htmlspecialchars($email); ?>" />
-              </div>
-            </div>
-            <div class="mb-3">
-              <label for="message" class="small mb-1">Your Message *</label>
-              <textarea id="message" name="message" rows="6" placeholder="Enter your message here..." required><?php echo htmlspecialchars($message); ?></textarea>
-            </div>
+      <div class="card-grid">
+        <div class="card">
+          <?php if ($sent): ?>
             <div class="text-center">
-              <button type="submit" class="button">Send Message</button>
+              <div class="feature-icon mb-4" style="width: 120px; height: 120px; font-size: 4rem; margin: 0 auto;">✅</div>
+              <h3>Message Sent Successfully!</h3>
+              <p class="small">Thank you, <?php echo htmlspecialchars($name); ?>. Your message has been received. We'll get back to <?php echo htmlspecialchars($email); ?> soon.</p>
+              <p><a class="button" href="contact.php">Send Another Message</a></p>
             </div>
-          </form>
-        <?php endif; ?>
+          <?php else: ?>
+            <?php if ($error): ?>
+              <div class="alert alert-danger small mb-4"><?php echo htmlspecialchars($error); ?></div>
+            <?php endif; ?>
+            
+            <form method="post" action="contact.php">
+              <div class="form-row">
+                <div>
+                  <label for="name" class="small mb-1">Your Name *</label>
+                  <input type="text" id="name" name="name" placeholder="Enter your full name" required value="<?php echo htmlspecialchars($name); ?>" />
+                </div>
+                <div>
+                  <label for="email" class="small mb-1">Your Email *</label>
+                  <input type="email" id="email" name="email" placeholder="Enter your email address" required value="<?php echo htmlspecialchars($email); ?>" />
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="message" class="small mb-1">Your Message *</label>
+                <textarea id="message" name="message" rows="6" placeholder="How can we help you?" required><?php echo htmlspecialchars($message); ?></textarea>
+              </div>
+              <div class="text-center">
+                <button type="submit" class="button">Send Message</button>
+              </div>
+            </form>
+          <?php endif; ?>
+        </div>
+        
+        <div class="card">
+          <h3>Contact Information</h3>
+          <div class="card-grid" style="grid-template-columns: 1fr; gap: 1.5rem;">
+            <div class="card feature-card">
+              <div class="feature-icon">📧</div>
+              <h3>Email Us</h3>
+              <p class="small">uky171991@gmail.com</p>
+              <p class="small">For general inquiries and support</p>
+            </div>
+            <div class="card feature-card">
+              <div class="feature-icon">📍</div>
+              <h3>Visit Us</h3>
+              <p class="small">123 Healthcare Avenue<br>Medical District, HC 10001</p>
+              <p class="small">Monday - Friday: 9AM - 6PM</p>
+            </div>
+            <div class="card feature-card">
+              <div class="feature-icon">📞</div>
+              <h3>Call Us</h3>
+              <p class="small">+1 (555) 123-4567</p>
+              <p class="small">Sales: Ext. 1 | Support: Ext. 2</p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
     
     <section class="section">
-      <div class="card">
-        <div class="card-grid">
-          <div class="card feature-card">
-            <div class="feature-icon">📧</div>
-            <h3>Email Us</h3>
-            <p class="small">uky171991@gmail.com</p>
-          </div>
-          <div class="card feature-card">
-            <div class="feature-icon">📍</div>
-            <h3>Visit Us</h3>
-            <p class="small">123 Healthcare Avenue<br>Medical District, HC 10001</p>
-          </div>
-          <div class="card feature-card">
-            <div class="feature-icon">🕒</div>
-            <h3>Business Hours</h3>
-            <p class="small">Monday - Friday: 9AM - 6PM<br>Saturday: 10AM - 4PM</p>
-          </div>
+      <div class="card text-center">
+        <h3>Need Immediate Assistance?</h3>
+        <p class="small">Our support team is available 24/7 for critical issues. For non-urgent inquiries, we typically respond within one business day.</p>
+        <div class="mt-3">
+          <a class="button ghost" href="tel:+15551234567">Call Support Hotline</a>
         </div>
       </div>
     </section>

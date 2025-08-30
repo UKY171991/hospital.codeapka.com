@@ -8,7 +8,7 @@
         <div class="logo">PH</div>
         <div class="brand-text">
           <div class="brand-name">Pathology & Hospital</div>
-          <div class="brand-subtitle">Manage labs & records</div>
+          <div class="brand-subtitle">Advanced Healthcare Solutions</div>
         </div>
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,7 +23,7 @@
           <li class="nav-item"><a class="nav-link <?php echo ($page=='contact') ? 'active' : '' ?>" href="contact.php">Contact</a></li>
         </ul>
         <div class="header-cta ms-3">
-          <a class="btn btn-light" href="contact.php">Get a Demo</a>
+          <a class="btn btn-light" href="contact.php">Schedule Demo</a>
         </div>
       </div>
     </nav>

@@ -69,6 +69,7 @@ $uploadListHtml = fetch_upload_list_html();
   <title>Welcome — Pathology & Hospital Management</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
   <?php include_once __DIR__ . '/inc/header.php'; ?>
@@ -76,13 +77,13 @@ $uploadListHtml = fetch_upload_list_html();
   <main class="container">
     <section class="hero">
       <div class="hero-content">
-        <h1>Welcome to the Pathology & Hospital Management System</h1>
-        <p class="lead">Build faster workflows, access patient and lab data securely, and deliver better care. The system is designed for simplicity and scale — ideal for small clinics to large hospitals.</p>
-        <p><a class="button" href="#features">Explore features</a></p>
+        <h1>Transform Your Healthcare Operations</h1>
+        <p class="lead">Streamline workflows, enhance patient care, and boost efficiency with our comprehensive hospital management system designed for modern healthcare facilities.</p>
+        <p><a class="button" href="#features">Explore Features</a></p>
       </div>
       <div class="hero-image">
         <div class="hero-image-placeholder">
-          Hospital Management System
+          Advanced Healthcare Management
         </div>
       </div>
     </section>
@@ -90,10 +91,11 @@ $uploadListHtml = fetch_upload_list_html();
     <section class="section">
       <div class="section-header">
         <h2>Latest Releases</h2>
-        <p>Check out our latest software releases and updates</p>
+        <p>Stay up-to-date with our latest software updates and features</p>
       </div>
       <div class="card">
-        <div class="small">Latest uploaded software releases and files from our uploads index.</div>
+        <h3>Software Releases</h3>
+        <p class="small">Access our most recent updates and enhancements to the platform.</p>
         <div class="mt-3">
           <?php echo $uploadListHtml; ?>
         </div>
@@ -103,29 +105,29 @@ $uploadListHtml = fetch_upload_list_html();
 
     <section id="features" class="section">
       <div class="section-header">
-        <h2>Key Features</h2>
-        <p>Powerful tools to streamline your healthcare operations</p>
+        <h2>Powerful Features</h2>
+        <p>Everything you need to manage your healthcare facility efficiently</p>
       </div>
       <div class="card-grid">
         <div class="card feature-card">
           <div class="feature-icon">📋</div>
           <h3>Patient Records</h3>
-          <p class="small">Centralized EHR for quick access to patient history, visits and reports.</p>
+          <p class="small">Centralized EHR for quick access to patient history, visits and reports with advanced search capabilities.</p>
         </div>
         <div class="card feature-card">
           <div class="feature-icon">📅</div>
           <h3>Appointments</h3>
-          <p class="small">Online booking, doctor schedules and automated reminders.</p>
+          <p class="small">Online booking, doctor schedules and automated reminders with calendar integration.</p>
         </div>
         <div class="card feature-card">
           <div class="feature-icon">💰</div>
           <h3>Billing & Inventory</h3>
-          <p class="small">Integrated billing, invoices and stock control for consumables.</p>
+          <p class="small">Integrated billing, invoices and stock control for consumables with real-time tracking.</p>
         </div>
         <div class="card feature-card">
           <div class="feature-icon">🔒</div>
           <h3>Secure Access</h3>
-          <p class="small">Role-based access controls and audit logs to meet compliance needs.</p>
+          <p class="small">Role-based access controls and audit logs to meet compliance needs with multi-factor authentication.</p>
         </div>
       </div>
     </section>
@@ -133,7 +135,7 @@ $uploadListHtml = fetch_upload_list_html();
     <section class="section">
       <div class="section-header">
         <h2>Available Plans</h2>
-        <p>Browse the plans we currently offer. Click a plan to learn more or contact us to purchase.</p>
+        <p>Flexible solutions tailored to your facility's needs</p>
       </div>
       <div class="card">
         <div class="mt-2">
@@ -144,9 +146,10 @@ $uploadListHtml = fetch_upload_list_html();
 
     <section class="section">
       <div class="card text-center">
-        <h3>Ready to Get Started?</h3>
-        <p class="small">Want to try the system or customize it for your facility? Contact our team to schedule a demo or request a quote.</p>
-        <p><a class="button" href="contact.php">Contact Us</a></p>
+        <div class="feature-icon mb-4" style="width: 120px; height: 120px; font-size: 3.5rem; margin: 0 auto;">🚀</div>
+        <h3>Ready to Transform Your Healthcare Facility?</h3>
+        <p class="small">Join hundreds of healthcare providers who have revolutionized their operations with our platform. Schedule a demo today and see the difference.</p>
+        <p><a class="button" href="contact.php">Schedule a Demo</a></p>
       </div>
     </section>
 
