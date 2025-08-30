@@ -77,7 +77,7 @@
     <!-- Pricing Plans -->
     <section class="pricing-plans-section">
       <div class="container">
-        <div class="section-header">
+      <div class="section-header">
           <div class="section-badge">💎 Pricing Plans</div>
           <h2>Choose Your Perfect Plan</h2>
           <p>Flexible solutions tailored to your facility's needs and budget</p>
@@ -167,8 +167,8 @@
             <div class="plan-action">
               <a href="contact.php" class="plan-btn primary">Get Started</a>
             </div>
-          </div>
-          
+      </div>
+      
           <div class="pricing-card">
             <div class="plan-header">
               <h3>Enterprise</h3>
@@ -281,11 +281,11 @@
             <div class="feature-value">Email</div>
             <div class="feature-value">Priority</div>
             <div class="feature-value">Dedicated</div>
+        </div>
           </div>
         </div>
-      </div>
     </section>
-
+    
     <!-- FAQ Section -->
     <section class="pricing-faq-section">
       <div class="container">
@@ -334,7 +334,7 @@
         </div>
       </div>
     </section>
-
+    
     <!-- CTA Section -->
     <section class="cta-section">
       <div class="container">
@@ -360,7 +360,6 @@
 
   <?php include_once __DIR__ . '/inc/footer.php'; ?>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Enhanced animations and interactions
     const observerOptions = {

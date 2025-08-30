@@ -3,7 +3,7 @@
 ?>
 <header class="site-header">
   <div class="container">
-    <nav class="navbar navbar-expand-lg">
+    <nav class="navbar navbar-expand-lg navbar-dark">
       <a class="navbar-brand" href="index.php">
         <div class="logo">PH</div>
         <div class="brand-text">
@@ -23,7 +23,7 @@
           <li class="nav-item"><a class="nav-link <?php echo ($page=='contact') ? 'active' : '' ?>" href="contact.php">Contact</a></li>
         </ul>
         <div class="header-cta ms-3">
-          <a class="btn" href="contact.php">Schedule Demo</a>
+          <a class="btn btn-light" href="contact.php">Schedule Demo</a>
         </div>
       </div>
     </nav>

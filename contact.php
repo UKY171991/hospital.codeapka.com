@@ -77,7 +77,7 @@
     <!-- Contact Options -->
     <section class="contact-options-section">
       <div class="container">
-        <div class="section-header">
+      <div class="section-header">
           <div class="section-badge">📞 Contact Options</div>
           <h2>Multiple Ways to Reach Us</h2>
           <p>Choose the method that works best for you</p>
@@ -155,7 +155,7 @@
                   <label for="lastName">Last Name *</label>
                   <input type="text" id="lastName" name="lastName" required>
                 </div>
-              </div>
+            </div>
               <div class="form-row">
                 <div class="form-group">
                   <label for="email">Email Address *</label>
@@ -201,7 +201,7 @@
             </form>
           </div>
         </div>
-      </div>
+        </div>
     </section>
 
     <!-- FAQ Section -->
@@ -239,7 +239,7 @@
             <div class="faq-answer">
               <p>Absolutely. Our system is fully HIPAA compliant with enterprise-grade security and regular audits.</p>
             </div>
-          </div>
+            </div>
           <div class="faq-item">
             <div class="faq-question">
               <h3>Can we customize the system?</h3>
@@ -252,7 +252,7 @@
         </div>
       </div>
     </section>
-
+    
     <!-- Support Section -->
     <section class="support-section">
       <div class="container">
@@ -324,7 +324,6 @@
 
   <?php include_once __DIR__ . '/inc/footer.php'; ?>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Enhanced animations and interactions
     const observerOptions = {
