@@ -61,6 +61,7 @@ button[type=submit]{background:var(--primary);color:#fff;padding:0.7rem 1rem;bor
 .site-header .site-nav a.active, .site-header .site-nav a:hover{background:rgba(255,255,255,0.14)}
 .site-header .logo{background:#fff;color:var(--primary);font-weight:700}
 .site-header .header-cta .button{box-shadow:0 8px 28px rgba(11,42,74,0.16)}
+.site-header .container{display:flex;align-items:center;justify-content:space-between;gap:1rem}
 
 @media (max-width:720px){
   .site-header .container{flex-direction:column;gap:0.75rem}
@@ -98,7 +99,11 @@ button[type=submit]{background:var(--primary);color:#fff;padding:0.7rem 1rem;bor
   .button{padding:0.5rem 0.9rem;font-size:0.95rem}
   .qr-thumb{max-width:100px;max-height:100px}
   .site-footer .container{padding:0 0.5rem}
-  /* make footer columns stack */
-  .site-footer .container > div > div{grid-template-columns:1fr !important}
-  .site-footer .container > div{grid-template-columns:1fr !important}
+  /* make footer columns stack into a single column */
+  .site-footer .container{grid-template-columns:1fr !important}
 }
+.site-footer{background:linear-gradient(180deg,#f7fbff,#ffffff);padding:2rem 0;border-top:1px solid rgba(16,24,40,0.04);box-shadow:0 -6px 18px rgba(11,42,74,0.02)}
+.small{font-size:0.9rem;color:var(--muted)}
+
+/* Footer columns: use a grid so columns can collapse responsively */
+.site-footer .container{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;align-items:start}
