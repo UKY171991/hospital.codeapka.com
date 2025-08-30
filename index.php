@@ -84,9 +84,9 @@ $uploadListHtml = fetch_upload_list_html();
           <h3>Pathology Module</h3>
           <p class="small">Manage lab tests, sample tracking, digital reports and results delivery.</p>
           <div class="feature-list">
-            <span>• Test catalogue & pricing</span>
+            <span> Test catalogue & pricing</span>
             <!-- <span>• Sample barcoding</span> -->
-            <span>• Automated report templates</span>
+            <span> Automated report templates</span>
           </div>
         </div>
       </div>
