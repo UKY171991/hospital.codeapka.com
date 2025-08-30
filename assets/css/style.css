@@ -126,6 +126,12 @@ button[type=submit]{background:var(--primary);color:#fff;padding:0.7rem 1rem;bor
 /* Place the toggler on the right on narrow viewports */
 .navbar .navbar-toggler{margin-left:auto}
 
+/* Ensure brand (logo + text) and toggler align on the same row and are vertically centered */
+.navbar .container{display:flex;align-items:center;gap:1rem}
+.navbar-brand{display:flex;align-items:center;gap:0.5rem}
+.navbar-toggler{align-self:center}
+.navbar .navbar-brand .small{margin:0;font-size:0.85rem}
+
 /* Footer improvements */
 .site-footer{padding-top:2rem;padding-bottom:2rem}
 .site-footer .container{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;align-items:start}
