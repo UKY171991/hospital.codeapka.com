@@ -85,7 +85,7 @@ $uploadListHtml = fetch_upload_list_html();
           <p class="small">Manage lab tests, sample tracking, digital reports and results delivery.</p>
           <div class="feature-list">
             <span>• Test catalogue & pricing</span>
-            <span>• Sample barcoding</span>
+            <!-- <span>• Sample barcoding</span> -->
             <span>• Automated report templates</span>
           </div>
         </div>
