@@ -79,7 +79,10 @@ $uploadListHtml = fetch_upload_list_html();
       <div class="hero-content">
         <h1>Transform Your Healthcare Operations</h1>
         <p class="lead">Streamline workflows, enhance patient care, and boost efficiency with our comprehensive hospital management system designed for modern healthcare facilities.</p>
-        <p><a class="button" href="#features">Explore Features</a></p>
+        <div class="mt-4">
+          <a class="button" href="#features">Explore Features</a>
+          <a class="button ghost ml-3" href="contact.php">Schedule Demo</a>
+        </div>
       </div>
       <div class="hero-image">
         <div class="hero-image-placeholder">
@@ -149,7 +152,9 @@ $uploadListHtml = fetch_upload_list_html();
         <div class="feature-icon mb-4" style="width: 120px; height: 120px; font-size: 3.5rem; margin: 0 auto;">🚀</div>
         <h3>Ready to Transform Your Healthcare Facility?</h3>
         <p class="small">Join hundreds of healthcare providers who have revolutionized their operations with our platform. Schedule a demo today and see the difference.</p>
-        <p><a class="button" href="contact.php">Schedule a Demo</a></p>
+        <div class="mt-4">
+          <a class="button" href="contact.php">Schedule a Demo</a>
+        </div>
       </div>
     </section>
 
