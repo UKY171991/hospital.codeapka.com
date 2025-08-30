@@ -49,7 +49,8 @@ if ($action === 'save'){
     $end = $_POST['end_date'] ?? null;
     // handle qr_code upload if provided
     $qr_path = null;
-    if (!empty($_FILES['qr_code']) && isset($_FILES['qr_code']['error'])) {
+    // If no file was selected, PHP sets error = UPLOAD_ERR_NO_FILE (4). Treat that as "no file provided".
+    if (isset($_FILES['qr_code']) && isset($_FILES['qr_code']['error']) && $_FILES['qr_code']['error'] !== UPLOAD_ERR_NO_FILE) {
         if ($_FILES['qr_code']['error'] !== UPLOAD_ERR_OK) {
             json_response(['success'=>false,'message'=>'QR upload error: ' . $_FILES['qr_code']['error']],400);
         }
