@@ -79,24 +79,27 @@ $uploadListHtml = fetch_upload_list_html();
       <div class="hero-content">
         <h1>Transform Your Healthcare Operations</h1>
         <p class="lead">Streamline workflows, enhance patient care, and boost efficiency with our comprehensive hospital management system designed for modern healthcare facilities.</p>
-        <div class="mt-4">
+        <div class="hero-buttons">
           <a class="button" href="#features">Explore Features</a>
-          <a class="button ghost ml-3" href="contact.php">Schedule Demo</a>
+          <a class="button ghost" href="contact.php">Schedule Demo</a>
         </div>
       </div>
       <div class="hero-image">
-        <div class="hero-image-placeholder">
-          Advanced Healthcare Management
+        <div class="hero-image-placeholder floating">
+          <div class="hero-content-inner">
+            <div class="hero-icon">🏥</div>
+            <div class="hero-text">Advanced Healthcare Management</div>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="section">
-      <div class="section-header">
+      <div class="section-header scroll-reveal">
         <h2>Latest Releases</h2>
         <p>Stay up-to-date with our latest software updates and features</p>
       </div>
-      <div class="card">
+      <div class="card hover-lift">
         <h3>Software Releases</h3>
         <p class="small">Access our most recent updates and enhancements to the platform.</p>
         <div class="mt-3">
@@ -107,27 +110,27 @@ $uploadListHtml = fetch_upload_list_html();
     
 
     <section id="features" class="section">
-      <div class="section-header">
+      <div class="section-header scroll-reveal">
         <h2>Powerful Features</h2>
         <p>Everything you need to manage your healthcare facility efficiently</p>
       </div>
       <div class="card-grid">
-        <div class="card feature-card">
+        <div class="card feature-card hover-scale">
           <div class="feature-icon">📋</div>
           <h3>Patient Records</h3>
           <p class="small">Centralized EHR for quick access to patient history, visits and reports with advanced search capabilities.</p>
         </div>
-        <div class="card feature-card">
+        <div class="card feature-card hover-scale">
           <div class="feature-icon">📅</div>
           <h3>Appointments</h3>
           <p class="small">Online booking, doctor schedules and automated reminders with calendar integration.</p>
         </div>
-        <div class="card feature-card">
+        <div class="card feature-card hover-scale">
           <div class="feature-icon">💰</div>
           <h3>Billing & Inventory</h3>
           <p class="small">Integrated billing, invoices and stock control for consumables with real-time tracking.</p>
         </div>
-        <div class="card feature-card">
+        <div class="card feature-card hover-scale">
           <div class="feature-icon">🔒</div>
           <h3>Secure Access</h3>
           <p class="small">Role-based access controls and audit logs to meet compliance needs with multi-factor authentication.</p>
@@ -136,11 +139,11 @@ $uploadListHtml = fetch_upload_list_html();
     </section>
 
     <section class="section">
-      <div class="section-header">
+      <div class="section-header scroll-reveal">
         <h2>Available Plans</h2>
         <p>Flexible solutions tailored to your facility's needs</p>
       </div>
-      <div class="card">
+      <div class="card hover-lift">
         <div class="mt-2">
           <?php include __DIR__ . '/umakant/public_plans.php'; ?>
         </div>
@@ -148,12 +151,12 @@ $uploadListHtml = fetch_upload_list_html();
     </section>
 
     <section class="section">
-      <div class="card text-center">
-        <div class="feature-icon mb-4" style="width: 120px; height: 120px; font-size: 3.5rem; margin: 0 auto;">🚀</div>
+      <div class="card text-center hover-lift">
+        <div class="feature-icon mb-4 floating" style="width: 120px; height: 120px; font-size: 3.5rem; margin: 0 auto;">🚀</div>
         <h3>Ready to Transform Your Healthcare Facility?</h3>
         <p class="small">Join hundreds of healthcare providers who have revolutionized their operations with our platform. Schedule a demo today and see the difference.</p>
         <div class="mt-4">
-          <a class="button" href="contact.php">Schedule a Demo</a>
+          <a class="btn" href="contact.php">Schedule a Demo</a>
         </div>
       </div>
     </section>
@@ -161,5 +164,42 @@ $uploadListHtml = fetch_upload_list_html();
   </main>
 
   <?php include_once __DIR__ . '/inc/footer.php'; ?>
+
+  <script>
+    // Enhanced scroll reveal animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+        }
+      });
+    }, observerOptions);
+
+    // Observe all scroll-reveal elements
+    document.querySelectorAll('.scroll-reveal').forEach(el => {
+      observer.observe(el);
+    });
+
+    // Add floating animation to feature icons
+    document.querySelectorAll('.feature-icon').forEach((icon, index) => {
+      icon.style.animationDelay = `${index * 0.2}s`;
+    });
+
+    // Enhanced button hover effects
+    document.querySelectorAll('.button, .btn').forEach(button => {
+      button.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-4px) scale(1.02)';
+      });
+      
+      button.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+      });
+    });
+  </script>
 </body>
 </html>
