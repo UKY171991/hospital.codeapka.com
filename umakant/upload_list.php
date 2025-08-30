@@ -129,22 +129,53 @@ if($hasTable){
         $('#uploadsTable').DataTable();
 
         $(document).on('click', '.delete-upload', function(){
-          var file = $(this).data('file');
-          $('#confirmDeleteModal').modal('show');
-          $('#confirmDeleteBtn').off('click').on('click', function(){
-            $.post('ajax/upload_file.php', { action: 'delete', file: file }, function(resp){
-              console.log('Delete response:', resp);
-              if(resp.success){ 
-                toastr.success('File deleted successfully');
-                setTimeout(function(){ location.reload(); }, 700);
-              } else { 
-                toastr.error('Delete failed: ' + (resp.message||'Unknown error'));
-                console.error('Delete error:', resp);
+          var $btn = $(this);
+          var file = $btn.data('file');
+          var $row = $btn.closest('tr');
+          // store target row on modal for later removal
+          $('#confirmDeleteModal').data('targetRow', $row).data('targetFile', file).modal('show');
+        });
+
+        $('#confirmDeleteBtn').on('click', function(){
+          var $modal = $('#confirmDeleteModal');
+          var file = $modal.data('targetFile');
+          var $row = $modal.data('targetRow');
+          var $confirm = $(this);
+          if(!file){ toastr.error('No file selected'); return; }
+          // close modal and disable button while request runs
+          $modal.modal('hide');
+          $confirm.prop('disabled', true).text('Deleting...');
+
+          $.ajax({
+            url: 'ajax/upload_file.php',
+            method: 'POST',
+            data: { action: 'delete', file: file },
+            dataType: 'json'
+          }).done(function(resp){
+            console.log('Delete response:', resp);
+            if(resp && resp.success){
+              toastr.success('File deleted');
+              // remove row from table gracefully
+              if($row && $row.length){
+                $row.fadeOut(250, function(){
+                  var table = $('#uploadsTable').DataTable();
+                  // if DataTable exists remove row via API
+                  if($.fn.dataTable.isDataTable('#uploadsTable')){
+                    table.row($(this)).remove().draw(false);
+                  } else { $(this).remove(); }
+                });
+              } else {
+                setTimeout(function(){ location.reload(); }, 500);
               }
-            }, 'json').fail(function(xhr, status, err){
-              toastr.error('Server error: ' + (xhr.responseText||status));
-              console.error('AJAX fail:', xhr, status, err);
-            });
+            } else {
+              toastr.error('Delete failed: ' + (resp && resp.message ? resp.message : 'Unknown'));
+              console.error('Delete error:', resp);
+            }
+          }).fail(function(xhr, status, err){
+            toastr.error('Server error while deleting');
+            console.error('AJAX fail:', xhr.status, xhr.responseText, status, err);
+          }).always(function(){
+            $confirm.prop('disabled', false).text('Delete');
           });
         });
       });

@@ -12,19 +12,26 @@ try{
 
     // delete action
     if(isset($_POST['action']) && $_POST['action'] === 'delete'){
-        if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) throw new Exception('Unauthorized');
+        if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')){
+            echo json_encode(['success'=>false,'message'=>'Unauthorized']); ob_end_flush(); exit;
+        }
         $file = $_POST['file'] ?? '';
-        if(!$file) throw new Exception('No file specified');
+        if(!$file){ echo json_encode(['success'=>false,'message'=>'No file specified']); ob_end_flush(); exit; }
         $safe = basename($file);
         $path = __DIR__ . '/../uploads/' . $safe;
         $deleted = false;
         if(is_file($path)){
             $deleted = unlink($path);
+            if(!$deleted){ echo json_encode(['success'=>false,'message'=>'Failed to delete file']); ob_end_flush(); exit; }
+        } else {
+            // file not present on disk but try DB cleanup and return success=false with message
+            try{ $stmt = $pdo->prepare('DELETE FROM zip_uploads WHERE file_name = ? OR relative_path = ?'); $stmt->execute([$safe, 'uploads/'.$safe]); }catch(Throwable $e){}
+            echo json_encode(['success'=>false,'message'=>'File not found on server']); ob_end_flush(); exit;
         }
         try{ $stmt = $pdo->prepare('DELETE FROM zip_uploads WHERE file_name = ? OR relative_path = ?'); $stmt->execute([$safe, 'uploads/'.$safe]); }catch(Throwable $e){}
-    echo json_encode(['success'=> (bool)$deleted ]);
-    ob_end_flush();
-    exit;
+        echo json_encode(['success'=> (bool)$deleted ]);
+        ob_end_flush();
+        exit;
     }
 
     if (empty($_FILES['file'])) throw new Exception('No file uploaded');
