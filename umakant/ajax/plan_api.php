@@ -3,16 +3,31 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 session_start();
 
+// Detect if `qr_code` column exists in `plans` table to remain backward-compatible
+$has_qr = false;
+try{
+    $colStmt = $pdo->prepare("SELECT COUNT(*) as c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'plans' AND COLUMN_NAME = 'qr_code'");
+    $colStmt->execute();
+    $colRes = $colStmt->fetch();
+    if ($colRes && isset($colRes['c']) && intval($colRes['c']) > 0) $has_qr = true;
+}catch(Throwable $e){
+    // ignore; default to false
+}
+
 $action = $_REQUEST['action'] ?? 'list';
 
 if ($action === 'list'){
-    $stmt = $pdo->query('SELECT p.id, p.name, p.description, p.price, p.upi, p.time_type, p.start_date, p.end_date, p.qr_code, p.added_by, u.username as added_by_username FROM plans p LEFT JOIN users u ON p.added_by = u.id ORDER BY p.id DESC');
+    $cols = 'p.id, p.name, p.description, p.price, p.upi, p.time_type, p.start_date, p.end_date, p.added_by, u.username as added_by_username';
+    if($has_qr) $cols = str_replace('p.added_by', 'p.qr_code, p.added_by', $cols);
+    $stmt = $pdo->query("SELECT $cols FROM plans p LEFT JOIN users u ON p.added_by = u.id ORDER BY p.id DESC");
     $rows = $stmt->fetchAll();
     json_response(['success'=>true,'data'=>$rows]);
 }
 
 if ($action === 'get' && isset($_GET['id'])){
-    $stmt = $pdo->prepare('SELECT p.id, p.name, p.description, p.price, p.upi, p.time_type, p.start_date, p.end_date, p.qr_code, p.added_by, u.username as added_by_username FROM plans p LEFT JOIN users u ON p.added_by = u.id WHERE p.id = ?');
+    $cols = 'p.id, p.name, p.description, p.price, p.upi, p.time_type, p.start_date, p.end_date, p.added_by, u.username as added_by_username';
+    if($has_qr) $cols = str_replace('p.added_by', 'p.qr_code, p.added_by', $cols);
+    $stmt = $pdo->prepare("SELECT $cols FROM plans p LEFT JOIN users u ON p.added_by = u.id WHERE p.id = ?");
     $stmt->execute([$_GET['id']]);
     $row = $stmt->fetch();
     json_response(['success'=>true,'data'=>$row]);
@@ -65,7 +80,7 @@ if ($action === 'save'){
     if ($name === '') json_response(['success'=>false,'message'=>'Name required'],400);
     try{
         if ($id){
-            if ($qr_path) {
+            if ($has_qr && $qr_path) {
                 $stmt = $pdo->prepare('UPDATE plans SET name=?, description=?, price=?, upi=?, time_type=?, start_date=?, end_date=?, qr_code=?, updated_at=NOW() WHERE id=?');
                 $stmt->execute([$name,$description,$price,$upi,$time_type,$start,$end,$qr_path,$id]);
             } else {
@@ -75,8 +90,13 @@ if ($action === 'save'){
             json_response(['success'=>true,'message'=>'Plan updated']);
         } else {
             $added_by = $_SESSION['user_id'] ?? null;
-            $stmt = $pdo->prepare('INSERT INTO plans (name,description,price,upi,time_type,start_date,end_date,qr_code,added_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,NOW())');
-            $stmt->execute([$name,$description,$price,$upi,$time_type,$start,$end,$qr_path,$added_by]);
+            if($has_qr){
+                $stmt = $pdo->prepare('INSERT INTO plans (name,description,price,upi,time_type,start_date,end_date,qr_code,added_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,NOW())');
+                $stmt->execute([$name,$description,$price,$upi,$time_type,$start,$end,$qr_path,$added_by]);
+            } else {
+                $stmt = $pdo->prepare('INSERT INTO plans (name,description,price,upi,time_type,start_date,end_date,added_by,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())');
+                $stmt->execute([$name,$description,$price,$upi,$time_type,$start,$end,$added_by]);
+            }
             json_response(['success'=>true,'message'=>'Plan created']);
         }
     }catch(PDOException $e){ json_response(['success'=>false,'message'=>'Server error: '.$e->getMessage()],500); }
