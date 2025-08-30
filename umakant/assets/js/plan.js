@@ -97,6 +97,11 @@
         $('#planDescription').val(p.description || '');
         $('#planPrice').val(p.price != null ? p.price : '');
         $('#planUpi').val(p.upi || '');
+        if (p.qr_code) {
+          $('#existingQr').html('<a href="' + p.qr_code + '" target="_blank">View QR</a>');
+        } else {
+          $('#existingQr').text('(none)');
+        }
         var chosenType = normalizeType(p.time_type);
         $('#planType').val(chosenType);
         if ($('#planType').val() !== chosenType){
@@ -125,8 +130,15 @@
 
     // save (add/edit)
     $('#savePlanBtn').on('click', function(){
-      var data = $('#planForm').serialize() + '&action=save';
-      $.post('ajax/plan_api.php', data, function(resp){
+      // use FormData to allow file upload (qr_code)
+      var form = document.getElementById('planForm');
+      var fd = new FormData(form);
+      fd.append('action','save');
+
+      // disable button to prevent double submits
+      var btn = this; btn.disabled = true;
+
+      fetch('ajax/plan_api.php', { method: 'POST', body: fd }).then(function(r){ return r.json(); }).then(function(resp){
         if(resp.success){
           toastr.success(resp.message);
           $('#planModal').modal('hide');
@@ -134,7 +146,7 @@
         } else {
           toastr.error(resp.message||'Save failed');
         }
-      },'json');
+      }).catch(function(){ toastr.error('Network error'); }).finally(function(){ btn.disabled = false; });
     });
   });
 

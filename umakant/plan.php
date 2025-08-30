@@ -69,6 +69,16 @@ require_once 'inc/sidebar.php';
             </div>
           </div>
           <div class="form-group"><label>Description</label><textarea class="form-control" name="description" id="planDescription"></textarea></div>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label>QR Code (upload)</label>
+              <input type="file" class="form-control" name="qr_code" id="planQr" accept="image/*" />
+            </div>
+            <div class="form-group col-md-6">
+              <label>Existing QR</label>
+              <div id="existingQr" class="form-control-plaintext small">(none)</div>
+            </div>
+          </div>
           <!-- start/end dates removed per UI change -->
         </form>
       </div>
