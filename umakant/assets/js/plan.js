@@ -18,7 +18,11 @@
   }
 
   function loadPlans(){
-    $.get('ajax/plan_api.php',{action:'list'},function(resp){
+  // ensure any existing DataTable is removed to avoid double-init issues
+  try{ if ($.fn.dataTable && $.fn.dataTable.isDataTable('#plansTable')) { $('#plansTable').DataTable().clear().destroy(); } }catch(e){}
+  $('#plansTable tbody').html('');
+
+  $.get('ajax/plan_api.php',{action:'list'},function(resp){
       if(!resp.success){ toastr.error(resp.message||'Failed to load plans'); return; }
 
       var rows = resp.data || [];
@@ -48,8 +52,9 @@
         t += '<tr>' + cells.join('') + '</tr>';
       });
 
-      $('#plansTable tbody').html(t);
-      initDataTable('#plansTable');
+  $('#plansTable tbody').html(t);
+  // initialize DataTable after DOM updated
+  initDataTable('#plansTable');
     },'json');
   }
 
@@ -141,8 +146,9 @@
   fetch('ajax/plan_api.php', { method: 'POST', body: fd, credentials: 'same-origin' }).then(function(r){ return r.json(); }).then(function(resp){
         if(resp.success){
           toastr.success(resp.message);
+          // wait for modal hide animation to finish before reloading list to avoid DataTable race
+          $('#planModal').on('hidden.bs.modal.loadPlans', function(){ loadPlans(); $(this).off('hidden.bs.modal.loadPlans'); });
           $('#planModal').modal('hide');
-          loadPlans();
         } else {
           toastr.error(resp.message||'Save failed');
         }
