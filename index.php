@@ -1,4 +1,47 @@
 <?php $page = 'home'; ?>
+<?php
+// Try to fetch the uploaded releases list from the umakant area
+function fetch_upload_list_html(){
+  $host = $_SERVER['HTTP_HOST'] ?? 'hospital.codeapka.com';
+  $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'https') . '://' . $host . '/umakant/upload_list.php';
+
+  // Try cURL first
+  if (function_exists('curl_version')) {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    $resp = curl_exec($ch);
+    $err = curl_error($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    if ($resp !== false && $code >= 200 && $code < 400) {
+      return $resp;
+    }
+  }
+
+  // Fallback to file_get_contents if allow_url_fopen is enabled
+  if (ini_get('allow_url_fopen')) {
+    $context = stream_context_create(['http' => ['timeout' => 5]]);
+    $resp = @file_get_contents($url, false, $context);
+    if ($resp !== false) return $resp;
+  }
+
+  // As a last resort, try including the local file and capturing output (may require same permissions/session)
+  $localPath = __DIR__ . '/umakant/upload_list.php';
+  if (is_readable($localPath)) {
+    ob_start();
+    try { include $localPath; } catch (Throwable $e) { /* ignore */ }
+    $out = ob_get_clean();
+    if ($out) return $out;
+  }
+
+  return '<div class="small">No releases available or failed to fetch the uploads list.</div>';
+}
+
+$uploadListHtml = fetch_upload_list_html();
+?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -96,6 +139,16 @@
         <h3>Get Started</h3>
         <p class="small">Want to try the system or customize it for your facility? Contact our team to schedule a demo or request a quote.</p>
         <p><a class="button" href="contact.php">Contact Us</a></p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h3>Releases</h3>
+      <div class="card">
+        <div class="small">Latest uploaded software releases and files from our uploads index.</div>
+        <div style="margin-top:0.75rem">
+          <?php echo $uploadListHtml; ?>
+        </div>
       </div>
     </section>
   </main>
