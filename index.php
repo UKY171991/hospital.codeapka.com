@@ -67,7 +67,7 @@ $uploadListHtml = fetch_upload_list_html();
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Welcome — Pathology & Hospital Management</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-3mJ3mKqz2V6z6qzv1x0nQ5JYf6Y6kq2ZQ5N9m7f6v6Jq6Z2W" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>

@@ -117,6 +117,12 @@ button[type=submit]{background:var(--primary);color:#fff;padding:0.7rem 1rem;bor
 /* Footer columns: use a grid so columns can collapse responsively */
 .site-footer .container{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;align-items:start}
 
+/* Use existing gradient for the navbar background and ensure nav links are visible */
+.navbar.bg-primary{background:linear-gradient(90deg,var(--primary),#4b7cff) !important}
+.navbar .nav-link{color:rgba(255,255,255,0.95) !important}
+.navbar .nav-link.active{background:rgba(255,255,255,0.12);border-radius:6px}
+.navbar .navbar-nav{align-items:center}
+
 /* Bootstrap compatibility overrides */
 .navbar .logo{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fff;color:var(--primary);font-weight:700}
 .navbar .small{color:rgba(255,255,255,0.9)}
