@@ -23,8 +23,8 @@ if (empty($files)) {
 }
 
 echo '<div class="upload-list">';
-echo '<table style="width:100%;border-collapse:collapse">';
-echo '<thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid #eee">File</th><th style="padding:8px;border-bottom:1px solid #eee">Size</th><th style="padding:8px;border-bottom:1px solid #eee">Uploaded</th></tr></thead>';
+echo '<table>';
+echo '<thead><tr><th>File</th><th>Size</th><th>Uploaded</th></tr></thead>';
 echo '<tbody>';
 foreach ($files as $f) {
     $url = $baseUrl . rawurlencode($f['name']);
@@ -38,10 +38,11 @@ foreach ($files as $f) {
         $time = date('Y-m-d H:i', $f['mtime']);
     }
     echo '<tr>';
-    echo '<td style="padding:8px;border-bottom:1px solid #f1f1f1"><a href="' . htmlspecialchars($url) . '" target="_blank">' . htmlspecialchars($f['name']) . '</a></td>';
-    echo '<td style="padding:8px;border-bottom:1px solid #f1f1f1">' . $sizeMB . ' MB</td>';
-    echo '<td style="padding:8px;border-bottom:1px solid #f1f1f1">' . htmlspecialchars($time) . '</td>';
+    echo '<td><a href="' . htmlspecialchars($url) . '" target="_blank">' . htmlspecialchars($f['name']) . '</a></td>';
+    echo '<td>' . $sizeMB . ' MB</td>';
+    echo '<td>' . htmlspecialchars($time) . '</td>';
     echo '</tr>';
 }
 echo '</tbody></table>';
 echo '</div>';
+?>

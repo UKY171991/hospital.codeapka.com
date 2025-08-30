@@ -75,29 +75,26 @@ $uploadListHtml = fetch_upload_list_html();
 
   <main class="container">
     <section class="hero">
-      <div>
-        <h2 style="margin:0 0 0.5rem 0">Welcome to the Pathology & Hospital Management System</h2>
+      <div class="hero-content">
+        <h1>Welcome to the Pathology & Hospital Management System</h1>
         <p class="lead">Build faster workflows, access patient and lab data securely, and deliver better care. The system is designed for simplicity and scale — ideal for small clinics to large hospitals.</p>
         <p><a class="button" href="#features">Explore features</a></p>
       </div>
-      <div>
-        <div class="card">
-          <h3>Pathology Module</h3>
-          <p class="small">Manage lab tests, sample tracking, digital reports and results delivery.</p>
-          <div class="feature-list">
-            <span> Test catalogue & pricing</span>
-            <!-- <span>• Sample barcoding</span> -->
-            <span> Automated report templates</span>
-          </div>
+      <div class="hero-image">
+        <div class="hero-image-placeholder">
+          Hospital Management System
         </div>
       </div>
     </section>
 
     <section class="section">
-      <h3>Releases</h3>
+      <div class="section-header">
+        <h2>Latest Releases</h2>
+        <p>Check out our latest software releases and updates</p>
+      </div>
       <div class="card">
         <div class="small">Latest uploaded software releases and files from our uploads index.</div>
-        <div style="margin-top:0.75rem">
+        <div class="mt-3">
           <?php echo $uploadListHtml; ?>
         </div>
       </div>
@@ -105,81 +102,49 @@ $uploadListHtml = fetch_upload_list_html();
     
 
     <section id="features" class="section">
-      <h3 style="margin-top:0">Key Features</h3>
+      <div class="section-header">
+        <h2>Key Features</h2>
+        <p>Powerful tools to streamline your healthcare operations</p>
+      </div>
       <div class="card-grid">
-        <div class="card">
+        <div class="card feature-card">
+          <div class="feature-icon">📋</div>
           <h3>Patient Records</h3>
           <p class="small">Centralized EHR for quick access to patient history, visits and reports.</p>
         </div>
-        <div class="card">
+        <div class="card feature-card">
+          <div class="feature-icon">📅</div>
           <h3>Appointments</h3>
           <p class="small">Online booking, doctor schedules and automated reminders.</p>
         </div>
-        <div class="card">
+        <div class="card feature-card">
+          <div class="feature-icon">💰</div>
           <h3>Billing & Inventory</h3>
           <p class="small">Integrated billing, invoices and stock control for consumables.</p>
         </div>
-        <div class="card">
+        <div class="card feature-card">
+          <div class="feature-icon">🔒</div>
           <h3>Secure Access</h3>
           <p class="small">Role-based access controls and audit logs to meet compliance needs.</p>
         </div>
       </div>
     </section>
 
-    <!-- <section id="pricing" class="section">
-      <h3 style="margin-top:0">Pricing Plans</h3>
-      <p class="small">Flexible plans for clinics, laboratories and hospitals. All plans include basic support and regular updates. Choose a plan and contact our sales team to purchase or schedule a demo.</p>
-      <div class="card-grid pricing-grid">
-        <div class="card plan">
-          <h3>Starter</h3>
-    <div class="price">₹16,499 <span class="small">/ month</span></div>
-          <div class="features small">
-            <div>• Up to 3 users</div>
-            <div>• Basic pathology module</div>
-            <div>• Email support</div>
-          </div>
-          <p style="margin-top:0.75rem"><a class="button" href="pricing.php?plan=starter">Buy Now</a></p>
-        </div>
-
-        <div class="card plan">
-          <h3>Professional</h3>
-          <div class="price">₹41,499 <span class="small">/ month</span></div>
-          <div class="features small">
-            <div>• Up to 15 users</div>
-            <div>• Full pathology + hospital modules</div>
-            <div>• Priority support</div>
-          </div>
-          <p style="margin-top:0.75rem"><a class="button" href="pricing.php?plan=professional">Buy Now</a></p>
-        </div>
-
-        <div class="card plan">
-          <h3>Enterprise</h3>
-          <div class="price">Custom</div>
-          <div class="features small">
-            <div>• Unlimited users</div>
-            <div>• Custom integrations</div>
-            <div>• Dedicated support & training</div>
-          </div>
-          <p style="margin-top:0.75rem"><a class="button" href="pricing.php?plan=enterprise">Contact Sales</a></p>
-        </div>
-      </div>
-    </section> -->
-
     <section class="section">
       <div class="section-header">
-        <h3>Available Plans</h3>
+        <h2>Available Plans</h2>
         <p>Browse the plans we currently offer. Click a plan to learn more or contact us to purchase.</p>
       </div>
       <div class="card">
-        <div style="margin-top:0.25rem">
+        <div class="mt-2">
           <?php include __DIR__ . '/umakant/public_plans.php'; ?>
         </div>
       </div>
     </section>
 
     <section class="section">
-      <div class="card">
-        <h3>Get Started</h3>
+      <div class="card text-center">
+        <h3>Ready to Get Started?</h3>
         <p class="small">Want to try the system or customize it for your facility? Contact our team to schedule a demo or request a quote.</p>
         <p><a class="button" href="contact.php">Contact Us</a></p>
       </div>

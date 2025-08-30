@@ -64,27 +64,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <main class="container">
     <section class="section">
-      <div class="card">
+      <div class="section-header">
         <h2>Contact Us</h2>
+        <p>We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+      </div>
+      
+      <div class="card">
         <?php if ($sent): ?>
-          <p class="small">Thank you, <?php echo htmlspecialchars($name); ?>. Your message has been received. We'll get back to <?php echo htmlspecialchars($email); ?> soon.</p>
+          <div class="text-center">
+            <div class="feature-icon mb-3" style="width: 100px; height: 100px; font-size: 3rem; margin: 0 auto;">✅</div>
+            <h3>Thank You!</h3>
+            <p class="small">Thank you, <?php echo htmlspecialchars($name); ?>. Your message has been received. We'll get back to <?php echo htmlspecialchars($email); ?> soon.</p>
+            <p><a class="button" href="contact.php">Send Another Message</a></p>
+          </div>
         <?php else: ?>
           <?php if ($error): ?>
-            <p class="small" style="color:#b00020;margin-bottom:0.75rem"><?php echo htmlspecialchars($error); ?></p>
+            <div class="alert alert-danger small mb-4"><?php echo htmlspecialchars($error); ?></div>
           <?php endif; ?>
+          
           <form method="post" action="contact.php">
             <div class="form-row">
-              <input type="text" name="name" placeholder="Your Name" required value="<?php echo htmlspecialchars($name); ?>" />
-              <input type="email" name="email" placeholder="Your Email" required value="<?php echo htmlspecialchars($email); ?>" />
+              <div>
+                <label for="name" class="small mb-1">Your Name *</label>
+                <input type="text" id="name" name="name" placeholder="Enter your name" required value="<?php echo htmlspecialchars($name); ?>" />
+              </div>
+              <div>
+                <label for="email" class="small mb-1">Your Email *</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required value="<?php echo htmlspecialchars($email); ?>" />
+              </div>
             </div>
-            <div style="margin-top:0.75rem">
-              <textarea name="message" rows="5" placeholder="Your Message" required><?php echo htmlspecialchars($message); ?></textarea>
+            <div class="mb-3">
+              <label for="message" class="small mb-1">Your Message *</label>
+              <textarea id="message" name="message" rows="6" placeholder="Enter your message here..." required><?php echo htmlspecialchars($message); ?></textarea>
             </div>
-            <div style="margin-top:0.75rem">
-              <button type="submit">Send Message</button>
+            <div class="text-center">
+              <button type="submit" class="button">Send Message</button>
             </div>
           </form>
         <?php endif; ?>
+      </div>
+    </section>
+    
+    <section class="section">
+      <div class="card">
+        <div class="card-grid">
+          <div class="card feature-card">
+            <div class="feature-icon">📧</div>
+            <h3>Email Us</h3>
+            <p class="small">uky171991@gmail.com</p>
+          </div>
+          <div class="card feature-card">
+            <div class="feature-icon">📍</div>
+            <h3>Visit Us</h3>
+            <p class="small">123 Healthcare Avenue<br>Medical District, HC 10001</p>
+          </div>
+          <div class="card feature-card">
+            <div class="feature-icon">🕒</div>
+            <h3>Business Hours</h3>
+            <p class="small">Monday - Friday: 9AM - 6PM<br>Saturday: 10AM - 4PM</p>
+          </div>
+        </div>
       </div>
     </section>
   </main>

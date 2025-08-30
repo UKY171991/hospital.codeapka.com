@@ -15,7 +15,7 @@ if (!$plans || count($plans) === 0){
     return;
 }
 
-echo '<div class="plans-grid">';
+echo '<div class="pricing-grid">';
 foreach($plans as $p){
     $name = htmlspecialchars($p['name'] ?? '');
     $desc = htmlspecialchars($p['description'] ?? '');
@@ -32,19 +32,22 @@ foreach($plans as $p){
     }
 
     echo '<div class="card plan">';
+    // Check if this is the most popular plan (you can customize this logic)
+    if ($name === 'Professional') {
+        echo '<div class="popular-badge">POPULAR</div>';
+    }
     echo '<h3>' . $name . '</h3>';
     echo '<div class="price">' . ($price !== 'Contact' ? '₹' . $price : 'Contact') . ' <span class="small">/ ' . ($type === 'yearly' ? 'year' : 'month') . '</span></div>';
     echo '<div class="features small"><div>' . $desc . '</div>';
     if($upi) echo '<div>UPI: ' . $upi . '</div>';
     echo '</div>';
     if($qr){
-        echo '<div class="qr-wrap" style="margin-top:.75rem;text-align:center">';
+        echo '<div class="qr-wrap mt-3 text-center">';
         echo '<img class="qr-thumb" src="' . htmlspecialchars($qr) . '" alt="QR code">';
         echo '</div>';
-        echo '<p style="margin-top:.75rem;text-align:center"><a class="button small" href="' . htmlspecialchars($qr) . '" target="_blank">Download QR</a></p>';
+        echo '<p class="mt-3 text-center"><a class="button small" href="' . htmlspecialchars($qr) . '" target="_blank">Download QR</a></p>';
     }
     echo '</div>';
 }
 echo '</div>';
-
 ?>

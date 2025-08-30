@@ -13,8 +13,12 @@
 
   <main class="container">
     <section class="section">
+      <div class="section-header">
+        <h2>Who We Are</h2>
+        <p>Learn more about our mission and vision</p>
+      </div>
       <div class="card">
-        <h2>Who we are</h2>
+        <h3>Who we are</h3>
         <p class="small">We build easy-to-use, secure software for laboratories, clinics and hospitals that streamlines patient workflows, laboratory processes and administrative operations. Our platform is modular so organizations can adopt the features they need and scale over time.</p>
 
         <h3>Our mission</h3>
@@ -26,16 +30,36 @@
     </section>
 
     <section class="section">
+      <div class="section-header">
+        <h2>Core Benefits</h2>
+        <p>Why choose our hospital management system</p>
+      </div>
       <div class="card">
-        <h3>Core benefits</h3>
-        <ul class="small">
-          <li>Comprehensive test catalogue, sample tracking and automated reports</li>
-          <li>Modular hospital management tools — appointments, billing, inventory</li>
-          <li>Secure user roles, audit trails and data export for compliance</li>
-          <li>Flexible integrations (LIS, third-party labs, payment gateways)</li>
-          <li>Professional support, onboarding and optional custom development</li>
-        </ul>
-        <p style="margin-top:0.75rem"><a class="button" href="contact.php">Contact Sales or Support</a></p>
+        <div class="card-grid">
+          <div class="card feature-card">
+            <div class="feature-icon">🔬</div>
+            <h3>Pathology Module</h3>
+            <p class="small">Comprehensive test catalogue, sample tracking and automated reports</p>
+          </div>
+          <div class="card feature-card">
+            <div class="feature-icon">🏥</div>
+            <h3>Hospital Tools</h3>
+            <p class="small">Modular hospital management tools — appointments, billing, inventory</p>
+          </div>
+          <div class="card feature-card">
+            <div class="feature-icon">🛡️</div>
+            <h3>Security</h3>
+            <p class="small">Secure user roles, audit trails and data export for compliance</p>
+          </div>
+          <div class="card feature-card">
+            <div class="feature-icon">🔌</div>
+            <h3>Integrations</h3>
+            <p class="small">Flexible integrations (LIS, third-party labs, payment gateways)</p>
+          </div>
+        </div>
+        <div class="text-center mt-4">
+          <p><a class="button" href="contact.php">Contact Sales or Support</a></p>
+        </div>
       </div>
     </section>
   </main>
