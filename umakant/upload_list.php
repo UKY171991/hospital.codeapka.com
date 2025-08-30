@@ -87,35 +87,9 @@ if($hasTable){
                           $out = htmlspecialchars($raw);
                         }
                       }
-                      echo $out;
-                    ?>
-                  </td>
-                  <td><?php echo htmlspecialchars($f['uploaded_by_username'] ?? ($f['uploaded_by'] ?? '')); ?></td>
-                  <td>
-                    <button class="btn btn-sm btn-danger delete-upload" data-file="<?php echo htmlspecialchars($f['file_name']); ?>">Delete</button>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </section>
-  
-      <!-- Delete confirmation modal -->
-      <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
-        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="confirmDeleteLabel">Confirm Delete</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="modal-body">
-              Are you sure you want to delete this uploaded file? This cannot be undone.
-            </div>
+                  </div>
+
+                <?php require_once 'inc/footer.php'; ?>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
               <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
