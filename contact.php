@@ -64,14 +64,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <?php include_once __DIR__ . '/inc/header.php'; ?>
 
   <main class="container">
-    <section class="section">
-      <div class="section-header">
+    <section class="section contact-hero-section">
+      <div class="section-header scroll-reveal">
         <h2>Get In Touch</h2>
         <p>We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
       </div>
       
       <div class="card-grid">
-        <div class="card">
+        <div class="card hover-lift">
           <?php if ($sent): ?>
             <div class="text-center">
               <div class="feature-icon mb-4" style="width: 120px; height: 120px; font-size: 4rem; margin: 0 auto;">✅</div>
@@ -100,28 +100,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <textarea id="message" name="message" rows="6" placeholder="How can we help you?" required><?php echo htmlspecialchars($message); ?></textarea>
               </div>
               <div class="text-center">
-                <button type="submit" class="button">Send Message</button>
+                <button type="submit" class="btn">Send Message</button>
               </div>
             </form>
           <?php endif; ?>
         </div>
         
-        <div class="card">
+        <div class="card hover-lift">
           <h3>Contact Information</h3>
           <div class="card-grid" style="grid-template-columns: 1fr; gap: 1.5rem;">
-            <div class="card feature-card">
+            <div class="card feature-card hover-scale">
               <div class="feature-icon">📧</div>
               <h3>Email Us</h3>
               <p class="small">uky171991@gmail.com</p>
               <p class="small">For general inquiries and support</p>
             </div>
-            <div class="card feature-card">
+            <div class="card feature-card hover-scale">
               <div class="feature-icon">📍</div>
               <h3>Visit Us</h3>
               <p class="small">123 Healthcare Avenue<br>Medical District, HC 10001</p>
               <p class="small">Monday - Friday: 9AM - 6PM</p>
             </div>
-            <div class="card feature-card">
+            <div class="card feature-card hover-scale">
               <div class="feature-icon">📞</div>
               <h3>Call Us</h3>
               <p class="small">+1 (555) 123-4567</p>
@@ -132,8 +132,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
     </section>
     
-    <section class="section">
-      <div class="card text-center">
+    <section class="section support-section">
+      <div class="card text-center hover-lift">
         <h3>Need Immediate Assistance?</h3>
         <p class="small">Our support team is available 24/7 for critical issues. For non-urgent inquiries, we typically respond within one business day.</p>
         <div class="mt-3">

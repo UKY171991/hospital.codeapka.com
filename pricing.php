@@ -16,21 +16,21 @@ $plan = $_GET['plan'] ?? '';
   <?php include_once __DIR__ . '/inc/header.php'; ?>
 
   <main class="container">
-    <section class="section">
-      <div class="section-header">
+    <section class="section pricing-hero-section">
+      <div class="section-header scroll-reveal">
         <h2>Simple, Transparent Pricing</h2>
         <p>Choose the perfect plan for your healthcare facility's needs</p>
       </div>
       
       <?php if ($plan): ?>
-        <div class="card text-center">
+        <div class="card text-center hover-lift">
           <div class="feature-icon mb-4" style="width: 120px; height: 120px; font-size: 4rem; margin: 0 auto;">📋</div>
           <h3>Selected Plan: <?php echo htmlspecialchars(ucfirst($plan)); ?></h3>
           <p class="small">Great choice! Our sales team will prepare your customized onboarding plan.</p>
           <p><a class="btn" href="contact.php">Contact Sales Team</a></p>
         </div>
       <?php else: ?>
-        <div class="card">
+        <div class="card hover-lift">
           <h3>Our Plans</h3>
           <p class="small">All plans include core features with options to customize based on your facility's requirements.</p>
           <div class="mt-3">
@@ -40,8 +40,8 @@ $plan = $_GET['plan'] ?? '';
       <?php endif; ?>
     </section>
     
-    <section class="section">
-      <div class="card">
+    <section class="section faq-section">
+      <div class="card hover-lift">
         <div class="section-header">
           <h2>Frequently Asked Questions</h2>
           <p>Everything you need to know about our pricing</p>
@@ -62,8 +62,8 @@ $plan = $_GET['plan'] ?? '';
       </div>
     </section>
     
-    <section class="section">
-      <div class="card text-center">
+    <section class="section cta-section">
+      <div class="card text-center hover-lift">
         <h3>Still Have Questions?</h3>
         <p class="small">Our sales team is ready to help you find the perfect solution for your facility.</p>
         <div class="mt-3">

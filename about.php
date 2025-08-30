@@ -13,12 +13,12 @@
   <?php include_once __DIR__ . '/inc/header.php'; ?>
 
   <main class="container">
-    <section class="section">
-      <div class="section-header">
+    <section class="section about-hero-section">
+      <div class="section-header scroll-reveal">
         <h2>About Our Platform</h2>
         <p>Learn about our mission to transform healthcare management</p>
       </div>
-      <div class="card">
+      <div class="card hover-lift">
         <h3>Who We Are</h3>
         <p class="small">We build easy-to-use, secure software for laboratories, clinics and hospitals that streamlines patient workflows, laboratory processes and administrative operations. Our platform is modular so organizations can adopt the features they need and scale over time.</p>
 
@@ -30,29 +30,29 @@
       </div>
     </section>
 
-    <section class="section">
-      <div class="section-header">
+    <section class="section benefits-section">
+      <div class="section-header scroll-reveal">
         <h2>Core Benefits</h2>
         <p>Why healthcare providers choose our solution</p>
       </div>
-      <div class="card">
+      <div class="card hover-lift">
         <div class="card-grid">
-          <div class="card feature-card">
+          <div class="card feature-card hover-scale">
             <div class="feature-icon">🔬</div>
             <h3>Pathology Module</h3>
             <p class="small">Comprehensive test catalogue, sample tracking and automated reports with customizable templates.</p>
           </div>
-          <div class="card feature-card">
+          <div class="card feature-card hover-scale">
             <div class="feature-icon">🏥</div>
             <h3>Hospital Tools</h3>
             <p class="small">Modular hospital management tools — appointments, billing, inventory with real-time analytics.</p>
           </div>
-          <div class="card feature-card">
+          <div class="card feature-card hover-scale">
             <div class="feature-icon">🛡️</div>
             <h3>Security</h3>
             <p class="small">Secure user roles, audit trails and data export for compliance with HIPAA standards.</p>
           </div>
-          <div class="card feature-card">
+          <div class="card feature-card hover-scale">
             <div class="feature-icon">🔌</div>
             <h3>Integrations</h3>
             <p class="small">Flexible integrations (LIS, third-party labs, payment gateways) with API access.</p>
@@ -64,8 +64,8 @@
       </div>
     </section>
     
-    <section class="section">
-      <div class="card text-center">
+    <section class="section stats-section">
+      <div class="card text-center hover-lift">
         <h3>Trusted by Healthcare Professionals</h3>
         <p class="small">Join thousands of medical professionals who rely on our platform daily to deliver exceptional patient care.</p>
         <div class="stats-grid">

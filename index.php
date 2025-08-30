@@ -94,7 +94,7 @@ $uploadListHtml = fetch_upload_list_html();
       </div>
     </section>
 
-    <section class="section">
+    <section class="section releases-section">
       <div class="section-header scroll-reveal">
         <h2>Latest Releases</h2>
         <p>Stay up-to-date with our latest software updates and features</p>
@@ -109,7 +109,7 @@ $uploadListHtml = fetch_upload_list_html();
     </section>
     
 
-    <section id="features" class="section">
+    <section id="features" class="section features-section">
       <div class="section-header scroll-reveal">
         <h2>Powerful Features</h2>
         <p>Everything you need to manage your healthcare facility efficiently</p>
@@ -138,7 +138,7 @@ $uploadListHtml = fetch_upload_list_html();
       </div>
     </section>
 
-    <section class="section">
+    <section class="section pricing-section">
       <div class="section-header scroll-reveal">
         <h2>Available Plans</h2>
         <p>Flexible solutions tailored to your facility's needs</p>
@@ -166,7 +166,7 @@ $uploadListHtml = fetch_upload_list_html();
       </div>
     </section>
 
-    <section class="section">
+    <section class="section cta-section">
       <div class="card text-center hover-lift">
         <div class="feature-icon mb-4 floating" style="width: 120px; height: 120px; font-size: 3.5rem; margin: 0 auto;">🚀</div>
         <h3>Ready to Transform Your Healthcare Facility?</h3>
