@@ -15,9 +15,11 @@ $plan = $_GET['plan'] ?? '';
 
   <main class="container">
     <section class="section">
-      <div class="card">
+      <div class="section-header">
         <h2>Pricing Plans</h2>
-        <p class="small">Select a plan and contact sales to complete your purchase. For Enterprise, we'll prepare a custom quote and onboarding plan.</p>
+        <p>Select a plan and contact sales to complete your purchase. For Enterprise, we'll prepare a custom quote and onboarding plan.</p>
+      </div>
+      <div class="card">
 
         <?php if ($plan): ?>
           <h3>Selected plan: <?php echo htmlspecialchars(ucfirst($plan)); ?></h3>

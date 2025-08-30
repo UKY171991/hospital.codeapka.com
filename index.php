@@ -165,10 +165,12 @@ $uploadListHtml = fetch_upload_list_html();
     </section> -->
 
     <section class="section">
-      <h3 style="margin-top:0">Available Plans</h3>
+      <div class="section-header">
+        <h3>Available Plans</h3>
+        <p>Browse the plans we currently offer. Click a plan to learn more or contact us to purchase.</p>
+      </div>
       <div class="card">
-        <div class="small">Browse the plans we currently offer. Click a plan to learn more or contact us to purchase.</div>
-        <div style="margin-top:0.75rem">
+        <div style="margin-top:0.25rem">
           <?php include __DIR__ . '/umakant/public_plans.php'; ?>
         </div>
       </div>
