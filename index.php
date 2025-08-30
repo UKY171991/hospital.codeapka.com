@@ -67,10 +67,49 @@
       </div>
     </section>
 
+    <section id="pricing" class="section">
+      <h3 style="margin-top:0">Pricing Plans</h3>
+      <p class="small">Flexible plans for clinics, laboratories and hospitals. All plans include basic support and regular updates. Choose a plan and contact our sales team to purchase or schedule a demo.</p>
+      <div class="card-grid pricing-grid">
+        <div class="card plan">
+          <h3>Starter</h3>
+          <div class="price">$199 <span class="small">/ month</span></div>
+          <div class="features small">
+            <div>• Up to 3 users</div>
+            <div>• Basic pathology module</div>
+            <div>• Email support</div>
+          </div>
+          <p style="margin-top:0.75rem"><a class="button" href="pricing.php?plan=starter">Buy Now</a></p>
+        </div>
+
+        <div class="card plan">
+          <h3>Professional</h3>
+          <div class="price">$499 <span class="small">/ month</span></div>
+          <div class="features small">
+            <div>• Up to 15 users</div>
+            <div>• Full pathology + hospital modules</div>
+            <div>• Priority support</div>
+          </div>
+          <p style="margin-top:0.75rem"><a class="button" href="pricing.php?plan=professional">Buy Now</a></p>
+        </div>
+
+        <div class="card plan">
+          <h3>Enterprise</h3>
+          <div class="price">Custom</div>
+          <div class="features small">
+            <div>• Unlimited users</div>
+            <div>• Custom integrations</div>
+            <div>• Dedicated support & training</div>
+          </div>
+          <p style="margin-top:0.75rem"><a class="button" href="pricing.php?plan=enterprise">Contact Sales</a></p>
+        </div>
+      </div>
+    </section>
+
     <section class="section">
       <div class="card">
         <h3>Get Started</h3>
-        <p class="small">Want to try the system or customize it for your facility? Contact our team to schedule a demo.</p>
+        <p class="small">Want to try the system or customize it for your facility? Contact our team to schedule a demo or request a quote.</p>
         <p><a class="button" href="contact.php">Contact Us</a></p>
       </div>
     </section>
