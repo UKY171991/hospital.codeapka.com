@@ -25,8 +25,10 @@ foreach($plans as $p){
     $qr = $p['qr_code'] ?? null;
     // normalize qr path to public URL
     if ($qr && !preg_match('#^https?://#i', $qr)){
-        if (strpos($qr, '/') === 0) $qr = (isset($_SERVER['REQUEST_SCHEME'])?$_SERVER['REQUEST_SCHEME']:'https') . '://' . $_SERVER['HTTP_HOST'] . $qr;
-        else $qr = (isset($_SERVER['REQUEST_SCHEME'])?$_SERVER['REQUEST_SCHEME']:'https') . '://' . $_SERVER['HTTP_HOST'] . '/umakant/' . ltrim($qr,'/');
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'hospital.codeapka.com';
+        if (strpos($qr, '/') === 0) $qr = $scheme . '://' . $host . $qr;
+        else $qr = $scheme . '://' . $host . '/umakant/' . ltrim($qr,'/');
     }
 
     echo '<div class="card plan">';
@@ -35,7 +37,12 @@ foreach($plans as $p){
     echo '<div class="features small"><div>' . $desc . '</div>';
     if($upi) echo '<div>UPI: ' . $upi . '</div>';
     echo '</div>';
-    if($qr) echo '<p style="margin-top:.75rem"><a class="button small" href="' . htmlspecialchars($qr) . '" target="_blank">Download QR</a></p>';
+    if($qr){
+        echo '<div class="qr-wrap" style="margin-top:.75rem;text-align:center">';
+        echo '<img class="qr-thumb" src="' . htmlspecialchars($qr) . '" alt="QR code">';
+        echo '</div>';
+        echo '<p style="margin-top:.75rem;text-align:center"><a class="button small" href="' . htmlspecialchars($qr) . '" target="_blank">Download QR</a></p>';
+    }
     echo '</div>';
 }
 echo '</div>';
