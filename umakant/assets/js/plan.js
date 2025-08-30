@@ -88,7 +88,12 @@
   $('#viewPlanType').text(tt === 'yearly' ? 'Yearly' : 'Monthly');
   $('#viewPlanAddedBy').text(p.added_by_username || '');
         if(p.qr_code){
-          $('#viewQrImg').attr('src', p.qr_code).show();
+          var _vqr = p.qr_code || '';
+          if(_vqr && !/^https?:\/\//i.test(_vqr)){
+            if(_vqr.charAt(0) === '/') _vqr = window.location.origin + _vqr;
+            else _vqr = window.location.origin + '/umakant/' + _vqr;
+          }
+          $('#viewQrImg').attr('src', _vqr).show();
           $('#viewQrNone').hide();
         } else {
           $('#viewQrImg').hide().attr('src','');
@@ -110,8 +115,13 @@
         $('#planPrice').val(p.price != null ? p.price : '');
         $('#planUpi').val(p.upi || '');
         if (p.qr_code) {
-          $('#existingQr').html('<a href="' + p.qr_code + '" target="_blank">View QR</a>');
-          $('#qrPreview').attr('src', p.qr_code).show();
+          var _qr = p.qr_code || '';
+          if(_qr && !/^https?:\/\//i.test(_qr)){
+            if(_qr.charAt(0) === '/') _qr = window.location.origin + _qr;
+            else _qr = window.location.origin + '/umakant/' + _qr;
+          }
+          $('#existingQr').html('<a href="' + _qr + '" target="_blank">View QR</a>');
+          $('#qrPreview').attr('src', _qr).show();
         } else {
           $('#existingQr').text('(none)');
           $('#qrPreview').hide().attr('src','');
