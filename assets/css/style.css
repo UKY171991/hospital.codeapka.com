@@ -671,6 +671,18 @@ section {
   background: var(--gray-50);
 }
 
+.pricing-intro {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.pricing-intro h3 {
+  font-size: 1.25rem;
+  color: var(--gray-700);
+  font-weight: 500;
+  line-height: 1.6;
+}
+
 .pricing-toggle {
   display: flex;
   align-items: center;
@@ -718,6 +730,73 @@ section {
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-full);
+}
+
+.pricing-contact {
+  text-align: center;
+  margin-top: 4rem;
+  padding: 3rem;
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.pricing-contact h4 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 1rem;
+}
+
+.pricing-contact p {
+  color: var(--gray-600);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.contact-options {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--gradient-success);
+  color: var(--white);
+  padding: 1rem 2rem;
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: 600;
+  transition: var(--transition);
+  box-shadow: var(--shadow-md);
+}
+
+.whatsapp-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--gradient-primary);
+  color: var(--white);
+  padding: 1rem 2rem;
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: 600;
+  transition: var(--transition);
+  box-shadow: var(--shadow-md);
+}
+
+.contact-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .pricing-card {
@@ -813,6 +892,75 @@ section {
 
 .plan-btn.primary {
   background: var(--gradient-success);
+}
+
+/* QR Code Section */
+.qr-section {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: var(--gray-50);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+}
+
+.qr-wrap {
+  margin-bottom: 1rem;
+}
+
+.qr-thumb {
+  border: 2px solid var(--gray-200);
+  transition: var(--transition);
+}
+
+.qr-thumb:hover {
+  border-color: var(--primary);
+  transform: scale(1.05);
+}
+
+.qr-download {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: var(--transition);
+}
+
+.qr-download:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* Override any old plan styles */
+.card.plan {
+  background: var(--white);
+  padding: 2.5rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--gray-200);
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.card.plan::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-primary);
+  transform: scaleX(0);
+  transition: var(--transition);
+}
+
+.card.plan:hover::before {
+  transform: scaleX(1);
+}
+
+.card.plan:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
 }
 
 /* Testimonials */
@@ -1570,6 +1718,70 @@ section {
 
 .award-card p {
   color: var(--gray-600);
+}
+
+/* Releases Table */
+.releases-table {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.releases-table-header {
+  background: var(--gradient-primary);
+  color: var(--white);
+}
+
+.releases-table-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  align-items: center;
+}
+
+.releases-table-cell {
+  padding: 1rem 1.5rem;
+  font-weight: 500;
+}
+
+.releases-table-cell.header {
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.releases-table-body .releases-table-row {
+  border-bottom: 1px solid var(--gray-200);
+  transition: var(--transition);
+}
+
+.releases-table-body .releases-table-row:hover {
+  background: var(--gray-50);
+}
+
+.releases-table-body .releases-table-cell {
+  font-size: 0.875rem;
+  color: var(--gray-700);
+}
+
+.release-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.release-link:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.releases-empty {
+  text-align: center;
+  color: var(--gray-500);
+  font-style: italic;
+  padding: 2rem;
 }
 
 /* Additional Utility Classes */

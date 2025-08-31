@@ -18,14 +18,20 @@ if (is_dir($uploadsDir)) {
 }
 
 if (empty($files)) {
-    echo '<div class="small">No releases available.</div>';
+    echo '<div class="releases-empty">No releases available at this time.</div>';
     return;
 }
 
-echo '<div class="upload-list">';
-echo '<table>';
-echo '<thead><tr><th>File</th><th>Size</th><th>Uploaded</th></tr></thead>';
-echo '<tbody>';
+echo '<div class="releases-table">';
+echo '<div class="releases-table-header">';
+echo '<div class="releases-table-row">';
+echo '<div class="releases-table-cell header">File</div>';
+echo '<div class="releases-table-cell header">Size</div>';
+echo '<div class="releases-table-cell header">Uploaded</div>';
+echo '</div>';
+echo '</div>';
+
+echo '<div class="releases-table-body">';
 foreach ($files as $f) {
     $url = $baseUrl . rawurlencode($f['name']);
     $sizeMB = number_format($f['size'] / (1024*1024), 2);
@@ -37,12 +43,15 @@ foreach ($files as $f) {
     } catch (Exception $e) {
         $time = date('Y-m-d H:i', $f['mtime']);
     }
-    echo '<tr>';
-    echo '<td><a href="' . htmlspecialchars($url) . '" target="_blank">' . htmlspecialchars($f['name']) . '</a></td>';
-    echo '<td>' . $sizeMB . ' MB</td>';
-    echo '<td>' . htmlspecialchars($time) . '</td>';
-    echo '</tr>';
+    
+    echo '<div class="releases-table-row">';
+    echo '<div class="releases-table-cell">';
+    echo '<a href="' . htmlspecialchars($url) . '" target="_blank" class="release-link">' . htmlspecialchars($f['name']) . '</a>';
+    echo '</div>';
+    echo '<div class="releases-table-cell">' . $sizeMB . ' MB</div>';
+    echo '<div class="releases-table-cell">' . htmlspecialchars($time) . '</div>';
+    echo '</div>';
 }
-echo '</tbody></table>';
+echo '</div>';
 echo '</div>';
 ?>
