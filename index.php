@@ -275,7 +275,8 @@ $uploadListHtml = fetch_upload_list_html();
             <h4>Need Help Choosing a Plan?</h4>
             <p>Our team is here to help you find the perfect solution for your healthcare facility.</p>
             <div class="contact-options">
-              <a href="https://wa.me/919876543210?text=Hi! I'm interested in your hospital management plans. Can you help me choose the right one?" 
+              <!-- TODO: Replace REPLACE_WITH_ACTUAL_NUMBER with the actual WhatsApp number from https://hospital.codeapka.com/umakant/owner.php -->
+              <a href="https://wa.me/REPLACE_WITH_ACTUAL_NUMBER?text=Hi! I'm interested in your hospital management plans. Can you help me choose the right one?" 
                  class="whatsapp-btn" 
                  target="_blank" 
                  rel="noopener noreferrer">
