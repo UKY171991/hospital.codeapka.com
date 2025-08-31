@@ -1726,6 +1726,7 @@ section {
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow);
+  margin: 0;
 }
 
 .releases-table-header {
@@ -1770,11 +1771,14 @@ section {
   text-decoration: none;
   font-weight: 500;
   transition: var(--transition);
+  display: inline-block;
+  padding: 0.25rem 0;
 }
 
 .release-link:hover {
   color: var(--primary-dark);
   text-decoration: underline;
+  transform: translateX(2px);
 }
 
 .releases-empty {
@@ -1782,6 +1786,45 @@ section {
   color: var(--gray-500);
   font-style: italic;
   padding: 2rem;
+}
+
+/* Override any old table styles */
+.releases-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+
+.releases-content table th,
+.releases-content table td {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.releases-content table th {
+  background: var(--gradient-primary);
+  color: var(--white);
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.releases-content table tr:hover {
+  background: var(--gray-50);
+}
+
+.releases-content table a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.releases-content table a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
 }
 
 /* Additional Utility Classes */

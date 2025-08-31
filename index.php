@@ -22,6 +22,20 @@ function sanitize_upload_html($html){
 }
 
 function fetch_upload_list_html(){
+  // Directly include our updated public_upload_list.php file
+  $localPath = __DIR__ . '/umakant/public_upload_list.php';
+  if (is_readable($localPath)) {
+    ob_start();
+    try { 
+      include $localPath; 
+    } catch (Throwable $e) { 
+      return '<div class="releases-empty">Error loading releases: ' . $e->getMessage() . '</div>';
+    }
+    $out = ob_get_clean();
+    if ($out) return $out;
+  }
+
+  // Fallback to HTTP request if direct include fails
   $host = $_SERVER['HTTP_HOST'] ?? 'hospital.codeapka.com';
   $url = 'https://' . $host . '/umakant/public_upload_list.php';
 
@@ -47,16 +61,7 @@ function fetch_upload_list_html(){
     if ($resp !== false) return sanitize_upload_html($resp);
   }
 
-  // As a last resort, try including the local file and capturing output (may require same permissions/session)
-  $localPath = __DIR__ . '/umakant/upload_list.php';
-  if (is_readable($localPath)) {
-    ob_start();
-    try { include $localPath; } catch (Throwable $e) { /* ignore */ }
-    $out = ob_get_clean();
-    if ($out) return sanitize_upload_html($out);
-  }
-
-  return '<div class="small">No releases available or failed to fetch the uploads list.</div>';
+  return '<div class="releases-empty">No releases available at this time.</div>';
 }
 
 $uploadListHtml = fetch_upload_list_html();
