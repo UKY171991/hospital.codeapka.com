@@ -43,3 +43,26 @@
 </footer>
 <!-- Bootstrap JS bundle for interactive components -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Toggle sticky header style on scroll
+  (function(){
+    const header = document.querySelector('.site-header');
+    if (!header) return;
+    const onScroll = () => {
+      if (window.scrollY > 20) header.classList.add('scrolled');
+      else header.classList.remove('scrolled');
+    };
+    document.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // Auto-collapse mobile navbar when a nav link is clicked
+    const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+    const bsCollapseEl = document.getElementById('mainNavbar');
+    if (bsCollapseEl) {
+      const bsCollapse = new bootstrap.Collapse(bsCollapseEl, { toggle: false });
+      navLinks.forEach(link => link.addEventListener('click', () => {
+        if (bsCollapseEl.classList.contains('show')) bsCollapse.hide();
+      }));
+    }
+  })();
+</script>
