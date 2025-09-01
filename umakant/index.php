@@ -5,6 +5,22 @@ include_once 'inc/header.php';
 include_once 'inc/sidebar.php';
 ?>
 
+<?php
+// Fetch summary counts for dashboard
+$doctorCount = '--';
+$patientCount = '--';
+try {
+  if (isset($pdo)) {
+    $doctorCount = (int) $pdo->query('SELECT COUNT(*) FROM doctors')->fetchColumn();
+    $patientCount = (int) $pdo->query('SELECT COUNT(*) FROM patients')->fetchColumn();
+  }
+} catch (Throwable $e) {
+  // keep placeholders if query fails
+  $doctorCount = '--';
+  $patientCount = '--';
+}
+?>
+
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
@@ -22,14 +38,14 @@ include_once 'inc/sidebar.php';
         <div class="row">
           <div class="col-lg-3 col-6">
             <div class="small-box bg-info">
-              <div class="inner"><h3>--</h3><p>Doctors</p></div>
+              <div class="inner"><h3><?php echo htmlspecialchars($doctorCount); ?></h3><p>Doctors</p></div>
               <div class="icon"><i class="fas fa-user-md"></i></div>
               <a href="doctors.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <div class="col-lg-3 col-6">
             <div class="small-box bg-success">
-              <div class="inner"><h3>--</h3><p>Patients</p></div>
+              <div class="inner"><h3><?php echo htmlspecialchars($patientCount); ?></h3><p>Patients</p></div>
               <div class="icon"><i class="fas fa-user"></i></div>
               <a href="patient.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
             </div>
