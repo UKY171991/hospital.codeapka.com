@@ -94,17 +94,7 @@
           <button class="search-btn me-2" type="button" data-bs-toggle="modal" data-bs-target="#searchModal" title="Search">
             <span class="search-icon">🔍</span>
           </button>
-          
-          
-          
-          <!-- CTA Buttons -->
-          <div class="header-cta">
-            <a class="btn btn-outline-light me-2 d-none d-md-inline-block" href="umakant/login.php">Login</a>
-            <a class="btn btn-light" href="contact.php">
-              <span class="btn-icon">📅</span>
-              Schedule Demo
-            </a>
-          </div>
+        
         </div>
       </div>
     </nav>
