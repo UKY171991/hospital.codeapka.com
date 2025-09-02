@@ -6,7 +6,7 @@ Purpose:
 
 Usage:
 - Endpoint (POST):
-  https://your-domain/umakant/patho_api/login.php
+  https://hospital.codeapka.com/umakant/patho_api/login.php
 
 Parameters (form-encoded or multipart/form-data):
 - username (string) - required
