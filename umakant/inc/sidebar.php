@@ -30,9 +30,9 @@ $role = $_SESSION['role'] ?? 'user';
           <a href="doctors.php" class="nav-link <?php echo ($activePage == 'doctors.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-user-md"></i><p>Doctors</p></a>
         </li>
 
-        <!-- <li class="nav-item">
+        <li class="nav-item">
           <a href="patient.php" class="nav-link <?php echo ($activePage == 'patient.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-user"></i><p>Patients</p></a>
-        </li> -->
+        </li>
 
         <li class="nav-item">
           <a href="owner.php" class="nav-link <?php echo ($activePage == 'owner.php') ? 'active' : ''; ?>"><i class="nav-icon fas fa-id-badge"></i><p>Owners</p></a>
