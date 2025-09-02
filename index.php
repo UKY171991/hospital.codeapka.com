@@ -180,6 +180,64 @@ $uploadListHtml = fetch_upload_list_html();
       </div>
     </section>
 
+    <!-- Live Statistics Counter -->
+    <section class="stats-counter-section">
+      <div class="container">
+        <div class="stats-counter-grid">
+          <div class="counter-item">
+            <div class="counter-icon">🏥</div>
+            <div class="counter-number" data-target="500">0</div>
+            <div class="counter-label">Healthcare Facilities</div>
+          </div>
+          <div class="counter-item">
+            <div class="counter-icon">👥</div>
+            <div class="counter-number" data-target="50000">0</div>
+            <div class="counter-label">Active Users</div>
+          </div>
+          <div class="counter-item">
+            <div class="counter-icon">📊</div>
+            <div class="counter-number" data-target="1000000">0</div>
+            <div class="counter-label">Patient Records</div>
+          </div>
+          <div class="counter-item">
+            <div class="counter-icon">🌍</div>
+            <div class="counter-number" data-target="25">0</div>
+            <div class="counter-label">Countries Served</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Client Logos Section -->
+    <section class="clients-section">
+      <div class="container">
+        <div class="section-header">
+          <h2>Trusted by Leading Healthcare Organizations</h2>
+          <p>Join the growing community of healthcare professionals who rely on our platform</p>
+        </div>
+        <div class="clients-carousel">
+          <div class="client-logo">
+            <div class="logo-placeholder">🏥 City General</div>
+          </div>
+          <div class="client-logo">
+            <div class="logo-placeholder">⚕️ Regional Medical</div>
+          </div>
+          <div class="client-logo">
+            <div class="logo-placeholder">🩺 Health Plus</div>
+          </div>
+          <div class="client-logo">
+            <div class="logo-placeholder">🏥 Metro Hospital</div>
+          </div>
+          <div class="client-logo">
+            <div class="logo-placeholder">⚕️ Care Center</div>
+          </div>
+          <div class="client-logo">
+            <div class="logo-placeholder">🩺 Wellness Clinic</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Features Section -->
     <section id="features" class="features-section">
       <div class="container">
@@ -338,6 +396,45 @@ $uploadListHtml = fetch_upload_list_html();
       </div>
     </section>
 
+    <!-- Newsletter Section -->
+    <section class="newsletter-section">
+      <div class="container">
+        <div class="newsletter-card">
+          <div class="newsletter-content">
+            <div class="newsletter-icon">📧</div>
+            <h2>Stay Updated with Healthcare Innovation</h2>
+            <p>Get the latest updates on healthcare technology, industry insights, and platform enhancements delivered to your inbox.</p>
+            <form class="newsletter-form" id="newsletterForm">
+              <div class="form-group">
+                <input type="email" class="form-control newsletter-input" placeholder="Enter your email address" required>
+                <button type="submit" class="newsletter-btn">
+                  <span class="btn-text">Subscribe</span>
+                  <span class="btn-icon">→</span>
+                </button>
+              </div>
+              <div class="newsletter-privacy">
+                <small>We respect your privacy. Unsubscribe at any time.</small>
+              </div>
+            </form>
+            <div class="newsletter-benefits">
+              <div class="benefit-item">
+                <span class="benefit-icon">📊</span>
+                <span>Industry Reports</span>
+              </div>
+              <div class="benefit-item">
+                <span class="benefit-icon">🔔</span>
+                <span>Feature Updates</span>
+              </div>
+              <div class="benefit-item">
+                <span class="benefit-icon">💡</span>
+                <span>Best Practices</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA Section -->
     <section class="cta-section">
       <div class="container">
@@ -374,14 +471,42 @@ $uploadListHtml = fetch_upload_list_html();
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('animate-in');
+          
+          // Trigger counter animation
+          if (entry.target.classList.contains('stats-counter-section')) {
+            animateCounters();
+          }
         }
       });
     }, observerOptions);
 
     // Observe all elements for animation
-    document.querySelectorAll('.feature-card, .testimonial-card, .trust-item').forEach(el => {
+    document.querySelectorAll('.feature-card, .testimonial-card, .trust-item, .stats-counter-section, .client-logo').forEach(el => {
       observer.observe(el);
     });
+
+    // Counter Animation
+    function animateCounters() {
+      const counters = document.querySelectorAll('.counter-number');
+      counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-target'));
+        const increment = target / 100;
+        let current = 0;
+        
+        const updateCounter = () => {
+          if (current < target) {
+            current += increment;
+            counter.textContent = Math.floor(current).toLocaleString();
+            requestAnimationFrame(updateCounter);
+          } else {
+            counter.textContent = target.toLocaleString();
+            counter.classList.add('animate');
+          }
+        };
+        
+        updateCounter();
+      });
+    }
 
     // Floating animation for hero cards
     const floatingCards = document.querySelectorAll('.floating-card');
@@ -390,7 +515,7 @@ $uploadListHtml = fetch_upload_list_html();
     });
 
     // Enhanced button interactions
-    document.querySelectorAll('.btn-primary, .btn-secondary, .whatsapp-btn').forEach(button => {
+    document.querySelectorAll('.btn-primary, .btn-secondary, .whatsapp-btn, .newsletter-btn').forEach(button => {
       button.addEventListener('mouseenter', function() {
         this.style.transform = 'translateY(-4px) scale(1.02)';
       });
@@ -398,6 +523,94 @@ $uploadListHtml = fetch_upload_list_html();
       button.addEventListener('mouseleave', function() {
         this.style.transform = 'translateY(0) scale(1)';
       });
+    });
+
+    // Newsletter Form Handling
+    document.getElementById('newsletterForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const email = this.querySelector('input[type="email"]').value;
+      const btn = this.querySelector('.newsletter-btn');
+      const originalText = btn.innerHTML;
+      
+      // Show loading state
+      btn.innerHTML = '<span class="btn-text">Subscribing...</span><span class="btn-icon">⏳</span>';
+      btn.disabled = true;
+      
+      // Simulate API call
+      setTimeout(() => {
+        btn.innerHTML = '<span class="btn-text">Subscribed!</span><span class="btn-icon">✅</span>';
+        btn.style.background = 'var(--gradient-success)';
+        
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          btn.style.background = 'var(--gradient-primary)';
+          this.reset();
+        }, 2000);
+      }, 1500);
+    });
+
+    // Search Modal Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.querySelector('.search-input');
+      const suggestionTags = document.querySelectorAll('.suggestion-tag');
+      
+      // Handle suggestion tag clicks
+      suggestionTags.forEach(tag => {
+        tag.addEventListener('click', function() {
+          searchInput.value = this.textContent;
+          searchInput.focus();
+        });
+      });
+      
+      // Handle search form submission
+      document.querySelector('.search-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const query = searchInput.value.trim();
+        if (query) {
+          // Simulate search functionality
+          console.log('Searching for:', query);
+          // In a real implementation, you would perform the search here
+        }
+      });
+    });
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Client logos infinite scroll animation
+    const clientsCarousel = document.querySelector('.clients-carousel');
+    if (clientsCarousel) {
+      let scrollAmount = 0;
+      const scrollSpeed = 0.5;
+      
+      function autoScroll() {
+        scrollAmount += scrollSpeed;
+        if (scrollAmount >= clientsCarousel.scrollWidth / 2) {
+          scrollAmount = 0;
+        }
+        clientsCarousel.style.transform = `translateX(-${scrollAmount}px)`;
+        requestAnimationFrame(autoScroll);
+      }
+      
+      // Uncomment the line below to enable auto-scrolling
+      // autoScroll();
+    }
+
+    // Add loading states for better UX
+    window.addEventListener('load', function() {
+      document.body.classList.add('loaded');
     });
   </script>
 </body>
