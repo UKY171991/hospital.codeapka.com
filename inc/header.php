@@ -1,7 +1,6 @@
 <?php
 // Shared header: expects $page variable to be set (e.g. 'home','about','contact','pricing')
 ?>
-<a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="container">
     <nav class="navbar navbar-expand-lg navbar-dark">
