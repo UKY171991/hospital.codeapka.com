@@ -32,13 +32,42 @@ try {
         json_response(['success' => false, 'message' => 'User account is inactive'], 403);
     }
 
-    // Verify password (supports both plain (legacy) and password_hash)
+    // Password must be present in DB
+    if (!isset($user['password']) || $user['password'] === null || $user['password'] === '') {
+        // No valid password stored for this user
+        json_response(['success' => false, 'message' => 'Invalid credentials'], 401);
+    }
+
+    // Verify password robustly:
+    // 1) password_hash() / password_verify() (bcrypt/argon)
+    // 2) legacy MD5 (32 chars) or SHA1 (40 chars)
+    // 3) raw plaintext fallback (not recommended)
+    $stored = $user['password'];
     $passOk = false;
-    if (password_verify($password, $user['password'])) {
-        $passOk = true;
-    } else {
-        // legacy: compare raw (not recommended) — only if hashes don't match
-        if ($password === $user['password']) $passOk = true;
+
+    // bcrypt/argon style hashes usually start with $2y$ or $2a$ or $argon$
+    if (is_string($stored) && (strpos($stored, '$2y$') === 0 || strpos($stored, '$2a$') === 0 || strpos($stored, '$argon') === 0 || password_needs_rehash($stored, PASSWORD_DEFAULT) || password_verify($password, $stored))) {
+        // Use password_verify when possible; password_needs_rehash check above is just to ensure format is compatible
+        if (password_verify($password, $stored)) {
+            $passOk = true;
+        }
+    }
+
+    // Common legacy hash formats
+    if (!$passOk && is_string($stored)) {
+        $len = strlen($stored);
+        if ($len === 32) { // likely MD5
+            if (hash_equals($stored, md5($password))) $passOk = true;
+        } elseif ($len === 40) { // likely SHA1
+            if (hash_equals($stored, sha1($password))) $passOk = true;
+        }
+    }
+
+    // Last resort: direct comparison (only if stored value equals provided password)
+    if (!$passOk) {
+        if (hash_equals((string)$stored, (string)$password)) {
+            $passOk = true;
+        }
     }
 
     if (!$passOk) json_response(['success' => false, 'message' => 'Invalid credentials'], 401);
