@@ -1,0 +1,52 @@
+API: /umakant/patho_api/login.php
+
+Purpose:
+- Simple login endpoint that accepts POST { username, password } and returns JSON.
+- Creates a PHP session on success and sets session variables: user_id, username, role.
+
+Usage:
+- Endpoint (POST):
+  https://your-domain/umakant/patho_api/login.php
+
+Parameters (form-encoded or multipart/form-data):
+- username (string) - required
+- password (string) - required
+
+Responses:
+- 200 OK (success):
+  { "success": true, "message": "Login successful", "user": { "id": 1, "username": "admin", "full_name": "Admin User", "role": "master" } }
+
+- 400 Bad Request: missing parameters
+- 401 Unauthorized: invalid credentials
+- 403 Forbidden: inactive user
+- 405 Method Not Allowed: only POST supported
+- 500 Server Error: unexpected error
+
+Examples (curl):
+
+# Basic form-encoded login (stores cookies in cookiejar)
+curl -c cookiejar.txt -X POST https://hospital.codeapka.com/umakant/patho_api/login.php -d "username=admin" -d "password=secret"
+
+# Reuse cookies for subsequent authenticated requests
+curl -b cookiejar.txt https://hospital.codeapka.com/umakant/patho_api/user.php?action=list
+
+JavaScript (fetch) example:
+
+fetch('/umakant/patho_api/login.php', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({ username: 'admin', password: 'secret' }),
+  credentials: 'include' // important to send/receive cookies
+}).then(r => r.json()).then(j => console.log(j));
+
+Security notes:
+- Passwords in the database should be stored using password_hash. This endpoint supports verifying hashed passwords via password_verify.
+- For legacy setups where passwords are stored in plaintext, the script falls back to direct comparison (not recommended). Migrate plaintext passwords to hashed ones.
+- Use HTTPS in production and set appropriate cookie attributes (Secure, HttpOnly, SameSite) as needed in your session configuration.
+
+Session persistence:
+- This API creates PHP session cookie (by default PHPSESSID). Ensure your PHP session settings and domain/path are configured correctly for the clients that will use it.
+
+Integration tips:
+- After login, call other patho_api endpoints with the session cookie included to perform authenticated operations.
+- For token-based API needs, consider adding a JWT or API token endpoint instead of sessions.

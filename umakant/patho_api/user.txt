@@ -61,7 +61,7 @@ Common error formats
 
 Examples
 - List users:
-  GET /patho_api/user.php?action=list
+  GET https://hospital.codeapka.com/umakant/patho_api/user.php?action=list
 
 - Get user 5 (client must be allowed):
   GET /patho_api/user.php?action=get&id=5
