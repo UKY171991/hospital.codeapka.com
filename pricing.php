@@ -28,7 +28,7 @@
             </div>
             <h1 class="hero-title">
               Simple & 
-              <span class="gradient-text">Transparent Pricing</span>
+              <span class="gradient-text-rainbow glow-text">Transparent Pricing</span>
             </h1>
             <p class="hero-description">
               Choose the perfect plan for your healthcare facility. All plans include core features with options to scale as you grow.
@@ -89,127 +89,7 @@
             <button class="toggle-btn" data-period="yearly">Yearly <span class="discount">Save 20%</span></button>
           </div>
         </div>
-        <div class="pricing-grid">
-          <div class="pricing-card">
-            <div class="plan-header">
-              <h3>Starter</h3>
-              <p>Perfect for small clinics and laboratories</p>
-              <div class="price">
-                <span class="currency">$</span>
-                <span class="amount">99</span>
-                <span class="period">/month</span>
-              </div>
-            </div>
-            <div class="plan-features">
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Up to 10 users</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Basic patient management</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Appointment scheduling</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Basic reporting</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Email support</span>
-              </div>
-            </div>
-            <div class="plan-action">
-              <a href="contact.php" class="plan-btn">Get Started</a>
-            </div>
-          </div>
-          
-          <div class="pricing-card popular">
-            <div class="popular-badge">Most Popular</div>
-            <div class="plan-header">
-              <h3>Professional</h3>
-              <p>Ideal for medium-sized hospitals</p>
-              <div class="price">
-                <span class="currency">$</span>
-                <span class="amount">299</span>
-                <span class="period">/month</span>
-              </div>
-            </div>
-            <div class="plan-features">
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Up to 50 users</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Advanced patient management</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Inventory management</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Billing & invoicing</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Advanced analytics</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Priority support</span>
-              </div>
-            </div>
-            <div class="plan-action">
-              <a href="contact.php" class="plan-btn primary">Get Started</a>
-            </div>
-      </div>
-      
-          <div class="pricing-card">
-            <div class="plan-header">
-              <h3>Enterprise</h3>
-              <p>For large healthcare networks</p>
-              <div class="price">
-                <span class="currency">$</span>
-                <span class="amount">599</span>
-                <span class="period">/month</span>
-              </div>
-            </div>
-            <div class="plan-features">
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Unlimited users</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Multi-location support</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Custom integrations</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Advanced security</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Dedicated support</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">✓</span>
-                <span>Custom training</span>
-              </div>
-            </div>
-            <div class="plan-action">
-              <a href="contact.php" class="plan-btn">Contact Sales</a>
-            </div>
-          </div>
-        </div>
+        <?php include __DIR__ . '/umakant/public_plans.php'; ?>
       </div>
     </section>
 

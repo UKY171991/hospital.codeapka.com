@@ -28,7 +28,7 @@
             </div>
             <h1 class="hero-title">
               Get In 
-              <span class="gradient-text">Touch</span>
+              <span class="gradient-text-rainbow glow-text">Touch</span>
             </h1>
             <p class="hero-description">
               Ready to transform your healthcare facility? Our team is here to help you get started with our comprehensive hospital management solution.
@@ -82,9 +82,9 @@
           <h2>Multiple Ways to Reach Us</h2>
           <p>Choose the method that works best for you</p>
         </div>
-        <div class="contact-options-grid">
-          <div class="contact-option-card">
-            <div class="option-icon">📞</div>
+        <div class="contact-options-grid stagger-animation">
+          <div class="contact-option-card card-hover-lift interactive-hover">
+            <div class="option-icon pulse-glow">📞</div>
             <h3>Phone Support</h3>
             <p>Speak directly with our healthcare technology experts</p>
             <div class="option-details">
@@ -99,8 +99,8 @@
             </div>
             <a href="tel:+15551234567" class="option-action">Call Now</a>
           </div>
-          <div class="contact-option-card">
-            <div class="option-icon">💬</div>
+          <div class="contact-option-card card-hover-lift interactive-hover">
+            <div class="option-icon pulse-glow">💬</div>
             <h3>Live Chat</h3>
             <p>Get instant answers from our support team</p>
             <div class="option-details">
@@ -115,8 +115,8 @@
             </div>
             <button class="option-action" onclick="openChat()">Start Chat</button>
           </div>
-          <div class="contact-option-card">
-            <div class="option-icon">📧</div>
+          <div class="contact-option-card card-hover-lift interactive-hover">
+            <div class="option-icon pulse-glow">📧</div>
             <h3>Email Support</h3>
             <p>Send us detailed inquiries and get comprehensive responses</p>
             <div class="option-details">

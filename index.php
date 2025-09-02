@@ -86,6 +86,17 @@ $uploadListHtml = fetch_upload_list_html();
       <div class="hero-background">
         <div class="hero-particles"></div>
         <div class="hero-gradient"></div>
+        <div class="particles-bg">
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+        </div>
       </div>
       <div class="container">
         <div class="hero-content">
@@ -96,17 +107,17 @@ $uploadListHtml = fetch_upload_list_html();
             </div>
             <h1 class="hero-title">
               Transform Your 
-              <span class="gradient-text">Healthcare Operations</span>
+              <span class="gradient-text-rainbow glow-text">Healthcare Operations</span>
             </h1>
             <p class="hero-description">
               Streamline workflows, enhance patient care, and boost efficiency with our comprehensive hospital management system designed for modern healthcare facilities.
             </p>
             <div class="hero-buttons">
-              <a href="#features" class="btn-primary">
+              <a href="#features" class="btn-primary btn-magnetic ripple">
                 <span class="btn-icon">✨</span>
                 Explore Features
               </a>
-              <a href="contact.php" class="btn-secondary">
+              <a href="contact.php" class="btn-secondary btn-magnetic ripple">
                 <span class="btn-icon">📅</span>
                 Schedule Demo
               </a>
@@ -155,24 +166,24 @@ $uploadListHtml = fetch_upload_list_html();
     <!-- Trust Indicators -->
     <section class="trust-section">
       <div class="container">
-        <div class="trust-grid">
-          <div class="trust-item">
-            <div class="trust-icon">🔒</div>
+        <div class="trust-grid stagger-animation">
+          <div class="trust-item card-hover-glow">
+            <div class="trust-icon pulse-glow">🔒</div>
             <h4>HIPAA Compliant</h4>
             <p>Full compliance with healthcare data regulations</p>
           </div>
-          <div class="trust-item">
-            <div class="trust-icon">🛡️</div>
+          <div class="trust-item card-hover-glow">
+            <div class="trust-icon pulse-glow">🛡️</div>
             <h4>ISO 27001</h4>
             <p>Enterprise-grade security standards</p>
           </div>
-          <div class="trust-item">
-            <div class="trust-icon">⚡</div>
+          <div class="trust-item card-hover-glow">
+            <div class="trust-icon pulse-glow">⚡</div>
             <h4>99.9% Uptime</h4>
             <p>Reliable performance you can count on</p>
           </div>
-          <div class="trust-item">
-            <div class="trust-icon">🌐</div>
+          <div class="trust-item card-hover-glow">
+            <div class="trust-icon pulse-glow">🌐</div>
             <h4>Global Support</h4>
             <p>24/7 support across all time zones</p>
           </div>
@@ -246,8 +257,8 @@ $uploadListHtml = fetch_upload_list_html();
           <h2>Powerful Features for Modern Healthcare</h2>
           <p>Everything you need to manage your healthcare facility efficiently and securely</p>
         </div>
-        <div class="features-grid">
-          <div class="feature-card">
+        <div class="features-grid stagger-animation">
+          <div class="feature-card card-hover-lift interactive-hover">
             <div class="feature-icon">
               <span>📋</span>
             </div>
@@ -262,7 +273,7 @@ $uploadListHtml = fetch_upload_list_html();
               <a href="#" class="learn-more">Learn More →</a>
             </div>
           </div>
-          <div class="feature-card">
+          <div class="feature-card card-hover-lift interactive-hover">
             <div class="feature-icon">
               <span>💰</span>
             </div>
@@ -277,7 +288,7 @@ $uploadListHtml = fetch_upload_list_html();
               <a href="#" class="learn-more">Learn More →</a>
             </div>
           </div>
-          <div class="feature-card">
+          <div class="feature-card card-hover-lift interactive-hover">
             <div class="feature-icon">
               <span>🔒</span>
             </div>
@@ -338,8 +349,10 @@ $uploadListHtml = fetch_upload_list_html();
             <h4>Need Help Choosing a Plan?</h4>
             <p>Our team is here to help you find the perfect solution for your healthcare facility.</p>
             <div class="contact-options">
-              <!-- TODO: Replace REPLACE_WITH_ACTUAL_NUMBER with the actual WhatsApp number from https://hospital.codeapka.com/umakant/owner.php -->
-              <a href="https://wa.me/REPLACE_WITH_ACTUAL_NUMBER?text=Hi! I'm interested in your hospital management plans. Can you help me choose the right one?" 
+              <?php 
+              $whatsapp_number = trim(file_get_contents(__DIR__ . '/get_whatsapp.php'));
+              ?>
+              <a href="https://wa.me/<?php echo urlencode($whatsapp_number); ?>?text=Hi! I'm interested in your hospital management plans. Can you help me choose the right one?" 
                  class="whatsapp-btn" 
                  target="_blank" 
                  rel="noopener noreferrer">
@@ -399,15 +412,15 @@ $uploadListHtml = fetch_upload_list_html();
     <!-- Newsletter Section -->
     <section class="newsletter-section">
       <div class="container">
-        <div class="newsletter-card">
+        <div class="newsletter-card glass-card">
           <div class="newsletter-content">
-            <div class="newsletter-icon">📧</div>
+            <div class="newsletter-icon pulse-glow">📧</div>
             <h2>Stay Updated with Healthcare Innovation</h2>
             <p>Get the latest updates on healthcare technology, industry insights, and platform enhancements delivered to your inbox.</p>
             <form class="newsletter-form" id="newsletterForm">
               <div class="form-group">
                 <input type="email" class="form-control newsletter-input" placeholder="Enter your email address" required>
-                <button type="submit" class="newsletter-btn">
+                <button type="submit" class="newsletter-btn btn-magnetic ripple">
                   <span class="btn-text">Subscribe</span>
                   <span class="btn-icon">→</span>
                 </button>
@@ -444,8 +457,8 @@ $uploadListHtml = fetch_upload_list_html();
             <h2>Ready to Transform Your Healthcare Facility?</h2>
             <p>Join hundreds of healthcare providers who have revolutionized their operations with our platform. Schedule a demo today and see the difference.</p>
             <div class="cta-buttons">
-              <a href="contact.php" class="btn-primary">Schedule a Demo</a>
-              <a href="about.php" class="btn-secondary">Learn More</a>
+              <a href="contact.php" class="btn-primary btn-magnetic ripple">Schedule a Demo</a>
+              <a href="about.php" class="btn-secondary btn-magnetic ripple">Learn More</a>
             </div>
             <div class="cta-features">
               <span>✅ 14-Day Free Trial</span>

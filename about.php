@@ -28,7 +28,7 @@
             </div>
             <h1 class="hero-title">
               About 
-              <span class="gradient-text">Our Company</span>
+              <span class="gradient-text-rainbow glow-text">Our Company</span>
             </h1>
             <p class="hero-description">
               We are a leading healthcare technology company dedicated to revolutionizing hospital management through innovative software solutions that enhance patient care and operational efficiency.
@@ -82,19 +82,19 @@
           <h2>The Journey That Shaped Us</h2>
           <p>From humble beginnings to becoming a trusted partner in healthcare technology</p>
         </div>
-        <div class="story-grid">
-          <div class="story-card">
-            <div class="story-icon">🎯</div>
+        <div class="story-grid stagger-animation">
+          <div class="story-card card-hover-lift interactive-hover">
+            <div class="story-icon pulse-glow">🎯</div>
             <h3>Our Mission</h3>
             <p>To revolutionize healthcare management by providing innovative, reliable, and user-friendly software solutions that enhance patient care and operational efficiency.</p>
           </div>
-          <div class="story-card">
-            <div class="story-icon">👁️</div>
+          <div class="story-card card-hover-lift interactive-hover">
+            <div class="story-icon pulse-glow">👁️</div>
             <h3>Our Vision</h3>
             <p>To be the global leader in healthcare technology, empowering healthcare facilities worldwide with cutting-edge solutions that improve patient outcomes.</p>
           </div>
-          <div class="story-card">
-            <div class="story-icon">💎</div>
+          <div class="story-card card-hover-lift interactive-hover">
+            <div class="story-icon pulse-glow">💎</div>
             <h3>Our Values</h3>
             <p>Innovation, integrity, excellence, and customer satisfaction drive everything we do. We believe in building lasting partnerships based on trust and mutual success.</p>
           </div>
