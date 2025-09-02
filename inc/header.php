@@ -96,18 +96,7 @@
             <span class="search-icon">🔍</span>
           </button>
           
-          <!-- Social Links -->
-          <div class="header-social me-3 d-none d-lg-flex">
-            <a href="#" class="social-link" title="Twitter" aria-label="Follow us on Twitter">
-              <span class="social-icon">🐦</span>
-            </a>
-            <a href="#" class="social-link" title="LinkedIn" aria-label="Connect on LinkedIn">
-              <span class="social-icon">💼</span>
-            </a>
-            <a href="#" class="social-link" title="Facebook" aria-label="Like us on Facebook">
-              <span class="social-icon">📘</span>
-            </a>
-          </div>
+          
           
           <!-- CTA Buttons -->
           <div class="header-cta">

@@ -213,7 +213,7 @@
     }
   }
 
-  // Handle Enter key in chat input
+  // Handle Enter key in chat input and Enhanced dropdown functionality
   document.addEventListener('DOMContentLoaded', function() {
     const chatInput = document.querySelector('.chat-input-field');
     if (chatInput) {
@@ -223,6 +223,60 @@
         }
       });
     }
+
+    // Enhanced dropdown functionality
+    const dropdowns = document.querySelectorAll('.dropdown');
+    
+    dropdowns.forEach(dropdown => {
+      const toggle = dropdown.querySelector('.dropdown-toggle');
+      const menu = dropdown.querySelector('.dropdown-menu');
+      
+      // Handle hover for desktop
+      if (window.innerWidth > 992) {
+        dropdown.addEventListener('mouseenter', function() {
+          this.classList.add('show');
+          menu.classList.add('show');
+          toggle.setAttribute('aria-expanded', 'true');
+        });
+        
+        dropdown.addEventListener('mouseleave', function() {
+          this.classList.remove('show');
+          menu.classList.remove('show');
+          toggle.setAttribute('aria-expanded', 'false');
+        });
+      }
+      
+      // Handle click for mobile and desktop
+      toggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        const isOpen = dropdown.classList.contains('show');
+        
+        // Close all other dropdowns
+        dropdowns.forEach(d => {
+          d.classList.remove('show');
+          d.querySelector('.dropdown-menu').classList.remove('show');
+          d.querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
+        });
+        
+        // Toggle current dropdown
+        if (!isOpen) {
+          dropdown.classList.add('show');
+          menu.classList.add('show');
+          toggle.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.dropdown')) {
+        dropdowns.forEach(dropdown => {
+          dropdown.classList.remove('show');
+          dropdown.querySelector('.dropdown-menu').classList.remove('show');
+          dropdown.querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
+        });
+      }
+    });
   });
 
   // Auto-show chat widget after some time (optional)
