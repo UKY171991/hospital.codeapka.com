@@ -89,7 +89,9 @@
             <button class="toggle-btn" data-period="yearly">Yearly <span class="discount">Save 20%</span></button>
           </div>
         </div>
-        <?php include __DIR__ . '/umakant/public_plans.php'; ?>
+        <div class="container-fluid">
+          <?php include __DIR__ . '/umakant/public_plans.php'; ?>
+        </div>
       </div>
     </section>
 

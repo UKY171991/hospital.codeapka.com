@@ -342,7 +342,7 @@ $uploadListHtml = fetch_upload_list_html();
           <div class="pricing-intro">
             <h3>All plans include core features with options to customize based on your facility's requirements.</h3>
           </div>
-          <div class="pricing-grid">
+          <div class="container-fluid">
             <?php include __DIR__ . '/umakant/public_plans.php'; ?>
           </div>
           <div class="pricing-contact">
