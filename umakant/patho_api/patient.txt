@@ -62,13 +62,13 @@ Notes:
 
 Postman / curl examples
 - List patients (GET):
-  curl -v "https://yourhost/patho_api/patient.php?action=list"
+  curl -v "https://hospital.codeapka.com/umakant/patho_api/patient.php?action=list"
 
 - Get patient (GET):
-  curl -v "https://yourhost/patho_api/patient.php?action=get&id=5"
+  curl -v "https://hospital.codeapka.com/umakant/patho_api/patient.php?action=get&id=5"
 
 - Create patient (POST form):
-  curl -v -X POST "https://yourhost/patho_api/patient.php" \
+  curl -v -X POST "https://hospital.codeapka.com/umakant/patho_api/patient.php" \
     -d "action=save" \
     -d "name=Test Patient" \
     -d "uhid=U123" \
@@ -81,14 +81,14 @@ Postman / curl examples
     --cookie "PHPSESSID=<your session id here>"
 
 - Update patient (POST form):
-  curl -v -X POST "https://yourhost/patho_api/patient.php" \
+  curl -v -X POST "https://hospital.codeapka.com/umakant/patho_api/patient.php" \
     -d "action=save" \
     -d "id=5" \
     -d "name=Updated Name" \
     --cookie "PHPSESSID=<your session id here>"
 
 - Delete patient (POST form):
-  curl -v -X POST "https://yourhost/patho_api/patient.php" \
+  curl -v -X POST "https://hospital.codeapka.com/umakant/patho_api/patient.php" \
     -d "action=delete" \
     -d "id=5" \
     --cookie "PHPSESSID=<your session id here>"

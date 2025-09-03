@@ -21,7 +21,7 @@ Summary of important behavior (current implementation):
 
 1) List doctors
 - Method: GET
-- URL: /patho_api/doctor.php?action=list
+- URL: https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=list
 - Query params:
   - user_id (optional): return doctors added by this user. If omitted and you are authenticated, returns doctors added by the current session user.
   - all=1 (optional): if viewer role is `master` and all=1, returns all doctors.
@@ -61,13 +61,13 @@ Summary of important behavior (current implementation):
 
 4) Update doctor (edit)
 - Method: POST
-- URL: /patho_api/doctor.php?action=save
+- URL: https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=save
 - Body: include id=<existing id> plus fields to update
 - Behavior: if id present and numeric, API updates that doctor and returns {success:true,message:'Doctor updated',id:<id>}
 
 5) Delete doctor
 - Method: POST
-- URL: /patho_api/doctor.php?action=delete
+- URL: https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=delete
 - Body: id=<id>
 - Auth/permission: only master/admin or the creator (added_by) can delete
 - Response: {"success":true,"message":"Doctor deleted"}

@@ -65,7 +65,7 @@ Postman / curl examples
   curl "https://hospital.codeapka.com/umakant/patho_api/test.php?action=get&id=10"
 
 - Create test (POST):
-  curl -X POST "https://yourhost/patho_api/test.php" \
+  curl -X POST "https://hospital.codeapka.com/umakant/patho_api/test.php" \
     -d "action=save" \
     -d "category_id=2" \
     -d "name=CBC" \
@@ -84,14 +84,14 @@ Postman / curl examples
     --cookie "PHPSESSID=<session id>"
 
 - Update test (POST):
-  curl -X POST "https://yourhost/patho_api/test.php" \
+  curl -X POST "https://hospital.codeapka.com/umakant/patho_api/test.php" \
     -d "action=save" \
     -d "id=10" \
     -d "name=Updated Name" \
     --cookie "PHPSESSID=<session id>"
 
 - Delete test (POST):
-  curl -X POST "https://yourhost/patho_api/test.php" \
+  curl -X POST "https://hospital.codeapka.com/umakant/patho_api/test.php" \
     -d "action=delete" -d "id=10" \
     --cookie "PHPSESSID=<session id>"
 

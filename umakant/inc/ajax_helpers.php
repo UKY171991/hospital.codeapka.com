@@ -34,13 +34,21 @@ function upsert_or_skip($pdo, $table, $uniqueWhere, $data) {
         // Compare fields - if all provided data fields are identical to existing, skip
         $changed = [];
         foreach ($data as $col => $val) {
-            // Do not allow upsert update to change the original creator of the row
+            // Do not allow upsert to change the original creator of the row by default
             if ($col === 'added_by') continue;
             // Normalize null/empty strings
             $e = isset($existing[$col]) ? $existing[$col] : null;
             if ((string)$e !== (string)$val) $changed[$col] = $val;
         }
+
+        // If no other fields changed, consider whether added_by should be set when missing
         if (empty($changed)) {
+            if (isset($data['added_by']) && ($data['added_by'] !== null && $data['added_by'] !== '') && (empty($existing['added_by']) || $existing['added_by'] === null || $existing['added_by'] === '')) {
+                // Set added_by where it was previously empty
+                $up = $pdo->prepare("UPDATE $table SET added_by = ?, updated_at = NOW() WHERE id = ?");
+                $up->execute([$data['added_by'], $existing['id']]);
+                return ['action'=>'updated','id'=>(int)$existing['id']];
+            }
             return ['action'=>'skipped','id'=>(int)$existing['id']];
         }
         // Build UPDATE statement for changed fields
@@ -50,6 +58,13 @@ function upsert_or_skip($pdo, $table, $uniqueWhere, $data) {
             $setParts[] = "$col = ?";
             $setParams[] = $val;
         }
+
+        // If added_by is provided in data and existing added_by is empty, include it in update
+        if (isset($data['added_by']) && ($data['added_by'] !== null && $data['added_by'] !== '') && (empty($existing['added_by']) || $existing['added_by'] === null || $existing['added_by'] === '')) {
+            $setParts[] = "added_by = ?";
+            $setParams[] = $data['added_by'];
+        }
+
         $setSql = implode(', ', $setParts);
         $setParams[] = $existing['id'];
         $up = $pdo->prepare("UPDATE $table SET $setSql, updated_at = NOW() WHERE id = ?");

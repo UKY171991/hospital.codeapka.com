@@ -46,17 +46,17 @@ Postman / curl examples
   curl "https://hospital.codeapka.com/umakant/patho_api/test_category.php?action=get&id=3"
 
 - Create category (POST):
-  curl -X POST "https://yourhost/patho_api/test_category.php" \
+  curl -X POST "https://hospital.codeapka.com/umakant/patho_api/test_category.php" \
     -d "action=save" -d "name=New Cat" -d "description=Desc" \
     --cookie "PHPSESSID=<session id>"
 
 - Update category (POST):
-  curl -X POST "https://yourhost/patho_api/test_category.php" \
+  curl -X POST "https://hospital.codeapka.com/umakant/patho_api/test_category.php" \
     -d "action=save" -d "id=3" -d "name=Updated" \
     --cookie "PHPSESSID=<session id>"
 
 - Delete category (POST):
-  curl -X POST "https://yourhost/patho_api/test_category.php" \
+  curl -X POST "https://hospital.codeapka.com/umakant/patho_api/test_category.php" \
     -d "action=delete" -d "id=3" \
     --cookie "PHPSESSID=<session id>"
 
