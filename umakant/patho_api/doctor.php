@@ -115,7 +115,8 @@ try {
                     }
                 }
 
-        if (!$authenticatedUserId) json_response(['success'=>false,'message'=>'Unauthorized'],401);
+    // Allow unauthenticated inserts: if there's no authenticated user, we will insert with added_by = NULL
+    // (Keep other auth flows like delete unchanged.)
     // Accept JSON body as well as form-encoded
     $input = $_POST;
         // If we already decoded JSON earlier into $bodyJson, reuse it; avoids reading php://input twice
