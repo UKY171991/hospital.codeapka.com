@@ -153,10 +153,15 @@ try {
     if ($percent === '') $percent = null;
     if ($percent !== null) $percent = (float)$percent;
             // If an admin/master explicitly provided added_by in the input, allow it. Otherwise use authenticated user id (may be null).
-        $added_by = $authenticatedUserId;
-        if (isset($input['added_by']) && is_numeric($input['added_by']) && in_array($authenticatedUserRole, ['master','admin'])) {
-            $added_by = (int)$input['added_by'];
-        }
+            $added_by = $authenticatedUserId;
+            if (isset($input['added_by']) && is_numeric($input['added_by']) && in_array($authenticatedUserRole, ['master','admin'])) {
+                $added_by = (int)$input['added_by'];
+            }
+            // If no authenticated user and a default API user id is configured, use it so records created via secret/anonymous flows
+            // still have a sensible added_by value instead of NULL. This helps when clients insert without session cookies.
+            if (empty($added_by) && !empty($PATHO_API_DEFAULT_USER_ID)) {
+                $added_by = (int)$PATHO_API_DEFAULT_USER_ID;
+            }
 
         if ($name === '') {
             json_response(['success'=>false,'message'=>'Name is required'],400);

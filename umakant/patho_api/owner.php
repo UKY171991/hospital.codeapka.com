@@ -41,6 +41,9 @@ try {
             json_response(['success' => true, 'message' => 'Owner updated']);
         } else {
             $added_by = $_SESSION['user_id'] ?? null;
+            if (empty($added_by) && !empty($PATHO_API_DEFAULT_USER_ID)) {
+                $added_by = (int)$PATHO_API_DEFAULT_USER_ID;
+            }
             $data = ['name'=>$name, 'phone'=>$phone, 'whatsapp'=>$whatsapp, 'email'=>$email, 'address'=>$address, 'added_by'=>$added_by];
             // Unique by phone if present, else email, else name
             if ($phone !== '') $unique = ['phone'=>$phone];

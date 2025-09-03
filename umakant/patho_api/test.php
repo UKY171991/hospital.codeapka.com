@@ -95,6 +95,9 @@ try {
             json_response(['success'=>true,'message'=>'Test updated']);
         } else {
                 $added_by = $_SESSION['user_id'] ?? null;
+                if (empty($added_by) && !empty($PATHO_API_DEFAULT_USER_ID)) {
+                    $added_by = (int)$PATHO_API_DEFAULT_USER_ID;
+                }
                 $data = ['category_id'=>$category_id, 'name'=>$name, 'description'=>$description, 'price'=>$price, 'unit'=>$unit, 'default_result'=>$default_result, 'reference_range'=>$reference_range, 'min'=>$min, 'max'=>$max, 'min_male'=>$min_male, 'max_male'=>$max_male, 'min_female'=>$min_female, 'max_female'=>$max_female, 'sub_heading'=>$sub_heading, 'test_code'=>$test_code, 'method'=>$method, 'print_new_page'=>$print_new_page, 'shortcut'=>$shortcut, 'added_by'=>$added_by];
                 if ($test_code !== '') $unique = ['test_code'=>$test_code]; else $unique = ['name'=>$name, 'category_id'=>$category_id];
                 $res = upsert_or_skip($pdo, 'tests', $unique, $data);

@@ -34,6 +34,9 @@ try {
         $remarks = trim($_POST['remarks'] ?? '');
         $status = $_POST['status'] ?? 'pending';
         $added_by = $_SESSION['user_id'] ?? null;
+        if (empty($added_by) && !empty($PATHO_API_DEFAULT_USER_ID)) {
+            $added_by = (int)$PATHO_API_DEFAULT_USER_ID;
+        }
 
         if ($id) {
             $stmt = $pdo->prepare('UPDATE entries SET patient_id=?, doctor_id=?, test_id=?, entry_date=?, result_value=?, unit=?, remarks=?, status=?, added_by=?, updated_at=NOW() WHERE id=?');

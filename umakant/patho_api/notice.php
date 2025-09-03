@@ -44,6 +44,9 @@ try {
             json_response(['success'=>true,'message'=>'Notice updated','data'=>$row]);
         } else {
             $added_by = $_SESSION['user_id'] ?? null;
+            if (empty($added_by) && !empty($PATHO_API_DEFAULT_USER_ID)) {
+                $added_by = (int)$PATHO_API_DEFAULT_USER_ID;
+            }
             $data = ['title'=>$title, 'content'=>$content, 'start_date'=>$start, 'end_date'=>$end, 'active'=>$active, 'added_by'=>$added_by];
             $unique = ['title'=>$title, 'start_date'=>$start];
             $res = upsert_or_skip($pdo, 'notices', $unique, $data);

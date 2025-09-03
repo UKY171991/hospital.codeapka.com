@@ -38,6 +38,9 @@ try {
             json_response(['success' => true, 'message' => 'Category updated']);
         } else {
             $added_by = $_SESSION['user_id'] ?? null;
+            if (empty($added_by) && !empty($PATHO_API_DEFAULT_USER_ID)) {
+                $added_by = (int)$PATHO_API_DEFAULT_USER_ID;
+            }
             $data = ['name'=>$name, 'description'=>$description, 'added_by'=>$added_by];
             $unique = ['name'=>$name];
             $res = upsert_or_skip($pdo, 'categories', $unique, $data);
