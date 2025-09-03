@@ -34,6 +34,8 @@ function upsert_or_skip($pdo, $table, $uniqueWhere, $data) {
         // Compare fields - if all provided data fields are identical to existing, skip
         $changed = [];
         foreach ($data as $col => $val) {
+            // Do not allow upsert update to change the original creator of the row
+            if ($col === 'added_by') continue;
             // Normalize null/empty strings
             $e = isset($existing[$col]) ? $existing[$col] : null;
             if ((string)$e !== (string)$val) $changed[$col] = $val;
