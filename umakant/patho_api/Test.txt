@@ -46,6 +46,11 @@ Actions / Usage
 - Auth: session role `admin` or `master` required
 - Response: { "success": true, "message": "Test created" } or { "success": true, "message": "Test updated" }
 
+Notes:
+- Upsert behavior: when creating a test, the API uses `test_code` (if provided) or `name+category_id` as unique keys. If a matching record exists the helper will `skip` the insert when fields match, or `update` when provided fields differ.
+- `added_by` is set from the session user by default; if no session user is present the API will use `PATHO_API_DEFAULT_USER_ID` (configured in `inc/api_config.php`) as the `added_by` for new records when available.
+- `added_by` is controlled server-side; clients cannot set it unless the requester is a master/admin and explicitly passes `added_by`.
+
 4) delete
 - Method: POST
 - Params: action=delete&id=<id>

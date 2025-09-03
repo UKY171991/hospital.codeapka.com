@@ -14,7 +14,7 @@ Parameters (form-encoded or multipart/form-data):
 
 Responses:
 - 200 OK (success):
-  { "success": true, "message": "Login successful", "user": { "id": 1, "username": "admin", "full_name": "Admin User", "role": "master" } }
+  { "success": true, "message": "Login successful", "user": { "id": 1, "username": "admin", "full_name": "Admin User", "role": "master" }, "api_token": "<token>" }
 
 - 400 Bad Request: missing parameters
 - 401 Unauthorized: invalid credentials
@@ -50,3 +50,7 @@ Session persistence:
 Integration tips:
 - After login, call other patho_api endpoints with the session cookie included to perform authenticated operations.
 - For token-based API needs, consider adding a JWT or API token endpoint instead of sessions.
+
+Notes:
+- This login endpoint creates/returns an `api_token` for the user (stored in `users.api_token`) so clients can use token auth: set HTTP header `Authorization: Bearer <api_token>` or pass `api_key` param.
+- The patho_api endpoints also accept a shared secret via `X-Api-Key` header or `secret_key` parameter for server-to-server operations. When the secret is valid the server may use `PATHO_API_DEFAULT_USER_ID` as `added_by`.

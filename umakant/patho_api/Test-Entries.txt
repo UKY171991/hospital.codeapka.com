@@ -36,6 +36,11 @@ Actions / Usage
 - Auth: session role `admin` or `master` required
 - Response: { "success": true, "message": "Entry created" } or { "success": true, "message": "Entry updated" }
 
+Notes:
+- Upsert: when creating an entry the API uses patient_id+test_id+entry_date as the unique key. If a matching entry exists the call will be `skipped` if no provided fields changed, or `updated` if any provided field differs.
+- `added_by` is set from the session user by default. If requests are accepted without a session and `PATHO_API_DEFAULT_USER_ID` is configured, that user id will be used for `added_by` on new records.
+- `added_by` is controlled server-side; clients cannot set it unless the requester is a master/admin and explicitly passes `added_by`.
+
 4) delete
 - Method: POST
 - Params: action=delete&id=<id>

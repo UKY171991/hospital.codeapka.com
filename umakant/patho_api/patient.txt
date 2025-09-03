@@ -48,6 +48,11 @@ Actions / Endpoints
 - Success response (200): { "success": true, "message": "Patient created" } or { "success": true, "message": "Patient updated" }
 - Error: 401 Unauthorized if session role not admin/master.
 
+Notes:
+- Upsert behavior: when creating a patient the API will use `uhid` (if provided) or `name+mobile` as unique keys. If a matching record exists the helper will `skip` the insert if no provided fields changed, or `update` the existing record if any provided field differs.
+- added_by: the API sets `added_by` from the session user by default; if a request is accepted without a session the server will use the configured `PATHO_API_DEFAULT_USER_ID` (from `inc/api_config.php`) as the `added_by` for new records when available.
+ - `added_by` is controlled server-side; clients cannot set it unless the requester is a master/admin and explicitly passes `added_by`.
+
 4) delete
 - Method: POST
 - Description: Delete a patient by id.

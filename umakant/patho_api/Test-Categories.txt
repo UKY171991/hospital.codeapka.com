@@ -27,6 +27,11 @@ Actions
 - Response: { "success": true, "message": "Category created" } or { "success": true, "message": "Category updated" }
 - Errors: 400 if name empty; 401 if unauthorized; 500 on DB error
 
+Notes:
+- Upsert behavior: save uses `name` as the unique key. Creating a category that already exists will `skip` or `update` depending on whether provided fields differ.
+- `added_by` is set from session user; if no session user is present the server will use `PATHO_API_DEFAULT_USER_ID` (from `inc/api_config.php`) as the `added_by` for new records when available.
+- `added_by` is controlled server-side; clients cannot set it unless the requester is a master/admin and explicitly passes `added_by`.
+
 4) delete
 - Method: POST
 - Params: action=delete&id=<id>

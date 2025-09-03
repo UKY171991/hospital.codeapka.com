@@ -43,6 +43,11 @@ Supported actions (via `action` param)
   - Requires authenticated session (`$_SESSION['user_id']` present). No separate role check in this API; it relies on session presence.
 - Behavior details:
   - On create: if password is empty, a default password 'password' is used and hashed. `added_by` set to session user id; `created_at` set to NOW().
+  - On create: if password is empty, a default password 'password' is used and hashed. `added_by` set to session user id; `created_at` set to NOW().
+
+Notes:
+- Upsert behavior: when creating a user the API uses username (or email) as unique key and will `skip` or `update` instead of creating duplicates.
+- `added_by` will fall back to `PATHO_API_DEFAULT_USER_ID` when no session user is present and the server has that configuration set.
   - On update: if `password` supplied and not empty, it is hashed and updated; otherwise password remains unchanged.
 - Response (200): { success: true, message: 'User created' } or { success: true, message: 'User updated' }
 - Error responses:

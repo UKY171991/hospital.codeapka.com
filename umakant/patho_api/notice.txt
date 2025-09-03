@@ -10,6 +10,11 @@ Actions:
   - Request: /patho_api/notice.php?action=list
   - Response: { success: true, data: [ { id, title, content, start_date, end_date, active, added_by, added_by_username, created_at, updated_at } ] }
 
+Notes:
+- Save uses upsert: unique by title+start_date. If matching row exists, response action will be `skipped` or `updated` depending on whether fields differ.
+- `added_by` is taken from session user; if no session user is present and `PATHO_API_DEFAULT_USER_ID` is configured, it will be used as the `added_by` for new inserts.
+- `added_by` is controlled server-side; clients cannot set it unless the requester is a master/admin and explicitly passes `added_by`.
+
 - get (GET) - fetch a single notice
   - Request: /patho_api/notice.php?action=get&id=123
   - Response: { success: true, data: { ...notice... } }
