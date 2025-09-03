@@ -30,7 +30,6 @@ include_once 'inc/sidebar.php';
                     <th>Hospital</th>
                     <th>Contact No</th>
                     <th>Phone</th>
-                    <th>Email</th>
                     <th>Registration No</th>
                     <th>Percent</th>
                     <th>Added By</th>
@@ -59,8 +58,8 @@ include_once 'inc/sidebar.php';
         <div class="form-group"><label>Specialization</label><input class="form-control" name="specialization" id="specialization"></div>
   <div class="form-group"><label>Hospital</label><input class="form-control" name="hospital" id="hospital"></div>
   <div class="form-group"><label>Contact No</label><input class="form-control" name="contact_no" id="contact_no"></div>
-        <div class="form-group"><label>Phone</label><input class="form-control" name="phone" id="phone"></div>
-        <div class="form-group"><label>Email</label><input class="form-control" name="email" id="email" type="email"></div>
+  <div class="form-group"><label>Phone</label><input class="form-control" name="phone" id="phone"></div>
+  <!-- Email input removed: doctor API does not use Email field -->
         <div class="form-group"><label>Address</label><textarea class="form-control" name="address" id="address"></textarea></div>
         <div class="form-group"><label>Registration No</label><input class="form-control" name="registration_no" id="registration_no"></div>
   <div class="form-group"><label>Percent</label><input class="form-control" name="percent" id="percent" type="number" step="0.01"></div>
@@ -86,11 +85,10 @@ function loadDoctors(){
        '<td>'+ (r.specialization||'') +'</td>'+
        '<td>'+ (r.hospital||'') +'</td>'+
        '<td>'+ (r.contact_no||'') +'</td>'+
-       '<td>'+ (r.phone||'') +'</td>'+
-       '<td>'+ (r.email||'') +'</td>'+
+  '<td>'+ (r.phone||'') +'</td>'+
        '<td>'+ (r.registration_no||'') +'</td>'+
        '<td>'+ (r.percent!==null && r.percent!==undefined ? r.percent : '') +'</td>'+
-       '<td>'+ (r.added_by_username||'') +'</td>'+
+  '<td>'+ (r.added_by_username || r.added_by || '') +'</td>'+
        '<td>'+ (r.created_at||'') +'</td>'+
        '<td><button class="btn btn-sm btn-info edit-btn" data-id="'+r.id+'">Edit</button> '+
          '<button class="btn btn-sm btn-danger del-btn" data-id="'+r.id+'">Delete</button></td>'+
@@ -113,10 +111,9 @@ $(function(){
         $('#name').val(d.name);
         $('#qualification').val(d.qualification);
         $('#specialization').val(d.specialization);
-        $('#hospital').val(d.hospital);
-        $('#contact_no').val(d.contact_no);
-        $('#phone').val(d.phone);
-        $('#email').val(d.email);
+  $('#hospital').val(d.hospital);
+  $('#contact_no').val(d.contact_no);
+  $('#phone').val(d.phone);
         $('#address').val(d.address);
         $('#registration_no').val(d.registration_no);
         $('#percent').val(d.percent);
