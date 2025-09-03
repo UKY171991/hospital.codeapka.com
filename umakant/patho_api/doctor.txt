@@ -59,13 +59,13 @@ Actions supported: list, get, save, delete
 
       2) Get single doctor
       - Method: GET
-      - URL: /patho_api/doctor.php?action=get&id=<id>
+      - URL: https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=get&id=<id>
       - Response:
         { "success": true, "data": { /* doctor columns + added_by_username */ } }
 
       3) Create doctor (insert)
       - Method: POST
-      - URL: /patho_api/doctor.php?action=save
+      - URL: https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=save
       - Auth: requires session cookie (PHPSESSID)
       - Content-Type: application/json or application/x-www-form-urlencoded
       - Body keys:

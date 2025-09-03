@@ -1,3 +1,35 @@
+Save doctor helper (PowerShell)
+================================
+
+What
+----
+This directory includes `save_doctor.ps1`, a small PowerShell helper that logs in to the patho_api and posts to `doctor.php?action=save` using the same PHP session so the API accepts the request.
+
+Usage
+-----
+Open PowerShell (Windows) and run:
+
+    cd c:\git\hospital.codeapka.com\umakant\patho_api
+    .\save_doctor.ps1 -Username your_user -Name 'Dr Example' -Email 'dr@example.com'
+
+The script will prompt for the password securely, perform login, then perform the save using the session cookie.
+
+Options
+-------
+-BaseUrl: Base API URL (defaults to https://hospital.codeapka.com/umakant/patho_api)
+-Username: login username (required)
+-Password: if not provided, you'll be prompted (secure)
+-Name, -Qualification, -Specialization, -Hospital, -ContactNo, -Phone, -Email, -Address, -RegistrationNo, -Percent
+
+Troubleshooting
+---------------
+- If login fails, verify username/password and that the user is active in the `users` table.
+- If save returns 401, ensure the login response included a `PHPSESSID` cookie and the script did not modify cookie handling. The script uses a PowerShell WebSession to store cookies.
+- For programmatic non-session access, consider adding token-based auth to the API (I can help implement it).
+
+Security
+--------
+Don't store plaintext passwords in scripts. Use the prompt or a secure vault.
 # Patho API - Notices
 
 This folder contains small public API endpoints (PHP) for external clients.
