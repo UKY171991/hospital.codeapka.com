@@ -4,6 +4,8 @@ header('Content-Type: application/json; charset=utf-8');
 if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
+// Optional API config for secret-based direct insert
+require_once __DIR__ . '/../inc/api_config.php';
 
 $action = $_REQUEST['action'] ?? 'list';
 try {
@@ -103,6 +105,15 @@ try {
                 }
             }
         }
+
+                // 4) Secret-based direct insert (server-to-server): X-Api-Key header or secret_key param
+                if (!$authenticatedUserId && !empty($PATHO_API_SECRET)) {
+                    $reqSecret = $_SERVER['HTTP_X_API_KEY'] ?? $_REQUEST['secret_key'] ?? ($bodyJson['secret_key'] ?? null);
+                    if ($reqSecret && hash_equals($PATHO_API_SECRET, $reqSecret)) {
+                        // Use configured default user id for added_by
+                        $authenticatedUserId = $PATHO_API_DEFAULT_USER_ID ?: null;
+                    }
+                }
 
         if (!$authenticatedUserId) json_response(['success'=>false,'message'=>'Unauthorized'],401);
     // Accept JSON body as well as form-encoded

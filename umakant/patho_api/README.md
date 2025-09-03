@@ -27,6 +27,21 @@ Troubleshooting
 - If save returns 401, ensure the login response included a `PHPSESSID` cookie and the script did not modify cookie handling. The script uses a PowerShell WebSession to store cookies.
 - For programmatic non-session access, consider adding token-based auth to the API (I can help implement it).
 
+Direct server-to-server insert (secret)
+-------------------------------------
+If you need the API to accept direct inserts without session/cookie or user credentials, you can use a shared secret.
+
+1) Configure the server environment variables (recommended, do NOT commit secrets):
+    - PATHO_API_SECRET=your-long-secret
+    - PATHO_API_DEFAULT_USER_ID=1  # user id used as added_by for direct inserts
+
+2) Call the save endpoint with header `X-Api-Key: your-long-secret` or include `secret_key=your-long-secret` in the request body.
+
+Example:
+curl -H "X-Api-Key: your-long-secret" -d "name=Dr Direct&percent=1&email=dr@direct.example" "https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=save"
+
+Security: Use HTTPS, rotate the secret periodically, and restrict the default user permissions if possible.
+
 Security
 --------
 Don't store plaintext passwords in scripts. Use the prompt or a secure vault.
