@@ -38,9 +38,10 @@ try {
             json_response(['success' => true, 'message' => 'Category updated']);
         } else {
             $added_by = $_SESSION['user_id'] ?? null;
-            $stmt = $pdo->prepare('INSERT INTO categories (name, description, added_by, created_at) VALUES (?, ?, ?, NOW())');
-            $stmt->execute([$name, $description, $added_by]);
-            json_response(['success' => true, 'message' => 'Category created']);
+            $data = ['name'=>$name, 'description'=>$description, 'added_by'=>$added_by];
+            $unique = ['name'=>$name];
+            $res = upsert_or_skip($pdo, 'categories', $unique, $data);
+            json_response(['success' => true, 'message' => 'Category '.$res['action'],'id'=>$res['id']]);
         }
     }
 

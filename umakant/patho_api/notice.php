@@ -44,13 +44,16 @@ try {
             json_response(['success'=>true,'message'=>'Notice updated','data'=>$row]);
         } else {
             $added_by = $_SESSION['user_id'] ?? null;
-            $stmt = $pdo->prepare('INSERT INTO notices (title,content,start_date,end_date,active,added_by,created_at) VALUES (?,?,?,?,?,?,NOW())');
-            $stmt->execute([$title, $content, $start, $end, $active, $added_by]);
-            $newId = $pdo->lastInsertId();
-            $stmt2 = $pdo->prepare('SELECT n.*, u.username as added_by_username FROM notices n LEFT JOIN users u ON n.added_by = u.id WHERE n.id = ?');
-            $stmt2->execute([$newId]);
-            $row = $stmt2->fetch();
-            json_response(['success'=>true,'message'=>'Notice created','data'=>$row]);
+            $data = ['title'=>$title, 'content'=>$content, 'start_date'=>$start, 'end_date'=>$end, 'active'=>$active, 'added_by'=>$added_by];
+            $unique = ['title'=>$title, 'start_date'=>$start];
+            $res = upsert_or_skip($pdo, 'notices', $unique, $data);
+            if ($res['action'] === 'inserted') {
+                $stmt2 = $pdo->prepare('SELECT n.*, u.username as added_by_username FROM notices n LEFT JOIN users u ON n.added_by = u.id WHERE n.id = ?');
+                $stmt2->execute([$res['id']]);
+                $row = $stmt2->fetch();
+                json_response(['success'=>true,'message'=>'Notice created','data'=>$row]);
+            }
+            json_response(['success'=>true,'message'=>'Notice '.$res['action'],'id'=>$res['id']]);
         }
     }
 

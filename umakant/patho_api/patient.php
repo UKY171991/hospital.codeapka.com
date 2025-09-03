@@ -44,9 +44,11 @@ try {
             $stmt->execute([$name, $mobile, $father_husband, $address, $sex, $age, $age_unit, $uhid, $id]);
             json_response(['success' => true, 'message' => 'Patient updated']);
         } else {
-            $stmt = $pdo->prepare('INSERT INTO patients (name, mobile, father_husband, address, sex, age, age_unit, uhid, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())');
-            $stmt->execute([$name, $mobile, $father_husband, $address, $sex, $age, $age_unit, $uhid]);
-            json_response(['success' => true, 'message' => 'Patient created']);
+            $data = ['name'=>$name, 'mobile'=>$mobile, 'father_husband'=>$father_husband, 'address'=>$address, 'sex'=>$sex, 'age'=>$age, 'age_unit'=>$age_unit, 'uhid'=>$uhid];
+            if ($uhid !== '') $unique = ['uhid'=>$uhid];
+            else $unique = ['name'=>$name, 'mobile'=>$mobile];
+            $res = upsert_or_skip($pdo, 'patients', $unique, $data);
+            json_response(['success' => true, 'message' => 'Patient '.$res['action'],'id'=>$res['id']]);
         }
     }
 

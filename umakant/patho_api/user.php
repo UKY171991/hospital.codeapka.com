@@ -59,9 +59,11 @@ try {
             json_response(['success'=>true,'message'=>'User updated']);
         } else {
             $hash = password_hash($password ?: 'password', PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare('INSERT INTO users (username, password, full_name, email, role, added_by, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())');
-            $stmt->execute([$username, $hash, $full_name, $email, $role, $creatorId, $is_active]);
-            json_response(['success'=>true,'message'=>'User created']);
+            $data = ['username'=>$username, 'password'=>$hash, 'full_name'=>$full_name, 'email'=>$email, 'role'=>$role, 'added_by'=>$creatorId, 'is_active'=>$is_active];
+            // Unique by username first, else email
+            if ($username !== '') $unique = ['username'=>$username]; elseif ($email !== '') $unique = ['email'=>$email]; else $unique = ['full_name'=>$full_name];
+            $res = upsert_or_skip($pdo, 'users', $unique, $data);
+            json_response(['success'=>true,'message'=>'User '.$res['action'],'id'=>$res['id']]);
         }
     }
 

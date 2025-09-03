@@ -41,9 +41,13 @@ try {
             json_response(['success' => true, 'message' => 'Owner updated']);
         } else {
             $added_by = $_SESSION['user_id'] ?? null;
-            $stmt = $pdo->prepare('INSERT INTO owners (name,phone,whatsapp,email,address,added_by,created_at) VALUES (?,?,?,?,?,?,NOW())');
-            $stmt->execute([$name, $phone, $whatsapp, $email, $address, $added_by]);
-            json_response(['success' => true, 'message' => 'Owner created']);
+            $data = ['name'=>$name, 'phone'=>$phone, 'whatsapp'=>$whatsapp, 'email'=>$email, 'address'=>$address, 'added_by'=>$added_by];
+            // Unique by phone if present, else email, else name
+            if ($phone !== '') $unique = ['phone'=>$phone];
+            elseif ($email !== '') $unique = ['email'=>$email];
+            else $unique = ['name'=>$name];
+            $res = upsert_or_skip($pdo, 'owners', $unique, $data);
+            json_response(['success'=>true,'message'=>'Owner '.$res['action'],'id'=>$res['id']]);
         }
     }
 

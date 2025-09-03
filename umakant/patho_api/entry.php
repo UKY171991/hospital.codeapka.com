@@ -40,9 +40,10 @@ try {
             $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $result_value, $unit, $remarks, $status, $added_by, $id]);
             json_response(['success'=>true,'message'=>'Entry updated']);
         } else {
-            $stmt = $pdo->prepare('INSERT INTO entries (patient_id, doctor_id, test_id, entry_date, result_value, unit, remarks, status, added_by, created_at) VALUES (?,?,?,?,?,?,?,?,?,NOW())');
-            $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $result_value, $unit, $remarks, $status, $added_by]);
-            json_response(['success'=>true,'message'=>'Entry created']);
+            $data = ['patient_id'=>$patient_id, 'doctor_id'=>$doctor_id, 'test_id'=>$test_id, 'entry_date'=>$entry_date, 'result_value'=>$result_value, 'unit'=>$unit, 'remarks'=>$remarks, 'status'=>$status, 'added_by'=>$added_by];
+            $unique = ['patient_id'=>$patient_id, 'test_id'=>$test_id, 'entry_date'=>$entry_date];
+            $res = upsert_or_skip($pdo, 'entries', $unique, $data);
+            json_response(['success'=>true,'message'=>'Entry '.$res['action'],'id'=>$res['id']]);
         }
     }
 

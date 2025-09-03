@@ -115,8 +115,17 @@ try {
                     }
                 }
 
-    // Allow unauthenticated inserts: if there's no authenticated user, we will insert with added_by = NULL
+        // Allow unauthenticated inserts: if there's no authenticated user, we will insert with added_by = NULL
     // (Keep other auth flows like delete unchanged.)
+
+    // If we have an authenticated user id, fetch their role so we can allow privileged fields like added_by
+    $authenticatedUserRole = null;
+    if ($authenticatedUserId) {
+        $rstmt = $pdo->prepare('SELECT role FROM users WHERE id = ? LIMIT 1');
+        $rstmt->execute([$authenticatedUserId]);
+        $rrow = $rstmt->fetch();
+        if ($rrow && isset($rrow['role'])) $authenticatedUserRole = $rrow['role'];
+    }
     // Accept JSON body as well as form-encoded
     $input = $_POST;
         // If we already decoded JSON earlier into $bodyJson, reuse it; avoids reading php://input twice
@@ -128,9 +137,8 @@ try {
             if (is_array($json)) $input = array_merge($input, $json);
         }
 
-    // Prevent importing client-supplied id or added_by values — server controls these
+    // Prevent importing client-supplied id values — server controls id. added_by is handled below based on role.
     if (isset($input['id'])) unset($input['id']);
-    if (isset($input['added_by'])) unset($input['added_by']);
 
     $name = trim($input['name'] ?? '');
         $qualification = trim($input['qualification'] ?? '');
@@ -144,7 +152,11 @@ try {
     $percent = isset($input['percent']) ? $input['percent'] : null;
     if ($percent === '') $percent = null;
     if ($percent !== null) $percent = (float)$percent;
+            // If an admin/master explicitly provided added_by in the input, allow it. Otherwise use authenticated user id (may be null).
         $added_by = $authenticatedUserId;
+        if (isset($input['added_by']) && is_numeric($input['added_by']) && in_array($authenticatedUserRole, ['master','admin'])) {
+            $added_by = (int)$input['added_by'];
+        }
 
         if ($name === '') {
             json_response(['success'=>false,'message'=>'Name is required'],400);
@@ -159,11 +171,30 @@ try {
             json_response(['success'=>true,'message'=>'Doctor updated','id'=>$updateId]);
         }
 
-        // Use server-side added_by only — ignore any client-provided added_by
-        $stmt = $pdo->prepare('INSERT INTO doctors (name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, percent, added_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())');
-        $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $percent, $added_by]);
-        $newId = $pdo->lastInsertId();
-        json_response(['success'=>true,'message'=>'Doctor added','id'=>$newId]);
+        // Prepare data for insert/update
+        $data = [
+            'name'=>$name,
+            'qualification'=>$qualification,
+            'specialization'=>$specialization,
+            'hospital'=>$hospital,
+            'contact_no'=>$contact_no,
+            'phone'=>$phone,
+            'email'=>$email,
+            'address'=>$address,
+            'registration_no'=>$registration_no,
+            'percent'=>$percent,
+            'added_by'=>$added_by
+        ];
+
+        // Determine unique criteria: prefer registration_no if provided, else name+phone+hospital
+        if ($registration_no !== '') {
+            $unique = ['registration_no'=>$registration_no];
+        } else {
+            $unique = ['name'=>$name, 'phone'=>$phone, 'hospital'=>$hospital];
+        }
+
+        $res = upsert_or_skip($pdo, 'doctors', $unique, $data);
+        json_response(['success'=>true,'message'=>'Doctor '.$res['action'],'id'=>$res['id']]);
     }
 
     if ($action === 'delete' && isset($_POST['id'])) {

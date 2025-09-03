@@ -94,13 +94,13 @@ try {
             $stmt->execute([$category_id, $name, $description, $price, $unit, $default_result, $reference_range, $min, $max, $min_male, $max_male, $min_female, $max_female, $sub_heading, $test_code, $method, $print_new_page, $shortcut, $id]);
             json_response(['success'=>true,'message'=>'Test updated']);
         } else {
-            $added_by = $_SESSION['user_id'] ?? null;
-            $stmt = $pdo->prepare('INSERT INTO tests (category_id, name, description, price, unit, default_result, reference_range, min, max, min_male, max_male, min_female, max_female, sub_heading, test_code, method, print_new_page, shortcut, added_by, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())');
-            $stmt->execute([$category_id, $name, $description, $price, $unit, $default_result, $reference_range, $min, $max, $min_male, $max_male, $min_female, $max_female, $sub_heading, $test_code, $method, $print_new_page, $shortcut, $added_by]);
+                $added_by = $_SESSION['user_id'] ?? null;
+                $data = ['category_id'=>$category_id, 'name'=>$name, 'description'=>$description, 'price'=>$price, 'unit'=>$unit, 'default_result'=>$default_result, 'reference_range'=>$reference_range, 'min'=>$min, 'max'=>$max, 'min_male'=>$min_male, 'max_male'=>$max_male, 'min_female'=>$min_female, 'max_female'=>$max_female, 'sub_heading'=>$sub_heading, 'test_code'=>$test_code, 'method'=>$method, 'print_new_page'=>$print_new_page, 'shortcut'=>$shortcut, 'added_by'=>$added_by];
+                if ($test_code !== '') $unique = ['test_code'=>$test_code]; else $unique = ['name'=>$name, 'category_id'=>$category_id];
+                $res = upsert_or_skip($pdo, 'tests', $unique, $data);
 
-            // return the newly created record with joined fields
-            $newId = $pdo->lastInsertId();
-            $stmt = $pdo->prepare("SELECT t.id,
+                // return the newly created/updated record with joined fields
+                $stmt = $pdo->prepare("SELECT t.id,
                 tc.name as category_name,
                 t.category_id,
                 t.name,
@@ -121,9 +121,9 @@ try {
                 LEFT JOIN categories tc ON t.category_id = tc.id
                 LEFT JOIN users u ON t.added_by = u.id
                 WHERE t.id = ?");
-            $stmt->execute([$newId]);
-            $newRecord = $stmt->fetch();
-            json_response(['success'=>true,'message'=>'Test created', 'data'=>$newRecord]);
+                $stmt->execute([$res['id']]);
+                $newRecord = $stmt->fetch();
+                json_response(['success'=>true,'message'=>'Test '.$res['action'], 'data'=>$newRecord]);
         }
     }
 
