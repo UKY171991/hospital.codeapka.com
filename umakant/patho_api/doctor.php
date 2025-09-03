@@ -41,6 +41,14 @@ try {
         // Authenticate: accept session OR Bearer token in Authorization header OR api_key param
         $authenticatedUserId = null;
 
+        // Decode JSON body early so credentials can be supplied as JSON as well as form-data
+        $rawInput = file_get_contents('php://input');
+        $bodyJson = null;
+        if ($rawInput) {
+            $tmp = json_decode($rawInput, true);
+            if (is_array($tmp)) $bodyJson = $tmp;
+        }
+
         // 1) Session-based
         if (isset($_SESSION['user_id'])) {
             $authenticatedUserId = $_SESSION['user_id'];
@@ -61,6 +69,38 @@ try {
                 $tstmt->execute([$token]);
                 $u = $tstmt->fetch();
                 if ($u) $authenticatedUserId = $u['id'];
+            }
+        }
+
+        // 3) Credentials in request: accept username & password in the POST (form-data/json)
+        if (!$authenticatedUserId) {
+            // Look for username/password in request (POST/form-data or query)
+            $reqUsername = $_REQUEST['username'] ?? ($bodyJson['username'] ?? null);
+            $reqPassword = $_REQUEST['password'] ?? ($bodyJson['password'] ?? null);
+            if ($reqUsername && $reqPassword) {
+                // Fetch user row and verify password using same rules as login.php
+                $ustmt = $pdo->prepare('SELECT id, password, is_active FROM users WHERE username = ? LIMIT 1');
+                $ustmt->execute([$reqUsername]);
+                $urow = $ustmt->fetch();
+                if ($urow && $urow['is_active']) {
+                    $stored = $urow['password'] ?? '';
+                    $passOk = false;
+                    if (is_string($stored) && (strpos($stored, '$2y$') === 0 || strpos($stored, '$2a$') === 0 || strpos($stored, '$argon') === 0 || password_needs_rehash($stored, PASSWORD_DEFAULT) || password_verify($reqPassword, $stored))) {
+                        if (password_verify($reqPassword, $stored)) $passOk = true;
+                    }
+                    if (!$passOk && is_string($stored)) {
+                        $len = strlen($stored);
+                        if ($len === 32) { // MD5
+                            if (hash_equals($stored, md5($reqPassword))) $passOk = true;
+                        } elseif ($len === 40) { // SHA1
+                            if (hash_equals($stored, sha1($reqPassword))) $passOk = true;
+                        }
+                    }
+                    if (!$passOk) {
+                        if (hash_equals((string)$stored, (string)$reqPassword)) $passOk = true;
+                    }
+                    if ($passOk) $authenticatedUserId = $urow['id'];
+                }
             }
         }
 
