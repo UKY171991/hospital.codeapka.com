@@ -19,8 +19,8 @@ try {
         json_response(['success' => false, 'message' => 'Username and password are required'], 400);
     }
 
-    // Fetch user by username
-    $stmt = $pdo->prepare('SELECT id, username, password, full_name, role, is_active FROM users WHERE username = ? LIMIT 1');
+    // Fetch user by username (include api_token)
+    $stmt = $pdo->prepare('SELECT id, username, password, full_name, role, is_active, api_token FROM users WHERE username = ? LIMIT 1');
     $stmt->execute([$username]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -88,6 +88,21 @@ try {
         'full_name' => $user['full_name'] ?? null,
         'role' => $user['role']
     ];
+
+    // Ensure an API token exists for this user so scripts can use token-based auth.
+    // We return api_token in the response. If the DB row already contains one, keep it.
+    if (empty($user['api_token'])) {
+        try {
+            $newToken = bin2hex(random_bytes(32));
+            $upd = $pdo->prepare('UPDATE users SET api_token = ? WHERE id = ?');
+            $upd->execute([$newToken, $user['id']]);
+            $safeUser['api_token'] = $newToken;
+        } catch (Exception $e) {
+            // If token generation or update fails, ignore and don't return a token (login still succeeds)
+        }
+    } else {
+        $safeUser['api_token'] = $user['api_token'];
+    }
 
     json_response(['success' => true, 'message' => 'Login successful', 'user' => $safeUser]);
 

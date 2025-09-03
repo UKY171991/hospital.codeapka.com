@@ -38,8 +38,33 @@ try {
     }
 
     if ($action === 'save') {
-        // allow authenticated users to create doctors; you can restrict to admin/master if needed
-        if (!isset($_SESSION['user_id'])) json_response(['success'=>false,'message'=>'Unauthorized'],401);
+        // Authenticate: accept session OR Bearer token in Authorization header OR api_key param
+        $authenticatedUserId = null;
+
+        // 1) Session-based
+        if (isset($_SESSION['user_id'])) {
+            $authenticatedUserId = $_SESSION['user_id'];
+        }
+
+        // 2) Token-based: Authorization: Bearer <token> or api_key param
+        if (!$authenticatedUserId) {
+            $token = null;
+            // Check Authorization header
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+            if ($authHeader && preg_match('/Bearer\s+(\S+)/', $authHeader, $m)) {
+                $token = $m[1];
+            }
+            if (!$token && isset($_REQUEST['api_key'])) $token = $_REQUEST['api_key'];
+
+            if ($token) {
+                $tstmt = $pdo->prepare('SELECT id FROM users WHERE api_token = ? AND is_active = 1 LIMIT 1');
+                $tstmt->execute([$token]);
+                $u = $tstmt->fetch();
+                if ($u) $authenticatedUserId = $u['id'];
+            }
+        }
+
+        if (!$authenticatedUserId) json_response(['success'=>false,'message'=>'Unauthorized'],401);
     // Accept JSON body as well as form-encoded
     $input = $_POST;
         if (stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== false) {
@@ -64,7 +89,7 @@ try {
     $percent = isset($input['percent']) ? $input['percent'] : null;
     if ($percent === '') $percent = null;
     if ($percent !== null) $percent = (float)$percent;
-        $added_by = $_SESSION['user_id'];
+        $added_by = $authenticatedUserId;
 
         if ($name === '') {
             json_response(['success'=>false,'message'=>'Name is required'],400);
