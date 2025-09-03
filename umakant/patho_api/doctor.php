@@ -107,7 +107,10 @@ try {
         if (!$authenticatedUserId) json_response(['success'=>false,'message'=>'Unauthorized'],401);
     // Accept JSON body as well as form-encoded
     $input = $_POST;
-        if (stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== false) {
+        // If we already decoded JSON earlier into $bodyJson, reuse it; avoids reading php://input twice
+        if (is_array($bodyJson)) {
+            $input = array_merge($input, $bodyJson);
+        } elseif (stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== false) {
             $raw = file_get_contents('php://input');
             $json = json_decode($raw, true);
             if (is_array($json)) $input = array_merge($input, $json);
