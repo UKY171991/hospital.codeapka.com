@@ -402,6 +402,28 @@ require_once 'inc/sidebar.php';
 let testsTable;
 let categoriesTable;
 
+// Utility function to escape HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    return text.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// Simple DataTable initialization function
+function initDataTable(selector, options = {}) {
+    if ($.fn.DataTable && !$.fn.dataTable.isDataTable(selector)) {
+        $(selector).DataTable({
+            responsive: true,
+            pageLength: 25,
+            ...options
+        });
+    }
+}
+
 // Initialize page
 $(document).ready(function() {
     initializeDataTable();
@@ -753,65 +775,63 @@ function openAddCategoryModal() {
 }
 
 function editTest(id) {
-    $.get(`patho_api/test.php?id=${id}`)
+    $.get('ajax/test_api.php', {action: 'get', id: id})
         .done(function(response) {
-            if (response.status === 'success') {
+            if (response.success) {
                 const test = response.data;
                 $('#testId').val(test.id);
                 $('#testName').val(test.name);
-                $('#testCategory').val(test.category_id);
+                $('#testCategoryId').val(test.category_id);
                 $('#testPrice').val(test.price);
                 $('#testUnit').val(test.unit);
-                $('#testMethod').val(test.method);
-                $('#maleMin').val(test.male_min);
-                $('#maleMax').val(test.male_max);
-                $('#maleUnit').val(test.male_unit);
-                $('#femaleMin').val(test.female_min);
-                $('#femaleMax').val(test.female_max);
-                $('#femaleUnit').val(test.female_unit);
-                $('#childMin').val(test.child_min);
-                $('#childMax').val(test.child_max);
-                $('#childUnit').val(test.child_unit);
+                $('#testMin').val(test.min);
+                $('#testMax').val(test.max);
+                $('#testMinMale').val(test.min_male);
+                $('#testMaxMale').val(test.max_male);
+                $('#testMinFemale').val(test.min_female);
+                $('#testMaxFemale').val(test.max_female);
+                $('#testSubHeading').val(test.sub_heading);
+                $('#testPrintNewPage').val(test.print_new_page);
                 $('#testDescription').val(test.description);
                 
                 $('#modalTitle').text('Edit Test');
                 $('#testModal').modal('show');
             } else {
-                showAlert('Error loading test data: ' + response.message, 'error');
+                toastr.error('Error loading test data: ' + (response.message || 'Unknown error'));
             }
         })
         .fail(function() {
-            showAlert('Failed to load test data', 'error');
+            toastr.error('Failed to load test data');
         });
 }
 
 function saveTestData() {
     const formData = new FormData($('#testForm')[0]);
     const id = $('#testId').val();
-    const method = id ? 'PUT' : 'POST';
+    formData.append('action', 'save');
     
-    const submitBtn = $('#testForm button[type="submit"]');
+    const submitBtn = $('#saveTestBtn');
     const originalText = submitBtn.html();
     submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
 
     $.ajax({
-        url: 'patho_api/test.php',
-        type: method,
+        url: 'ajax/test_api.php',
+        type: 'POST',
         data: formData,
         processData: false,
         contentType: false,
         success: function(response) {
-            if (response.status === 'success') {
-                showAlert(id ? 'Test updated successfully!' : 'Test added successfully!', 'success');
+            if (response.success) {
+                toastr.success(id ? 'Test updated successfully!' : 'Test added successfully!');
                 $('#testModal').modal('hide');
-                testsTable.ajax.reload();
+                loadTests(); // Reload the table
                 loadStats();
             } else {
-                showAlert('Error: ' + response.message, 'error');
+                toastr.error('Error: ' + (response.message || 'Unknown error'));
             }
         },
         error: function() {
-            showAlert('Failed to save test data', 'error');
+            toastr.error('Failed to save test data');
         },
         complete: function() {
             submitBtn.html(originalText).prop('disabled', false);
@@ -820,34 +840,25 @@ function saveTestData() {
 }
 
 function deleteTest(id, name) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: `You want to delete test "${name}"?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: `patho_api/test.php?id=${id}`,
-                type: 'DELETE',
-                success: function(response) {
-                    if (response.status === 'success') {
-                        showAlert('Test deleted successfully!', 'success');
-                        testsTable.ajax.reload();
-                        loadStats();
-                    } else {
-                        showAlert('Error deleting test: ' + response.message, 'error');
-                    }
-                },
-                error: function() {
-                    showAlert('Failed to delete test', 'error');
+    if (confirm(`Are you sure you want to delete test "${name || 'this test'}"?`)) {
+        $.ajax({
+            url: 'ajax/test_api.php',
+            type: 'POST',
+            data: { action: 'delete', id: id },
+            success: function(response) {
+                if (response.success) {
+                    toastr.success('Test deleted successfully!');
+                    loadTests(); // Reload the table
+                    loadStats();
+                } else {
+                    toastr.error('Error deleting test: ' + (response.message || 'Unknown error'));
                 }
-            });
-        }
-    });
+            },
+            error: function() {
+                toastr.error('Failed to delete test');
+            }
+        });
+    }
 }
 
 function addCategory() {
@@ -1004,8 +1015,15 @@ function updateSerialNumbers() {
 
 function loadCategoriesForTests(){
     $.get('ajax/test_category_api.php',{action:'list',ajax:1},function(resp){
-        if(resp.success){ var s=''; resp.data.forEach(function(c){ s += '<option value="'+c.id+'">'+(c.name||'')+'</option>'; }); $('#testCategoryId').append(s); }
-        else toastr.error('Failed to load categories');
+        if(resp.success){ 
+            var s=''; 
+            resp.data.forEach(function(c){ 
+                s += '<option value="'+c.id+'">'+(c.name||'')+'</option>'; 
+            }); 
+            $('#testCategoryId').append(s); 
+        } else {
+            toastr.error('Failed to load categories');
+        }
     },'json');
 }
 
@@ -1270,6 +1288,6 @@ $(function(){
 });
 </script>
 
-<!-- Include enhanced table manager and test-enhanced.js for better modal handling -->
-<script src="assets/js/enhanced-table.js?v=<?php echo time(); ?>"></script>
-<script src="assets/js/test-enhanced.js?v=<?php echo time(); ?>"></script>
+<!-- Enhanced table scripts commented out to avoid conflicts -->
+<!-- <script src="assets/js/enhanced-table.js?v=<?php echo time(); ?>"></script>
+<script src="assets/js/test-enhanced.js?v=<?php echo time(); ?>"></script> -->
