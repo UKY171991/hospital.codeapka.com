@@ -143,6 +143,7 @@ require_once 'inc/sidebar.php';
                                             <th>Age/Gender</th>
                                             <th>Address</th>
                                             <th>Registration</th>
+                                            <th>Added By</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -193,6 +194,8 @@ require_once 'inc/sidebar.php';
             <form id="patientForm">
                 <div class="modal-body">
                     <input type="hidden" id="patientId" name="id">
+                    <!-- Allow admin to set added_by; populated by JS when permitted -->
+                    <input type="hidden" id="patientAddedBy" name="added_by">
                     
                     <div class="row">
                         <div class="col-md-6">

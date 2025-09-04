@@ -287,3 +287,15 @@
     }
   }, 10000); // Show after 10 seconds
 </script>
+<?php
+if (session_status() === PHP_SESSION_NONE) session_start();
+// Expose minimal user info to frontend scripts for page behaviors (no secrets)
+$appUserId = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 'null';
+$appUserRole = isset($_SESSION['role']) ? json_encode($_SESSION['role']) : 'null';
+?>
+<script>
+  window.AppUser = {
+    id: <?php echo $appUserId; ?>,
+    role: <?php echo $appUserRole; ?>
+  };
+</script>

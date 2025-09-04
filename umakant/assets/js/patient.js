@@ -55,6 +55,13 @@ function loadPatients() {
         ...(date && { date: date })
     });
 
+    // if frontend knows the user is admin/master, request all records
+    try {
+        if (window.AppUser && (window.AppUser.role === 'master' || window.AppUser.role === 'admin')) {
+            params.append('all', '1');
+        }
+    } catch (e) { /* ignore */ }
+
     $.get(`patho_api/patient.php?${params}`)
         .done(function(response) {
             if (response.status === 'success') {
@@ -74,7 +81,7 @@ function populatePatientsTable(patients) {
     let html = '';
     
     if (patients.length === 0) {
-        html = '<tr><td colspan="7" class="text-center text-muted">No patients found</td></tr>';
+        html = '<tr><td colspan="8" class="text-center text-muted">No patients found</td></tr>';
     } else {
         patients.forEach(patient => {
             const ageDisplay = patient.age ? `${patient.age} ${patient.age_unit || 'Years'}` : '-';
@@ -115,6 +122,9 @@ function populatePatientsTable(patients) {
                     </td>
                     <td>
                         <small class="text-muted">${formatDateTime(patient.created_at)}</small>
+                    </td>
+                    <td>
+                        <small class="text-muted">${patient.added_by_username || '—'}</small>
                     </td>
                     <td>
                         <div class="btn-group" role="group">
@@ -235,6 +245,12 @@ function editPatient(id) {
                 $('#patientGender').val(patient.gender || patient.sex); // Use gender if available, fallback to sex
                 $('#patientFatherHusband').val(patient.father_husband);
                 $('#patientAddress').val(patient.address);
+                    // Fill added_by if available (admin override)
+                    if (typeof patient.added_by !== 'undefined' && patient.added_by !== null) {
+                        $('#patientAddedBy').val(patient.added_by);
+                    } else {
+                        $('#patientAddedBy').val('');
+                    }
                 
                 $('#modalTitle').text('Edit Patient');
                 $('#patientModal').modal('show');

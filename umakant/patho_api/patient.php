@@ -132,13 +132,18 @@ try {
         $page = max(1, intval($_GET['page'] ?? 1));
         $limit = max(1, intval($_GET['limit'] ?? 10));
         $offset = ($page - 1) * $limit;
-
         // Build base where clause
         $where = '';
         $params = [];
 
-        // If not master/admin and not asking for all, restrict by added_by
-        $isAll = (isset($_GET['all']) && $_GET['all'] == '1' && in_array($auth['role'], ['master', 'admin']));
+        // If user is master/admin, show all by default unless explicitly disabled by all=0
+        if (in_array($auth['role'], ['master', 'admin'])) {
+            $isAll = !isset($_GET['all']) || $_GET['all'] == '1';
+        } else {
+            $isAll = false;
+        }
+
+        // If not allowed to view all, restrict by added_by (normal users)
         if (!$isAll) {
             $where = 'WHERE e.added_by = ?';
             $params[] = $userId;
