@@ -10,7 +10,7 @@ require_once 'inc/sidebar.php';
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Patients</h1>
+                    <h1><i class="fas fa-users mr-2"></i>Patient Management</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
@@ -25,61 +25,146 @@ require_once 'inc/sidebar.php';
     <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
+            <!-- Stats Row -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3 id="totalPatients">0</h3>
+                            <p>Total Patients</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3 id="todayPatients">0</h3>
+                            <p>Today's Patients</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-warning">
+                        <div class="inner">
+                            <h3 id="malePatients">0</h3>
+                            <p>Male Patients</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-male"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-danger">
+                        <div class="inner">
+                            <h3 id="femalePatients">0</h3>
+                            <p>Female Patients</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-female"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col-12">
-                    <div class="card">
+                    <div class="card card-primary card-outline">
                         <div class="card-header">
-                            <h3 class="card-title">Patient Management</h3>
+                            <h3 class="card-title">
+                                <i class="fas fa-hospital-user mr-1"></i>
+                                Patient Directory
+                            </h3>
                             <div class="card-tools">
-                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#patientModal" onclick="openAddPatientModal()">
-                                    <i class="fas fa-plus"></i> Add Patient
+                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#patientModal" onclick="openAddPatientModal()">
+                                    <i class="fas fa-plus"></i> Add New Patient
                                 </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
                                     <i class="fas fa-minus"></i>
                                 </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-                                    <i class="fas fa-times"></i>
+                                <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                                    <i class="fas fa-expand"></i>
                                 </button>
                             </div>
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
-                            <div class="row mb-3 align-items-center">
-                                <div class="col-md-6">
+                            <!-- Search and Filter Section -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
                                     <div class="input-group">
-                                        <input id="patientsSearch" class="form-control" placeholder="Search patients by name, mobile or UHID...">
-                                        <div class="input-group-append">
-                                            <button id="patientsSearchClear" class="btn btn-outline-secondary">Clear</button>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-search"></i></span>
                                         </div>
+                                        <input id="patientsSearch" class="form-control" placeholder="Search by name, mobile, UHID...">
                                     </div>
                                 </div>
-                                <div class="col-md-3 ml-auto text-right">
-                                    <div class="form-inline float-right">
-                                        <label class="mr-2">Per page</label>
-                                        <select id="patientsPerPage" class="form-control">
-                                            <option value="10">10</option>
-                                            <option value="25">25</option>
-                                            <option value="50">50</option>
-                                        </select>
+                                <div class="col-md-2">
+                                    <select id="genderFilter" class="form-control">
+                                        <option value="">All Genders</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select id="ageRangeFilter" class="form-control">
+                                        <option value="">All Ages</option>
+                                        <option value="0-18">0-18 years</option>
+                                        <option value="19-35">19-35 years</option>
+                                        <option value="36-60">36-60 years</option>
+                                        <option value="60+">60+ years</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="date" id="dateFilter" class="form-control" title="Filter by registration date">
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-secondary btn-block" onclick="clearFilters()">
+                                        <i class="fas fa-times"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Patients Table -->
+                            <div class="table-responsive">
+                                <table id="patientsTable" class="table table-bordered table-striped table-hover">
+                                    <thead class="thead-dark">
+                                        <tr>
+                                            <th>UHID</th>
+                                            <th>Patient Details</th>
+                                            <th>Contact</th>
+                                            <th>Age/Gender</th>
+                                            <th>Address</th>
+                                            <th>Registration</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="patientsTableBody">
+                                        <!-- Dynamic content will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- /.card-body -->
+                        <div class="card-footer">
+                            <div class="row">
+                                <div class="col-sm-12 col-md-5">
+                                    <div class="dataTables_info" id="patientsInfo"></div>
+                                </div>
+                                <div class="col-sm-12 col-md-7">
+                                    <div class="dataTables_paginate paging_simple_numbers" id="patientsPagination">
+                                        <!-- Pagination will be inserted here -->
                                     </div>
                                 </div>
                             </div>
-                            <table id="patientsTable" class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>UHID</th>
-                                        <th>Name</th>
-                                        <th>Age</th>
-                                        <th>Gender</th>
-                                        <th>Phone</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
                         </div>
-                        <!-- /.card-body -->
                     </div>
                     <!-- /.card -->
                 </div>
@@ -92,52 +177,85 @@ require_once 'inc/sidebar.php';
     <!-- /.content -->
 </div>
 <!-- /.content-wrapper -->
-
 <!-- Patient Modal -->
 <div class="modal fade" id="patientModal" tabindex="-1" role="dialog" aria-labelledby="patientModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="patientModalLabel">Add Patient</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="patientModalLabel">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    <span id="modalTitle">Add New Patient</span>
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <form id="patientForm">
+            <form id="patientForm">
+                <div class="modal-body">
                     <input type="hidden" id="patientId" name="id">
-                    <div class="form-group">
-                        <label for="patientName">Name *</label>
-                        <input type="text" class="form-control" id="patientName" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="patientMobile">Mobile *</label>
-                        <input type="text" class="form-control" id="patientMobile" name="mobile" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="patientFatherHusband">Father/Husband Name</label>
-                        <input type="text" class="form-control" id="patientFatherHusband" name="father_husband">
-                    </div>
-                    <div class="form-group">
-                        <label for="patientAddress">Address</label>
-                        <textarea class="form-control" id="patientAddress" name="address" rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="patientSex">Gender</label>
-                        <select class="form-control" id="patientSex" name="sex">
-                            <option value="">Select Gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="patientAge">Age</label>
-                        <div class="row">
-                            <div class="col-6">
-                                <input type="number" class="form-control" id="patientAge" name="age" min="0">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="patientName">
+                                    <i class="fas fa-user mr-1"></i>
+                                    Full Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="patientName" name="name" required>
                             </div>
-                            <div class="col-6">
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="patientUHID">
+                                    <i class="fas fa-id-card mr-1"></i>
+                                    UHID
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="patientUHID" name="uhid" readonly>
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="generateUHID()">
+                                            <i class="fas fa-sync"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="patientMobile">
+                                    <i class="fas fa-mobile-alt mr-1"></i>
+                                    Mobile Number <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="patientMobile" name="mobile" required pattern="[0-9]{10}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="patientEmail">
+                                    <i class="fas fa-envelope mr-1"></i>
+                                    Email
+                                </label>
+                                <input type="email" class="form-control" id="patientEmail" name="email">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="patientAge">
+                                    <i class="fas fa-birthday-cake mr-1"></i>
+                                    Age
+                                </label>
+                                <input type="number" class="form-control" id="patientAge" name="age" min="0" max="150">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="patientAgeUnit">Age Unit</label>
                                 <select class="form-control" id="patientAgeUnit" name="age_unit">
                                     <option value="Years">Years</option>
                                     <option value="Months">Months</option>
@@ -145,51 +263,518 @@ require_once 'inc/sidebar.php';
                                 </select>
                             </div>
                         </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="patientGender">
+                                    <i class="fas fa-venus-mars mr-1"></i>
+                                    Gender
+                                </label>
+                                <select class="form-control" id="patientGender" name="gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
+
                     <div class="form-group">
-                        <label for="patientUHID">UHID</label>
-                        <input type="text" class="form-control" id="patientUHID" name="uhid">
+                        <label for="patientFatherHusband">
+                            <i class="fas fa-user-friends mr-1"></i>
+                            Father/Husband Name
+                        </label>
+                        <input type="text" class="form-control" id="patientFatherHusband" name="father_husband">
                     </div>
-                </form>
+
+                    <div class="form-group">
+                        <label for="patientAddress">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            Address
+                        </label>
+                        <textarea class="form-control" id="patientAddress" name="address" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Patient
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Patient Modal -->
+<div class="modal fade" id="viewPatientModal" tabindex="-1" role="dialog" aria-labelledby="viewPatientModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="viewPatientModalLabel">
+                    <i class="fas fa-eye mr-2"></i>
+                    Patient Details
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="viewPatientContent">
+                <!-- Patient details will be loaded here -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="savePatientBtn">Save Patient</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
 </div>
 
-<?php require_once 'inc/footer.php'; ?>
-
 <script>
-function addPatientToTable(patientData) {
-    var newRow = '<tr>' +
-        '<td>' + patientData.id + '</td>' +
-        '<td>' + (patientData.uhid || '') + '</td>' +
-        '<td>' + (patientData.name || '') + '</td>' +
-        '<td>' + (patientData.age || '') + '</td>' +
-        '<td>' + (patientData.gender || '') + '</td>' +
-        '<td>' + (patientData.phone || '') + '</td>' +
-        '<td><button class="btn btn-sm btn-info view-patient" data-id="' + patientData.id + '" onclick="viewPatient(' + patientData.id + ')">View</button> ' +
-            '<button class="btn btn-sm btn-warning edit-patient" data-id="' + patientData.id + '">Edit</button> ' +
-            '<button class="btn btn-sm btn-danger delete-patient" data-id="' + patientData.id + '">Delete</button></td>' +
-        '</tr>';
-    
-    // Add new row at the top of the table
-    $('#patientsTable tbody').prepend(newRow);
+// Global variables
+let currentPage = 1;
+let totalRecords = 0;
+let recordsPerPage = 10;
+let searchTimeout;
+
+// Initialize page
+$(document).ready(function() {
+    loadPatients();
+    updateStats();
+    initializeEventListeners();
+    generateUHID(); // Generate initial UHID for new patients
+});
+
+function initializeEventListeners() {
+    // Search functionality
+    $('#patientsSearch').on('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentPage = 1;
+            loadPatients();
+        }, 300);
+    });
+
+    // Filter functionality
+    $('#genderFilter, #ageRangeFilter, #dateFilter').on('change', function() {
+        currentPage = 1;
+        loadPatients();
+    });
+
+    // Form submission
+    $('#patientForm').on('submit', function(e) {
+        e.preventDefault();
+        savePatientData();
+    });
 }
 
-function loadPatients(){
-    $.get('ajax/patient_api.php',{action:'list'},function(resp){
-    if(resp.success){ var t=''; resp.data.forEach(function(p){ t += '<tr>'+
-            '<td>'+p.id+'</td>'+
-            '<td>'+ (p.uhid||'') +'</td>'+
-            '<td>'+ (p.name||'') +'</td>'+
-            '<td>'+ (p.age||'') +'</td>'+
-            '<td>'+ (p.gender||'') +'</td>'+
-            '<td>'+ (p.phone||'') +'</td>'+
-            '<td><button class="btn btn-sm btn-info view-patient" data-id="'+p.id+'" onclick="viewPatient('+p.id+')">View</button> '+
+function loadPatients() {
+    const searchTerm = $('#patientsSearch').val();
+    const gender = $('#genderFilter').val();
+    const ageRange = $('#ageRangeFilter').val();
+    const date = $('#dateFilter').val();
+
+    // Show loading
+    $('#patientsTableBody').html('<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
+
+    const params = new URLSearchParams({
+        page: currentPage,
+        limit: recordsPerPage,
+        ...(searchTerm && { search: searchTerm }),
+        ...(gender && { gender: gender }),
+        ...(ageRange && { age_range: ageRange }),
+        ...(date && { date: date })
+    });
+
+    $.get(`patho_api/patient.php?${params}`)
+        .done(function(response) {
+            if (response.status === 'success') {
+                populatePatientsTable(response.data);
+                updatePagination(response.pagination);
+            } else {
+                showAlert('Error loading patients: ' + response.message, 'error');
+            }
+        })
+        .fail(function() {
+            showAlert('Failed to load patients', 'error');
+            $('#patientsTableBody').html('<tr><td colspan="7" class="text-center text-danger">Failed to load data</td></tr>');
+        });
+}
+
+function populatePatientsTable(patients) {
+    let html = '';
+    
+    if (patients.length === 0) {
+        html = '<tr><td colspan="7" class="text-center text-muted">No patients found</td></tr>';
+    } else {
+        patients.forEach(patient => {
+            const ageDisplay = patient.age ? `${patient.age} ${patient.age_unit || 'Years'}` : '-';
+            const genderBadge = patient.gender ? 
+                `<span class="badge badge-${patient.gender === 'Male' ? 'primary' : patient.gender === 'Female' ? 'danger' : 'secondary'}">${patient.gender}</span>` : '-';
+            
+            html += `
+                <tr>
+                    <td>
+                        <div class="font-weight-bold text-primary">${patient.uhid || 'N/A'}</div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-circle bg-info text-white mr-2">
+                                ${patient.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <div class="font-weight-bold">${patient.name}</div>
+                                ${patient.father_husband ? `<small class="text-muted">S/D/W of ${patient.father_husband}</small>` : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            ${patient.mobile ? `<div><i class="fas fa-mobile-alt text-primary"></i> ${patient.mobile}</div>` : ''}
+                            ${patient.email ? `<div><i class="fas fa-envelope text-info"></i> ${patient.email}</div>` : ''}
+                        </div>
+                    </td>
+                    <td>
+                        <div>${ageDisplay}</div>
+                        <div>${genderBadge}</div>
+                    </td>
+                    <td>
+                        <div class="text-truncate" style="max-width: 150px;" title="${patient.address || ''}">
+                            ${patient.address || '-'}
+                        </div>
+                    </td>
+                    <td>
+                        <small class="text-muted">${formatDateTime(patient.created_at)}</small>
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-info btn-sm" onclick="viewPatient(${patient.id})" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="editPatient(${patient.id})" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deletePatient(${patient.id}, '${patient.name}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+    
+    $('#patientsTableBody').html(html);
+}
+
+function updatePagination(pagination) {
+    totalRecords = pagination.total;
+    const totalPages = Math.ceil(totalRecords / recordsPerPage);
+    
+    // Update info
+    const start = ((currentPage - 1) * recordsPerPage) + 1;
+    const end = Math.min(currentPage * recordsPerPage, totalRecords);
+    $('#patientsInfo').html(`Showing ${start} to ${end} of ${totalRecords} entries`);
+    
+    // Update pagination
+    let paginationHtml = '';
+    if (totalPages > 1) {
+        paginationHtml += `
+            <ul class="pagination pagination-sm m-0 float-right">
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
+                </li>
+        `;
+        
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                paginationHtml += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                    </li>
+                `;
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                paginationHtml += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+            }
+        }
+        
+        paginationHtml += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
+                </li>
+            </ul>
+        `;
+    }
+    
+    $('#patientsPagination').html(paginationHtml);
+}
+
+function updateStats() {
+    $.get('patho_api/patient.php?action=stats')
+        .done(function(response) {
+            if (response.status === 'success') {
+                $('#totalPatients').text(response.data.total || 0);
+                $('#todayPatients').text(response.data.today || 0);
+                $('#malePatients').text(response.data.male || 0);
+                $('#femalePatients').text(response.data.female || 0);
+            }
+        });
+}
+
+function changePage(page) {
+    currentPage = page;
+    loadPatients();
+}
+
+function clearFilters() {
+    $('#patientsSearch').val('');
+    $('#genderFilter').val('');
+    $('#ageRangeFilter').val('');
+    $('#dateFilter').val('');
+    currentPage = 1;
+    loadPatients();
+}
+
+function openAddPatientModal() {
+    $('#patientForm')[0].reset();
+    $('#patientId').val('');
+    $('#modalTitle').text('Add New Patient');
+    generateUHID();
+    $('#patientModal').modal('show');
+}
+
+function generateUHID() {
+    const timestamp = Date.now().toString();
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const uhid = 'P' + timestamp.slice(-6) + random;
+    $('#patientUHID').val(uhid);
+}
+
+function editPatient(id) {
+    $.get(`patho_api/patient.php?id=${id}`)
+        .done(function(response) {
+            if (response.status === 'success') {
+                const patient = response.data;
+                $('#patientId').val(patient.id);
+                $('#patientName').val(patient.name);
+                $('#patientUHID').val(patient.uhid);
+                $('#patientMobile').val(patient.mobile);
+                $('#patientEmail').val(patient.email);
+                $('#patientAge').val(patient.age);
+                $('#patientAgeUnit').val(patient.age_unit);
+                $('#patientGender').val(patient.gender);
+                $('#patientFatherHusband').val(patient.father_husband);
+                $('#patientAddress').val(patient.address);
+                
+                $('#modalTitle').text('Edit Patient');
+                $('#patientModal').modal('show');
+            } else {
+                showAlert('Error loading patient data: ' + response.message, 'error');
+            }
+        })
+        .fail(function() {
+            showAlert('Failed to load patient data', 'error');
+        });
+}
+
+function viewPatient(id) {
+    $.get(`patho_api/patient.php?id=${id}`)
+        .done(function(response) {
+            if (response.status === 'success') {
+                const patient = response.data;
+                const content = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr><td><strong>UHID:</strong></td><td>${patient.uhid || '-'}</td></tr>
+                                <tr><td><strong>Name:</strong></td><td>${patient.name}</td></tr>
+                                <tr><td><strong>Father/Husband:</strong></td><td>${patient.father_husband || '-'}</td></tr>
+                                <tr><td><strong>Age:</strong></td><td>${patient.age ? patient.age + ' ' + (patient.age_unit || 'Years') : '-'}</td></tr>
+                                <tr><td><strong>Gender:</strong></td><td>${patient.gender || '-'}</td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr><td><strong>Mobile:</strong></td><td>${patient.mobile || '-'}</td></tr>
+                                <tr><td><strong>Email:</strong></td><td>${patient.email || '-'}</td></tr>
+                                <tr><td><strong>Registration:</strong></td><td>${formatDateTime(patient.created_at)}</td></tr>
+                                <tr><td><strong>Last Updated:</strong></td><td>${formatDateTime(patient.updated_at)}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    ${patient.address ? `<div class="row"><div class="col-12"><strong>Address:</strong><br>${patient.address}</div></div>` : ''}
+                `;
+                $('#viewPatientContent').html(content);
+                $('#viewPatientModal').modal('show');
+            } else {
+                showAlert('Error loading patient data: ' + response.message, 'error');
+            }
+        })
+        .fail(function() {
+            showAlert('Failed to load patient data', 'error');
+        });
+}
+
+function savePatientData() {
+    const formData = new FormData($('#patientForm')[0]);
+    const id = $('#patientId').val();
+    const method = id ? 'PUT' : 'POST';
+    
+    // Add loading state
+    const submitBtn = $('#patientForm button[type="submit"]');
+    const originalText = submitBtn.html();
+    submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
+
+    $.ajax({
+        url: 'patho_api/patient.php',
+        type: method,
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.status === 'success') {
+                showAlert(id ? 'Patient updated successfully!' : 'Patient added successfully!', 'success');
+                $('#patientModal').modal('hide');
+                loadPatients();
+                updateStats();
+            } else {
+                showAlert('Error: ' + response.message, 'error');
+            }
+        },
+        error: function() {
+            showAlert('Failed to save patient data', 'error');
+        },
+        complete: function() {
+            submitBtn.html(originalText).prop('disabled', false);
+        }
+    });
+}
+
+function deletePatient(id, name) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: `You want to delete patient "${name}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `patho_api/patient.php?id=${id}`,
+                type: 'DELETE',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        showAlert('Patient deleted successfully!', 'success');
+                        loadPatients();
+                        updateStats();
+                    } else {
+                        showAlert('Error deleting patient: ' + response.message, 'error');
+                    }
+                },
+                error: function() {
+                    showAlert('Failed to delete patient', 'error');
+                }
+            });
+        }
+    });
+}
+
+function showAlert(message, type) {
+    const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    
+    const alert = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            <i class="${icon} mr-2"></i>${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    `;
+    
+    // Remove existing alerts
+    $('.alert').remove();
+    
+    // Add new alert at the top of content
+    $('.content-wrapper .content').prepend(alert);
+    
+    // Auto hide after 5 seconds
+    setTimeout(() => {
+        $('.alert').fadeOut();
+    }, 5000);
+}
+
+function formatDateTime(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+}
+</script>
+
+<style>
+.avatar-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+.small-box {
+    position: relative;
+    display: block;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+
+.small-box > .inner {
+    padding: 10px;
+}
+
+.small-box .icon {
+    transition: all .3s linear;
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    z-index: 0;
+    font-size: 90px;
+    color: rgba(0,0,0,0.15);
+}
+
+.table-responsive {
+    border-radius: 0.375rem;
+}
+
+.card-outline.card-primary {
+    border-top: 3px solid #007bff;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+</style>
+
+<?php require_once 'inc/footer.php'; ?>+
                 '<button class="btn btn-sm btn-warning edit-patient" data-id="'+p.id+'">Edit</button> '+
                 '<button class="btn btn-sm btn-danger delete-patient" data-id="'+p.id+'">Delete</button></td>'+
             '</tr>'; }); $('#patientsTable tbody').html(t);

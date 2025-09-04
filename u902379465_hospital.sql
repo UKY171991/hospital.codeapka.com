@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Sep 04, 2025 at 04:54 AM
+-- Generation Time: Sep 04, 2025 at 05:08 AM
 -- Server version: 10.11.10-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -52,6 +52,7 @@ INSERT INTO `categories` (`id`, `name`, `description`, `added_by`, `created_at`,
 
 CREATE TABLE `doctors` (
   `id` int(11) NOT NULL,
+  `server_id` int(11) DEFAULT NULL COMMENT 'External server identifier for synchronization',
   `name` varchar(255) NOT NULL,
   `qualification` varchar(255) DEFAULT NULL,
   `specialization` varchar(255) DEFAULT NULL,
@@ -71,19 +72,19 @@ CREATE TABLE `doctors` (
 -- Dumping data for table `doctors`
 --
 
-INSERT INTO `doctors` (`id`, `name`, `qualification`, `specialization`, `hospital`, `contact_no`, `phone`, `email`, `address`, `registration_no`, `percent`, `added_by`, `created_at`, `updated_at`) VALUES
-(31, 'Dr Test', '', '', 'Test Hospital', '9999999999', '', '', '', '', 20.00, 1, '2025-09-03 17:57:48', '2025-09-03 18:34:00'),
-(32, 'tff', '', '', 'fcf', '585', '', '', 'fg', '', 30.00, 1, '2025-09-03 17:58:13', '2025-09-03 17:58:13'),
-(33, 'fft', '', '', 'ttt', '555', '', '', 'tg', '', 50.00, 1, '2025-09-03 18:12:13', '2025-09-03 18:12:13'),
-(34, 'sdfg', '', '', 'qwe', 'qw', '', '', 'qw', '', 6.00, 1, '2025-09-03 18:46:59', '2025-09-03 18:54:56'),
-(35, 'Doctor uma', '', '', 'uuu', '5656565656', '', '', 'dfgh', '', 1.00, 1, '2025-09-03 19:13:04', '2025-09-03 19:13:04'),
-(36, 'werf', '', '', 'A', 'QA', '', '', 'Q', '', 0.00, 1, '2025-09-03 19:13:34', '2025-09-03 19:13:34'),
-(37, 'Dr. A Kumar', '', '', '', '', '', '', '', '', 40.00, 1, '2025-09-03 19:16:12', '2025-09-03 19:26:30'),
-(38, 'Dr. A Kumar y', '', '', '', '', '', '', '', '', 40.00, 1, '2025-09-03 19:26:50', '2025-09-03 19:26:50'),
-(39, 'Dr. A Kum', '', '', '', '', '', '', '', '', 40.00, 1, '2025-09-03 19:27:57', '2025-09-04 04:35:49'),
-(40, 'asdf', '', '', 'qw', 'qw', '', '', 'qw', '', 0.00, 1, '2025-09-04 04:40:17', '2025-09-04 04:40:17'),
-(41, 'Testing', '', '', 'A', 'QA', '', '', 'Q', '', 30.00, 1, '2025-09-04 04:40:47', '2025-09-04 04:40:47'),
-(42, 'New test', '', '', 'ertg', '34567', '', '', '356', '', 50.00, 1, '2025-09-04 04:49:59', '2025-09-04 04:49:59');
+INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specialization`, `hospital`, `contact_no`, `phone`, `email`, `address`, `registration_no`, `percent`, `added_by`, `created_at`, `updated_at`) VALUES
+(31, NULL, 'Dr Test', '', '', 'Test Hospital', '9999999999', '', '', '', '', 20.00, 1, '2025-09-03 17:57:48', '2025-09-03 18:34:00'),
+(32, NULL, 'tff', '', '', 'fcf', '585', '', '', 'fg', '', 30.00, 1, '2025-09-03 17:58:13', '2025-09-03 17:58:13'),
+(33, NULL, 'fft', '', '', 'ttt', '555', '', '', 'tg', '', 50.00, 1, '2025-09-03 18:12:13', '2025-09-03 18:12:13'),
+(34, NULL, 'sdfg', '', '', 'qwe', 'qw', '', '', 'qw', '', 6.00, 1, '2025-09-03 18:46:59', '2025-09-03 18:54:56'),
+(35, NULL, 'Doctor uma', '', '', 'uuu', '5656565656', '', '', 'dfgh', '', 1.00, 1, '2025-09-03 19:13:04', '2025-09-03 19:13:04'),
+(36, NULL, 'werf', '', '', 'A', 'QA', '', '', 'Q', '', 0.00, 1, '2025-09-03 19:13:34', '2025-09-03 19:13:34'),
+(37, NULL, 'Dr. A Kumar', '', '', '', '', '', '', '', '', 40.00, 1, '2025-09-03 19:16:12', '2025-09-03 19:26:30'),
+(38, NULL, 'Dr. A Kumar y', '', '', '', '', '', '', '', '', 40.00, 1, '2025-09-03 19:26:50', '2025-09-03 19:26:50'),
+(39, NULL, 'Dr. A Kum', '', '', '', '', '', '', '', '', 40.00, 1, '2025-09-03 19:27:57', '2025-09-04 04:35:49'),
+(40, NULL, 'asdf', '', '', 'qw', 'qw', '', '', 'qw', '', 0.00, 1, '2025-09-04 04:40:17', '2025-09-04 04:40:17'),
+(41, NULL, 'Testing', '', '', 'A', 'QA', '', '', 'Q', '', 30.00, 1, '2025-09-04 04:40:47', '2025-09-04 04:40:47'),
+(42, NULL, 'New test', '', '', 'ertg', '34567', '', '', '356', '', 50.00, 1, '2025-09-04 04:49:59', '2025-09-04 04:49:59');
 
 -- --------------------------------------------------------
 
@@ -344,7 +345,8 @@ ALTER TABLE `doctors`
   ADD KEY `added_by` (`added_by`),
   ADD KEY `idx_doctors_name` (`name`),
   ADD KEY `idx_doctors_contact` (`contact_no`),
-  ADD KEY `idx_doctors_email` (`email`);
+  ADD KEY `idx_doctors_email` (`email`),
+  ADD KEY `idx_doctors_server_id` (`server_id`);
 
 --
 -- Indexes for table `entries`

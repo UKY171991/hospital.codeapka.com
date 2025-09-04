@@ -1,53 +1,320 @@
 <?php
-// patho_api/doctor.php - API to create and list doctors per user
+/**
+ * Doctor API - Comprehensive CRUD operations for doctors
+ * Supports: CREATE, READ, UPDATE, DELETE operations
+ * Authentication: Session-based or API token
+ */
 header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
-// Optional API config for secret-based direct insert
 require_once __DIR__ . '/../inc/api_config.php';
 
-$action = $_REQUEST['action'] ?? 'list';
+// Get action from request
+$action = $_REQUEST['action'] ?? $_SERVER['REQUEST_METHOD'];
+$requestMethod = $_SERVER['REQUEST_METHOD'];
+
+// Map HTTP methods to actions
+switch($requestMethod) {
+    case 'GET':
+        $action = isset($_GET['id']) ? 'get' : 'list';
+        break;
+    case 'POST':
+        $action = $_REQUEST['action'] ?? 'create';
+        break;
+    case 'PUT':
+        $action = 'update';
+        break;
+    case 'DELETE':
+        $action = 'delete';
+        break;
+}
+
 try {
+    // Authenticate user
+    function authenticateUser($pdo) {
+        global $_SESSION;
+        
+        // Check session first
+        if (isset($_SESSION['user_id'])) {
+            return $_SESSION['user_id'];
+        }
+        
+        // Check Authorization header
+        $headers = getallheaders();
+        if (isset($headers['Authorization'])) {
+            $token = str_replace('Bearer ', '', $headers['Authorization']);
+            $stmt = $pdo->prepare('SELECT id FROM users WHERE api_token = ? AND is_active = 1');
+            $stmt->execute([$token]);
+            $user = $stmt->fetch();
+            if ($user) return $user['id'];
+        }
+        
+        return null;
+    }
+
+    // Validate doctor data
+    function validateDoctorData($data, $isUpdate = false) {
+        $errors = [];
+        
+        if (!$isUpdate || isset($data['name'])) {
+            if (empty(trim($data['name'] ?? ''))) {
+                $errors[] = 'Doctor name is required';
+            }
+        }
+        
+        if (isset($data['email']) && !empty($data['email'])) {
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Invalid email format';
+            }
+        }
+        
+        if (isset($data['percent'])) {
+            $percent = floatval($data['percent']);
+            if ($percent < 0 || $percent > 100) {
+                $errors[] = 'Percentage must be between 0 and 100';
+            }
+        }
+        
+        return $errors;
+    }
+
     if ($action === 'list') {
-        // If user_id is provided, return doctors added by that user
         $userId = $_GET['user_id'] ?? null;
-        if (!$userId && isset($_SESSION['user_id'])) $userId = $_SESSION['user_id'];
-        // If master requests all, return everything
+        $authenticatedUserId = authenticateUser($pdo);
+        
+        if (!$userId && $authenticatedUserId) {
+            $userId = $authenticatedUserId;
+        }
+        
+        // Check if user wants to see all (master only)
         $viewerRole = $_SESSION['role'] ?? 'user';
-        if (isset($_GET['all']) && $_GET['all'] == 1 && $viewerRole === 'master') {
-            $stmt = $pdo->query('SELECT d.id, d.server_id, d.name, d.qualification, d.specialization, d.hospital, d.contact_no, d.phone, d.email, d.address, d.registration_no, d.percent, d.added_by, d.created_at, d.updated_at, u.username AS added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id ORDER BY d.id DESC');
-            $rows = $stmt->fetchAll();
-            json_response(['success'=>true,'data'=>$rows]);
-        }
-
-        if ($userId) {
-            $stmt = $pdo->prepare('SELECT d.id, d.server_id, d.name, d.qualification, d.specialization, d.hospital, d.contact_no, d.phone, d.email, d.address, d.registration_no, d.percent, d.added_by, d.created_at, d.updated_at, u.username AS added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id WHERE d.added_by = ? ORDER BY d.id DESC');
+        if (isset($_GET['all']) && $_GET['all'] == '1' && $viewerRole === 'master') {
+            $query = 'SELECT d.*, u.username AS added_by_username 
+                     FROM doctors d 
+                     LEFT JOIN users u ON d.added_by = u.id 
+                     ORDER BY d.id DESC';
+            $stmt = $pdo->query($query);
+        } else if ($userId) {
+            $query = 'SELECT d.*, u.username AS added_by_username 
+                     FROM doctors d 
+                     LEFT JOIN users u ON d.added_by = u.id 
+                     WHERE d.added_by = ? 
+                     ORDER BY d.id DESC';
+            $stmt = $pdo->prepare($query);
             $stmt->execute([$userId]);
-            $rows = $stmt->fetchAll();
-            json_response(['success'=>true,'data'=>$rows]);
         } else {
-            json_response(['success'=>false,'message'=>'user_id required or authenticated'],400);
+            json_response(['success' => false, 'message' => 'Authentication required'], 401);
         }
+        
+        $doctors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        json_response(['success' => true, 'data' => $doctors, 'total' => count($doctors)]);
     }
 
-    if ($action === 'get' && isset($_GET['id'])) {
-        $stmt = $pdo->prepare('SELECT d.id, d.server_id, d.name, d.qualification, d.specialization, d.hospital, d.contact_no, d.phone, d.email, d.address, d.registration_no, d.percent, d.added_by, d.created_at, d.updated_at, u.username AS added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id WHERE d.id = ?');
-        $stmt->execute([$_GET['id']]);
-        $row = $stmt->fetch();
-        if (!$row) json_response(['success'=>false,'message'=>'Doctor not found'],404);
-        json_response(['success'=>true,'data'=>$row]);
+    if ($action === 'get') {
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            json_response(['success' => false, 'message' => 'Doctor ID is required'], 400);
+        }
+        
+        $stmt = $pdo->prepare('SELECT d.*, u.username AS added_by_username 
+                              FROM doctors d 
+                              LEFT JOIN users u ON d.added_by = u.id 
+                              WHERE d.id = ?');
+        $stmt->execute([$id]);
+        $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$doctor) {
+            json_response(['success' => false, 'message' => 'Doctor not found'], 404);
+        }
+        
+        json_response(['success' => true, 'data' => $doctor]);
     }
 
-    if ($action === 'save') {
-        // Authenticate: accept session OR Bearer token in Authorization header OR api_key param
-        $authenticatedUserId = null;
+    if ($action === 'create' || $action === 'save') {
+        $authenticatedUserId = authenticateUser($pdo);
+        if (!$authenticatedUserId) {
+            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        }
 
-        // Decode JSON body early so credentials can be supplied as JSON as well as form-data
-        $rawInput = file_get_contents('php://input');
-        $bodyJson = null;
-        if ($rawInput) {
-            $tmp = json_decode($rawInput, true);
+        // Get input data
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        
+        // Validate input
+        $errors = validateDoctorData($input);
+        if (!empty($errors)) {
+            json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
+        }
+
+        // Prepare data for insertion
+        $data = [
+            'name' => trim($input['name']),
+            'qualification' => trim($input['qualification'] ?? ''),
+            'specialization' => trim($input['specialization'] ?? ''),
+            'hospital' => trim($input['hospital'] ?? ''),
+            'contact_no' => trim($input['contact_no'] ?? ''),
+            'phone' => trim($input['phone'] ?? ''),
+            'email' => trim($input['email'] ?? ''),
+            'address' => trim($input['address'] ?? ''),
+            'registration_no' => trim($input['registration_no'] ?? ''),
+            'percent' => floatval($input['percent'] ?? 0),
+            'added_by' => $authenticatedUserId
+        ];
+
+        if (isset($input['server_id'])) {
+            $data['server_id'] = intval($input['server_id']);
+        }
+
+        // Insert doctor
+        $fields = array_keys($data);
+        $placeholders = ':' . implode(', :', $fields);
+        $query = 'INSERT INTO doctors (' . implode(', ', $fields) . ') VALUES (' . $placeholders . ')';
+        
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($data);
+        
+        $doctorId = $pdo->lastInsertId();
+        
+        // Fetch the created doctor
+        $stmt = $pdo->prepare('SELECT d.*, u.username AS added_by_username 
+                              FROM doctors d 
+                              LEFT JOIN users u ON d.added_by = u.id 
+                              WHERE d.id = ?');
+        $stmt->execute([$doctorId]);
+        $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        json_response(['success' => true, 'message' => 'Doctor created successfully', 'data' => $doctor]);
+    }
+
+    if ($action === 'update') {
+        $authenticatedUserId = authenticateUser($pdo);
+        if (!$authenticatedUserId) {
+            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        }
+
+        // Get doctor ID from URL or input
+        $id = $_GET['id'] ?? $_REQUEST['id'] ?? null;
+        if (!$id) {
+            json_response(['success' => false, 'message' => 'Doctor ID is required'], 400);
+        }
+
+        // Check if doctor exists
+        $stmt = $pdo->prepare('SELECT * FROM doctors WHERE id = ?');
+        $stmt->execute([$id]);
+        $existingDoctor = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$existingDoctor) {
+            json_response(['success' => false, 'message' => 'Doctor not found'], 404);
+        }
+
+        // Get input data
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        
+        // Validate input
+        $errors = validateDoctorData($input, true);
+        if (!empty($errors)) {
+            json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
+        }
+
+        // Prepare update data
+        $updateData = [];
+        $allowedFields = ['name', 'qualification', 'specialization', 'hospital', 'contact_no', 'phone', 'email', 'address', 'registration_no', 'percent', 'server_id'];
+        
+        foreach ($allowedFields as $field) {
+            if (isset($input[$field])) {
+                if ($field === 'percent') {
+                    $updateData[$field] = floatval($input[$field]);
+                } elseif ($field === 'server_id') {
+                    $updateData[$field] = intval($input[$field]);
+                } else {
+                    $updateData[$field] = trim($input[$field]);
+                }
+            }
+        }
+
+        if (empty($updateData)) {
+            json_response(['success' => false, 'message' => 'No valid fields to update'], 400);
+        }
+
+        // Add updated_at timestamp
+        $updateData['updated_at'] = date('Y-m-d H:i:s');
+
+        // Build update query
+        $setParts = [];
+        foreach ($updateData as $field => $value) {
+            $setParts[] = "$field = :$field";
+        }
+        
+        $query = 'UPDATE doctors SET ' . implode(', ', $setParts) . ' WHERE id = :id';
+        $updateData['id'] = $id;
+        
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($updateData);
+
+        // Fetch updated doctor
+        $stmt = $pdo->prepare('SELECT d.*, u.username AS added_by_username 
+                              FROM doctors d 
+                              LEFT JOIN users u ON d.added_by = u.id 
+                              WHERE d.id = ?');
+        $stmt->execute([$id]);
+        $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        json_response(['success' => true, 'message' => 'Doctor updated successfully', 'data' => $doctor]);
+    }
+
+    if ($action === 'delete') {
+        $authenticatedUserId = authenticateUser($pdo);
+        if (!$authenticatedUserId) {
+            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        }
+
+        $id = $_GET['id'] ?? $_REQUEST['id'] ?? null;
+        if (!$id) {
+            json_response(['success' => false, 'message' => 'Doctor ID is required'], 400);
+        }
+
+        // Check if doctor exists
+        $stmt = $pdo->prepare('SELECT * FROM doctors WHERE id = ?');
+        $stmt->execute([$id]);
+        $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$doctor) {
+            json_response(['success' => false, 'message' => 'Doctor not found'], 404);
+        }
+
+        // Check if doctor has associated entries
+        $stmt = $pdo->prepare('SELECT COUNT(*) as count FROM entries WHERE doctor_id = ?');
+        $stmt->execute([$id]);
+        $entryCount = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+
+        if ($entryCount > 0) {
+            json_response(['success' => false, 'message' => 'Cannot delete doctor with associated test entries'], 400);
+        }
+
+        // Delete doctor
+        $stmt = $pdo->prepare('DELETE FROM doctors WHERE id = ?');
+        $stmt->execute([$id]);
+
+        json_response(['success' => true, 'message' => 'Doctor deleted successfully']);
+    }
+
+    // Invalid action
+    json_response(['success' => false, 'message' => 'Invalid action'], 400);
+
+} catch (Exception $e) {
+    error_log('Doctor API Error: ' . $e->getMessage());
+    json_response(['success' => false, 'message' => 'Internal server error', 'error' => $e->getMessage()], 500);
+}
+?>
             if (is_array($tmp)) $bodyJson = $tmp;
         }
 
