@@ -222,7 +222,7 @@ try {
                 'address' => trim($input['address'] ?? ''),
                 'registration_no' => trim($input['registration_no'] ?? ''),
                 'percent' => isset($input['percent']) ? floatval($input['percent']) : null,
-                'added_by' => trim($input['address'] ?? '') // $auth['user_id']
+                'added_by' => trim($input['added_by'] ?? '') // $auth['user_id']
             ];
 
             if (isset($input['server_id'])) {
