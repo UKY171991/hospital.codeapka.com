@@ -10,7 +10,7 @@ require_once 'inc/sidebar.php';
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Tests</h1>
+                    <h1><i class="fas fa-vial mr-2"></i>Test Management</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
@@ -25,29 +25,138 @@ require_once 'inc/sidebar.php';
     <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
+            <!-- Stats Row -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3 id="totalTests">0</h3>
+                            <p>Total Tests</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-vial"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3 id="activeTests">0</h3>
+                            <p>Active Tests</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-warning">
+                        <div class="inner">
+                            <h3 id="totalCategories">0</h3>
+                            <p>Categories</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-danger">
+                        <div class="inner">
+                            <h3 id="testEntries">0</h3>
+                            <p>Test Entries</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col-12">
-                    <div class="card">
+                    <div class="card card-primary card-outline">
                         <div class="card-header">
-                            <h3 class="card-title">Test Management</h3>
+                            <h3 class="card-title">
+                                <i class="fas fa-flask mr-1"></i>
+                                Laboratory Tests
+                            </h3>
                             <div class="card-tools">
-                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#testModal" onclick="openAddTestModal()">
-                                    <i class="fas fa-plus"></i> Add Test
+                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#testModal" onclick="openAddTestModal()">
+                                    <i class="fas fa-plus"></i> Add New Test
                                 </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                                <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#categoryModal" onclick="openAddCategoryModal()">
+                                    <i class="fas fa-tags"></i> Manage Categories
+                                </button>
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
                                     <i class="fas fa-minus"></i>
                                 </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-                                    <i class="fas fa-times"></i>
+                                <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                                    <i class="fas fa-expand"></i>
                                 </button>
                             </div>
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
-                            <!-- Using DataTables for search, sorting and paging -->
-                            <table id="testsTable" class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
+                            <!-- Advanced Filters -->
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <select id="categoryFilter" class="form-control">
+                                        <option value="">All Categories</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select id="genderFilter" class="form-control">
+                                        <option value="">All Genders</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Both">Both</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" id="priceFilter" class="form-control" placeholder="Max Price">
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-outline-secondary btn-block" onclick="clearFilters()">
+                                        <i class="fas fa-times"></i> Clear Filters
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Tests DataTable -->
+                            <div class="table-responsive">
+                                <table id="testsTable" class="table table-bordered table-striped table-hover">
+                                    <thead class="thead-dark">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Test Name</th>
+                                            <th>Category</th>
+                                            <th>Price</th>
+                                            <th>Gender</th>
+                                            <th>Range</th>
+                                            <th>Unit</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will be populated by DataTables AJAX -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+        </div>
+        <!-- /.container-fluid -->
+    </section>
+    <!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
                                         <th>S.No.</th>
                                         <th>ID</th>
                                         <th>Category</th>
@@ -76,19 +185,586 @@ require_once 'inc/sidebar.php';
 
 <!-- Test Modal -->
 <div class="modal fade" id="testModal" tabindex="-1" role="dialog" aria-labelledby="testModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="testModalLabel">
+                    <i class="fas fa-vial mr-2"></i>
+                    <span id="modalTitle">Add New Test</span>
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="testForm">
+                <div class="modal-body">
+                    <input type="hidden" id="testId" name="id">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="testName">
+                                    <i class="fas fa-flask mr-1"></i>
+                                    Test Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="testName" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="testCategory">
+                                    <i class="fas fa-tags mr-1"></i>
+                                    Category <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-control" id="testCategory" name="category_id" required>
+                                    <option value="">Select Category</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="testPrice">
+                                    <i class="fas fa-rupee-sign mr-1"></i>
+                                    Price
+                                </label>
+                                <input type="number" class="form-control" id="testPrice" name="price" min="0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="testUnit">
+                                    <i class="fas fa-ruler mr-1"></i>
+                                    Unit
+                                </label>
+                                <input type="text" class="form-control" id="testUnit" name="unit" placeholder="mg/dL, IU/L, etc.">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="testMethod">
+                                    <i class="fas fa-cogs mr-1"></i>
+                                    Method
+                                </label>
+                                <input type="text" class="form-control" id="testMethod" name="method">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gender-specific ranges -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-venus-mars mr-1"></i>
+                                Reference Ranges
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <!-- Male Range -->
+                            <div class="row mb-3">
+                                <div class="col-md-2">
+                                    <label class="font-weight-bold text-primary">Male Range:</label>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" id="maleMin" name="male_min" placeholder="Min" step="0.01">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" id="maleMax" name="male_max" placeholder="Max" step="0.01">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="maleUnit" name="male_unit" placeholder="Unit">
+                                </div>
+                            </div>
+
+                            <!-- Female Range -->
+                            <div class="row mb-3">
+                                <div class="col-md-2">
+                                    <label class="font-weight-bold text-danger">Female Range:</label>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" id="femaleMin" name="female_min" placeholder="Min" step="0.01">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" id="femaleMax" name="female_max" placeholder="Max" step="0.01">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="femaleUnit" name="female_unit" placeholder="Unit">
+                                </div>
+                            </div>
+
+                            <!-- Child Range -->
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <label class="font-weight-bold text-success">Child Range:</label>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" id="childMin" name="child_min" placeholder="Min" step="0.01">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" id="childMax" name="child_max" placeholder="Max" step="0.01">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="childUnit" name="child_unit" placeholder="Unit">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label for="testDescription">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Description
+                        </label>
+                        <textarea class="form-control" id="testDescription" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Test
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="categoryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="testModalLabel">Add Test</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="categoryModalLabel">
+                    <i class="fas fa-tags mr-2"></i>
+                    Test Categories
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <form id="testForm">
-                    <input type="hidden" id="testId" name="id">
-                    <div class="container-fluid">
-                        <div class="row">
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="newCategoryName" placeholder="Enter category name">
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-success btn-block" onclick="addCategory()">
+                            <i class="fas fa-plus"></i> Add Category
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table id="categoriesTable" class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Tests Count</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoriesTableBody">
+                            <!-- Categories will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+let testsTable;
+let categoriesTable;
+
+// Initialize page
+$(document).ready(function() {
+    initializeDataTable();
+    loadCategories();
+    loadStats();
+    initializeEventListeners();
+});
+
+function initializeDataTable() {
+    testsTable = $('#testsTable').DataTable({
+        processing: true,
+        serverSide: false,
+        ajax: {
+            url: 'patho_api/test.php',
+            type: 'GET',
+            dataSrc: function(json) {
+                if (json.status === 'success') {
+                    return json.data;
+                }
+                return [];
+            }
+        },
+        columns: [
+            { data: 'id' },
+            { 
+                data: 'name',
+                render: function(data, type, row) {
+                    return `<div class="font-weight-bold text-primary">${data}</div>
+                            ${row.method ? `<small class="text-muted">${row.method}</small>` : ''}`;
+                }
+            },
+            { 
+                data: 'category_name',
+                render: function(data, type, row) {
+                    return data ? `<span class="badge badge-info">${data}</span>` : '-';
+                }
+            },
+            { 
+                data: 'price',
+                render: function(data, type, row) {
+                    return data ? `₹${parseFloat(data).toFixed(2)}` : '-';
+                }
+            },
+            {
+                data: null,
+                render: function(data, type, row) {
+                    let genders = [];
+                    if (row.male_min || row.male_max) genders.push('<span class="badge badge-primary badge-sm">Male</span>');
+                    if (row.female_min || row.female_max) genders.push('<span class="badge badge-danger badge-sm">Female</span>');
+                    if (row.child_min || row.child_max) genders.push('<span class="badge badge-success badge-sm">Child</span>');
+                    return genders.length > 0 ? genders.join(' ') : '-';
+                }
+            },
+            {
+                data: null,
+                render: function(data, type, row) {
+                    let ranges = [];
+                    if (row.male_min || row.male_max) {
+                        ranges.push(`M: ${row.male_min || 0}-${row.male_max || '∞'}`);
+                    }
+                    if (row.female_min || row.female_max) {
+                        ranges.push(`F: ${row.female_min || 0}-${row.female_max || '∞'}`);
+                    }
+                    return ranges.length > 0 ? ranges.join('<br>') : '-';
+                }
+            },
+            { 
+                data: 'unit',
+                render: function(data, type, row) {
+                    return data || '-';
+                }
+            },
+            {
+                data: 'id',
+                orderable: false,
+                render: function(data, type, row) {
+                    return `
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-info btn-sm" onclick="viewTest(${data})" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="editTest(${data})" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteTest(${data}, '${row.name}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        ],
+        order: [[0, 'desc']],
+        pageLength: 25,
+        responsive: true,
+        dom: 'Bfrtip',
+        buttons: [
+            'copy', 'csv', 'excel', 'pdf', 'print'
+        ],
+        language: {
+            processing: '<i class="fas fa-spinner fa-spin"></i> Loading tests...'
+        }
+    });
+
+    // Custom filters
+    $('#categoryFilter, #genderFilter, #priceFilter').on('change keyup', function() {
+        applyFilters();
+    });
+}
+
+function applyFilters() {
+    const category = $('#categoryFilter').val();
+    const gender = $('#genderFilter').val();
+    const maxPrice = $('#priceFilter').val();
+
+    // Apply category filter
+    testsTable.column(2).search(category);
+    
+    // Apply price filter
+    if (maxPrice) {
+        testsTable.column(3).search('^[₹]?[0-9]*\\.?[0-9]*$', true, false);
+    } else {
+        testsTable.column(3).search('');
+    }
+    
+    testsTable.draw();
+}
+
+function clearFilters() {
+    $('#categoryFilter').val('');
+    $('#genderFilter').val('');
+    $('#priceFilter').val('');
+    testsTable.search('').columns().search('').draw();
+}
+
+function loadCategories() {
+    $.get('patho_api/test_category.php')
+        .done(function(response) {
+            if (response.status === 'success') {
+                let options = '<option value="">Select Category</option>';
+                let filterOptions = '<option value="">All Categories</option>';
+                
+                response.data.forEach(category => {
+                    options += `<option value="${category.id}">${category.name}</option>`;
+                    filterOptions += `<option value="${category.name}">${category.name}</option>`;
+                });
+                
+                $('#testCategory').html(options);
+                $('#categoryFilter').html(filterOptions);
+                
+                // Populate categories table
+                populateCategoriesTable(response.data);
+            }
+        });
+}
+
+function populateCategoriesTable(categories) {
+    let html = '';
+    categories.forEach(category => {
+        html += `
+            <tr>
+                <td>${category.id}</td>
+                <td>${category.name}</td>
+                <td><span class="badge badge-primary">${category.test_count || 0}</span></td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="editCategory(${category.id}, '${category.name}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id}, '${category.name}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    $('#categoriesTableBody').html(html);
+}
+
+function loadStats() {
+    $.get('patho_api/test.php?action=stats')
+        .done(function(response) {
+            if (response.status === 'success') {
+                $('#totalTests').text(response.data.total || 0);
+                $('#activeTests').text(response.data.active || 0);
+                $('#totalCategories').text(response.data.categories || 0);
+                $('#testEntries').text(response.data.entries || 0);
+            }
+        });
+}
+
+function initializeEventListeners() {
+    $('#testForm').on('submit', function(e) {
+        e.preventDefault();
+        saveTestData();
+    });
+}
+
+function openAddTestModal() {
+    $('#testForm')[0].reset();
+    $('#testId').val('');
+    $('#modalTitle').text('Add New Test');
+    $('#testModal').modal('show');
+}
+
+function openAddCategoryModal() {
+    $('#categoryModal').modal('show');
+}
+
+function editTest(id) {
+    $.get(`patho_api/test.php?id=${id}`)
+        .done(function(response) {
+            if (response.status === 'success') {
+                const test = response.data;
+                $('#testId').val(test.id);
+                $('#testName').val(test.name);
+                $('#testCategory').val(test.category_id);
+                $('#testPrice').val(test.price);
+                $('#testUnit').val(test.unit);
+                $('#testMethod').val(test.method);
+                $('#maleMin').val(test.male_min);
+                $('#maleMax').val(test.male_max);
+                $('#maleUnit').val(test.male_unit);
+                $('#femaleMin').val(test.female_min);
+                $('#femaleMax').val(test.female_max);
+                $('#femaleUnit').val(test.female_unit);
+                $('#childMin').val(test.child_min);
+                $('#childMax').val(test.child_max);
+                $('#childUnit').val(test.child_unit);
+                $('#testDescription').val(test.description);
+                
+                $('#modalTitle').text('Edit Test');
+                $('#testModal').modal('show');
+            } else {
+                showAlert('Error loading test data: ' + response.message, 'error');
+            }
+        })
+        .fail(function() {
+            showAlert('Failed to load test data', 'error');
+        });
+}
+
+function saveTestData() {
+    const formData = new FormData($('#testForm')[0]);
+    const id = $('#testId').val();
+    const method = id ? 'PUT' : 'POST';
+    
+    const submitBtn = $('#testForm button[type="submit"]');
+    const originalText = submitBtn.html();
+    submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
+
+    $.ajax({
+        url: 'patho_api/test.php',
+        type: method,
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.status === 'success') {
+                showAlert(id ? 'Test updated successfully!' : 'Test added successfully!', 'success');
+                $('#testModal').modal('hide');
+                testsTable.ajax.reload();
+                loadStats();
+            } else {
+                showAlert('Error: ' + response.message, 'error');
+            }
+        },
+        error: function() {
+            showAlert('Failed to save test data', 'error');
+        },
+        complete: function() {
+            submitBtn.html(originalText).prop('disabled', false);
+        }
+    });
+}
+
+function deleteTest(id, name) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: `You want to delete test "${name}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `patho_api/test.php?id=${id}`,
+                type: 'DELETE',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        showAlert('Test deleted successfully!', 'success');
+                        testsTable.ajax.reload();
+                        loadStats();
+                    } else {
+                        showAlert('Error deleting test: ' + response.message, 'error');
+                    }
+                },
+                error: function() {
+                    showAlert('Failed to delete test', 'error');
+                }
+            });
+        }
+    });
+}
+
+function addCategory() {
+    const name = $('#newCategoryName').val().trim();
+    if (!name) {
+        showAlert('Please enter category name', 'error');
+        return;
+    }
+
+    $.ajax({
+        url: 'patho_api/test_category.php',
+        type: 'POST',
+        data: { name: name },
+        success: function(response) {
+            if (response.status === 'success') {
+                showAlert('Category added successfully!', 'success');
+                $('#newCategoryName').val('');
+                loadCategories();
+            } else {
+                showAlert('Error: ' + response.message, 'error');
+            }
+        },
+        error: function() {
+            showAlert('Failed to add category', 'error');
+        }
+    });
+}
+
+function showAlert(message, type) {
+    const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    
+    const alert = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            <i class="${icon} mr-2"></i>${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    `;
+    
+    $('.alert').remove();
+    $('.content-wrapper .content').prepend(alert);
+    
+    setTimeout(() => {
+        $('.alert').fadeOut();
+    }, 5000);
+}
+</script>
+
+<style>
+.small-box {
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.small-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.card-outline.card-primary {
+    border-top: 3px solid #007bff;
+}
+
+.badge-sm {
+    font-size: 0.7em;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+</style>
+
+<?php require_once 'inc/footer.php'; ?>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="testName">Name *</label>

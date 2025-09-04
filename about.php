@@ -4,50 +4,137 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>About Us — Pathology & Hospital Management</title>
+  <title>About Us — Advanced Pathology & Hospital Management System</title>
+  <meta name="description" content="Learn about our mission to revolutionize healthcare through innovative hospital management solutions. Trusted by 500+ facilities worldwide.">
+  
+  <!-- Enhanced CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
   <link rel="stylesheet" href="assets/css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
 <body>
   <?php include_once __DIR__ . '/inc/header.php'; ?>
 
   <main>
-    <!-- Hero Section -->
-    <section class="about-hero-section">
+    <!-- Enhanced Hero Section -->
+    <section class="about-hero-section position-relative overflow-hidden">
       <div class="hero-background">
         <div class="hero-particles"></div>
         <div class="hero-gradient"></div>
+        <div class="floating-shapes">
+          <div class="shape shape-1"></div>
+          <div class="shape shape-2"></div>
+          <div class="shape shape-3"></div>
+        </div>
       </div>
       <div class="container">
-        <div class="hero-content">
-          <div class="hero-left">
-            <div class="hero-badge">
-              <span class="badge-icon">🏢</span>
-              <span class="badge-text">Established 2010</span>
-            </div>
-            <h1 class="hero-title">
-              About 
-              <span class="gradient-text-rainbow glow-text">Our Company</span>
-            </h1>
-            <p class="hero-description">
-              We are a leading healthcare technology company dedicated to revolutionizing hospital management through innovative software solutions that enhance patient care and operational efficiency.
-            </p>
-            <div class="hero-stats">
-              <div class="stat-item">
-                <div class="stat-number">13+</div>
-                <div class="stat-label">Years</div>
+        <div class="row align-items-center min-vh-100">
+          <div class="col-lg-6" data-aos="fade-right">
+            <div class="hero-content">
+              <div class="hero-badge animate__animated animate__fadeInDown">
+                <span class="badge-icon">🏢</span>
+                <span class="badge-text">Established 2010 • Industry Leader</span>
               </div>
-              <div class="stat-item">
-                <div class="stat-number">500+</div>
-                <div class="stat-label">Facilities</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-number">50+</div>
-                <div class="stat-label">Team Members</div>
+              <h1 class="hero-title display-3 fw-bold">
+                Transforming 
+                <span class="gradient-text-rainbow glow-text">Healthcare</span>
+                Through Innovation
+              </h1>
+              <p class="hero-description lead">
+                We are pioneers in healthcare technology, crafting cutting-edge hospital management solutions that empower medical professionals and enhance patient experiences across the globe.
+              </p>
+              <div class="hero-stats row g-4 mt-4">
+                <div class="col-4">
+                  <div class="stat-item text-center">
+                    <div class="stat-number h2 fw-bold text-primary mb-0" data-counter="13">0</div>
+                    <div class="stat-label text-muted">Years Excellence</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="stat-item text-center">
+                    <div class="stat-number h2 fw-bold text-success mb-0" data-counter="500">0</div>
+                    <div class="stat-label text-muted">Facilities</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="stat-item text-center">
+                    <div class="stat-number h2 fw-bold text-info mb-0" data-counter="50">0</div>
+                    <div class="stat-label text-muted">Team Members</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+          <div class="col-lg-6" data-aos="fade-left">
+            <div class="hero-visual position-relative">
+              <div class="hero-image-container">
+                <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                     alt="Modern Hospital" class="img-fluid rounded-4 shadow-lg">
+                <div class="floating-card position-absolute top-0 start-0">
+                  <div class="card border-0 shadow">
+                    <div class="card-body p-3">
+                      <h6 class="card-title mb-1"><i class="fas fa-heartbeat text-danger"></i> Real-time Monitoring</h6>
+                      <p class="card-text small mb-0">24/7 Patient Care System</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="floating-card position-absolute bottom-0 end-0">
+                  <div class="card border-0 shadow">
+                    <div class="card-body p-3">
+                      <h6 class="card-title mb-1"><i class="fas fa-shield-alt text-success"></i> HIPAA Compliant</h6>
+                      <p class="card-text small mb-0">Secure & Private</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mission & Vision Section -->
+    <section class="py-5 bg-light">
+      <div class="container">
+        <div class="row g-5">
+          <div class="col-lg-6" data-aos="fade-up">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body p-5">
+                <div class="text-center mb-4">
+                  <div class="icon-box bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                    <i class="fas fa-bullseye fa-2x"></i>
+                  </div>
+                </div>
+                <h3 class="text-center mb-4">Our Mission</h3>
+                <p class="text-muted text-center lead">
+                  To revolutionize healthcare delivery by providing innovative, user-friendly technology solutions that enhance patient care, streamline operations, and empower healthcare professionals to focus on what matters most - healing.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body p-5">
+                <div class="text-center mb-4">
+                  <div class="icon-box bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                    <i class="fas fa-eye fa-2x"></i>
+                  </div>
+                </div>
+                <h3 class="text-center mb-4">Our Vision</h3>
+                <p class="text-muted text-center lead">
+                  To be the global leader in healthcare technology, creating a world where every healthcare facility has access to intelligent, efficient, and compassionate technology solutions that improve lives.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
           <div class="hero-right">
             <div class="hero-visual">
               <div class="floating-card main-card">

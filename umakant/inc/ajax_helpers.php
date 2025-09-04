@@ -8,6 +8,149 @@ function json_response($data, $code = 200) {
 }
 
 /**
+ * Comprehensive authentication function for all APIs
+ * Supports multiple authentication methods as described in documentation
+ */
+function authenticateApiUser($pdo) {
+    global $_SESSION;
+    
+    // Include API config
+    require_once __DIR__ . '/api_config.php';
+    global $PATHO_API_SECRET, $PATHO_API_DEFAULT_USER_ID;
+    
+    // Method 1: Check session cookie (PHPSESSID)
+    if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
+        return [
+            'user_id' => $_SESSION['user_id'],
+            'role' => $_SESSION['role'] ?? 'user',
+            'username' => $_SESSION['username'] ?? '',
+            'auth_method' => 'session'
+        ];
+    }
+    
+    // Method 2: Check Authorization header for Bearer token
+    $headers = getallheaders();
+    if (isset($headers['Authorization'])) {
+        $authHeader = $headers['Authorization'];
+        if (strpos($authHeader, 'Bearer ') === 0) {
+            $token = substr($authHeader, 7); // Remove "Bearer " prefix
+            $stmt = $pdo->prepare('SELECT id, username, role FROM users WHERE api_token = ? AND is_active = 1');
+            $stmt->execute([$token]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($user) {
+                return [
+                    'user_id' => $user['id'],
+                    'role' => $user['role'] ?? 'user',
+                    'username' => $user['username'],
+                    'auth_method' => 'bearer_token'
+                ];
+            }
+        }
+    }
+    
+    // Method 3: Check api_key request parameter
+    $apiKey = $_REQUEST['api_key'] ?? null;
+    if ($apiKey) {
+        $stmt = $pdo->prepare('SELECT id, username, role FROM users WHERE api_token = ? AND is_active = 1');
+        $stmt->execute([$apiKey]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($user) {
+            return [
+                'user_id' => $user['id'],
+                'role' => $user['role'] ?? 'user',
+                'username' => $user['username'],
+                'auth_method' => 'api_key_param'
+            ];
+        }
+    }
+    
+    // Method 4: Check username/password in the same request (credential fallback)
+    $username = $_REQUEST['username'] ?? null;
+    $password = $_REQUEST['password'] ?? null;
+    if ($username && $password) {
+        $stmt = $pdo->prepare('SELECT id, username, role, password FROM users WHERE username = ? AND is_active = 1');
+        $stmt->execute([$username]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($user && password_verify($password, $user['password'])) {
+            return [
+                'user_id' => $user['id'],
+                'role' => $user['role'] ?? 'user',
+                'username' => $user['username'],
+                'auth_method' => 'credentials'
+            ];
+        }
+    }
+    
+    // Method 5: Check shared secret via X-Api-Key header (server-to-server)
+    if (isset($headers['X-Api-Key']) && !empty($PATHO_API_SECRET)) {
+        if ($headers['X-Api-Key'] === $PATHO_API_SECRET) {
+            return [
+                'user_id' => $PATHO_API_DEFAULT_USER_ID,
+                'role' => 'master',
+                'username' => 'api_system',
+                'auth_method' => 'shared_secret_header'
+            ];
+        }
+    }
+    
+    // Method 6: Check secret_key parameter (server-to-server)
+    $secretKey = $_REQUEST['secret_key'] ?? null;
+    if ($secretKey && !empty($PATHO_API_SECRET)) {
+        if ($secretKey === $PATHO_API_SECRET) {
+            return [
+                'user_id' => $PATHO_API_DEFAULT_USER_ID,
+                'role' => 'master',
+                'username' => 'api_system',
+                'auth_method' => 'shared_secret_param'
+            ];
+        }
+    }
+    
+    // No authentication found - return fallback for anonymous inserts if configured
+    if (!empty($PATHO_API_DEFAULT_USER_ID)) {
+        return [
+            'user_id' => $PATHO_API_DEFAULT_USER_ID,
+            'role' => 'user',
+            'username' => 'anonymous',
+            'auth_method' => 'fallback'
+        ];
+    }
+    
+    return null;
+}
+
+/**
+ * Check if current user can perform specific action
+ */
+function checkPermission($auth, $action, $resourceOwnerId = null) {
+    if (!$auth) return false;
+    
+    $userId = $auth['user_id'];
+    $role = $auth['role'];
+    
+    switch ($action) {
+        case 'list':
+        case 'get':
+            return true; // Anyone authenticated can view
+            
+        case 'create':
+        case 'save':
+            return true; // Anyone authenticated can create
+            
+        case 'update':
+            // Masters can update anything, others can only update their own records
+            return ($role === 'master' || $role === 'admin') || ($resourceOwnerId && $userId == $resourceOwnerId);
+            
+        case 'delete':
+            // Masters can delete anything, others can only delete their own records
+            return ($role === 'master' || $role === 'admin') || ($resourceOwnerId && $userId == $resourceOwnerId);
+            
+        default:
+            return false;
+    }
+}
+
+/**
  * Find existing row by unique criteria, compare with provided data, and either skip, update or insert.
  *
  * @param PDO $pdo
