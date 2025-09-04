@@ -44,7 +44,7 @@ function loadPatients() {
     const date = $('#dateFilter').val();
 
     // Show loading
-    $('#patientsTableBody').html('<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
+    $('#patientsTableBody').html('<tr><td colspan="8" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
 
     const params = new URLSearchParams({
         page: currentPage,
@@ -73,7 +73,7 @@ function loadPatients() {
         })
         .fail(function() {
             showAlert('Failed to load patients', 'error');
-            $('#patientsTableBody').html('<tr><td colspan="7" class="text-center text-danger">Failed to load data</td></tr>');
+                $('#patientsTableBody').html('<tr><td colspan="8" class="text-center text-danger">Failed to load data</td></tr>');
         });
 }
 

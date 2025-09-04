@@ -14,8 +14,16 @@
     <script src="assets/js/common.js"></script>
     <script src="assets/js/app.js"></script>
     <!-- Page scripts -->
-    <script src="assets/js/plan.js"></script>
-    <script src="assets/js/patient.js"></script>
+    <?php
+    // Cache-bust local scripts using file modification time to ensure clients load latest versions
+    $assetBase = __DIR__ . '/../assets/js/';
+    $scripts = ['plan.js', 'patient.js'];
+    foreach ($scripts as $s) {
+        $path = $assetBase . $s;
+        $ver = file_exists($path) ? filemtime($path) : time();
+        echo "    <script src=\"assets/js/{$s}?v={$ver}\"></script>\n";
+    }
+    ?>
     </div>
     </body>
     </html>
