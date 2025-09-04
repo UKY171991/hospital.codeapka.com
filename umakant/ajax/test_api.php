@@ -70,7 +70,7 @@ try {
                           THEN CONCAT('F: ', t.min_female, '-', t.max_female)
                           ELSE 'N/A' 
                         END
-                      ) as range,
+                      ) as `range`,
                       t.unit, u.username as added_by " . 
                       $baseQuery . $whereClause . $orderBy . $limit;
         
