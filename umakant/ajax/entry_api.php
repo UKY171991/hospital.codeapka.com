@@ -1,10 +1,45 @@
 <?php
 // ajax/entry_api.php - CRUD for entries
-require_once __DIR__ . '/../inc/connection.php';
+try {
+    require_once __DIR__ . '/../inc/connection.php';
+} catch (Exception $e) {
+    // If database connection fails, provide fallback response
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database connection error. Please ensure MySQL is running.',
+        'error' => $e->getMessage()
+    ]);
+    exit;
+}
+
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 session_start();
 
 $action = $_REQUEST['action'] ?? 'list';
+
+if ($action === 'stats') {
+    // Get statistics for dashboard
+    $stats = [];
+    
+    // Total entries
+    $stmt = $pdo->query("SELECT COUNT(*) FROM entries");
+    $stats['total'] = $stmt->fetchColumn();
+    
+    // Pending entries
+    $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE status = 'pending'");
+    $stats['pending'] = $stmt->fetchColumn();
+    
+    // Completed entries
+    $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE status = 'completed'");
+    $stats['completed'] = $stmt->fetchColumn();
+    
+    // Today's entries
+    $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE DATE(created_at) = CURDATE()");
+    $stats['today'] = $stmt->fetchColumn();
+    
+    json_response(['status' => 'success', 'data' => $stats]);
+}
 
 if ($action === 'list') {
     $stmt = $pdo->query("SELECT e.id, p.name AS patient_name, d.name AS doctor_name, t.name AS test_name, e.entry_date, e.result_value, e.unit, e.remarks, e.status FROM entries e LEFT JOIN patients p ON e.patient_id = p.id LEFT JOIN doctors d ON e.doctor_id = d.id LEFT JOIN tests t ON e.test_id = t.id ORDER BY e.id DESC");

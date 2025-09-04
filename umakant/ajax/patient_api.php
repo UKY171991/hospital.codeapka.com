@@ -1,6 +1,18 @@
 <?php
 // ajax/patient_api.php - CRUD for patients
-require_once __DIR__ . '/../inc/connection.php';
+try {
+    require_once __DIR__ . '/../inc/connection.php';
+} catch (Exception $e) {
+    // If database connection fails, provide fallback response
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database connection error. Please ensure MySQL is running.',
+        'error' => $e->getMessage()
+    ]);
+    exit;
+}
+
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 session_start();
 
@@ -67,20 +79,22 @@ try {
         $id = $_POST['id'] ?? '';
         $name = trim($_POST['name'] ?? '');
         $mobile = trim($_POST['mobile'] ?? '');
+        $email = trim($_POST['email'] ?? '');
         $father_husband = trim($_POST['father_husband'] ?? '');
         $address = trim($_POST['address'] ?? '');
-        $sex = $_POST['sex'] ?? '';
+        $sex = $_POST['sex'] ?? $_POST['gender'] ?? '';  // Accept both 'sex' and 'gender'
         $age = $_POST['age'] ?? null;
         $age_unit = $_POST['age_unit'] ?? 'Years';
         $uhid = trim($_POST['uhid'] ?? '');
+        $added_by = $_POST['added_by'] ?? $_SESSION['user_id'] ?? null;
 
         if ($id) {
-            $stmt = $pdo->prepare('UPDATE patients SET name=?, mobile=?, father_husband=?, address=?, sex=?, age=?, age_unit=?, uhid=? WHERE id=?');
-            $stmt->execute([$name, $mobile, $father_husband, $address, $sex, $age, $age_unit, $uhid, $id]);
+            $stmt = $pdo->prepare('UPDATE patients SET name=?, mobile=?, email=?, father_husband=?, address=?, sex=?, age=?, age_unit=?, uhid=?, added_by=? WHERE id=?');
+            $stmt->execute([$name, $mobile, $email, $father_husband, $address, $sex, $age, $age_unit, $uhid, $added_by, $id]);
             json_response(['success' => true, 'message' => 'Patient updated']);
         } else {
-            $stmt = $pdo->prepare('INSERT INTO patients (name, mobile, father_husband, address, sex, age, age_unit, uhid, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())');
-            $stmt->execute([$name, $mobile, $father_husband, $address, $sex, $age, $age_unit, $uhid]);
+            $stmt = $pdo->prepare('INSERT INTO patients (name, mobile, email, father_husband, address, sex, age, age_unit, uhid, added_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())');
+            $stmt->execute([$name, $mobile, $email, $father_husband, $address, $sex, $age, $age_unit, $uhid, $added_by]);
             
             // Get the newly inserted record
             $newId = $pdo->lastInsertId();

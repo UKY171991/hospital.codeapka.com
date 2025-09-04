@@ -1,6 +1,18 @@
 <?php
 // ajax/test_api.php - CRUD for tests
-require_once __DIR__ . '/../inc/connection.php';
+try {
+    require_once __DIR__ . '/../inc/connection.php';
+} catch (Exception $e) {
+    // If database connection fails, provide fallback response
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database connection error. Please ensure MySQL is running.',
+        'error' => $e->getMessage()
+    ]);
+    exit;
+}
+
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 session_start();
 
@@ -56,8 +68,6 @@ try {
                           THEN CONCAT(' | F: ', t.min_female, '-', t.max_female)
                           WHEN t.min_female IS NOT NULL AND t.max_female IS NOT NULL 
                           THEN CONCAT('F: ', t.min_female, '-', t.max_female)
-                          WHEN t.min IS NOT NULL AND t.max IS NOT NULL 
-                          THEN CONCAT(t.min, '-', t.max)
                           ELSE 'N/A' 
                         END
                       ) as range,
@@ -169,6 +179,32 @@ try {
         $stmt = $pdo->prepare('DELETE FROM tests WHERE id = ?');
         $stmt->execute([$_POST['id']]);
         json_response(['success'=>true,'message'=>'Test deleted']);
+    }
+
+    if ($action === 'stats') {
+        // Get test statistics
+        $totalStmt = $pdo->query('SELECT COUNT(*) FROM tests');
+        $total = $totalStmt->fetchColumn();
+        
+        $activeStmt = $pdo->query('SELECT COUNT(*) FROM tests WHERE status = "active" OR status IS NULL');
+        $active = $activeStmt->fetchColumn();
+        
+        $categoriesStmt = $pdo->query('SELECT COUNT(DISTINCT category_id) FROM tests WHERE category_id IS NOT NULL');
+        $categories = $categoriesStmt->fetchColumn();
+        
+        // Test entries count
+        $entriesStmt = $pdo->query('SELECT COUNT(*) FROM entries');
+        $entries = $entriesStmt->fetchColumn();
+        
+        json_response([
+            'success' => true,
+            'data' => [
+                'total' => $total,
+                'active' => $active,
+                'categories' => $categories,
+                'entries' => $entries
+            ]
+        ]);
     }
 
     json_response(['success'=>false,'message'=>'Invalid action'],400);

@@ -29,6 +29,14 @@ function loadPatientStats() {
     });
 }
 
+function loadPatients() {
+    if (patientTableManager) {
+        patientTableManager.loadData();
+    } else {
+        console.error('Patient table manager not initialized');
+    }
+}
+
 function bindPatientEvents() {
     // Individual selection
     $(document).on('change', '.patient-checkbox', function() {
@@ -520,33 +528,42 @@ function downloadCSV(data, filename) {
     a.click();
     window.URL.revokeObjectURL(url);
 }
-        limit: recordsPerPage,
-        ...(searchTerm && { search: searchTerm }),
-        ...(gender && { gender: gender }),
-        ...(ageRange && { age_range: ageRange }),
-        ...(date && { date: date })
+
+function applyFilters() {
+    const searchTerm = $('#patientsSearch').val().trim();
+    const gender = $('#genderFilter').val();
+    const ageRange = $('#ageRangeFilter').val();
+    const date = $('#dateFilter').val();
+    
+    // Build search parameters
+    const params = new URLSearchParams({
+        page: currentPage,
+        limit: recordsPerPage
     });
+    
+    if (searchTerm) params.append('search', searchTerm);
+    if (gender) params.append('gender', gender);
+    if (ageRange) params.append('age_range', ageRange);
+    if (date) params.append('date', date);
 
-    // if frontend knows the user is admin/master, request all records
-    try {
-        if (window.AppUser && (window.AppUser.role === 'master' || window.AppUser.role === 'admin')) {
-            params.append('all', '1');
-        }
-    } catch (e) { /* ignore */ }
-
-    $.get(`patho_api/patient.php?${params}`)
-        .done(function(response) {
-            if (response.status === 'success') {
-                populatePatientsTable(response.data);
-                updatePagination(response.pagination);
-            } else {
-                showAlert('Error loading patients: ' + response.message, 'error');
-            }
-        })
-        .fail(function() {
-            showAlert('Failed to load patients', 'error');
-                $('#patientsTableBody').html('<tr><td colspan="8" class="text-center text-danger">Failed to load data</td></tr>');
-        });
+    // Use the table manager to apply filters if available
+    if (patientTableManager) {
+        patientTableManager.loadData();
+    } else {
+        // Fallback: load data manually
+        $.get(`ajax/patient_api.php?action=list&${params}`)
+            .done(function(response) {
+                if (response.success) {
+                    // Handle response data
+                    console.log('Patients loaded:', response.data);
+                } else {
+                    showError('Error loading patients: ' + response.message);
+                }
+            })
+            .fail(function() {
+                showError('Failed to load patients');
+            });
+    }
 }
 
 function populatePatientsTable(patients) {

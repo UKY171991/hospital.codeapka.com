@@ -515,7 +515,7 @@ function loadDropdownData() {
 }
 
 function loadStats() {
-    $.get('patho_api/entry.php?action=stats')
+    $.get('ajax/entry_api.php?action=stats')
         .done(function(response) {
             if (response.status === 'success') {
                 $('#totalEntries').text(response.data.total || 0);
