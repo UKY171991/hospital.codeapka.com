@@ -86,32 +86,57 @@ try {
 
     if ($action === 'list') {
         $auth = authenticateApiUser($pdo);
-        
+
         if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+            json_response(['success' => false, 'status' => 'error', 'message' => 'Authentication required'], 401);
         }
-        
+
         $userId = $_GET['user_id'] ?? $auth['user_id'];
-        
-        // Check if user wants to see all (master/admin only)
-        if (isset($_GET['all']) && $_GET['all'] == '1' && in_array($auth['role'], ['master', 'admin'])) {
-            $query = "SELECT e.*, u.username AS added_by_username 
-                     FROM {$ENTITY_TABLE} e 
-                     LEFT JOIN users u ON e.added_by = u.id 
-                     ORDER BY e.id DESC";
-            $stmt = $pdo->query($query);
-        } else {
-            $query = "SELECT e.*, u.username AS added_by_username 
-                     FROM {$ENTITY_TABLE} e 
-                     LEFT JOIN users u ON e.added_by = u.id 
-                     WHERE e.added_by = ? 
-                     ORDER BY e.id DESC";
-            $stmt = $pdo->prepare($query);
-            $stmt->execute([$userId]);
+
+        // Pagination params (frontend sends page & limit)
+        $page = max(1, intval($_GET['page'] ?? 1));
+        $limit = max(1, intval($_GET['limit'] ?? 10));
+        $offset = ($page - 1) * $limit;
+
+        // Build base where clause
+        $where = '';
+        $params = [];
+
+        // If not master/admin and not asking for all, restrict by added_by
+        $isAll = (isset($_GET['all']) && $_GET['all'] == '1' && in_array($auth['role'], ['master', 'admin']));
+        if (!$isAll) {
+            $where = 'WHERE e.added_by = ?';
+            $params[] = $userId;
         }
-        
+
+        // Total count for pagination
+        $countQuery = "SELECT COUNT(*) as total FROM {$ENTITY_TABLE} e " . ($where ? $where : '');
+        $countStmt = $pdo->prepare($countQuery);
+        $countStmt->execute($params);
+        $total = (int) ($countStmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0);
+
+        // Fetch paginated rows with join
+        $query = "SELECT e.*, u.username AS added_by_username 
+                  FROM {$ENTITY_TABLE} e 
+                  LEFT JOIN users u ON e.added_by = u.id " . ($where ? $where : '') . " 
+                  ORDER BY e.id DESC 
+                  LIMIT ? OFFSET ?";
+
+        // bind params + limit/offset
+        $stmt = $pdo->prepare($query);
+        $execParams = $params;
+        $execParams[] = $limit;
+        $execParams[] = $offset;
+        $stmt->execute($execParams);
+
         $entities = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        json_response(['success' => true, 'data' => $entities, 'total' => count($entities)]);
+
+        json_response([
+            'success' => true,
+            'status' => 'success',
+            'data' => $entities,
+            'pagination' => ['total' => $total, 'page' => $page, 'limit' => $limit]
+        ]);
     }
 
     if ($action === 'get') {

@@ -57,11 +57,11 @@ function loadPatients() {
 
     $.get(`patho_api/patient.php?${params}`)
         .done(function(response) {
-            if (response.status === 'success') {
+            if (response.success === true) {
                 populatePatientsTable(response.data);
                 updatePagination(response.pagination);
             } else {
-                showAlert('Error loading patients: ' + response.message, 'error');
+                showAlert('Error loading patients: ' + (response.message || response.error || 'Unknown'), 'error');
             }
         })
         .fail(function() {
