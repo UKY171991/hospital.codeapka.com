@@ -16,13 +16,13 @@ try {
         // If master requests all, return everything
         $viewerRole = $_SESSION['role'] ?? 'user';
         if (isset($_GET['all']) && $_GET['all'] == 1 && $viewerRole === 'master') {
-            $stmt = $pdo->query('SELECT d.*, u.username AS added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id ORDER BY d.id DESC');
+            $stmt = $pdo->query('SELECT d.id, d.server_id, d.name, d.qualification, d.specialization, d.hospital, d.contact_no, d.phone, d.email, d.address, d.registration_no, d.percent, d.added_by, d.created_at, d.updated_at, u.username AS added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id ORDER BY d.id DESC');
             $rows = $stmt->fetchAll();
             json_response(['success'=>true,'data'=>$rows]);
         }
 
         if ($userId) {
-            $stmt = $pdo->prepare('SELECT d.*, u.username AS added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id WHERE d.added_by = ? ORDER BY d.id DESC');
+            $stmt = $pdo->prepare('SELECT d.id, d.server_id, d.name, d.qualification, d.specialization, d.hospital, d.contact_no, d.phone, d.email, d.address, d.registration_no, d.percent, d.added_by, d.created_at, d.updated_at, u.username AS added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id WHERE d.added_by = ? ORDER BY d.id DESC');
             $stmt->execute([$userId]);
             $rows = $stmt->fetchAll();
             json_response(['success'=>true,'data'=>$rows]);
@@ -32,7 +32,7 @@ try {
     }
 
     if ($action === 'get' && isset($_GET['id'])) {
-        $stmt = $pdo->prepare('SELECT d.*, u.username AS added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id WHERE d.id = ?');
+        $stmt = $pdo->prepare('SELECT d.id, d.server_id, d.name, d.qualification, d.specialization, d.hospital, d.contact_no, d.phone, d.email, d.address, d.registration_no, d.percent, d.added_by, d.created_at, d.updated_at, u.username AS added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id WHERE d.id = ?');
         $stmt->execute([$_GET['id']]);
         $row = $stmt->fetch();
         if (!$row) json_response(['success'=>false,'message'=>'Doctor not found'],404);
@@ -170,14 +170,17 @@ try {
         // If id provided in input treat as update (id must be integer) — client cannot change added_by
         $updateId = isset($input['id']) && is_numeric($input['id']) ? (int)$input['id'] : null;
         if ($updateId) {
-            // update existing
-            $stmt = $pdo->prepare('UPDATE doctors SET name=?, qualification=?, specialization=?, hospital=?, contact_no=?, phone=?, email=?, address=?, registration_no=?, percent=?, updated_at = NOW() WHERE id = ?');
-            $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $percent, $updateId]);
+            // update existing (preserve added_by)
+            $stmt = $pdo->prepare('UPDATE doctors SET server_id = ?, name=?, qualification=?, specialization=?, hospital=?, contact_no=?, phone=?, email=?, address=?, registration_no=?, percent=?, updated_at = NOW() WHERE id = ?');
+            $stmt->execute([$input['server_id'] ?? null, $name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $percent, $updateId]);
             json_response(['success'=>true,'message'=>'Doctor updated','id'=>$updateId]);
         }
 
         // Prepare data for insert/update
+        // Include server_id if client provides one (useful for sync)
+        $server_id = isset($input['server_id']) ? (is_numeric($input['server_id']) ? (int)$input['server_id'] : null) : null;
         $data = [
+            'server_id' => $server_id,
             'name'=>$name,
             'qualification'=>$qualification,
             'specialization'=>$specialization,
@@ -195,7 +198,9 @@ try {
         if ($registration_no !== '') {
             $unique = ['registration_no'=>$registration_no];
         } else {
-            $unique = ['name'=>$name, 'phone'=>$phone, 'hospital'=>$hospital];
+            // prefer contact_no, fallback to phone
+            $contactKey = $contact_no !== '' ? $contact_no : $phone;
+            $unique = ['name'=>$name, 'contact_no'=>$contactKey, 'hospital'=>$hospital];
         }
 
         $res = upsert_or_skip($pdo, 'doctors', $unique, $data);

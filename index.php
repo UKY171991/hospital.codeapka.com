@@ -71,11 +71,41 @@ $uploadListHtml = fetch_upload_list_html();
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Welcome — Pathology & Hospital Management</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <title>Welcome — Advanced Pathology & Hospital Management System</title>
+  <meta name="description" content="Transform your healthcare operations with our comprehensive hospital management system. Trusted by 500+ facilities worldwide.">
+  <meta name="keywords" content="hospital management, pathology software, healthcare technology, patient records, medical billing">
+  <meta name="author" content="Hospital Management System">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hospital.codeapka.com/">
+  <meta property="og:title" content="Advanced Hospital Management System">
+  <meta property="og:description" content="Transform your healthcare operations with our comprehensive management system">
+  <meta property="og:image" content="https://hospital.codeapka.com/assets/images/og-image.jpg">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://hospital.codeapka.com/">
+  <meta property="twitter:title" content="Advanced Hospital Management System">
+  <meta property="twitter:description" content="Transform your healthcare operations with our comprehensive management system">
+  <meta property="twitter:image" content="https://hospital.codeapka.com/assets/images/og-image.jpg">
+
+  <!-- Preload critical resources -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" as="style">
+  <link rel="preload" href="assets/css/style.css" as="style">
+  
+  <!-- CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="stylesheet" href="assets/css/style.css?v=2.1">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  
+  <!-- Performance optimizations -->
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="//fonts.googleapis.com">
 </head>
 <body>
   <?php include_once __DIR__ . '/inc/header.php'; ?>
@@ -621,10 +651,78 @@ $uploadListHtml = fetch_upload_list_html();
       // autoScroll();
     }
 
+    // Performance: Lazy load images
+    if ('IntersectionObserver' in window) {
+      const imageObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            if (img.dataset.src) {
+              img.src = img.dataset.src;
+              img.removeAttribute('data-src');
+              imageObserver.unobserve(img);
+            }
+          }
+        });
+      });
+
+      document.querySelectorAll('img[data-src]').forEach(img => {
+        imageObserver.observe(img);
+      });
+    }
+
+    // Progressive enhancement for form validation
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+      form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+          if (!field.value.trim()) {
+            isValid = false;
+            field.classList.add('is-invalid');
+          } else {
+            field.classList.remove('is-invalid');
+          }
+        });
+        
+        if (!isValid) {
+          e.preventDefault();
+          const firstInvalid = form.querySelector('.is-invalid');
+          if (firstInvalid) {
+            firstInvalid.focus();
+            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      });
+    });
+
     // Add loading states for better UX
     window.addEventListener('load', function() {
       document.body.classList.add('loaded');
     });
+  </script>
+
+  <!-- Service Worker for PWA capabilities -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+          .then(function(registration) {
+            console.log('SW registered: ', registration);
+          })
+          .catch(function(registrationError) {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+  </script>
+
+  <!-- Analytics placeholder (replace with your analytics code) -->
+  <script>
+    // Google Analytics or other analytics code would go here
+    // gtag('config', 'GA_TRACKING_ID');
   </script>
 </body>
 </html>

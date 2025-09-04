@@ -8,13 +8,13 @@ try {
     $action = $_REQUEST['action'] ?? ($_SERVER['REQUEST_METHOD'] === 'POST' ? 'save' : 'list');
 
     if ($action === 'list') {
-        $stmt = $pdo->query('SELECT d.id,d.name,d.qualification,d.specialization,d.hospital,d.contact_no,d.phone,d.percent,d.email,d.registration_no,d.added_by,d.created_at,u.username AS added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id ORDER BY d.id DESC');
+        $stmt = $pdo->query('SELECT d.id,d.server_id,d.name,d.qualification,d.specialization,d.hospital,d.contact_no,d.phone,d.percent,d.email,d.address,d.registration_no,d.added_by,d.created_at,d.updated_at,u.username AS added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id ORDER BY d.id DESC');
         $rows = $stmt->fetchAll();
         json_response(['success' => true, 'data' => $rows]);
     }
 
     if ($action === 'get' && isset($_GET['id'])) {
-        $stmt = $pdo->prepare('SELECT d.id,d.name,d.qualification,d.specialization,d.hospital,d.contact_no,d.phone,d.percent,d.email,d.address,d.registration_no,d.added_by,d.created_at,u.username as added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id WHERE d.id = ?');
+        $stmt = $pdo->prepare('SELECT d.id,d.server_id,d.name,d.qualification,d.specialization,d.hospital,d.contact_no,d.phone,d.percent,d.email,d.address,d.registration_no,d.added_by,d.created_at,d.updated_at,u.username as added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id WHERE d.id = ?');
         $stmt->execute([$_GET['id']]);
         $row = $stmt->fetch();
         json_response(['success' => true, 'data' => $row]);
@@ -27,6 +27,7 @@ try {
         }
 
         $id = $_POST['id'] ?? '';
+        $server_id = isset($_POST['server_id']) && is_numeric($_POST['server_id']) ? (int)$_POST['server_id'] : null;
         $name = trim($_POST['name'] ?? '');
         $qualification = trim($_POST['qualification'] ?? '');
         $specialization = trim($_POST['specialization'] ?? '');
@@ -41,16 +42,16 @@ try {
 
         if ($id) {
             try {
-                $stmt = $pdo->prepare('UPDATE doctors SET name=?, qualification=?, specialization=?, hospital=?, contact_no=?, phone=?, percent=?, email=?, address=?, registration_no=?, updated_at=NOW() WHERE id=?');
-                $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $percent, $email, $address, $registration_no, $id]);
+                $stmt = $pdo->prepare('UPDATE doctors SET server_id=?, name=?, qualification=?, specialization=?, hospital=?, contact_no=?, phone=?, percent=?, email=?, address=?, registration_no=?, updated_at=NOW() WHERE id=?');
+                $stmt->execute([$server_id, $name, $qualification, $specialization, $hospital, $contact_no, $phone, $percent, $email, $address, $registration_no, $id]);
                 json_response(['success' => true, 'message' => 'Doctor updated']);
             } catch (PDOException $e) {
                 json_response(['success' => false, 'message' => 'Server error: ' . $e->getMessage()], 500);
             }
         } else {
             try {
-                $stmt = $pdo->prepare('INSERT INTO doctors (name, qualification, specialization, hospital, contact_no, phone, percent, email, address, registration_no, added_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())');
-                $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $percent, $email, $address, $registration_no, $added_by]);
+                $stmt = $pdo->prepare('INSERT INTO doctors (server_id, name, qualification, specialization, hospital, contact_no, phone, percent, email, address, registration_no, added_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
+                $stmt->execute([$server_id, $name, $qualification, $specialization, $hospital, $contact_no, $phone, $percent, $email, $address, $registration_no, $added_by]);
                 json_response(['success' => true, 'message' => 'Doctor added']);
             } catch (PDOException $e) {
                 json_response(['success' => false, 'message' => 'Server error: ' . $e->getMessage()], 500);
