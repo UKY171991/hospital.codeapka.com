@@ -82,6 +82,23 @@ require_once 'inc/sidebar.php';
                                 Laboratory Tests
                             </h3>
                             <div class="card-tools">
+                                <!-- Group Action Buttons -->
+                                <div class="btn-group mr-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAllTests()">
+                                        <i class="fas fa-check-square"></i> Select All
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="deselectAllTests()">
+                                        <i class="fas fa-square"></i> Deselect All
+                                    </button>
+                                </div>
+                                <div class="btn-group mr-2">
+                                    <button type="button" class="btn btn-success btn-sm" onclick="exportTests()">
+                                        <i class="fas fa-download"></i> Export
+                                    </button>
+                                    <button type="button" class="btn btn-info btn-sm" onclick="refreshTests()">
+                                        <i class="fas fa-sync-alt"></i> Refresh
+                                    </button>
+                                </div>
                                 <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#testModal" onclick="openAddTestModal()">
                                     <i class="fas fa-plus"></i> Add New Test
                                 </button>
@@ -98,6 +115,24 @@ require_once 'inc/sidebar.php';
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
+                            <!-- Bulk Actions Alert -->
+                            <div class="alert alert-info bulk-actions" style="display: none;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <i class="fas fa-info-circle mr-2"></i>
+                                        <span class="selected-count">0</span> tests selected
+                                    </span>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkExportTests()">
+                                            <i class="fas fa-download"></i> Export Selected
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="bulkDeleteTests()">
+                                            <i class="fas fa-trash"></i> Delete Selected
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <!-- Advanced Filters -->
                             <div class="row mb-3">
                                 <div class="col-md-3">
@@ -125,9 +160,10 @@ require_once 'inc/sidebar.php';
 
                             <!-- Tests DataTable -->
                             <div class="table-responsive">
-                                <table id="testsTable" class="table table-bordered table-striped table-hover">
+                                <table id="testsTable" class="table table-bordered table-striped table-hover table-enhanced">
                                     <thead class="thead-dark">
                                         <tr>
+                                            <th width="40"><input type="checkbox" id="selectAllTests"></th>
                                             <th>ID</th>
                                             <th>Test Name</th>
                                             <th>Category</th>
@@ -854,20 +890,39 @@ function showAlert(message, type) {
 
 <!-- View Test Modal -->
 <div class="modal fade" id="viewTestModal" tabindex="-1" role="dialog" aria-labelledby="viewTestModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl modal-enhanced" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="viewTestModalLabel">Test Details</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="viewTestModalLabel">
+                    <i class="fas fa-vial mr-2"></i>Test Details
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body" id="viewTestBody">
-                <!-- details injected by JS -->
-                <div class="text-center text-muted py-4">Loading...</div>
+                <div class="row">
+                    <div class="col-12">
+                        <div id="testViewDetails" class="details-container">
+                            <!-- Details will be populated by JavaScript -->
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                                <p>Loading test details...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-info" onclick="editTestFromView()">
+                    <i class="fas fa-edit"></i> Edit Test
+                </button>
+                <button type="button" class="btn btn-success" onclick="printTestDetails()">
+                    <i class="fas fa-print"></i> Print
+                </button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Close
+                </button>
             </div>
         </div>
     </div>

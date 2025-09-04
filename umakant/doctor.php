@@ -85,6 +85,9 @@ require_once 'inc/sidebar.php';
                                 <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#doctorModal" onclick="openAddDoctorModal()">
                                     <i class="fas fa-plus"></i> Add New Doctor
                                 </button>
+                                <button type="button" class="btn btn-success btn-sm" onclick="exportDoctors()">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
                                 <button type="button" class="btn btn-tool" data-card-widget="collapse">
                                     <i class="fas fa-minus"></i>
                                 </button>
@@ -95,6 +98,52 @@ require_once 'inc/sidebar.php';
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
+                            
+                            <!-- Group Actions -->
+                            <div class="group-actions">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-outline-primary" onclick="selectAllDoctors()">
+                                                <i class="fas fa-check-square"></i> Select All
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" onclick="deselectAllDoctors()">
+                                                <i class="fas fa-square"></i> Deselect All
+                                            </button>
+                                        </div>
+                                        <div class="btn-group ml-2" role="group">
+                                            <button type="button" class="btn btn-outline-info" onclick="bulkExportDoctors()">
+                                                <i class="fas fa-download"></i> Export Selected
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" onclick="bulkDeleteDoctors()">
+                                                <i class="fas fa-trash"></i> Delete Selected
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-right">
+                                        <small class="text-muted">Select doctors to perform bulk actions</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bulk Actions Alert -->
+                            <div class="bulk-actions">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <i class="fas fa-info-circle"></i>
+                                        <span class="selected-count">0</span> doctors selected
+                                    </span>
+                                    <div>
+                                        <button class="btn btn-sm btn-info bulk-export">
+                                            <i class="fas fa-download"></i> Export
+                                        </button>
+                                        <button class="btn btn-sm btn-danger bulk-delete">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Search and Filter Section -->
                             <div class="row mb-3">
                                 <div class="col-md-4">
@@ -124,9 +173,12 @@ require_once 'inc/sidebar.php';
 
                             <!-- Doctors Table -->
                             <div class="table-responsive">
-                                <table id="doctorsTable" class="table table-bordered table-striped table-hover">
-                                    <thead class="thead-dark">
+                                <table id="doctorsTable" class="table table-enhanced">
+                                    <thead>
                                         <tr>
+                                            <th width="40">
+                                                <input type="checkbox" id="selectAll" class="selection-checkbox">
+                                            </th>
                                             <th>ID</th>
                                             <th>Name</th>
                                             <th>Qualification</th>
@@ -134,7 +186,7 @@ require_once 'inc/sidebar.php';
                                             <th>Hospital</th>
                                             <th>Contact</th>
                                             <th>Percentage</th>
-                                            <th>Actions</th>
+                                            <th width="120">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="doctorsTableBody">
@@ -304,10 +356,10 @@ require_once 'inc/sidebar.php';
 </div>
 
 <!-- View Doctor Modal -->
-<div class="modal fade" id="viewDoctorModal" tabindex="-1" role="dialog" aria-labelledby="viewDoctorModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+<div class="modal fade view-modal modal-enhanced" id="viewDoctorModal" tabindex="-1" role="dialog" aria-labelledby="viewDoctorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-info text-white">
+            <div class="modal-header">
                 <h5 class="modal-title" id="viewDoctorModalLabel">
                     <i class="fas fa-eye mr-2"></i>
                     Doctor Details
@@ -316,6 +368,25 @@ require_once 'inc/sidebar.php';
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
+            <div class="modal-body" id="viewDoctorContent">
+                <div class="view-details" id="doctorViewDetails">
+                    <!-- Doctor details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button type="button" class="btn btn-warning" onclick="editDoctorFromView()">
+                    <i class="fas fa-edit"></i> Edit Doctor
+                </button>
+                <button type="button" class="btn btn-info" onclick="printDoctorDetails()">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
             <div class="modal-body" id="viewDoctorContent">
                 <!-- Doctor details will be loaded here -->
             </div>

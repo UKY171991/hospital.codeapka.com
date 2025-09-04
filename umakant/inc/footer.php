@@ -10,6 +10,8 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <!-- Global utilities -->
     <script src="assets/js/global-utils.js"></script>
+    <!-- Enhanced Table Manager -->
+    <script src="assets/js/enhanced-table.js"></script>
     <!-- Local scripts -->
     <script src="assets/js/common.js"></script>
     <script src="assets/js/app.js"></script>
@@ -17,7 +19,7 @@
     <?php
     // Cache-bust local scripts using file modification time to ensure clients load latest versions
     $assetBase = __DIR__ . '/../assets/js/';
-    $scripts = ['plan.js', 'patient.js'];
+    $scripts = ['plan.js', 'patient-enhanced.js', 'doctor-enhanced.js', 'user-enhanced.js', 'test-enhanced.js'];
     foreach ($scripts as $s) {
         $path = $assetBase . $s;
         $ver = file_exists($path) ? filemtime($path) : time();

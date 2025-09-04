@@ -19,6 +19,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
   <!-- Global Improvements CSS -->
   <link rel="stylesheet" href="assets/css/global-improvements.css">
+  <!-- Enhanced Tables CSS -->
+  <link rel="stylesheet" href="assets/css/enhanced-tables.css">
   <style>body{background:#f4f6f9}</style>
 </head>
 <?php if(session_status() === PHP_SESSION_NONE) session_start(); ?>

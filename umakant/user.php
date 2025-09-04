@@ -34,6 +34,9 @@ require_once 'inc/sidebar.php';
                                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#userModal" onclick="openAddUserModal()">
                                     <i class="fas fa-plus"></i> Add User
                                 </button>
+                                <button type="button" class="btn btn-success btn-sm" onclick="exportUsers()">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
                                 <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
                                     <i class="fas fa-minus"></i>
                                 </button>
@@ -44,6 +47,52 @@ require_once 'inc/sidebar.php';
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
+                            
+                            <!-- Group Actions -->
+                            <div class="group-actions">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-outline-primary" onclick="selectAllUsers()">
+                                                <i class="fas fa-check-square"></i> Select All
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" onclick="deselectAllUsers()">
+                                                <i class="fas fa-square"></i> Deselect All
+                                            </button>
+                                        </div>
+                                        <div class="btn-group ml-2" role="group">
+                                            <button type="button" class="btn btn-outline-info" onclick="bulkExportUsers()">
+                                                <i class="fas fa-download"></i> Export Selected
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" onclick="bulkDeleteUsers()">
+                                                <i class="fas fa-trash"></i> Delete Selected
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-right">
+                                        <small class="text-muted">Select users to perform bulk actions</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bulk Actions Alert -->
+                            <div class="bulk-actions">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <i class="fas fa-info-circle"></i>
+                                        <span class="selected-count">0</span> users selected
+                                    </span>
+                                    <div>
+                                        <button class="btn btn-sm btn-info bulk-export">
+                                            <i class="fas fa-download"></i> Export
+                                        </button>
+                                        <button class="btn btn-sm btn-danger bulk-delete">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row mb-3 align-items-center">
                                 <div class="col-md-6">
                                     <div class="input-group">
@@ -64,9 +113,12 @@ require_once 'inc/sidebar.php';
                                     </div>
                                 </div>
                             </div>
-                            <table id="usersTable" class="table table-bordered table-striped">
+                            <table id="usersTable" class="table table-enhanced">
                                 <thead>
                                     <tr>
+                                        <th width="40">
+                                            <input type="checkbox" id="selectAll" class="selection-checkbox">
+                                        </th>
                                         <th>ID</th>
                                         <th>Username</th>
                                         <th>Email</th>
@@ -74,7 +126,7 @@ require_once 'inc/sidebar.php';
                                         <th>Role</th>
                                         <th>Status</th>
                                         <th>Expire Date</th>
-                                        <th>Actions</th>
+                                        <th width="120">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -169,6 +221,39 @@ require_once 'inc/sidebar.php';
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="saveUserBtn">Save User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View User Modal -->
+<div class="modal fade view-modal modal-enhanced" id="viewUserModal" tabindex="-1" role="dialog" aria-labelledby="viewUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewUserModalLabel">
+                    <i class="fas fa-eye mr-2"></i>
+                    User Details
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="viewUserContent">
+                <div class="view-details" id="userViewDetails">
+                    <!-- User details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button type="button" class="btn btn-warning" onclick="editUserFromView()">
+                    <i class="fas fa-edit"></i> Edit User
+                </button>
+                <button type="button" class="btn btn-info" onclick="printUserDetails()">
+                    <i class="fas fa-print"></i> Print
+                </button>
             </div>
         </div>
     </div>
