@@ -304,10 +304,10 @@ require_once 'inc/sidebar.php';
                                     <label class="font-weight-bold text-primary">Male Range:</label>
                                 </div>
                                 <div class="col-md-3">
-                                    <input type="number" class="form-control" id="maleMin" name="male_min" placeholder="Min" step="0.01">
+                                    <input type="number" class="form-control" id="maleMin" name="min_male" placeholder="Min" step="0.01">
                                 </div>
                                 <div class="col-md-3">
-                                    <input type="number" class="form-control" id="maleMax" name="male_max" placeholder="Max" step="0.01">
+                                    <input type="number" class="form-control" id="maleMax" name="max_male" placeholder="Max" step="0.01">
                                 </div>
                                 <div class="col-md-4">
                                     <input type="text" class="form-control" id="maleUnit" name="male_unit" placeholder="Unit">
@@ -320,29 +320,13 @@ require_once 'inc/sidebar.php';
                                     <label class="font-weight-bold text-danger">Female Range:</label>
                                 </div>
                                 <div class="col-md-3">
-                                    <input type="number" class="form-control" id="femaleMin" name="female_min" placeholder="Min" step="0.01">
+                                    <input type="number" class="form-control" id="femaleMin" name="min_female" placeholder="Min" step="0.01">
                                 </div>
                                 <div class="col-md-3">
-                                    <input type="number" class="form-control" id="femaleMax" name="female_max" placeholder="Max" step="0.01">
+                                    <input type="number" class="form-control" id="femaleMax" name="max_female" placeholder="Max" step="0.01">
                                 </div>
                                 <div class="col-md-4">
                                     <input type="text" class="form-control" id="femaleUnit" name="female_unit" placeholder="Unit">
-                                </div>
-                            </div>
-
-                            <!-- Child Range -->
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <label class="font-weight-bold text-success">Child Range:</label>
-                                </div>
-                                <div class="col-md-3">
-                                    <input type="number" class="form-control" id="childMin" name="child_min" placeholder="Min" step="0.01">
-                                </div>
-                                <div class="col-md-3">
-                                    <input type="number" class="form-control" id="childMax" name="child_max" placeholder="Max" step="0.01">
-                                </div>
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" id="childUnit" name="child_unit" placeholder="Unit">
                                 </div>
                             </div>
                         </div>
@@ -1413,3 +1397,7 @@ $(function(){
     });
 });
 </script>
+
+<!-- Include enhanced table manager and test-enhanced.js for better modal handling -->
+<script src="assets/js/enhanced-table.js?v=<?php echo time(); ?>"></script>
+<script src="assets/js/test-enhanced.js?v=<?php echo time(); ?>"></script>

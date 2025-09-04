@@ -9,7 +9,7 @@ $(document).ready(function() {
         apiEndpoint: 'ajax/test_api.php',
         entityName: 'test',
         entityNamePlural: 'tests',
-        viewFields: ['id', 'name', 'category_name', 'price', 'unit', 'method', 'male_min', 'male_max', 'female_min', 'female_max', 'child_min', 'child_max', 'male_unit', 'female_unit', 'child_unit', 'added_by_username', 'created_at']
+        viewFields: ['id', 'name', 'category_name', 'price', 'unit', 'method', 'min_male', 'max_male', 'min_female', 'max_female', 'added_by_username', 'created_at']
     });
     
     bindTestEvents();
@@ -43,7 +43,7 @@ function bindTestEvents() {
     });
     
     // Form submission
-    $('#saveTestBtn').on('click', function(e) {
+    $('#testForm').on('submit', function(e) {
         e.preventDefault();
         saveTest();
     });
@@ -100,7 +100,7 @@ function updateBulkActions() {
 function openAddTestModal() {
     $('#testForm')[0].reset();
     $('#testId').val('');
-    $('#testModalLabel').text('Add New Test');
+    $('#modalTitle').text('Add New Test');
     $('#testModal').modal('show');
 }
 
@@ -205,21 +205,6 @@ function displayTestDetails(test) {
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card border-success">
-                        <div class="card-header bg-success text-white py-2">
-                            <small><i class="fas fa-child mr-1"></i>Child Range</small>
-                        </div>
-                        <div class="card-body py-2">
-                            <div class="text-center">
-                                ${test.child_min && test.child_max ? 
-                                    `<strong>${test.child_min} - ${test.child_max}</strong><br>
-                                     <small class="text-muted">${test.child_unit || test.unit || ''}</small>` 
-                                    : '<span class="text-muted">Not specified</span>'}
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     `;
@@ -271,9 +256,6 @@ function populateTestForm(test) {
     $('#femaleMin').val(test.female_min);
     $('#femaleMax').val(test.female_max);
     $('#femaleUnit').val(test.female_unit);
-    $('#childMin').val(test.child_min);
-    $('#childMax').val(test.child_max);
-    $('#childUnit').val(test.child_unit);
 }
 
 function saveTest() {

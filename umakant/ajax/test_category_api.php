@@ -1,6 +1,18 @@
 <?php
 // ajax/test_category_api.php
-require_once __DIR__ . '/../inc/connection.php';
+try {
+    require_once __DIR__ . '/../inc/connection.php';
+} catch (Exception $e) {
+    // If database connection fails, provide fallback response
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database connection error. Please ensure MySQL is running.',
+        'error' => $e->getMessage()
+    ]);
+    exit;
+}
+
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 session_start();
 
