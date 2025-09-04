@@ -13,7 +13,11 @@ $(document).ready(function() {
     });
     
     bindTestEvents();
-    loadCategories();
+    
+    // Load categories after a short delay to ensure DOM is ready
+    setTimeout(function() {
+        loadCategories();
+    }, 500);
 });
 
 function bindTestEvents() {
@@ -101,6 +105,10 @@ function openAddTestModal() {
     $('#testForm')[0].reset();
     $('#testId').val('');
     $('#modalTitle').text('Add New Test');
+    
+    // Ensure categories are loaded
+    loadCategories();
+    
     $('#testModal').modal('show');
 }
 
@@ -415,25 +423,61 @@ function refreshTests() {
 }
 
 function loadCategories() {
+    console.log('Loading categories...');
+    
+    // Check if required elements exist
+    if ($('#testCategory').length === 0) {
+        console.error('testCategory element not found');
+        return;
+    }
+    
     $.get('ajax/test_category_api.php', {action: 'list'})
         .done(function(response) {
-            if (response.success) {
-                let options = '<option value="">All Categories</option>';
-                response.data.forEach(function(category) {
-                    options += `<option value="${category.id}">${category.name}</option>`;
-                });
-                $('#categoryFilter').html(options);
-                
-                // Also populate test form category dropdown
-                let formOptions = '<option value="">Select Category</option>';
-                response.data.forEach(function(category) {
-                    formOptions += `<option value="${category.id}">${category.name}</option>`;
-                });
-                $('#testCategory').html(formOptions);
+            console.log('Categories response:', response);
+            if (response.success && response.data) {
+                if (response.data.length === 0) {
+                    console.log('No categories found');
+                    // Show message that no categories exist
+                    $('#testCategory').html('<option value="">No categories available</option>');
+                    if ($('#categoryFilter').length > 0) {
+                        $('#categoryFilter').html('<option value="">No categories available</option>');
+                    }
+                } else {
+                    // Populate filter dropdown if it exists
+                    if ($('#categoryFilter').length > 0) {
+                        let options = '<option value="">All Categories</option>';
+                        response.data.forEach(function(category) {
+                            options += `<option value="${category.id}">${category.name}</option>`;
+                        });
+                        $('#categoryFilter').html(options);
+                    }
+                    
+                    // Populate test form category dropdown
+                    let formOptions = '<option value="">Select Category</option>';
+                    response.data.forEach(function(category) {
+                        formOptions += `<option value="${category.id}">${category.name}</option>`;
+                    });
+                    $('#testCategory').html(formOptions);
+                    console.log('Categories loaded successfully:', response.data.length, 'categories');
+                }
+            } else {
+                console.error('Categories response invalid:', response);
+                showError('Invalid response format from categories API');
+                // Fallback options
+                $('#testCategory').html('<option value="">Error loading categories</option>');
+                if ($('#categoryFilter').length > 0) {
+                    $('#categoryFilter').html('<option value="">Error loading categories</option>');
+                }
             }
         })
-        .fail(function() {
-            showError('Error loading categories');
+        .fail(function(xhr, status, error) {
+            console.error('Error loading categories:', xhr.responseText);
+            showError('Error loading categories: ' + error);
+            // Fallback options
+            $('#testCategory').html('<option value="">Error loading categories</option>');
+            if ($('#categoryFilter').length > 0) {
+                $('#categoryFilter').html('<option value="">Error loading categories</option>');
+            }
         });
 }
 

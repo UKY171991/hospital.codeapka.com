@@ -221,8 +221,8 @@ require_once 'inc/sidebar.php';
 
 <!-- Test Modal -->
 <div class="modal fade" id="testModal" tabindex="-1" role="dialog" aria-labelledby="testModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
-        <div class="modal-content">
+    <div class="modal-dialog modal-xl" role="document" style="max-width: 90%; margin: 20px auto;">
+        <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="testModalLabel">
                     <i class="fas fa-vial mr-2"></i>

@@ -20,7 +20,7 @@ $action = $_REQUEST['action'] ?? 'list';
 
 if ($action === 'list') {
     // Support DataTables format with sequential numbering
-    $stmt = $pdo->query('SELECT c.id, c.name, c.description, c.added_by, u.username as added_by, 
+    $stmt = $pdo->query('SELECT c.id, c.name, c.description, c.added_by, u.username as added_by_username, 
         (SELECT COUNT(*) FROM tests t WHERE t.category_id = c.id) as test_count
         FROM categories c 
         LEFT JOIN users u ON c.added_by = u.id 
