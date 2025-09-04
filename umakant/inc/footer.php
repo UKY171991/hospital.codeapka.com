@@ -13,6 +13,7 @@
     <script src="assets/js/app.js"></script>
     <!-- Page scripts -->
     <script src="assets/js/plan.js"></script>
+    <script src="assets/js/patient.js"></script>
     </div>
     </body>
     </html>

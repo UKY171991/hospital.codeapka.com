@@ -1,0 +1,131 @@
+/* Upload File Styles */
+
+/* Progress bar container */
+#uploadProgressWrap {
+    margin: 15px 0;
+}
+
+/* Progress text styling */
+#uploadProgressText {
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* Upload container styling */
+.upload-container {
+    background: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+/* File input styling */
+.file-input-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    width: 100%;
+}
+
+.file-input-wrapper input[type=file] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+
+/* Upload button styling */
+.upload-btn {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.upload-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+}
+
+.upload-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Progress bar enhancements */
+.progress {
+    height: 1.5rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+}
+
+/* Upload area styling */
+.upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.upload-area:hover {
+    border-color: #007bff;
+    background: #e3f2fd;
+}
+
+.upload-area.dragover {
+    border-color: #007bff;
+    background: #e3f2fd;
+}
+
+/* File type indicator */
+.file-type-icon {
+    font-size: 3rem;
+    color: #007bff;
+    margin-bottom: 1rem;
+}
+
+/* Upload instructions */
+.upload-instructions {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+/* Status messages */
+.upload-status {
+    margin-top: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .upload-area {
+        padding: 1.5rem;
+    }
+    
+    .upload-btn {
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .file-type-icon {
+        font-size: 2rem;
+    }
+}
