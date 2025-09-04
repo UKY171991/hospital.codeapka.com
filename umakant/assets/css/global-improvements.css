@@ -298,6 +298,54 @@ h1, h2, h3, h4, h5, h6 {
     padding: 1.5rem 0;
 }
 
+/* Layout fixes: ensure main content doesn't overlap with fixed sidebar and tables remain usable on small screens */
+.content-wrapper, .content {
+    /* give breathing room when sidebar is fixed */
+    padding-right: 20px;
+}
+
+.main-sidebar {
+    z-index: 1100; /* keep sidebar above other elements */
+}
+
+/* Make large tables horizontally scrollable inside their container */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent table header pinning causing content overlap */
+.table thead th {
+    position: relative;
+    z-index: 1;
+}
+
+/* Adjust container spacing for large screens to avoid overlap with the right scrollbar */
+@media (min-width: 992px) {
+    .content {
+        padding-right: 30px;
+    }
+}
+
+/* Mobile/tablet: ensure controls stack and table fits */
+@media (max-width: 991px) {
+    .card .card-tools {
+        margin-top: 10px;
+    }
+    .table thead th, .table td {
+        padding: 0.5rem;
+    }
+    .small-box .icon {
+        font-size: 3.5rem;
+        top: -5px;
+    }
+}
+
+/* Minor visual tweak: ensure action buttons don't overflow table cell */
+.table td .btn {
+    white-space: nowrap;
+}
+
 .content-header h1 {
     color: var(--white);
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);

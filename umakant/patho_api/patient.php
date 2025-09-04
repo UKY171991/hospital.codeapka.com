@@ -22,13 +22,18 @@ require_once __DIR__ . '/../inc/api_config.php';
 $ENTITY_TABLE = 'patients'; // Change this for each API
 $ENTITY_NAME = 'Patient'; // Change this for each API
 $REQUIRED_FIELDS = ['name', 'mobile']; // Change this for each API
-$ALLOWED_FIELDS = ['name', 'mobile', 'age', 'age_unit', 'sex', 'uhid', 'address', 'father_husband']; // Change this for each API
+// include 'added_by' so admin can provide it and it's recognized consistently
+$ALLOWED_FIELDS = ['name', 'mobile', 'age', 'age_unit', 'sex', 'uhid', 'address', 'father_husband', 'added_by']; // Change this for each API
 
 // Field mapping for form to database
 function mapFormToDb($data) {
     if (isset($data['gender'])) {
         $data['sex'] = $data['gender'];
         unset($data['gender']);
+    }
+    // Normalize added_by if provided from frontend (admin override)
+    if (isset($data['added_by'])) {
+        $data['added_by'] = intval($data['added_by']);
     }
     return $data;
 }
@@ -46,6 +51,10 @@ function mapDbToResponse($data) {
     }
     if (!isset($data['added_by_username'])) {
         $data['added_by_username'] = null;
+    }
+    // Ensure updated_at exists in response to avoid frontend undefined access
+    if (!isset($data['updated_at'])) {
+        $data['updated_at'] = null;
     }
     return $data;
 }
