@@ -334,7 +334,4 @@ require_once 'inc/sidebar.php';
 <!-- Page specific CSS -->
 <link rel="stylesheet" href="assets/css/patient.css">
 
-<!-- Page specific JavaScript -->
-<script src="assets/js/patient.js"></script>
-
 <?php require_once 'inc/footer.php'; ?>

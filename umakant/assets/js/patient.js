@@ -57,11 +57,11 @@ function loadPatients() {
 
     $.get(`patho_api/patient.php?${params}`)
         .done(function(response) {
-            if (response.success === true) {
+            if (response.status === 'success') {
                 populatePatientsTable(response.data);
                 updatePagination(response.pagination);
             } else {
-                showAlert('Error loading patients: ' + (response.message || response.error || 'Unknown'), 'error');
+                showAlert('Error loading patients: ' + response.message, 'error');
             }
         })
         .fail(function() {
@@ -78,8 +78,9 @@ function populatePatientsTable(patients) {
     } else {
         patients.forEach(patient => {
             const ageDisplay = patient.age ? `${patient.age} ${patient.age_unit || 'Years'}` : '-';
-            const genderBadge = patient.gender ? 
-                `<span class="badge badge-${patient.gender === 'Male' ? 'primary' : patient.gender === 'Female' ? 'danger' : 'secondary'}">${patient.gender}</span>` : '-';
+            const gender = patient.gender || patient.sex; // Use gender if available, fallback to sex
+            const genderBadge = gender ? 
+                `<span class="badge badge-${gender === 'Male' ? 'primary' : gender === 'Female' ? 'danger' : 'secondary'}">${gender}</span>` : '-';
             
             html += `
                 <tr>
@@ -231,7 +232,7 @@ function editPatient(id) {
                 $('#patientEmail').val(patient.email);
                 $('#patientAge').val(patient.age);
                 $('#patientAgeUnit').val(patient.age_unit);
-                $('#patientGender').val(patient.gender);
+                $('#patientGender').val(patient.gender || patient.sex); // Use gender if available, fallback to sex
                 $('#patientFatherHusband').val(patient.father_husband);
                 $('#patientAddress').val(patient.address);
                 

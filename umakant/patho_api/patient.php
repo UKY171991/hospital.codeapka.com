@@ -22,7 +22,33 @@ require_once __DIR__ . '/../inc/api_config.php';
 $ENTITY_TABLE = 'patients'; // Change this for each API
 $ENTITY_NAME = 'Patient'; // Change this for each API
 $REQUIRED_FIELDS = ['name', 'mobile']; // Change this for each API
-$ALLOWED_FIELDS = ['name', 'mobile', 'age', 'age_unit', 'sex', 'uhid', 'address', 'server_id']; // Change this for each API
+$ALLOWED_FIELDS = ['name', 'mobile', 'age', 'age_unit', 'sex', 'uhid', 'address', 'father_husband']; // Change this for each API
+
+// Field mapping for form to database
+function mapFormToDb($data) {
+    if (isset($data['gender'])) {
+        $data['sex'] = $data['gender'];
+        unset($data['gender']);
+    }
+    return $data;
+}
+
+// Field mapping for database to response
+function mapDbToResponse($data) {
+    if (isset($data['sex'])) {
+        $data['gender'] = $data['sex']; // Also include gender for frontend compatibility
+    }
+    // Ensure added_by is present and normalized, keep added_by_username if available
+    if (isset($data['added_by'])) {
+        $data['added_by'] = intval($data['added_by']);
+    } else {
+        $data['added_by'] = null;
+    }
+    if (!isset($data['added_by_username'])) {
+        $data['added_by_username'] = null;
+    }
+    return $data;
+}
 
 // Get action from request
 $action = $_REQUEST['action'] ?? $_SERVER['REQUEST_METHOD'];
@@ -131,6 +157,9 @@ try {
 
         $entities = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Apply field mapping for each entity
+        $entities = array_map('mapDbToResponse', $entities);
+
         json_response([
             'success' => true,
             'status' => 'success',
@@ -158,10 +187,13 @@ try {
         $entity = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$entity) {
-            json_response(['success' => false, 'message' => $ENTITY_NAME . ' not found'], 404);
+            json_response(['success' => false, 'status' => 'error', 'message' => $ENTITY_NAME . ' not found'], 404);
         }
         
-        json_response(['success' => true, 'data' => $entity]);
+        // Apply field mapping
+        $entity = mapDbToResponse($entity);
+        
+        json_response(['success' => true, 'status' => 'success', 'data' => $entity]);
     }
 
     if ($action === 'save') {
@@ -172,6 +204,9 @@ try {
 
         // Get input data
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        
+        // Apply field mapping for form to database
+        $input = mapFormToDb($input);
         
         // Check if this is an update (has ID)
         $isUpdate = isset($input['id']) && !empty($input['id']);
@@ -207,6 +242,11 @@ try {
                     $updateData[$field] = trim($input[$field]);
                 }
             }
+
+            // Allow admin/master to update added_by explicitly
+            if (isset($input['added_by']) && in_array($auth['role'], ['master', 'admin'])) {
+                $updateData['added_by'] = intval($input['added_by']);
+            }
             
             if (empty($updateData)) {
                 json_response(['success' => false, 'message' => 'No valid fields to update'], 400);
@@ -233,7 +273,10 @@ try {
             $stmt->execute([$entityId]);
             $entity = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            json_response(['success' => true, 'message' => $ENTITY_NAME . ' updated successfully', 'data' => $entity, 'action' => 'updated', 'id' => $entityId]);
+            // Apply field mapping
+            $entity = mapDbToResponse($entity);
+            
+            json_response(['success' => true, 'status' => 'success', 'message' => $ENTITY_NAME . ' updated successfully', 'data' => $entity, 'action' => 'updated', 'id' => $entityId]);
             
         } else {
             // Create new entity
@@ -244,8 +287,13 @@ try {
                 json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
             }
 
-            // Prepare data for insertion
+            // Prepare data for insertion - set added_by from session by default
             $data = ['added_by' => $auth['user_id']];
+
+            // Allow master/admin to set added_by explicitly when provided
+            if (isset($input['added_by']) && in_array($auth['role'], ['master', 'admin'])) {
+                $data['added_by'] = intval($input['added_by']);
+            }
             
             foreach ($ALLOWED_FIELDS as $field) {
                 if (isset($input[$field])) {
@@ -282,7 +330,10 @@ try {
             $stmt->execute([$entityId]);
             $entity = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            json_response(['success' => true, 'message' => $ENTITY_NAME . ' created successfully', 'data' => $entity, 'action' => 'inserted', 'id' => $entityId]);
+            // Apply field mapping
+            $entity = mapDbToResponse($entity);
+
+            json_response(['success' => true, 'status' => 'success', 'message' => $ENTITY_NAME . ' created successfully', 'data' => $entity, 'action' => 'inserted', 'id' => $entityId]);
         }
     }
 

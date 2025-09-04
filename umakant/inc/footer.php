@@ -8,6 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <!-- DataTables -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <!-- Global utilities -->
+    <script src="assets/js/global-utils.js"></script>
     <!-- Local scripts -->
     <script src="assets/js/common.js"></script>
     <script src="assets/js/app.js"></script>

@@ -1,53 +1,373 @@
-/* Doctor Management JavaScript */
+// Enhanced Doctor Management JavaScript
 
-// Global variables
-let currentPage = 1;
-let totalRecords = 0;
-let recordsPerPage = 10;
-let searchTimeout;
-
-// Initialize page
 $(document).ready(function() {
-    loadDoctors();
-    loadFilters();
-    initializeEventListeners();
+    initializeDoctorPage();
 });
 
-function initializeEventListeners() {
+function initializeDoctorPage() {
+    loadDoctors();
+    loadStats();
+    initializeDataTable();
+    setupEventListeners();
+    utils.initTooltips();
+}
+
+function setupEventListeners() {
     // Search functionality
-    $('#doctorsSearch').on('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            currentPage = 1;
-            loadDoctors();
-        }, 300);
+    $('#searchDoctor').on('input', utils.debounce(function() {
+        const searchTerm = $(this).val();
+        filterDoctors(searchTerm);
+    }, 300));
+
+    // Specialization filter
+    $('#specializationFilter').on('change', function() {
+        const specialization = $(this).val();
+        filterDoctorsBySpecialization(specialization);
     });
 
-    // Filter functionality
-    $('#specializationFilter, #hospitalFilter').on('change', function() {
-        currentPage = 1;
-        loadDoctors();
+    // Export functionality
+    $('#exportDoctors').on('click', function() {
+        utils.exportTableToCSV('#doctorsTable', 'doctors-export.csv');
     });
 
     // Form submission
     $('#doctorForm').on('submit', function(e) {
         e.preventDefault();
-        saveDoctorData();
+        saveDoctorWithValidation();
+    });
+}
+
+function initializeDataTable() {
+    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#doctorsTable')) {
+        $('#doctorsTable').DataTable().destroy();
+    }
+    
+    $('#doctorsTable').DataTable({
+        responsive: true,
+        pageLength: 25,
+        order: [[1, 'asc']],
+        columnDefs: [
+            {
+                targets: [0, -1],
+                orderable: false
+            }
+        ],
+        language: {
+            search: "Search doctors:",
+            lengthMenu: "Show _MENU_ doctors per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ doctors",
+            infoEmpty: "No doctors found",
+            infoFiltered: "(filtered from _MAX_ total doctors)"
+        },
+        dom: '<"row"<"col-sm-6"l><"col-sm-6"f>>rtip'
     });
 }
 
 function loadDoctors() {
-    const searchTerm = $('#doctorsSearch').val();
-    const specialization = $('#specializationFilter').val();
-    const hospital = $('#hospitalFilter').val();
+    utils.showLoading('#doctorsTableContainer');
+    
+    $.ajax({
+        url: 'ajax/doctor_api.php',
+        method: 'GET',
+        data: { action: 'list' },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                populateDoctorsTable(response.data || []);
+                loadSpecializationFilter(response.data || []);
+            } else {
+                utils.showError('Failed to load doctors: ' + (response.message || 'Unknown error'));
+                $('#doctorsTableContainer').html('<div class="alert alert-danger">Failed to load doctors</div>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading doctors:', error);
+            utils.showError('Error loading doctors: ' + error);
+            $('#doctorsTableContainer').html('<div class="alert alert-danger">Error loading doctors</div>');
+        }
+    });
+}
 
-    // Show loading
-    $('#doctorsTableBody').html('<tr><td colspan="8" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
+function populateDoctorsTable(doctors) {
+    let html = `
+        <div class="table-responsive">
+            <table id="doctorsTable" class="table table-bordered table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Avatar</th>
+                        <th>Name</th>
+                        <th>Specialization</th>
+                        <th>Hospital</th>
+                        <th>Contact</th>
+                        <th>Email</th>
+                        <th>Experience</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
 
-    const params = new URLSearchParams({
-        page: currentPage,
-        limit: recordsPerPage,
-        ...(searchTerm && { search: searchTerm }),
+    if (doctors.length === 0) {
+        html += `
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="fas fa-user-md fa-3x mb-3 d-block"></i>
+                            No doctors found. <a href="#" onclick="openAddDoctorModal()" class="text-primary">Add the first doctor</a>
+                        </td>
+                    </tr>
+        `;
+    } else {
+        doctors.forEach(doctor => {
+            const avatar = utils.generateAvatar(doctor.name, 'bg-info');
+            const statusBadge = doctor.status === 'active' 
+                ? '<span class="badge badge-success">Active</span>'
+                : '<span class="badge badge-secondary">Inactive</span>';
+            
+            html += `
+                <tr>
+                    <td>${avatar}</td>
+                    <td>
+                        <strong>${doctor.name || 'N/A'}</strong>
+                        ${doctor.designation ? `<br><small class="text-muted">${doctor.designation}</small>` : ''}
+                    </td>
+                    <td>
+                        <span class="badge badge-primary">${doctor.specialization || 'General'}</span>
+                    </td>
+                    <td>${doctor.hospital || 'N/A'}</td>
+                    <td>
+                        ${doctor.phone ? `<i class="fas fa-phone text-success"></i> ${doctor.phone}<br>` : ''}
+                        ${doctor.mobile ? `<i class="fas fa-mobile text-info"></i> ${doctor.mobile}` : ''}
+                    </td>
+                    <td>
+                        ${doctor.email ? `<a href="mailto:${doctor.email}" class="text-primary">${doctor.email}</a>` : 'N/A'}
+                    </td>
+                    <td>
+                        ${doctor.experience ? `${doctor.experience} years` : 'N/A'}
+                    </td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-info btn-sm" onclick="viewDoctor(${doctor.id})" title="View Details" data-toggle="tooltip">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="editDoctor(${doctor.id})" title="Edit" data-toggle="tooltip">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteDoctor(${doctor.id})" title="Delete" data-toggle="tooltip">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    $('#doctorsTableContainer').html(html);
+    initializeDataTable();
+    utils.initTooltips();
+}
+
+function loadSpecializationFilter(doctors) {
+    const specializations = [...new Set(doctors.map(d => d.specialization).filter(s => s))];
+    
+    let options = '<option value="">All Specializations</option>';
+    specializations.forEach(spec => {
+        options += `<option value="${spec}">${spec}</option>`;
+    });
+    
+    $('#specializationFilter').html(options);
+}
+
+function loadStats() {
+    $.ajax({
+        url: 'ajax/doctor_api.php',
+        method: 'GET',
+        data: { action: 'stats' },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success && response.data) {
+                const stats = response.data;
+                $('#totalDoctors').text(stats.total || 0);
+                $('#activeDoctors').text(stats.active || 0);
+                $('#specializations').text(stats.specializations || 0);
+                $('#hospitals').text(stats.hospitals || 0);
+            }
+        },
+        error: function() {
+            console.warn('Could not load doctor statistics');
+        }
+    });
+}
+
+function openAddDoctorModal() {
+    $('#doctorModalLabel').text('Add New Doctor');
+    $('#doctorForm')[0].reset();
+    $('#doctorId').val('');
+    $('#doctorModal').modal('show');
+}
+
+function editDoctor(id) {
+    utils.showLoading('#doctorModal .modal-body');
+    $('#doctorModal').modal('show');
+    
+    $.ajax({
+        url: 'ajax/doctor_api.php',
+        method: 'GET',
+        data: { action: 'get', id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success && response.data) {
+                const doctor = response.data;
+                $('#doctorModalLabel').text('Edit Doctor');
+                $('#doctorId').val(doctor.id);
+                $('#doctorName').val(doctor.name);
+                $('#doctorSpecialization').val(doctor.specialization);
+                $('#doctorDesignation').val(doctor.designation);
+                $('#doctorHospital').val(doctor.hospital);
+                $('#doctorPhone').val(doctor.phone);
+                $('#doctorMobile').val(doctor.mobile);
+                $('#doctorEmail').val(doctor.email);
+                $('#doctorAddress').val(doctor.address);
+                $('#doctorExperience').val(doctor.experience);
+                $('#doctorQualification').val(doctor.qualification);
+                $('#doctorStatus').val(doctor.status || 'active');
+            } else {
+                utils.showError('Failed to load doctor details');
+                $('#doctorModal').modal('hide');
+            }
+        },
+        error: function() {
+            utils.showError('Error loading doctor details');
+            $('#doctorModal').modal('hide');
+        },
+        complete: function() {
+            utils.hideLoading('#doctorModal .modal-body');
+        }
+    });
+}
+
+function saveDoctorWithValidation() {
+    const formData = {
+        id: $('#doctorId').val(),
+        name: $('#doctorName').val(),
+        specialization: $('#doctorSpecialization').val(),
+        designation: $('#doctorDesignation').val(),
+        hospital: $('#doctorHospital').val(),
+        phone: $('#doctorPhone').val(),
+        mobile: $('#doctorMobile').val(),
+        email: $('#doctorEmail').val(),
+        address: $('#doctorAddress').val(),
+        experience: $('#doctorExperience').val(),
+        qualification: $('#doctorQualification').val(),
+        status: $('#doctorStatus').val()
+    };
+
+    // Validation rules
+    const rules = {
+        name: { required: true, label: 'Doctor Name', minLength: 2 },
+        specialization: { required: true, label: 'Specialization' },
+        email: { type: 'email', label: 'Email Address' },
+        phone: { type: 'phone', label: 'Phone Number' },
+        mobile: { type: 'phone', label: 'Mobile Number' }
+    };
+
+    const errors = utils.validateForm(formData, rules);
+    
+    if (errors.length > 0) {
+        utils.showError('Please fix the following errors:<br>• ' + errors.join('<br>• '));
+        return;
+    }
+
+    saveDoctor(formData);
+}
+
+function saveDoctor(formData) {
+    const action = formData.id ? 'update' : 'create';
+    
+    $.ajax({
+        url: 'ajax/doctor_api.php',
+        method: 'POST',
+        data: {
+            action: action,
+            ...formData
+        },
+        dataType: 'json',
+        beforeSend: function() {
+            $('#saveDoctorBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+        },
+        success: function(response) {
+            if (response.success) {
+                utils.showSuccess(formData.id ? 'Doctor updated successfully!' : 'Doctor added successfully!');
+                $('#doctorModal').modal('hide');
+                loadDoctors();
+                loadStats();
+            } else {
+                utils.showError('Failed to save doctor: ' + (response.message || 'Unknown error'));
+            }
+        },
+        error: function(xhr, status, error) {
+            utils.showError('Error saving doctor: ' + error);
+        },
+        complete: function() {
+            $('#saveDoctorBtn').prop('disabled', false).html('<i class="fas fa-save"></i> Save Doctor');
+        }
+    });
+}
+
+function deleteDoctor(id) {
+    utils.confirm(
+        'Are you sure you want to delete this doctor? This action cannot be undone.',
+        'Delete Doctor'
+    ).then(confirmed => {
+        if (confirmed) {
+            $.ajax({
+                url: 'ajax/doctor_api.php',
+                method: 'POST',
+                data: { action: 'delete', id: id },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        utils.showSuccess('Doctor deleted successfully!');
+                        loadDoctors();
+                        loadStats();
+                    } else {
+                        utils.showError('Failed to delete doctor: ' + (response.message || 'Unknown error'));
+                    }
+                },
+                error: function() {
+                    utils.showError('Error deleting doctor');
+                }
+            });
+        }
+    });
+}
+
+function viewDoctor(id) {
+    // Implementation for viewing doctor details in a modal
+    utils.showInfo('View doctor functionality will be implemented here');
+}
+
+function filterDoctors(searchTerm) {
+    const table = $('#doctorsTable').DataTable();
+    table.search(searchTerm).draw();
+}
+
+function filterDoctorsBySpecialization(specialization) {
+    const table = $('#doctorsTable').DataTable();
+    if (specialization) {
+        table.column(2).search(specialization).draw();
+    } else {
+        table.column(2).search('').draw();
+    }
+}
         ...(specialization && { specialization: specialization }),
         ...(hospital && { hospital: hospital })
     });
