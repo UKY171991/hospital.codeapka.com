@@ -78,7 +78,7 @@ function loadDoctors(){
        '<td>'+ (r.hospital||'') +'</td>'+
        '<td>'+ (r.contact_no||'') +'</td>'+
        '<td>'+ (r.percent!==null && r.percent!==undefined ? r.percent : '') +'</td>'+
-       '<td>'+ (r.name || r.added_by || '') +'</td>'+
+       '<td>'+ (r.added_by_username || r.added_by || '') +'</td>'+
        '<td>'+ (r.created_at||'') +'</td>'+
        '<td><button class="btn btn-sm btn-info edit-btn" data-id="'+r.id+'">Edit</button> '+
          '<button class="btn btn-sm btn-danger del-btn" data-id="'+r.id+'">Delete</button></td>'+
