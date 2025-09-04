@@ -220,7 +220,7 @@ require_once 'inc/sidebar.php';
 <!-- /.content-wrapper -->
 
 <!-- Test Modal -->
-<div class="modal fade" id="testModal" tabindex="-1" role="dialog" aria-labelledby="testModalLabel" aria-hidden="true">
+<div class="modal fade" id="testModal" tabindex="-1" role="dialog" aria-labelledby="testModalLabel" aria-hidden="true" style="z-index: 9999;">
     <div class="modal-dialog modal-xl" role="document" style="max-width: 90%; margin: 20px auto;">
         <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
             <div class="modal-header bg-primary text-white">
@@ -925,134 +925,6 @@ function showAlert(message, type) {
     margin-right: 0;
 }
 </style>
-
-<?php require_once 'inc/footer.php'; ?>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="testName">Name *</label>
-                                    <input type="text" class="form-control" id="testName" name="name" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="testDescription">Description</label>
-                                    <textarea class="form-control" id="testDescription" name="description" rows="3"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="testCategoryId">Category *</label>
-                                    <select class="form-control" id="testCategoryId" name="category_id" required>
-                                        <option value="">Select Category</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="testPrice">Price *</label>
-                                    <input type="number" class="form-control" id="testPrice" name="price" step="0.01" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="testUnit">Unit</label>
-                                    <input type="text" class="form-control" id="testUnit" name="unit">
-                                </div>
-                                <!-- specimen removed -->
-                            </div>
-                            <div class="col-md-6">
-                                <!-- Default Result and Reference Range removed -->
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                            <label for="testMin">Min Value (General)</label>
-                                            <input type="number" class="form-control" id="testMin" name="min" step="0.01">
-                                        </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="testMax">Max Value (General)</label>
-                                        <input type="number" class="form-control" id="testMax" name="max" step="0.01">
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <label for="testMinMale">Min Value (Male)</label>
-                                        <input type="number" class="form-control" id="testMinMale" name="min_male" step="0.01">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="testMaxMale">Max Value (Male)</label>
-                                        <input type="number" class="form-control" id="testMaxMale" name="max_male" step="0.01">
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <label for="testMinFemale">Min Value (Female)</label>
-                                        <input type="number" class="form-control" id="testMinFemale" name="min_female" step="0.01">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="testMaxFemale">Max Value (Female)</label>
-                                        <input type="number" class="form-control" id="testMaxFemale" name="max_female" step="0.01">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="testSubHeading">Sub Heading</label>
-                                    <select class="form-control" id="testSubHeading" name="sub_heading">
-                                        <option value="0">No</option>
-                                        <option value="1">Yes</option>
-                                    </select>
-                                </div>
-                                
-                                <!-- method removed -->
-                                <div class="form-group">
-                                    <label for="testPrintNewPage">Print on New Page</label>
-                                    <select class="form-control" id="testPrintNewPage" name="print_new_page">
-                                        <option value="0">No</option>
-                                        <option value="1">Yes</option>
-                                    </select>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveTestBtn">Save Test</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- View Test Modal -->
-<div class="modal fade" id="viewTestModal" tabindex="-1" role="dialog" aria-labelledby="viewTestModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-enhanced" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title" id="viewTestModalLabel">
-                    <i class="fas fa-vial mr-2"></i>Test Details
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" id="viewTestBody">
-                <div class="row">
-                    <div class="col-12">
-                        <div id="testViewDetails" class="details-container">
-                            <!-- Details will be populated by JavaScript -->
-                            <div class="text-center text-muted py-5">
-                                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
-                                <p>Loading test details...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-info" onclick="editTestFromView()">
-                    <i class="fas fa-edit"></i> Edit Test
-                </button>
-                <button type="button" class="btn btn-success" onclick="printTestDetails()">
-                    <i class="fas fa-print"></i> Print
-                </button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <i class="fas fa-times"></i> Close
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <?php require_once 'inc/footer.php'; ?>
 
