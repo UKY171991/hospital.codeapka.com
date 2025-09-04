@@ -7,32 +7,80 @@ session_start();
 $action = $_REQUEST['action'] ?? 'list';
 
 if ($action === 'list') {
+    // Support DataTables server-side processing
+    $draw = $_POST['draw'] ?? 1;
+    $start = $_POST['start'] ?? 0;
+    $length = $_POST['length'] ?? 25;
+    $search = $_POST['search']['value'] ?? '';
+    
     // Role-based visibility
     $viewerRole = $_SESSION['role'] ?? 'user';
     $viewerId = $_SESSION['user_id'] ?? null;
 
-    $roleFilter = $_GET['role'] ?? null;
+    // Base query
+    $baseQuery = "FROM users";
+    $whereClause = "";
+    $params = [];
+    
+    // Role-based filtering
     if ($viewerRole === 'master') {
-        // master sees everything (optionally filter by role)
-        if ($roleFilter) {
-            $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, added_by, is_active, last_login, expire_date FROM users WHERE role = ? ORDER BY id DESC');
-            $stmt->execute([$roleFilter]);
-        } else {
-            $stmt = $pdo->query('SELECT id, username, email, full_name, role, added_by, is_active, last_login, expire_date FROM users ORDER BY id DESC');
-        }
-        $rows = $stmt->fetchAll();
+        // master sees everything
+        $whereClause = "";
     } elseif ($viewerRole === 'admin') {
         // admin sees users they added and themselves
-        $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, added_by, is_active, last_login FROM users WHERE added_by = ? OR id = ? ORDER BY id DESC');
-        $stmt->execute([$viewerId, $viewerId]);
-        $rows = $stmt->fetchAll();
+        $whereClause = " WHERE added_by = ? OR id = ?";
+        $params = [$viewerId, $viewerId];
     } else {
         // regular user sees users they added and themselves
-        $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, added_by, is_active, last_login FROM users WHERE added_by = ? OR id = ? ORDER BY id DESC');
-        $stmt->execute([$viewerId, $viewerId]);
-        $rows = $stmt->fetchAll();
+        $whereClause = " WHERE added_by = ? OR id = ?";
+        $params = [$viewerId, $viewerId];
     }
-    json_response(['success' => true, 'data' => $rows]);
+    
+    // Add search conditions
+    if (!empty($search)) {
+        $searchClause = " (username LIKE ? OR email LIKE ? OR full_name LIKE ?)";
+        $searchTerm = "%$search%";
+        $searchParams = [$searchTerm, $searchTerm, $searchTerm];
+        
+        if (empty($whereClause)) {
+            $whereClause = " WHERE " . $searchClause;
+            $params = $searchParams;
+        } else {
+            $whereClause .= " AND " . $searchClause;
+            $params = array_merge($params, $searchParams);
+        }
+    }
+    
+    // Get total records
+    $totalStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereClause);
+    $totalStmt->execute($params);
+    $totalRecords = $totalStmt->fetchColumn();
+    
+    // Get filtered records
+    $orderBy = " ORDER BY id DESC";
+    $limit = " LIMIT $start, $length";
+    
+    $dataQuery = "SELECT id, username, email, full_name, role, added_by, is_active as status, last_login, expire_date " . 
+                  $baseQuery . $whereClause . $orderBy . $limit;
+    
+    $dataStmt = $pdo->prepare($dataQuery);
+    $dataStmt->execute($params);
+    $data = $dataStmt->fetchAll();
+    
+    // Format data for DataTables
+    foreach ($data as &$row) {
+        $row['status'] = $row['status'] ? 'Active' : 'Inactive';
+        $row['expire_date'] = $row['expire_date'] ? date('Y-m-d', strtotime($row['expire_date'])) : '-';
+    }
+    
+    // Return DataTables format
+    json_response([
+        'draw' => intval($draw),
+        'recordsTotal' => $totalRecords,
+        'recordsFiltered' => $totalRecords,
+        'success' => true,
+        'data' => $data
+    ]);
 }
 
 if ($action === 'get' && isset($_GET['id'])) {

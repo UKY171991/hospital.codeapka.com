@@ -16,24 +16,13 @@
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
     <!-- Global utilities -->
     <script src="assets/js/global-utils.js"></script>
-    <!-- Universal Table Fix - Load before other table scripts -->
-    <script src="assets/js/universal-table-fix.js"></script>
-    <!-- Enhanced Table Manager -->
-    <script src="assets/js/enhanced-table.js"></script>
+    <!-- Cache clear utilities -->
+    <script src="assets/js/cache-clear-utils.js?v=<?php echo time(); ?>"></script>
+    <!-- New Comprehensive Table Manager - Handles all table initialization -->
+    <script src="assets/js/table-manager.js?v=<?php echo time(); ?>"></script>
     <!-- Local scripts -->
     <script src="assets/js/common.js"></script>
     <script src="assets/js/app.js"></script>
-    <!-- Page scripts -->
-    <?php
-    // Cache-bust local scripts using file modification time to ensure clients load latest versions
-    $assetBase = __DIR__ . '/../assets/js/';
-    $scripts = ['plan.js', 'patient-enhanced.js', 'doctor-enhanced.js', 'user-enhanced.js', 'test-enhanced.js'];
-    foreach ($scripts as $s) {
-        $path = $assetBase . $s;
-        $ver = file_exists($path) ? filemtime($path) : time();
-        echo "    <script src=\"assets/js/{$s}?v={$ver}\"></script>\n";
-    }
-    ?>
     </div>
     </body>
     </html>

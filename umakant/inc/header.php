@@ -22,8 +22,8 @@
   <link rel="stylesheet" href="assets/css/global-improvements.css">
   <!-- Enhanced Tables CSS -->
   <link rel="stylesheet" href="assets/css/enhanced-tables.css">
-  <!-- Table Fixes CSS -->
-  <link rel="stylesheet" href="assets/css/table-fixes.css">
+  <!-- Comprehensive Table Styling -->
+  <link rel="stylesheet" href="assets/css/comprehensive-tables.css?v=<?php echo time(); ?>">
   <style>body{background:#f4f6f9}</style>
 </head>
 <?php if(session_status() === PHP_SESSION_NONE) session_start(); ?>

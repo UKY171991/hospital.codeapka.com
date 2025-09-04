@@ -8,30 +8,74 @@ try {
     $action = $_REQUEST['action'] ?? 'list';
 
     if ($action === 'list') {
-        // return only important columns to reduce payload
-        $stmt = $pdo->query("SELECT t.id,
-            tc.name as category_name,
-            t.category_id,
-            t.name,
-            t.description,
-            t.price,
-            t.unit,
-            t.min,
-            t.max,
-            t.min_male,
-            t.max_male,
-            t.min_female,
-            t.max_female,
-            t.sub_heading,
-            t.print_new_page,
-            t.added_by,
-            u.username as added_by_username
-            FROM tests t
-            LEFT JOIN categories tc ON t.category_id = tc.id
-            LEFT JOIN users u ON t.added_by = u.id
-            ORDER BY t.id DESC");
-        $rows = $stmt->fetchAll();
-        json_response(['success'=>true,'data'=>$rows]);
+        // Support DataTables server-side processing
+        $draw = $_POST['draw'] ?? 1;
+        $start = $_POST['start'] ?? 0;
+        $length = $_POST['length'] ?? 25;
+        $search = $_POST['search']['value'] ?? '';
+        
+        // Base query
+        $baseQuery = "FROM tests t LEFT JOIN categories tc ON t.category_id = tc.id LEFT JOIN users u ON t.added_by = u.id";
+        $whereClause = "";
+        $params = [];
+        
+        // Add search conditions
+        if (!empty($search)) {
+            $whereClause = " WHERE (t.name LIKE ? OR tc.name LIKE ? OR t.description LIKE ?)";
+            $searchTerm = "%$search%";
+            $params = [$searchTerm, $searchTerm, $searchTerm];
+        }
+        
+        // Get total records
+        $totalStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereClause);
+        $totalStmt->execute($params);
+        $totalRecords = $totalStmt->fetchColumn();
+        
+        // Get filtered records
+        $orderBy = " ORDER BY t.id DESC";
+        $limit = " LIMIT $start, $length";
+        
+        $dataQuery = "SELECT t.id, t.name as test_name, tc.name as category, t.price,
+                      CASE 
+                        WHEN t.min_male IS NOT NULL AND t.max_male IS NOT NULL AND t.min_female IS NOT NULL AND t.max_female IS NOT NULL 
+                        THEN 'Both' 
+                        WHEN t.min_male IS NOT NULL AND t.max_male IS NOT NULL 
+                        THEN 'Male' 
+                        WHEN t.min_female IS NOT NULL AND t.max_female IS NOT NULL 
+                        THEN 'Female' 
+                        ELSE 'General' 
+                      END as gender,
+                      CONCAT(
+                        CASE 
+                          WHEN t.min_male IS NOT NULL AND t.max_male IS NOT NULL 
+                          THEN CONCAT('M: ', t.min_male, '-', t.max_male) 
+                          ELSE '' 
+                        END,
+                        CASE 
+                          WHEN t.min_female IS NOT NULL AND t.max_female IS NOT NULL AND t.min_male IS NOT NULL 
+                          THEN CONCAT(' | F: ', t.min_female, '-', t.max_female)
+                          WHEN t.min_female IS NOT NULL AND t.max_female IS NOT NULL 
+                          THEN CONCAT('F: ', t.min_female, '-', t.max_female)
+                          WHEN t.min IS NOT NULL AND t.max IS NOT NULL 
+                          THEN CONCAT(t.min, '-', t.max)
+                          ELSE 'N/A' 
+                        END
+                      ) as range,
+                      t.unit, u.username as added_by " . 
+                      $baseQuery . $whereClause . $orderBy . $limit;
+        
+        $dataStmt = $pdo->prepare($dataQuery);
+        $dataStmt->execute($params);
+        $data = $dataStmt->fetchAll();
+        
+        // Return DataTables format
+        json_response([
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalRecords,
+            'success' => true,
+            'data' => $data
+        ]);
     }
 
     if ($action === 'get' && isset($_GET['id'])) {

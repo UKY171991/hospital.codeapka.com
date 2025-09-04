@@ -8,9 +8,75 @@ try {
     $action = $_REQUEST['action'] ?? ($_SERVER['REQUEST_METHOD'] === 'POST' ? 'save' : 'list');
 
     if ($action === 'list') {
-        $stmt = $pdo->query('SELECT d.id,d.server_id,d.name,d.qualification,d.specialization,d.hospital,d.contact_no,d.phone,d.percent,d.email,d.address,d.registration_no,d.added_by,d.created_at,d.updated_at,u.username AS added_by_username FROM doctors d LEFT JOIN users u ON d.added_by = u.id ORDER BY d.id DESC');
-        $rows = $stmt->fetchAll();
-        json_response(['success' => true, 'data' => $rows]);
+        // Support DataTables server-side processing
+        $draw = $_POST['draw'] ?? 1;
+        $start = $_POST['start'] ?? 0;
+        $length = $_POST['length'] ?? 25;
+        $search = $_POST['search']['value'] ?? '';
+        
+        // Base query
+        $baseQuery = "FROM doctors d LEFT JOIN users u ON d.added_by = u.id";
+        $whereClause = "";
+        $params = [];
+        
+        // Add search conditions
+        if (!empty($search)) {
+            $whereClause = " WHERE (d.name LIKE ? OR d.specialization LIKE ? OR d.hospital LIKE ? OR d.phone LIKE ? OR d.email LIKE ?)";
+            $searchTerm = "%$search%";
+            $params = [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm];
+        }
+        
+        // Get total records
+        $totalStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereClause);
+        $totalStmt->execute($params);
+        $totalRecords = $totalStmt->fetchColumn();
+        
+        // Get filtered records
+        $orderBy = " ORDER BY d.id DESC";
+        $limit = " LIMIT $start, $length";
+        
+        $dataQuery = "SELECT d.id, d.name, d.specialization, d.phone, d.email, d.hospital,
+                      CASE WHEN d.phone IS NOT NULL AND d.phone != '' THEN 'Active' ELSE 'Inactive' END as status,
+                      u.username as added_by " . 
+                      $baseQuery . $whereClause . $orderBy . $limit;
+        
+        $dataStmt = $pdo->prepare($dataQuery);
+        $dataStmt->execute($params);
+        $data = $dataStmt->fetchAll();
+        
+        // Return DataTables format
+        json_response([
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalRecords,
+            'success' => true,
+            'data' => $data
+        ]);
+    }
+    
+    if ($action === 'stats') {
+        // Get doctor statistics
+        $totalStmt = $pdo->query("SELECT COUNT(*) FROM doctors");
+        $total = $totalStmt->fetchColumn();
+        
+        $activeStmt = $pdo->query("SELECT COUNT(*) FROM doctors WHERE phone IS NOT NULL AND phone != ''");
+        $active = $activeStmt->fetchColumn();
+        
+        $specializationsStmt = $pdo->query("SELECT COUNT(DISTINCT specialization) FROM doctors WHERE specialization IS NOT NULL AND specialization != ''");
+        $specializations = $specializationsStmt->fetchColumn();
+        
+        $hospitalsStmt = $pdo->query("SELECT COUNT(DISTINCT hospital) FROM doctors WHERE hospital IS NOT NULL AND hospital != ''");
+        $hospitals = $hospitalsStmt->fetchColumn();
+        
+        json_response([
+            'success' => true,
+            'data' => [
+                'total' => $total,
+                'active' => $active,
+                'specializations' => $specializations,
+                'hospitals' => $hospitals
+            ]
+        ]);
     }
 
     if ($action === 'get' && isset($_GET['id'])) {
