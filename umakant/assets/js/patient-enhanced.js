@@ -1,20 +1,124 @@
 // Enhanced Patient Management with AJAX and Toaster Alerts
-let patientTableManager;
 let selectedPatients = new Set();
+let patientsDataTable;
 
 $(document).ready(function() {
-    // Initialize enhanced table manager
-    patientTableManager = new EnhancedTableManager({
-        tableSelector: '#patientsTable',
-        apiEndpoint: 'ajax/patient_api.php',
-        entityName: 'patient',
-        entityNamePlural: 'patients',
-        viewFields: ['uhid', 'name', 'mobile', 'email', 'age', 'age_unit', 'gender', 'father_husband', 'address', 'added_by', 'created_at']
-    });
-    
+    // Initialize DataTable properly
+    initializePatientsTable();
     loadPatientStats();
     bindPatientEvents();
 });
+
+function initializePatientsTable() {
+    patientsDataTable = $('#patientsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: 'ajax/patient_api.php',
+            type: 'POST',
+            data: function(d) {
+                d.action = 'list';
+                return d;
+            },
+            dataSrc: function(json) {
+                if (json.success) {
+                    return json.data || [];
+                } else {
+                    showError('Failed to load patients: ' + (json.message || 'Unknown error'));
+                    return [];
+                }
+            }
+        },
+        columns: [
+            {
+                data: null,
+                orderable: false,
+                className: 'text-center',
+                width: '40px',
+                render: function(data, type, row) {
+                    return `<input type="checkbox" class="patient-checkbox" value="${row.id}">`;
+                }
+            },
+            {
+                data: 'uhid',
+                render: function(data, type, row) {
+                    return data || 'N/A';
+                }
+            },
+            {
+                data: null,
+                render: function(data, type, row) {
+                    return `<div class="patient-info">
+                        <strong>${row.name || 'N/A'}</strong><br>
+                        <small class="text-muted">${row.mobile || 'No mobile'}</small>
+                    </div>`;
+                }
+            },
+            {
+                data: null,
+                render: function(data, type, row) {
+                    return `<div class="contact-info">
+                        <small>${row.mobile || 'N/A'}<br>${row.email || 'No email'}</small>
+                    </div>`;
+                }
+            },
+            {
+                data: null,
+                render: function(data, type, row) {
+                    return `${row.age || 'N/A'} ${row.age_unit || ''}<br>
+                            <small class="text-muted">${row.gender || 'N/A'}</small>`;
+                }
+            },
+            {
+                data: 'address',
+                render: function(data, type, row) {
+                    return data ? (data.length > 30 ? data.substring(0, 30) + '...' : data) : 'N/A';
+                }
+            },
+            {
+                data: 'created_at',
+                render: function(data, type, row) {
+                    return data ? new Date(data).toLocaleDateString() : 'N/A';
+                }
+            },
+            {
+                data: 'added_by',
+                render: function(data, type, row) {
+                    return row.added_by_name || data || 'System';
+                }
+            },
+            {
+                data: null,
+                orderable: false,
+                className: 'text-center',
+                width: '120px',
+                render: function(data, type, row) {
+                    return `
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-info btn-sm" onclick="viewPatient(${row.id})" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="editPatient(${row.id})" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deletePatient(${row.id})" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        ],
+        pageLength: 25,
+        responsive: true,
+        language: {
+            processing: '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading patients...</div>',
+            emptyTable: 'No patients found',
+            zeroRecords: 'No matching patients found'
+        },
+        order: [[1, 'desc']] // Order by UHID descending
+    });
+}
 
 function loadPatientStats() {
     $.get('ajax/patient_api.php?action=stats', function(response) {
@@ -231,7 +335,7 @@ function savePatient() {
     .done(function(response) {
         if (response.success) {
             $('#patientModal').modal('hide');
-            patientTableManager.refreshData();
+            patientsDataTable.ajax.reload();
             loadPatientStats();
             
             const message = isEdit ? 'Patient updated successfully' : 'Patient added successfully';
@@ -264,7 +368,7 @@ function deletePatient(id) {
             $.post('ajax/patient_api.php', {action: 'delete', id: id})
                 .done(function(response) {
                     if (response.success) {
-                        patientTableManager.refreshData();
+                        patientsDataTable.ajax.reload();
                         loadPatientStats();
                         showSuccess('Patient deleted successfully');
                     } else {
@@ -302,7 +406,7 @@ function bulkDeletePatients() {
                     if (response.success) {
                         selectedPatients.clear();
                         updateBulkActions();
-                        patientTableManager.refreshData();
+                        patientsDataTable.ajax.reload();
                         loadPatientStats();
                         showSuccess(`${selectedCount} patients deleted successfully`);
                     } else {
@@ -366,7 +470,7 @@ function exportPatients() {
 }
 
 function refreshPatients() {
-    patientTableManager.refreshData();
+    patientsDataTable.ajax.reload();
     loadPatientStats();
     showInfo('Patient data refreshed');
 }
@@ -377,12 +481,11 @@ function applyFilters() {
     const date = $('#dateFilter').val();
     const search = $('#patientsSearch').val();
     
-    // Apply filters to DataTable
-    patientTableManager.dataTable
-        .columns(4).search(gender)
-        .columns(5).search(date)
-        .search(search)
-        .draw();
+    // Apply search to DataTable
+    patientsDataTable.search(search).draw();
+    
+    // Note: Advanced filtering would require server-side implementation
+    // For now, just apply the search term
 }
 
 function clearFilters() {
@@ -391,10 +494,7 @@ function clearFilters() {
     $('#dateFilter').val('');
     $('#patientsSearch').val('');
     
-    patientTableManager.dataTable
-        .search('')
-        .columns().search('')
-        .draw();
+    patientsDataTable.search('').draw();
         
     showInfo('Filters cleared');
 }
