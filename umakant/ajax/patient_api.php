@@ -155,6 +155,31 @@ try {
         json_response(['success' => true, 'data' => $data]);
     }
 
+    if ($action === 'stats') {
+        // Get patient statistics
+        $totalStmt = $pdo->query('SELECT COUNT(*) FROM patients');
+        $total = $totalStmt->fetchColumn();
+        
+        $todayStmt = $pdo->query('SELECT COUNT(*) FROM patients WHERE DATE(created_at) = CURDATE()');
+        $today = $todayStmt->fetchColumn();
+        
+        $maleStmt = $pdo->query('SELECT COUNT(*) FROM patients WHERE sex = "Male"');
+        $male = $maleStmt->fetchColumn();
+        
+        $femaleStmt = $pdo->query('SELECT COUNT(*) FROM patients WHERE sex = "Female"');
+        $female = $femaleStmt->fetchColumn();
+        
+        json_response([
+            'success' => true,
+            'data' => [
+                'total' => $total,
+                'today' => $today,
+                'male' => $male,
+                'female' => $female
+            ]
+        ]);
+    }
+
     json_response(['success'=>false,'message'=>'Invalid action'],400);
 } catch (Throwable $e) {
     // return JSON error for debugging in browser

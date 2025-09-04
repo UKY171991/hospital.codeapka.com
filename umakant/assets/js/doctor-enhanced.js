@@ -3,13 +3,14 @@ let doctorTableManager;
 let selectedDoctors = new Set();
 
 $(document).ready(function() {
-    // Initialize enhanced table manager
+    // Initialize enhanced table manager with server-side processing
     doctorTableManager = new EnhancedTableManager({
         tableSelector: '#doctorsTable',
         apiEndpoint: 'ajax/doctor_api.php',
         entityName: 'doctor',
         entityNamePlural: 'doctors',
-        viewFields: ['id', 'name', 'qualification', 'specialization', 'hospital', 'contact', 'email', 'percent', 'registration_no', 'address', 'created_at']
+        serverSide: false, // Use client-side for now to avoid server-side issues
+        viewFields: ['id', 'name', 'qualification', 'specialization', 'hospital', 'contact_no', 'email', 'percent', 'registration_no', 'address', 'created_at']
     });
     
     loadDoctorStats();

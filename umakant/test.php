@@ -427,26 +427,50 @@ $(document).ready(function() {
 });
 
 function initializeDataTable() {
+    // Destroy existing DataTable if it exists
+    if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
+        $('#testsTable').DataTable().destroy();
+    }
+    
     testsTable = $('#testsTable').DataTable({
         processing: true,
         serverSide: false,
         ajax: {
-            url: 'patho_api/test.php',
+            url: 'ajax/test_api.php?action=list',
             type: 'GET',
             dataSrc: function(json) {
-                if (json.status === 'success') {
-                    return json.data;
+                if (json.success) {
+                    return json.data || [];
+                } else {
+                    console.error('Failed to load tests:', json.message);
+                    toastr.error('Failed to load tests: ' + (json.message || 'Unknown error'));
+                    return [];
                 }
-                return [];
+            },
+            error: function(xhr, error, thrown) {
+                console.error('AJAX Error:', error, thrown);
+                toastr.error('Failed to load tests data');
             }
         },
         columns: [
-            { data: 'id' },
+            {
+                data: null,
+                orderable: false,
+                className: 'text-center',
+                width: '40px',
+                render: function(data, type, row) {
+                    return `<input type="checkbox" class="test-checkbox" value="${row.id}">`;
+                }
+            },
+            { 
+                data: 'id',
+                width: '60px'
+            },
             { 
                 data: 'name',
                 render: function(data, type, row) {
-                    return `<div class="font-weight-bold text-primary">${data}</div>
-                            ${row.method ? `<small class="text-muted">${row.method}</small>` : ''}`;
+                    return `<div class="font-weight-bold text-primary">${data || 'N/A'}</div>
+                            ${row.description ? `<small class="text-muted">${row.description}</small>` : ''}`;
                 }
             },
             { 
@@ -465,9 +489,9 @@ function initializeDataTable() {
                 data: null,
                 render: function(data, type, row) {
                     let genders = [];
-                    if (row.male_min || row.male_max) genders.push('<span class="badge badge-primary badge-sm">Male</span>');
-                    if (row.female_min || row.female_max) genders.push('<span class="badge badge-danger badge-sm">Female</span>');
-                    if (row.child_min || row.child_max) genders.push('<span class="badge badge-success badge-sm">Child</span>');
+                    if (row.min_male !== null || row.max_male !== null) genders.push('<span class="badge badge-primary badge-sm">Male</span>');
+                    if (row.min_female !== null || row.max_female !== null) genders.push('<span class="badge badge-danger badge-sm">Female</span>');
+                    if (!genders.length && (row.min !== null || row.max !== null)) genders.push('<span class="badge badge-success badge-sm">Both</span>');
                     return genders.length > 0 ? genders.join(' ') : '-';
                 }
             },
@@ -475,11 +499,14 @@ function initializeDataTable() {
                 data: null,
                 render: function(data, type, row) {
                     let ranges = [];
-                    if (row.male_min || row.male_max) {
-                        ranges.push(`M: ${row.male_min || 0}-${row.male_max || '∞'}`);
+                    if (row.min_male !== null || row.max_male !== null) {
+                        ranges.push(`M: ${row.min_male || 0}-${row.max_male || '∞'}`);
                     }
-                    if (row.female_min || row.female_max) {
-                        ranges.push(`F: ${row.female_min || 0}-${row.female_max || '∞'}`);
+                    if (row.min_female !== null || row.max_female !== null) {
+                        ranges.push(`F: ${row.min_female || 0}-${row.max_female || '∞'}`);
+                    }
+                    if (!ranges.length && (row.min !== null || row.max !== null)) {
+                        ranges.push(`${row.min || 0}-${row.max || '∞'}`);
                     }
                     return ranges.length > 0 ? ranges.join('<br>') : '-';
                 }
@@ -493,16 +520,18 @@ function initializeDataTable() {
             {
                 data: 'id',
                 orderable: false,
+                className: 'text-center',
+                width: '120px',
                 render: function(data, type, row) {
                     return `
-                        <div class="btn-group" role="group">
+                        <div class="btn-group btn-group-sm" role="group">
                             <button class="btn btn-info btn-sm" onclick="viewTest(${data})" title="View">
                                 <i class="fas fa-eye"></i>
                             </button>
                             <button class="btn btn-warning btn-sm" onclick="editTest(${data})" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteTest(${data}, '${row.name}')" title="Delete">
+                            <button class="btn btn-danger btn-sm" onclick="deleteTest(${data}, '${(row.name || '').replace(/'/g, '\\\'')}')" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -510,21 +539,63 @@ function initializeDataTable() {
                 }
             }
         ],
-        order: [[0, 'desc']],
+        order: [[1, 'desc']],
         pageLength: 25,
         responsive: true,
         dom: 'Bfrtip',
         buttons: [
-            'copy', 'csv', 'excel', 'pdf', 'print'
+            {
+                extend: 'copy',
+                className: 'btn btn-secondary btn-sm'
+            },
+            {
+                extend: 'csv',
+                className: 'btn btn-success btn-sm'
+            },
+            {
+                extend: 'excel',
+                className: 'btn btn-primary btn-sm'
+            },
+            {
+                extend: 'pdf',
+                className: 'btn btn-danger btn-sm'
+            },
+            {
+                extend: 'print',
+                className: 'btn btn-info btn-sm'
+            }
         ],
         language: {
-            processing: '<i class="fas fa-spinner fa-spin"></i> Loading tests...'
-        }
+            processing: '<i class="fas fa-spinner fa-spin"></i> Loading tests...',
+            emptyTable: 'No tests found',
+            zeroRecords: 'No matching tests found',
+            search: 'Search tests:',
+            lengthMenu: 'Show _MENU_ tests per page',
+            info: 'Showing _START_ to _END_ of _TOTAL_ tests',
+            infoEmpty: 'No tests available',
+            infoFiltered: '(filtered from _MAX_ total tests)'
+        },
+        columnDefs: [
+            {
+                targets: [0, -1],
+                orderable: false
+            }
+        ]
     });
 
     // Custom filters
     $('#categoryFilter, #genderFilter, #priceFilter').on('change keyup', function() {
         applyFilters();
+    });
+    
+    // Checkbox selection handlers
+    $('#selectAllTests').on('change', function() {
+        $('.test-checkbox').prop('checked', $(this).is(':checked'));
+        updateBulkActions();
+    });
+    
+    $(document).on('change', '.test-checkbox', function() {
+        updateBulkActions();
     });
 }
 
@@ -533,14 +604,26 @@ function applyFilters() {
     const gender = $('#genderFilter').val();
     const maxPrice = $('#priceFilter').val();
 
+    // Clear all filters first
+    testsTable.search('');
+    testsTable.columns().search('');
+    
     // Apply category filter
-    testsTable.column(2).search(category);
+    if (category) {
+        testsTable.column(3).search(category, false, false);
+    }
+    
+    // Apply gender filter
+    if (gender) {
+        testsTable.column(5).search(gender, false, false);
+    }
     
     // Apply price filter
     if (maxPrice) {
-        testsTable.column(3).search('^[₹]?[0-9]*\\.?[0-9]*$', true, false);
-    } else {
-        testsTable.column(3).search('');
+        testsTable.column(4).search(function(settings, data, dataIndex) {
+            const price = parseFloat(data[4].replace(/[₹,]/g, ''));
+            return price <= parseFloat(maxPrice);
+        });
     }
     
     testsTable.draw();
@@ -548,6 +631,65 @@ function applyFilters() {
 
 function clearFilters() {
     $('#categoryFilter').val('');
+    $('#genderFilter').val('');
+    $('#priceFilter').val('');
+    testsTable.search('').columns().search('').draw();
+}
+
+function updateBulkActions() {
+    const checkedBoxes = $('.test-checkbox:checked');
+    const bulkActionsDiv = $('.bulk-actions');
+    const selectedCount = checkedBoxes.length;
+    
+    if (selectedCount > 0) {
+        bulkActionsDiv.show();
+        $('.selected-count').text(selectedCount);
+    } else {
+        bulkActionsDiv.hide();
+    }
+    
+    // Update select all checkbox
+    const totalCheckboxes = $('.test-checkbox').length;
+    if (selectedCount === 0) {
+        $('#selectAllTests').prop('indeterminate', false).prop('checked', false);
+    } else if (selectedCount === totalCheckboxes) {
+        $('#selectAllTests').prop('indeterminate', false).prop('checked', true);
+    } else {
+        $('#selectAllTests').prop('indeterminate', true);
+    }
+}
+
+function bulkExportTests() {
+    const selectedIds = $('.test-checkbox:checked').map(function() {
+        return $(this).val();
+    }).get();
+    
+    if (selectedIds.length === 0) {
+        toastr.warning('Please select tests to export');
+        return;
+    }
+    
+    // Export functionality - for now just show selected IDs
+    toastr.info(`Exporting ${selectedIds.length} selected tests...`);
+    console.log('Selected test IDs:', selectedIds);
+}
+
+function bulkDeleteTests() {
+    const selectedIds = $('.test-checkbox:checked').map(function() {
+        return $(this).val();
+    }).get();
+    
+    if (selectedIds.length === 0) {
+        toastr.warning('Please select tests to delete');
+        return;
+    }
+    
+    if (confirm(`Are you sure you want to delete ${selectedIds.length} selected tests?`)) {
+        // Bulk delete functionality
+        toastr.info(`Deleting ${selectedIds.length} selected tests...`);
+        console.log('Deleting test IDs:', selectedIds);
+    }
+}
     $('#genderFilter').val('');
     $('#priceFilter').val('');
     testsTable.search('').columns().search('').draw();

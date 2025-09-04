@@ -73,6 +73,31 @@ try {
         }
     }
 
+    if ($action === 'stats') {
+        // Get doctor statistics
+        $totalStmt = $pdo->query('SELECT COUNT(*) FROM doctors');
+        $total = $totalStmt->fetchColumn();
+        
+        $activeStmt = $pdo->query('SELECT COUNT(*) FROM doctors WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
+        $active = $activeStmt->fetchColumn();
+        
+        $specializationStmt = $pdo->query('SELECT COUNT(DISTINCT specialization) FROM doctors WHERE specialization IS NOT NULL AND specialization != ""');
+        $specializations = $specializationStmt->fetchColumn();
+        
+        $hospitalStmt = $pdo->query('SELECT COUNT(DISTINCT hospital) FROM doctors WHERE hospital IS NOT NULL AND hospital != ""');
+        $hospitals = $hospitalStmt->fetchColumn();
+        
+        json_response([
+            'success' => true,
+            'data' => [
+                'total' => $total,
+                'active' => $active,
+                'specializations' => $specializations,
+                'hospitals' => $hospitals
+            ]
+        ]);
+    }
+
     json_response(['success' => false, 'message' => 'Invalid action'], 400);
 } catch (Throwable $t) {
     // ensure any uncaught error returns JSON so client sees it

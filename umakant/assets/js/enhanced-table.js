@@ -8,6 +8,8 @@ class EnhancedTableManager {
             apiEndpoint: '',
             entityName: 'item',
             entityNamePlural: 'items',
+            serverSide: false,
+            searchable: true,
             ...config
         };
         
@@ -25,9 +27,14 @@ class EnhancedTableManager {
     initializeTable() {
         const self = this;
         
-        this.dataTable = $(this.config.tableSelector).DataTable({
+        // Destroy existing DataTable if present
+        if ($.fn.DataTable && $.fn.dataTable.isDataTable(this.config.tableSelector)) {
+            $(this.config.tableSelector).DataTable().destroy();
+        }
+        
+        const tableConfig = {
             processing: true,
-            serverSide: false,
+            serverSide: this.config.serverSide,
             responsive: true,
             pageLength: 25,
             dom: 'Bfrtip',
@@ -43,11 +50,22 @@ class EnhancedTableManager {
                     action: function() { self.refreshData(); }
                 }
             ],
+            language: {
+                processing: '<div class="d-flex justify-content-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</div>',
+                emptyTable: `No ${this.config.entityNamePlural} found`,
+                zeroRecords: `No matching ${this.config.entityNamePlural} found`,
+                search: `Search ${this.config.entityNamePlural}:`,
+                lengthMenu: `Show _MENU_ ${this.config.entityNamePlural} per page`,
+                info: `Showing _START_ to _END_ of _TOTAL_ ${this.config.entityNamePlural}`,
+                infoEmpty: `No ${this.config.entityNamePlural} available`,
+                infoFiltered: `(filtered from _MAX_ total ${this.config.entityNamePlural})`
+            },
             columnDefs: [
                 {
                     targets: 0,
                     orderable: false,
                     className: 'text-center',
+                    width: '40px',
                     render: function(data, type, row, meta) {
                         return `<input type="checkbox" class="selection-checkbox" value="${row.id}">`;
                     }
@@ -56,18 +74,41 @@ class EnhancedTableManager {
                     targets: -1,
                     orderable: false,
                     className: 'text-center',
+                    width: '120px',
                     render: function(data, type, row) {
                         return self.renderActionButtons(row);
                     }
                 }
             ],
-            language: {
-                processing: '<div class="spinner"></div>',
-                emptyTable: `No ${this.config.entityNamePlural} found`,
-                zeroRecords: `No matching ${this.config.entityNamePlural} found`
-            },
             ...this.config.tableOptions
-        });
+        };
+
+        // Configure AJAX for server-side processing
+        if (this.config.serverSide) {
+            tableConfig.ajax = {
+                url: this.config.apiEndpoint,
+                type: 'POST',
+                data: function(d) {
+                    d.action = 'list';
+                    return d;
+                },
+                dataSrc: function(json) {
+                    if (json.success) {
+                        return json.data || [];
+                    } else {
+                        console.error('DataTable AJAX Error:', json.message);
+                        toastr.error('Failed to load data: ' + (json.message || 'Unknown error'));
+                        return [];
+                    }
+                },
+                error: function(xhr, error, thrown) {
+                    console.error('DataTable AJAX Error:', error, thrown);
+                    toastr.error('Failed to load table data');
+                }
+            };
+        }
+        
+        this.dataTable = $(this.config.tableSelector).DataTable(tableConfig);
     }
 
     bindEvents() {
@@ -106,6 +147,126 @@ class EnhancedTableManager {
             
             self.updateBulkActions();
         });
+        
+        // Search functionality
+        if (this.config.searchable) {
+            const searchSelector = `${this.config.tableSelector.replace('#', '#')}Search, .table-search-input`;
+            $(document).on('input', searchSelector, function() {
+                const searchTerm = $(this).val();
+                self.dataTable.search(searchTerm).draw();
+            });
+        }
+    }
+
+    loadData() {
+        if (!this.config.serverSide) {
+            // For client-side processing, load data via AJAX
+            const self = this;
+            $.get(this.config.apiEndpoint, {action: 'list'})
+                .done(function(response) {
+                    if (response.success) {
+                        self.dataTable.clear();
+                        if (response.data && response.data.length > 0) {
+                            self.dataTable.rows.add(response.data);
+                        }
+                        self.dataTable.draw();
+                    } else {
+                        console.error('Failed to load data:', response.message);
+                        toastr.error('Failed to load data: ' + (response.message || 'Unknown error'));
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    console.error('AJAX Error:', error);
+                    toastr.error('Failed to load table data');
+                });
+        }
+        // For server-side processing, data is loaded automatically by DataTables
+    }
+
+    refreshData() {
+        if (this.config.serverSide) {
+            this.dataTable.ajax.reload();
+        } else {
+            this.loadData();
+        }
+        toastr.info(`${this.config.entityNamePlural} refreshed`);
+    }
+
+    updateBulkActions() {
+        const selectedCount = this.selectedRows.size;
+        const bulkActions = $('.bulk-actions');
+        
+        if (selectedCount > 0) {
+            bulkActions.show();
+            bulkActions.find('.selected-count').text(selectedCount);
+        } else {
+            bulkActions.hide();
+        }
+        
+        // Update select all checkbox state
+        const totalCheckboxes = $('.selection-checkbox').length;
+        const selectAllCheckbox = $('#selectAll');
+        
+        if (selectedCount === 0) {
+            selectAllCheckbox.prop('indeterminate', false).prop('checked', false);
+        } else if (selectedCount === totalCheckboxes) {
+            selectAllCheckbox.prop('indeterminate', false).prop('checked', true);
+        } else {
+            selectAllCheckbox.prop('indeterminate', true);
+        }
+    }
+
+    renderActionButtons(row) {
+        const entityId = row.id;
+        const entityName = this.config.entityName;
+        
+        return `
+            <div class="btn-group btn-group-sm" role="group">
+                <button class="btn btn-info btn-sm" onclick="view${entityName.charAt(0).toUpperCase() + entityName.slice(1)}(${entityId})" title="View">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-warning btn-sm" onclick="edit${entityName.charAt(0).toUpperCase() + entityName.slice(1)}(${entityId})" title="Edit">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="delete${entityName.charAt(0).toUpperCase() + entityName.slice(1)}(${entityId})" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+    }
+
+    exportData() {
+        const data = this.dataTable.data().toArray();
+        if (data.length === 0) {
+            toastr.warning('No data to export');
+            return;
+        }
+        
+        // Simple CSV export
+        const headers = this.config.viewFields || Object.keys(data[0]);
+        let csv = headers.join(',') + '\n';
+        
+        data.forEach(row => {
+            const values = headers.map(field => {
+                const value = row[field] || '';
+                return typeof value === 'string' && value.includes(',') 
+                    ? `"${value.replace(/"/g, '""')}"` 
+                    : value;
+            });
+            csv += values.join(',') + '\n';
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${this.config.entityNamePlural}-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        toastr.success(`${this.config.entityNamePlural} exported successfully`);
+    }
+}
 
         // Bulk action buttons
         $(document).on('click', '.bulk-delete', function() {

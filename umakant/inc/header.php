@@ -6,6 +6,7 @@
 <head>
   <!-- DataTables CSS -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hospital Admin</title>
@@ -21,6 +22,8 @@
   <link rel="stylesheet" href="assets/css/global-improvements.css">
   <!-- Enhanced Tables CSS -->
   <link rel="stylesheet" href="assets/css/enhanced-tables.css">
+  <!-- Table Fixes CSS -->
+  <link rel="stylesheet" href="assets/css/table-fixes.css">
   <style>body{background:#f4f6f9}</style>
 </head>
 <?php if(session_status() === PHP_SESSION_NONE) session_start(); ?>
