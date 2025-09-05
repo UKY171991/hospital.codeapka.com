@@ -276,6 +276,62 @@ select.form-control:focus {
     transition: var(--transition);
 }
 
+
+/* Grouped action buttons in table cells: stacked, compact, centered */
+/* Applies when buttons are wrapped in .action-buttons or when .btn-action buttons appear directly in a cell (doctors.php) */
+.action-buttons,
+#doctorTable .action-buttons,
+table.dataTable td .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Compact button sizing for action buttons */
+.action-buttons .btn,
+#doctorTable td .btn-action,
+table.dataTable td .btn-action {
+    display: block; /* stack if multiple */
+    min-width: 56px;
+    width: auto;
+    padding: .25rem .5rem;
+    font-size: .78rem;
+    line-height: 1.1;
+    text-align: center;
+}
+
+/* Ensure consistent spacing inside the actions column */
+#doctorTable td,
+table.dataTable td:last-child {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* Small visual tweak: slightly rounded, subtle shadow for grouped buttons */
+.action-buttons .btn,
+#doctorTable td .btn-action {
+    border-radius: 6px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+}
+
+/* Responsive: keep buttons usable on very small screens */
+@media (max-width: 480px) {
+    .action-buttons,
+    #doctorTable .action-buttons,
+    table.dataTable td .action-buttons {
+        flex-direction: row;
+        gap: 6px;
+    }
+    .action-buttons .btn,
+    #doctorTable td .btn-action {
+        display: inline-block;
+        min-width: 42px;
+        font-size: .72rem;
+        padding: .2rem .45rem;
+    }
+}
 .avatar-circle:hover {
     transform: scale(1.1);
 }
