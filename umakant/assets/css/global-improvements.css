@@ -344,6 +344,37 @@ select.form-control:focus {
     z-index: 1100; /* keep sidebar above other elements */
 }
 
+/* Sidebar readability fixes: ensure sidebar text contrasts with its dark background */
+.main-sidebar {
+    background-color: #2f343a; /* dark slate */
+}
+.main-sidebar .brand-link,
+.main-sidebar .brand-text {
+    color: #fff !important;
+}
+.main-sidebar .user-panel .info a {
+    color: #fff !important;
+}
+.main-sidebar .user-panel .info small {
+    color: rgba(255,255,255,0.7) !important;
+}
+.main-sidebar .nav-sidebar .nav-link {
+    color: rgba(255,255,255,0.92) !important;
+}
+.main-sidebar .nav-sidebar .nav-link .nav-icon {
+    color: rgba(255,255,255,0.85) !important;
+}
+.main-sidebar .nav-sidebar .nav-link p {
+    color: inherit !important;
+}
+.main-sidebar .nav-sidebar .nav-link.active {
+    background: linear-gradient(45deg, var(--primary-color), #0056b3) !important;
+    color: #fff !important;
+}
+.main-sidebar .nav-sidebar .nav-link:hover {
+    background: rgba(255,255,255,0.03) !important;
+}
+
 /* Make large tables horizontally scrollable inside their container */
 .table-responsive {
     overflow-x: auto;
