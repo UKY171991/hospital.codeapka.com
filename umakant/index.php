@@ -522,8 +522,26 @@ function loadRecentActivity() {
 }
 
 function refreshStats() {
-    // You can implement real-time stats refresh here
-    console.log('Refreshing dashboard stats...');
+  // Fetch latest counts from server and update stat boxes
+  $.getJSON('ajax/dashboard_counts.php').done(function(resp){
+    if(resp && resp.success && resp.counts){
+      var c = resp.counts;
+      if(typeof c.doctors !== 'undefined') $('#doctorsCount').text(c.doctors);
+      if(typeof c.patients !== 'undefined') $('#patientsCount').text(c.patients);
+      if(typeof c.entries !== 'undefined') $('#entriesCount').text(c.entries);
+      if(typeof c.tests !== 'undefined') $('#testsCount').text(c.tests);
+      if(typeof c.test_categories !== 'undefined') $('#testCategoriesCount').text(c.test_categories);
+      if(typeof c.plans !== 'undefined') $('#plansCount').text(c.plans);
+      if(typeof c.users !== 'undefined') $('#usersCount').text(c.users);
+      if(typeof c.notices !== 'undefined') $('#noticesCount').text(c.notices);
+      if(typeof c.owners !== 'undefined') $('#ownersCount').text(c.owners);
+      if(typeof c.uploads !== 'undefined') $('#uploadsCount').text(c.uploads);
+    } else {
+      console.warn('Dashboard counts response invalid', resp);
+    }
+  }).fail(function(){
+    console.warn('Failed to fetch dashboard counts');
+  });
 }
 </script>
 
