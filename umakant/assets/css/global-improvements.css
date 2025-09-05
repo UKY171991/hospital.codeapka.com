@@ -294,7 +294,7 @@ table.dataTable td .action-buttons {
 }
 
 .btn-group-vertical {
-    flex-direction: row;
+    flex-direction: row !important; /* override any vertical stacking */
 }
 
 /* Compact button sizing for action buttons */
