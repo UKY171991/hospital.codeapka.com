@@ -469,3 +469,26 @@ textarea:focus {
     outline: none;
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
+
+/* Ensure default card header text is dark for light-themed headers */
+.card .card-header {
+    color: #343a40;
+}
+
+/* Preserve light text for contextual (colored) card variants */
+.card.card-primary .card-header,
+.card.card-success .card-header,
+.card.card-info .card-header,
+.card.card-danger .card-header,
+.card.card-warning .card-header,
+.card.card-secondary .card-header,
+.card.card-dark .card-header,
+.card.card-primary.card-outline .card-header {
+    color: #fff;
+}
+
+/* Force title weight, let color inherit from the header's computed color */
+.card .card-header .card-title {
+    color: inherit;
+    font-weight: 700;
+}
