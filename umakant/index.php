@@ -400,6 +400,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
   // Auto-refresh stats every 5 minutes
   setInterval(refreshStats, 300000);
+  // Fetch counts immediately so the UI shows up-to-date numbers on first render
+  try{ refreshStats(); } catch(e){ console.warn('refreshStats failed', e); }
 });
 
 function initializeChart() {
