@@ -45,9 +45,24 @@
 
     <!-- Right navbar links -->
     <ul class="navbar-nav ml-auto">
-      <li class="nav-item">
+      <li class="nav-item d-none d-sm-inline-block">
         <a class="nav-link" href="#">Profile</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="logout.php" id="topLogout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
       </li>
     </ul>
   </nav>
   <!-- /.navbar -->
+  <script>
+    // Confirm logout click (small UX safeguard)
+    document.addEventListener('DOMContentLoaded', function(){
+      var el = document.getElementById('topLogout');
+      if(!el) return;
+      el.addEventListener('click', function(e){
+        if(!confirm('Are you sure you want to log out?')){
+          e.preventDefault();
+        }
+      });
+    });
+  </script>

@@ -73,9 +73,7 @@ $role = $_SESSION['role'] ?? 'user';
 
   <!-- Admins menu removed -->
 
-        <li class="nav-item mt-2">
-          <a href="logout.php" class="nav-link"><i class="nav-icon fas fa-sign-out-alt"></i><p>Logout</p></a>
-        </li>
+  <!-- Logout moved to top navbar for easier access -->
       </ul>
     </nav>
   </div>
