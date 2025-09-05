@@ -86,9 +86,11 @@ $(function(){
       { data: 'added_by_username', defaultContent: '' },
       { data: 'created_at' },
     { data: null, orderable: false, searchable: false, render: function(data,type,row){
-      return '<button class="btn btn-sm btn-primary btn-action view-btn" data-id="'+row.id+'">View</button> '
-         + ' <button class="btn btn-sm btn-info edit-btn" data-id="'+row.id+'">Edit</button> '
-         + ' <button class="btn btn-sm btn-danger del-btn" data-id="'+row.id+'">Delete</button>';
+      return '<div class="btn-group btn-group-sm btn-group-vertical action-buttons" role="group" aria-label="Actions">'
+         + '<button class="btn btn-primary btn-action view-btn" data-id="'+row.id+'">View</button>'
+         + '<button class="btn btn-info edit-btn" data-id="'+row.id+'">Edit</button>'
+         + '<button class="btn btn-danger del-btn" data-id="'+row.id+'">Delete</button>'
+         + '</div>';
     } }
     ],
     dom: 'Bfrtip',
