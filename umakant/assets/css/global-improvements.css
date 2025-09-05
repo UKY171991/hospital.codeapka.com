@@ -88,11 +88,41 @@ h1, h2, h3, h4, h5, h6 {
     border: 1px solid #e3e6f0;
     padding: 0.75rem 1rem;
     transition: var(--transition);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .form-control:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Global Select Field Fixes */
+select.form-control {
+    height: calc(1.5em + 0.75rem + 2px);
+    line-height: 1.5;
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 16px 12px;
+    padding-right: 2.5rem;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+select.form-control:focus {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23007bff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+}
+
+/* Ensure consistent sizing across all modals and forms */
+.modal .form-control,
+.modal select.form-control,
+.card .form-control,
+.card select.form-control {
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .form-group label {
