@@ -84,10 +84,10 @@ function loadPatients() {
     isLoading = true;
     showLoading();
 
-    const searchTerm = $('#searchInput').val();
-    const gender = $('#genderFilter').val();
-    const ageRange = $('#ageFilter').val();
-    const date = $('#dateFilter').val();
+    const searchTerm = $('#searchInput').val() || '';
+    const gender = $('#genderFilter').val() || '';
+    const ageRange = $('#ageFilter').val() || '';
+    const date = $('#dateFilter').val() || '';
 
     const filters = {
         search: searchTerm,
@@ -98,6 +98,8 @@ function loadPatients() {
         limit: recordsPerPage
     };
 
+    console.log('Loading patients with filters:', filters);
+
     $.ajax({
         url: 'ajax/patient_api.php',
         method: 'POST',
@@ -106,19 +108,40 @@ function loadPatients() {
             ...filters
         },
         dataType: 'json',
+        timeout: 30000,
         success: function(response) {
+            console.log('Patient list response:', response);
+            
             if (response.success) {
-                renderPatientsTable(response.data);
-                updatePagination(response.pagination);
+                renderPatientsTable(response.data || []);
+                updatePagination(response.pagination || {});
                 hideLoading();
             } else {
+                console.error('Failed to load patients:', response);
                 showError('Failed to load patients: ' + (response.message || 'Unknown error'));
                 showNoData();
             }
         },
         error: function(xhr, status, error) {
-            console.error('AJAX Error:', error);
-            showError('Failed to load patients. Please check your connection.');
+            console.error('AJAX Error details:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText,
+                error: error
+            });
+            
+            let errorMessage = 'Failed to load patients. ';
+            if (xhr.status === 0) {
+                errorMessage += 'Network connection error.';
+            } else if (xhr.status === 404) {
+                errorMessage += 'API endpoint not found.';
+            } else if (xhr.status >= 500) {
+                errorMessage += 'Server error.';
+            } else {
+                errorMessage += 'Please check your connection.';
+            }
+            
+            showError(errorMessage);
             showNoData();
         },
         complete: function() {
@@ -270,21 +293,42 @@ function changePage(page) {
  * Load statistics
  */
 function loadStats() {
+    console.log('Loading statistics...');
+    
     $.ajax({
         url: 'ajax/patient_api.php',
         method: 'POST',
         data: { action: 'stats' },
         dataType: 'json',
+        timeout: 15000,
         success: function(response) {
-            if (response.success) {
+            console.log('Stats response:', response);
+            
+            if (response.success && response.data) {
                 $('#totalPatients').text(response.data.total || 0);
                 $('#todayPatients').text(response.data.today || 0);
                 $('#malePatients').text(response.data.male || 0);
                 $('#femalePatients').text(response.data.female || 0);
+            } else {
+                console.error('Failed to load statistics:', response);
+                $('#totalPatients').text('0');
+                $('#todayPatients').text('0');
+                $('#malePatients').text('0');
+                $('#femalePatients').text('0');
             }
         },
-        error: function() {
-            console.log('Failed to load statistics');
+        error: function(xhr, status, error) {
+            console.error('Stats AJAX Error:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText,
+                error: error
+            });
+            
+            $('#totalPatients').text('0');
+            $('#todayPatients').text('0');
+            $('#malePatients').text('0');
+            $('#femalePatients').text('0');
         }
     });
 }

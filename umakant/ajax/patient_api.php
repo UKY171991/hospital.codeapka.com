@@ -1,19 +1,33 @@
 <?php
 require_once '../inc/connection.php';
-require_once '../inc/auth.php';
 
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
-// Enable error reporting for debugging
+// Enable error reporting for debugging but send to log, not output
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 try {
-    if (!isset($_POST['action']) && !isset($_GET['action'])) {
-        throw new Exception('No action specified');
+    // Handle preflight OPTIONS request
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(200);
+        exit;
     }
 
-    $action = $_POST['action'] ?? $_GET['action'];
+    $action = $_POST['action'] ?? $_GET['action'] ?? '';
+    
+    if (empty($action)) {
+        throw new Exception('No action specified');
+    }
 
     switch ($action) {
         case 'list':
@@ -38,13 +52,19 @@ try {
             handleExport();
             break;
         default:
-            throw new Exception('Invalid action');
+            throw new Exception('Invalid action: ' . $action);
     }
 } catch (Exception $e) {
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage()
+        'message' => $e->getMessage(),
+        'debug' => [
+            'action' => $action ?? 'not set',
+            'method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
+            'post_data' => !empty($_POST) ? array_keys($_POST) : 'empty',
+            'get_data' => !empty($_GET) ? array_keys($_GET) : 'empty'
+        ]
     ]);
 }
 
@@ -52,30 +72,63 @@ function handleList() {
     global $pdo;
     
     try {
+        // Check if the database connection is working
+        if (!$pdo) {
+            throw new Exception('Database connection not available');
+        }
+
         $page = max(1, (int)($_POST['page'] ?? 1));
         $limit = max(1, min(100, (int)($_POST['limit'] ?? 10)));
         $offset = ($page - 1) * $limit;
+        
+        // Check what columns exist in the patients table
+        $stmt = $pdo->query("SHOW COLUMNS FROM patients");
+        $columns = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        $hasGender = in_array('gender', $columns);
+        $hasSex = in_array('sex', $columns);
+        $hasCreatedAt = in_array('created_at', $columns);
         
         // Build WHERE clause
         $whereConditions = [];
         $params = [];
         
-        // Search filter
+        // Search filter - only search in columns that exist
         if (!empty($_POST['search'])) {
             $search = '%' . $_POST['search'] . '%';
-            $whereConditions[] = "(name LIKE ? OR mobile LIKE ? OR uhid LIKE ? OR email LIKE ?)";
-            $params = array_merge($params, [$search, $search, $search, $search]);
+            $searchConditions = ["name LIKE ?", "mobile LIKE ?"];
+            $searchParams = [$search, $search];
+            
+            if (in_array('uhid', $columns)) {
+                $searchConditions[] = "uhid LIKE ?";
+                $searchParams[] = $search;
+            }
+            if (in_array('email', $columns)) {
+                $searchConditions[] = "email LIKE ?";
+                $searchParams[] = $search;
+            }
+            
+            $whereConditions[] = "(" . implode(" OR ", $searchConditions) . ")";
+            $params = array_merge($params, $searchParams);
         }
         
-        // Gender filter - check both 'gender' and 'sex' columns
+        // Gender filter - check available gender columns
         if (!empty($_POST['gender'])) {
-            $whereConditions[] = "(gender = ? OR sex = ?)";
-            $params[] = $_POST['gender'];
-            $params[] = $_POST['gender'];
+            if ($hasGender && $hasSex) {
+                $whereConditions[] = "(gender = ? OR sex = ?)";
+                $params[] = $_POST['gender'];
+                $params[] = $_POST['gender'];
+            } elseif ($hasGender) {
+                $whereConditions[] = "gender = ?";
+                $params[] = $_POST['gender'];
+            } elseif ($hasSex) {
+                $whereConditions[] = "sex = ?";
+                $params[] = $_POST['gender'];
+            }
         }
         
-        // Age range filter
-        if (!empty($_POST['age_range'])) {
+        // Age range filter - only if age column exists
+        if (!empty($_POST['age_range']) && in_array('age', $columns)) {
             $ageRange = $_POST['age_range'];
             switch ($ageRange) {
                 case '0-18':
@@ -93,8 +146,8 @@ function handleList() {
             }
         }
         
-        // Date filter
-        if (!empty($_POST['date'])) {
+        // Date filter - only if created_at column exists
+        if (!empty($_POST['date']) && $hasCreatedAt) {
             $whereConditions[] = "DATE(created_at) = ?";
             $params[] = $_POST['date'];
         }
@@ -105,15 +158,37 @@ function handleList() {
         $countSql = "SELECT COUNT(*) FROM patients $whereClause";
         $countStmt = $pdo->prepare($countSql);
         $countStmt->execute($params);
-        $totalRecords = $countStmt->fetchColumn();
+        $totalRecords = $countStmt->fetchColumn() ?: 0;
         
-        // Get patients with pagination - handle both 'gender' and 'sex' columns
-        $sql = "SELECT id, name, uhid, mobile, email, age, age_unit, 
-                       COALESCE(gender, sex) as gender,
-                       father_husband, address, created_at, added_by 
+        // Build SELECT fields based on available columns
+        $selectFields = ['id', 'name'];
+        $optionalFields = ['uhid', 'mobile', 'email', 'age', 'age_unit', 'father_husband', 'address', 'added_by'];
+        
+        foreach ($optionalFields as $field) {
+            if (in_array($field, $columns)) {
+                $selectFields[] = $field;
+            }
+        }
+        
+        // Handle gender column
+        if ($hasGender && $hasSex) {
+            $selectFields[] = 'COALESCE(gender, sex) as gender';
+        } elseif ($hasGender) {
+            $selectFields[] = 'gender';
+        } elseif ($hasSex) {
+            $selectFields[] = 'sex as gender';
+        }
+        
+        // Add created_at if it exists
+        if ($hasCreatedAt) {
+            $selectFields[] = 'created_at';
+        }
+        
+        // Get patients with pagination
+        $sql = "SELECT " . implode(', ', $selectFields) . " 
                 FROM patients 
                 $whereClause 
-                ORDER BY created_at DESC 
+                ORDER BY " . ($hasCreatedAt ? "created_at DESC" : "id DESC") . "
                 LIMIT $limit OFFSET $offset";
         
         $stmt = $pdo->prepare($sql);
@@ -129,13 +204,26 @@ function handleList() {
             'pagination' => [
                 'current_page' => $page,
                 'total_pages' => $totalPages,
-                'total_records' => $totalRecords,
+                'total_records' => (int)$totalRecords,
                 'records_per_page' => $limit
+            ],
+            'debug' => [
+                'columns_available' => $columns,
+                'sql_executed' => $sql,
+                'where_conditions' => $whereConditions
             ]
         ]);
         
     } catch (Exception $e) {
-        throw new Exception('Failed to fetch patients: ' . $e->getMessage());
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to fetch patients: ' . $e->getMessage(),
+            'error_details' => [
+                'file' => __FILE__,
+                'line' => __LINE__,
+                'trace' => $e->getTraceAsString()
+            ]
+        ]);
     }
 }
 
@@ -349,34 +437,82 @@ function handleStats() {
     global $pdo;
     
     try {
+        // Check if the database connection is working
+        if (!$pdo) {
+            throw new Exception('Database connection not available');
+        }
+
+        // First, check what columns exist in the patients table
+        $stmt = $pdo->query("SHOW COLUMNS FROM patients");
+        $columns = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        $hasGender = in_array('gender', $columns);
+        $hasSex = in_array('sex', $columns);
+        $hasCreatedAt = in_array('created_at', $columns);
+        
         // Total patients
         $stmt = $pdo->query("SELECT COUNT(*) FROM patients");
-        $total = $stmt->fetchColumn();
+        $total = $stmt->fetchColumn() ?: 0;
         
-        // Today's patients
-        $stmt = $pdo->query("SELECT COUNT(*) FROM patients WHERE DATE(created_at) = CURDATE()");
-        $today = $stmt->fetchColumn();
+        // Today's patients - handle if created_at column doesn't exist
+        $today = 0;
+        if ($hasCreatedAt) {
+            $stmt = $pdo->query("SELECT COUNT(*) FROM patients WHERE DATE(created_at) = CURDATE()");
+            $today = $stmt->fetchColumn() ?: 0;
+        }
         
-        // Male patients - check both gender and sex columns
-        $stmt = $pdo->query("SELECT COUNT(*) FROM patients WHERE gender = 'Male' OR sex = 'Male'");
-        $male = $stmt->fetchColumn();
+        // Male patients - check available gender columns
+        $male = 0;
+        if ($hasGender && $hasSex) {
+            $stmt = $pdo->query("SELECT COUNT(*) FROM patients WHERE gender = 'Male' OR sex = 'Male'");
+            $male = $stmt->fetchColumn() ?: 0;
+        } elseif ($hasGender) {
+            $stmt = $pdo->query("SELECT COUNT(*) FROM patients WHERE gender = 'Male'");
+            $male = $stmt->fetchColumn() ?: 0;
+        } elseif ($hasSex) {
+            $stmt = $pdo->query("SELECT COUNT(*) FROM patients WHERE sex = 'Male'");
+            $male = $stmt->fetchColumn() ?: 0;
+        }
         
-        // Female patients - check both gender and sex columns
-        $stmt = $pdo->query("SELECT COUNT(*) FROM patients WHERE gender = 'Female' OR sex = 'Female'");
-        $female = $stmt->fetchColumn();
+        // Female patients - check available gender columns
+        $female = 0;
+        if ($hasGender && $hasSex) {
+            $stmt = $pdo->query("SELECT COUNT(*) FROM patients WHERE gender = 'Female' OR sex = 'Female'");
+            $female = $stmt->fetchColumn() ?: 0;
+        } elseif ($hasGender) {
+            $stmt = $pdo->query("SELECT COUNT(*) FROM patients WHERE gender = 'Female'");
+            $female = $stmt->fetchColumn() ?: 0;
+        } elseif ($hasSex) {
+            $stmt = $pdo->query("SELECT COUNT(*) FROM patients WHERE sex = 'Female'");
+            $female = $stmt->fetchColumn() ?: 0;
+        }
         
         echo json_encode([
             'success' => true,
             'data' => [
-                'total' => $total,
-                'today' => $today,
-                'male' => $male,
-                'female' => $female
+                'total' => (int)$total,
+                'today' => (int)$today,
+                'male' => (int)$male,
+                'female' => (int)$female
+            ],
+            'debug' => [
+                'columns_available' => $columns,
+                'has_gender' => $hasGender,
+                'has_sex' => $hasSex,
+                'has_created_at' => $hasCreatedAt
             ]
         ]);
         
     } catch (Exception $e) {
-        throw new Exception('Failed to fetch statistics: ' . $e->getMessage());
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to fetch statistics: ' . $e->getMessage(),
+            'error_details' => [
+                'file' => __FILE__,
+                'line' => __LINE__,
+                'trace' => $e->getTraceAsString()
+            ]
+        ]);
     }
 }
 
