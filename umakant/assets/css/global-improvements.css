@@ -48,6 +48,13 @@ h1, h2, h3, h4, h5, h6 {
     padding: 1rem 1.25rem;
 }
 
+/* Ensure card titles are visible and have consistent weight across themes */
+.card-header .card-title {
+    color: inherit; /* inherit from header (usually white or dark based on bg) */
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
 /* Enhanced Button Styling */
 .btn {
     border-radius: var(--border-radius);

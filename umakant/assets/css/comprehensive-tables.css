@@ -306,6 +306,8 @@
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-bottom: 1px solid #dee2e6;
     border-radius: 8px 8px 0 0 !important;
+    /* Ensure header text remains readable on light backgrounds */
+    color: #343a40;
 }
 
 .card-body {
