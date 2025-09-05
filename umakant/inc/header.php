@@ -65,6 +65,27 @@
     window.APP_LOG = function(){ if(window.APP_DEBUG && console && console.log){ console.log.apply(console, arguments); } };
   </script>
   <script>
+    // Quiet known noisy extension message in console which is outside our control.
+    // This filters console.error calls containing the specific runtime.lastError text
+    (function(){
+      try{
+        if(console && console.error){
+          var _origErr = console.error.bind(console);
+          console.error = function(){
+            try{
+              var msg = Array.prototype.slice.call(arguments).join(' ');
+              if(msg && msg.indexOf('The message port closed before a response was received') !== -1){
+                // ignore this noisy extension error
+                return;
+              }
+            }catch(e){ }
+            _origErr.apply(console, arguments);
+          };
+        }
+      }catch(e){}
+    })();
+  </script>
+  <script>
     // Confirm logout click (small UX safeguard)
     document.addEventListener('DOMContentLoaded', function(){
       var el = document.getElementById('topLogout');
