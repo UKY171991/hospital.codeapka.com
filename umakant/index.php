@@ -393,13 +393,13 @@ if (isset($counts['test_categories']) && $counts['test_categories'] === '--') {
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Initialize dashboard
-$(document).ready(function() {
-    initializeChart();
-    loadRecentActivity();
-    
-    // Auto-refresh stats every 5 minutes
-    setInterval(refreshStats, 300000);
+// Initialize dashboard using vanilla JS to avoid jQuery dependency timing issues
+document.addEventListener('DOMContentLoaded', function(){
+  initializeChart();
+  loadRecentActivity();
+
+  // Auto-refresh stats every 5 minutes
+  setInterval(refreshStats, 300000);
 });
 
 function initializeChart() {
@@ -516,32 +516,36 @@ function loadRecentActivity() {
     });
     html += '</div>';
     
-    setTimeout(() => {
-        $('#recentActivity').html(html);
-    }, 1000);
+  setTimeout(() => {
+    const el = document.getElementById('recentActivity');
+    if(el) el.innerHTML = html;
+  }, 1000);
 }
 
 function refreshStats() {
-  // Fetch latest counts from server and update stat boxes
-  $.getJSON('ajax/dashboard_counts.php').done(function(resp){
-    if(resp && resp.success && resp.counts){
-      var c = resp.counts;
-      if(typeof c.doctors !== 'undefined') $('#doctorsCount').text(c.doctors);
-      if(typeof c.patients !== 'undefined') $('#patientsCount').text(c.patients);
-      if(typeof c.entries !== 'undefined') $('#entriesCount').text(c.entries);
-      if(typeof c.tests !== 'undefined') $('#testsCount').text(c.tests);
-      if(typeof c.test_categories !== 'undefined') $('#testCategoriesCount').text(c.test_categories);
-      if(typeof c.plans !== 'undefined') $('#plansCount').text(c.plans);
-      if(typeof c.users !== 'undefined') $('#usersCount').text(c.users);
-      if(typeof c.notices !== 'undefined') $('#noticesCount').text(c.notices);
-      if(typeof c.owners !== 'undefined') $('#ownersCount').text(c.owners);
-      if(typeof c.uploads !== 'undefined') $('#uploadsCount').text(c.uploads);
-    } else {
-      console.warn('Dashboard counts response invalid', resp);
-    }
-  }).fail(function(){
-    console.warn('Failed to fetch dashboard counts');
-  });
+  // Fetch latest counts from server and update stat boxes using fetch API
+  fetch('ajax/dashboard_counts.php', {cache: 'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(resp){
+      if(resp && resp.success && resp.counts){
+        var c = resp.counts;
+        function setText(id, val){ var el = document.getElementById(id); if(el) el.textContent = val; }
+        if(typeof c.doctors !== 'undefined') setText('doctorsCount', c.doctors);
+        if(typeof c.patients !== 'undefined') setText('patientsCount', c.patients);
+        if(typeof c.entries !== 'undefined') setText('entriesCount', c.entries);
+        if(typeof c.tests !== 'undefined') setText('testsCount', c.tests);
+        if(typeof c.test_categories !== 'undefined') setText('testCategoriesCount', c.test_categories);
+        if(typeof c.plans !== 'undefined') setText('plansCount', c.plans);
+        if(typeof c.users !== 'undefined') setText('usersCount', c.users);
+        if(typeof c.notices !== 'undefined') setText('noticesCount', c.notices);
+        if(typeof c.owners !== 'undefined') setText('ownersCount', c.owners);
+        if(typeof c.uploads !== 'undefined') setText('uploadsCount', c.uploads);
+      } else {
+        console.warn('Dashboard counts response invalid', resp);
+      }
+    }).catch(function(){
+      console.warn('Failed to fetch dashboard counts');
+    });
 }
 </script>
 
