@@ -121,7 +121,7 @@ select.form-control:focus {
 .modal select.form-control,
 .card .form-control,
 .card select.form-control {
-    width: 100% !important;
+    /* width: 100% !important; */
     box-sizing: border-box !important;
 }
 
