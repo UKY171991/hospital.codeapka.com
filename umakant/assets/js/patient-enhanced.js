@@ -2,6 +2,28 @@
 let selectedPatients = new Set();
 let patientsDataTable;
 
+// Robust table reload helper: will try DataTable api, fallback to window.location.reload
+function reloadPatientsTable() {
+    try {
+        if (patientsDataTable && typeof patientsDataTable.ajax === 'object' && typeof patientsDataTable.ajax.reload === 'function') {
+            patientsDataTable.ajax.reload(null, false); // keep current paging
+            return;
+        }
+
+        // If other table manager variable exists (patientsDataTable may be null), try global table manager
+        if (typeof patientTableManager !== 'undefined' && patientTableManager && typeof patientTableManager.refreshData === 'function') {
+            patientTableManager.refreshData();
+            return;
+        }
+
+        // Fallback: reload the page to refresh data
+        window.location.reload();
+    } catch (err) {
+        console.error('reloadPatientsTable error:', err);
+        try { window.location.reload(); } catch(e) { /* last resort */ }
+    }
+}
+
 // Utility function wrappers for backward compatibility
 function showSuccess(message) {
     if (typeof toastr !== 'undefined') {
@@ -531,7 +553,7 @@ function savePatient() {
     .done(function(response) {
         if (response.success) {
             $('#patientModal').modal('hide');
-            patientsDataTable.ajax.reload();
+            reloadPatientsTable();
             loadPatientStats();
             
             const message = isEdit ? 'Patient updated successfully' : 'Patient added successfully';
@@ -564,7 +586,15 @@ function deletePatient(id) {
             $.post('ajax/patient_api.php', {action: 'delete', id: id})
                 .done(function(response) {
                     if (response.success) {
-                        patientsDataTable.ajax.reload();
+                        // Remove row immediately as a visual fallback
+                        try {
+                            const rowEl = $('#patientsTable').find(`input.patient-checkbox[value="${id}"]`).closest('tr');
+                            if (rowEl.length && patientsDataTable && typeof patientsDataTable.row === 'function') {
+                                patientsDataTable.row(rowEl).remove().draw(false);
+                            }
+                        } catch (e) { console.warn('row remove fallback failed', e); }
+
+                        reloadPatientsTable();
                         loadPatientStats();
                         showSuccess('Patient deleted successfully');
                     } else {
@@ -600,9 +630,26 @@ function bulkDeletePatients() {
             $.post('ajax/patient_api.php', {action: 'bulk_delete', ids: ids})
                 .done(function(response) {
                     if (response.success) {
+                        // Remove rows immediately as a visual fallback
+                        try {
+                            const idsArr = ids.map(id => String(id));
+                            $('#patientsTable').find('input.patient-checkbox').each(function() {
+                                const val = $(this).val();
+                                if (idsArr.indexOf(String(val)) !== -1) {
+                                    const r = $(this).closest('tr');
+                                    if (patientsDataTable && typeof patientsDataTable.row === 'function') {
+                                        patientsDataTable.row(r).remove();
+                                    } else {
+                                        r.remove();
+                                    }
+                                }
+                            });
+                            if (patientsDataTable && typeof patientsDataTable.draw === 'function') patientsDataTable.draw(false);
+                        } catch (e) { console.warn('bulk row remove fallback failed', e); }
+
                         selectedPatients.clear();
                         updateBulkActions();
-                        patientsDataTable.ajax.reload();
+                        reloadPatientsTable();
                         loadPatientStats();
                         showSuccess(`${selectedCount} patients deleted successfully`);
                     } else {
