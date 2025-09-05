@@ -17,14 +17,25 @@ require_once __DIR__ . '/../inc/ajax_helpers.php';
 session_start();
 
 $action = $_REQUEST['action'] ?? 'list';
+// Determine which categories table exists
+$categories_table = 'test_categories';
+try{
+    $stmt = $pdo->query("SHOW TABLES LIKE 'test_categories'");
+    if(!$stmt->fetch()){
+        $stmt2 = $pdo->query("SHOW TABLES LIKE 'categories'");
+        if($stmt2->fetch()) $categories_table = 'categories';
+    }
+}catch(Throwable $e){
+    $categories_table = 'test_categories';
+}
 
 if ($action === 'list') {
     // Support DataTables format with sequential numbering
-    $stmt = $pdo->query('SELECT c.id, c.name, c.description, c.added_by, u.username as added_by_username, 
+    $stmt = $pdo->query("SELECT c.id, c.name, c.description, c.added_by, u.username as added_by_username, 
         (SELECT COUNT(*) FROM tests t WHERE t.category_id = c.id) as test_count
-        FROM categories c 
+        FROM {$categories_table} c 
         LEFT JOIN users u ON c.added_by = u.id 
-        ORDER BY c.id DESC');
+        ORDER BY c.id DESC");
     $rows = $stmt->fetchAll();
     
     // Add sequential numbering
@@ -36,7 +47,7 @@ if ($action === 'list') {
 }
 
 if ($action === 'get' && isset($_GET['id'])) {
-    $stmt = $pdo->prepare('SELECT c.*, u.username as added_by_username FROM categories c LEFT JOIN users u ON c.added_by = u.id WHERE c.id = ?');
+    $stmt = $pdo->prepare("SELECT c.*, u.username as added_by_username FROM {$categories_table} c LEFT JOIN users u ON c.added_by = u.id WHERE c.id = ?");
     $stmt->execute([$_GET['id']]);
     $row = $stmt->fetch();
     json_response(['success' => true, 'data' => $row]);
@@ -57,7 +68,7 @@ if ($action === 'save') {
 
     if ($id) {
         try {
-            $stmt = $pdo->prepare('UPDATE categories SET name=?, description=?, updated_at=NOW() WHERE id=?');
+            $stmt = $pdo->prepare("UPDATE {$categories_table} SET name=?, description=?, updated_at=NOW() WHERE id=?");
             $stmt->execute([$name, $description, $id]);
             json_response(['success' => true, 'message' => 'Category updated']);
         } catch (PDOException $e) {
@@ -67,7 +78,7 @@ if ($action === 'save') {
         // set added_by from session user id when creating
         $added_by = $_SESSION['user_id'] ?? null;
         try {
-            $stmt = $pdo->prepare('INSERT INTO categories (name, description, added_by, created_at) VALUES (?, ?, ?, NOW())');
+            $stmt = $pdo->prepare("INSERT INTO {$categories_table} (name, description, added_by, created_at) VALUES (?, ?, ?, NOW())");
             $stmt->execute([$name, $description, $added_by]);
             json_response(['success' => true, 'message' => 'Category created']);
         } catch (PDOException $e) {
@@ -80,7 +91,7 @@ if ($action === 'delete' && isset($_POST['id'])) {
     // allow master and admin to delete categories
     if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) json_response(['success'=>false,'message'=>'Unauthorized'],401);
     try {
-        $stmt = $pdo->prepare('DELETE FROM categories WHERE id = ?');
+    $stmt = $pdo->prepare("DELETE FROM {$categories_table} WHERE id = ?");
         $stmt->execute([$_POST['id']]);
         json_response(['success' => true, 'message' => 'Category deleted']);
     } catch (PDOException $e) {

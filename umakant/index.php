@@ -29,7 +29,7 @@ try {
     $counts['tests'] = (int) $pdo->query('SELECT COUNT(*) FROM tests')->fetchColumn();
     // test categories count (used for dashboard card)
     try {
-      $counts['test_categories'] = (int) $pdo->query('SELECT COUNT(*) FROM test_categories')->fetchColumn();
+      $counts['test_categories'] = (int) $pdo->query('SELECT COUNT(*) FROM categories')->fetchColumn();
     } catch (Throwable $e) {
       $counts['test_categories'] = '--';
     }

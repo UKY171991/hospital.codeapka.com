@@ -15,9 +15,24 @@ try {
   }
   // test_categories separately
   try{
-    $counts['test_categories'] = (int) $pdo->query('SELECT COUNT(*) FROM test_categories')->fetchColumn();
+    // Prefer test_categories, but fall back to categories if present
+    $stmt = $pdo->query("SHOW TABLES LIKE 'test_categories'");
+    if($stmt->fetch()){
+      $counts['test_categories'] = (int) $pdo->query('SELECT COUNT(*) FROM test_categories')->fetchColumn();
+      $counts['test_categories_table'] = 'test_categories';
+    } else {
+      $stmt2 = $pdo->query("SHOW TABLES LIKE 'categories'");
+      if($stmt2->fetch()){
+        $counts['test_categories'] = (int) $pdo->query('SELECT COUNT(*) FROM categories')->fetchColumn();
+        $counts['test_categories_table'] = 'categories';
+      } else {
+        $counts['test_categories'] = '--';
+        $counts['test_categories_table'] = null;
+      }
+    }
   } catch (Throwable $e){
     $counts['test_categories'] = '--';
+    $counts['test_categories_table'] = null;
   }
   // uploads
   try{

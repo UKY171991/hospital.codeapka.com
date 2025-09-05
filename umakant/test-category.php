@@ -1,6 +1,19 @@
 <?php
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
+// Fetch total categories count for display in the page header
+$category_count = '--';
+try{
+    if(isset($pdo)){
+        $category_count = (int) $pdo->query('SELECT COUNT(*) FROM categories')->fetchColumn();
+    } else {
+        // try to include connection if not present
+        @include_once 'inc/connection.php';
+        if(isset($pdo)) $category_count = (int) $pdo->query('SELECT COUNT(*) FROM categories')->fetchColumn();
+    }
+} catch(Throwable $e){
+    $category_count = '--';
+}
 ?>
 
 <!-- Content Wrapper. Contains page content -->
@@ -10,7 +23,7 @@ require_once 'inc/sidebar.php';
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Test Categories</h1>
+                    <h1>Test Categories <small class="text-muted">(<?php echo htmlspecialchars($category_count); ?>)</small></h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
