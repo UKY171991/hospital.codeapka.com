@@ -318,3 +318,10 @@ $(document).ready(function() {
 
 // Make utils globally available
 window.utils = utils;
+
+// Show content in the global view modal
+utils.showViewModal = function(title, htmlContent){
+    $('#globalViewModalLabel').text(title || 'Details');
+    $('#globalViewModalBody').html(htmlContent || '<div class="text-muted">No details available</div>');
+    $('#globalViewModal').modal('show');
+};

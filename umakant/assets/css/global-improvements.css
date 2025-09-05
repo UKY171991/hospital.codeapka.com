@@ -73,6 +73,19 @@ h1, h2, h3, h4, h5, h6 {
     background: linear-gradient(45deg, var(--primary-color), #0056b3);
 }
 
+/* Make action buttons smaller and consistent across the app */
+.btn-sm, .btn-group .btn, .table .btn, .btn-action {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.85rem !important;
+    line-height: 1.2 !important;
+}
+
+/* tiny variant for icon-only buttons */
+.btn-xxs {
+    padding: 0.15rem 0.35rem !important;
+    font-size: 0.75rem !important;
+}
+
 .btn-success {
     background: linear-gradient(45deg, var(--success-color), #218838);
 }

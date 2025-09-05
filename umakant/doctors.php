@@ -85,10 +85,11 @@ $(function(){
       { data: 'percent', render: function(d){ return (d===null||d===undefined)? '': d; } },
       { data: 'added_by_username', defaultContent: '' },
       { data: 'created_at' },
-      { data: null, orderable: false, searchable: false, render: function(data,type,row){
-          return '<button class="btn btn-sm btn-info edit-btn" data-id="'+row.id+'">Edit</button> '
-               + ' <button class="btn btn-sm btn-danger del-btn" data-id="'+row.id+'">Delete</button>';
-      } }
+    { data: null, orderable: false, searchable: false, render: function(data,type,row){
+      return '<button class="btn btn-sm btn-primary btn-action view-btn" data-id="'+row.id+'">View</button> '
+         + ' <button class="btn btn-sm btn-info edit-btn" data-id="'+row.id+'">Edit</button> '
+         + ' <button class="btn btn-sm btn-danger del-btn" data-id="'+row.id+'">Delete</button>';
+    } }
     ],
     dom: 'Bfrtip',
     buttons: [ 'copy', 'csv', 'excel', 'pdf', 'print' ],
@@ -113,6 +114,28 @@ $(function(){
         $('#doctorModal').modal('show');
       } else {
         toastr.error(r.message || 'Failed to load doctor');
+      }
+    }, 'json');
+  });
+
+  // View handler (delegated) - uses global view modal
+  $('#doctorTable tbody').on('click', '.view-btn', function(){
+    var id = $(this).data('id');
+    $.get('ajax/doctor_api.php', { action: 'get', id: id }, function(r){
+      if(r.success){
+        var d = r.data;
+        var html = '<dl class="row">' +
+          '<dt class="col-sm-4">Name</dt><dd class="col-sm-8">'+(d.name||'')+'</dd>' +
+          '<dt class="col-sm-4">Hospital</dt><dd class="col-sm-8">'+(d.hospital||'')+'</dd>' +
+          '<dt class="col-sm-4">Contact No</dt><dd class="col-sm-8">'+(d.contact_no||'')+'</dd>' +
+          '<dt class="col-sm-4">Percent</dt><dd class="col-sm-8">'+(d.percent||'')+'</dd>' +
+          '<dt class="col-sm-4">Address</dt><dd class="col-sm-8">'+(d.address||'')+'</dd>' +
+          '<dt class="col-sm-4">Added By</dt><dd class="col-sm-8">'+(d.added_by_username||'')+'</dd>' +
+          '<dt class="col-sm-4">Created At</dt><dd class="col-sm-8">'+(d.created_at||'')+'</dd>' +
+          '</dl>';
+        utils.showViewModal('Doctor Details', html);
+      } else {
+        toastr.error(r.message||'Failed to load');
       }
     }, 'json');
   });
