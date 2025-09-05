@@ -20,7 +20,7 @@ let currentViewPatientId = null;
  * Initialize Patient Page
  */
 function initializePatientPage() {
-    console.log('Initializing Patient Management System...');
+    APP_LOG('Initializing Patient Management System...');
     
     // Initialize event listeners
     initializeEventListeners();
@@ -98,7 +98,7 @@ function loadPatients() {
         limit: recordsPerPage
     };
 
-    console.log('Loading patients with filters:', filters);
+    APP_LOG('Loading patients with filters:', filters);
 
     $.ajax({
         url: 'ajax/patient_api.php',
@@ -110,7 +110,7 @@ function loadPatients() {
         dataType: 'json',
         timeout: 30000,
         success: function(response) {
-            console.log('Patient list response:', response);
+            APP_LOG('Patient list response:', response);
             
             if (response.success) {
                 renderPatientsTable(response.data || []);
@@ -293,7 +293,7 @@ function changePage(page) {
  * Load statistics
  */
 function loadStats() {
-    console.log('Loading statistics...');
+    APP_LOG('Loading statistics...');
     
     $.ajax({
         url: 'ajax/patient_api.php',
@@ -302,7 +302,7 @@ function loadStats() {
         dataType: 'json',
         timeout: 15000,
         success: function(response) {
-            console.log('Stats response:', response);
+            APP_LOG('Stats response:', response);
             
             if (response.success && response.data) {
                 $('#totalPatients').text(response.data.total || 0);

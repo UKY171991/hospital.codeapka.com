@@ -21,7 +21,7 @@ $(document).ready(function() {
 });
 
 function initializeAllTables() {
-    console.log('Initializing all tables...');
+    APP_LOG('Initializing all tables...');
     
     // Check each table type and initialize only once
     if ($('#patientsTable').length > 0 && !window.initializedTables.has('patientsTable')) {
@@ -56,13 +56,13 @@ function initializeAllTables() {
 function destroyTableIfExists(tableId) {
     if ($.fn.DataTable.isDataTable('#' + tableId)) {
         $('#' + tableId).DataTable().destroy();
-        console.log('Destroyed existing DataTable:', tableId);
+        APP_LOG('Destroyed existing DataTable:', tableId);
     }
 }
 
 function markTableAsInitialized(tableId) {
     window.initializedTables.add(tableId);
-    console.log('Table initialized:', tableId);
+    APP_LOG('Table initialized:', tableId);
 }
 
 function getCommonTableConfig() {
@@ -123,7 +123,7 @@ function getCommonTableConfig() {
 }
 
 function initializePatientTable() {
-    console.log('Initializing Patient Table...');
+    APP_LOG('Initializing Patient Table...');
     destroyTableIfExists('patientsTable');
     
     try {
@@ -244,7 +244,7 @@ function initializePatientTable() {
 }
 
 function initializeUserTable() {
-    console.log('Initializing User Table...');
+    APP_LOG('Initializing User Table...');
     destroyTableIfExists('usersTable');
     
     try {
@@ -337,7 +337,7 @@ function initializeUserTable() {
 }
 
 function initializeTestTable() {
-    console.log('Initializing Test Table...');
+    APP_LOG('Initializing Test Table...');
     destroyTableIfExists('testsTable');
     
     try {
@@ -417,7 +417,7 @@ function initializeTestTable() {
 }
 
 function initializeDoctorTable() {
-    console.log('Initializing Doctor Table...');
+    APP_LOG('Initializing Doctor Table...');
     destroyTableIfExists('doctorsTable');
     
     try {
@@ -503,7 +503,7 @@ function initializeDoctorTable() {
 }
 
 function initializeTestCategoryTable() {
-    console.log('Initializing Test Category Table...');
+    APP_LOG('Initializing Test Category Table...');
     destroyTableIfExists('testCategoriesTable');
     
     try {
@@ -569,7 +569,7 @@ function initializeTestCategoryTable() {
 }
 
 function initializeGenericTable(tableId) {
-    console.log('Initializing Generic Table:', tableId);
+    APP_LOG('Initializing Generic Table:', tableId);
     destroyTableIfExists(tableId);
     
     try {
@@ -607,7 +607,7 @@ function showToast(type, message) {
     if (typeof toastr !== 'undefined') {
         toastr[type](message);
     } else {
-        console.log(`${type.toUpperCase()}: ${message}`);
+    APP_LOG(`${type.toUpperCase()}: ${message}`);
     }
 }
 

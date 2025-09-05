@@ -54,7 +54,7 @@ $(document).ready(function() {
         $('.table-enhanced').removeClass('table-loading');
     }, 1000);
     
-    console.log('Global utilities initialized successfully');
+    APP_LOG('Global utilities initialized successfully');
 });
 
 // Utility functions

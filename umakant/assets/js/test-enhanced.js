@@ -423,7 +423,7 @@ function refreshTests() {
 }
 
 function loadCategories() {
-    console.log('Loading categories...');
+    APP_LOG('Loading categories...');
     
     // Check if required elements exist
     if ($('#testCategory').length === 0) {
@@ -433,10 +433,10 @@ function loadCategories() {
     
     $.get('ajax/test_category_api.php', {action: 'list'})
         .done(function(response) {
-            console.log('Categories response:', response);
+            APP_LOG('Categories response:', response);
             if (response.success && response.data) {
                 if (response.data.length === 0) {
-                    console.log('No categories found');
+                    APP_LOG('No categories found');
                     // Show message that no categories exist
                     $('#testCategory').html('<option value="">No categories available</option>');
                     if ($('#categoryFilter').length > 0) {
@@ -458,7 +458,7 @@ function loadCategories() {
                         formOptions += `<option value="${category.id}">${category.name}</option>`;
                     });
                     $('#testCategory').html(formOptions);
-                    console.log('Categories loaded successfully:', response.data.length, 'categories');
+                    APP_LOG('Categories loaded successfully:', response.data.length, 'categories');
                 }
             } else {
                 console.error('Categories response invalid:', response);

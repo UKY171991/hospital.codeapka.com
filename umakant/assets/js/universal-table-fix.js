@@ -191,7 +191,7 @@ function fixPatientTable() {
                 }
             ]
         });
-        console.log('Patient table initialized successfully');
+                        APP_LOG('Patient table initialized successfully');
     } catch (error) {
         console.error('Error initializing patient table:', error);
         toastr.error('Failed to initialize patient table');
@@ -259,7 +259,7 @@ function fixDoctorTable() {
                 }
             ]
         });
-        console.log('Doctor table initialized successfully');
+    APP_LOG('Doctor table initialized successfully');
     } catch (error) {
         console.error('Error initializing doctor table:', error);
         toastr.error('Failed to initialize doctor table');
@@ -372,7 +372,7 @@ function fixTestTable() {
                 }
             ]
         });
-        console.log('Test table initialized successfully');
+    APP_LOG('Test table initialized successfully');
     } catch (error) {
         console.error('Error initializing test table:', error);
         toastr.error('Failed to initialize test table');
@@ -386,7 +386,7 @@ function fixGenericTable(tableSelector) {
             responsive: true,
             pageLength: 25
         });
-        console.log(`Generic table ${tableSelector} initialized successfully`);
+    APP_LOG(`Generic table ${tableSelector} initialized successfully`);
     } catch (error) {
         console.error(`Error initializing generic table ${tableSelector}:`, error);
     }
@@ -431,7 +431,7 @@ function showToast(message, type = 'info') {
     if (typeof toastr !== 'undefined') {
         toastr[type](message);
     } else {
-        console.log(`${type.toUpperCase()}: ${message}`);
+    APP_LOG(`${type.toUpperCase()}: ${message}`);
     }
 }
 

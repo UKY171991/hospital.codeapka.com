@@ -54,6 +54,13 @@
     </ul>
   </nav>
   <!-- /.navbar -->
+  <!-- Ensure jQuery is available early for inline scripts that run before footer -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    // Global debug flag - set to true to enable verbose logging
+    window.APP_DEBUG = false;
+    window.APP_LOG = function(){ if(window.APP_DEBUG && console && console.log){ console.log.apply(console, arguments); } };
+  </script>
   <script>
     // Confirm logout click (small UX safeguard)
     document.addEventListener('DOMContentLoaded', function(){

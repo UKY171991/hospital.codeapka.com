@@ -555,7 +555,7 @@ function applyFilters() {
             .done(function(response) {
                 if (response.success) {
                     // Handle response data
-                    console.log('Patients loaded:', response.data);
+                    APP_LOG('Patients loaded:', response.data);
                 } else {
                     showError('Error loading patients: ' + response.message);
                 }
