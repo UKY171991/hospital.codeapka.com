@@ -1,5 +1,5 @@
 <?php
-require_once '../inc/connection.php';
+require_once __DIR__ . '/../inc/connection.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -77,9 +77,22 @@ function handleList() {
             throw new Exception('Database connection not available');
         }
 
-        $page = max(1, (int)($_POST['page'] ?? 1));
-        $limit = max(1, min(100, (int)($_POST['limit'] ?? 10)));
-        $offset = ($page - 1) * $limit;
+        // Detect DataTables server-side params (draw, start, length)
+        $isDataTables = isset($_POST['draw']) || isset($_GET['draw']);
+
+        if ($isDataTables) {
+            $draw = (int)($_POST['draw'] ?? $_GET['draw'] ?? 0);
+            $start = (int)($_POST['start'] ?? $_GET['start'] ?? 0);
+            $length = (int)($_POST['length'] ?? $_GET['length'] ?? 10);
+            $limit = max(1, min(100, $length));
+            $offset = max(0, $start);
+            // For DataTables we will calculate current page for compatibility
+            $page = (int)floor($offset / $limit) + 1;
+        } else {
+            $page = max(1, (int)($_POST['page'] ?? 1));
+            $limit = max(1, min(100, (int)($_POST['limit'] ?? 10)));
+            $offset = ($page - 1) * $limit;
+        }
         
         // First, let's get a simple count of all patients
         $totalStmt = $pdo->query("SELECT COUNT(*) FROM patients");
@@ -109,9 +122,21 @@ function handleList() {
         $whereConditions = [];
         $params = [];
         
+        // Extract search value (support DataTables: search[value]) from POST or GET
+        $searchValue = null;
+        if (!empty($_POST['search']) && is_array($_POST['search']) && isset($_POST['search']['value'])) {
+            $searchValue = trim($_POST['search']['value']);
+        } elseif (!empty($_GET['search']) && is_array($_GET['search']) && isset($_GET['search']['value'])) {
+            $searchValue = trim($_GET['search']['value']);
+        } elseif (isset($_POST['search']) && !is_array($_POST['search'])) {
+            $searchValue = trim($_POST['search']);
+        } elseif (isset($_GET['search']) && !is_array($_GET['search'])) {
+            $searchValue = trim($_GET['search']);
+        }
+
         // Search filter - only search in columns that exist
-        if (!empty($_POST['search'])) {
-            $search = '%' . $_POST['search'] . '%';
+        if (!empty($searchValue)) {
+            $search = '%' . $searchValue . '%';
             $searchConditions = [];
             
             if (in_array('name', $columns)) {
@@ -137,13 +162,15 @@ function handleList() {
         }
         
         // Gender filter
-        if (!empty($_POST['gender'])) {
+        // Gender filter (accept from POST or GET)
+        $genderParam = $_POST['gender'] ?? $_GET['gender'] ?? null;
+        if ($genderParam) {
             if (in_array('gender', $columns)) {
                 $whereConditions[] = "gender = ?";
-                $params[] = $_POST['gender'];
+                $params[] = $genderParam;
             } elseif (in_array('sex', $columns)) {
                 $whereConditions[] = "sex = ?";
-                $params[] = $_POST['gender'];
+                $params[] = $genderParam;
             }
         }
         
@@ -190,6 +217,18 @@ function handleList() {
         // Calculate pagination info
         $totalPages = ceil($filteredRecords / $limit);
         
+        // If request came from DataTables, return DataTables-compatible response
+        if (!empty($isDataTables)) {
+            echo json_encode([
+                'draw' => $draw,
+                'recordsTotal' => (int)$totalRecords,
+                'recordsFiltered' => (int)$filteredRecords,
+                'data' => $patients
+            ]);
+            return;
+        }
+
+        // Default response for non-DataTables clients
         echo json_encode([
             'success' => true,
             'data' => $patients,
