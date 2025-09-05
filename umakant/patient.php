@@ -19,7 +19,7 @@ require_once 'inc/sidebar.php';
                     </ol>
                 </div>
             </div>
-        </div><!-- /.container-fluid -->
+        </div>
     </section>
 
     <!-- Main content -->
@@ -73,6 +73,7 @@ require_once 'inc/sidebar.php';
                 </div>
             </div>
 
+            <!-- Main Card -->
             <div class="row">
                 <div class="col-12">
                     <div class="card card-primary card-outline">
@@ -82,112 +83,88 @@ require_once 'inc/sidebar.php';
                                 Patient Directory
                             </h3>
                             <div class="card-tools">
-                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#patientModal" onclick="openAddPatientModal()">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="openAddPatientModal()">
                                     <i class="fas fa-plus"></i> Add New Patient
                                 </button>
-                                <button type="button" class="btn btn-success btn-sm" onclick="exportPatients()">
-                                    <i class="fas fa-download"></i> Export
-                                </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="maximize">
-                                    <i class="fas fa-expand"></i>
+                                <button type="button" class="btn btn-success btn-sm" onclick="exportAllPatients()">
+                                    <i class="fas fa-download"></i> Export All
                                 </button>
                             </div>
                         </div>
-                        <!-- /.card-header -->
+                        
+                        <!-- Card Body -->
                         <div class="card-body">
-                            
-                            <!-- Group Actions -->
-                            <div class="group-actions">
-                                <div class="row align-items-center">
-                                    <div class="col-md-6">
-                                        <div class="btn-group" role="group">
-                                            <button type="button" class="btn btn-outline-primary" onclick="selectAllPatients()">
-                                                <i class="fas fa-check-square"></i> Select All
-                                            </button>
-                                            <button type="button" class="btn btn-outline-secondary" onclick="deselectAllPatients()">
-                                                <i class="fas fa-square"></i> Deselect All
-                                            </button>
-                                        </div>
-                                        <div class="btn-group ml-2" role="group">
-                                            <button type="button" class="btn btn-outline-info" onclick="bulkExportPatients()">
-                                                <i class="fas fa-download"></i> Export Selected
-                                            </button>
-                                            <button type="button" class="btn btn-outline-danger" onclick="bulkDeletePatients()">
-                                                <i class="fas fa-trash"></i> Delete Selected
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 text-right">
-                                        <small class="text-muted">Select patients to perform bulk actions</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Bulk Actions Alert -->
-                            <div class="bulk-actions">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span>
-                                        <i class="fas fa-info-circle"></i>
-                                        <span class="selected-count">0</span> patients selected
-                                    </span>
-                                    <div>
-                                        <button class="btn btn-sm btn-info bulk-export">
-                                            <i class="fas fa-download"></i> Export
-                                        </button>
-                                        <button class="btn btn-sm btn-danger bulk-delete">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
                             <!-- Search and Filter Section -->
                             <div class="row mb-3">
                                 <div class="col-md-4">
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                        </div>
-                                        <input id="patientsSearch" class="form-control" placeholder="Search by name, mobile, UHID...">
+                                    <div class="form-group">
+                                        <label>Search Patients</label>
+                                        <input type="text" id="searchInput" class="form-control" placeholder="Search by name, mobile, UHID...">
                                     </div>
                                 </div>
                                 <div class="col-md-2">
-                                    <select id="genderFilter" class="form-control">
-                                        <option value="">All Genders</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Other">Other</option>
-                                    </select>
+                                    <div class="form-group">
+                                        <label>Gender</label>
+                                        <select id="genderFilter" class="form-control">
+                                            <option value="">All Genders</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="col-md-2">
-                                    <select id="ageRangeFilter" class="form-control">
-                                        <option value="">All Ages</option>
-                                        <option value="0-18">0-18 years</option>
-                                        <option value="19-35">19-35 years</option>
-                                        <option value="36-60">36-60 years</option>
-                                        <option value="60+">60+ years</option>
-                                    </select>
+                                    <div class="form-group">
+                                        <label>Age Range</label>
+                                        <select id="ageFilter" class="form-control">
+                                            <option value="">All Ages</option>
+                                            <option value="0-18">0-18 years</option>
+                                            <option value="19-35">19-35 years</option>
+                                            <option value="36-60">36-60 years</option>
+                                            <option value="60+">60+ years</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="date" id="dateFilter" class="form-control" title="Filter by registration date">
+                                    <div class="form-group">
+                                        <label>Registration Date</label>
+                                        <input type="date" id="dateFilter" class="form-control">
+                                    </div>
                                 </div>
                                 <div class="col-md-2">
-                                    <button class="btn btn-outline-secondary btn-block" onclick="clearFilters()">
-                                        <i class="fas fa-times"></i> Clear
-                                    </button>
+                                    <div class="form-group">
+                                        <label>&nbsp;</label>
+                                        <button class="btn btn-secondary btn-block" onclick="clearAllFilters()">
+                                            <i class="fas fa-times"></i> Clear
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bulk Actions -->
+                            <div id="bulkActions" class="alert alert-info" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <span id="selectedCount">0</span> patients selected
+                                    </div>
+                                    <div class="col-md-6 text-right">
+                                        <button class="btn btn-sm btn-info" onclick="bulkExport()">
+                                            <i class="fas fa-download"></i> Export Selected
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="bulkDelete()">
+                                            <i class="fas fa-trash"></i> Delete Selected
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Patients Table -->
                             <div class="table-responsive">
-                                <table id="patientsTable" class="table table-enhanced">
+                                <table id="patientsTable" class="table table-bordered table-striped">
                                     <thead>
                                         <tr>
-                                            <th width="40">
-                                                <input type="checkbox" id="selectAll" class="selection-checkbox">
+                                            <th width="40px">
+                                                <input type="checkbox" id="selectAll">
                                             </th>
                                             <th>UHID</th>
                                             <th>Patient Details</th>
@@ -196,7 +173,7 @@ require_once 'inc/sidebar.php';
                                             <th>Address</th>
                                             <th>Registration</th>
                                             <th>Added By</th>
-                                            <th width="120">Actions</th>
+                                            <th width="120px">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="patientsTableBody">
@@ -204,50 +181,55 @@ require_once 'inc/sidebar.php';
                                     </tbody>
                                 </table>
                             </div>
+
+                            <!-- Loading indicator -->
+                            <div id="loadingIndicator" class="text-center" style="display: none;">
+                                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                                <p>Loading patients...</p>
+                            </div>
+
+                            <!-- No data message -->
+                            <div id="noDataMessage" class="text-center" style="display: none;">
+                                <i class="fas fa-users fa-3x text-muted"></i>
+                                <p class="text-muted">No patients found</p>
+                            </div>
                         </div>
-                        <!-- /.card-body -->
+
+                        <!-- Card Footer with Pagination -->
                         <div class="card-footer">
                             <div class="row">
                                 <div class="col-sm-12 col-md-5">
-                                    <div class="dataTables_info" id="patientsInfo"></div>
+                                    <div id="paginationInfo"></div>
                                 </div>
                                 <div class="col-sm-12 col-md-7">
-                                    <div class="dataTables_paginate paging_simple_numbers" id="patientsPagination">
-                                        <!-- Pagination will be inserted here -->
-                                    </div>
+                                    <nav>
+                                        <ul id="pagination" class="pagination pagination-sm m-0 float-right">
+                                            <!-- Pagination will be inserted here -->
+                                        </ul>
+                                    </nav>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- /.card -->
                 </div>
-                <!-- /.col -->
             </div>
-            <!-- /.row -->
         </div>
-        <!-- /.container-fluid -->
     </section>
-    <!-- /.content -->
 </div>
-<!-- /.content-wrapper -->
-<!-- Patient Modal -->
-<div class="modal fade" id="patientModal" tabindex="-1" role="dialog" aria-labelledby="patientModalLabel" aria-hidden="true">
+
+<!-- Patient Add/Edit Modal -->
+<div class="modal fade" id="patientModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="patientModalLabel">
-                    <i class="fas fa-user-plus mr-2"></i>
-                    <span id="modalTitle">Add New Patient</span>
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <h5 class="modal-title" id="modalTitle">Add New Patient</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
                 </button>
             </div>
             <form id="patientForm">
                 <div class="modal-body">
                     <input type="hidden" id="patientId" name="id">
-                    <!-- Allow admin to set added_by; populated by JS when permitted -->
-                    <input type="hidden" id="patientAddedBy" name="added_by">
                     
                     <div class="row">
                         <div class="col-md-6">
@@ -364,28 +346,26 @@ require_once 'inc/sidebar.php';
 </div>
 
 <!-- View Patient Modal -->
-<div class="modal fade view-modal modal-enhanced" id="viewPatientModal" tabindex="-1" role="dialog" aria-labelledby="viewPatientModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
+<div class="modal fade" id="viewPatientModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="viewPatientModalLabel">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
                     <i class="fas fa-eye mr-2"></i>
                     Patient Details
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
                 </button>
             </div>
-            <div class="modal-body" id="viewPatientContent">
-                <div class="view-details" id="patientViewDetails">
-                    <!-- Patient details will be loaded here -->
-                </div>
+            <div class="modal-body" id="patientViewContent">
+                <!-- Patient details will be loaded here -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">
                     <i class="fas fa-times"></i> Close
                 </button>
-                <button type="button" class="btn btn-warning" onclick="editPatientFromView()">
+                <button type="button" class="btn btn-warning" onclick="editFromView()">
                     <i class="fas fa-edit"></i> Edit Patient
                 </button>
                 <button type="button" class="btn btn-info" onclick="printPatientDetails()">
@@ -396,10 +376,8 @@ require_once 'inc/sidebar.php';
     </div>
 </div>
 
-<!-- Page specific CSS -->
+<!-- Include custom CSS and JavaScript -->
 <link rel="stylesheet" href="assets/css/patient.css">
-
-<!-- Include Patient Enhanced JavaScript -->
-<script src="assets/js/patient-enhanced.js?v=<?php echo time(); ?>"></script>
+<script src="assets/js/patient-new.js?v=<?php echo time(); ?>"></script>
 
 <?php require_once 'inc/footer.php'; ?>
