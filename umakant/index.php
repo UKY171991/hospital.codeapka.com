@@ -15,6 +15,7 @@ $counts = [
   'plans' => '--',
   'entries' => '--',
   'tests' => '--',
+  'test_categories' => '--',
   'users' => '--',
 ];
 try {
@@ -26,6 +27,12 @@ try {
     $counts['plans'] = (int) $pdo->query('SELECT COUNT(*) FROM plans')->fetchColumn();
     $counts['entries'] = (int) $pdo->query('SELECT COUNT(*) FROM entries')->fetchColumn();
     $counts['tests'] = (int) $pdo->query('SELECT COUNT(*) FROM tests')->fetchColumn();
+    // test categories count (used for dashboard card)
+    try {
+      $counts['test_categories'] = (int) $pdo->query('SELECT COUNT(*) FROM test_categories')->fetchColumn();
+    } catch (Throwable $e) {
+      $counts['test_categories'] = '--';
+    }
     $counts['users'] = (int) $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
     // uploaded files: prefer zip_uploads table if available
     try {
@@ -42,6 +49,14 @@ try {
   }
 } catch (Throwable $e) {
   // keep placeholders if query fails; leave counts as '--'
+}
+
+// Debug visibility: admins or explicit query parameter
+$showDebugCounts = (isset($_GET['debug_counts']) && $_GET['debug_counts'] == 1) || (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
+
+// Log if test_categories count wasn't retrieved (helps diagnose missing table or DB error)
+if (isset($counts['test_categories']) && $counts['test_categories'] === '--') {
+  error_log('Dashboard: test_categories count unavailable - check table presence or query errors');
 }
 ?>
 
@@ -148,6 +163,21 @@ try {
                 <i class="fas fa-vial"></i>
               </div>
               <a href="test.php" class="small-box-footer">
+                View Details <i class="fas fa-arrow-circle-right"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-gradient-teal shadow">
+              <div class="inner">
+                <h3 id="testCategoriesCount"><?php echo htmlspecialchars($counts['test_categories']); ?></h3>
+                <p>Test Categories</p>
+              </div>
+              <div class="icon">
+                <i class="fas fa-th-list"></i>
+              </div>
+              <a href="test-category.php" class="small-box-footer">
                 View Details <i class="fas fa-arrow-circle-right"></i>
               </a>
             </div>
@@ -342,6 +372,21 @@ try {
             </div>
           </div>
         </div>
+        <?php if (!empty($showDebugCounts)): ?>
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="card card-outline card-danger">
+              <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-bug mr-1"></i> Debug: Dashboard Counts</h3>
+              </div>
+              <div class="card-body">
+                <pre><?php echo htmlspecialchars(print_r($counts, true)); ?></pre>
+                <p class="text-muted">If any value shows <strong>--</strong>, the corresponding DB query may have failed or the table is missing.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <?php endif; ?>
       </div>
     </div>
   </div>
@@ -569,6 +614,10 @@ function refreshStats() {
 
 .bg-gradient-primary {
     background: linear-gradient(45deg, #007bff, #6f42c1) !important;
+}
+
+.bg-gradient-teal {
+  background: linear-gradient(45deg, #20c997, #17a2b8) !important;
 }
 
 .shadow {
