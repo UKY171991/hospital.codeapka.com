@@ -74,9 +74,21 @@
           console.error = function(){
             try{
               var msg = Array.prototype.slice.call(arguments).join(' ');
-              if(msg && msg.indexOf('The message port closed before a response was received') !== -1){
-                // ignore this noisy extension error
-                return;
+              if(msg){
+                var lower = msg.toLowerCase();
+                var noisy = [
+                  'the message port closed before a response was received',
+                  'could not establish connection',
+                  'messagenotsenterror',
+                  'cookiemanager.injectclientscript',
+                  'registerclientlocalizationserror'
+                ];
+                for(var i=0;i<noisy.length;i++){
+                  if(lower.indexOf(noisy[i]) !== -1){
+                    // ignore this noisy extension error
+                    return;
+                  }
+                }
               }
             }catch(e){ }
             _origErr.apply(console, arguments);
@@ -84,6 +96,25 @@
         }
       }catch(e){}
     })();
+  </script>
+  <script>
+    // Suppress noisy unhandled promise rejection messages originating from extensions
+    window.addEventListener('unhandledrejection', function(ev){
+      try{
+        var reason = ev && ev.reason;
+        if(!reason) return;
+        var msg = (reason && (reason.message || reason.toString && reason.toString())) || '';
+        if(!msg) return;
+        var m = msg.toLowerCase();
+        var noisy = ['the message port closed before a response was received', 'could not establish connection', 'messagenotsenterror', 'registerclientlocalizationserror', 'cookiemanager.injectclientscript'];
+        for(var i=0;i<noisy.length;i++){
+          if(m.indexOf(noisy[i]) !== -1){
+            ev.preventDefault(); // stop default logging
+            return;
+          }
+        }
+      }catch(e){ }
+    }, true);
   </script>
   <script>
     // Confirm logout click (small UX safeguard)
