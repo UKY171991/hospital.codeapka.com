@@ -107,6 +107,21 @@ $(document).ready(function() {
     bindPatientEvents();
 });
 
+// Fix layout when patient modal is shown: force reflow and adjust select widths
+$(document).on('shown.bs.modal', '#patientModal', function() {
+    // trigger reflow
+    $(this).find('select.form-control, input.form-control').each(function() {
+        const el = this;
+        el.style.display = 'none';
+        // force reflow
+        void el.offsetHeight;
+        el.style.display = '';
+    });
+
+    // If DataTable is present, redraw to avoid layout shifts under modal
+    try { if (patientsDataTable && typeof patientsDataTable.columns === 'function') patientsDataTable.columns.adjust(); } catch(e) {}
+});
+
 function initializePatientsTable() {
     patientsDataTable = $('#patientsTable').DataTable({
         processing: true,
