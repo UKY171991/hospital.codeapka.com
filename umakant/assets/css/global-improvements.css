@@ -279,57 +279,61 @@ select.form-control:focus {
 
 /* Grouped action buttons in table cells: stacked, compact, centered */
 /* Applies when buttons are wrapped in .action-buttons or when .btn-action buttons appear directly in a cell (doctors.php) */
+/* Action buttons: stacked and right-aligned inside the Actions cell */
 .action-buttons,
 #doctorTable .action-buttons,
 table.dataTable td .action-buttons {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    align-items: center;
+    gap: 4px; /* tighter stack */
+    align-items: flex-end; /* align to right edge of the cell */
     justify-content: center;
+    width: 100%;
+    padding-right: 8px; /* small inset from cell edge */
+    box-sizing: border-box;
 }
 
 /* Compact button sizing for action buttons */
 .action-buttons .btn,
 #doctorTable td .btn-action,
 table.dataTable td .btn-action {
-    display: block; /* stack if multiple */
-    min-width: 56px;
+    display: block; /* stack when vertical */
+    min-width: 56px; /* compact but readable */
     width: auto;
-    padding: .25rem .5rem;
+    padding: .28rem .55rem;
     font-size: .78rem;
     line-height: 1.1;
     text-align: center;
 }
 
-/* Ensure consistent spacing inside the actions column */
+/* Keep actions column vertically centered and prevent wrapping issues */
 #doctorTable td,
 table.dataTable td:last-child {
-    white-space: nowrap;
     vertical-align: middle;
 }
 
-/* Small visual tweak: slightly rounded, subtle shadow for grouped buttons */
+/* Slight rounding and subtle shadow for grouped buttons */
 .action-buttons .btn,
 #doctorTable td .btn-action {
     border-radius: 6px;
     box-shadow: 0 1px 0 rgba(0,0,0,0.06);
 }
 
-/* Responsive: keep buttons usable on very small screens */
+/* Responsive: horizontal layout on very small screens, right-aligned */
 @media (max-width: 480px) {
     .action-buttons,
     #doctorTable .action-buttons,
     table.dataTable td .action-buttons {
         flex-direction: row;
         gap: 6px;
+        justify-content: flex-end;
     }
     .action-buttons .btn,
     #doctorTable td .btn-action {
         display: inline-block;
-        min-width: 42px;
+        min-width: 44px;
         font-size: .72rem;
-        padding: .2rem .45rem;
+        padding: .18rem .45rem;
     }
 }
 .avatar-circle:hover {
