@@ -399,4 +399,7 @@ require_once 'inc/sidebar.php';
 <!-- Page specific CSS -->
 <link rel="stylesheet" href="assets/css/patient.css">
 
+<!-- Include Patient Enhanced JavaScript -->
+<script src="assets/js/patient-enhanced.js?v=<?php echo time(); ?>"></script>
+
 <?php require_once 'inc/footer.php'; ?>

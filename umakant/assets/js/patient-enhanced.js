@@ -2,7 +2,83 @@
 let selectedPatients = new Set();
 let patientsDataTable;
 
+// Utility function wrappers for backward compatibility
+function showSuccess(message) {
+    if (typeof toastr !== 'undefined') {
+        toastr.success(message);
+    } else if (window.utils) {
+        utils.showSuccess(message);
+    } else {
+        alert(message);
+    }
+}
+
+function showError(message) {
+    if (typeof toastr !== 'undefined') {
+        toastr.error(message);
+    } else if (window.utils) {
+        utils.showError(message);
+    } else {
+        alert('Error: ' + message);
+    }
+}
+
+function showWarning(message) {
+    if (typeof toastr !== 'undefined') {
+        toastr.warning(message);
+    } else if (window.utils) {
+        utils.showWarning(message);
+    } else {
+        alert('Warning: ' + message);
+    }
+}
+
+function showInfo(message) {
+    if (typeof toastr !== 'undefined') {
+        toastr.info(message);
+    } else if (window.utils) {
+        utils.showInfo(message);
+    } else {
+        alert('Info: ' + message);
+    }
+}
+
+function showLoading() {
+    if (window.utils) {
+        utils.showLoading();
+    } else {
+        $('#loadingIndicator').show();
+    }
+}
+
+function hideLoading() {
+    if (window.utils) {
+        utils.hideLoading();
+    } else {
+        $('#loadingIndicator').hide();
+    }
+}
+
+function showConfirmDialog(title, message, type = 'danger') {
+    return new Promise((resolve) => {
+        if (window.utils && utils.confirm) {
+            utils.confirm(message, title).then(resolve);
+        } else {
+            resolve(confirm(message));
+        }
+    });
+}
+
 $(document).ready(function() {
+    // Add global loading indicator if it doesn't exist
+    if ($('#loadingIndicator').length === 0) {
+        $('body').append(`
+            <div id="loadingIndicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px;">
+                <i class="fas fa-spinner fa-spin"></i> Loading...
+            </div>
+        `);
+    }
+    
     // Initialize DataTable properly
     initializePatientsTable();
     loadPatientStats();
@@ -66,7 +142,7 @@ function initializePatientsTable() {
                 data: null,
                 render: function(data, type, row) {
                     return `${row.age || 'N/A'} ${row.age_unit || ''}<br>
-                            <small class="text-muted">${row.gender || 'N/A'}</small>`;
+                            <small class="text-muted">${row.sex || row.gender || 'N/A'}</small>`;
                 }
             },
             {
@@ -150,6 +226,12 @@ function bindPatientEvents() {
         updateBulkActions();
     });
     
+    // Select all checkbox
+    $(document).on('change', '#selectAll', function() {
+        const isChecked = $(this).is(':checked');
+        $('.patient-checkbox').prop('checked', isChecked).trigger('change');
+    });
+    
     // Form submission
     $('#patientForm').on('submit', function(e) {
         e.preventDefault();
@@ -163,6 +245,15 @@ function bindPatientEvents() {
     
     $('#patientsSearch').on('input', function() {
         applyFilters();
+    });
+    
+    // Bulk action buttons
+    $('.bulk-export, .bulk-delete').on('click', function() {
+        if ($(this).hasClass('bulk-export')) {
+            bulkExportPatients();
+        } else if ($(this).hasClass('bulk-delete')) {
+            bulkDeletePatients();
+        }
     });
 }
 
@@ -194,8 +285,112 @@ function updateBulkActions() {
 function openAddPatientModal() {
     $('#patientForm')[0].reset();
     $('#patientId').val('');
-    $('#patientModalLabel .modal-title-text').text('Add New Patient');
+    $('#modalTitle').text('Add New Patient');
     $('#patientModal').modal('show');
+    
+    // Generate UHID for new patient
+    generateUHID();
+}
+
+function generateUHID() {
+    // Generate a random UHID
+    const uhid = 'P' + Date.now().toString().slice(-8);
+    $('#patientUHID').val(uhid);
+}
+
+function applyFilters() {
+    if (patientsDataTable) {
+        const searchValue = $('#patientsSearch').val();
+        patientsDataTable.search(searchValue).draw();
+    }
+}
+
+function clearFilters() {
+    $('#patientsSearch').val('');
+    $('#genderFilter').val('');
+    $('#ageRangeFilter').val('');
+    $('#dateFilter').val('');
+    if (patientsDataTable) {
+        patientsDataTable.search('').draw();
+    }
+}
+
+function exportPatients() {
+    showLoading();
+    
+    $.get('ajax/patient_api.php?action=export')
+        .done(function(response) {
+            if (response.success && response.data) {
+                exportToCSV(response.data, 'patients_export.csv');
+                showSuccess('Patients exported successfully');
+            } else {
+                showError('Failed to export patients: ' + (response.message || 'Unknown error'));
+            }
+        })
+        .fail(function() {
+            showError('Error exporting patients');
+        })
+        .always(function() {
+            hideLoading();
+        });
+}
+
+function exportToCSV(data, filename) {
+    const csvRows = [];
+    
+    // Headers
+    const headers = ['UHID', 'Name', 'Mobile', 'Email', 'Age', 'Age Unit', 'Gender', 'Father/Husband', 'Address', 'Registration Date'];
+    csvRows.push(headers.join(','));
+    
+    // Data rows
+    data.forEach(row => {
+        const values = [
+            row.uhid || '',
+            row.name || '',
+            row.mobile || '',
+            row.email || '',
+            row.age || '',
+            row.age_unit || '',
+            row.gender || '',
+            row.father_husband || '',
+            (row.address || '').replace(/,/g, ';'),
+            row.created_at ? new Date(row.created_at).toLocaleDateString() : ''
+        ];
+        csvRows.push(values.map(val => `"${val}"`).join(','));
+    });
+    
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function printPatientDetails() {
+    const printContent = $('#patientViewDetails').html();
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Patient Details</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .detail-item { margin-bottom: 10px; }
+                .detail-label { font-weight: bold; }
+                .detail-value { margin-left: 10px; }
+            </style>
+        </head>
+        <body>
+            <h2>Patient Details</h2>
+            ${printContent}
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
 }
 
 function viewPatient(id) {
@@ -248,8 +443,8 @@ function displayPatientDetails(patient) {
         <div class="detail-item">
             <div class="detail-label">Gender</div>
             <div class="detail-value">
-                <span class="status-badge ${patient.gender ? 'status-active' : 'status-inactive'}">
-                    ${patient.gender || 'Not specified'}
+                <span class="status-badge ${(patient.sex || patient.gender) ? 'status-active' : 'status-inactive'}">
+                    ${patient.sex || patient.gender || 'Not specified'}
                 </span>
             </div>
         </div>
@@ -284,7 +479,7 @@ function editPatient(id) {
         .done(function(response) {
             if (response.success) {
                 populatePatientForm(response.data);
-                $('#patientModalLabel .modal-title-text').text('Edit Patient');
+                $('#modalTitle').text('Edit Patient');
                 $('#patientModal').modal('show');
                 showSuccess('Patient data loaded for editing');
             } else {
@@ -312,9 +507,10 @@ function populatePatientForm(patient) {
     $('#patientEmail').val(patient.email);
     $('#patientAge').val(patient.age);
     $('#patientAgeUnit').val(patient.age_unit);
-    $('#patientGender').val(patient.gender);
+    $('#patientGender').val(patient.sex || patient.gender);
     $('#patientFatherHusband').val(patient.father_husband);
     $('#patientAddress').val(patient.address);
+    $('#patientUHID').val(patient.uhid);
 }
 
 function savePatient() {
