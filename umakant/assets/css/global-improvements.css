@@ -293,6 +293,10 @@ table.dataTable td .action-buttons {
     box-sizing: border-box;
 }
 
+.btn-group-vertical {
+    flex-direction: row;
+}
+
 /* Compact button sizing for action buttons */
 .action-buttons .btn,
 #doctorTable td .btn-action,
