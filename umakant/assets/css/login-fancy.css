@@ -1,0 +1,82 @@
+/* Fancy login styles for login.php - keep it lightweight and override AdminLTE where needed */
+:root{
+    --brand-color:#3c8dbc; /* blue */
+    --accent:#00a65a; /* green */
+    --bg:#f4f6f9;
+}
+body.login-page{
+    background: linear-gradient(180deg, #e9f2fb 0%, #f7fbff 100%);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.login-box{
+    width:420px;
+    max-width:92%;
+    margin:20px auto;
+}
+.login-logo .brand{
+    display:inline-block;
+    text-decoration:none;
+    text-align:center;
+}
+.brand-main{
+    display:block;
+    font-weight:700;
+    color:var(--brand-color);
+    font-size:20px;
+}
+.brand-sub{
+    display:block;
+    font-size:12px;
+    color:#666;
+    margin-top:2px;
+}
+.card{
+    border-radius:12px;
+    box-shadow:0 8px 30px rgba(35,47,81,0.12);
+    overflow:hidden;
+}
+.login-card-body{
+    padding:30px;
+}
+.login-box-msg{
+    font-size:16px;
+    margin-bottom:18px;
+    color:#333;
+}
+.input-group .form-control{
+    border-radius:8px;
+    border:1px solid #e3e8ef;
+    background: #fff;
+}
+.input-group .input-group-text{
+    background:transparent;
+    border-left:0;
+}
+.password-toggle{
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+.toggle-pass{
+    border:0;
+    background:transparent;
+    padding:0 4px;
+}
+.btn-primary{
+    background: linear-gradient(90deg,var(--brand-color),#2b6fa7);
+    border:0;
+    border-radius:8px;
+    padding:10px 14px;
+    box-shadow:0 6px 18px rgba(60,141,188,0.18);
+}
+.alert{
+    border-radius:8px;
+}
+/* small screens */
+@media (max-width:420px){
+    .login-box{ padding:12px; }
+    .login-card-body{ padding:18px; }
+}

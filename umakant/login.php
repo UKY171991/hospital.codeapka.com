@@ -90,11 +90,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/css/adminlte.min.css">
     <!-- Toastr -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <!-- Custom fancy login styles -->
+    <link rel="stylesheet" href="assets/css/login-fancy.css">
 </head>
 <body class="hold-transition login-page">
 <div class="login-box">
     <div class="login-logo">
-        <a href="login.php"><b>Pathology Lab</b> Management</a>
+        <a href="login.php" class="brand"><span class="brand-main">Pathology Lab</span>
+            <span class="brand-sub">Management</span></a>
     </div>
     <!-- /.login-logo -->
     <div class="card">
@@ -115,10 +118,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 </div>
                 <div class="input-group mb-3">
-                    <input type="password" class="form-control" placeholder="Password" name="password" required>
+                    <input type="password" class="form-control" placeholder="Password" name="password" id="password" required>
                     <div class="input-group-append">
-                        <div class="input-group-text">
+                        <div class="input-group-text password-toggle">
                             <span class="fas fa-lock"></span>
+                            <button type="button" class="btn btn-sm btn-link text-secondary toggle-pass" aria-label="Show password"><span class="fas fa-eye"></span></button>
                         </div>
                     </div>
                 </div>
@@ -133,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                     <!-- /.col -->
                     <div class="col-4">
-                        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                        <button type="submit" class="btn btn-primary btn-block btn-lg">Sign In</button>
                     </div>
                     <!-- /.col -->
                 </div>
@@ -188,5 +192,7 @@ $(function(){
     });
 });
 </script>
+<!-- Fancy login JS -->
+<script src="assets/js/login-fancy.js"></script>
 </body>
 </html>
