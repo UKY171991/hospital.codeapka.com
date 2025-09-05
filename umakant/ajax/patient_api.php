@@ -81,114 +81,106 @@ function handleList() {
         $limit = max(1, min(100, (int)($_POST['limit'] ?? 10)));
         $offset = ($page - 1) * $limit;
         
+        // First, let's get a simple count of all patients
+        $totalStmt = $pdo->query("SELECT COUNT(*) FROM patients");
+        $totalRecords = $totalStmt->fetchColumn() ?: 0;
+        
+        // If no patients exist, return empty result
+        if ($totalRecords == 0) {
+            echo json_encode([
+                'success' => true,
+                'data' => [],
+                'pagination' => [
+                    'current_page' => 1,
+                    'total_pages' => 0,
+                    'total_records' => 0,
+                    'records_per_page' => $limit
+                ],
+                'message' => 'No patients found in database'
+            ]);
+            return;
+        }
+        
         // Check what columns exist in the patients table
         $stmt = $pdo->query("SHOW COLUMNS FROM patients");
         $columns = $stmt->fetchAll(PDO::FETCH_COLUMN);
         
-        $hasGender = in_array('gender', $columns);
-        $hasSex = in_array('sex', $columns);
-        $hasCreatedAt = in_array('created_at', $columns);
-        
-        // Build WHERE clause
+        // Build basic WHERE clause for filtering
         $whereConditions = [];
         $params = [];
         
         // Search filter - only search in columns that exist
         if (!empty($_POST['search'])) {
             $search = '%' . $_POST['search'] . '%';
-            $searchConditions = ["name LIKE ?", "mobile LIKE ?"];
-            $searchParams = [$search, $search];
+            $searchConditions = [];
             
+            if (in_array('name', $columns)) {
+                $searchConditions[] = "name LIKE ?";
+                $params[] = $search;
+            }
+            if (in_array('mobile', $columns)) {
+                $searchConditions[] = "mobile LIKE ?";
+                $params[] = $search;
+            }
             if (in_array('uhid', $columns)) {
                 $searchConditions[] = "uhid LIKE ?";
-                $searchParams[] = $search;
+                $params[] = $search;
             }
             if (in_array('email', $columns)) {
                 $searchConditions[] = "email LIKE ?";
-                $searchParams[] = $search;
+                $params[] = $search;
             }
             
-            $whereConditions[] = "(" . implode(" OR ", $searchConditions) . ")";
-            $params = array_merge($params, $searchParams);
+            if (!empty($searchConditions)) {
+                $whereConditions[] = "(" . implode(" OR ", $searchConditions) . ")";
+            }
         }
         
-        // Gender filter - check available gender columns
+        // Gender filter
         if (!empty($_POST['gender'])) {
-            if ($hasGender && $hasSex) {
-                $whereConditions[] = "(gender = ? OR sex = ?)";
-                $params[] = $_POST['gender'];
-                $params[] = $_POST['gender'];
-            } elseif ($hasGender) {
+            if (in_array('gender', $columns)) {
                 $whereConditions[] = "gender = ?";
                 $params[] = $_POST['gender'];
-            } elseif ($hasSex) {
+            } elseif (in_array('sex', $columns)) {
                 $whereConditions[] = "sex = ?";
                 $params[] = $_POST['gender'];
             }
         }
         
-        // Age range filter - only if age column exists
-        if (!empty($_POST['age_range']) && in_array('age', $columns)) {
-            $ageRange = $_POST['age_range'];
-            switch ($ageRange) {
-                case '0-18':
-                    $whereConditions[] = "age BETWEEN 0 AND 18";
-                    break;
-                case '19-35':
-                    $whereConditions[] = "age BETWEEN 19 AND 35";
-                    break;
-                case '36-60':
-                    $whereConditions[] = "age BETWEEN 36 AND 60";
-                    break;
-                case '60+':
-                    $whereConditions[] = "age > 60";
-                    break;
-            }
-        }
-        
-        // Date filter - only if created_at column exists
-        if (!empty($_POST['date']) && $hasCreatedAt) {
-            $whereConditions[] = "DATE(created_at) = ?";
-            $params[] = $_POST['date'];
-        }
-        
         $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
         
-        // Count total records
+        // Count filtered records
         $countSql = "SELECT COUNT(*) FROM patients $whereClause";
         $countStmt = $pdo->prepare($countSql);
         $countStmt->execute($params);
-        $totalRecords = $countStmt->fetchColumn() ?: 0;
+        $filteredRecords = $countStmt->fetchColumn() ?: 0;
         
         // Build SELECT fields based on available columns
-        $selectFields = ['id', 'name'];
-        $optionalFields = ['uhid', 'mobile', 'email', 'age', 'age_unit', 'father_husband', 'address', 'added_by'];
+        $selectFields = ['id'];
         
-        foreach ($optionalFields as $field) {
+        // Add columns that commonly exist
+        $commonFields = ['name', 'uhid', 'mobile', 'email', 'age', 'age_unit', 'father_husband', 'address', 'created_at', 'added_by'];
+        foreach ($commonFields as $field) {
             if (in_array($field, $columns)) {
                 $selectFields[] = $field;
             }
         }
         
         // Handle gender column
-        if ($hasGender && $hasSex) {
+        if (in_array('gender', $columns) && in_array('sex', $columns)) {
             $selectFields[] = 'COALESCE(gender, sex) as gender';
-        } elseif ($hasGender) {
+        } elseif (in_array('gender', $columns)) {
             $selectFields[] = 'gender';
-        } elseif ($hasSex) {
+        } elseif (in_array('sex', $columns)) {
             $selectFields[] = 'sex as gender';
         }
         
-        // Add created_at if it exists
-        if ($hasCreatedAt) {
-            $selectFields[] = 'created_at';
-        }
-        
         // Get patients with pagination
+        $orderBy = in_array('created_at', $columns) ? "created_at DESC" : "id DESC";
         $sql = "SELECT " . implode(', ', $selectFields) . " 
                 FROM patients 
                 $whereClause 
-                ORDER BY " . ($hasCreatedAt ? "created_at DESC" : "id DESC") . "
+                ORDER BY $orderBy
                 LIMIT $limit OFFSET $offset";
         
         $stmt = $pdo->prepare($sql);
@@ -196,7 +188,7 @@ function handleList() {
         $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Calculate pagination info
-        $totalPages = ceil($totalRecords / $limit);
+        $totalPages = ceil($filteredRecords / $limit);
         
         echo json_encode([
             'success' => true,
@@ -204,13 +196,16 @@ function handleList() {
             'pagination' => [
                 'current_page' => $page,
                 'total_pages' => $totalPages,
-                'total_records' => (int)$totalRecords,
+                'total_records' => (int)$filteredRecords,
                 'records_per_page' => $limit
             ],
             'debug' => [
+                'total_in_db' => (int)$totalRecords,
+                'filtered_count' => (int)$filteredRecords,
                 'columns_available' => $columns,
                 'sql_executed' => $sql,
-                'where_conditions' => $whereConditions
+                'where_conditions' => $whereConditions,
+                'params_used' => $params
             ]
         ]);
         
