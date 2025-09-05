@@ -118,11 +118,17 @@ $(function(){
     }, 'json');
   });
 
-  // View handler (delegated) - uses global view modal
-  $('#doctorTable tbody').on('click', '.view-btn', function(){
+  // View handler (defensive). Attach to document to survive DataTable redraws,
+  // log activity for debugging, and gracefully fall back if `utils` isn't ready.
+  $(document).on('click', '#doctorTable .view-btn', function(e){
+    e.preventDefault();
+    console.log('view-btn clicked', this);
     var id = $(this).data('id');
+    if(!id){ console.warn('view-btn clicked but data-id missing'); return; }
+
     $.get('ajax/doctor_api.php', { action: 'get', id: id }, function(r){
-      if(r.success){
+      console.log('ajax/doctor_api.get response', r);
+      if(r && r.success){
         var d = r.data;
         var html = '<dl class="row">' +
           '<dt class="col-sm-4">Name</dt><dd class="col-sm-8">'+(d.name||'')+'</dd>' +
@@ -133,11 +139,24 @@ $(function(){
           '<dt class="col-sm-4">Added By</dt><dd class="col-sm-8">'+(d.added_by_username||'')+'</dd>' +
           '<dt class="col-sm-4">Created At</dt><dd class="col-sm-8">'+(d.created_at||'')+'</dd>' +
           '</dl>';
-        utils.showViewModal('Doctor Details', html);
+
+        // Prefer utils.showViewModal when available, otherwise show modal directly
+        if(window.utils && typeof window.utils.showViewModal === 'function'){
+          window.utils.showViewModal('Doctor Details', html);
+        } else {
+          console.warn('utils.showViewModal not available - using direct modal fallback');
+          $('#globalViewModalLabel').text('Doctor Details');
+          $('#globalViewModalBody').html(html);
+          $('#globalViewModal').modal('show');
+        }
       } else {
-        toastr.error(r.message||'Failed to load');
+        console.error('Failed to load doctor:', r && r.message);
+        toastr.error((r && r.message) || 'Failed to load');
       }
-    }, 'json');
+    }, 'json').fail(function(xhr){
+      console.error('Ajax error fetching doctor', xhr);
+      toastr.error('Server error');
+    });
   });
 
   // Save handler
