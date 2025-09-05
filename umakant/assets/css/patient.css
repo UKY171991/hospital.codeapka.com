@@ -214,3 +214,26 @@
         flex-wrap: wrap;
     }
 }
+
+/* Fix: ensure selects/form-controls inside patient modal take full column width and align */
+#patientModal .form-control,
+#patientModal select.form-control,
+#patientModal .input-group .form-control {
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+/* Ensure select arrows don't overlap content and maintain consistent height */
+#patientModal select.form-control {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 2.5rem; /* space for arrow */
+}
+
+/* On small screens ensure the select sits nicely within columns */
+@media (max-width: 576px) {
+    #patientModal .form-group {
+        margin-bottom: 0.5rem;
+    }
+}
