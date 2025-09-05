@@ -67,47 +67,83 @@ include_once 'inc/sidebar.php';
 <?php include_once 'inc/footer.php'; ?>
 
 <script>
-function loadDoctors(){
-  $.get('ajax/doctor_api.php',{action:'list'},function(resp){
-    if(resp.success){
-   var rows = resp.data; var t='';
-   rows.forEach(function(r){
-     t += '<tr>'+
-       '<td>'+r.id+'</td>'+
-       '<td>'+ (r.name||'') +'</td>'+
-       '<td>'+ (r.hospital||'') +'</td>'+
-       '<td>'+ (r.contact_no||'') +'</td>'+
-       '<td>'+ (r.percent!==null && r.percent!==undefined ? r.percent : '') +'</td>'+
-       '<td>'+ (r.added_by_username || r.added_by || '') +'</td>'+
-       '<td>'+ (r.created_at||'') +'</td>'+
-       '<td><button class="btn btn-sm btn-info edit-btn" data-id="'+r.id+'">Edit</button> '+
-         '<button class="btn btn-sm btn-danger del-btn" data-id="'+r.id+'">Delete</button></td>'+
-       '</tr>';
-   });
-      $('#doctorTable tbody').html(t);
-    } else { toastr.error('Failed to load'); }
-  },'json');
-}
-
 $(function(){
-  loadDoctors();
-  $('#addBtn').click(function(){ $('#doctorForm')[0].reset(); $('#doctorId').val(''); $('#doctorModal').modal('show'); });
-  $('#doctorTable').on('click','.edit-btn', function(){
-    var id=$(this).data('id');
-    $.get('ajax/doctor_api.php',{action:'get',id:id}, function(r){
-      if(r.success){
-        var d=r.data;
-        $('#doctorId').val(d.id);
-  $('#name').val(d.name);
-  $('#hospital').val(d.hospital);
-  $('#contact_no').val(d.contact_no);
-  $('#address').val(d.address);
-  $('#percent').val(d.percent);
-        $('#doctorModal').modal('show');
-      }
-    },'json');
+  // Initialize DataTable with Ajax source and buttons
+  var table = $('#doctorTable').DataTable({
+    processing: true,
+    responsive: true,
+    ajax: {
+      url: 'ajax/doctor_api.php',
+      data: { action: 'list' },
+      dataSrc: 'data'
+    },
+    columns: [
+      { data: 'id' },
+      { data: 'name' },
+      { data: 'hospital' },
+      { data: 'contact_no' },
+      { data: 'percent', render: function(d){ return (d===null||d===undefined)? '': d; } },
+      { data: 'added_by_username', defaultContent: '' },
+      { data: 'created_at' },
+      { data: null, orderable: false, searchable: false, render: function(data,type,row){
+          return '<button class="btn btn-sm btn-info edit-btn" data-id="'+row.id+'">Edit</button> '
+               + ' <button class="btn btn-sm btn-danger del-btn" data-id="'+row.id+'">Delete</button>';
+      } }
+    ],
+    dom: 'Bfrtip',
+    buttons: [ 'copy', 'csv', 'excel', 'pdf', 'print' ],
+    pageLength: 25
   });
-  $('#doctorForm').submit(function(e){ e.preventDefault(); $.post('ajax/doctor_api.php', $(this).serialize() + '&action=save', function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#doctorModal').modal('hide'); loadDoctors(); } else toastr.error('Save failed'); }, 'json'); });
-  $('#doctorTable').on('click','.del-btn', function(){ if(!confirm('Delete doctor?')) return; var id=$(this).data('id'); $.post('ajax/doctor_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); loadDoctors(); } else toastr.error('Delete failed'); }, 'json'); });
+
+  // Open add modal
+  $('#addBtn').click(function(){ $('#doctorForm')[0].reset(); $('#doctorId').val(''); $('#doctorModal').modal('show'); });
+
+  // Edit handler (delegated)
+  $('#doctorTable tbody').on('click', '.edit-btn', function(){
+    var id = $(this).data('id');
+    $.get('ajax/doctor_api.php', { action: 'get', id: id }, function(r){
+      if(r.success){
+        var d = r.data;
+        $('#doctorId').val(d.id);
+        $('#name').val(d.name);
+        $('#hospital').val(d.hospital);
+        $('#contact_no').val(d.contact_no);
+        $('#address').val(d.address);
+        $('#percent').val(d.percent);
+        $('#doctorModal').modal('show');
+      } else {
+        toastr.error(r.message || 'Failed to load doctor');
+      }
+    }, 'json');
+  });
+
+  // Save handler
+  $('#doctorForm').submit(function(e){
+    e.preventDefault();
+    $.post('ajax/doctor_api.php', $(this).serialize() + '&action=save', function(resp){
+      if(resp.success){
+        toastr.success(resp.message || 'Saved');
+        $('#doctorModal').modal('hide');
+        table.ajax.reload(null, false);
+      } else {
+        toastr.error(resp.message || 'Save failed');
+      }
+    }, 'json').fail(function(){ toastr.error('Server error'); });
+  });
+
+  // Delete handler
+  $('#doctorTable tbody').on('click', '.del-btn', function(){
+    if(!confirm('Delete doctor?')) return;
+    var id = $(this).data('id');
+    $.post('ajax/doctor_api.php', { action: 'delete', id: id }, function(resp){
+      if(resp.success){
+        toastr.success(resp.message || 'Deleted');
+        table.ajax.reload(null, false);
+      } else {
+        toastr.error(resp.message || 'Delete failed');
+      }
+    }, 'json').fail(function(){ toastr.error('Server error'); });
+  });
+
 });
 </script>
