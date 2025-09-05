@@ -126,11 +126,18 @@ function initializePatientsTable() {
     patientsDataTable = $('#patientsTable').DataTable({
         processing: true,
         serverSide: true,
+        searching: false, // Disable default search since we handle it manually
         ajax: {
             url: 'ajax/patient_api.php',
             type: 'POST',
             data: function(d) {
                 d.action = 'list';
+                // Add custom filter parameters
+                d.genderFilter = $('#genderFilter').val();
+                d.ageRangeFilter = $('#ageRangeFilter').val();
+                d.dateFilter = $('#dateFilter').val();
+                // Use our custom search instead of DataTable's
+                d.search = {value: $('#patientsSearch').val()};
                 return d;
             },
             dataSrc: function(json) {
@@ -280,8 +287,13 @@ function bindPatientEvents() {
         applyFilters();
     });
     
+    // Debounced search input to avoid too many API calls
+    let searchTimeout;
     $('#patientsSearch').on('input', function() {
-        applyFilters();
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            applyFilters();
+        }, 500); // Wait 500ms after user stops typing
     });
     
     // Bulk action buttons
@@ -337,8 +349,9 @@ function generateUHID() {
 
 function applyFilters() {
     if (patientsDataTable) {
-        const searchValue = $('#patientsSearch').val();
-        patientsDataTable.search(searchValue).draw();
+        // Reload the DataTable with new filter parameters
+        // The data function will automatically pick up the new filter values
+        patientsDataTable.ajax.reload();
     }
 }
 
@@ -348,7 +361,8 @@ function clearFilters() {
     $('#ageRangeFilter').val('');
     $('#dateFilter').val('');
     if (patientsDataTable) {
-        patientsDataTable.search('').draw();
+        // Reload the DataTable to clear all filters
+        patientsDataTable.ajax.reload();
     }
 }
 

@@ -26,16 +26,57 @@ try {
         $length = $_POST['length'] ?? 25;
         $search = $_POST['search']['value'] ?? '';
         
+        // Additional filter parameters
+        $genderFilter = $_POST['genderFilter'] ?? '';
+        $ageRangeFilter = $_POST['ageRangeFilter'] ?? '';
+        $dateFilter = $_POST['dateFilter'] ?? '';
+        
         // Base query
         $baseQuery = "FROM patients p LEFT JOIN users u ON p.added_by = u.id";
         $whereClause = "";
         $params = [];
         
         // Add search conditions
+        $conditions = [];
         if (!empty($search)) {
-            $whereClause = " WHERE (p.name LIKE ? OR p.mobile LIKE ? OR p.uhid LIKE ? OR p.father_husband LIKE ?)";
+            $conditions[] = "(p.name LIKE ? OR p.mobile LIKE ? OR p.uhid LIKE ? OR p.father_husband LIKE ?)";
             $searchTerm = "%$search%";
-            $params = [$searchTerm, $searchTerm, $searchTerm, $searchTerm];
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+        }
+        
+        // Add gender filter
+        if (!empty($genderFilter)) {
+            $conditions[] = "p.sex = ?";
+            $params[] = $genderFilter;
+        }
+        
+        // Add age range filter
+        if (!empty($ageRangeFilter)) {
+            switch ($ageRangeFilter) {
+                case '0-18':
+                    $conditions[] = "p.age BETWEEN 0 AND 18";
+                    break;
+                case '19-35':
+                    $conditions[] = "p.age BETWEEN 19 AND 35";
+                    break;
+                case '36-60':
+                    $conditions[] = "p.age BETWEEN 36 AND 60";
+                    break;
+                case '60+':
+                    $conditions[] = "p.age > 60";
+                    break;
+            }
+        }
+        
+        // Add date filter
+        if (!empty($dateFilter)) {
+            $conditions[] = "DATE(p.created_at) = ?";
+            $params[] = $dateFilter;
+        }
+        
+        // Build WHERE clause
+        if (!empty($conditions)) {
+            $whereClause = " WHERE " . implode(" AND ", $conditions);
         }
         
         // Get total records
