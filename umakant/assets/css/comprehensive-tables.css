@@ -313,6 +313,22 @@
     padding: 1.5rem;
 }
 
+/* Final readability guard (loaded late) to prevent accidental white-on-white text */
+.content, .content * {
+    color: #343a40 !important;
+}
+
+/* Exceptions: keep white text inside intentionally-colored gradient components */
+.small-box[class*="bg-gradient"] .inner,
+.small-box[class*="bg-gradient"] .inner *,
+.card.card-primary .card-body,
+.card.card-success .card-body,
+.card.card-info .card-body,
+.card.card-warning .card-body,
+.card.card-danger .card-body {
+    color: #fff !important;
+}
+
 /* Filter section styling */
 .filter-section {
     background: #f8f9fa;
