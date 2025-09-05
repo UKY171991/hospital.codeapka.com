@@ -137,13 +137,26 @@ function initializePatientTable() {
                     return d;
                 },
                 dataSrc: function(json) {
-                    if (json.success) {
+                    // Support multiple response formats:
+                    // 1) DataTables server-side: { draw, recordsTotal, recordsFiltered, data }
+                    // 2) Legacy API: { success: true, data: [...] }
+                    if (!json) return [];
+
+                    // DataTables format
+                    if (typeof json.draw !== 'undefined') {
                         return json.data || [];
-                    } else {
+                    }
+
+                    // Legacy format
+                    if (typeof json.success !== 'undefined') {
+                        if (json.success) return json.data || [];
                         console.error('Patient API Error:', json.message);
                         showToast('error', 'Failed to load patients: ' + (json.message || 'Unknown error'));
                         return [];
                     }
+
+                    // Fallback: try to return data array if present
+                    return json.data || [];
                 },
                 error: function(xhr, error, thrown) {
                     console.error('Patient AJAX Error:', error, thrown);

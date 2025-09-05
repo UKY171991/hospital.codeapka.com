@@ -23,6 +23,8 @@
     <!-- Local scripts -->
     <script src="assets/js/common.js"></script>
     <script src="assets/js/app.js"></script>
+    <!-- Page-specific scripts -->
+    <script src="assets/js/patient-new.js?v=<?php echo time(); ?>"></script>
     </div>
     </body>
     </html>

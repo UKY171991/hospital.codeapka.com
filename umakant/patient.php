@@ -378,6 +378,5 @@ require_once 'inc/sidebar.php';
 
 <!-- Include custom CSS and JavaScript -->
 <link rel="stylesheet" href="assets/css/patient.css">
-<script src="assets/js/patient-new.js?v=<?php echo time(); ?>"></script>
 
 <?php require_once 'inc/footer.php'; ?>
