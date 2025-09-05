@@ -492,3 +492,37 @@ textarea:focus {
     color: inherit;
     font-weight: 700;
 }
+
+/* Site-wide readability guard -------------------------------------------------
+   Ensure main content defaults to dark text so text doesn't disappear on light
+   backgrounds. Keep white text inside intentionally colored components (gradients).
+-----------------------------------------------------------------------------*/
+body {
+    color: var(--dark-color) !important;
+}
+
+/* Force dark text inside the main content area to avoid third-party overrides */
+.content, .content-wrapper, .content * {
+    color: var(--dark-color) !important;
+}
+
+/* Preserve header/sidebar color rules (they typically define their own colors) */
+.main-header, .main-header *, .main-sidebar, .main-sidebar * {
+    color: inherit !important;
+}
+
+/* Keep white text for gradient/colored small boxes and for colored card bodies */
+.small-box[class*="bg-gradient"] .inner,
+.small-box[class*="bg-gradient"] .inner *,
+.card.card-primary .card-body,
+.card.card-success .card-body,
+.card.card-info .card-body,
+.card.card-warning .card-body,
+.card.card-danger .card-body {
+    color: #fff !important;
+}
+
+/* Also ensure timeline and info boxes have readable text */
+.timeline-content, .info-box, .info-box * {
+    color: var(--dark-color) !important;
+}
