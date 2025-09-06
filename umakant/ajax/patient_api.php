@@ -183,14 +183,23 @@ function handleList() {
         $filteredRecords = $countStmt->fetchColumn() ?: 0;
         
         // Build SELECT fields based on available columns
-        $selectFields = ['id'];
-        
+        $selectFields = ['patients.id'];
+        $joinUsers = '';
+
         // Add columns that commonly exist
         $commonFields = ['name', 'uhid', 'mobile', 'email', 'age', 'age_unit', 'father_husband', 'address', 'created_at', 'added_by'];
         foreach ($commonFields as $field) {
             if (in_array($field, $columns)) {
-                $selectFields[] = $field;
+                $selectFields[] = "patients.$field";
             }
+        }
+
+        // If patients table has added_by, try to join users table to resolve a human-friendly name.
+        if (in_array('added_by', $columns)) {
+            // Add an aliased field for front-end display. We prefer user's full_name, then username, then raw added_by value.
+            $selectFields[] = "COALESCE(u.full_name, u.username, patients.added_by) as added_by_name";
+            // Left join users on either id match or username match to support mixed storage.
+            $joinUsers = " LEFT JOIN users u ON (patients.added_by = u.id OR patients.added_by = u.username) ";
         }
         
         // Handle gender column
@@ -204,18 +213,18 @@ function handleList() {
         
         // Get patients with pagination
         $orderBy = in_array('created_at', $columns) ? "created_at DESC" : "id DESC";
-        $sql = "SELECT " . implode(', ', $selectFields) . " 
-                FROM patients 
-                $whereClause 
-                ORDER BY $orderBy
-                LIMIT $limit OFFSET $offset";
+    $sql = "SELECT " . implode(', ', $selectFields) . " 
+        FROM patients" . $joinUsers . " 
+        $whereClause 
+        ORDER BY $orderBy
+        LIMIT $limit OFFSET $offset";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Calculate pagination info
-        $totalPages = ceil($filteredRecords / $limit);
+    $totalPages = ceil($filteredRecords / $limit);
         
         // If request came from DataTables, return DataTables-compatible response
         if (!empty($isDataTables)) {
@@ -571,12 +580,13 @@ function handleExport() {
         
         $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
         
-        $sql = "SELECT name, uhid, mobile, email, age, age_unit, 
-                       COALESCE(gender, sex) as gender,
-                       father_husband, address, created_at, added_by 
-                FROM patients 
-                $whereClause 
-                ORDER BY created_at DESC";
+    // Try to resolve added_by to a friendly name using users table if available
+    $sql = "SELECT p.name, p.uhid, p.mobile, p.email, p.age, p.age_unit, 
+               COALESCE(p.gender, p.sex) as gender,
+               p.father_husband, p.address, p.created_at, COALESCE(u.full_name, u.username, p.added_by) as added_by 
+        FROM patients p LEFT JOIN users u ON (p.added_by = u.id OR p.added_by = u.username) 
+        $whereClause 
+        ORDER BY p.created_at DESC";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
