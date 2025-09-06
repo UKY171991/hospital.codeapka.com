@@ -385,15 +385,30 @@ function viewPatient(id) {
         },
         dataType: 'json',
         success: function(response) {
-            if (response.success) {
-                renderPatientDetails(response.data);
-                $('#viewPatientModal').modal('show');
-            } else {
+            try {
+                if (response && response.success) {
+                    renderPatientDetails(response.data);
+                    $('#viewPatientModal').modal('show');
+                } else {
+                    var msg = (response && response.message) ? response.message : 'Failed to load patient details';
+                    showError(msg);
+                }
+            } catch (e) {
                 showError('Failed to load patient details');
             }
         },
-        error: function() {
-            showError('Failed to load patient details');
+        error: function(jqXHR, textStatus, errorThrown) {
+            // Try to extract a JSON message from the response body
+            var msg = 'Failed to load patient details';
+            try {
+                var j = JSON.parse(jqXHR.responseText || '{}');
+                if (j.message) msg = j.message;
+                else if (j.error) msg = j.error;
+            } catch (e) {
+                // fallback to status/text
+                if (textStatus || errorThrown) msg = (textStatus || '') + ' ' + (errorThrown || '');
+            }
+            showError(msg);
         }
     });
 }
