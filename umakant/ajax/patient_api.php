@@ -168,17 +168,20 @@ function handleList() {
             }
         }
         
-        // Gender filter
-        // Gender filter (accept from POST or GET)
+        // Gender filter (accept from POST or GET) - handle tables that use 'sex' instead of 'gender'
         $genderParam = $_POST['gender'] ?? $_GET['gender'] ?? null;
-        if ($genderParam) {
-            if (in_array('gender', $columns)) {
-                $whereConditions[] = "gender = ?";
-                $params[] = $genderParam;
-            } elseif (in_array('sex', $columns)) {
-                $whereConditions[] = "sex = ?";
-                $params[] = $genderParam;
-            }
+        // determine which column to use for gender data
+        $genderColumn = null;
+        if (in_array('gender', $columns)) {
+            $genderColumn = 'patients.gender';
+        } elseif (in_array('sex', $columns)) {
+            $genderColumn = 'patients.sex';
+        }
+
+        if ($genderParam && $genderColumn) {
+            // Use case-insensitive compare to be robust against stored variants
+            $whereConditions[] = "LOWER(TRIM($genderColumn)) = LOWER(TRIM(?))";
+            $params[] = $genderParam;
         }
         
         $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
@@ -209,13 +212,17 @@ function handleList() {
             $joinUsers = " LEFT JOIN users u ON (patients.added_by = u.id OR patients.added_by = u.username) ";
         }
         
-        // Handle gender column
-        if (in_array('gender', $columns) && in_array('sex', $columns)) {
-            $selectFields[] = 'COALESCE(gender, sex) as gender';
-        } elseif (in_array('gender', $columns)) {
-            $selectFields[] = 'gender';
-        } elseif (in_array('sex', $columns)) {
-            $selectFields[] = 'sex as gender';
+        // Handle gender column: prefer 'gender' column if present, otherwise use 'sex'.
+        // Normalize common variants into 'Male'/'Female'/'Other' for front-end.
+        if ($genderColumn) {
+            $selectFields[] = "(
+                CASE
+                    WHEN LOWER(TRIM($genderColumn)) IN ('male','m','1','true','yes') THEN 'Male'
+                    WHEN LOWER(TRIM($genderColumn)) IN ('female','f','0','false','no') THEN 'Female'
+                    WHEN LOWER(TRIM($genderColumn)) IN ('other','o','non-binary','nonbinary','nb') THEN 'Other'
+                    ELSE NULL
+                END
+            ) as gender";
         }
         
         // Get patients with pagination
