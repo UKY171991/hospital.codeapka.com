@@ -476,38 +476,46 @@ function renderPatientDetails(patient) {
  * Delete patient
  */
 function deletePatient(id) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: 'ajax/patient_api.php',
-                method: 'POST',
-                data: {
-                    action: 'delete',
-                    id: id
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        showSuccess('Patient deleted successfully');
-                        loadPatients();
-                        loadStats();
-                    } else {
-                        showError(response.message || 'Failed to delete patient');
-                    }
-                },
-                error: function() {
-                    showError('Failed to delete patient');
-                }
+    // Prefer SweetAlert2 if available, otherwise use the built-in modal confirm
+    if (typeof Swal !== 'undefined' && Swal.fire) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                performDeletePatient(id);
+            }
+        });
+    } else {
+        // Fallback to custom confirm modal
+        showConfirmDialog('Delete Patient', 'Are you sure you want to delete this patient? This action cannot be undone.', 'danger')
+            .then(function(confirmed) {
+                if (confirmed) performDeletePatient(id);
             });
+    }
+}
+
+function performDeletePatient(id) {
+    $.ajax({
+        url: 'ajax/patient_api.php',
+        method: 'POST',
+        data: { action: 'delete', id: id },
+        dataType: 'json'
+    }).done(function(response) {
+        if (response.success) {
+            showSuccess('Patient deleted successfully');
+            loadPatients();
+            loadStats();
+        } else {
+            showError(response.message || 'Failed to delete patient');
         }
+    }).fail(function() {
+        showError('Failed to delete patient');
     });
 }
 
