@@ -516,3 +516,31 @@
         margin-bottom: 0.5rem;
     }
 }
+
+/* Fancy view modal styles */
+.patient-view-card {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+.patient-view-avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6fb1fc 0%, #4364f7 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 700;
+}
+.patient-view-meta {
+    flex: 1;
+}
+.patient-view-row { display:flex; gap:12px; margin-bottom:8px; }
+.patient-view-label { width:140px; font-weight:600; color:#333; }
+.patient-view-value { color:#555; }
+.status-badge { padding:4px 8px; border-radius:12px; font-size:12px; }
+.status-active { background:#d4edda; color:#155724; }
+.status-inactive { background:#f8d7da; color:#721c24; }

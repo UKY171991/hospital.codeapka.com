@@ -466,54 +466,22 @@ function viewPatient(id) {
 }
 
 function displayPatientDetails(patient) {
+    const initials = (patient.name || '??').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
     const detailsHtml = `
-        <div class="detail-item">
-            <div class="detail-label">UHID</div>
-            <div class="detail-value">${patient.uhid || 'N/A'}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Full Name</div>
-            <div class="detail-value">${patient.name || 'N/A'}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Mobile Number</div>
-            <div class="detail-value">
-                ${patient.mobile ? `<a href="tel:${patient.mobile}">${patient.mobile}</a>` : 'N/A'}
+        <div class="patient-view-card">
+            <div class="patient-view-avatar">${initials}</div>
+            <div class="patient-view-meta">
+                <h4 style="margin-top:0; margin-bottom:6px;">${patient.name || 'N/A'} <small class="text-muted">${patient.uhid ? '('+patient.uhid+')' : ''}</small></h4>
+                <div class="patient-view-row"><div class="patient-view-label">Mobile</div><div class="patient-view-value">${patient.mobile ? `<a href=\"tel:${patient.mobile}\">${patient.mobile}</a>` : 'N/A'}</div></div>
+                <div class="patient-view-row"><div class="patient-view-label">Email</div><div class="patient-view-value">${patient.email ? `<a href=\"mailto:${patient.email}\">${patient.email}</a>` : 'N/A'}</div></div>
+                <div class="patient-view-row"><div class="patient-view-label">Age</div><div class="patient-view-value">${patient.age ? `${patient.age} ${patient.age_unit || 'Years'}` : 'N/A'}</div></div>
+                <div class="patient-view-row"><div class="patient-view-label">Gender</div><div class="patient-view-value"><span class=\"status-badge ${(patient.sex || patient.gender) ? 'status-active' : 'status-inactive'}\">${patient.sex || patient.gender || 'Not specified'}</span></div></div>
+                <hr>
+                <div class="patient-view-row"><div class="patient-view-label">Father/Husband</div><div class="patient-view-value">${patient.father_husband || 'N/A'}</div></div>
+                <div class="patient-view-row"><div class="patient-view-label">Address</div><div class="patient-view-value">${(patient.address || 'N/A').replace(/\n/g,'<br>')}</div></div>
+                <div class="patient-view-row"><div class="patient-view-label">Registered</div><div class="patient-view-value">${patient.created_at ? new Date(patient.created_at).toLocaleString() : 'N/A'}</div></div>
+                <div class="patient-view-row"><div class="patient-view-label">Added By</div><div class="patient-view-value">${patient.added_by_name || patient.added_by || 'System'}</div></div>
             </div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Email</div>
-            <div class="detail-value">
-                ${patient.email ? `<a href="mailto:${patient.email}">${patient.email}</a>` : 'N/A'}
-            </div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Age</div>
-            <div class="detail-value">${patient.age ? `${patient.age} ${patient.age_unit || 'Years'}` : 'N/A'}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Gender</div>
-            <div class="detail-value">
-                <span class="status-badge ${(patient.sex || patient.gender) ? 'status-active' : 'status-inactive'}">
-                    ${patient.sex || patient.gender || 'Not specified'}
-                </span>
-            </div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Father/Husband</div>
-            <div class="detail-value">${patient.father_husband || 'N/A'}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Address</div>
-            <div class="detail-value">${patient.address || 'N/A'}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Registration Date</div>
-            <div class="detail-value">${patient.created_at ? new Date(patient.created_at).toLocaleDateString() : 'N/A'}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Added By</div>
-            <div class="detail-value">${patient.added_by_name || patient.added_by || 'System'}</div>
         </div>
     `;
     
