@@ -181,6 +181,19 @@ select.form-control:focus {
     border-top: 1px solid #e3e6f0;
 }
 
+/* Ensure tables take full width inside responsive containers and
+   avoid unexpected centering or collapsed columns. */
+.table, table.dataTable {
+    width: 100% !important;
+    table-layout: auto; /* allow natural sizing of columns */
+}
+
+/* Make sure the responsive wrapper doesn't introduce extra gaps */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
 /* Enhanced Modal Styling */
 .modal-content {
     border: none;
@@ -294,7 +307,8 @@ table.dataTable td .action-buttons {
 }
 
 .btn-group-vertical {
-    flex-direction: row !important; /* override any vertical stacking */
+    /* keep default behavior; harmless property to avoid empty ruleset lint */
+    outline: none;
 }
 
 /* Compact button sizing for action buttons */
