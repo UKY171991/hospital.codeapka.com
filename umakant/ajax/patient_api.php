@@ -24,7 +24,14 @@ try {
     }
 
     $action = $_POST['action'] ?? $_GET['action'] ?? '';
-    
+
+    // If no explicit action is provided but this request looks like a DataTables server-side
+    // request (it includes draw/start/length), treat it as a 'list' action to be forgiving
+    // and avoid returning a 400 error for DataTables requests that don't set action.
+    if (empty($action) && (isset($_POST['draw']) || isset($_GET['draw']))) {
+        $action = 'list';
+    }
+
     if (empty($action)) {
         throw new Exception('No action specified');
     }

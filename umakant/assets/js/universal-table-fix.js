@@ -120,8 +120,15 @@ function fixPatientTable() {
                     }
                 },
                 error: function(xhr, error, thrown) {
-                    console.error('Patient DataTable AJAX Error:', error, thrown);
-                    toastr.error('Failed to load patient data');
+                    // Log more details to help diagnose 400/500 errors from server
+                    console.error('Patient DataTable AJAX Error:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText,
+                        error: error,
+                        thrown: thrown
+                    });
+                    toastr.error('Failed to load patient data (see console for details)');
                 }
             },
             columns: [
@@ -218,8 +225,14 @@ function fixDoctorTable() {
                     }
                 },
                 error: function(xhr, error, thrown) {
-                    console.error('Doctor DataTable AJAX Error:', error, thrown);
-                    toastr.error('Failed to load doctor data');
+                    console.error('Doctor DataTable AJAX Error:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText,
+                        error: error,
+                        thrown: thrown
+                    });
+                    toastr.error('Failed to load doctor data (see console for details)');
                 }
             },
             columns: [
@@ -286,8 +299,14 @@ function fixTestTable() {
                     }
                 },
                 error: function(xhr, error, thrown) {
-                    console.error('Test DataTable AJAX Error:', error, thrown);
-                    toastr.error('Failed to load test data');
+                    console.error('Test DataTable AJAX Error:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText,
+                        error: error,
+                        thrown: thrown
+                    });
+                    toastr.error('Failed to load test data (see console for details)');
                 }
             },
             columns: [

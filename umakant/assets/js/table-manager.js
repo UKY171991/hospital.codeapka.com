@@ -159,8 +159,14 @@ function initializePatientTable() {
                     return json.data || [];
                 },
                 error: function(xhr, error, thrown) {
-                    console.error('Patient AJAX Error:', error, thrown);
-                    showToast('error', 'Failed to load patient data');
+                    console.error('Patient AJAX Error:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText,
+                        error: error,
+                        thrown: thrown
+                    });
+                    showToast('error', 'Failed to load patient data (see console)');
                 }
             },
             columns: [
@@ -267,8 +273,14 @@ function initializeUserTable() {
                     }
                 },
                 error: function(xhr, error, thrown) {
-                    console.error('User AJAX Error:', error, thrown);
-                    showToast('error', 'Failed to load user data');
+                    console.error('User AJAX Error:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText,
+                        error: error,
+                        thrown: thrown
+                    });
+                    showToast('error', 'Failed to load user data (see console)');
                 }
             },
             columns: [
@@ -360,8 +372,14 @@ function initializeTestTable() {
                     }
                 },
                 error: function(xhr, error, thrown) {
-                    console.error('Test AJAX Error:', error, thrown);
-                    showToast('error', 'Failed to load test data');
+                        console.error('Test AJAX Error:', {
+                            status: xhr.status,
+                            statusText: xhr.statusText,
+                            responseText: xhr.responseText,
+                            error: error,
+                            thrown: thrown
+                        });
+                        showToast('error', 'Failed to load test data (see console)');
                 }
             },
             columns: [
@@ -440,8 +458,14 @@ function initializeDoctorTable() {
                     }
                 },
                 error: function(xhr, error, thrown) {
-                    console.error('Doctor AJAX Error:', error, thrown);
-                    showToast('error', 'Failed to load doctor data');
+                        console.error('Doctor AJAX Error:', {
+                            status: xhr.status,
+                            statusText: xhr.statusText,
+                            responseText: xhr.responseText,
+                            error: error,
+                            thrown: thrown
+                        });
+                        showToast('error', 'Failed to load doctor data (see console)');
                 }
             },
             columns: [
