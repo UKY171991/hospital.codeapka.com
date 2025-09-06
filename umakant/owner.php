@@ -58,15 +58,14 @@ require_once 'inc/sidebar.php';
         <form id="ownerForm">
           <input type="hidden" name="id" id="ownerId">
           <div class="form-row">
-            <div class="form-group col-md-6"><label>Name</label><input class="form-control" name="name" id="ownerName" required></div>
-            <div class="form-group col-md-3"><label>Phone</label><input class="form-control" name="phone" id="ownerPhone" type="text"></div>
-            <div class="form-group col-md-3"><label>WhatsApp</label><input class="form-control" name="whatsapp" id="ownerWhatsapp" type="text"></div>
+            <div class="form-group col-md-6"><label for="ownerName">Name</label><input class="form-control" name="name" id="ownerName" required></div>
+            <div class="form-group col-md-6"><label for="ownerEmail">Email</label><input class="form-control" name="email" id="ownerEmail" type="email"></div>
           </div>
           <div class="form-row">
-            <div class="form-group col-md-6"></div>
-            <div class="form-group col-md-6"><label>Email</label><input class="form-control" name="email" id="ownerEmail" type="email"></div>
+            <div class="form-group col-md-6"><label for="ownerPhone">Phone</label><input class="form-control" name="phone" id="ownerPhone" type="text"></div>
+            <div class="form-group col-md-6"><label for="ownerWhatsapp">WhatsApp</label><input class="form-control" name="whatsapp" id="ownerWhatsapp" type="text"></div>
           </div>
-          <div class="form-group"><label>Address</label><textarea class="form-control" name="address" id="ownerAddress"></textarea></div>
+          <div class="form-group"><label for="ownerAddress">Address</label><textarea class="form-control" name="address" id="ownerAddress" rows="3"></textarea></div>
         </form>
       </div>
       <div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal">Cancel</button><button id="saveOwnerBtn" class="btn btn-primary">Save Owner</button></div>
