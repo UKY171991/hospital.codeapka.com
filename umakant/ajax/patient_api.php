@@ -62,7 +62,25 @@ try {
             throw new Exception('Invalid action: ' . $action);
     }
 } catch (Exception $e) {
-    http_response_code(400);
+    // Log the exception server-side for debugging without exposing stack traces to clients
+    error_log("[patient_api] Exception: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+
+    // If this looks like a DataTables server-side request, return a DataTables-compatible
+    // error response with HTTP 200 so the client-side DataTable doesn't treat it as a transport error.
+    $isDataTables = isset($_POST['draw']) || isset($_GET['draw']);
+    if ($isDataTables) {
+        $draw = (int)($_POST['draw'] ?? $_GET['draw'] ?? 0);
+        echo json_encode([
+            'draw' => $draw,
+            'recordsTotal' => 0,
+            'recordsFiltered' => 0,
+            'data' => [],
+            'error' => $e->getMessage()
+        ]);
+        exit;
+    }
+
+    // For non-DataTables requests, return a normal JSON error response with HTTP 200 to avoid client transport errors
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage(),

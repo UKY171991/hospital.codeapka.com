@@ -166,7 +166,14 @@ function initializePatientTable() {
                         error: error,
                         thrown: thrown
                     });
-                    showToast('error', 'Failed to load patient data (see console)');
+                    // Try to extract server JSON error message if present
+                    var msg = xhr.responseText || 'Failed to load patient data';
+                    try {
+                        var j = JSON.parse(xhr.responseText || '{}');
+                        if (j.message) msg = j.message;
+                        else if (j.debug && j.debug.sql_executed) msg = j.message || ('Server returned error; see console for SQL');
+                    } catch (e) {}
+                    showToast('error', msg);
                 }
             },
             columns: [

@@ -128,7 +128,9 @@ function fixPatientTable() {
                         error: error,
                         thrown: thrown
                     });
-                    toastr.error('Failed to load patient data (see console for details)');
+                    var msg = xhr.responseText || 'Failed to load patient data';
+                    try { var j = JSON.parse(xhr.responseText || '{}'); if (j.message) msg = j.message; } catch(e) {}
+                    toastr.error(msg);
                 }
             },
             columns: [
