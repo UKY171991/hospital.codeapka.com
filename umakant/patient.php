@@ -86,7 +86,7 @@ require_once 'inc/sidebar.php';
                                 <button type="button" class="btn btn-primary btn-sm" onclick="openAddPatientModal()">
                                     <i class="fas fa-plus"></i> Add New Patient
                                 </button>
-                                <button type="button" class="btn btn-success btn-sm" onclick="exportAllPatients()">
+                                <button type="button" class="btn btn-success btn-sm" onclick="exportPatients()">
                                     <i class="fas fa-download"></i> Export All
                                 </button>
                             </div>
@@ -99,7 +99,7 @@ require_once 'inc/sidebar.php';
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Search Patients</label>
-                                        <input type="text" id="searchInput" class="form-control" placeholder="Search by name, mobile, UHID...">
+                                        <input type="text" id="patientsSearch" class="form-control" placeholder="Search by name, mobile, UHID...">
                                     </div>
                                 </div>
                                 <div class="col-md-2">
@@ -113,10 +113,10 @@ require_once 'inc/sidebar.php';
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-2">
+                <div class="col-md-2">
                                     <div class="form-group">
                                         <label>Age Range</label>
-                                        <select id="ageFilter" class="form-control">
+                    <select id="ageRangeFilter" class="form-control">
                                             <option value="">All Ages</option>
                                             <option value="0-18">0-18 years</option>
                                             <option value="19-35">19-35 years</option>
@@ -132,9 +132,9 @@ require_once 'inc/sidebar.php';
                                     </div>
                                 </div>
                                 <div class="col-md-2">
-                                    <div class="form-group">
+                                        <div class="form-group">
                                         <label>&nbsp;</label>
-                                        <button class="btn btn-secondary btn-block" onclick="clearAllFilters()">
+                                        <button class="btn btn-secondary btn-block" onclick="clearFilters()">
                                             <i class="fas fa-times"></i> Clear
                                         </button>
                                     </div>
@@ -142,16 +142,16 @@ require_once 'inc/sidebar.php';
                             </div>
 
                             <!-- Bulk Actions -->
-                            <div id="bulkActions" class="alert alert-info" style="display: none;">
+                            <div id="bulkActions" class="alert alert-info bulk-actions" style="display: none;">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <span id="selectedCount">0</span> patients selected
+                                        <span class="selected-count">0</span> patients selected
                                     </div>
                                     <div class="col-md-6 text-right">
-                                        <button class="btn btn-sm btn-info" onclick="bulkExport()">
+                                        <button class="btn btn-sm btn-info bulk-export">
                                             <i class="fas fa-download"></i> Export Selected
                                         </button>
-                                        <button class="btn btn-sm btn-danger" onclick="bulkDelete()">
+                                        <button class="btn btn-sm btn-danger bulk-delete">
                                             <i class="fas fa-trash"></i> Delete Selected
                                         </button>
                                     </div>

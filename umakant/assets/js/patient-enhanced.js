@@ -702,23 +702,25 @@ function bulkExportPatients() {
     }
     
     const ids = Array.from(selectedPatients);
-    showLoading();
-    
-    $.get('ajax/patient_api.php', {action: 'bulk_export', ids: ids})
-        .done(function(response) {
-            if (response.success) {
-                downloadCSV(response.data, 'selected_patients.csv');
-                showSuccess('Patients exported successfully');
-            } else {
-                showError('Failed to export patients: ' + response.message);
-            }
-        })
-        .fail(function() {
-            showError('Error exporting patients');
-        })
-        .always(function() {
-            hideLoading();
-        });
+    // Create and submit form to trigger CSV download from server
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'ajax/patient_api.php?action=bulk_export';
+    form.style.display = 'none';
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'ids[]';
+    // Append multiple inputs for each id
+    ids.forEach(id => {
+        const i = input.cloneNode();
+        i.value = id;
+        form.appendChild(i);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
 }
 
 function exportPatients() {

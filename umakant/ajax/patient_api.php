@@ -65,6 +65,10 @@ try {
         case 'bulk_delete':
             handleBulkDelete();
             break;
+        case 'bulk_export':
+            // legacy client may call bulk_export; reuse same export handler
+            handleExport();
+            break;
         case 'stats':
             handleStats();
             break;
@@ -630,13 +634,22 @@ function handleExport() {
         $params = [];
         
         // Handle specific IDs for bulk export
-        if (!empty($_POST['ids'])) {
-            $ids = explode(',', $_POST['ids']);
-            $ids = array_filter(array_map('intval', $ids));
-            
+        // Support ids passed via POST or GET as comma-separated string or as array
+        $rawIds = null;
+        if (isset($_POST['ids'])) $rawIds = $_POST['ids'];
+        elseif (isset($_GET['ids'])) $rawIds = $_GET['ids'];
+
+        if (!empty($rawIds)) {
+            if (is_array($rawIds)) {
+                $ids = array_filter(array_map('intval', $rawIds));
+            } else {
+                $ids = explode(',', $rawIds);
+                $ids = array_filter(array_map('intval', $ids));
+            }
+
             if (!empty($ids)) {
                 $placeholders = str_repeat('?,', count($ids) - 1) . '?';
-                $whereConditions[] = "id IN ($placeholders)";
+                $whereConditions[] = "p.id IN ($placeholders)";
                 $params = array_merge($params, $ids);
             }
         }
@@ -667,18 +680,29 @@ function handleExport() {
         $stmt->execute($params);
         $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Set headers for CSV download
+        // If this is an AJAX request expecting JSON, return JSON data
+        $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'data' => $patients
+            ]);
+            return;
+        }
+
+        // Otherwise send CSV download
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment; filename="patients_' . date('Y-m-d_H-i-s') . '.csv"');
-        
+
         $output = fopen('php://output', 'w');
-        
+
         // CSV headers
         fputcsv($output, [
             'Name', 'UHID', 'Mobile', 'Email', 'Age', 'Age Unit', 
             'Gender', 'Father/Husband', 'Address', 'Registration Date', 'Added By'
         ]);
-        
+
         // CSV data
         foreach ($patients as $patient) {
             fputcsv($output, [
@@ -695,7 +719,7 @@ function handleExport() {
                 $patient['added_by']
             ]);
         }
-        
+
         fclose($output);
         exit;
         

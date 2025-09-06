@@ -25,7 +25,15 @@
     <script src="assets/js/common.js"></script>
     <script src="assets/js/app.js"></script>
     <!-- Page-specific scripts -->
-    <script src="assets/js/patient-new.js?v=<?php echo time(); ?>"></script>
+    <?php
+    // Load patient-enhanced script on patient.php (it provides enhanced table/export handlers).
+    $currentPage = basename($_SERVER['SCRIPT_NAME']);
+    if ($currentPage === 'patient.php') {
+        echo '<script src="assets/js/patient-enhanced.js?v=' . time() . '"></script>';
+    } else {
+        echo '<script src="assets/js/patient-new.js?v=' . time() . '"></script>';
+    }
+    ?>
         <!-- Global View Modal (reusable across pages) -->
         <div class="modal fade" id="globalViewModal" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
