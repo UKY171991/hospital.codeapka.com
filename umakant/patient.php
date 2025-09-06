@@ -358,14 +358,14 @@ require_once 'inc/sidebar.php';
                     <span>&times;</span>
                 </button>
             </div>
-            <div class="modal-body" id="patientViewContent">
+            <div class="modal-body" id="patientViewDetails">
                 <!-- Patient details will be loaded here -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">
                     <i class="fas fa-times"></i> Close
                 </button>
-                <button type="button" class="btn btn-warning" onclick="editFromView()">
+                <button type="button" class="btn btn-warning" onclick="editPatientFromView()">
                     <i class="fas fa-edit"></i> Edit Patient
                 </button>
                 <button type="button" class="btn btn-info" onclick="printPatientDetails()">
