@@ -62,25 +62,7 @@ try {
             throw new Exception('Invalid action: ' . $action);
     }
 } catch (Exception $e) {
-    // Log the exception server-side for debugging without exposing stack traces to clients
-    error_log("[patient_api] Exception: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
-
-    // If this looks like a DataTables server-side request, return a DataTables-compatible
-    // error response with HTTP 200 so the client-side DataTable doesn't treat it as a transport error.
-    $isDataTables = isset($_POST['draw']) || isset($_GET['draw']);
-    if ($isDataTables) {
-        $draw = (int)($_POST['draw'] ?? $_GET['draw'] ?? 0);
-        echo json_encode([
-            'draw' => $draw,
-            'recordsTotal' => 0,
-            'recordsFiltered' => 0,
-            'data' => [],
-            'error' => $e->getMessage()
-        ]);
-        exit;
-    }
-
-    // For non-DataTables requests, return a normal JSON error response with HTTP 200 to avoid client transport errors
+    http_response_code(400);
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage(),
@@ -188,10 +170,10 @@ function handleList() {
         
         // Gender filter
         // Gender filter (accept from POST or GET)
-        $genderParam = $_POST['sex'] ?? $_GET['sex'] ?? null;
+        $genderParam = $_POST['gender'] ?? $_GET['gender'] ?? null;
         if ($genderParam) {
-            if (in_array('sex', $columns)) {
-                $whereConditions[] = "sex = ?";
+            if (in_array('gender', $columns)) {
+                $whereConditions[] = "gender = ?";
                 $params[] = $genderParam;
             } elseif (in_array('sex', $columns)) {
                 $whereConditions[] = "sex = ?";
@@ -227,19 +209,13 @@ function handleList() {
             $joinUsers = " LEFT JOIN users u ON (patients.added_by = u.id OR patients.added_by = u.username) ";
         }
         
-        // Handle gender column: normalize multiple possible stored representations
-        // Prefer patients.gender then patients.sex and map common variants to 'Male'/'Female'/'Other'
-        if (in_array('gender', $columns) || in_array('sex', $columns)) {
-            // Use LOWER and TRIM to compare normalized values
-            $genderExpr = "LOWER(TRIM(COALESCE(patients.gender, patients.sex)))";
-            $selectFields[] = "(
-                CASE
-                    WHEN $genderExpr IN ('male','m','1','true','yes') THEN 'Male'
-                    WHEN $genderExpr IN ('female','f','0','false','no') THEN 'Female'
-                    WHEN $genderExpr IN ('other','o','non-binary','nonbinary','nb') THEN 'Other'
-                    ELSE NULL
-                END
-            ) as gender";
+        // Handle gender column
+        if (in_array('gender', $columns) && in_array('sex', $columns)) {
+            $selectFields[] = 'COALESCE(gender, sex) as gender';
+        } elseif (in_array('gender', $columns)) {
+            $selectFields[] = 'gender';
+        } elseif (in_array('sex', $columns)) {
+            $selectFields[] = 'sex as gender';
         }
         
         // Get patients with pagination
@@ -612,16 +588,8 @@ function handleExport() {
         $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
         
     // Try to resolve added_by to a friendly name using users table if available
-    // Normalize gender values for export
-    $sql = "SELECT p.name, p.uhid, p.mobile, p.email, p.age, p.age_unit,
-               (
-                   CASE
-                       WHEN LOWER(TRIM(COALESCE(p.gender, p.sex))) IN ('male','m','1','true','yes') THEN 'Male'
-                       WHEN LOWER(TRIM(COALESCE(p.gender, p.sex))) IN ('female','f','0','false','no') THEN 'Female'
-                       WHEN LOWER(TRIM(COALESCE(p.gender, p.sex))) IN ('other','o','non-binary','nonbinary','nb') THEN 'Other'
-                       ELSE NULL
-                   END
-               ) as gender,
+    $sql = "SELECT p.name, p.uhid, p.mobile, p.email, p.age, p.age_unit, 
+               COALESCE(p.gender, p.sex) as gender,
                p.father_husband, p.address, p.created_at, COALESCE(u.full_name, u.username, p.added_by) as added_by 
         FROM patients p LEFT JOIN users u ON (p.added_by = u.id OR p.added_by = u.username) 
         $whereClause 
