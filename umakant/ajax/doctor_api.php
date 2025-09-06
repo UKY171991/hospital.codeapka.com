@@ -26,19 +26,26 @@ try {
             $params = [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm];
         }
         
-        // Get total records
-        $totalStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereClause);
-        $totalStmt->execute($params);
-        $totalRecords = $totalStmt->fetchColumn();
-        
-        // Get filtered records
+    // Get total records (no filters)
+    $totalStmt = $pdo->query("SELECT COUNT(*) " . $baseQuery);
+    $totalRecords = $totalStmt->fetchColumn();
+
+    // Get filtered records (with current search filters)
+    $filteredStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereClause);
+    $filteredStmt->execute($params);
+    $filteredRecords = $filteredStmt->fetchColumn();
         $orderBy = " ORDER BY d.id DESC";
         $limit = " LIMIT $start, $length";
         
-        $dataQuery = "SELECT d.id, d.name, d.specialization, d.phone, d.email, d.hospital,
-                      CASE WHEN d.phone IS NOT NULL AND d.phone != '' THEN 'Active' ELSE 'Inactive' END as status,
-                      u.username as added_by " . 
-                      $baseQuery . $whereClause . $orderBy . $limit;
+    // Select the fields expected by the client-side DataTable columns
+    $dataQuery = "SELECT d.id,
+                 d.name,
+                 d.hospital,
+                 d.contact_no,
+                 d.percent,
+                 u.username as added_by_username,
+                 d.created_at
+              " . $baseQuery . $whereClause . $orderBy . $limit;
         
         $dataStmt = $pdo->prepare($dataQuery);
         $dataStmt->execute($params);
@@ -47,8 +54,8 @@ try {
         // Return DataTables format
         json_response([
             'draw' => intval($draw),
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $totalRecords,
+            'recordsTotal' => intval($totalRecords),
+            'recordsFiltered' => intval($filteredRecords),
             'success' => true,
             'data' => $data
         ]);
