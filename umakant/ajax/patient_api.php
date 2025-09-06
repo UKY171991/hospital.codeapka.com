@@ -188,10 +188,10 @@ function handleList() {
         
         // Gender filter
         // Gender filter (accept from POST or GET)
-        $genderParam = $_POST['gender'] ?? $_GET['gender'] ?? null;
+        $genderParam = $_POST['sex'] ?? $_GET['sex'] ?? null;
         if ($genderParam) {
-            if (in_array('gender', $columns)) {
-                $whereConditions[] = "gender = ?";
+            if (in_array('sex', $columns)) {
+                $whereConditions[] = "sex = ?";
                 $params[] = $genderParam;
             } elseif (in_array('sex', $columns)) {
                 $whereConditions[] = "sex = ?";
