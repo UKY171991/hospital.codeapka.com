@@ -55,6 +55,18 @@ try {
     ]);
 }
 
+// Helper to check if a column exists in patients table for SQLite
+function patientHasColumnSqlite($col) {
+    static $cols = null;
+    global $pdo;
+    if ($cols === null) {
+        $stmt = $pdo->query("PRAGMA table_info('patients')");
+        $info = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $cols = array_map(function($r){ return $r['name']; }, $info);
+    }
+    return in_array($col, $cols);
+}
+
 function handleList() {
     global $pdo;
     
@@ -134,9 +146,15 @@ function handleStats() {
         $stmt = $pdo->query("SELECT COUNT(*) as total FROM patients");
         $total = $stmt->fetch()['total'];
         
-        // Gender statistics
-        $stmt = $pdo->query("SELECT gender, COUNT(*) as count FROM patients WHERE gender IS NOT NULL GROUP BY gender");
-        $genderStats = $stmt->fetchAll();
+        // Gender statistics - choose column if available
+        $genderStats = [];
+        if (patientHasColumnSqlite('gender')) {
+            $stmt = $pdo->query("SELECT gender as g, COUNT(*) as count FROM patients WHERE gender IS NOT NULL GROUP BY gender");
+            $genderStats = array_map(function($r){ return ['gender' => $r['g'], 'count' => $r['count']]; }, $stmt->fetchAll());
+        } elseif (patientHasColumnSqlite('sex')) {
+            $stmt = $pdo->query("SELECT sex as g, COUNT(*) as count FROM patients WHERE sex IS NOT NULL GROUP BY sex");
+            $genderStats = array_map(function($r){ return ['gender' => $r['g'], 'count' => $r['count']]; }, $stmt->fetchAll());
+        }
         
         $maleCount = 0;
         $femaleCount = 0;
@@ -193,8 +211,17 @@ function handleCreate() {
             $input['uhid'] = 'P' . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
         }
         
-        $sql = "INSERT INTO patients (uhid, name, father_husband, mobile, email, age, age_unit, gender, address, added_by, created_at) 
-                VALUES (:uhid, :name, :father_husband, :mobile, :email, :age, :age_unit, :gender, :address, :added_by, datetime('now'))";
+        // Build insert depending on available columns
+        $cols = ['uhid','name','father_husband','mobile','email','age','age_unit','address','added_by'];
+        $placeholders = [':uhid',':name',':father_husband',':mobile',':email',':age',':age_unit',':address',':added_by'];
+        if (patientHasColumnSqlite('gender')) {
+            $cols[] = 'gender';
+            $placeholders[] = ':gender';
+        } elseif (patientHasColumnSqlite('sex')) {
+            $cols[] = 'sex';
+            $placeholders[] = ':gender';
+        }
+        $sql = "INSERT INTO patients (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $placeholders) . ")";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
@@ -264,17 +291,17 @@ function handleUpdate() {
     }
     
     try {
-        $sql = "UPDATE patients SET 
-                name = :name, 
-                father_husband = :father_husband, 
-                mobile = :mobile, 
-                email = :email, 
-                age = :age, 
-                age_unit = :age_unit, 
-                gender = :gender, 
-                address = :address,
-                updated_at = datetime('now')
-                WHERE id = :id";
+        // Build update depending on available columns
+        $updateParts = [
+            'name = :name', 'father_husband = :father_husband', 'mobile = :mobile', 'email = :email',
+            'age = :age', 'age_unit = :age_unit', 'address = :address'
+        ];
+        if (patientHasColumnSqlite('gender')) {
+            $updateParts[] = 'gender = :gender';
+        } elseif (patientHasColumnSqlite('sex')) {
+            $updateParts[] = 'sex = :gender';
+        }
+        $sql = "UPDATE patients SET " . implode(', ', $updateParts) . ", updated_at = datetime('now') WHERE id = :id";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([

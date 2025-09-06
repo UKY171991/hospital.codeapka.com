@@ -4,6 +4,17 @@ require_once '../inc/auth.php';
 
 header('Content-Type: application/json');
 
+// Local helper to check patients table columns
+function patientHasColumn($col) {
+    static $cols = null;
+    global $pdo;
+    if ($cols === null) {
+        $stmt = $pdo->query("SHOW COLUMNS FROM patients");
+        $cols = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+    return in_array($col, $cols);
+}
+
 // Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
@@ -107,9 +118,19 @@ function handleList() {
         $countStmt->execute($params);
         $totalRecords = $countStmt->fetchColumn();
         
-        // Get patients with pagination - handle both 'gender' and 'sex' columns
+        // Get patients with pagination - choose gender expression safely
+        if (patientHasColumn('gender') && patientHasColumn('sex')) {
+            $genderSelect = "COALESCE(gender, sex) as gender";
+        } elseif (patientHasColumn('gender')) {
+            $genderSelect = "gender as gender";
+        } elseif (patientHasColumn('sex')) {
+            $genderSelect = "sex as gender";
+        } else {
+            $genderSelect = "NULL as gender";
+        }
+
         $sql = "SELECT id, name, uhid, mobile, email, age, age_unit, 
-                       COALESCE(gender, sex) as gender,
+                       $genderSelect,
                        father_husband, address, created_at, added_by 
                 FROM patients 
                 $whereClause 
@@ -149,7 +170,17 @@ function handleGet() {
     $id = $_POST['id'] ?? $_GET['id'];
     
     try {
-        $stmt = $pdo->prepare("SELECT *, COALESCE(gender, sex) as gender FROM patients WHERE id = ?");
+        // Build SELECT safely for single patient
+        $select = '*';
+        if (patientHasColumn('gender') && patientHasColumn('sex')) {
+            $select = "*, COALESCE(gender, sex) as gender";
+        } elseif (patientHasColumn('gender')) {
+            $select = "*, gender as gender";
+        } elseif (patientHasColumn('sex')) {
+            $select = "*, sex as gender";
+        }
+
+        $stmt = $pdo->prepare("SELECT $select FROM patients WHERE id = ?");
         $stmt->execute([$id]);
         $patient = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -401,8 +432,18 @@ function handleExport() {
         
         $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
         
+        if (patientHasColumn('gender') && patientHasColumn('sex')) {
+            $genderSelect = "COALESCE(gender, sex) as gender";
+        } elseif (patientHasColumn('gender')) {
+            $genderSelect = "gender as gender";
+        } elseif (patientHasColumn('sex')) {
+            $genderSelect = "sex as gender";
+        } else {
+            $genderSelect = "NULL as gender";
+        }
+
         $sql = "SELECT name, uhid, mobile, email, age, age_unit, 
-                       COALESCE(gender, sex) as gender,
+                       $genderSelect,
                        father_husband, address, created_at, added_by 
                 FROM patients 
                 $whereClause 

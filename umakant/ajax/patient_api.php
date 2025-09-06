@@ -16,6 +16,19 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+/**
+ * Cached helper to check if a column exists in patients table.
+ */
+function patientHasColumn($col) {
+    static $cols = null;
+    global $pdo;
+    if ($cols === null) {
+        $stmt = $pdo->query("SHOW COLUMNS FROM patients");
+        $cols = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+    return in_array($col, $cols);
+}
+
 try {
     // Handle preflight OPTIONS request
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -294,7 +307,18 @@ function handleGet() {
     $id = $_POST['id'] ?? $_GET['id'];
     
     try {
-        $stmt = $pdo->prepare("SELECT *, COALESCE(gender, sex) as gender FROM patients WHERE id = ?");
+        // Build SELECT dynamically to avoid referencing missing columns
+        $select = '*';
+        if (patientHasColumn('gender') && patientHasColumn('sex')) {
+            $select = "*, COALESCE(gender, sex) as gender";
+        } elseif (patientHasColumn('gender')) {
+            $select = "*, gender as gender";
+        } elseif (patientHasColumn('sex')) {
+            $select = "*, sex as gender";
+        }
+
+        $sql = "SELECT $select FROM patients WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
         $stmt->execute([$id]);
         $patient = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -368,7 +392,7 @@ function handleSave() {
         }
         
         $gender = $_POST['gender'] ?? $_POST['sex'] ?? null;
-        
+
         $data = [
             'name' => trim($_POST['name']),
             'uhid' => !empty($_POST['uhid']) ? trim($_POST['uhid']) : null,
@@ -376,46 +400,71 @@ function handleSave() {
             'email' => !empty($_POST['email']) ? trim($_POST['email']) : null,
             'age' => !empty($_POST['age']) ? (int)$_POST['age'] : null,
             'age_unit' => $_POST['age_unit'] ?? 'Years',
-            'gender' => $gender,
-            'sex' => $gender, // Store in both columns for compatibility
             'father_husband' => !empty($_POST['father_husband']) ? trim($_POST['father_husband']) : null,
             'address' => !empty($_POST['address']) ? trim($_POST['address']) : null,
             'added_by' => $_SESSION['username'] ?? $_SESSION['user_id'] ?? 'System'
         ];
+
+        // Attach gender/sex fields only if columns exist in the DB
+        if (patientHasColumn('gender')) {
+            $data['gender'] = $gender;
+        }
+        if (patientHasColumn('sex')) {
+            $data['sex'] = $gender;
+        }
         
         if ($isEdit) {
-            // Update existing patient
-            $sql = "UPDATE patients SET 
-                    name = ?, uhid = ?, mobile = ?, email = ?, 
-                    age = ?, age_unit = ?, gender = ?, sex = ?, 
-                    father_husband = ?, address = ?, updated_at = NOW() 
-                    WHERE id = ?";
-            
-            $params = [
-                $data['name'], $data['uhid'], $data['mobile'], $data['email'],
-                $data['age'], $data['age_unit'], $data['gender'], $data['sex'],
-                $data['father_husband'], $data['address'], $patientId
+            // Build dynamic update list and params
+            $updateFields = [
+                'name', 'uhid', 'mobile', 'email', 'age', 'age_unit', 'father_husband', 'address'
             ];
-            
+            $setParts = [];
+            $params = [];
+            foreach ($updateFields as $f) {
+                $setParts[] = "$f = ?";
+                $params[] = $data[$f];
+            }
+            if (isset($data['gender'])) {
+                $setParts[] = "gender = ?";
+                $params[] = $data['gender'];
+            }
+            if (isset($data['sex'])) {
+                $setParts[] = "sex = ?";
+                $params[] = $data['sex'];
+            }
+            $setParts[] = "updated_at = NOW()";
+
+            $sql = "UPDATE patients SET " . implode(', ', $setParts) . " WHERE id = ?";
+            $params[] = $patientId;
+
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
-            
+
             $message = 'Patient updated successfully';
-            
+
         } else {
-            // Insert new patient
-            $sql = "INSERT INTO patients (name, uhid, mobile, email, age, age_unit, gender, sex, father_husband, address, added_by, created_at) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
-            
-            $params = [
-                $data['name'], $data['uhid'], $data['mobile'], $data['email'],
-                $data['age'], $data['age_unit'], $data['gender'], $data['sex'],
-                $data['father_husband'], $data['address'], $data['added_by']
-            ];
-            
+            // Insert new patient - build column list dynamically
+            $insertCols = ['name', 'uhid', 'mobile', 'email', 'age', 'age_unit', 'father_husband', 'address', 'added_by'];
+            $placeholders = array_fill(0, count($insertCols), '?');
+            $insertParams = [];
+            foreach ($insertCols as $c) {
+                $insertParams[] = $data[$c];
+            }
+            if (isset($data['gender'])) {
+                $insertCols[] = 'gender';
+                $placeholders[] = '?';
+                $insertParams[] = $data['gender'];
+            }
+            if (isset($data['sex'])) {
+                $insertCols[] = 'sex';
+                $placeholders[] = '?';
+                $insertParams[] = $data['sex'];
+            }
+
+            $sql = "INSERT INTO patients (" . implode(', ', $insertCols) . ", created_at) VALUES (" . implode(', ', $placeholders) . ", NOW())";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
-            
+            $stmt->execute($insertParams);
+
             $patientId = $pdo->lastInsertId();
             $message = 'Patient added successfully';
         }
@@ -595,8 +644,20 @@ function handleExport() {
         $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
         
     // Try to resolve added_by to a friendly name using users table if available
+    // Determine a safe gender select expression depending on available columns
+    $genderSelect = '';
+    if (patientHasColumn('gender') && patientHasColumn('sex')) {
+        $genderSelect = "COALESCE(p.gender, p.sex) as gender";
+    } elseif (patientHasColumn('gender')) {
+        $genderSelect = "p.gender as gender";
+    } elseif (patientHasColumn('sex')) {
+        $genderSelect = "p.sex as gender";
+    } else {
+        $genderSelect = "NULL as gender";
+    }
+
     $sql = "SELECT p.name, p.uhid, p.mobile, p.email, p.age, p.age_unit, 
-               COALESCE(p.gender, p.sex) as gender,
+               $genderSelect,
                p.father_husband, p.address, p.created_at, COALESCE(u.full_name, u.username, p.added_by) as added_by 
         FROM patients p LEFT JOIN users u ON (p.added_by = u.id OR p.added_by = u.username) 
         $whereClause 

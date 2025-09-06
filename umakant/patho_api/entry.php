@@ -19,6 +19,16 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 
+// Helper to detect if patients table has a given column (cached)
+function patientHasColumnPatho($pdo, $col) {
+    static $cols = null;
+    if ($cols === null) {
+        $stmt = $pdo->query("SHOW COLUMNS FROM patients");
+        $cols = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+    return in_array($col, $cols);
+}
+
 // Entity Configuration for Entries
 $entity_config = [
     'table_name' => 'entries',
@@ -103,8 +113,19 @@ try {
 
 function handleList($pdo, $config) {
     try {
+        // Choose gender select safely
+        if (patientHasColumnPatho($pdo, 'gender') && patientHasColumnPatho($pdo, 'sex')) {
+            $genderSelect = "COALESCE(p.gender, p.sex) as gender";
+        } elseif (patientHasColumnPatho($pdo, 'gender')) {
+            $genderSelect = "p.gender as gender";
+        } elseif (patientHasColumnPatho($pdo, 'sex')) {
+            $genderSelect = "p.sex as gender";
+        } else {
+            $genderSelect = "NULL as gender";
+        }
+
         $sql = "SELECT e.*, 
-                       p.patient_name, p.uhid,
+                       p.patient_name, p.uhid, $genderSelect,
                        t.test_name, t.units, t.normal_value_male, t.normal_value_female, t.normal_value_child,
                        d.doctor_name
                 FROM {$config['table_name']} e 
@@ -138,8 +159,19 @@ function handleGet($pdo, $config) {
             return;
         }
 
+        // Safe gender select for single entry
+        if (patientHasColumnPatho($pdo, 'gender') && patientHasColumnPatho($pdo, 'sex')) {
+            $genderSelect = "COALESCE(p.gender, p.sex) as gender";
+        } elseif (patientHasColumnPatho($pdo, 'gender')) {
+            $genderSelect = "p.gender as gender";
+        } elseif (patientHasColumnPatho($pdo, 'sex')) {
+            $genderSelect = "p.sex as gender";
+        } else {
+            $genderSelect = "NULL as gender";
+        }
+
         $sql = "SELECT e.*, 
-                       p.patient_name, p.uhid, p.age, p.gender,
+                       p.patient_name, p.uhid, p.age, $genderSelect,
                        t.test_name, t.units, t.normal_value_male, t.normal_value_female, t.normal_value_child,
                        d.doctor_name
                 FROM {$config['table_name']} e 
