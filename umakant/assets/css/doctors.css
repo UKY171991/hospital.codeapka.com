@@ -86,3 +86,12 @@
   #doctorTable th, #doctorTable td { white-space: nowrap; }
 }
 
+/* Modal details styling */
+#globalViewModalBody table th {
+  font-weight: 600;
+  color: #333;
+  width: 30%;
+}
+#globalViewModalBody table td { color: #222; }
+#globalViewModalBody .text-truncate { max-width: 100%; }
+

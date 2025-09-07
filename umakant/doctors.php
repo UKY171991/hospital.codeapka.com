@@ -147,15 +147,34 @@ $(function(){
       console.log('ajax/doctor_api.get response', r);
       if(r && r.success){
         var d = r.data;
-        var html = '<dl class="row">' +
-          '<dt class="col-sm-4">Name</dt><dd class="col-sm-8">'+(d.name||'')+'</dd>' +
-          '<dt class="col-sm-4">Hospital</dt><dd class="col-sm-8">'+(d.hospital||'')+'</dd>' +
-          '<dt class="col-sm-4">Contact No</dt><dd class="col-sm-8">'+(d.contact_no||'')+'</dd>' +
-          '<dt class="col-sm-4">Percent</dt><dd class="col-sm-8">'+(d.percent||'')+'</dd>' +
-          '<dt class="col-sm-4">Address</dt><dd class="col-sm-8">'+(d.address||'')+'</dd>' +
-          '<dt class="col-sm-4">Added By</dt><dd class="col-sm-8">'+(d.added_by_username||'')+'</dd>' +
-          '<dt class="col-sm-4">Created At</dt><dd class="col-sm-8">'+(d.created_at||'')+'</dd>' +
-          '</dl>';
+        // Build a cleaner two-column Bootstrap layout for details with truncation tooltips
+        var fields = [
+          ['Name', d.name],
+          ['Hospital', d.hospital],
+          ['Contact No', d.contact_no],
+          ['Percent', d.percent],
+          ['Address', d.address],
+          ['Added By', d.added_by_username],
+          ['Created At', d.created_at]
+        ];
+
+        var html = '<div class="container-fluid">';
+        html += '<div class="row">';
+        html += '<div class="col-12">';
+        html += '<table class="table table-borderless table-sm">';
+        html += '<tbody>';
+        fields.forEach(function(f){
+          var label = f[0];
+          var val = f[1] || '';
+          var safe = $('<div>').text(val).html(); // escape
+          html += '<tr>' +
+                    '<th style="width:25%; text-align:left; vertical-align:middle;">'+label+'</th>' +
+                    '<td style="width:75%;">' +
+                      '<div class="text-truncate" style="max-width:100%;" title="'+ safe +'">'+ safe +'</div>' +
+                    '</td>' +
+                  '</tr>';
+        });
+        html += '</tbody></table></div></div></div>';
 
         // Prefer utils.showViewModal when available, otherwise show modal directly
         if(window.utils && typeof window.utils.showViewModal === 'function'){
@@ -165,6 +184,8 @@ $(function(){
           $('#globalViewModalLabel').text('Doctor Details');
           $('#globalViewModalBody').html(html);
           $('#globalViewModal').modal('show');
+          // initialize tooltips inside modal for truncated fields
+          $('#globalViewModal [title]').tooltip({ container: '#globalViewModal' });
         }
       } else {
         console.error('Failed to load doctor:', r && r.message);
