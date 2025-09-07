@@ -193,31 +193,7 @@ require_once 'inc/sidebar.php';
     <!-- /.content -->
 </div>
 <!-- /.content-wrapper -->
-                                        <th>S.No.</th>
-                                        <th>ID</th>
-                                        <th>Category</th>
-                                        <th>Name</th>
-                                        <th>Price</th>
-                                        <th>Added By</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                        <!-- /.card-body -->
-                    </div>
-                    <!-- /.card -->
-                </div>
-                <!-- /.col -->
-            </div>
-            <!-- /.row -->
-        </div>
-        <!-- /.container-fluid -->
-    </section>
-    <!-- /.content -->
-</div>
-<!-- /.content-wrapper -->
+
 
 <!-- Test Modal -->
 <div class="modal fade" id="testModal" tabindex="-1" role="dialog" aria-labelledby="testModalLabel" aria-hidden="true" style="z-index: 9999;">
@@ -696,10 +672,36 @@ function bulkDeleteTests() {
         console.log('Deleting test IDs:', selectedIds);
     }
 }
-    $('#genderFilter').val('');
-    $('#priceFilter').val('');
-    testsTable.search('').columns().search('').draw();
+
+// Small helper stubs to avoid ReferenceError from inline onclick handlers
+function selectAllTests() {
+    $('.test-checkbox').prop('checked', true);
+    updateBulkActions();
 }
+
+function deselectAllTests() {
+    $('.test-checkbox').prop('checked', false);
+    updateBulkActions();
+}
+
+function exportTests() {
+    // Prefer DataTables export buttons if available
+    try {
+        if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
+            var table = $('#testsTable').DataTable();
+            table.button('.buttons-csv').trigger();
+            return;
+        }
+    } catch(e){}
+    toastr.info('Export not available');
+}
+
+function refreshTests() {
+    // Reload table data
+    if (typeof loadTests === 'function') loadTests();
+    if (typeof initializeDataTable === 'function') initializeDataTable();
+}
+
 
 function loadCategories() {
     $.get('patho_api/test_category.php')
