@@ -23,6 +23,7 @@ include_once 'inc/sidebar.php';
             <table class="table table-bordered table-sm" id="doctorTable">
                 <thead>
                   <tr>
+                    <th>Sr No</th>
                     <th>ID</th>
                     <th>Name</th>
                     <th>Hospital</th>
@@ -78,6 +79,8 @@ $(function(){
       dataSrc: 'data'
     },
     columns: [
+      // Sr No - will be filled in drawCallback to handle paging and ordering
+      { data: null, orderable: false, searchable: false, defaultContent: '' },
       { data: 'id' },
       { data: 'name' },
       { data: 'hospital' },
@@ -93,6 +96,14 @@ $(function(){
          + '</div>';
     } }
     ],
+    // After table redrawn, populate Sr No column correctly (1..n per current ordering/page)
+    drawCallback: function(settings){
+      var api = this.api();
+      var start = api.page.info().start;
+      api.column(0, {page:'current'} ).nodes().each(function(cell, i){
+        cell.innerHTML = start + i + 1;
+      });
+    },
     dom: 'Bfrtip',
     buttons: [ 'copy', 'csv', 'excel', 'pdf', 'print' ],
     pageLength: 25
