@@ -67,22 +67,9 @@ include_once 'inc/sidebar.php';
 
 <?php include_once 'inc/footer.php'; ?>
 
-<!-- Local styles to ensure action buttons are horizontal and don't wrap in the Doctors table -->
-<style>
-/* Override vertical stacking for action buttons in doctors table only */
-#doctorTable .action-buttons {
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  gap: 6px !important;
-  padding-right: 8px;
-  white-space: nowrap;
-}
-#doctorTable .action-buttons .btn {
-  display: inline-block !important;
-}
-#doctorTable td .btn-action { min-width: 56px; }
-</style>
+<!-- Page-specific CSS/JS -->
+<link rel="stylesheet" href="umakant/assets/css/doctors.css">
+<script src="umakant/assets/js/doctors.js"></script>
 
 <script>
 $(function(){
