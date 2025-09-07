@@ -560,8 +560,12 @@ function applyFilters() {
                     showError('Error loading patients: ' + response.message);
                 }
             })
-            .fail(function() {
-                showError('Failed to load patients');
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                if (jqXHR && jqXHR.status === 0 && navigator.onLine) {
+                    console.warn('Suppressed patient load toast for XHR status 0 while online. Likely aborted by extension or network probe.');
+                } else {
+                    showError('Failed to load patients');
+                }
             });
     }
 }

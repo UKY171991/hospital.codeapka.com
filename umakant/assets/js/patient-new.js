@@ -129,19 +129,28 @@ function loadPatients() {
                 responseText: xhr.responseText,
                 error: error
             });
-            
+
             let errorMessage = 'Failed to load patients. ';
             if (xhr.status === 0) {
-                errorMessage += 'Network connection error.';
+                // status 0 can mean network offline or a request aborted by extensions/devtools.
+                if (!navigator.onLine) {
+                    errorMessage += 'Network connection error.';
+                    showError(errorMessage);
+                } else {
+                    // Likely a transient/extension/devtools abort - don't show a noisy toast.
+                    console.warn('XHR status 0 while online - suppressing toast (possible extension or abort).');
+                }
             } else if (xhr.status === 404) {
                 errorMessage += 'API endpoint not found.';
+                showError(errorMessage);
             } else if (xhr.status >= 500) {
                 errorMessage += 'Server error.';
+                showError(errorMessage);
             } else {
                 errorMessage += 'Please check your connection.';
+                showError(errorMessage);
             }
-            
-            showError(errorMessage);
+
             showNoData();
         },
         complete: function() {

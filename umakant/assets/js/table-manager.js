@@ -151,7 +151,11 @@ function initializePatientTable() {
                     if (typeof json.success !== 'undefined') {
                         if (json.success) return json.data || [];
                         console.error('Patient API Error:', json.message);
-                        showToast('error', 'Failed to load patients: ' + (json.message || 'Unknown error'));
+                        if (json.message) {
+                            showToast('error', 'Failed to load patients: ' + json.message);
+                        } else {
+                            console.warn('Patient API returned success=false without message.');
+                        }
                         return [];
                     }
 
@@ -173,7 +177,11 @@ function initializePatientTable() {
                         if (j.message) msg = j.message;
                         else if (j.debug && j.debug.sql_executed) msg = j.message || ('Server returned error; see console for SQL');
                     } catch (e) {}
-                    showToast('error', msg);
+                    if (xhr.status === 0 && navigator.onLine) {
+                        console.warn('Suppressed toast for Patient AJAX status 0 while online:', msg);
+                    } else {
+                        showToast('error', msg);
+                    }
                 }
             },
             columns: [

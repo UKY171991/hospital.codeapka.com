@@ -130,7 +130,12 @@ function fixPatientTable() {
                     });
                     var msg = xhr.responseText || 'Failed to load patient data';
                     try { var j = JSON.parse(xhr.responseText || '{}'); if (j.message) msg = j.message; } catch(e) {}
-                    toastr.error(msg);
+                    if (xhr.status === 0 && navigator.onLine) {
+                        // suppress noisy toast for aborted requests/extensions while online
+                        console.warn('Suppressed toast for XHR status 0 while online: ', msg);
+                    } else {
+                        toastr.error(msg);
+                    }
                 }
             },
             columns: [
