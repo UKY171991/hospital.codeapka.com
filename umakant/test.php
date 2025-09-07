@@ -1316,9 +1316,24 @@ $(function(){
         $('#testModalLabel').text('Add Test');
     });
 
-    // Ensure focus is moved to first input when modal is shown (accessibility)
+    // Ensure aria-hidden is cleared and focus moves to first input when modal is shown (accessibility)
+    $('#testModal').on('show.bs.modal', function(){
+        // Bootstrap may set aria-hidden; ensure it's cleared for assistive tech when showing
+        try{ $(this).attr('aria-hidden', 'false'); }catch(e){}
+    });
+
     $('#testModal').on('shown.bs.modal', function(){
-        try{ $('#testName').trigger('focus'); }catch(e){}
+        var $modal = $(this);
+        // Small timeout to let bootstrap finish updating attributes/styles
+        setTimeout(function(){
+            try{
+                // Only focus if modal is visible and not aria-hidden
+                if ($modal.attr('aria-hidden') !== 'true'){
+                    var $input = $('#testName');
+                    if ($input.length && $input.is(':visible')) $input.trigger('focus');
+                }
+            }catch(e){}
+        }, 50);
     });
 });
 </script>
