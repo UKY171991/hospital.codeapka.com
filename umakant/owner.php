@@ -75,6 +75,9 @@ require_once 'inc/sidebar.php';
 
 <?php require_once 'inc/footer.php'; ?>
 
+<?php // Include a dedicated, read-only view modal for owners
+require_once __DIR__ . '/inc/owner_view_modal.php'; ?>
+
 <script>
 function loadOwners(){
   $.get('ajax/owner_api.php',{action:'list'},function(resp){
@@ -140,5 +143,22 @@ $(function(){
   });
 });
 
-function viewOwner(id){ $.get('ajax/owner_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var o=resp.data; $('#ownerId').val(o.id); $('#ownerName').val(o.name); $('#ownerPhone').val(o.phone); $('#ownerWhatsapp').val(o.whatsapp||''); $('#ownerEmail').val(o.email); $('#ownerAddress').val(o.address); $('#ownerModal').modal('show'); $('#ownerForm').find('input,textarea,select').prop('disabled', true); $('#saveOwnerBtn').hide(); } else toastr.error('Not found'); },'json'); }
+function viewOwner(id){
+  $.get('ajax/owner_api.php',{action:'get',id:id}, function(resp){
+    if(resp.success){
+      var o = resp.data;
+      var html = '<table class="table table-sm table-borderless">'+
+        '<tr><th>ID</th><td>'+ (o.id||'') +'</td></tr>'+
+        '<tr><th>Name</th><td>'+ (o.name||'') +'</td></tr>'+
+        '<tr><th>Phone</th><td>'+ (o.phone||'') +'</td></tr>'+
+        '<tr><th>WhatsApp</th><td>'+ (o.whatsapp||'') +'</td></tr>'+
+        '<tr><th>Email</th><td>'+(o.email?('<a href="mailto:'+o.email+'">'+o.email+'</a>'):'N/A')+'</td></tr>'+
+        '<tr><th>Address</th><td>'+ (o.address||'') +'</td></tr>'+
+        '<tr><th>Added By</th><td>'+ (o.added_by_username||o.added_by||'') +'</td></tr>'+
+        '</table>';
+      $('#ownerViewModal .owner-view-content').html(html);
+      $('#ownerViewModal').modal('show');
+    } else toastr.error('Not found');
+  },'json');
+}
 </script>
