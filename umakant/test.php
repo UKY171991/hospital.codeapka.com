@@ -997,6 +997,10 @@ function editTest(id) {
                 $('#testCategoryId').val(test.category_id);
                 $('#testPrice').val(test.price);
                 $('#testUnit').val(test.unit);
+                // Populate range-specific unit fields (server stores a single unit column)
+                $('#generalUnit').val(test.unit);
+                $('#maleUnit').val(test.unit);
+                $('#femaleUnit').val(test.unit);
                 $('#testMin').val(test.min);
                 $('#testMax').val(test.max);
                 $('#testMinMale').val(test.min_male);
