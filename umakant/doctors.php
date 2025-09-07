@@ -31,7 +31,7 @@ include_once 'inc/sidebar.php';
                     <th>Percent</th>
                     <th>Added By</th>
                     <th>Created At</th>
-                    <th>Actions</th>
+                    <th style="white-space:nowrap; width:150px;">Actions</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
@@ -67,6 +67,23 @@ include_once 'inc/sidebar.php';
 
 <?php include_once 'inc/footer.php'; ?>
 
+<!-- Local styles to ensure action buttons are horizontal and don't wrap in the Doctors table -->
+<style>
+/* Override vertical stacking for action buttons in doctors table only */
+#doctorTable .action-buttons {
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 6px !important;
+  padding-right: 8px;
+  white-space: nowrap;
+}
+#doctorTable .action-buttons .btn {
+  display: inline-block !important;
+}
+#doctorTable td .btn-action { min-width: 56px; }
+</style>
+
 <script>
 $(function(){
   // Initialize DataTable with Ajax source and buttons
@@ -89,9 +106,9 @@ $(function(){
       { data: 'added_by_username', defaultContent: '' },
       { data: 'created_at' },
     { data: null, orderable: false, searchable: false, render: function(data,type,row){
-      return '<div class="btn-group btn-group-sm btn-group-vertical action-buttons" role="group" aria-label="Actions">'
-         + '<button class="btn btn-primary btn-action view-btn" data-id="'+row.id+'">View</button>'
-         + '<button class="btn btn-info edit-btn" data-id="'+row.id+'">Edit</button>'
+      return '<div class="btn-group btn-group-sm action-buttons" role="group" aria-label="Actions" style="white-space:nowrap;">'
+         + '<button class="btn btn-primary btn-action view-btn" data-id="'+row.id+'" style="margin-right:6px;">View</button>'
+         + '<button class="btn btn-info edit-btn" data-id="'+row.id+'" style="margin-right:6px;">Edit</button>'
          + '<button class="btn btn-danger del-btn" data-id="'+row.id+'">Delete</button>'
          + '</div>';
     } }
