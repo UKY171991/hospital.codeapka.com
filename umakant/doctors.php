@@ -43,23 +43,50 @@ include_once 'inc/sidebar.php';
   </div>
 
 <!-- Modal -->
-<div class="modal fade" id="doctorModal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
+<div class="modal fade" id="doctorModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
     <div class="modal-content">
       <form id="doctorForm">
-      <div class="modal-header"><h5 class="modal-title">Doctor</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
-  <div class="modal-body">
-        <input type="hidden" name="id" id="doctorId">
-        <div class="form-group"><label>Name</label><input class="form-control" name="name" id="name" required></div>
-  <!-- Qualification and Specialization removed (not used by API) -->
-  <div class="form-group"><label>Hospital</label><input class="form-control" name="hospital" id="hospital"></div>
-  <div class="form-group"><label>Contact No</label><input class="form-control" name="contact_no" id="contact_no"></div>
-  <!-- Phone removed (not used) -->
-        <div class="form-group"><label>Address</label><textarea class="form-control" name="address" id="address"></textarea></div>
-  <!-- Registration No removed (not used) -->
-  <div class="form-group"><label>Percent</label><input class="form-control" name="percent" id="percent" type="number" step="0.01"></div>
+      <div class="modal-header">
+        <h5 class="modal-title" id="doctorModalLabel">Add Doctor</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       </div>
-      <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button><button type="submit" class="btn btn-primary">Save</button></div>
+      <div class="modal-body">
+        <input type="hidden" name="id" id="doctorId">
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="name">Name</label>
+            <input class="form-control" name="name" id="name" required>
+          </div>
+
+          <div class="form-group col-md-6">
+            <label for="hospital">Hospital</label>
+            <input class="form-control" name="hospital" id="hospital">
+          </div>
+
+          <div class="form-group col-md-6">
+            <label for="contact_no">Contact No</label>
+            <input class="form-control" name="contact_no" id="contact_no">
+          </div>
+
+          <div class="form-group col-md-6">
+            <label for="percent">Percent</label>
+            <div class="input-group">
+              <input class="form-control text-right" name="percent" id="percent" type="number" step="0.01" min="0">
+              <div class="input-group-append"><span class="input-group-text">%</span></div>
+            </div>
+          </div>
+
+          <div class="form-group col-12">
+            <label for="address">Address</label>
+            <textarea class="form-control" name="address" id="address" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
       </form>
     </div>
   </div>
@@ -114,7 +141,12 @@ $(function(){
   });
 
   // Open add modal
-  $('#addBtn').click(function(){ $('#doctorForm')[0].reset(); $('#doctorId').val(''); $('#doctorModal').modal('show'); });
+  $('#addBtn').click(function(){
+    $('#doctorForm')[0].reset();
+    $('#doctorId').val('');
+    $('#doctorModalLabel').text('Add Doctor');
+    $('#doctorModal').modal('show');
+  });
 
   // Edit handler (delegated)
   $('#doctorTable tbody').on('click', '.edit-btn', function(){
@@ -123,11 +155,13 @@ $(function(){
       if(r.success){
         var d = r.data;
         $('#doctorId').val(d.id);
+        $('#doctorModalLabel').text('Edit Doctor');
         $('#name').val(d.name);
         $('#hospital').val(d.hospital);
         $('#contact_no').val(d.contact_no);
         $('#address').val(d.address);
-        $('#percent').val(d.percent);
+        // format percent to two decimals when present
+        $('#percent').val((d.percent||'') === '' ? '' : parseFloat(d.percent).toFixed(2));
         $('#doctorModal').modal('show');
       } else {
         toastr.error(r.message || 'Failed to load doctor');

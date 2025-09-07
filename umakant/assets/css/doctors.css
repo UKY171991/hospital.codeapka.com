@@ -95,3 +95,9 @@
 #globalViewModalBody table td { color: #222; }
 #globalViewModalBody .text-truncate { max-width: 100%; }
 
+/* Modal form tweaks for add/edit modal */
+#doctorModal .modal-header { background: linear-gradient(90deg,#007bff,#1e88e5); color: #fff; }
+#doctorModal .modal-title { color: #fff; }
+#doctorModal .form-control { border-radius: 6px; }
+#doctorModal .input-group .input-group-text { border-left: none; }
+
