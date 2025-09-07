@@ -128,6 +128,17 @@ try {
         if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) json_response(['success'=>false,'message'=>'Unauthorized'],401);
         $id = $_POST['id'] ?? '';
         $category_id = $_POST['category_id'] ?? null;
+        // Determine which categories table exists so we can validate category_id
+        $categories_table = 'test_categories';
+        try{
+            $stmt = $pdo->query("SHOW TABLES LIKE 'test_categories'");
+            if(!$stmt->fetch()){
+                $stmt2 = $pdo->query("SHOW TABLES LIKE 'categories'");
+                if($stmt2->fetch()) $categories_table = 'categories';
+            }
+        }catch(Throwable $e){
+            $categories_table = 'test_categories';
+        }
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $price = $_POST['price'] ?? 0;
@@ -159,17 +170,108 @@ try {
             }
         }
 
+        // Normalize/validate category_id: convert empty or invalid to NULL and ensure it exists
+        if ($category_id === '' || $category_id === null) {
+            $category_id = null;
+        } else {
+            // allow numeric ids only
+            if (!is_numeric($category_id)) {
+                $category_id = null;
+            } else {
+                $category_id = intval($category_id);
+                if ($category_id <= 0) {
+                    $category_id = null;
+                } else {
+                    // verify existence in categories table; if not found, treat as null
+                    try{
+                        $chk = $pdo->prepare("SELECT id FROM {$categories_table} WHERE id = ?");
+                        $chk->execute([$category_id]);
+                        if(!$chk->fetch()){
+                            // category doesn't exist — normalize to NULL to avoid FK errors
+                            $category_id = null;
+                        }
+                    }catch(Throwable $e){
+                        // if check fails, default to null
+                        $category_id = null;
+                    }
+                }
+            }
+        }
+
         if ($id) {
-            $stmt = $pdo->prepare('UPDATE tests SET category_id=?, name=?, description=?, price=?, unit=?, default_result=?, reference_range=?, min=?, max=?, min_male=?, max_male=?, min_female=?, max_female=?, sub_heading=?, test_code=?, method=?, print_new_page=?, shortcut=? WHERE id=?');
-            $stmt->execute([$category_id, $name, $description, $price, $unit, $default_result, $reference_range, $min, $max, $min_male, $max_male, $min_female, $max_female, $sub_heading, $test_code, $method, $print_new_page, $shortcut, $id]);
-            json_response(['success'=>true,'message'=>'Test updated']);
+            try {
+                $stmt = $pdo->prepare('UPDATE tests SET category_id=?, name=?, description=?, price=?, unit=?, default_result=?, reference_range=?, min=?, max=?, min_male=?, max_male=?, min_female=?, max_female=?, sub_heading=?, test_code=?, method=?, print_new_page=?, shortcut=? WHERE id=?');
+                // Bind explicitly to ensure NULLs are preserved
+                $b = 1;
+                if ($category_id === null) {
+                    $stmt->bindValue($b++, null, PDO::PARAM_NULL);
+                } else {
+                    $stmt->bindValue($b++, $category_id, PDO::PARAM_INT);
+                }
+                $stmt->bindValue($b++, $name, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $description, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $price, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $unit, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $default_result, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $reference_range, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $min, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $max, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $min_male, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $max_male, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $min_female, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $max_female, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $sub_heading, PDO::PARAM_INT);
+                $stmt->bindValue($b++, $test_code, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $method, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $print_new_page, PDO::PARAM_INT);
+                $stmt->bindValue($b++, $shortcut, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $id, PDO::PARAM_INT);
+                $stmt->execute();
+                json_response(['success'=>true,'message'=>'Test updated']);
+            } catch (Throwable $e) {
+                json_response(['success'=>false,'message'=>'Failed to update test: '.$e->getMessage()],500);
+            }
         } else {
             $added_by = $_SESSION['user_id'] ?? null;
-            $stmt = $pdo->prepare('INSERT INTO tests (category_id, name, description, price, unit, default_result, reference_range, min, max, min_male, max_male, min_female, max_female, sub_heading, test_code, method, print_new_page, shortcut, added_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-            $stmt->execute([$category_id, $name, $description, $price, $unit, $default_result, $reference_range, $min, $max, $min_male, $max_male, $min_female, $max_female, $sub_heading, $test_code, $method, $print_new_page, $shortcut, $added_by]);
-            
-            // Get the newly inserted record with joined data
-            $newId = $pdo->lastInsertId();
+            try {
+                $stmt = $pdo->prepare('INSERT INTO tests (category_id, name, description, price, unit, default_result, reference_range, min, max, min_male, max_male, min_female, max_female, sub_heading, test_code, method, print_new_page, shortcut, added_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+                // Bind parameters explicitly to ensure NULL values are sent as NULL (not empty string)
+                $bindIndex = 1;
+                if ($category_id === null) {
+                    $stmt->bindValue($bindIndex++, null, PDO::PARAM_NULL);
+                } else {
+                    $stmt->bindValue($bindIndex++, $category_id, PDO::PARAM_INT);
+                }
+                $stmt->bindValue($bindIndex++, $name, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $description, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $price, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $unit, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $default_result, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $reference_range, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $min, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $max, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $min_male, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $max_male, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $min_female, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $max_female, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $sub_heading, PDO::PARAM_INT);
+                $stmt->bindValue($bindIndex++, $test_code, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $method, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $print_new_page, PDO::PARAM_INT);
+                $stmt->bindValue($bindIndex++, $shortcut, PDO::PARAM_STR);
+                if ($added_by === null) {
+                    $stmt->bindValue($bindIndex++, null, PDO::PARAM_NULL);
+                } else {
+                    $stmt->bindValue($bindIndex++, $added_by, PDO::PARAM_INT);
+                }
+                $stmt->execute();
+
+                // Get the newly inserted record with joined data
+                $newId = $pdo->lastInsertId();
+            } catch (Throwable $e) {
+                // Return clearer validation message if FK fails or other DB issue
+                json_response(['success'=>false,'message'=>'Failed to save test: '.$e->getMessage()],500);
+            }
             
             // Check which categories table exists
             $categories_table = 'test_categories';
