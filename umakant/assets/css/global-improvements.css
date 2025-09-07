@@ -297,8 +297,7 @@ select.form-control:focus {
 #doctorTable .action-buttons,
 table.dataTable td .action-buttons {
     display: flex;
-    flex-direction: column;
-    gap: 4px; /* tighter stack */
+    gap: 0px; /* tighter stack */
     align-items: flex-end; /* align to right edge of the cell */
     justify-content: center;
     width: 100%;
