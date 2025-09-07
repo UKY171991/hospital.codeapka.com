@@ -447,13 +447,21 @@ let categoriesTable;
 
 // Utility function to escape HTML
 function escapeHtml(text) {
-    if (!text) return '';
-    return text.toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    // Treat only null/undefined as empty — keep 0/false as valid values
+    if (text === null || text === undefined) return '';
+    // Coerce to string to ensure replace() is available
+    const str = String(text);
+    // Replace common HTML-sensitive characters
+    return str.replace(/[&<>"']/g, function (ch) {
+        switch (ch) {
+            case '&': return '&amp;';
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '"': return '&quot;';
+            case "'": return '&#039;';
+            default: return ch;
+        }
+    });
 }
 
 // Simple DataTable initialization function
@@ -1382,6 +1390,10 @@ function loadCategoriesForTests(){
 
 // HTML escape function
 function escapeHtml(text) {
+    // Return empty string for null/undefined explicitly
+    if (text === null || text === undefined) return '';
+    // Coerce to string safely (handles numbers, booleans, objects with toString)
+    var s = String(text);
     var map = {
         '&': '&amp;',
         '<': '&lt;',
@@ -1389,7 +1401,7 @@ function escapeHtml(text) {
         '"': '&quot;',
         "'": '&#039;'
     };
-    return text ? text.replace(/[&<>"']/g, function(m) { return map[m]; }) : '';
+    return s.replace(/[&<>\"']/g, function(m) { return map[m]; });
 }
 
 // Global view test function
