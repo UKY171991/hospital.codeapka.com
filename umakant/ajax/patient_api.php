@@ -164,19 +164,19 @@ function handleList() {
             $searchConditions = [];
             
             if (in_array('name', $columns)) {
-                $searchConditions[] = "name LIKE ?";
+                $searchConditions[] = "patients.name LIKE ?";
                 $params[] = $search;
             }
             if (in_array('mobile', $columns)) {
-                $searchConditions[] = "mobile LIKE ?";
+                $searchConditions[] = "patients.mobile LIKE ?";
                 $params[] = $search;
             }
             if (in_array('uhid', $columns)) {
-                $searchConditions[] = "uhid LIKE ?";
+                $searchConditions[] = "patients.uhid LIKE ?";
                 $params[] = $search;
             }
             if (in_array('email', $columns)) {
-                $searchConditions[] = "email LIKE ?";
+                $searchConditions[] = "patients.email LIKE ?";
                 $params[] = $search;
             }
             
@@ -243,7 +243,7 @@ function handleList() {
         }
         
         // Get patients with pagination
-        $orderBy = in_array('created_at', $columns) ? "created_at DESC" : "id DESC";
+    $orderBy = in_array('created_at', $columns) ? "patients.created_at DESC" : "patients.id DESC";
     $sql = "SELECT " . implode(', ', $selectFields) . " 
         FROM patients" . $joinUsers . " 
         $whereClause 

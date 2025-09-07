@@ -74,7 +74,7 @@ function handleList() {
         // Search filter
         if (!empty($_POST['search'])) {
             $search = '%' . $_POST['search'] . '%';
-            $whereConditions[] = "(name LIKE ? OR mobile LIKE ? OR uhid LIKE ? OR email LIKE ?)";
+            $whereConditions[] = "(patients.name LIKE ? OR patients.mobile LIKE ? OR patients.uhid LIKE ? OR patients.email LIKE ?)";
             $params = array_merge($params, [$search, $search, $search, $search]);
         }
         
@@ -129,12 +129,12 @@ function handleList() {
             $genderSelect = "NULL as gender";
         }
 
-        $sql = "SELECT id, name, uhid, mobile, email, age, age_unit, 
+    $sql = "SELECT id, name, uhid, mobile, email, age, age_unit, 
                        $genderSelect,
                        father_husband, address, created_at, added_by 
-                FROM patients 
-                $whereClause 
-                ORDER BY created_at DESC 
+        FROM patients 
+        $whereClause 
+        ORDER BY patients.created_at DESC 
                 LIMIT $limit OFFSET $offset";
         
         $stmt = $pdo->prepare($sql);
