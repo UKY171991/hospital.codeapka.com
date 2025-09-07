@@ -16,9 +16,9 @@ try {
         }
         echo $whatsapp;
     } else {
-        echo '+919876543210'; // Default fallback number
+        echo '+919453619260'; // Default fallback number
     }
 } catch (Exception $e) {
-    echo '+919876543210'; // Default fallback number
+    echo '+919453619260'; // Default fallback number
 }
 ?>

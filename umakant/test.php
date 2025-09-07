@@ -430,8 +430,13 @@ function initializeDataTable() {
                 }
             },
             error: function(xhr, error, thrown) {
-                console.error('AJAX Error:', error, thrown);
-                toastr.error('Failed to load tests data');
+                console.error('AJAX Error:', error, thrown, 'status:', xhr.status, 'response:', xhr.responseText);
+                var msg = 'Failed to load tests data';
+                if (xhr.status === 0) msg = 'Network error or request aborted';
+                else if (xhr.responseText) {
+                    try { var j = JSON.parse(xhr.responseText); if (j.message) msg = j.message; } catch(e) { msg = xhr.responseText; }
+                }
+                toastr.error(msg);
             }
         },
         columns: [
@@ -829,7 +834,7 @@ function saveTestData() {
             if (response.success) {
                 toastr.success(id ? 'Test updated successfully!' : 'Test added successfully!');
                 $('#testModal').modal('hide');
-                loadTests(); // Reload the table
+                reloadTestsDebounced(); // Reload the table (debounced)
                 loadStats();
             } else {
                 toastr.error('Error: ' + (response.message || 'Unknown error'));
@@ -853,7 +858,7 @@ function deleteTest(id, name) {
             success: function(response) {
                 if (response.success) {
                     toastr.success('Test deleted successfully!');
-                    loadTests(); // Reload the table
+                    reloadTestsDebounced(); // Reload the table (debounced)
                     loadStats();
                 } else {
                     toastr.error('Error deleting test: ' + (response.message || 'Unknown error'));
@@ -1082,6 +1087,19 @@ function loadTests(){
     });
 }
 
+// Debounced reload to avoid concurrent AJAX requests causing aborts
+var _reloadTimer = null;
+function reloadTestsDebounced(delay){
+    delay = typeof delay === 'number' ? delay : 200;
+    if (_reloadTimer) clearTimeout(_reloadTimer);
+    _reloadTimer = setTimeout(function(){
+        if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
+            try { $('#testsTable').DataTable().ajax.reload(null, false); return; } catch(e){}
+        }
+        loadTests();
+    }, delay);
+}
+
 function applyTestsFilters(){
     var q = $('#testsSearch').val().toLowerCase().trim();
     var per = parseInt($('#testsPerPage').val()||10,10);
@@ -1098,7 +1116,10 @@ function openAddTestModal(){ $('#testForm')[0].reset(); $('#testId').val(''); $(
 
 $(function(){
     loadCategoriesForTests();
-    loadTests();
+    // If DataTable is already initialized we should not call the manual loader to avoid duplicate AJAX requests
+    if (!($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable'))) {
+        loadTests();
+    }
 
     $('#saveTestBtn').click(function(){ 
         // Validate min/max ranges before submitting
@@ -1145,7 +1166,7 @@ $(function(){
                     addTestToTable(resp.data); 
                 } else { 
                     // Update - reload table
-                    loadTests(); 
+                    reloadTestsDebounced(); 
                 } 
                 
                 // Reset form after successful save
@@ -1211,7 +1232,7 @@ $(function(){
             }, function(resp){
                 if(resp.success){
                     toastr.success(resp.message || 'Test deleted successfully');
-                    loadTests(); // Reload the table
+                    reloadTestsDebounced(); // Reload the table
                 } else {
                     toastr.error(resp.message || 'Delete failed');
                 }
