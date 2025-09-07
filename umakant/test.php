@@ -228,7 +228,7 @@ require_once 'inc/sidebar.php';
                                     <i class="fas fa-tags mr-1"></i>
                                     Category <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-control" id="testCategory" name="category_id" required>
+                                <select class="form-control" id="testCategoryId" name="category_id" required>
                                     <option value="">Select Category</option>
                                 </select>
                             </div>
@@ -274,16 +274,32 @@ require_once 'inc/sidebar.php';
                             </h6>
                         </div>
                         <div class="card-body">
+                            <!-- General Range -->
+                            <div class="row mb-3">
+                                <div class="col-md-2">
+                                    <label class="font-weight-bold text-info">General Range:</label>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" id="testMin" name="min" placeholder="Min" step="0.01">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" id="testMax" name="max" placeholder="Max" step="0.01">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="generalUnit" name="general_unit" placeholder="Unit">
+                                </div>
+                            </div>
+
                             <!-- Male Range -->
                             <div class="row mb-3">
                                 <div class="col-md-2">
                                     <label class="font-weight-bold text-primary">Male Range:</label>
                                 </div>
                                 <div class="col-md-3">
-                                    <input type="number" class="form-control" id="maleMin" name="min_male" placeholder="Min" step="0.01">
+                                    <input type="number" class="form-control" id="testMinMale" name="min_male" placeholder="Min" step="0.01">
                                 </div>
                                 <div class="col-md-3">
-                                    <input type="number" class="form-control" id="maleMax" name="max_male" placeholder="Max" step="0.01">
+                                    <input type="number" class="form-control" id="testMaxMale" name="max_male" placeholder="Max" step="0.01">
                                 </div>
                                 <div class="col-md-4">
                                     <input type="text" class="form-control" id="maleUnit" name="male_unit" placeholder="Unit">
@@ -296,14 +312,42 @@ require_once 'inc/sidebar.php';
                                     <label class="font-weight-bold text-danger">Female Range:</label>
                                 </div>
                                 <div class="col-md-3">
-                                    <input type="number" class="form-control" id="femaleMin" name="min_female" placeholder="Min" step="0.01">
+                                    <input type="number" class="form-control" id="testMinFemale" name="min_female" placeholder="Min" step="0.01">
                                 </div>
                                 <div class="col-md-3">
-                                    <input type="number" class="form-control" id="femaleMax" name="max_female" placeholder="Max" step="0.01">
+                                    <input type="number" class="form-control" id="testMaxFemale" name="max_female" placeholder="Max" step="0.01">
                                 </div>
                                 <div class="col-md-4">
                                     <input type="text" class="form-control" id="femaleUnit" name="female_unit" placeholder="Unit">
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Settings -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="testSubHeading">
+                                    <i class="fas fa-heading mr-1"></i>
+                                    Sub Heading
+                                </label>
+                                <select class="form-control" id="testSubHeading" name="sub_heading">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="testPrintNewPage">
+                                    <i class="fas fa-print mr-1"></i>
+                                    Print New Page
+                                </label>
+                                <select class="form-control" id="testPrintNewPage" name="print_new_page">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -320,7 +364,7 @@ require_once 'inc/sidebar.php';
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
                         <i class="fas fa-times"></i> Cancel
                     </button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" id="saveTestBtn" class="btn btn-primary">
                         <i class="fas fa-save"></i> Save Test
                     </button>
                 </div>
@@ -373,6 +417,29 @@ require_once 'inc/sidebar.php';
     </div>
 </div>
 
+<!-- View Test Modal -->
+<div class="modal fade" id="viewTestModal" tabindex="-1" role="dialog" aria-labelledby="viewTestModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="viewTestModalLabel">
+                    <i class="fas fa-eye mr-2"></i>
+                    Test Details
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="viewTestBody">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Global variables
 let testsTable;
@@ -402,43 +469,146 @@ function initDataTable(selector, options = {}) {
 
 // Initialize page
 $(document).ready(function() {
-    initializeDataTable();
-    loadCategories();
-    loadStats();
-    initializeEventListeners();
+    console.log('Initializing Test Management page...');
+    
+    try {
+        initializeDataTable();
+        loadCategories();
+        loadStats();
+        initializeEventListeners();
+        
+        // Additional initialization
+        loadCategoriesForTests();
+        
+        // Event handlers
+        setupEventHandlers();
+        
+        console.log('Test Management page initialized successfully');
+    } catch (error) {
+        console.error('Error initializing Test Management page:', error);
+        toastr.error('Error initializing page: ' + error.message);
+    }
 });
 
-function initializeDataTable() {
-    // Destroy existing DataTable if it exists
-    if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
-        $('#testsTable').DataTable().destroy();
-    }
+function setupEventHandlers() {
+    // Form submission
+    $('#testForm').on('submit', function(e) {
+        e.preventDefault();
+        saveTestData();
+    });
     
-    testsTable = $('#testsTable').DataTable({
-        processing: true,
-        serverSide: false,
-        ajax: {
-            url: 'ajax/test_api.php?action=list',
-            type: 'GET',
-            dataSrc: function(json) {
-                if (json.success) {
-                    return json.data || [];
-                } else {
-                    console.error('Failed to load tests:', json.message);
-                    toastr.error('Failed to load tests: ' + (json.message || 'Unknown error'));
-                    return [];
+    // Save button click (backup handler)
+    $('#saveTestBtn').off('click').on('click', function(e) {
+        e.preventDefault();
+        saveTestData();
+    });
+    
+    // Delegated edit handler
+    $(document).on('click', '.edit-test', function(){
+        try{
+            var id = $(this).data('id');
+            editTest(id);
+        } catch(err) { 
+            console.error('edit-test handler error', err); 
+            toastr.error('Error: '+(err.message||err)); 
+        }
+    });
+    
+    // Delegated delete handler
+    $(document).on('click', '.delete-test', function(){
+        try{
+            var id = $(this).data('id');
+            var name = $(this).closest('tr').find('td:nth-child(3)').text() || 'this test';
+            deleteTest(id, name);
+        } catch(err) { 
+            console.error('delete-test handler error', err); 
+            toastr.error('Error: '+(err.message||err)); 
+        }
+    });
+    
+    // Modal event handlers
+    $('#testModal').on('hidden.bs.modal', function(){
+        $('#testForm').find('input,textarea,select').prop('disabled', false);
+        $('#saveTestBtn').show();
+        $('#modalTitle').text('Add New Test');
+        // Clear any previous aria-hidden
+        $(this).removeAttr('aria-hidden');
+    });
+    
+    $('#testModal').on('show.bs.modal', function(){
+        // Remove aria-hidden when showing
+        $(this).removeAttr('aria-hidden');
+    });
+    
+    $('#testModal').on('shown.bs.modal', function(){
+        var $modal = $(this);
+        // Ensure aria-hidden is not set when modal is visible
+        $modal.removeAttr('aria-hidden');
+        
+        // Focus first input with a small delay
+        setTimeout(function(){
+            try{
+                var $input = $('#testName');
+                if ($input.length && $input.is(':visible')) {
+                    $input.trigger('focus');
+                }
+            }catch(e){
+                console.warn('Could not focus input:', e);
+            }
+        }, 100);
+    });
+    
+    // Checkbox handlers
+    $('#selectAllTests').on('change', function() {
+        $('.test-checkbox').prop('checked', this.checked);
+        updateBulkActions();
+    });
+    
+    $(document).on('change', '.test-checkbox', function() {
+        updateBulkActions();
+    });
+}
+
+function initializeDataTable() {
+    try {
+        console.log('Initializing DataTable...');
+        
+        // Destroy existing DataTable if it exists
+        if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
+            $('#testsTable').DataTable().destroy();
+        }
+        
+        testsTable = $('#testsTable').DataTable({
+            processing: true,
+            serverSide: false,
+            ajax: {
+                url: 'ajax/test_api.php?action=list',
+                type: 'GET',
+                dataSrc: function(json) {
+                    console.log('DataTable AJAX response:', json);
+                    if (json.success) {
+                        return json.data || [];
+                    } else {
+                        console.error('Failed to load tests:', json.message);
+                        toastr.error('Failed to load tests: ' + (json.message || 'Unknown error'));
+                        return [];
+                    }
+                },
+                error: function(xhr, error, thrown) {
+                    console.error('DataTable AJAX Error:', error, thrown, 'status:', xhr.status, 'response:', xhr.responseText);
+                    var msg = 'Failed to load tests data';
+                    if (xhr.status === 0) msg = 'Network error or request aborted';
+                    else if (xhr.responseText) {
+                        try { 
+                            var j = JSON.parse(xhr.responseText); 
+                            if (j.message) msg = j.message; 
+                        } catch(e) { 
+                            msg = xhr.responseText.substring(0, 100); 
+                        }
+                    }
+                    toastr.error(msg);
                 }
             },
-            error: function(xhr, error, thrown) {
-                console.error('AJAX Error:', error, thrown, 'status:', xhr.status, 'response:', xhr.responseText);
-                var msg = 'Failed to load tests data';
-                if (xhr.status === 0) msg = 'Network error or request aborted';
-                else if (xhr.responseText) {
-                    try { var j = JSON.parse(xhr.responseText); if (j.message) msg = j.message; } catch(e) { msg = xhr.responseText; }
-                }
-                toastr.error(msg);
-            }
-        },
         columns: [
             {
                 data: null,
@@ -584,6 +754,16 @@ function initializeDataTable() {
     $(document).on('change', '.test-checkbox', function() {
         updateBulkActions();
     });
+    
+    console.log('DataTable initialized successfully');
+    
+    } catch (error) {
+        console.error('Error initializing DataTable:', error);
+        toastr.error('Error initializing data table: ' + error.message);
+        
+        // Fallback: show a simple message in the table
+        $('#testsTable tbody').html('<tr><td colspan="9" class="text-center text-warning py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading table. Please refresh the page.</td></tr>');
+    }
 }
 
 function applyFilters() {
@@ -720,7 +900,7 @@ function loadCategories() {
                 filterOptions += `<option value="${category.name}">${category.name}</option>`;
             });
 
-            $('#testCategory').html(options);
+            $('#testCategoryId').html(options);
             $('#categoryFilter').html(filterOptions);
 
             // Populate categories table
@@ -757,12 +937,27 @@ function populateCategoriesTable(categories) {
 function loadStats() {
     $.get('ajax/test_api.php?action=stats')
         .done(function(response) {
-            if (response.status === 'success') {
+            if (response.success) {
                 $('#totalTests').text(response.data.total || 0);
                 $('#activeTests').text(response.data.active || 0);
                 $('#totalCategories').text(response.data.categories || 0);
                 $('#testEntries').text(response.data.entries || 0);
+            } else {
+                console.warn('Failed to load stats:', response.message);
+                // Set default values if stats fail
+                $('#totalTests').text('0');
+                $('#activeTests').text('0');
+                $('#totalCategories').text('0');
+                $('#testEntries').text('0');
             }
+        })
+        .fail(function(xhr) {
+            console.error('Stats AJAX error:', xhr.status, xhr.responseText);
+            // Set default values if AJAX fails
+            $('#totalTests').text('0');
+            $('#activeTests').text('0');
+            $('#totalCategories').text('0');
+            $('#testEntries').text('0');
         });
 }
 
@@ -816,9 +1011,40 @@ function editTest(id) {
 }
 
 function saveTestData() {
+    // Validate min/max ranges before submitting
+    function validateTestRanges(){
+        var pairs = [
+            {min:'#testMin', max:'#testMax', label:'General'},
+            {min:'#testMinMale', max:'#testMaxMale', label:'Male'},
+            {min:'#testMinFemale', max:'#testMaxFemale', label:'Female'}
+        ];
+        for(var i=0;i<pairs.length;i++){
+            var p = pairs[i];
+            var vMin = $(p.min).val().trim();
+            var vMax = $(p.max).val().trim();
+            if(vMin === '' || vMax === '') continue; // nothing to validate
+            var nMin = parseFloat(vMin);
+            var nMax = parseFloat(vMax);
+            if(isNaN(nMin) || isNaN(nMax)){
+                toastr.error(p.label + ' range must be numeric');
+                $(p.min).focus();
+                return false;
+            }
+            if(nMax < nMin){
+                toastr.error('Max Value ('+p.label+') cannot be less than Min Value ('+p.label+').');
+                $(p.max).focus();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    if(!validateTestRanges()) return; // abort save if invalid
+
     const formData = new FormData($('#testForm')[0]);
     const id = $('#testId').val();
     formData.append('action', 'save');
+    formData.append('ajax', '1');
     
     const submitBtn = $('#saveTestBtn');
     const originalText = submitBtn.html();
@@ -834,14 +1060,35 @@ function saveTestData() {
             if (response.success) {
                 toastr.success(id ? 'Test updated successfully!' : 'Test added successfully!');
                 $('#testModal').modal('hide');
-                reloadTestsDebounced(); // Reload the table (debounced)
+                
+                if(response.data && !id) { 
+                    // New record - add to table directly if possible
+                    if (typeof addTestToTable === 'function') {
+                        addTestToTable(response.data); 
+                    } else {
+                        reloadTestsDebounced();
+                    }
+                } else { 
+                    // Update - reload table
+                    reloadTestsDebounced(); 
+                } 
+                
                 loadStats();
+                
+                // Reset form after successful save
+                $('#testForm')[0].reset(); 
+                $('#testId').val(''); 
             } else {
                 toastr.error('Error: ' + (response.message || 'Unknown error'));
             }
         },
-        error: function() {
-            toastr.error('Failed to save test data');
+        error: function(xhr) {
+            var msg = xhr.responseText || 'Server error'; 
+            try{ 
+                var j=JSON.parse(xhr.responseText||'{}'); 
+                if(j.message) msg=j.message;
+            }catch(e){} 
+            toastr.error('Failed to save test: ' + msg);
         },
         complete: function() {
             submitBtn.html(originalText).prop('disabled', false);
@@ -1034,7 +1281,7 @@ function loadCategoriesForTests(){
             resp.data.forEach(function(c){ 
                 s += '<option value="'+c.id+'">'+(c.name||'')+'</option>'; 
             }); 
-            $('#testCategoryId').append(s); 
+            $('#testCategoryId').html(s); 
         } else {
             toastr.error('Failed to load categories');
         }
@@ -1112,230 +1359,106 @@ function applyTestsFilters(){
     });
 }
 
-function openAddTestModal(){ $('#testForm')[0].reset(); $('#testId').val(''); $('#testModal').modal('show'); }
+function openAddTestModal(){ 
+    $('#testForm')[0].reset(); 
+    $('#testId').val(''); 
+    $('#modalTitle').text('Add New Test');
+    $('#testModal').modal('show'); 
+}
 
-$(function(){
-    loadCategoriesForTests();
-    // If DataTable is already initialized we should not call the manual loader to avoid duplicate AJAX requests
-    if (!($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable'))) {
-        loadTests();
-    }
-
-    $('#saveTestBtn').click(function(){ 
-        // Validate min/max ranges before submitting
-        function validateTestRanges(){
-            var pairs = [
-                {min:'#testMin', max:'#testMax', label:'General'},
-                {min:'#testMinMale', max:'#testMaxMale', label:'Male'},
-                {min:'#testMinFemale', max:'#testMaxFemale', label:'Female'}
-            ];
-            for(var i=0;i<pairs.length;i++){
-                var p = pairs[i];
-                var vMin = $(p.min).val().trim();
-                var vMax = $(p.max).val().trim();
-                if(vMin === '' || vMax === '') continue; // nothing to validate
-                var nMin = parseFloat(vMin);
-                var nMax = parseFloat(vMax);
-                if(isNaN(nMin) || isNaN(nMax)){
-                    toastr.error(p.label + ' range must be numeric');
-                    $(p.min).focus();
-                    return false;
-                }
-                if(nMax < nMin){
-                    toastr.error('Max Value ('+p.label+') cannot be less than Min Value ('+p.label+').');
-                    $(p.max).focus();
-                    return false;
-                }
-            }
-            return true;
+function loadCategoriesForTests(){
+    $.get('ajax/test_category_api.php',{action:'list',ajax:1},function(resp){
+        if(resp.success){ 
+            var s='<option value="">Select Category</option>'; 
+            resp.data.forEach(function(c){ 
+                s += '<option value="'+c.id+'">'+(c.name||'')+'</option>'; 
+            }); 
+            $('#testCategory').html(s); 
+        } else {
+            toastr.error('Failed to load categories');
         }
+    },'json');
+}
 
-        if(!validateTestRanges()) return; // abort save if invalid
+// HTML escape function
+function escapeHtml(text) {
+    var map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text ? text.replace(/[&<>"']/g, function(m) { return map[m]; }) : '';
+}
 
-        var isEdit = $('#testId').val() !== '';
-        // ensure new gender fields are included
-        var data = $('#testForm').serialize() + '&action=save&ajax=1'; 
-        
-        $.post('ajax/test_api.php', data, function(resp){ 
-            if(resp.success){ 
-                toastr.success(resp.message||'Saved'); 
-                $('#testModal').modal('hide'); 
-                
-                if(resp.data && !isEdit) { 
-                    // New record - add to table directly
-                    addTestToTable(resp.data); 
-                } else { 
-                    // Update - reload table
-                    reloadTestsDebounced(); 
-                } 
-                
-                // Reset form after successful save
-                $('#testForm')[0].reset(); 
-                $('#testId').val(''); 
-            } else { 
-                toastr.error(resp.message||'Save failed'); 
-            } 
+// Global view test function
+window.viewTest = function(id){
+    try{
+        $.get('ajax/test_api.php',{action:'get',id:id,ajax:1}, function(resp){
+            if(resp.success){
+                var d = resp.data || {};
+                var html = '';
+                html += '<div class="container-fluid">';
+                html += '<div class="row">';
+                // Left column: main info
+                html += '<div class="col-md-7">';
+                html += '  <h4 class="mb-1">' + escapeHtml(d.name || '') + ' <small class="text-muted">#' + escapeHtml(d.id || '') + '</small></h4>';
+                if(d.description) html += '<p class="text-muted">' + escapeHtml(d.description) + '</p>';
+                html += '  <div class="row">';
+                html += '    <div class="col-sm-6"><strong>Category</strong><div>' + escapeHtml(d.category_name||'') + '</div></div>';
+                html += '    <div class="col-sm-6"><strong>Price</strong><div>' + escapeHtml(d.price||'') + '</div></div>';
+                html += '    <div class="col-sm-6 mt-2"><strong>Unit</strong><div>' + escapeHtml(d.unit||'') + '</div></div>';
+                html += '    <div class="col-sm-6 mt-2"><strong>Sub Heading</strong><div>' + (d.sub_heading? 'Yes':'No') + '</div></div>';
+                html += '  </div>'; // row
+                html += '</div>'; // col-md-7
+
+                // Right column: metadata and actions
+                html += '<div class="col-md-5">';
+                html += '  <div class="card border-0">';
+                html += '    <div class="card-body p-2">';
+                html += '      <p class="mb-1"><small class="text-muted">Added By</small><br><strong>' + escapeHtml(d.added_by_username||'') + '</strong></p>';
+                html += '      <p class="mb-1"><small class="text-muted">Print New Page</small><br><strong>' + (d.print_new_page? 'Yes':'No') + '</strong></p>';
+                html += '      <p class="mb-0"><small class="text-muted">Default Result</small><br>' + escapeHtml(d.default_result||'') + '</p>';
+                html += '    </div>'; 
+                html += '  </div>';
+                html += '</div>'; // col-md-5
+
+                html += '</div>'; // row
+
+                // Ranges table
+                html += '<hr/>';
+                html += '<h6 class="mb-2">Reference Ranges</h6>';
+                html += '<div class="table-responsive">';
+                html += '<table class="table table-sm table-bordered">';
+                html += '<thead class="thead-light"><tr><th>Scope</th><th>Min</th><th>Max</th></tr></thead>';
+                html += '<tbody>';
+                html += '<tr><td>General</td><td>' + escapeHtml(d.min||'') + '</td><td>' + escapeHtml(d.max||'') + '</td></tr>';
+                html += '<tr><td>Male</td><td>' + escapeHtml(d.min_male||'') + '</td><td>' + escapeHtml(d.max_male||'') + '</td></tr>';
+                html += '<tr><td>Female</td><td>' + escapeHtml(d.min_female||'') + '</td><td>' + escapeHtml(d.max_female||'') + '</td></tr>';
+                html += '</tbody></table></div>';
+
+                if(d.reference_range){ html += '<p class="mt-2"><strong>Reference Note:</strong> ' + escapeHtml(d.reference_range) + '</p>'; }
+
+                html += '</div>'; // container-fluid
+
+                $('#viewTestBody').html(html);
+                $('#viewTestModal').modal('show');
+            } else {
+                toastr.error('Test not found');
+            }
         }, 'json').fail(function(xhr){ 
             var msg = xhr.responseText || 'Server error'; 
-            try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} 
+            try{ 
+                var j=JSON.parse(xhr.responseText||'{}'); 
+                if(j.message) msg=j.message;
+            }catch(e){} 
             toastr.error(msg); 
-        }); 
-    });
-
-    // DataTables provides search and paging; removed custom filters
-
-    // delegated edit handler
-    $(document).on('click', '.edit-test', function(){
-        try{
-            console.debug('edit-test clicked', $(this).data('id'));
-            var id=$(this).data('id');
-            $.get('ajax/test_api.php',{action:'get',id:id,ajax:1}, function(resp){
-                if(resp.success){
-                    var d = resp.data || {};
-                    // populate fields
-                    $('#testId').val(d.id);
-                    $('#testCategoryId').val(d.category_id);
-                    $('#testName').val(d.name);
-                    $('#testDescription').val(d.description);
-                    $('#testPrice').val(d.price);
-                    $('#testUnit').val(d.unit);
-                    $('#testMin').val(d.min);
-                    $('#testMax').val(d.max);
-                    // gender-specific ranges
-                    $('#testMinMale').val(d.min_male);
-                    $('#testMaxMale').val(d.max_male);
-                    $('#testMinFemale').val(d.min_female);
-                    $('#testMaxFemale').val(d.max_female);
-                    $('#testSubHeading').val(d.sub_heading);
-                    $('#testPrintNewPage').val(d.print_new_page);
-                    // ensure form inputs are enabled for editing and show save
-                    $('#testForm').find('input,textarea,select').prop('disabled', false);
-                    $('#saveTestBtn').show();
-                    $('#testModal').modal('show');
-                } else {
-                    toastr.error('Test not found');
-                }
-            },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
-        }catch(err){ console.error('edit-test handler error', err); toastr.error('Error: '+(err.message||err)); }
-    });
-
-    // delegated delete handler
-    $(document).on('click', '.delete-test', function(){
-        try{
-            var id = $(this).data('id');
-            if(!confirm('Delete test?')) return;
-            
-            $.post('ajax/test_api.php', {
-                action: 'delete',
-                id: id,
-                ajax: 1
-            }, function(resp){
-                if(resp.success){
-                    toastr.success(resp.message || 'Test deleted successfully');
-                    reloadTestsDebounced(); // Reload the table
-                } else {
-                    toastr.error(resp.message || 'Delete failed');
-                }
-            }, 'json').fail(function(xhr){
-                var msg = xhr.responseText || 'Server error';
-                try{ 
-                    var j = JSON.parse(xhr.responseText || '{}'); 
-                    if(j.message) msg = j.message;
-                } catch(e){} 
-                toastr.error('Delete failed: ' + msg);
-            });
-        } catch(err){ 
-            console.error('delete-test handler error', err); 
-            toastr.error('Error: ' + (err.message || err)); 
-        }
-    });
-
-    // global view - show full details in dedicated view modal
-    window.viewTest = function(id){
-        try{
-            $.get('ajax/test_api.php',{action:'get',id:id,ajax:1}, function(resp){
-                if(resp.success){
-                    var d = resp.data || {};
-                    var html = '';
-                    html += '<div class="container-fluid">';
-                    html += '<div class="row">';
-                    // Left column: main info
-                    html += '<div class="col-md-7">';
-                    html += '  <h4 class="mb-1">' + escapeHtml(d.name || '') + ' <small class="text-muted">#' + escapeHtml(d.id || '') + '</small></h4>';
-                    if(d.description) html += '<p class="text-muted">' + escapeHtml(d.description) + '</p>';
-                    html += '  <div class="row">';
-                    html += '    <div class="col-sm-6"><strong>Category</strong><div>' + escapeHtml(d.category_name||'') + '</div></div>';
-                    html += '    <div class="col-sm-6"><strong>Price</strong><div>' + escapeHtml(d.price||'') + '</div></div>';
-                    html += '    <div class="col-sm-6 mt-2"><strong>Unit</strong><div>' + escapeHtml(d.unit||'') + '</div></div>';
-                    html += '    <div class="col-sm-6 mt-2"><strong>Sub Heading</strong><div>' + (d.sub_heading? 'Yes':'No') + '</div></div>';
-                    html += '  </div>'; // row
-                    html += '</div>'; // col-md-7
-
-                    // Right column: metadata and actions
-                    html += '<div class="col-md-5">';
-                    html += '  <div class="card border-0">';
-                    html += '    <div class="card-body p-2">';
-                    html += '      <p class="mb-1"><small class="text-muted">Added By</small><br><strong>' + escapeHtml(d.added_by_username||'') + '</strong></p>';
-                    html += '      <p class="mb-1"><small class="text-muted">Print New Page</small><br><strong>' + (d.print_new_page? 'Yes':'No') + '</strong></p>';
-                    html += '      <p class="mb-0"><small class="text-muted">Default Result</small><br>' + escapeHtml(d.default_result||'') + '</p>';
-                    html += '    </div>'; 
-                    html += '  </div>';
-                    html += '</div>'; // col-md-5
-
-                    html += '</div>'; // row
-
-                    // Ranges table
-                    html += '<hr/>';
-                    html += '<h6 class="mb-2">Reference Ranges</h6>';
-                    html += '<div class="table-responsive">';
-                    html += '<table class="table table-sm table-bordered">';
-                    html += '<thead class="thead-light"><tr><th>Scope</th><th>Min</th><th>Max</th></tr></thead>';
-                    html += '<tbody>';
-                    html += '<tr><td>General</td><td>' + escapeHtml(d.min||'') + '</td><td>' + escapeHtml(d.max||'') + '</td></tr>';
-                    html += '<tr><td>Male</td><td>' + escapeHtml(d.min_male||'') + '</td><td>' + escapeHtml(d.max_male||'') + '</td></tr>';
-                    html += '<tr><td>Female</td><td>' + escapeHtml(d.min_female||'') + '</td><td>' + escapeHtml(d.max_female||'') + '</td></tr>';
-                    html += '</tbody></table></div>';
-
-                    if(d.reference_range){ html += '<p class="mt-2"><strong>Reference Note:</strong> ' + escapeHtml(d.reference_range) + '</p>'; }
-
-                    html += '</div>'; // container-fluid
-
-                    $('#viewTestBody').html(html);
-                    $('#viewTestModal').modal('show');
-                } else {
-                    toastr.error('Test not found');
-                }
-            }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
-        }catch(err){ toastr.error('Error: '+(err.message||err)); }
+        });
+    }catch(err){ 
+        toastr.error('Error: '+(err.message||err)); 
     }
-
-    // restore modal state on close
-    $('#testModal').on('hidden.bs.modal', function(){
-        $('#testForm').find('input,textarea,select').prop('disabled', false);
-        $('#saveTestBtn').show();
-        $('#testModalLabel').text('Add Test');
-    });
-
-    // Ensure aria-hidden is cleared and focus moves to first input when modal is shown (accessibility)
-    $('#testModal').on('show.bs.modal', function(){
-        // Bootstrap may set aria-hidden; ensure it's cleared for assistive tech when showing
-        try{ $(this).attr('aria-hidden', 'false'); }catch(e){}
-    });
-
-    $('#testModal').on('shown.bs.modal', function(){
-        var $modal = $(this);
-        // Small timeout to let bootstrap finish updating attributes/styles
-        setTimeout(function(){
-            try{
-                // Only focus if modal is visible and not aria-hidden
-                if ($modal.attr('aria-hidden') !== 'true'){
-                    var $input = $('#testName');
-                    if ($input.length && $input.is(':visible')) $input.trigger('focus');
-                }
-            }catch(e){}
-        }, 50);
-    });
-});
+};
 </script>
 
 <!-- Enhanced table scripts commented out to avoid conflicts -->

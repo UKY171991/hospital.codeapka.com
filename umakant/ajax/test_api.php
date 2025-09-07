@@ -20,6 +20,18 @@ try {
     $action = $_REQUEST['action'] ?? 'list';
 
     if ($action === 'list') {
+        // Check which categories table exists
+        $categories_table = 'test_categories';
+        try{
+            $stmt = $pdo->query("SHOW TABLES LIKE 'test_categories'");
+            if(!$stmt->fetch()){
+                $stmt2 = $pdo->query("SHOW TABLES LIKE 'categories'");
+                if($stmt2->fetch()) $categories_table = 'categories';
+            }
+        }catch(Throwable $e){
+            $categories_table = 'test_categories';
+        }
+        
         // Support DataTables server-side processing
         $draw = $_POST['draw'] ?? 1;
         $start = $_POST['start'] ?? 0;
@@ -27,7 +39,7 @@ try {
         $search = $_POST['search']['value'] ?? '';
         
         // Base query
-        $baseQuery = "FROM tests t LEFT JOIN categories tc ON t.category_id = tc.id LEFT JOIN users u ON t.added_by = u.id";
+        $baseQuery = "FROM tests t LEFT JOIN {$categories_table} tc ON t.category_id = tc.id LEFT JOIN users u ON t.added_by = u.id";
         $whereClause = "";
         $params = [];
         
@@ -89,10 +101,22 @@ try {
     }
 
     if ($action === 'get' && isset($_GET['id'])) {
+        // Check which categories table exists
+        $categories_table = 'test_categories';
+        try{
+            $stmt = $pdo->query("SHOW TABLES LIKE 'test_categories'");
+            if(!$stmt->fetch()){
+                $stmt2 = $pdo->query("SHOW TABLES LIKE 'categories'");
+                if($stmt2->fetch()) $categories_table = 'categories';
+            }
+        }catch(Throwable $e){
+            $categories_table = 'test_categories';
+        }
+        
         // return full record for edit/view with joined names
         $stmt = $pdo->prepare("SELECT t.*, tc.name as category_name, u.username as added_by_username
             FROM tests t
-            LEFT JOIN categories tc ON t.category_id = tc.id
+            LEFT JOIN {$categories_table} tc ON t.category_id = tc.id
             LEFT JOIN users u ON t.added_by = u.id
             WHERE t.id = ?");
         $stmt->execute([$_GET['id']]);
@@ -146,6 +170,19 @@ try {
             
             // Get the newly inserted record with joined data
             $newId = $pdo->lastInsertId();
+            
+            // Check which categories table exists
+            $categories_table = 'test_categories';
+            try{
+                $stmt = $pdo->query("SHOW TABLES LIKE 'test_categories'");
+                if(!$stmt->fetch()){
+                    $stmt2 = $pdo->query("SHOW TABLES LIKE 'categories'");
+                    if($stmt2->fetch()) $categories_table = 'categories';
+                }
+            }catch(Throwable $e){
+                $categories_table = 'test_categories';
+            }
+            
             $stmt = $pdo->prepare("SELECT t.id,
                 tc.name as category_name,
                 t.category_id,
@@ -164,7 +201,7 @@ try {
                 t.added_by,
                 u.username as added_by_username
                 FROM tests t
-                LEFT JOIN categories tc ON t.category_id = tc.id
+                LEFT JOIN {$categories_table} tc ON t.category_id = tc.id
                 LEFT JOIN users u ON t.added_by = u.id
                 WHERE t.id = ?");
             $stmt->execute([$newId]);
@@ -183,18 +220,40 @@ try {
 
     if ($action === 'stats') {
         // Get test statistics
-        $totalStmt = $pdo->query('SELECT COUNT(*) FROM tests');
-        $total = $totalStmt->fetchColumn();
+        try {
+            $totalStmt = $pdo->query('SELECT COUNT(*) FROM tests');
+            $total = $totalStmt->fetchColumn();
+        } catch (Exception $e) {
+            $total = 0;
+        }
         
-        $activeStmt = $pdo->query('SELECT COUNT(*) FROM tests WHERE status = "active" OR status IS NULL');
-        $active = $activeStmt->fetchColumn();
+        try {
+            $activeStmt = $pdo->query('SELECT COUNT(*) FROM tests WHERE status = "active" OR status IS NULL');
+            $active = $activeStmt->fetchColumn();
+        } catch (Exception $e) {
+            $active = 0;
+        }
         
-        $categoriesStmt = $pdo->query('SELECT COUNT(DISTINCT category_id) FROM tests WHERE category_id IS NOT NULL');
-        $categories = $categoriesStmt->fetchColumn();
+        try {
+            $categoriesStmt = $pdo->query('SELECT COUNT(DISTINCT category_id) FROM tests WHERE category_id IS NOT NULL');
+            $categories = $categoriesStmt->fetchColumn();
+        } catch (Exception $e) {
+            $categories = 0;
+        }
         
-        // Test entries count
-        $entriesStmt = $pdo->query('SELECT COUNT(*) FROM entries');
-        $entries = $entriesStmt->fetchColumn();
+        // Test entries count - check if entries table exists
+        try {
+            $entriesStmt = $pdo->query('SELECT COUNT(*) FROM entries');
+            $entries = $entriesStmt->fetchColumn();
+        } catch (Exception $e) {
+            // Table might not exist, try alternative table names
+            try {
+                $entriesStmt = $pdo->query('SELECT COUNT(*) FROM test_entries');
+                $entries = $entriesStmt->fetchColumn();
+            } catch (Exception $e2) {
+                $entries = 0;
+            }
+        }
         
         json_response([
             'success' => true,
