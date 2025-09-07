@@ -531,13 +531,25 @@ function performDeletePatient(id) {
         data: { action: 'delete', id: id },
         dataType: 'json'
     }).done(function(response) {
-        if (response.success) {
-            showSuccess('Patient deleted successfully');
-            loadPatients();
-            loadStats();
-        } else {
-            showError(response.message || 'Failed to delete patient');
-        }
+            if (response.success) {
+                // Refresh data using best available method
+                try {
+                    if (typeof patientsDataTable !== 'undefined' && patientsDataTable && patientsDataTable.ajax && typeof patientsDataTable.ajax.reload === 'function') {
+                        patientsDataTable.ajax.reload(null, false);
+                    } else if (typeof patientTableManager !== 'undefined' && patientTableManager && typeof patientTableManager.refreshData === 'function') {
+                        patientTableManager.refreshData();
+                    } else if (typeof loadPatients === 'function') {
+                        loadPatients();
+                    } else {
+                        window.location.reload();
+                    }
+                } catch (e) { console.warn('Error refreshing table after delete:', e); window.location.reload(); }
+
+                showSuccess('Patient deleted successfully');
+                loadStats();
+            } else {
+                showError(response.message || 'Failed to delete patient');
+            }
     }).fail(function() {
         showError('Failed to delete patient');
     });

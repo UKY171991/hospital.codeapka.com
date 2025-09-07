@@ -272,7 +272,23 @@ function deletePatient(id) {
             $.post('ajax/patient_api.php', {action: 'delete', id: id})
                 .done(function(response) {
                     if (response.success) {
-                        patientTableManager.refreshData();
+                        // Refresh table data robustly and clear selection UI
+                        try {
+                            $('.selection-checkbox, #selectAll').prop('checked', false);
+                            $('.bulk-actions').hide();
+                            if (patientTableManager && patientTableManager.dataTable && patientTableManager.dataTable.ajax && typeof patientTableManager.dataTable.ajax.reload === 'function') {
+                                patientTableManager.dataTable.ajax.reload(null, false);
+                            } else if (patientTableManager && typeof patientTableManager.refreshData === 'function') {
+                                patientTableManager.refreshData();
+                            } else {
+                                // fallback to loadData
+                                patientTableManager.loadData && patientTableManager.loadData();
+                            }
+                        } catch (e) {
+                            console.warn('Error refreshing table after delete:', e);
+                            try { window.location.reload(); } catch(e){}
+                        }
+
                         loadPatientStats();
                         showSuccess('Patient deleted successfully');
                     } else {
