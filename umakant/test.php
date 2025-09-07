@@ -595,6 +595,12 @@ function initializeDataTable() {
                 dataSrc: function(json) {
                     console.log('DataTable AJAX response:', json);
                     if (json.success) {
+                        // Debug: log first few records to see what data we're getting
+                        if (json.data && json.data.length > 0) {
+                            console.log('First test record:', json.data[0]);
+                            console.log('Sample name field:', json.data[0].name);
+                            console.log('Sample category_name field:', json.data[0].category_name);
+                        }
                         return json.data || [];
                     } else {
                         console.error('Failed to load tests:', json.message);
@@ -634,14 +640,24 @@ function initializeDataTable() {
             { 
                 data: 'name',
                 render: function(data, type, row) {
-                    return `<div class="font-weight-bold text-primary">${data || 'N/A'}</div>
+                    var testName = data || row.name || 'N/A';
+                    // Handle empty strings as well as null/undefined
+                    if (testName === '' || testName === null || testName === undefined) {
+                        testName = 'N/A';
+                    }
+                    return `<div class="font-weight-bold text-primary">${testName}</div>
                             ${row.description ? `<small class="text-muted">${row.description}</small>` : ''}`;
                 }
             },
             { 
                 data: 'category_name',
                 render: function(data, type, row) {
-                    return data ? `<span class="badge badge-info">${data}</span>` : '-';
+                    var categoryName = data || row.category_name || '';
+                    // Handle empty strings as well as null/undefined
+                    if (categoryName === '' || categoryName === null || categoryName === undefined) {
+                        return '-';
+                    }
+                    return `<span class="badge badge-info">${categoryName}</span>`;
                 }
             },
             { 

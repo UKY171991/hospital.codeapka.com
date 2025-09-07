@@ -17,16 +17,21 @@ require_once __DIR__ . '/../inc/ajax_helpers.php';
 session_start();
 
 $action = $_REQUEST['action'] ?? 'list';
-// Determine which categories table exists
-$categories_table = 'test_categories';
+// Determine which categories table exists - Default to 'categories' based on schema
+$categories_table = 'categories';
 try{
     $stmt = $pdo->query("SHOW TABLES LIKE 'test_categories'");
-    if(!$stmt->fetch()){
+    if($stmt->fetch()){
+        $categories_table = 'test_categories';
+    } else {
+        // Verify categories table exists
         $stmt2 = $pdo->query("SHOW TABLES LIKE 'categories'");
-        if($stmt2->fetch()) $categories_table = 'categories';
+        if(!$stmt2->fetch()) {
+            $categories_table = 'test_categories'; // fallback
+        }
     }
 }catch(Throwable $e){
-    $categories_table = 'test_categories';
+    $categories_table = 'categories';
 }
 
 if ($action === 'list') {

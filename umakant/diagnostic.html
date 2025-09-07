@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tests API Diagnostic</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Tests API Diagnostic Tool</h1>
+    
+    <div class="section">
+        <h2>Database Connection Test</h2>
+        <button onclick="testConnection()">Test Connection</button>
+        <div id="connection-result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Simple Data Test</h2>
+        <button onclick="testSimpleData()">Test Simple Query</button>
+        <div id="simple-result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Test API Endpoint</h2>
+        <button onclick="testAPI()">Test test_api.php</button>
+        <div id="api-result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Categories API Test</h2>
+        <button onclick="testCategories()">Test Categories</button>
+        <div id="categories-result"></div>
+    </div>
+
+    <script>
+    function testConnection() {
+        fetch('api_debug.php')
+            .then(response => response.json())
+            .then(data => {
+                const div = document.getElementById('connection-result');
+                if (data.success) {
+                    div.className = 'section success';
+                    div.innerHTML = '<h3>✓ Connection Successful</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                } else {
+                    div.className = 'section error';
+                    div.innerHTML = '<h3>✗ Connection Failed</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('connection-result').innerHTML = '<div class="section error"><h3>✗ Request Failed</h3><pre>' + error + '</pre></div>';
+            });
+    }
+    
+    function testSimpleData() {
+        fetch('query_test.php')
+            .then(response => response.json())
+            .then(data => {
+                const div = document.getElementById('simple-result');
+                if (data.success) {
+                    div.className = 'section success';
+                    div.innerHTML = '<h3>✓ Query Test Successful</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                } else {
+                    div.className = 'section error';
+                    div.innerHTML = '<h3>✗ Query Test Failed</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('simple-result').innerHTML = '<div class="section error"><h3>✗ Request Failed</h3><pre>' + error + '</pre></div>';
+            });
+    }
+    
+    function testAPI() {
+        fetch('ajax/test_api.php?action=list')
+            .then(response => response.json())
+            .then(data => {
+                const div = document.getElementById('api-result');
+                if (data.success) {
+                    div.className = 'section success';
+                    div.innerHTML = '<h3>✓ API Test Successful</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                } else {
+                    div.className = 'section error';
+                    div.innerHTML = '<h3>✗ API Test Failed</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('api-result').innerHTML = '<div class="section error"><h3>✗ Request Failed</h3><pre>' + error + '</pre></div>';
+            });
+    }
+    
+    function testCategories() {
+        fetch('ajax/test_category_api.php?action=list')
+            .then(response => response.json())
+            .then(data => {
+                const div = document.getElementById('categories-result');
+                if (data.success) {
+                    div.className = 'section success';
+                    div.innerHTML = '<h3>✓ Categories Test Successful</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                } else {
+                    div.className = 'section error';
+                    div.innerHTML = '<h3>✗ Categories Test Failed</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('categories-result').innerHTML = '<div class="section error"><h3>✗ Request Failed</h3><pre>' + error + '</pre></div>';
+            });
+    }
+    </script>
+</body>
+</html>

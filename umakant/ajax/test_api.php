@@ -20,16 +20,21 @@ try {
     $action = $_REQUEST['action'] ?? 'list';
 
     if ($action === 'list') {
-        // Check which categories table exists
-        $categories_table = 'test_categories';
+        // Check which categories table exists - Default to 'categories' based on schema
+        $categories_table = 'categories';
         try{
             $stmt = $pdo->query("SHOW TABLES LIKE 'test_categories'");
-            if(!$stmt->fetch()){
+            if($stmt->fetch()){
+                $categories_table = 'test_categories';
+            } else {
+                // Verify categories table exists
                 $stmt2 = $pdo->query("SHOW TABLES LIKE 'categories'");
-                if($stmt2->fetch()) $categories_table = 'categories';
+                if(!$stmt2->fetch()) {
+                    $categories_table = 'test_categories'; // fallback
+                }
             }
         }catch(Throwable $e){
-            $categories_table = 'test_categories';
+            $categories_table = 'categories';
         }
         
         // Support DataTables server-side processing
@@ -38,10 +43,8 @@ try {
         $length = $_POST['length'] ?? 25;
         $search = $_POST['search']['value'] ?? '';
         
-        // Base query
-        $baseQuery = "FROM tests t LEFT JOIN {$categories_table} tc ON t.category_id = tc.id LEFT JOIN users u ON t.added_by = u.id";
-        $whereClause = "";
-        $params = [];
+        // Base query for counting
+        $countBaseQuery = "FROM tests t LEFT JOIN {$categories_table} tc ON t.category_id = tc.id LEFT JOIN users u ON t.added_by = u.id";
         
         // Add search conditions
         if (!empty($search)) {
@@ -51,7 +54,7 @@ try {
         }
         
         // Get total records
-        $totalStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereClause);
+        $totalStmt = $pdo->prepare("SELECT COUNT(*) " . $countBaseQuery . $whereClause);
         $totalStmt->execute($params);
         $totalRecords = $totalStmt->fetchColumn();
         
@@ -59,58 +62,83 @@ try {
         $orderBy = " ORDER BY t.id DESC";
         $limit = " LIMIT $start, $length";
         
-        $dataQuery = "SELECT t.id, t.name as test_name, tc.name as category, t.price,
-                      CASE 
-                        WHEN t.min_male IS NOT NULL AND t.max_male IS NOT NULL AND t.min_female IS NOT NULL AND t.max_female IS NOT NULL 
-                        THEN 'Both' 
-                        WHEN t.min_male IS NOT NULL AND t.max_male IS NOT NULL 
-                        THEN 'Male' 
-                        WHEN t.min_female IS NOT NULL AND t.max_female IS NOT NULL 
-                        THEN 'Female' 
-                        ELSE 'General' 
-                      END as gender,
-                      CONCAT(
-                        CASE 
-                          WHEN t.min_male IS NOT NULL AND t.max_male IS NOT NULL 
-                          THEN CONCAT('M: ', t.min_male, '-', t.max_male) 
-                          ELSE '' 
-                        END,
-                        CASE 
-                          WHEN t.min_female IS NOT NULL AND t.max_female IS NOT NULL AND t.min_male IS NOT NULL 
-                          THEN CONCAT(' | F: ', t.min_female, '-', t.max_female)
-                          WHEN t.min_female IS NOT NULL AND t.max_female IS NOT NULL 
-                          THEN CONCAT('F: ', t.min_female, '-', t.max_female)
-                          ELSE 'N/A' 
-                        END
-                      ) as `range`,
-                      t.unit, u.username as added_by " . 
-                      $baseQuery . $whereClause . $orderBy . $limit;
+        // Build the complete query with explicit table names
+        $dataQuery = "SELECT 
+            t.id,
+            COALESCE(t.name, '') AS name,
+            COALESCE(tc.name, '') AS category_name,
+            t.category_id,
+            COALESCE(t.description, '') AS description,
+            COALESCE(t.price, 0) AS price,
+            COALESCE(t.unit, '') AS unit,
+            t.min,
+            t.max,
+            t.min_male,
+            t.max_male,
+            t.min_female,
+            t.max_female,
+            COALESCE(t.sub_heading, 0) AS sub_heading,
+            COALESCE(t.print_new_page, 0) AS print_new_page,
+            COALESCE(u.username, '') AS added_by_username
+            FROM tests t 
+            LEFT JOIN {$categories_table} tc ON t.category_id = tc.id 
+            LEFT JOIN users u ON t.added_by = u.id" . $whereClause . $orderBy . $limit;
         
         $dataStmt = $pdo->prepare($dataQuery);
         $dataStmt->execute($params);
         $data = $dataStmt->fetchAll();
         
+        // Add debug info when no data or data issues detected
+        $debug_info = [];
+        if (empty($data)) {
+            $debug_info['note'] = 'No data returned from query';
+            $debug_info['query'] = $dataQuery;
+            $debug_info['table'] = $categories_table;
+        } else {
+            // Check first record for null names
+            $first = $data[0] ?? null;
+            if ($first && (empty($first['name']) || $first['name'] === null || $first['name'] === '')) {
+                $debug_info['warning'] = 'Test names are null/empty';
+                $debug_info['sample'] = $first;
+                $debug_info['table'] = $categories_table;
+                $debug_info['query'] = $dataQuery;
+            }
+        }
+        
         // Return DataTables format
-        json_response([
+        $response = [
             'draw' => intval($draw),
             'recordsTotal' => $totalRecords,
             'recordsFiltered' => $totalRecords,
             'success' => true,
-            'data' => $data
-        ]);
+            'data' => $data,
+            'categories_table_used' => $categories_table
+        ];
+        
+        // Add debug info if present
+        if (!empty($debug_info)) {
+            $response['debug'] = $debug_info;
+        }
+        
+        json_response($response);
     }
 
     if ($action === 'get' && isset($_GET['id'])) {
-        // Check which categories table exists
-        $categories_table = 'test_categories';
+        // Check which categories table exists - Default to 'categories' based on schema
+        $categories_table = 'categories';
         try{
             $stmt = $pdo->query("SHOW TABLES LIKE 'test_categories'");
-            if(!$stmt->fetch()){
+            if($stmt->fetch()){
+                $categories_table = 'test_categories';
+            } else {
+                // Verify categories table exists
                 $stmt2 = $pdo->query("SHOW TABLES LIKE 'categories'");
-                if($stmt2->fetch()) $categories_table = 'categories';
+                if(!$stmt2->fetch()) {
+                    $categories_table = 'test_categories'; // fallback
+                }
             }
         }catch(Throwable $e){
-            $categories_table = 'test_categories';
+            $categories_table = 'categories';
         }
         
         // return full record for edit/view with joined names
@@ -128,16 +156,21 @@ try {
         if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) json_response(['success'=>false,'message'=>'Unauthorized'],401);
         $id = $_POST['id'] ?? '';
         $category_id = $_POST['category_id'] ?? null;
-        // Determine which categories table exists so we can validate category_id
-        $categories_table = 'test_categories';
+        // Determine which categories table exists so we can validate category_id - Default to 'categories'
+        $categories_table = 'categories';
         try{
             $stmt = $pdo->query("SHOW TABLES LIKE 'test_categories'");
-            if(!$stmt->fetch()){
+            if($stmt->fetch()){
+                $categories_table = 'test_categories';
+            } else {
+                // Verify categories table exists
                 $stmt2 = $pdo->query("SHOW TABLES LIKE 'categories'");
-                if($stmt2->fetch()) $categories_table = 'categories';
+                if(!$stmt2->fetch()) {
+                    $categories_table = 'test_categories'; // fallback
+                }
             }
         }catch(Throwable $e){
-            $categories_table = 'test_categories';
+            $categories_table = 'categories';
         }
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
