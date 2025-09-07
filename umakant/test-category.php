@@ -127,6 +127,9 @@ try{
 
 <?php require_once 'inc/footer.php'; ?>
 
+<?php // include separated read-only view modal for categories
+require_once __DIR__ . '/inc/category_view_modal.php'; ?>
+
 <script>
 function loadCategories(){
     $.get('ajax/test_category_api.php',{action:'list'},function(resp){
@@ -148,8 +151,20 @@ function openAddCategoryModal(){ $('#categoryForm')[0].reset(); $('#categoryId')
 // global fallback used by inline onclick on View buttons
 function viewCategory(id){
     try{
-        console.debug('viewCategory() called', id);
-        $.get('ajax/test_category_api.php',{action:'get',id:id}, function(resp){ if(resp.success){ var d=resp.data; $('#categoryId').val(d.id); $('#categoryName').val(d.name); $('#categoryDescription').val(d.description); $('#categoryModalLabel').text('View Category'); $('#categoryForm').find('input,textarea,select').prop('disabled', true); $('#saveCategoryBtn').hide(); $('#categoryModal').modal('show'); } else toastr.error('Category not found'); },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
+        $.get('ajax/test_category_api.php',{action:'get',id:id}, function(resp){
+            if(resp.success){
+                var d = resp.data;
+                var html = '<table class="table table-sm table-borderless">' +
+                    '<tr><th>ID</th><td>'+(d.id||'')+'</td></tr>' +
+                    '<tr><th>Name</th><td>'+(d.name||'')+'</td></tr>' +
+                    '<tr><th>Description</th><td>'+(d.description||'')+'</td></tr>' +
+                    '<tr><th>Test Count</th><td>'+(d.test_count||0)+'</td></tr>' +
+                    '<tr><th>Added By</th><td>'+((d.added_by_username && d.added_by_username!='')?d.added_by_username:(d.added_by||''))+'</td></tr>' +
+                    '</table>';
+                $('#categoryViewModal .category-view-content').html(html);
+                $('#categoryViewModal').modal('show');
+            } else toastr.error('Category not found');
+        },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
     }catch(err){ console.error('viewCategory error', err); toastr.error('Error: '+(err.message||err)); }
 }
 
