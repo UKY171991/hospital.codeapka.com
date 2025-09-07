@@ -117,6 +117,26 @@
     }, true);
   </script>
   <script>
+    // Defensive stubs: some browser extensions or injected scripts expect global
+    // localization objects like `ClientLocalizations`/`clientLocalizations` with
+    // a `translations` property. When absent they can throw and pollute the
+    // console. Create minimal safe stubs to prevent "Cannot read properties of
+    // undefined (reading 'translations')" errors originating outside our app.
+    (function(){
+      try{
+        if(typeof window.ClientLocalizations === 'undefined'){
+          window.ClientLocalizations = { translations: {} };
+        }
+        if(typeof window.clientLocalizations === 'undefined'){
+          window.clientLocalizations = { translations: {} };
+        }
+        if(typeof window.CLIENT_LOCALIZATIONS === 'undefined'){
+          window.CLIENT_LOCALIZATIONS = { translations: {} };
+        }
+      }catch(e){ /* noop */ }
+    })();
+  </script>
+  <script>
     // Confirm logout click (small UX safeguard)
     document.addEventListener('DOMContentLoaded', function(){
       var el = document.getElementById('topLogout');
