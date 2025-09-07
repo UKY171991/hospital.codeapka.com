@@ -704,24 +704,27 @@ function refreshTests() {
 
 
 function loadCategories() {
-    $.get('patho_api/test_category.php')
-        .done(function(response) {
-            if (response.status === 'success') {
-                let options = '<option value="">Select Category</option>';
-                let filterOptions = '<option value="">All Categories</option>';
-                
-                response.data.forEach(category => {
-                    options += `<option value="${category.id}">${category.name}</option>`;
-                    filterOptions += `<option value="${category.name}">${category.name}</option>`;
-                });
-                
-                $('#testCategory').html(options);
-                $('#categoryFilter').html(filterOptions);
-                
-                // Populate categories table
-                populateCategoriesTable(response.data);
-            }
-        });
+    // Use internal ajax endpoint which handles session/permissions
+    $.get('ajax/test_category_api.php', { action: 'list' }, function(response) {
+        if (response && response.success) {
+            let options = '<option value="">Select Category</option>';
+            let filterOptions = '<option value="">All Categories</option>';
+
+            (response.data || []).forEach(category => {
+                options += `<option value="${category.id}">${category.name}</option>`;
+                filterOptions += `<option value="${category.name}">${category.name}</option>`;
+            });
+
+            $('#testCategory').html(options);
+            $('#categoryFilter').html(filterOptions);
+
+            // Populate categories table
+            populateCategoriesTable(response.data || []);
+        } else {
+            // silently ignore or show a polite message
+            console.warn('Failed to load categories', response && response.message);
+        }
+    }, 'json').fail(function(xhr){ console.warn('Failed to load categories', xhr.status); });
 }
 
 function populateCategoriesTable(categories) {
@@ -747,7 +750,7 @@ function populateCategoriesTable(categories) {
 }
 
 function loadStats() {
-    $.get('patho_api/test.php?action=stats')
+    $.get('ajax/test_api.php?action=stats')
         .done(function(response) {
             if (response.status === 'success') {
                 $('#totalTests').text(response.data.total || 0);
@@ -871,7 +874,7 @@ function addCategory() {
     }
 
     $.ajax({
-        url: 'patho_api/test_category.php',
+    url: 'ajax/test_category_api.php',
         type: 'POST',
         data: { name: name },
         success: function(response) {
@@ -964,33 +967,37 @@ function addTestToTable(testData) {
     if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
         try {
             var table = $('#testsTable').DataTable();
-            // Build row data array matching columns: S.No. (auto), ID, Category, Name, Price, Added By, Actions
-            var actions = '<button class="btn btn-sm btn-info view-test" data-id="' + testData.id + '" onclick="viewTest(' + testData.id + ')">View</button> ' +
-                          '<button class="btn btn-sm btn-warning edit-test" data-id="' + testData.id + '">Edit</button> ' +
-                          '<button class="btn btn-sm btn-danger delete-test" data-id="' + testData.id + '">Delete</button>';
-                // Add row without immediate draw to avoid inconsistent meta indexes
-                var rowNode = table.row.add([
-                    '', // placeholder for serial column (rendered by DataTable)
-                    testData.id,
-                    testData.category_name || '',
-                    testData.name || '',
-                    testData.price || '',
-                    testData.added_by_username || '',
-                    actions
-                ]).node();
+            var actions = '<div class="btn-group btn-group-sm" role="group">' +
+                          '<button class="btn btn-info btn-sm" onclick="viewTest(' + testData.id + ')" title="View"><i class="fas fa-eye"></i></button>' +
+                          '<button class="btn btn-warning btn-sm" onclick="editTest(' + testData.id + ')" title="Edit"><i class="fas fa-edit"></i></button>' +
+                          '<button class="btn btn-danger btn-sm" onclick="deleteTest(' + testData.id + ', \'' + (testData.name||'').replace(/'/g, "\\'") + '\')" title="Delete"><i class="fas fa-trash"></i></button>' +
+                          '</div>';
 
-                // Ensure newest appears at top: order by ID desc and go to first page, then perform a full draw
-                try{
-                    table.order([[1, 'desc']]).page('first').draw();
-                    // Recompute serial numbers for visible page to avoid meta inconsistencies
-                    try{
-                        var nodes = table.rows({ order: 'applied', page: 'current' }).nodes();
-                        $(nodes).each(function(i, row){ $(row).find('td:first').text(i + 1); });
-                    }catch(eNum){ /* ignore numbering issues */ }
-                }catch(e){
-                    // fallback to drawing table to recalc numbering
-                    try{ table.draw(); }catch(e2){}
-                }
+            var genderHtml = '-';
+            if (testData.min_male !== undefined || testData.max_male !== undefined) genderHtml = '<span class="badge badge-primary badge-sm">Male</span>';
+            if (testData.min_female !== undefined || testData.max_female !== undefined) genderHtml = (genderHtml === '-' ? '' : genderHtml + ' ') + '<span class="badge badge-danger badge-sm">Female</span>';
+
+            var ranges = [];
+            if (testData.min_male !== undefined || testData.max_male !== undefined) ranges.push('M: ' + (testData.min_male||'') + '-' + (testData.max_male||''));
+            if (testData.min_female !== undefined || testData.max_female !== undefined) ranges.push('F: ' + (testData.min_female||'') + '-' + (testData.max_female||''));
+            var rangesHtml = ranges.length ? ranges.join('<br>') : (testData.min || testData.max ? (testData.min||'') + '-' + (testData.max||'') : '-');
+
+            // Use object mapping so DataTable fills columns by order defined earlier
+            // Add as an array matching the DataTable's columns to avoid _DT_CellIndex errors
+            table.row.add([
+                '<input type="checkbox" class="test-checkbox" value="' + testData.id + '">', // checkbox
+                testData.id, // ID
+                (testData.name || 'N/A'), // Name
+                (testData.category_name || '-'), // Category
+                (testData.price ? '₹' + parseFloat(testData.price).toFixed(2) : '-'), // Price
+                genderHtml, // Gender badges
+                rangesHtml, // Range
+                (testData.unit || '-'), // Unit
+                actions // Actions
+            ]).draw(false);
+
+            // Ensure newest appears at top
+            try{ table.order([[1, 'desc']]).page('first').draw(false); }catch(e){}
             return;
         } catch (e) {
             console.warn('Failed to add row via DataTable API, falling back to DOM:', e);
@@ -1030,45 +1037,45 @@ function loadCategoriesForTests(){
 }
 
 function loadTests(){
+    // Prefer DataTable AJAX reload when DataTable is initialized
+    if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
+        try {
+            $('#testsTable').DataTable().ajax.reload(null, false);
+            return;
+        } catch (e) {
+            console.warn('DataTable reload failed, falling back to manual load', e);
+        }
+    }
+
+    // Fallback: fetch and render rows
     $.get('ajax/test_api.php',{action:'list',ajax:1},function(resp){
-        if(resp.success && Array.isArray(resp.data)){
+        if(resp && resp.success && Array.isArray(resp.data)){
             var t=''; 
             if(resp.data.length === 0) {
-                t = '<tr><td colspan="7" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
+                t = '<tr><td colspan="9" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
             } else {
                 resp.data.forEach(function(x, idx){ t += '<tr>'+
                             '<td></td>'+ // S.No. - will be handled by DataTable
                             '<td>'+x.id+'</td>'+
-                            '<td>'+ (x.category_name||'') +'</td>'+
                             '<td>'+ (x.name||'') +'</td>'+
+                            '<td>'+ (x.category_name||'') +'</td>'+
                             '<td>'+ (x.price||'') +'</td>'+
-                            '<td>'+ (x.added_by_username||'') +'</td>'+
+                            '<td>'+ (x.gender||'') +'</td>'+
+                            '<td>'+ (x.range||'') +'</td>'+
+                            '<td>'+ (x.unit||'') +'</td>'+
                             '<td><button class="btn btn-sm btn-info view-test" data-id="'+x.id+'" onclick="viewTest('+x.id+')">View</button> '+
                                 '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
                                 '<button class="btn btn-sm btn-danger delete-test" data-id="'+x.id+'">Delete</button></td>'+
                         '</tr>'; });
             }
-            
-            // Always destroy and recreate DataTable to avoid conflicts
-            if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
-                $('#testsTable').DataTable().destroy();
-            }
-            
-            // Set table content
+
             $('#testsTable tbody').html(t);
-            
-            // Initialize DataTable only if there are records
-            if(resp.data.length > 0 && typeof initDataTable === 'function'){
-                initDataTable('#testsTable', { order: [[1, 'desc']] });
-            }
-            // Don't initialize DataTable for empty tables - let it show the message naturally
         } else {
-            // Clear table and show error message
-            $('#testsTable tbody').html('<tr><td colspan="7" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load tests</td></tr>');
+            $('#testsTable tbody').html('<tr><td colspan="9" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load tests</td></tr>');
             toastr.error('Failed to load tests');
         }
     },'json').fail(function(xhr){ 
-        $('#testsTable tbody').html('<tr><td colspan="7" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading tests</td></tr>');
+        $('#testsTable tbody').html('<tr><td colspan="9" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading tests</td></tr>');
         var msg = xhr.responseText || 'Server error'; 
         try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} 
         toastr.error(msg); 
@@ -1286,6 +1293,11 @@ $(function(){
         $('#testForm').find('input,textarea,select').prop('disabled', false);
         $('#saveTestBtn').show();
         $('#testModalLabel').text('Add Test');
+    });
+
+    // Ensure focus is moved to first input when modal is shown (accessibility)
+    $('#testModal').on('shown.bs.modal', function(){
+        try{ $('#testName').trigger('focus'); }catch(e){}
     });
 });
 </script>
