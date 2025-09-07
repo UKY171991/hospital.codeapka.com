@@ -144,7 +144,11 @@ function initializePatientsTable() {
                 if (json.success) {
                     return json.data || [];
                 } else {
-                    showError('Failed to load patients: ' + (json.message || 'Unknown error'));
+                    if (json.message) {
+                        showError('Failed to load patients: ' + json.message);
+                    } else {
+                        console.warn('Patient API returned success=false without message');
+                    }
                     return [];
                 }
             }
