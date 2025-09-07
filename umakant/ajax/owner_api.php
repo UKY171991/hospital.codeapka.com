@@ -12,7 +12,8 @@ if ($action === 'list'){
 }
 
 if ($action === 'get' && isset($_GET['id'])){
-    $stmt = $pdo->prepare('SELECT * FROM owners WHERE id = ?');
+    // Return owner details and resolve added_by to a friendly username when available
+    $stmt = $pdo->prepare('SELECT o.*, u.username as added_by_username FROM owners o LEFT JOIN users u ON o.added_by = u.id WHERE o.id = ?');
     $stmt->execute([$_GET['id']]);
     $row = $stmt->fetch();
     json_response(['success'=>true,'data'=>$row]);
