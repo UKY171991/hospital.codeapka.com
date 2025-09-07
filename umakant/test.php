@@ -762,7 +762,14 @@ function initializeDataTable() {
     $(document).on('change', '.test-checkbox', function() {
         updateBulkActions();
     });
-    
+
+    // After DataTable ajax completes, refresh the stat cards so they reflect current data
+    try{
+        $('#testsTable').on('xhr.dt', function(e, settings, json, xhr){
+            try{ if(typeof loadStats === 'function') loadStats(); }catch(e){}
+        });
+    }catch(e){}
+
     console.log('DataTable initialized successfully');
     
     } catch (error) {
