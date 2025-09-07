@@ -85,13 +85,13 @@ $(function(){
     columns: [
       // Sr No - will be filled in drawCallback to handle paging and ordering
       { data: null, orderable: false, searchable: false, defaultContent: '' },
-      { data: 'id' },
-      { data: 'name' },
-      { data: 'hospital' },
-      { data: 'contact_no' },
-      { data: 'percent', render: function(d){ return (d===null||d===undefined)? '': d; } },
-      { data: 'added_by_username', defaultContent: '' },
-      { data: 'created_at' },
+  { data: 'id' },
+  { data: 'name', className: 'text-truncate', defaultContent: '' },
+  { data: 'hospital', className: 'text-truncate', defaultContent: '' },
+  { data: 'contact_no', defaultContent: '' },
+  { data: 'percent', className: 'text-right', render: function(d){ return (d===null||d===undefined)? '': d; }, createdCell: function(td,cellData,rowData,row,col){ $(td).css('padding-right','12px'); } },
+  { data: 'added_by_username', className: 'text-truncate', defaultContent: '' },
+  { data: 'created_at' },
     { data: null, orderable: false, searchable: false, render: function(data,type,row){
       return '<div class="btn-group btn-group-sm action-buttons" role="group" aria-label="Actions" style="white-space:nowrap;">'
          + '<button class="btn btn-primary btn-action view-btn" data-id="'+row.id+'" style="margin-right:6px;">View</button>'
