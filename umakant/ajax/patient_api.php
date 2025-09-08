@@ -406,7 +406,8 @@ function handleSave() {
             'age_unit' => $_POST['age_unit'] ?? 'Years',
             'father_husband' => !empty($_POST['father_husband']) ? trim($_POST['father_husband']) : null,
             'address' => !empty($_POST['address']) ? trim($_POST['address']) : null,
-            'added_by' => $_SESSION['username'] ?? $_SESSION['user_id'] ?? 'System'
+            // Use numeric user id for foreign-key column if available; otherwise NULL to avoid FK violations
+            'added_by' => isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null
         ];
 
         // Attach gender/sex fields only if columns exist in the DB

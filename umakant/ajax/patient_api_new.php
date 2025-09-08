@@ -266,7 +266,8 @@ function handleSave() {
             'sex' => $gender, // Store in both columns for compatibility
             'father_husband' => !empty($_POST['father_husband']) ? trim($_POST['father_husband']) : null,
             'address' => !empty($_POST['address']) ? trim($_POST['address']) : null,
-            'added_by' => $_SESSION['username'] ?? $_SESSION['user_id'] ?? 'System'
+            // Use numeric session user_id for foreign-key column; NULL if not available
+            'added_by' => isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null
         ];
         
         if ($isEdit) {
