@@ -12,8 +12,11 @@ try {
         json_response(['success' => false, 'message' => 'Method not allowed'], 405);
     }
 
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+    // Handle both form data and JSON input
+    $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+    
+    $username = trim($input['username'] ?? $_POST['username'] ?? '');
+    $password = $input['password'] ?? $_POST['password'] ?? '';
 
     if ($username === '' || $password === '') {
         json_response(['success' => false, 'message' => 'Username and password are required'], 400);
