@@ -124,7 +124,6 @@ require_once 'inc/sidebar.php';
                                         <th>Email</th>
                                         <th>Full Name</th>
                                         <th>Role</th>
-                                        <th>Status</th>
                                         <th>Expire Date</th>
                                         <th width="120">Actions</th>
                                     </tr>

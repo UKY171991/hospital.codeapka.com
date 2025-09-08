@@ -320,13 +320,6 @@ function initializeUserTable() {
                         return `<span class="badge ${badgeClass}">${data}</span>`;
                     }
                 },
-                { 
-                    data: 'status', 
-                    title: 'Status',
-                    render: function(data, type, row) {
-                        return `<span class="badge badge-${data === 'Active' ? 'success' : 'secondary'}">${data}</span>`;
-                    }
-                },
                 { data: 'expire_date', title: 'Expire Date' },
                 {
                     data: null,

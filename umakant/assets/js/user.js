@@ -150,13 +150,14 @@ function bulkExportUsers() {
     
     // Simple CSV export
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "ID,Username,Email,Full Name,Role,Status\n";
+    csvContent += "ID,Username,Email,Full Name,Role\n";
     
     selectedIds.forEach(id => {
         const row = $(`input[value="${id}"]`).closest('tr');
         const cells = row.find('td');
-        if (cells.length > 1) {
-            csvContent += `${cells.eq(1).text()},${cells.eq(2).find('.font-weight-bold').text()},${cells.eq(3).text()},${cells.eq(4).text()},${cells.eq(5).find('.badge').text()},${cells.eq(6).text()}\n`;
+            if (cells.length > 1) {
+            // Updated indexes after removing Status column: id=1, username=2, email=3, full_name=4, role=5
+            csvContent += `${cells.eq(1).text()},${cells.eq(2).find('.font-weight-bold').text()},${cells.eq(3).text()},${cells.eq(4).text()},${cells.eq(5).find('.badge').text()}\n`;
         }
     });
     
@@ -254,7 +255,7 @@ function populateUsersTable(users) {
     let html = '';
     
     if (users.length === 0) {
-        html = '<tr><td colspan="9" class="text-center text-muted">No users found</td></tr>';
+        html = '<tr><td colspan="8" class="text-center text-muted">No users found</td></tr>';
     } else {
         users.forEach(user => {
             // Handle expire date styling
@@ -282,8 +283,7 @@ function populateUsersTable(users) {
                 }
             }
             
-            const statusClass = (user.is_active == 1) ? 'text-success' : 'text-danger';
-            const statusText = (user.is_active == 1) ? 'Active' : 'Inactive';
+            // status shown in the view modal; table no longer displays a separate status column
             
             html += `
                 <tr>
@@ -307,7 +307,6 @@ function populateUsersTable(users) {
                     <td>
                         ${user.role ? `<span class="badge badge-info">${user.role}</span>` : '-'}
                     </td>
-                    <td class="${statusClass}">${statusText}</td>
                     <td class="${expireDateClass}">${formatDateTime(expireDate) || '-'}</td>
                     <td>
                         <div class="btn-group" role="group">
