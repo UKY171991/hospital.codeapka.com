@@ -259,7 +259,9 @@ function handleList() {
         
         // If request came from DataTables, return DataTables-compatible response
         if (!empty($isDataTables)) {
+            // Return DataTables-compatible response and include success flag for enhanced clients
             echo json_encode([
+                'success' => true,
                 'draw' => $draw,
                 'recordsTotal' => (int)$totalRecords,
                 'recordsFiltered' => (int)$filteredRecords,
