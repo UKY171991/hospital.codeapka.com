@@ -21,10 +21,10 @@ require_once __DIR__ . '/../inc/api_config.php';
 
 // Entity Configuration for Test Categories
 $entity_config = [
-    'table_name' => 'test_categories',
+    'table_name' => 'categories',
     'id_field' => 'id',
-    'required_fields' => ['category_name'],
-    'allowed_fields' => ['category_name', 'description', 'status'],
+    'required_fields' => ['name'],
+    'allowed_fields' => ['name', 'description'],
     'permission_map' => [
         'list' => 'read',
         'get' => 'read', 

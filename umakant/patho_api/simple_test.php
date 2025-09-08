@@ -19,7 +19,7 @@ $action = $_REQUEST['action'] ?? 'list';
 try {
     switch($action) {
         case 'list':
-            $stmt = $pdo->prepare('SELECT id, test_name, category_id, rate, cost FROM tests LIMIT 10');
+            $stmt = $pdo->prepare('SELECT id, name as test_name, category_id, price as rate FROM tests LIMIT 10');
             $stmt->execute();
             $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
             

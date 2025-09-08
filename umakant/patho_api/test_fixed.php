@@ -23,12 +23,12 @@ require_once __DIR__ . '/../inc/api_config.php';
 $entity_config = [
     'table_name' => 'tests',
     'id_field' => 'id',
-    'required_fields' => ['test_name', 'category_id'],
+    'required_fields' => ['name', 'category_id'],
     'allowed_fields' => [
-        'test_name', 'category_id', 'test_method', 'rate', 'cost', 'description',
-        'normal_value_male', 'normal_value_female', 'normal_value_child',
-        'min_range_male', 'max_range_male', 'min_range_female', 'max_range_female',
-        'min_range_child', 'max_range_child', 'units', 'status'
+        'name', 'category_id', 'method', 'price', 'description',
+        'min_male', 'max_male', 'min_female', 'max_female',
+        'min', 'max', 'unit', 'default_result', 'reference_range',
+        'test_code', 'shortcut', 'sub_heading', 'print_new_page', 'specimen'
     ],
     'permission_map' => [
         'list' => 'read',
@@ -105,10 +105,10 @@ try {
 
 function handleList($pdo, $config) {
     try {
-        $sql = "SELECT t.*, tc.category_name 
+        $sql = "SELECT t.*, c.name as category_name 
                 FROM {$config['table_name']} t 
-                LEFT JOIN test_categories tc ON t.category_id = tc.id 
-                ORDER BY t.test_name";
+                LEFT JOIN categories c ON t.category_id = c.id 
+                ORDER BY t.name";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
@@ -135,9 +135,9 @@ function handleGet($pdo, $config) {
             return;
         }
 
-        $sql = "SELECT t.*, tc.category_name 
+        $sql = "SELECT t.*, c.name as category_name 
                 FROM {$config['table_name']} t 
-                LEFT JOIN test_categories tc ON t.category_id = tc.id 
+                LEFT JOIN categories c ON t.category_id = c.id 
                 WHERE t.{$config['id_field']} = ?";
         
         $stmt = $pdo->prepare($sql);
@@ -179,7 +179,7 @@ function handleSave($pdo, $config, $user_data) {
         }
 
         // Check if category exists
-        $stmt = $pdo->prepare("SELECT id FROM test_categories WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT id FROM categories WHERE id = ?");
         $stmt->execute([$input['category_id']]);
         if (!$stmt->fetch()) {
             http_response_code(400);
@@ -225,7 +225,7 @@ function handleSave($pdo, $config, $user_data) {
             // Fetch the saved test
             $stmt = $pdo->prepare("SELECT t.*, tc.category_name 
                                    FROM {$config['table_name']} t 
-                                   LEFT JOIN test_categories tc ON t.category_id = tc.id 
+                                   LEFT JOIN categories c ON t.category_id = c.id 
                                    WHERE t.{$config['id_field']} = ?");
             $stmt->execute([$test_id]);
             $saved_test = $stmt->fetch(PDO::FETCH_ASSOC);

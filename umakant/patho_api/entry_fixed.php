@@ -25,8 +25,8 @@ $entity_config = [
     'id_field' => 'id',
     'required_fields' => ['patient_id', 'test_id', 'result_value'],
     'allowed_fields' => [
-        'patient_id', 'test_id', 'result_value', 'result_status', 'remarks',
-        'test_date', 'reported_date', 'doctor_id', 'status'
+        'patient_id', 'test_id', 'result_value', 'status', 'remarks',
+        'entry_date', 'doctor_id', 'unit'
     ],
     'permission_map' => [
         'list' => 'read',
@@ -104,14 +104,14 @@ try {
 function handleList($pdo, $config) {
     try {
         $sql = "SELECT e.*, 
-                       p.patient_name, p.uhid,
-                       t.test_name, t.units, t.normal_value_male, t.normal_value_female, t.normal_value_child,
-                       d.doctor_name
+                       p.name as patient_name, p.uhid,
+                       t.name as test_name, t.unit as units, t.min_male as normal_value_male, t.max_male as normal_value_male_max, t.min_female as normal_value_female, t.max_female as normal_value_female_max, t.min as normal_value_child, t.max as normal_value_child_max,
+                       d.name as doctor_name
                 FROM {$config['table_name']} e 
                 LEFT JOIN patients p ON e.patient_id = p.id 
                 LEFT JOIN tests t ON e.test_id = t.id 
                 LEFT JOIN doctors d ON e.doctor_id = d.id 
-                ORDER BY e.test_date DESC, e.id DESC";
+                ORDER BY e.entry_date DESC, e.id DESC";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
@@ -139,9 +139,9 @@ function handleGet($pdo, $config) {
         }
 
         $sql = "SELECT e.*, 
-                       p.patient_name, p.uhid, p.age, p.gender,
-                       t.test_name, t.units, t.normal_value_male, t.normal_value_female, t.normal_value_child,
-                       d.doctor_name
+                       p.name as patient_name, p.uhid, p.age, p.sex as gender,
+                       t.name as test_name, t.unit as units, t.min_male as normal_value_male, t.max_male as normal_value_male_max, t.min_female as normal_value_female, t.max_female as normal_value_female_max, t.min as normal_value_child, t.max as normal_value_child_max,
+                       d.name as doctor_name
                 FROM {$config['table_name']} e 
                 LEFT JOIN patients p ON e.patient_id = p.id 
                 LEFT JOIN tests t ON e.test_id = t.id 
@@ -254,7 +254,7 @@ function handleSave($pdo, $config, $user_data) {
             // Fetch the saved entry with related data
             $stmt = $pdo->prepare("SELECT e.*, 
                                            p.patient_name, p.uhid,
-                                           t.test_name, t.units,
+                                           t.name as test_name, t.unit as units,
                                            d.doctor_name
                                    FROM {$config['table_name']} e 
                                    LEFT JOIN patients p ON e.patient_id = p.id 
