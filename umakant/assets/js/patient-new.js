@@ -585,12 +585,24 @@ function savePatient() {
             }
         },
         error: function(xhr) {
+            // Provide more detailed error information to help debugging server-side issues
             let errorMessage = 'Failed to save patient';
+            console.error('Save patient XHR error:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText
+            });
             try {
-                const response = JSON.parse(xhr.responseText);
-                errorMessage = response.message || errorMessage;
+                const response = JSON.parse(xhr.responseText || '{}');
+                if (response && response.message) {
+                    errorMessage = response.message;
+                } else if (response && response.debug) {
+                    // If debug information is available, append for visibility
+                    errorMessage = (response.message || errorMessage) + ' — Debug: ' + JSON.stringify(response.debug);
+                }
             } catch (e) {
-                console.error('Parse error:', e);
+                // Not JSON, include raw text
+                if (xhr.responseText) errorMessage = xhr.responseText;
             }
             showError(errorMessage);
         },
