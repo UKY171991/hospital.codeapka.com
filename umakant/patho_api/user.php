@@ -23,10 +23,10 @@ require_once __DIR__ . '/../inc/api_config.php';
 $entity_config = [
     'table_name' => 'users',
     'id_field' => 'id',
-    'required_fields' => ['username', 'email'],
+    'required_fields' => ['username', 'full_name'],
     'allowed_fields' => [
-        'username', 'email', 'password', 'full_name', 'role', 'status', 
-        'phone', 'department', 'last_login'
+        'username', 'full_name', 'email', 'password', 'role', 'is_active', 
+        'created_at', 'last_login', 'expire_date'
     ],
     'permission_map' => [
         'list' => 'read',

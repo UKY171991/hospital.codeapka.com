@@ -1,21 +1,8 @@
 <?php
 /**
  * Entry API - Comprehensive CRUD operations for test entries
- * Supports: CREATE, READ, UPDATE, DELETE operation        $sql = "SELECT e.*, 
-                       p.name as patient_name, p.uhid,
-                       t.name as test_name, t.u        // Set default values
-        if (!isset($data['entry_date'])) {
-            $data['entry_date'] = date('Y-m-d H:i:s');
-        }
-        if (!isset($data['status'])) {
-            $data['status'] = 'pending';
-        }units, t.min_male as normal_value_male, t.max_male as normal_value_male_max, t.min_female as normal_value_female, t.max_female as normal_value_female_max, t.min as normal_value_child, t.max as normal_value_child_max,
-                       d.name as doctor_name
-                FROM {$config['table_name']} e 
-                LEFT JOIN patients p ON e.patient_id = p.id 
-                LEFT JOIN tests t ON e.test_id = t.id 
-                LEFT JOIN doctors d ON e.doctor_id = d.id 
-                ORDER BY e.entry_date DESC, e.id DESC";hentication: Multiple methods supported
+ * Supports: CREATE, READ, UPDATE, DELETE operations
+ * Authentication: Multiple methods supported
  */
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -31,16 +18,6 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
-
-// Helper to detect if patients table has a given column (cached)
-function patientHasColumnPatho($pdo, $col) {
-    static $cols = null;
-    if ($cols === null) {
-        $stmt = $pdo->query("SHOW COLUMNS FROM patients");
-        $cols = $stmt->fetchAll(PDO::FETCH_COLUMN);
-    }
-    return in_array($col, $cols);
-}
 
 // Entity Configuration for Entries
 $entity_config = [
@@ -126,26 +103,15 @@ try {
 
 function handleList($pdo, $config) {
     try {
-        // Choose gender select safely
-        if (patientHasColumnPatho($pdo, 'gender') && patientHasColumnPatho($pdo, 'sex')) {
-            $genderSelect = "COALESCE(p.gender, p.sex) as gender";
-        } elseif (patientHasColumnPatho($pdo, 'gender')) {
-            $genderSelect = "p.gender as gender";
-        } elseif (patientHasColumnPatho($pdo, 'sex')) {
-            $genderSelect = "p.sex as gender";
-        } else {
-            $genderSelect = "NULL as gender";
-        }
-
         $sql = "SELECT e.*, 
-                       p.patient_name, p.uhid, $genderSelect,
+                       p.name as patient_name, p.uhid,
                        t.name as test_name, t.unit as units, t.min_male as normal_value_male, t.max_male as normal_value_male_max, t.min_female as normal_value_female, t.max_female as normal_value_female_max, t.min as normal_value_child, t.max as normal_value_child_max,
-                       d.doctor_name
+                       d.name as doctor_name
                 FROM {$config['table_name']} e 
                 LEFT JOIN patients p ON e.patient_id = p.id 
                 LEFT JOIN tests t ON e.test_id = t.id 
                 LEFT JOIN doctors d ON e.doctor_id = d.id 
-                ORDER BY e.test_date DESC, e.id DESC";
+                ORDER BY e.entry_date DESC, e.id DESC";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
@@ -170,17 +136,6 @@ function handleGet($pdo, $config) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Entry ID is required']);
             return;
-        }
-
-        // Safe gender select for single entry
-        if (patientHasColumnPatho($pdo, 'gender') && patientHasColumnPatho($pdo, 'sex')) {
-            $genderSelect = "COALESCE(p.gender, p.sex) as gender";
-        } elseif (patientHasColumnPatho($pdo, 'gender')) {
-            $genderSelect = "p.gender as gender";
-        } elseif (patientHasColumnPatho($pdo, 'sex')) {
-            $genderSelect = "p.sex as gender";
-        } else {
-            $genderSelect = "NULL as gender";
         }
 
         $sql = "SELECT e.*, 

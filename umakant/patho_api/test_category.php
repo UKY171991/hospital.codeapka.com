@@ -105,7 +105,7 @@ function handleList($pdo, $config) {
                 FROM {$config['table_name']} tc 
                 LEFT JOIN tests t ON tc.id = t.category_id 
                 GROUP BY tc.id 
-                ORDER BY tc.category_name";
+                ORDER BY tc.name";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
