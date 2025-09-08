@@ -2,12 +2,14 @@
  * User Management JavaScript
  * Handles CRUD operations for user management interface
  */
+(
+function(){
 
-// Global variables
-let currentPage = 1;
-let totalRecords = 0;
-let recordsPerPage = 10;
-let searchTimeout;
+// Global variables (use var to avoid redeclaration errors if script is included twice)
+var currentPage = 1;
+var totalRecords = 0;
+var recordsPerPage = 10;
+var searchTimeout;
 
 // Initialize page when document is ready
 $(document).ready(function() {
@@ -707,3 +709,10 @@ window.selectAllUsers = selectAllUsers;
 window.deselectAllUsers = deselectAllUsers;
 window.bulkExportUsers = bulkExportUsers;
 window.bulkDeleteUsers = bulkDeleteUsers;
+
+// Ensure inline HTML onclick handlers can access these functions
+window.viewUser = viewUser;
+window.editUser = editUser;
+window.deleteUser = deleteUser;
+
+})();
