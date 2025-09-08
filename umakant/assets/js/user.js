@@ -5,6 +5,14 @@
 (
 function(){
 
+    // Prevent the script from executing multiple times if it's accidentally included twice.
+    // This avoids "Identifier 'currentPage' has already been declared" and similar issues.
+    if (window.__user_js_loaded) {
+        // Already loaded — skip re-initialization.
+        return;
+    }
+    window.__user_js_loaded = true;
+
 // Global variables (use var to avoid redeclaration errors if script is included twice)
 var currentPage = 1;
 var totalRecords = 0;

@@ -265,4 +265,4 @@ require_once 'inc/sidebar.php';
 <?php require_once 'inc/footer.php'; ?>
 
 <!-- Page specific JavaScript -->
-<script src="assets/js/user.js"></script>
+<script src="assets/js/user.js?v=<?php echo time(); ?>"></script>
