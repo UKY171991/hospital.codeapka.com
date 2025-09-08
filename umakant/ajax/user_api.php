@@ -60,18 +60,12 @@ if ($action === 'list') {
     $orderBy = " ORDER BY id DESC";
     $limit = " LIMIT $start, $length";
     
-    $dataQuery = "SELECT id, username, email, full_name, role, added_by, is_active as status, last_login, expire_date " . 
+    $dataQuery = "SELECT id, username, email, full_name, role, added_by, is_active, last_login, expire_date " . 
                   $baseQuery . $whereClause . $orderBy . $limit;
     
     $dataStmt = $pdo->prepare($dataQuery);
     $dataStmt->execute($params);
     $data = $dataStmt->fetchAll();
-    
-    // Format data for DataTables
-    foreach ($data as &$row) {
-        $row['status'] = $row['status'] ? 'Active' : 'Inactive';
-        $row['expire_date'] = $row['expire_date'] ? date('Y-m-d', strtotime($row['expire_date'])) : '-';
-    }
     
     // Return DataTables format
     json_response([

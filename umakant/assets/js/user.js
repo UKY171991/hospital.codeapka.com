@@ -308,7 +308,7 @@ function populateUsersTable(users) {
                         ${user.role ? `<span class="badge badge-info">${user.role}</span>` : '-'}
                     </td>
                     <td class="${statusClass}">${statusText}</td>
-                    <td class="${expireDateClass}">${expireDateDisplay || '-'}</td>
+                    <td class="${expireDateClass}">${formatDateTime(expireDate) || '-'}</td>
                     <td>
                         <div class="btn-group" role="group">
                             <button class="btn btn-info btn-sm view-user" data-id="${user.id}" title="View">
