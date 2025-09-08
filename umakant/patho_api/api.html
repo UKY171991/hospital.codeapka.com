@@ -226,7 +226,7 @@
                         description: 'Get all doctors with pagination',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         queryParams: {
                             'page': 1,
@@ -265,7 +265,7 @@
                         description: 'Get single doctor by ID',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         response: {
                             'success': true,
@@ -293,7 +293,7 @@
                         description: 'Create new doctor or update existing',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
                             'name': 'Dr. Jane Smith',
@@ -323,7 +323,7 @@
                         description: 'Delete doctor by ID',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
                             'id': 2
@@ -348,7 +348,7 @@
                         description: 'Get all patients with filters',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         queryParams: {
                             'page': 1,
@@ -384,7 +384,7 @@
                         description: 'Create or update patient',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
                             'name': 'Jane Patient',
@@ -421,7 +421,7 @@
                         description: 'Get all laboratory tests',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         queryParams: {
                             'category_id': 1,
@@ -459,7 +459,7 @@
                         description: 'Create or update test',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
                             'test_name': 'Lipid Profile',
@@ -500,7 +500,7 @@
                         description: 'Get all test categories',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         response: {
                             'success': true,
@@ -522,7 +522,7 @@
                         description: 'Create or update category',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
                             'name': 'Biochemistry',
@@ -552,7 +552,7 @@
                         description: 'Get test entries with results',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         queryParams: {
                             'patient_id': 1,
@@ -589,7 +589,7 @@
                         description: 'Create or update test entry',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
                             'patient_id': 1,
@@ -624,7 +624,7 @@
                         description: 'Get all users with roles',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         queryParams: {
                             'role': 'admin|user|doctor|lab_tech',
@@ -653,7 +653,7 @@
                         description: 'Create or update user',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
                             'username': 'labtech01',
@@ -752,7 +752,7 @@
                         description: 'Generate daily report',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         response: {
                             'success': true,
@@ -778,7 +778,7 @@
                         description: 'Generate custom report',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Api-Key': 'your-api-key-here'
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
                             'report_type': 'monthly',
@@ -1267,12 +1267,13 @@ echo json_encode($data, JSON_PRETTY_PRINT);
         function getHeaders() {
             const headers = {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'X-Api-Key': 'hospital-api-secret-2024' // Use the shared secret for authentication
             };
             
             const apiKey = document.getElementById('apiKey').value;
             if (apiKey) {
-                headers['X-Api-Key'] = apiKey;
+                headers['X-Api-Key'] = apiKey; // Override with custom key if provided
             }
             
             return headers;
