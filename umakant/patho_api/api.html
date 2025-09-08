@@ -211,103 +211,593 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // API endpoints configuration
+        // API endpoints configuration with complete specifications
         const apiEndpoints = [
             {
                 name: 'Doctor API',
                 file: 'doctor.php',
-                description: 'Manage doctors and their information',
-                actions: ['list', 'get', 'save', 'delete'],
-                methods: ['GET', 'POST', 'PUT', 'DELETE'],
-                sampleData: { name: 'Dr. John Doe', email: 'john@hospital.com', qualification: 'MBBS', specialization: 'Cardiology' }
+                description: 'Comprehensive doctor management with specializations, qualifications, and contact details',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/doctor.php',
+                endpoints: [
+                    {
+                        action: 'list',
+                        method: 'GET',
+                        url: '?action=list',
+                        description: 'Get all doctors with pagination',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        queryParams: {
+                            'page': 1,
+                            'limit': 10,
+                            'search': 'optional search term'
+                        },
+                        response: {
+                            'success': true,
+                            'data': [
+                                {
+                                    'id': 1,
+                                    'name': 'Dr. John Doe',
+                                    'qualification': 'MBBS, MD',
+                                    'specialization': 'Cardiology',
+                                    'hospital': 'City Hospital',
+                                    'contact_no': '9876543210',
+                                    'email': 'john.doe@hospital.com',
+                                    'address': '123 Medical Street',
+                                    'registration_no': 'MED12345',
+                                    'percent': 10.5,
+                                    'created_at': '2025-09-08T10:30:00Z'
+                                }
+                            ],
+                            'pagination': {
+                                'total': 50,
+                                'page': 1,
+                                'limit': 10,
+                                'pages': 5
+                            }
+                        }
+                    },
+                    {
+                        action: 'get',
+                        method: 'GET',
+                        url: '?action=get&id=1',
+                        description: 'Get single doctor by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'id': 1,
+                                'name': 'Dr. John Doe',
+                                'qualification': 'MBBS, MD',
+                                'specialization': 'Cardiology',
+                                'hospital': 'City Hospital',
+                                'contact_no': '9876543210',
+                                'phone': '9876543210',
+                                'email': 'john.doe@hospital.com',
+                                'address': '123 Medical Street',
+                                'registration_no': 'MED12345',
+                                'percent': 10.5,
+                                'added_by': 1,
+                                'created_at': '2025-09-08T10:30:00Z'
+                            }
+                        }
+                    },
+                    {
+                        action: 'save',
+                        method: 'POST',
+                        url: '?action=save',
+                        description: 'Create new doctor or update existing',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        body: {
+                            'name': 'Dr. Jane Smith',
+                            'qualification': 'MBBS, MS',
+                            'specialization': 'Orthopedics',
+                            'hospital': 'General Hospital',
+                            'contact_no': '9876543211',
+                            'phone': '9876543211',
+                            'email': 'jane.smith@hospital.com',
+                            'address': '456 Health Avenue',
+                            'registration_no': 'MED12346',
+                            'percent': 12.0
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Doctor saved successfully',
+                            'data': {
+                                'id': 2,
+                                'name': 'Dr. Jane Smith'
+                            }
+                        }
+                    },
+                    {
+                        action: 'delete',
+                        method: 'POST',
+                        url: '?action=delete',
+                        description: 'Delete doctor by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        body: {
+                            'id': 2
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Doctor deleted successfully'
+                        }
+                    }
+                ]
             },
             {
                 name: 'Patient API',
                 file: 'patient.php',
-                description: 'Patient management operations',
-                actions: ['list', 'get', 'save', 'delete'],
-                methods: ['GET', 'POST', 'PUT', 'DELETE'],
-                sampleData: { name: 'John Patient', age: 30, gender: 'Male', phone: '1234567890' }
+                description: 'Patient management with demographics, medical history, and contact information',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/patient.php',
+                endpoints: [
+                    {
+                        action: 'list',
+                        method: 'GET',
+                        url: '?action=list',
+                        description: 'Get all patients with filters',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        queryParams: {
+                            'page': 1,
+                            'limit': 10,
+                            'search': 'patient name or phone',
+                            'gender': 'Male|Female',
+                            'age_from': 18,
+                            'age_to': 65
+                        },
+                        response: {
+                            'success': true,
+                            'data': [
+                                {
+                                    'id': 1,
+                                    'name': 'John Patient',
+                                    'age': 35,
+                                    'gender': 'Male',
+                                    'phone': '9876543210',
+                                    'email': 'john.patient@email.com',
+                                    'address': '789 Patient Street',
+                                    'blood_group': 'O+',
+                                    'emergency_contact': '9876543211',
+                                    'medical_history': 'Diabetes, Hypertension',
+                                    'created_at': '2025-09-08T10:30:00Z'
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        action: 'save',
+                        method: 'POST',
+                        url: '?action=save',
+                        description: 'Create or update patient',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        body: {
+                            'name': 'Jane Patient',
+                            'age': 28,
+                            'gender': 'Female',
+                            'phone': '9876543212',
+                            'email': 'jane.patient@email.com',
+                            'address': '321 Health Road',
+                            'blood_group': 'A+',
+                            'emergency_contact': '9876543213',
+                            'medical_history': 'Allergic to penicillin'
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Patient saved successfully',
+                            'data': {
+                                'id': 2,
+                                'name': 'Jane Patient'
+                            }
+                        }
+                    }
+                ]
             },
             {
                 name: 'Test API',
                 file: 'test.php',
-                description: 'Laboratory test management',
-                actions: ['list', 'get', 'save', 'delete'],
-                methods: ['GET', 'POST', 'PUT', 'DELETE'],
-                sampleData: { test_name: 'Blood Test', category_id: 1, rate: 500, description: 'Complete blood count' }
+                description: 'Laboratory test management with pricing, reference ranges, and categories',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/test.php',
+                endpoints: [
+                    {
+                        action: 'list',
+                        method: 'GET',
+                        url: '?action=list',
+                        description: 'Get all laboratory tests',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        queryParams: {
+                            'category_id': 1,
+                            'search': 'test name',
+                            'price_min': 100,
+                            'price_max': 1000
+                        },
+                        response: {
+                            'success': true,
+                            'data': [
+                                {
+                                    'id': 1,
+                                    'test_name': 'Complete Blood Count',
+                                    'category_id': 1,
+                                    'category_name': 'Hematology',
+                                    'test_method': 'Automated',
+                                    'rate': 500,
+                                    'cost': 300,
+                                    'description': 'Complete blood count with differential',
+                                    'normal_value_male': '4.5-5.5 million cells/mcL',
+                                    'normal_value_female': '4.0-5.0 million cells/mcL',
+                                    'min_range_male': 4.5,
+                                    'max_range_male': 5.5,
+                                    'min_range_female': 4.0,
+                                    'max_range_female': 5.0,
+                                    'unit': 'million cells/mcL'
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        action: 'save',
+                        method: 'POST',
+                        url: '?action=save',
+                        description: 'Create or update test',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        body: {
+                            'test_name': 'Lipid Profile',
+                            'category_id': 2,
+                            'test_method': 'Enzymatic',
+                            'rate': 800,
+                            'cost': 500,
+                            'description': 'Complete lipid panel',
+                            'normal_value_male': '<200 mg/dL',
+                            'normal_value_female': '<200 mg/dL',
+                            'min_range_male': 0,
+                            'max_range_male': 200,
+                            'min_range_female': 0,
+                            'max_range_female': 200,
+                            'unit': 'mg/dL'
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Test saved successfully',
+                            'data': {
+                                'id': 2,
+                                'test_name': 'Lipid Profile'
+                            }
+                        }
+                    }
+                ]
             },
             {
                 name: 'Test Categories API',
                 file: 'test_category.php',
-                description: 'Test category management',
-                actions: ['list', 'get', 'save', 'delete'],
-                methods: ['GET', 'POST', 'PUT', 'DELETE'],
-                sampleData: { name: 'Blood Tests', description: 'All blood related tests' }
+                description: 'Manage test categories and groupings',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/test_category.php',
+                endpoints: [
+                    {
+                        action: 'list',
+                        method: 'GET',
+                        url: '?action=list',
+                        description: 'Get all test categories',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        response: {
+                            'success': true,
+                            'data': [
+                                {
+                                    'id': 1,
+                                    'name': 'Hematology',
+                                    'description': 'Blood-related tests',
+                                    'test_count': 15,
+                                    'created_at': '2025-09-08T10:30:00Z'
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        action: 'save',
+                        method: 'POST',
+                        url: '?action=save',
+                        description: 'Create or update category',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        body: {
+                            'name': 'Biochemistry',
+                            'description': 'Chemical analysis tests'
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Category saved successfully',
+                            'data': {
+                                'id': 2,
+                                'name': 'Biochemistry'
+                            }
+                        }
+                    }
+                ]
             },
             {
                 name: 'Entry API',
                 file: 'entry.php',
-                description: 'Test entry management',
-                actions: ['list', 'get', 'save', 'delete'],
-                methods: ['GET', 'POST', 'PUT', 'DELETE'],
-                sampleData: { patient_id: 1, test_id: 1, result: 'Normal', date: '2025-09-07' }
+                description: 'Test entry and result management',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/entry.php',
+                endpoints: [
+                    {
+                        action: 'list',
+                        method: 'GET',
+                        url: '?action=list',
+                        description: 'Get test entries with results',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        queryParams: {
+                            'patient_id': 1,
+                            'test_id': 1,
+                            'date_from': '2025-09-01',
+                            'date_to': '2025-09-08',
+                            'status': 'pending|completed|verified'
+                        },
+                        response: {
+                            'success': true,
+                            'data': [
+                                {
+                                    'id': 1,
+                                    'patient_id': 1,
+                                    'patient_name': 'John Patient',
+                                    'test_id': 1,
+                                    'test_name': 'Complete Blood Count',
+                                    'result': '4.8 million cells/mcL',
+                                    'reference_range': '4.5-5.5',
+                                    'unit': 'million cells/mcL',
+                                    'status': 'completed',
+                                    'tested_by': 'Dr. Lab Tech',
+                                    'verified_by': 'Dr. Pathologist',
+                                    'test_date': '2025-09-08',
+                                    'created_at': '2025-09-08T10:30:00Z'
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        action: 'save',
+                        method: 'POST',
+                        url: '?action=save',
+                        description: 'Create or update test entry',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        body: {
+                            'patient_id': 1,
+                            'test_id': 1,
+                            'result': '5.2 million cells/mcL',
+                            'status': 'completed',
+                            'test_date': '2025-09-08',
+                            'notes': 'Slightly elevated but within normal range'
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Entry saved successfully',
+                            'data': {
+                                'id': 2,
+                                'patient_name': 'John Patient',
+                                'test_name': 'Complete Blood Count'
+                            }
+                        }
+                    }
+                ]
             },
             {
                 name: 'User API',
                 file: 'user.php',
-                description: 'User account management',
-                actions: ['list', 'get', 'save', 'delete'],
-                methods: ['GET', 'POST', 'PUT', 'DELETE'],
-                sampleData: { username: 'testuser', email: 'test@example.com', role: 'user' }
-            },
-            {
-                name: 'Owner API',
-                file: 'owner.php',
-                description: 'Hospital owner management',
-                actions: ['list', 'get', 'save', 'delete'],
-                methods: ['GET', 'POST', 'PUT', 'DELETE'],
-                sampleData: { name: 'Hospital Owner', email: 'owner@hospital.com', phone: '9876543210' }
-            },
-            {
-                name: 'Plans API',
-                file: 'plans.php',
-                description: 'Pricing plans management',
-                actions: ['list', 'get', 'save', 'delete'],
-                methods: ['GET', 'POST', 'PUT', 'DELETE'],
-                sampleData: { name: 'Basic Plan', price: 1000, duration: 30, description: 'Basic features' }
-            },
-            {
-                name: 'Notice API',
-                file: 'notice.php',
-                description: 'Notice and announcements',
-                actions: ['list', 'get', 'save', 'delete'],
-                methods: ['GET', 'POST', 'PUT', 'DELETE'],
-                sampleData: { title: 'Important Notice', content: 'This is a test notice', type: 'info' }
-            },
-            {
-                name: 'Reports API',
-                file: 'reports.php',
-                description: 'Generate various reports',
-                actions: ['list', 'get', 'generate'],
-                methods: ['GET', 'POST'],
-                sampleData: { report_type: 'daily', date_from: '2025-09-01', date_to: '2025-09-07' }
+                description: 'User account and role management',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/user.php',
+                endpoints: [
+                    {
+                        action: 'list',
+                        method: 'GET',
+                        url: '?action=list',
+                        description: 'Get all users with roles',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        queryParams: {
+                            'role': 'admin|user|doctor|lab_tech',
+                            'active': 'true|false'
+                        },
+                        response: {
+                            'success': true,
+                            'data': [
+                                {
+                                    'id': 1,
+                                    'username': 'admin',
+                                    'full_name': 'System Administrator',
+                                    'email': 'admin@hospital.com',
+                                    'role': 'admin',
+                                    'is_active': true,
+                                    'last_login': '2025-09-08T10:30:00Z',
+                                    'created_at': '2025-09-01T00:00:00Z'
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        action: 'save',
+                        method: 'POST',
+                        url: '?action=save',
+                        description: 'Create or update user',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        body: {
+                            'username': 'labtech01',
+                            'password': 'secure_password',
+                            'full_name': 'Lab Technician',
+                            'email': 'labtech@hospital.com',
+                            'role': 'lab_tech',
+                            'is_active': true
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'User saved successfully',
+                            'data': {
+                                'id': 2,
+                                'username': 'labtech01'
+                            }
+                        }
+                    }
+                ]
             },
             {
                 name: 'Login API',
                 file: 'login.php',
-                description: 'Authentication endpoint',
-                actions: ['login', 'logout', 'verify'],
-                methods: ['POST'],
-                sampleData: { username: 'admin', password: 'password' }
+                description: 'Authentication and session management',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/login.php',
+                endpoints: [
+                    {
+                        action: 'login',
+                        method: 'POST',
+                        url: '?action=login',
+                        description: 'Authenticate user and create session',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: {
+                            'username': 'admin',
+                            'password': 'your_password'
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Login successful',
+                            'data': {
+                                'user_id': 1,
+                                'username': 'admin',
+                                'role': 'admin',
+                                'session_token': 'abc123def456',
+                                'expires_at': '2025-09-08T22:30:00Z'
+                            }
+                        }
+                    },
+                    {
+                        action: 'logout',
+                        method: 'POST',
+                        url: '?action=logout',
+                        description: 'Destroy session and logout',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer abc123def456'
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Logout successful'
+                        }
+                    },
+                    {
+                        action: 'verify',
+                        method: 'GET',
+                        url: '?action=verify',
+                        description: 'Verify session token',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer abc123def456'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'user_id': 1,
+                                'username': 'admin',
+                                'role': 'admin',
+                                'valid': true
+                            }
+                        }
+                    }
+                ]
             },
             {
-                name: 'Zip Uploads API',
-                file: 'zip_uploads.php',
-                description: 'File upload management',
-                actions: ['list', 'upload', 'download', 'delete'],
-                methods: ['GET', 'POST', 'DELETE'],
-                sampleData: { file: 'test-file.zip', description: 'Test upload' }
+                name: 'Reports API',
+                file: 'reports.php',
+                description: 'Generate various reports and analytics',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/reports.php',
+                endpoints: [
+                    {
+                        action: 'daily',
+                        method: 'GET',
+                        url: '?action=daily&date=2025-09-08',
+                        description: 'Generate daily report',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'date': '2025-09-08',
+                                'total_tests': 45,
+                                'completed_tests': 40,
+                                'pending_tests': 5,
+                                'revenue': 25000,
+                                'top_tests': [
+                                    {
+                                        'test_name': 'Complete Blood Count',
+                                        'count': 15
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        action: 'generate',
+                        method: 'POST',
+                        url: '?action=generate',
+                        description: 'Generate custom report',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'your-api-key-here'
+                        },
+                        body: {
+                            'report_type': 'monthly',
+                            'date_from': '2025-09-01',
+                            'date_to': '2025-09-08',
+                            'include_details': true,
+                            'format': 'json|pdf|excel'
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Report generated successfully',
+                            'data': {
+                                'report_id': 'RPT_20250908_001',
+                                'download_url': '/reports/download/RPT_20250908_001.pdf',
+                                'expires_at': '2025-09-15T23:59:59Z'
+                            }
+                        }
+                    }
+                ]
             }
         ];
 
@@ -329,27 +819,249 @@
         function createApiCard(api, index) {
             const card = document.createElement('div');
             card.className = 'card api-card';
+            
+            // Get unique methods from all endpoints
+            const methods = [...new Set(api.endpoints.map(ep => ep.method))];
+            const actions = api.endpoints.map(ep => ep.action);
+            
             card.innerHTML = `
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">${api.name}</h5>
+                    <h5 class="mb-0">
+                        <i class="fas fa-code text-primary"></i> ${api.name}
+                    </h5>
                     <div>
-                        <span class="badge bg-primary method-badge">${api.methods.join(', ')}</span>
+                        <span class="badge bg-primary method-badge">${methods.join(', ')}</span>
                         <button class="btn btn-sm btn-outline-primary" onclick="testSingleApi(${index})">
                             <i class="fas fa-play"></i> Test
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="toggleApiDetails(${index})">
+                            <i class="fas fa-eye"></i> Details
                         </button>
                     </div>
                 </div>
                 <div class="card-body">
                     <p class="card-text">${api.description}</p>
-                    <div class="endpoint-url mb-2">${getBaseUrl()}${api.file}</div>
+                    <div class="endpoint-url mb-2">
+                        <i class="fas fa-link"></i> ${api.baseUrl}
+                    </div>
                     <div class="mb-2">
                         <strong>Actions:</strong> 
-                        ${api.actions.map(action => `<span class="badge bg-secondary me-1">${action}</span>`).join('')}
+                        ${actions.map(action => `<span class="badge bg-secondary me-1">${action}</span>`).join('')}
                     </div>
+                    
+                    <!-- Detailed API Information -->
+                    <div id="api-details-${index}" class="api-details mt-3" style="display: none;">
+                        <div class="accordion" id="accordion-${index}">
+                            ${api.endpoints.map((endpoint, epIndex) => `
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="heading-${index}-${epIndex}">
+                                        <button class="accordion-button collapsed" type="button" 
+                                                data-bs-toggle="collapse" 
+                                                data-bs-target="#collapse-${index}-${epIndex}" 
+                                                aria-expanded="false">
+                                            <span class="badge bg-${getMethodColor(endpoint.method)} me-2">${endpoint.method}</span>
+                                            <strong>${endpoint.action}</strong> - ${endpoint.description}
+                                        </button>
+                                    </h2>
+                                    <div id="collapse-${index}-${epIndex}" 
+                                         class="accordion-collapse collapse" 
+                                         data-bs-parent="#accordion-${index}">
+                                        <div class="accordion-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6><i class="fas fa-arrow-up text-success"></i> Request</h6>
+                                                    
+                                                    <div class="mb-3">
+                                                        <strong>URL:</strong>
+                                                        <div class="endpoint-url">${api.baseUrl}${endpoint.url}</div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <strong>Headers:</strong>
+                                                        <pre class="bg-light p-2 rounded"><code>${JSON.stringify(endpoint.headers, null, 2)}</code></pre>
+                                                    </div>
+                                                    
+                                                    ${endpoint.queryParams ? `
+                                                        <div class="mb-3">
+                                                            <strong>Query Parameters:</strong>
+                                                            <pre class="bg-light p-2 rounded"><code>${JSON.stringify(endpoint.queryParams, null, 2)}</code></pre>
+                                                        </div>
+                                                    ` : ''}
+                                                    
+                                                    ${endpoint.body ? `
+                                                        <div class="mb-3">
+                                                            <strong>Request Body:</strong>
+                                                            <pre class="bg-light p-2 rounded"><code>${JSON.stringify(endpoint.body, null, 2)}</code></pre>
+                                                        </div>
+                                                    ` : ''}
+                                                    
+                                                    <button class="btn btn-sm btn-success" onclick="copyToClipboard('${index}-${epIndex}-request')">
+                                                        <i class="fas fa-copy"></i> Copy Request
+                                                    </button>
+                                                    
+                                                    <button class="btn btn-sm btn-primary" onclick="testSpecificEndpoint(${index}, ${epIndex})">
+                                                        <i class="fas fa-play"></i> Test This
+                                                    </button>
+                                                </div>
+                                                
+                                                <div class="col-md-6">
+                                                    <h6><i class="fas fa-arrow-down text-info"></i> Response</h6>
+                                                    <div class="mb-3">
+                                                        <strong>Sample Response:</strong>
+                                                        <pre class="bg-light p-2 rounded"><code>${JSON.stringify(endpoint.response, null, 2)}</code></pre>
+                                                    </div>
+                                                    
+                                                    <button class="btn btn-sm btn-info" onclick="copyToClipboard('${index}-${epIndex}-response')">
+                                                        <i class="fas fa-copy"></i> Copy Response
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- cURL Command -->
+                                            <div class="mt-3">
+                                                <h6><i class="fas fa-terminal"></i> cURL Command</h6>
+                                                <pre class="bg-dark text-light p-2 rounded"><code id="curl-${index}-${epIndex}">${generateCurlCommand(api, endpoint)}</code></pre>
+                                                <button class="btn btn-sm btn-secondary" onclick="copyToClipboard('curl-${index}-${epIndex}')">
+                                                    <i class="fas fa-copy"></i> Copy cURL
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- JavaScript Example -->
+                                            <div class="mt-3">
+                                                <h6><i class="fab fa-js-square"></i> JavaScript Example</h6>
+                                                <pre class="bg-light p-2 rounded"><code id="js-${index}-${epIndex}">${generateJavaScriptExample(api, endpoint)}</code></pre>
+                                                <button class="btn btn-sm btn-warning" onclick="copyToClipboard('js-${index}-${epIndex}')">
+                                                    <i class="fas fa-copy"></i> Copy JS
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- PHP Example -->
+                                            <div class="mt-3">
+                                                <h6><i class="fab fa-php"></i> PHP Example</h6>
+                                                <pre class="bg-light p-2 rounded"><code id="php-${index}-${epIndex}">${generatePhpExample(api, endpoint)}</code></pre>
+                                                <button class="btn btn-sm btn-info" onclick="copyToClipboard('php-${index}-${epIndex}')">
+                                                    <i class="fas fa-copy"></i> Copy PHP
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
                     <div id="result-${index}" class="mt-3"></div>
                 </div>
             `;
             return card;
+        }
+
+        function getMethodColor(method) {
+            const colors = {
+                'GET': 'success',
+                'POST': 'primary',
+                'PUT': 'warning',
+                'DELETE': 'danger'
+            };
+            return colors[method] || 'secondary';
+        }
+
+        function toggleApiDetails(index) {
+            const details = document.getElementById(`api-details-${index}`);
+            if (details.style.display === 'none') {
+                details.style.display = 'block';
+            } else {
+                details.style.display = 'none';
+            }
+        }
+
+        function generateCurlCommand(api, endpoint) {
+            let curl = `curl -X ${endpoint.method} \\
+  "${api.baseUrl}${endpoint.url}" \\`;
+            
+            // Add headers
+            Object.entries(endpoint.headers).forEach(([key, value]) => {
+                curl += `\n  -H "${key}: ${value}" \\`;
+            });
+            
+            // Add body if present
+            if (endpoint.body) {
+                curl += `\n  -d '${JSON.stringify(endpoint.body)}' \\`;
+            }
+            
+            return curl.slice(0, -2); // Remove trailing backslash
+        }
+
+        function generateJavaScriptExample(api, endpoint) {
+            const options = {
+                method: endpoint.method,
+                headers: endpoint.headers
+            };
+            
+            if (endpoint.body) {
+                options.body = JSON.stringify(endpoint.body);
+            }
+            
+            return `fetch('${api.baseUrl}${endpoint.url}', ${JSON.stringify(options, null, 2)})
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));`;
+        }
+
+        function generatePhpExample(api, endpoint) {
+            let php = `<?php
+$url = '${api.baseUrl}${endpoint.url}';
+$headers = [`;
+            
+            Object.entries(endpoint.headers).forEach(([key, value]) => {
+                php += `\n    '${key}: ${value}',`;
+            });
+            
+            php += `
+];
+
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);`;
+
+            if (endpoint.method !== 'GET') {
+                php += `\ncurl_setopt($ch, CURLOPT_CUSTOMREQUEST, '${endpoint.method}');`;
+            }
+            
+            if (endpoint.body) {
+                php += `\ncurl_setopt($ch, CURLOPT_POSTFIELDS, '${JSON.stringify(endpoint.body)}');`;
+            }
+            
+            php += `
+
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+$data = json_decode($response, true);
+echo json_encode($data, JSON_PRETTY_PRINT);
+?>`;
+            
+            return php;
+        }
+
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                // Show success feedback
+                const button = event.target.closest('button');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('btn-success');
+                }, 2000);
+            });
         }
 
         async function testSingleApi(index) {
@@ -359,13 +1071,14 @@
             resultDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Testing...</div>';
             
             try {
-                // Test the list action for each API
-                const url = `${getBaseUrl()}${api.file}?action=list`;
+                // Test the first endpoint (usually list action)
+                const endpoint = api.endpoints[0];
+                const url = `${api.baseUrl}${endpoint.url}`;
                 const headers = getHeaders();
                 
                 const response = await fetch(url, {
-                    method: 'GET',
-                    headers: headers
+                    method: endpoint.method,
+                    headers: { ...endpoint.headers, ...headers }
                 });
                 
                 const data = await response.json();
@@ -380,7 +1093,7 @@
                 resultDiv.innerHTML = `
                     <div class="p-2 rounded ${isSuccess ? 'result-success' : 'result-error'}">
                         <strong>${isSuccess ? '✓ Success' : '✗ Error'}</strong>
-                        <small class="d-block">Status: ${response.status}</small>
+                        <small class="d-block">Status: ${response.status} | Action: ${endpoint.action}</small>
                         <details class="mt-2">
                             <summary>Response Details</summary>
                             <pre class="mt-2 p-2 bg-light rounded"><code>${JSON.stringify(data, null, 2)}</code></pre>
@@ -397,13 +1110,56 @@
                 
                 resultDiv.innerHTML = `
                     <div class="p-2 rounded result-error">
-                        <strong>✗ Error</strong>
+                        <strong>✗ Network Error</strong>
                         <small class="d-block">${error.message}</small>
                     </div>
                 `;
             }
             
             updateOverview();
+        }
+
+        async function testSpecificEndpoint(apiIndex, endpointIndex) {
+            const api = apiEndpoints[apiIndex];
+            const endpoint = api.endpoints[endpointIndex];
+            const resultDiv = document.getElementById(`result-${apiIndex}`);
+            
+            try {
+                const url = `${api.baseUrl}${endpoint.url}`;
+                const headers = { ...endpoint.headers, ...getHeaders() };
+                
+                const options = {
+                    method: endpoint.method,
+                    headers: headers
+                };
+                
+                if (endpoint.body) {
+                    options.body = JSON.stringify(endpoint.body);
+                }
+                
+                const response = await fetch(url, options);
+                const data = await response.json();
+                const isSuccess = response.ok && data.success !== false;
+                
+                resultDiv.innerHTML = `
+                    <div class="p-2 rounded ${isSuccess ? 'result-success' : 'result-error'}">
+                        <strong>${isSuccess ? '✓ Success' : '✗ Error'}</strong> - ${endpoint.action}
+                        <small class="d-block">Status: ${response.status} | Method: ${endpoint.method}</small>
+                        <details class="mt-2">
+                            <summary>Response Details</summary>
+                            <pre class="mt-2 p-2 bg-light rounded"><code>${JSON.stringify(data, null, 2)}</code></pre>
+                        </details>
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="p-2 rounded result-error">
+                        <strong>✗ Error</strong> - ${endpoint.action}
+                        <small class="d-block">${error.message}</small>
+                    </div>
+                `;
+            }
         }
 
         async function testAllEndpoints() {
@@ -520,6 +1276,58 @@
             }
             
             return headers;
+        }
+
+        function generateCodeExample(api, endpoint, language) {
+            const baseUrl = api.baseUrl;
+            const url = `${baseUrl}${endpoint.url}`;
+            const headers = { ...endpoint.headers, ...getHeaders() };
+            
+            switch (language) {
+                case 'curl':
+                    let curlCmd = `curl -X ${endpoint.method}`;
+                    Object.entries(headers).forEach(([key, value]) => {
+                        curlCmd += ` \\\n  -H "${key}: ${value}"`;
+                    });
+                    if (endpoint.body) {
+                        curlCmd += ` \\\n  -d '${JSON.stringify(endpoint.body)}'`;
+                    }
+                    curlCmd += ` \\\n  "${url}"`;
+                    return curlCmd;
+                    
+                case 'javascript':
+                    return `// ${endpoint.action}
+const response = await fetch('${url}', {
+    method: '${endpoint.method}',
+    headers: ${JSON.stringify(headers, null, 8)},${endpoint.body ? `
+    body: JSON.stringify(${JSON.stringify(endpoint.body, null, 8)})` : ''}
+});
+
+const data = await response.json();
+console.log(data);`;
+
+                case 'php':
+                    return `<?php
+// ${endpoint.action}
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, '${url}');
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, '${endpoint.method}');
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+${Object.entries(headers).map(([key, value]) => `    '${key}: ${value}'`).join(',\n')}
+]);${endpoint.body ? `
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(${JSON.stringify(endpoint.body, null, 4).replace(/"/g, "'")}));` : ''}
+
+$response = curl_exec($ch);
+$data = json_decode($response, true);
+curl_close($ch);
+
+print_r($data);
+?>`;
+
+                default:
+                    return 'Language not supported';
+            }
         }
 
         // Initialize the page
