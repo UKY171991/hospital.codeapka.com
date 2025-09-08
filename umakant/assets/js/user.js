@@ -15,9 +15,6 @@ $(document).ready(function() {
     initializeEventListeners();
 });
 
-/**
- * Initialize all event listeners
- */
 function initializeEventListeners() {
     // Save user button click
     $('#saveUserBtn').click(function() {
@@ -61,6 +58,159 @@ function initializeEventListeners() {
     $('#userModal').on('hidden.bs.modal', function() {
         resetModalForm();
     });
+
+    // Select all checkbox
+    $('#selectAll').on('change', function() {
+        const isChecked = $(this).is(':checked');
+        $('.user-checkbox').prop('checked', isChecked);
+        updateSelectionUI();
+    });
+
+    // Individual checkboxes
+    $('#usersTable').on('change', '.user-checkbox', function() {
+        updateSelectionUI();
+        
+        // Update select all checkbox
+        const totalCheckboxes = $('.user-checkbox').length;
+        const checkedCheckboxes = $('.user-checkbox:checked').length;
+        
+        if (checkedCheckboxes === totalCheckboxes) {
+            $('#selectAll').prop('checked', true).prop('indeterminate', false);
+        } else if (checkedCheckboxes > 0) {
+            $('#selectAll').prop('checked', false).prop('indeterminate', true);
+        } else {
+            $('#selectAll').prop('checked', false).prop('indeterminate', false);
+        }
+    });
+
+    // Bulk actions
+    $('.bulk-export').on('click', function() {
+        bulkExportUsers();
+    });
+
+    $('.bulk-delete').on('click', function() {
+        bulkDeleteUsers();
+    });
+}
+
+/**
+ * Update selection UI based on checked items
+ */
+function updateSelectionUI() {
+    const selectedCount = $('.user-checkbox:checked').length;
+    $('.selected-count').text(selectedCount);
+    
+    if (selectedCount > 0) {
+        $('.bulk-actions').addClass('show');
+    } else {
+        $('.bulk-actions').removeClass('show');
+    }
+}
+
+/**
+ * Select all users
+ */
+function selectAllUsers() {
+    $('.user-checkbox').prop('checked', true);
+    $('#selectAll').prop('checked', true);
+    updateSelectionUI();
+}
+
+/**
+ * Deselect all users
+ */
+function deselectAllUsers() {
+    $('.user-checkbox').prop('checked', false);
+    $('#selectAll').prop('checked', false);
+    updateSelectionUI();
+}
+
+/**
+ * Bulk export selected users
+ */
+function bulkExportUsers() {
+    const selectedIds = $('.user-checkbox:checked').map(function() {
+        return $(this).val();
+    }).get();
+    
+    if (selectedIds.length === 0) {
+        showAlert('Please select users to export', 'error');
+        return;
+    }
+    
+    // Simple CSV export
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "ID,Username,Email,Full Name,Role,Status\n";
+    
+    selectedIds.forEach(id => {
+        const row = $(`input[value="${id}"]`).closest('tr');
+        const cells = row.find('td');
+        if (cells.length > 1) {
+            csvContent += `${cells.eq(1).text()},${cells.eq(2).find('.font-weight-bold').text()},${cells.eq(3).text()},${cells.eq(4).text()},${cells.eq(5).find('.badge').text()},${cells.eq(6).text()}\n`;
+        }
+    });
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "selected_users_export.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showAlert(`Exported ${selectedIds.length} users successfully!`, 'success');
+}
+
+/**
+ * Bulk delete selected users
+ */
+function bulkDeleteUsers() {
+    const selectedIds = $('.user-checkbox:checked').map(function() {
+        return $(this).val();
+    }).get();
+    
+    if (selectedIds.length === 0) {
+        showAlert('Please select users to delete', 'error');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected users? This action cannot be undone.`)) {
+        return;
+    }
+    
+    let completedRequests = 0;
+    let successCount = 0;
+    let errorCount = 0;
+    
+    selectedIds.forEach(id => {
+        $.post('ajax/user_api.php', { action: 'delete', id: id, ajax: 1 })
+            .done(function(response) {
+                if (response.success) {
+                    successCount++;
+                } else {
+                    errorCount++;
+                }
+            })
+            .fail(function() {
+                errorCount++;
+            })
+            .always(function() {
+                completedRequests++;
+                
+                if (completedRequests === selectedIds.length) {
+                    // All requests completed
+                    if (successCount > 0) {
+                        showAlert(`Successfully deleted ${successCount} users`, 'success');
+                        loadUsers();
+                        deselectAllUsers();
+                    }
+                    
+                    if (errorCount > 0) {
+                        showAlert(`Failed to delete ${errorCount} users`, 'error');
+                    }
+                }
+            });
+    });
 }
 
 /**
@@ -94,7 +244,7 @@ function populateUsersTable(users) {
     let html = '';
     
     if (users.length === 0) {
-        html = '<tr><td colspan="8" class="text-center text-muted">No users found</td></tr>';
+        html = '<tr><td colspan="9" class="text-center text-muted">No users found</td></tr>';
     } else {
         users.forEach(user => {
             // Handle expire date styling
@@ -127,6 +277,9 @@ function populateUsersTable(users) {
             
             html += `
                 <tr>
+                    <td>
+                        <input type="checkbox" class="user-checkbox" value="${user.id}">
+                    </td>
                     <td>${user.id}</td>
                     <td>
                         <div class="d-flex align-items-center">
@@ -230,20 +383,15 @@ function editUser(id) {
 }
 
 /**
- * View user (read-only)
+ * View user (enhanced view)
  */
 function viewUser(id) {
     $.get('ajax/user_api.php', { action: 'get', id: id, ajax: 1 })
         .done(function(response) {
             if (response.success) {
                 const user = response.data;
-                populateUserForm(user);
-                
-                // Disable all form inputs
-                $('#userForm input, #userForm select').prop('disabled', true);
-                $('#userModal .modal-title').text('View User');
-                $('#saveUserBtn').hide();
-                $('#userModal').modal('show');
+                populateViewUserModal(user);
+                $('#viewUserModal').modal('show');
             } else {
                 showAlert('Error loading user data: ' + (response.message || 'User not found'), 'error');
             }
@@ -252,6 +400,155 @@ function viewUser(id) {
             const errorMsg = getErrorMessage(xhr);
             showAlert('Failed to load user data: ' + errorMsg, 'error');
         });
+}
+
+/**
+ * Populate the view user modal with data
+ */
+function populateViewUserModal(user) {
+    const statusClass = (user.is_active == 1) ? 'success' : 'danger';
+    const statusText = (user.is_active == 1) ? 'Active' : 'Inactive';
+    
+    const expireDate = user.expire_date || '';
+    let expireDateDisplay = expireDate ? new Date(expireDate.replace(' ', 'T')).toLocaleString() : 'Not set';
+    
+    const roleColor = {
+        'master': 'danger',
+        'admin': 'warning', 
+        'user': 'info'
+    };
+    
+    const lastLogin = user.last_login ? new Date(user.last_login.replace(' ', 'T')).toLocaleString() : 'Never logged in';
+    
+    const viewContent = `
+        <div class="user-profile-header text-center mb-4">
+            <div class="avatar-large bg-primary text-white mx-auto mb-3">
+                ${user.username.charAt(0).toUpperCase()}
+            </div>
+            <h4 class="mb-1">${user.full_name || user.username}</h4>
+            <span class="badge badge-${roleColor[user.role] || 'secondary'} mb-2">${user.role || 'Unknown'}</span>
+            <div>
+                <span class="badge badge-${statusClass}">${statusText}</span>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label class="info-label">
+                        <i class="fas fa-user mr-2"></i>Username
+                    </label>
+                    <div class="info-value">${user.username}</div>
+                </div>
+                
+                <div class="info-group">
+                    <label class="info-label">
+                        <i class="fas fa-envelope mr-2"></i>Email
+                    </label>
+                    <div class="info-value">${user.email || 'Not provided'}</div>
+                </div>
+                
+                <div class="info-group">
+                    <label class="info-label">
+                        <i class="fas fa-id-card mr-2"></i>Full Name
+                    </label>
+                    <div class="info-value">${user.full_name || 'Not provided'}</div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label class="info-label">
+                        <i class="fas fa-shield-alt mr-2"></i>Role
+                    </label>
+                    <div class="info-value">
+                        <span class="badge badge-${roleColor[user.role] || 'secondary'}">${user.role || 'Unknown'}</span>
+                    </div>
+                </div>
+                
+                <div class="info-group">
+                    <label class="info-label">
+                        <i class="fas fa-clock mr-2"></i>Last Login
+                    </label>
+                    <div class="info-value">${lastLogin}</div>
+                </div>
+                
+                <div class="info-group">
+                    <label class="info-label">
+                        <i class="fas fa-calendar-times mr-2"></i>Expire Date
+                    </label>
+                    <div class="info-value">${expireDateDisplay}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <div class="info-group">
+                <label class="info-label">
+                    <i class="fas fa-info-circle mr-2"></i>Account Details
+                </label>
+                <div class="info-value">
+                    <small class="text-muted">
+                        User ID: ${user.id} | 
+                        Added by: ${user.added_by || 'System'} | 
+                        Status: <span class="badge badge-${statusClass} badge-sm">${statusText}</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('#userViewDetails').html(viewContent);
+    
+    // Store user ID for edit functionality
+    $('#viewUserModal').data('user-id', user.id);
+}
+
+/**
+ * Edit user from view modal
+ */
+function editUserFromView() {
+    const userId = $('#viewUserModal').data('user-id');
+    $('#viewUserModal').modal('hide');
+    setTimeout(() => {
+        editUser(userId);
+    }, 300);
+}
+
+/**
+ * Print user details
+ */
+function printUserDetails() {
+    const printContent = document.getElementById('userViewDetails').innerHTML;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>User Details</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    .avatar-large { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+                    .info-group { margin-bottom: 15px; }
+                    .info-label { font-weight: bold; display: block; margin-bottom: 5px; }
+                    .info-value { padding: 8px; background: #f8f9fa; border-radius: 4px; }
+                    .badge { padding: 4px 8px; border-radius: 4px; color: white; }
+                    .badge-success { background: #28a745; }
+                    .badge-danger { background: #dc3545; }
+                    .badge-warning { background: #ffc107; color: #212529; }
+                    .badge-info { background: #17a2b8; }
+                    .text-center { text-align: center; }
+                    .row { display: flex; }
+                    .col-md-6 { flex: 1; padding: 0 15px; }
+                </style>
+            </head>
+            <body>
+                <h1>User Details</h1>
+                ${printContent}
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
 }
 
 /**
@@ -404,3 +701,9 @@ function formatDateTime(dateString) {
 
 // Make functions available globally for onclick handlers
 window.openAddUserModal = openAddUserModal;
+window.editUserFromView = editUserFromView;
+window.printUserDetails = printUserDetails;
+window.selectAllUsers = selectAllUsers;
+window.deselectAllUsers = deselectAllUsers;
+window.bulkExportUsers = bulkExportUsers;
+window.bulkDeleteUsers = bulkDeleteUsers;

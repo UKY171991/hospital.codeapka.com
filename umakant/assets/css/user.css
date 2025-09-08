@@ -1,51 +1,160 @@
 /* User Management Styles */
 
-/* Avatar circle for user display */
+/* Avatar Styles */
 .avatar-circle {
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    font-size: 18px;
+    font-size: 14px;
+}
+
+.avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 36px;
+    margin: 0 auto 15px;
+}
+
+/* Table Enhancements */
+.table-enhanced {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table-enhanced thead th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
     text-transform: uppercase;
-}
-
-/* Table styling */
-.table td {
-    vertical-align: middle;
-}
-
-/* Small box styling for stats */
-.small-box {
-    border-radius: 0.375rem;
-    position: relative;
-    display: block;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
-}
-
-.small-box > .inner {
-    padding: 10px;
-}
-
-.small-box > .small-box-footer {
-    position: relative;
-    text-align: center;
-    padding: 3px 0;
-    color: #fff;
-    color: rgba(255,255,255,0.8);
-    display: block;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
     z-index: 10;
-    background: rgba(0,0,0,0.1);
-    text-decoration: none;
 }
 
-.small-box > .small-box-footer:hover {
-    color: #fff;
-    background: rgba(0,0,0,0.15);
+.table-enhanced tbody tr {
+    transition: all 0.3s ease;
+}
+
+.table-enhanced tbody tr:hover {
+    background-color: #f8f9ff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Selection Styles */
+.selection-checkbox {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+.user-checkbox {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+/* Group Actions */
+.group-actions {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #007bff;
+}
+
+.bulk-actions {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.bulk-actions.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Modal Enhancements */
+.modal-enhanced .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.modal-enhanced .modal-header .close {
+    color: white;
+    opacity: 0.8;
+}
+
+.modal-enhanced .modal-header .close:hover {
+    opacity: 1;
+}
+
+/* View Modal Styles */
+.user-profile-header {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 10px;
+    margin: -15px -15px 20px -15px;
+}
+
+.info-group {
+    margin-bottom: 20px;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #495057;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    background: #f8f9fa;
+    padding: 12px 15px;
+    border-radius: 6px;
+    border-left: 3px solid #007bff;
+    font-size: 0.95rem;
+    color: #495057;
+}
+
+/* Button Enhancements */
+.btn-group .btn {
+    transition: all 0.3s ease;
+}
+
+.btn-group .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 .small-box h3 {
