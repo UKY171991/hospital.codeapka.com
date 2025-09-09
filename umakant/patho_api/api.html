@@ -378,6 +378,29 @@
                         }
                     },
                     {
+                        action: 'get',
+                        method: 'GET',
+                        url: '?action=get&id=1',
+                        description: 'Get single patient by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'id': 1,
+                                'name': 'John Patient',
+                                'age': 35,
+                                'gender': 'Male',
+                                'phone': '9876543210',
+                                'address': '789 Patient Street',
+                                'uhid': '2025000001',
+                                'added_by': 1
+                            }
+                        }
+                    },
+                    {
                         action: 'save',
                         method: 'POST',
                         url: '?action=save',
@@ -404,6 +427,23 @@
                                 'id': 2,
                                 'name': 'Jane Patient'
                             }
+                        }
+                    },
+                    {
+                        action: 'delete',
+                        method: 'POST',
+                        url: '?action=delete',
+                        description: 'Delete patient by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'id': 2
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Patient deleted successfully'
                         }
                     }
                 ]
@@ -453,6 +493,26 @@
                         }
                     },
                     {
+                        action: 'get',
+                        method: 'GET',
+                        url: '?action=get&id=1',
+                        description: 'Get single test by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'id': 1,
+                                'test_name': 'Complete Blood Count',
+                                'category_id': 1,
+                                'category_name': 'Hematology',
+                                'unit': 'million cells/mcL'
+                            }
+                        }
+                    },
+                    {
                         action: 'save',
                         method: 'POST',
                         url: '?action=save',
@@ -483,6 +543,23 @@
                                 'id': 2,
                                 'test_name': 'Lipid Profile'
                             }
+                        }
+                    },
+                    {
+                        action: 'delete',
+                        method: 'POST',
+                        url: '?action=delete',
+                        description: 'Delete test by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'id': 2
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Test deleted successfully'
                         }
                     }
                 ]
@@ -516,6 +593,25 @@
                         }
                     },
                     {
+                        action: 'get',
+                        method: 'GET',
+                        url: '?action=get&id=1',
+                        description: 'Get single test category by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'id': 1,
+                                'name': 'Hematology',
+                                'description': 'Blood-related tests',
+                                'test_count': 15
+                            }
+                        }
+                    },
+                    {
                         action: 'save',
                         method: 'POST',
                         url: '?action=save',
@@ -535,6 +631,23 @@
                                 'id': 2,
                                 'name': 'Biochemistry'
                             }
+                        }
+                    },
+                    {
+                        action: 'delete',
+                        method: 'POST',
+                        url: '?action=delete',
+                        description: 'Delete category by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'id': 2
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Category deleted successfully'
                         }
                     }
                 ]
@@ -583,6 +696,26 @@
                         }
                     },
                     {
+                        action: 'get',
+                        method: 'GET',
+                        url: '?action=get&id=1',
+                        description: 'Get single entry by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'id': 1,
+                                'patient_id': 1,
+                                'test_id': 1,
+                                'status': 'completed',
+                                'entry_date': '2025-09-08 10:30:00'
+                            }
+                        }
+                    },
+                    {
                         action: 'save',
                         method: 'POST',
                         url: '?action=save',
@@ -607,6 +740,23 @@
                                 'patient_name': 'John Patient',
                                 'test_name': 'Complete Blood Count'
                             }
+                        }
+                    },
+                    {
+                        action: 'delete',
+                        method: 'POST',
+                        url: '?action=delete',
+                        description: 'Delete entry by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'id': 2
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Entry deleted successfully'
                         }
                     }
                 ]
@@ -647,6 +797,26 @@
                         }
                     },
                     {
+                        action: 'get',
+                        method: 'GET',
+                        url: '?action=get&id=1',
+                        description: 'Get single user by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'id': 1,
+                                'username': 'admin',
+                                'full_name': 'System Administrator',
+                                'role': 'admin',
+                                'is_active': true
+                            }
+                        }
+                    },
+                    {
                         action: 'save',
                         method: 'POST',
                         url: '?action=save',
@@ -670,6 +840,23 @@
                                 'id': 2,
                                 'username': 'labtech01'
                             }
+                        }
+                    },
+                    {
+                        action: 'delete',
+                        method: 'POST',
+                        url: '?action=delete',
+                        description: 'Delete user by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'id': 2
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'User deleted successfully'
                         }
                     }
                 ]
