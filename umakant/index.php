@@ -462,67 +462,39 @@ function initializeChart() {
 }
 
 function loadRecentActivity() {
-    // Simulate loading recent activity
-    const activities = [
-        {
-            icon: 'fas fa-user-plus',
-            color: 'text-success',
-            action: 'New patient registered',
-            time: '2 minutes ago',
-            details: 'John Doe (UHID: P123456)'
-        },
-        {
-            icon: 'fas fa-vial',
-            color: 'text-info',
-            action: 'Test entry created',
-            time: '15 minutes ago',
-            details: 'Blood Test for Patient UHID: P789012'
-        },
-        {
-            icon: 'fas fa-user-md',
-            color: 'text-primary',
-            action: 'Doctor profile updated',
-            time: '1 hour ago',
-            details: 'Dr. Smith updated specialization'
-        },
-        {
-            icon: 'fas fa-bell',
-            color: 'text-warning',
-            action: 'New notice published',
-            time: '2 hours ago',
-            details: 'System maintenance scheduled'
-        },
-        {
-            icon: 'fas fa-upload',
-            color: 'text-purple',
-            action: 'File uploaded',
-            time: '3 hours ago',
-            details: 'Lab reports uploaded to system'
-        }
-    ];
+  var el = document.getElementById('recentActivity');
+  if(!el) return;
+  el.innerHTML = '<div class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Loading recent activity...</div>';
 
-    let html = '<div class="timeline">';
-    activities.forEach((activity, index) => {
-        html += `
-            <div class="timeline-item">
-                <div class="timeline-marker">
-                    <i class="${activity.icon} ${activity.color}"></i>
-                </div>
-                <div class="timeline-content">
-                    <h6 class="timeline-title">${activity.action}</h6>
-                    <p class="timeline-text">${activity.details}</p>
-                    <small class="text-muted">${activity.time}</small>
-                </div>
-            </div>
-        `;
+  fetch('ajax/recent_activity.php', {cache: 'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(resp){
+      if(!resp || !resp.success || !Array.isArray(resp.items)){
+        el.innerHTML = '<div class="text-center text-muted">No recent activity available.</div>';
+        return;
+      }
+      var html = '<div class="timeline">';
+      resp.items.forEach(function(item){
+        var icon = 'fas fa-info-circle';
+        var color = 'text-secondary';
+        var title = item.title || '';
+        var details = item.details || '';
+        var time = item.time ? new Date(item.time).toLocaleString() : '';
+        if(item.type === 'patient'){ icon = 'fas fa-user-plus'; color = 'text-success'; }
+        if(item.type === 'entry'){ icon = 'fas fa-vial'; color = 'text-info'; }
+        if(item.type === 'notice'){ icon = 'fas fa-bell'; color = 'text-warning'; }
+        if(item.type === 'upload'){ icon = 'fas fa-upload'; color = 'text-purple'; }
+
+        html += '\n            <div class="timeline-item">\n                <div class="timeline-marker">\n                    <i class="'+icon+' '+color+'"></i>\n                </div>\n                <div class="timeline-content">\n                    <h6 class="timeline-title">'+escapeHtml(title)+'</h6>\n                    <p class="timeline-text">'+escapeHtml(details)+'</p>\n                    <small class="text-muted">'+escapeHtml(time)+'</small>\n                </div>\n            </div>\n        ';
+      });
+      html += '</div>';
+      el.innerHTML = html;
+    }).catch(function(){
+      el.innerHTML = '<div class="text-center text-muted">Failed to load recent activity.</div>';
     });
-    html += '</div>';
-    
-  setTimeout(() => {
-    const el = document.getElementById('recentActivity');
-    if(el) el.innerHTML = html;
-  }, 1000);
 }
+
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"'`]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c]; }); }
 
 function refreshStats() {
   // Fetch latest counts from server and update stat boxes using fetch API
