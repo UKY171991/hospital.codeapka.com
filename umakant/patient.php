@@ -132,6 +132,14 @@ require_once 'inc/sidebar.php';
                                     </div>
                                 </div>
                                 <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="filterAddedBy">Added By</label>
+                                        <select id="filterAddedBy" class="form-control">
+                                            <option value="">All</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
                                         <div class="form-group">
                                         <label>&nbsp;</label>
                                         <button class="btn btn-secondary btn-block" onclick="clearFilters()">

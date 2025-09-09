@@ -68,6 +68,12 @@ function bindPatientEvents() {
     $('#patientsSearch').on('input', function() {
         applyFilters();
     });
+
+    // Populate Added By dropdown and reload when changed
+    loadAddedByOptions();
+    $(document).on('change', '#filterAddedBy', function() {
+        applyFilters();
+    });
 }
 
 function selectAllPatients() {
@@ -564,7 +570,11 @@ function applyFilters() {
 
     // Use the table manager to apply filters if available
     if (patientTableManager) {
-        patientTableManager.loadData();
+    // set custom params on the manager then reload
+    const addedBy = $('#filterAddedBy').val();
+    patientTableManager.extraParams = patientTableManager.extraParams || {};
+    if (addedBy) patientTableManager.extraParams.added_by = addedBy; else delete patientTableManager.extraParams.added_by;
+    patientTableManager.loadData();
     } else {
         // Fallback: load data manually
         $.get(`ajax/patient_api.php?action=list&${params}`)
@@ -584,6 +594,20 @@ function applyFilters() {
                 }
             });
     }
+}
+
+// Load users to populate the Added By dropdown
+function loadAddedByOptions(){
+    $.get('ajax/user_api.php', { action: 'list' }, function(r){
+        if (r && r.success && Array.isArray(r.data)){
+            const sel = $('#filterAddedBy');
+            sel.find('option:not(:first)').remove();
+            r.data.forEach(function(u){
+                const label = u.full_name || u.username || u.email || ('user-'+u.id);
+                sel.append($('<option>').val(u.id).text(label));
+            });
+        }
+    }, 'json').fail(function(){ console.warn('Failed to load Added By options'); });
 }
 
 function populatePatientsTable(patients) {

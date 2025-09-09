@@ -200,6 +200,13 @@ function handleList() {
             $whereConditions[] = "LOWER(TRIM($genderColumn)) = LOWER(TRIM(?))";
             $params[] = $genderParam;
         }
+
+        // Optional filter by added_by (accept from POST or GET). Only apply if column exists.
+        $addedByParam = $_POST['added_by'] ?? $_GET['added_by'] ?? null;
+        if ($addedByParam && in_array('added_by', $columns)) {
+            $whereConditions[] = 'patients.added_by = ?';
+            $params[] = intval($addedByParam);
+        }
         
         $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
         
