@@ -371,13 +371,13 @@ function initializeTestTable() {
                     return d;
                 },
                 dataSrc: function(json) {
-                    if (json.success) {
-                        return json.data || [];
-                    } else {
-                        console.error('Test API Error:', json.message);
-                        showToast('error', 'Failed to load tests: ' + (json.message || 'Unknown error'));
-                        return [];
-                    }
+                    // Accept both DataTables server-side format and our unified {success,data}
+                    if (!json) return [];
+                    if (typeof json.draw !== 'undefined' && Array.isArray(json.data)) return json.data;
+                    if (json.success) return json.data || [];
+                    console.error('Test API Error:', json && json.message);
+                    showToast('error', 'Failed to load tests' + (json && json.message ? (': ' + json.message) : ''));
+                    return [];
                 },
                 error: function(xhr, error, thrown) {
                         console.error('Test AJAX Error:', {
@@ -401,12 +401,41 @@ function initializeTestTable() {
                     }
                 },
                 { data: 'id', title: 'ID' },
-                { data: 'test_name', title: 'Test Name' },
-                { data: 'category', title: 'Category' },
-                { data: 'price', title: 'Price' },
-                { data: 'gender', title: 'Gender' },
-                { data: 'range', title: 'Range' },
-                { data: 'unit', title: 'Unit' },
+                {
+                    data: 'name',
+                    title: 'Test Name',
+                    render: function(data, type, row){
+                        var testName = data || row.name || 'N/A';
+                        if (testName === '' || testName === null || testName === undefined) testName = 'N/A';
+                        return `<div class="font-weight-bold text-primary">${testName}</div>`+
+                               (row.description ? `<small class="text-muted">${row.description}</small>` : '');
+                    }
+                },
+                { data: 'category_name', title: 'Category', render: function(d){ return d ? `<span class="badge badge-info">${d}</span>` : '-'; } },
+                { data: 'price', title: 'Price', render: function(d){ return d ? `₹${parseFloat(d).toFixed(2)}` : '-'; } },
+                {
+                    data: null,
+                    title: 'Gender',
+                    render: function(data, type, row){
+                        let g = [];
+                        if (row.min_male !== null || row.max_male !== null) g.push('<span class="badge badge-primary badge-sm">Male</span>');
+                        if (row.min_female !== null || row.max_female !== null) g.push('<span class="badge badge-danger badge-sm">Female</span>');
+                        if (!g.length && (row.min !== null || row.max !== null)) g.push('<span class="badge badge-success badge-sm">Both</span>');
+                        return g.length ? g.join(' ') : '-';
+                    }
+                },
+                {
+                    data: null,
+                    title: 'Range',
+                    render: function(data, type, row){
+                        let r = [];
+                        if (row.min_male !== null || row.max_male !== null) r.push(`M: ${row.min_male||0}-${row.max_male||'∞'}`);
+                        if (row.min_female !== null || row.max_female !== null) r.push(`F: ${row.min_female||0}-${row.max_female||'∞'}`);
+                        if (!r.length && (row.min !== null || row.max !== null)) r.push(`${row.min||0}-${row.max||'∞'}`);
+                        return r.length ? r.join('<br>') : '-';
+                    }
+                },
+                { data: 'unit', title: 'Unit', render: d=> d || '-' },
                 {
                     data: null,
                     orderable: false,
@@ -415,14 +444,14 @@ function initializeTestTable() {
                     title: 'Actions',
                     render: function(data, type, row) {
                         return `
-                            <div class="btn-group">
+                            <div class="btn-group btn-group-sm" role="group">
                                 <button class="btn btn-info btn-sm" onclick="viewTest(${row.id})" title="View">
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 <button class="btn btn-warning btn-sm" onclick="editTest(${row.id})" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteTest(${row.id})" title="Delete">
+                                <button class="btn btn-danger btn-sm" onclick="deleteTest(${row.id}, '${(row.name||'').replace(/'/g, "\\'")}')" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -646,3 +675,20 @@ function showToast(type, message) {
 // Export functions for global use
 window.initializeAllTables = initializeAllTables;
 window.loadPatientStats = loadPatientStats;
+
+// Unified reload helpers
+function reloadDataTable(tableId, resetPaging){
+    if ($.fn.DataTable && $.fn.dataTable.isDataTable('#'+tableId)) {
+        try { $('#'+tableId).DataTable().ajax.reload(null, resetPaging === true); }
+        catch(e){ console.error('Failed to reload DataTable', tableId, e); }
+    }
+}
+
+function reloadAllTables(){
+    if (window.initializedTables) {
+        window.initializedTables.forEach(function(id){ reloadDataTable(id,false); });
+    }
+}
+
+window.reloadDataTable = reloadDataTable;
+window.reloadAllTables = reloadAllTables;

@@ -1096,17 +1096,16 @@ function saveTestData() {
                 toastr.success(id ? 'Test updated successfully!' : 'Test added successfully!');
                 $('#testModal').modal('hide');
                 
-                if(response.data && !id) { 
-                    // New record - add to table directly if possible
-                    if (typeof addTestToTable === 'function') {
-                        addTestToTable(response.data); 
-                    } else {
-                        reloadTestsDebounced();
-                    }
-                } else { 
-                    // Update - reload table
-                    reloadTestsDebounced(); 
-                } 
+                // Always reload the DataTable to keep column alignment stable
+                if (typeof reloadDataTable === 'function') {
+                    reloadDataTable('testsTable', false);
+                } else if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
+                    try { $('#testsTable').DataTable().ajax.reload(null, false); } catch(e){}
+                } else if (typeof reloadTestsDebounced === 'function') {
+                    reloadTestsDebounced();
+                } else if (typeof loadTests === 'function') {
+                    loadTests();
+                }
                 
                 loadStats();
                 
@@ -1140,7 +1139,13 @@ function deleteTest(id, name) {
             success: function(response) {
                 if (response.success) {
                     toastr.success('Test deleted successfully!');
-                    reloadTestsDebounced(); // Reload the table (debounced)
+                    if (typeof reloadDataTable === 'function') {
+                        reloadDataTable('testsTable', false);
+                    } else if (typeof reloadTestsDebounced === 'function') {
+                        reloadTestsDebounced();
+                    } else if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
+                        try { $('#testsTable').DataTable().ajax.reload(null,false); } catch(e){}
+                    } else if (typeof loadTests === 'function') { loadTests(); }
                     loadStats();
                 } else {
                     toastr.error('Error deleting test: ' + (response.message || 'Unknown error'));
@@ -1232,76 +1237,7 @@ function showAlert(message, type) {
 <?php require_once 'inc/footer.php'; ?>
 
 <script>
-function addTestToTable(testData) {
-    // Check if table is currently empty (has only one row with colspan)
-    var isEmptyTable = $('#testsTable tbody tr').length === 1 && 
-                      $('#testsTable tbody tr:first td').attr('colspan') === '7';
-    
-    // Add row to table
-    var newRow = '<tr>' +
-        '<td></td>' + // S.No. will be handled by DataTable
-        '<td>' + testData.id + '</td>' +
-        '<td>' + (testData.category_name || '') + '</td>' +
-        '<td>' + (testData.name || '') + '</td>' +
-        '<td>' + (testData.price || '') + '</td>' +
-        '<td>' + (testData.added_by_username || '') + '</td>' +
-        '<td><button class="btn btn-sm btn-info view-test" data-id="' + testData.id + '" onclick="viewTest(' + testData.id + ')">View</button> ' +
-            '<button class="btn btn-sm btn-warning edit-test" data-id="' + testData.id + '">Edit</button> ' +
-            '<button class="btn btn-sm btn-danger delete-test" data-id="' + testData.id + '">Delete</button></td>' +
-        '</tr>';
-    
-    // If DataTable is present, use its API to add the row for better UX
-    if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
-        try {
-            var table = $('#testsTable').DataTable();
-            var actions = '<div class="btn-group btn-group-sm" role="group">' +
-                          '<button class="btn btn-info btn-sm" onclick="viewTest(' + testData.id + ')" title="View"><i class="fas fa-eye"></i></button>' +
-                          '<button class="btn btn-warning btn-sm" onclick="editTest(' + testData.id + ')" title="Edit"><i class="fas fa-edit"></i></button>' +
-                          '<button class="btn btn-danger btn-sm" onclick="deleteTest(' + testData.id + ', \'' + (testData.name||'').replace(/'/g, "\\'") + '\')" title="Delete"><i class="fas fa-trash"></i></button>' +
-                          '</div>';
-
-            var genderHtml = '-';
-            if (testData.min_male !== undefined || testData.max_male !== undefined) genderHtml = '<span class="badge badge-primary badge-sm">Male</span>';
-            if (testData.min_female !== undefined || testData.max_female !== undefined) genderHtml = (genderHtml === '-' ? '' : genderHtml + ' ') + '<span class="badge badge-danger badge-sm">Female</span>';
-
-            var ranges = [];
-            if (testData.min_male !== undefined || testData.max_male !== undefined) ranges.push('M: ' + (testData.min_male||'') + '-' + (testData.max_male||''));
-            if (testData.min_female !== undefined || testData.max_female !== undefined) ranges.push('F: ' + (testData.min_female||'') + '-' + (testData.max_female||''));
-            var rangesHtml = ranges.length ? ranges.join('<br>') : (testData.min || testData.max ? (testData.min||'') + '-' + (testData.max||'') : '-');
-
-            // Use object mapping so DataTable fills columns by order defined earlier
-            // Add as an array matching the DataTable's columns to avoid _DT_CellIndex errors
-            table.row.add([
-                '<input type="checkbox" class="test-checkbox" value="' + testData.id + '">', // checkbox
-                testData.id, // ID
-                (testData.name || 'N/A'), // Name
-                (testData.category_name || '-'), // Category
-                (testData.price ? '₹' + parseFloat(testData.price).toFixed(2) : '-'), // Price
-                genderHtml, // Gender badges
-                rangesHtml, // Range
-                (testData.unit || '-'), // Unit
-                actions // Actions
-            ]).draw(false);
-
-            // Ensure newest appears at top
-            try{ table.order([[1, 'desc']]).page('first').draw(false); }catch(e){}
-            return;
-        } catch (e) {
-            console.warn('Failed to add row via DataTable API, falling back to DOM:', e);
-        }
-    }
-
-    // Fallback when no DataTable exists: insert into DOM
-    if (isEmptyTable) {
-        // Replace the empty message row with the new row
-        $('#testsTable tbody').html(newRow);
-    } else {
-        // Add new row to existing table
-        $('#testsTable tbody').prepend(newRow);
-    }
-    // update serial numbers for regular table
-    updateSerialNumbers();
-}
+// Removed addTestToTable manual DOM manipulations to avoid column mismatch.
 
 function updateSerialNumbers() {
     $('#testsTable tbody tr').each(function(index) {
@@ -1381,6 +1317,17 @@ function reloadTestsDebounced(delay){
         loadTests();
     }, delay);
 }
+
+// Unified simple reload alias used across CRUD handlers
+window.reloadTests = function(){
+    if (typeof reloadDataTable === 'function') {
+        reloadDataTable('testsTable', false);
+    } else if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
+        try { $('#testsTable').DataTable().ajax.reload(null,false); } catch(e){}
+    } else if (typeof reloadTestsDebounced === 'function') {
+        reloadTestsDebounced();
+    } else if (typeof loadTests === 'function') { loadTests(); }
+};
 
 function applyTestsFilters(){
     var q = $('#testsSearch').val().toLowerCase().trim();
