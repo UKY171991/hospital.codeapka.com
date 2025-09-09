@@ -24,6 +24,12 @@ if (empty($token)) {
       }
     }
   }
+  // Regex fallback: capture token directly from REQUEST_URI if parse_str didn't work
+  if (empty($token) && !empty($_SERVER['REQUEST_URI'])) {
+    if (preg_match('/[?&]token=([^&]+)/', $_SERVER['REQUEST_URI'], $m)) {
+      $token = urldecode($m[1]);
+    }
+  }
 }
 $error = '';
 $success = '';
@@ -45,7 +51,12 @@ if ($token) {
         }
     } catch (Throwable $e) { $error = 'Unable to verify link.'; }
 } else {
-    $error = 'Missing token.';
+  // no-op here; we'll set a missing-token error only for non-POST GET requests below
+}
+
+// If there's no token and this is a normal GET (not a form POST), show missing token message
+if (empty($token) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+  $error = 'Missing token.';
 }
 
 if ($_SERVER['REQUEST_METHOD']==='POST') {
