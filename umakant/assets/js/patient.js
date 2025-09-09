@@ -598,16 +598,31 @@ function applyFilters() {
 
 // Load users to populate the Added By dropdown
 function loadAddedByOptions(){
-    $.get('ajax/user_api.php', { action: 'list' }, function(r){
-        if (r && r.success && Array.isArray(r.data)){
-            const sel = $('#filterAddedBy');
-            sel.find('option:not(:first)').remove();
+    // Request a larger page to ensure we get all users for the dropdown; log response for debugging
+    $.ajax({
+        url: 'ajax/user_api.php',
+        method: 'GET',
+        dataType: 'json',
+        data: { action: 'list', start: 0, length: 1000 },
+        cache: false,
+        timeout: 8000
+    }).done(function(r){
+        console.debug('loadAddedByOptions response:', r);
+        const sel = $('#filterAddedBy');
+        sel.find('option:not(:first)').remove();
+
+        if (r && r.success && Array.isArray(r.data) && r.data.length > 0) {
             r.data.forEach(function(u){
                 const label = u.full_name || u.username || u.email || ('user-'+u.id);
                 sel.append($('<option>').val(u.id).text(label));
             });
+        } else {
+            console.warn('No users returned for Added By dropdown', r);
+            // leave the default 'All' option but still provide a visible console hint
         }
-    }, 'json').fail(function(){ console.warn('Failed to load Added By options'); });
+    }).fail(function(jqXHR, textStatus, errorThrown){
+        console.warn('Failed to load Added By options', textStatus, errorThrown);
+    });
 }
 
 function populatePatientsTable(patients) {
