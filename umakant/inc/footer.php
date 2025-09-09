@@ -33,6 +33,10 @@
     } else {
         echo '<script src="assets/js/patient-new.js?v=' . time() . '"></script>';
     }
+    // Load plan page script when viewing plan.php
+    if ($currentPage === 'plan.php') {
+        echo '<script src="assets/js/plan.js?v=' . time() . '"></script>';
+    }
     ?>
         <!-- Global View Modal (reusable across pages) -->
         <div class="modal fade" id="globalViewModal" tabindex="-1" role="dialog" aria-hidden="true">
