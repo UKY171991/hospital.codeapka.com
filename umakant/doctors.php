@@ -20,6 +20,14 @@ include_once 'inc/sidebar.php';
       <div class="container-fluid">
         <div class="card">
           <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-3">
+                <label for="filterAddedBy">Filter: Added By</label>
+                <select id="filterAddedBy" class="form-control">
+                  <option value="">All</option>
+                </select>
+              </div>
+            </div>
             <table class="table table-bordered table-sm" id="doctorTable">
                 <thead>
                   <tr>
@@ -106,7 +114,12 @@ $(function(){
     responsive: true,
     ajax: {
       url: 'ajax/doctor_api.php',
-      data: { action: 'list' },
+      data: function(d){
+        // DataTables server-side params are in d; add action and optional added_by filter
+        d.action = 'list';
+        var addedBy = $('#filterAddedBy').val();
+        if (addedBy) d.added_by = addedBy;
+      },
       dataSrc: 'data'
     },
     columns: [
@@ -138,6 +151,30 @@ $(function(){
     dom: 'Bfrtip',
     buttons: [ 'copy', 'csv', 'excel', 'pdf', 'print' ],
     pageLength: 25
+  });
+
+  // Populate 'Added By' dropdown using users API
+  function loadAddedByOptions(){
+    $.get('ajax/user_api.php', { action: 'list' }, function(r){
+      if(r && r.success){
+        var select = $('#filterAddedBy');
+        select.find('option:not(:first)').remove();
+        r.data.forEach(function(u){
+          // Use username or full_name for display
+          var label = u.full_name || u.username || u.email || ('user-'+u.id);
+          select.append($('<option>').val(u.id).text(label));
+        });
+      } else {
+        console.warn('Failed to load users for filter', r);
+      }
+    }, 'json').fail(function(){ console.warn('Failed to load users for filter'); });
+  }
+
+  loadAddedByOptions();
+
+  // Reload table when filter changes
+  $('#filterAddedBy').change(function(){
+    table.ajax.reload();
   });
 
   // Open add modal

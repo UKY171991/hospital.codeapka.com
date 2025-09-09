@@ -25,12 +25,24 @@ try {
             $searchTerm = "%$search%";
             $params = [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm];
         }
+
+        // Optional filter by added_by (from dropdown)
+        if (!empty($_REQUEST['added_by'])) {
+            $addedBy = intval($_REQUEST['added_by']);
+            if ($whereClause === "") {
+                $whereClause = " WHERE d.added_by = ?";
+                $params = [$addedBy];
+            } else {
+                $whereClause .= " AND d.added_by = ?";
+                $params[] = $addedBy;
+            }
+        }
         
     // Get total records (no filters)
     $totalStmt = $pdo->query("SELECT COUNT(*) " . $baseQuery);
     $totalRecords = $totalStmt->fetchColumn();
 
-    // Get filtered records (with current search filters)
+    // Get filtered records (with current search filters and added_by)
     $filteredStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereClause);
     $filteredStmt->execute($params);
     $filteredRecords = $filteredStmt->fetchColumn();
