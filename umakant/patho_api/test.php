@@ -19,7 +19,7 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 
-// Entity Configuration for Tests
+// Entity Configuration for Tests (match DB schema)
 $entity_config = [
     'table_name' => 'tests',
     'id_field' => 'id',
@@ -28,7 +28,7 @@ $entity_config = [
         'name', 'category_id', 'method', 'price', 'description',
         'min_male', 'max_male', 'min_female', 'max_female',
         'min', 'max', 'unit', 'default_result', 'reference_range',
-        'test_code', 'shortcut', 'sub_heading', 'print_new_page', 'specimen'
+        'test_code', 'shortcut', 'sub_heading', 'print_new_page', 'specimen', 'added_by'
     ],
     'permission_map' => [
         'list' => 'read',
@@ -105,10 +105,10 @@ try {
 
 function handleList($pdo, $config) {
     try {
-        $sql = "SELECT t.*, c.name as category_name 
-                FROM {$config['table_name']} t 
-                LEFT JOIN categories c ON t.category_id = c.id 
-                ORDER BY t.name";
+    $sql = "SELECT t.*, c.name as category_name 
+        FROM {$config['table_name']} t 
+        LEFT JOIN categories c ON t.category_id = c.id 
+        ORDER BY t.name";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
@@ -135,10 +135,10 @@ function handleGet($pdo, $config) {
             return;
         }
 
-        $sql = "SELECT t.*, c.name as category_name 
-                FROM {$config['table_name']} t 
-                LEFT JOIN categories c ON t.category_id = c.id 
-                WHERE t.{$config['id_field']} = ?";
+    $sql = "SELECT t.*, c.name as category_name 
+        FROM {$config['table_name']} t 
+        LEFT JOIN categories c ON t.category_id = c.id 
+        WHERE t.{$config['id_field']} = ?";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id]);
@@ -179,7 +179,7 @@ function handleSave($pdo, $config, $user_data) {
         }
 
         // Check if category exists
-        $stmt = $pdo->prepare("SELECT id FROM test_categories WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id FROM categories WHERE id = ?");
         $stmt->execute([$input['category_id']]);
         if (!$stmt->fetch()) {
             http_response_code(400);
@@ -195,10 +195,7 @@ function handleSave($pdo, $config, $user_data) {
             }
         }
 
-        // Set default status if not provided
-        if (!isset($data['status'])) {
-            $data['status'] = 'active';
-        }
+    // Set added_by if creating
 
         $id = $input['id'] ?? null;
         $is_update = !empty($id);
@@ -223,9 +220,9 @@ function handleSave($pdo, $config, $user_data) {
             $test_id = $is_update ? $id : $pdo->lastInsertId();
             
             // Fetch the saved test
-            $stmt = $pdo->prepare("SELECT t.*, tc.category_name 
+            $stmt = $pdo->prepare("SELECT t.*, c.name as category_name 
                                    FROM {$config['table_name']} t 
-                                   LEFT JOIN test_categories tc ON t.category_id = tc.id 
+                                   LEFT JOIN categories c ON t.category_id = c.id 
                                    WHERE t.{$config['id_field']} = ?");
             $stmt->execute([$test_id]);
             $saved_test = $stmt->fetch(PDO::FETCH_ASSOC);

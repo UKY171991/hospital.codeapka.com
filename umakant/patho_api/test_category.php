@@ -19,12 +19,12 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 
-// Entity Configuration for Test Categories
+// Entity Configuration for Test Categories (match DB categories table)
 $entity_config = [
     'table_name' => 'categories',
     'id_field' => 'id',
     'required_fields' => ['name'],
-    'allowed_fields' => ['name', 'description'],
+    'allowed_fields' => ['name', 'description', 'added_by'],
     'permission_map' => [
         'list' => 'read',
         'get' => 'read', 
@@ -100,12 +100,12 @@ try {
 
 function handleList($pdo, $config) {
     try {
-        $sql = "SELECT tc.*, 
-                       COUNT(t.id) as test_count 
-                FROM {$config['table_name']} tc 
-                LEFT JOIN tests t ON tc.id = t.category_id 
-                GROUP BY tc.id 
-                ORDER BY tc.name";
+    $sql = "SELECT c.*, 
+               COUNT(t.id) as test_count 
+        FROM {$config['table_name']} c 
+        LEFT JOIN tests t ON c.id = t.category_id 
+        GROUP BY c.id 
+        ORDER BY c.name";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
@@ -132,12 +132,12 @@ function handleGet($pdo, $config) {
             return;
         }
 
-        $sql = "SELECT tc.*, 
-                       COUNT(t.id) as test_count 
-                FROM {$config['table_name']} tc 
-                LEFT JOIN tests t ON tc.id = t.category_id 
-                WHERE tc.{$config['id_field']} = ?
-                GROUP BY tc.id";
+    $sql = "SELECT c.*, 
+               COUNT(t.id) as test_count 
+        FROM {$config['table_name']} c 
+        LEFT JOIN tests t ON c.id = t.category_id 
+        WHERE c.{$config['id_field']} = ?
+        GROUP BY c.id";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id]);
@@ -170,9 +170,9 @@ function handleSave($pdo, $config, $user_data) {
             }
         }
 
-        // Check for duplicate category name
-        $id = $input['id'] ?? null;
-        $check_sql = "SELECT id FROM {$config['table_name']} WHERE category_name = ?";
+    // Check for duplicate category name
+    $id = $input['id'] ?? null;
+    $check_sql = "SELECT id FROM {$config['table_name']} WHERE name = ?";
         if ($id) {
             $check_sql .= " AND id != ?";
             $stmt = $pdo->prepare($check_sql);
@@ -196,9 +196,9 @@ function handleSave($pdo, $config, $user_data) {
             }
         }
 
-        // Set default status if not provided
-        if (!isset($data['status'])) {
-            $data['status'] = 'active';
+        // Assign added_by on create
+        if (!$id) {
+            $data['added_by'] = $user_data['user_id'] ?? ($user_data['id'] ?? null);
         }
 
         $is_update = !empty($id);
@@ -223,12 +223,12 @@ function handleSave($pdo, $config, $user_data) {
             $category_id = $is_update ? $id : $pdo->lastInsertId();
             
             // Fetch the saved category
-            $stmt = $pdo->prepare("SELECT tc.*, 
-                                           COUNT(t.id) as test_count 
-                                   FROM {$config['table_name']} tc 
-                                   LEFT JOIN tests t ON tc.id = t.category_id 
-                                   WHERE tc.{$config['id_field']} = ?
-                                   GROUP BY tc.id");
+        $stmt = $pdo->prepare("SELECT c.*, 
+                       COUNT(t.id) as test_count 
+                   FROM {$config['table_name']} c 
+                   LEFT JOIN tests t ON c.id = t.category_id 
+                   WHERE c.{$config['id_field']} = ?
+                   GROUP BY c.id");
             $stmt->execute([$category_id]);
             $saved_category = $stmt->fetch(PDO::FETCH_ASSOC);
 

@@ -19,14 +19,13 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 
-// Entity Configuration for Notices
+// Entity Configuration for Notices (match DB schema)
 $entity_config = [
     'table_name' => 'notices',
     'id_field' => 'id',
-    'required_fields' => ['title', 'content'],
+    'required_fields' => ['title'],
     'allowed_fields' => [
-        'title', 'content', 'type', 'priority', 'status', 'start_date', 
-        'end_date', 'created_by', 'target_audience'
+        'title', 'content', 'start_date', 'end_date', 'active', 'added_by'
     ],
     'permission_map' => [
         'list' => 'read',
@@ -103,10 +102,10 @@ try {
 
 function handleList($pdo, $config) {
     try {
-        $sql = "SELECT n.*, u.username as created_by_name 
-                FROM {$config['table_name']} n 
-                LEFT JOIN users u ON n.created_by = u.id 
-                ORDER BY n.priority DESC, n.start_date DESC";
+    $sql = "SELECT n.*, u.username as added_by_username 
+        FROM {$config['table_name']} n 
+        LEFT JOIN users u ON n.added_by = u.id 
+        ORDER BY n.start_date DESC, n.id DESC";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
@@ -133,10 +132,10 @@ function handleGet($pdo, $config) {
             return;
         }
 
-        $sql = "SELECT n.*, u.username as created_by_name 
-                FROM {$config['table_name']} n 
-                LEFT JOIN users u ON n.created_by = u.id 
-                WHERE n.{$config['id_field']} = ?";
+    $sql = "SELECT n.*, u.username as added_by_username 
+        FROM {$config['table_name']} n 
+        LEFT JOIN users u ON n.added_by = u.id 
+        WHERE n.{$config['id_field']} = ?";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id]);
@@ -177,21 +176,12 @@ function handleSave($pdo, $config, $user_data) {
             }
         }
 
-        // Set default values
-        if (!isset($data['type'])) {
-            $data['type'] = 'general';
-        }
-        if (!isset($data['priority'])) {
-            $data['priority'] = 'medium';
-        }
-        if (!isset($data['status'])) {
-            $data['status'] = 'active';
+        // Set default values (DB has 'active' tinyint and timestamps)
+        if (!isset($data['active'])) {
+            $data['active'] = 1;
         }
         if (!isset($data['start_date'])) {
-            $data['start_date'] = date('Y-m-d');
-        }
-        if (!isset($data['target_audience'])) {
-            $data['target_audience'] = 'all';
+            $data['start_date'] = date('Y-m-d H:i:s');
         }
 
         // Set created_by to current user for new notices
@@ -199,7 +189,7 @@ function handleSave($pdo, $config, $user_data) {
         $is_update = !empty($id);
         
         if (!$is_update) {
-            $data['created_by'] = $user_data['id'];
+            $data['added_by'] = $user_data['user_id'] ?? ($user_data['id'] ?? null);
         }
 
         if ($is_update) {
@@ -222,9 +212,9 @@ function handleSave($pdo, $config, $user_data) {
             $notice_id = $is_update ? $id : $pdo->lastInsertId();
             
             // Fetch the saved notice with creator info
-            $stmt = $pdo->prepare("SELECT n.*, u.username as created_by_name 
+            $stmt = $pdo->prepare("SELECT n.*, u.username as added_by_username 
                                    FROM {$config['table_name']} n 
-                                   LEFT JOIN users u ON n.created_by = u.id 
+                                   LEFT JOIN users u ON n.added_by = u.id 
                                    WHERE n.{$config['id_field']} = ?");
             $stmt->execute([$notice_id]);
             $saved_notice = $stmt->fetch(PDO::FETCH_ASSOC);

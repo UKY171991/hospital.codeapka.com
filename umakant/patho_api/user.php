@@ -19,14 +19,14 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 
-// Entity Configuration for Users
+// Entity Configuration for Users (match DB schema)
 $entity_config = [
     'table_name' => 'users',
     'id_field' => 'id',
     'required_fields' => ['username', 'full_name'],
     'allowed_fields' => [
-        'username', 'full_name', 'email', 'password', 'role', 'is_active', 
-        'created_at', 'last_login', 'expire_date'
+        'username', 'full_name', 'email', 'password', 'role', 'is_active',
+        'expire_date', 'added_by', 'api_token'
     ],
     'permission_map' => [
         'list' => 'read',
@@ -103,11 +103,9 @@ try {
 
 function handleList($pdo, $config) {
     try {
-        // Don't return passwords in list
-        $fields = array_filter($config['allowed_fields'], fn($field) => $field !== 'password');
-        $fields_sql = implode(', ', $fields);
-        
-        $sql = "SELECT {$fields_sql} FROM {$config['table_name']} ORDER BY username";
+    // Don't return password in list; select explicit safe columns
+    $sql = "SELECT id, username, full_name, email, role, is_active, created_at, last_login, expire_date, added_by 
+        FROM {$config['table_name']} ORDER BY username";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
@@ -134,11 +132,9 @@ function handleGet($pdo, $config) {
             return;
         }
 
-        // Don't return password in get
-        $fields = array_filter($config['allowed_fields'], fn($field) => $field !== 'password');
-        $fields_sql = implode(', ', $fields);
-        
-        $sql = "SELECT {$fields_sql} FROM {$config['table_name']} WHERE {$config['id_field']} = ?";
+    // Don't return password in get; select explicit safe columns
+    $sql = "SELECT id, username, full_name, email, role, is_active, created_at, last_login, expire_date, added_by, api_token 
+        FROM {$config['table_name']} WHERE {$config['id_field']} = ?";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id]);
@@ -232,8 +228,11 @@ function handleSave($pdo, $config, $user_data) {
         if (!isset($data['role'])) {
             $data['role'] = 'user';
         }
-        if (!isset($data['status'])) {
-            $data['status'] = 'active';
+        if (!isset($data['is_active'])) {
+            $data['is_active'] = 1;
+        }
+        if (!isset($data['added_by'])) {
+            $data['added_by'] = $user_data['user_id'] ?? ($user_data['id'] ?? null);
         }
 
         if ($is_update) {

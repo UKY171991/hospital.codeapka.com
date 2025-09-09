@@ -1,8 +1,6 @@
 <?php
 /**
- * Owner API - Comprehensive CRUD operations for owners
- * Supports: CREATE, READ, UPDATE, DELETE operations
- * Authentication: Multiple methods supported
+ * Owner API - CRUD aligned to DB schema (owners: id, name, phone, whatsapp, email, address, added_by,...)
  */
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -19,18 +17,15 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 
-// Entity Configuration for Owners
+// Entity Configuration for Owners (match DB)
 $entity_config = [
     'table_name' => 'owners',
     'id_field' => 'id',
-    'required_fields' => ['owner_name', 'contact'],
-    'allowed_fields' => [
-        'owner_name', 'contact', 'email', 'address', 'city', 'state', 
-        'pincode', 'gst_number', 'status', 'business_type'
-    ],
+    'required_fields' => ['name', 'phone'],
+    'allowed_fields' => ['name', 'phone', 'whatsapp', 'email', 'address', 'added_by'],
     'permission_map' => [
         'list' => 'read',
-        'get' => 'read', 
+        'get' => 'read',
         'save' => 'write',
         'delete' => 'delete'
     ]
@@ -77,19 +72,19 @@ try {
         case 'list':
             handleList($pdo, $entity_config);
             break;
-            
+
         case 'get':
             handleGet($pdo, $entity_config);
             break;
-            
+
         case 'save':
             handleSave($pdo, $entity_config, $user_data);
             break;
-            
+
         case 'delete':
             handleDelete($pdo, $entity_config);
             break;
-            
+
         default:
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
@@ -103,8 +98,11 @@ try {
 
 function handleList($pdo, $config) {
     try {
-        $sql = "SELECT * FROM {$config['table_name']} ORDER BY owner_name";
-        
+        $sql = "SELECT o.*, u.username AS added_by_username
+                FROM {$config['table_name']} o
+                LEFT JOIN users u ON o.added_by = u.id
+                ORDER BY o.name";
+
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
         $owners = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -130,8 +128,11 @@ function handleGet($pdo, $config) {
             return;
         }
 
-        $sql = "SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?";
-        
+        $sql = "SELECT o.*, u.username AS added_by_username
+                FROM {$config['table_name']} o
+                LEFT JOIN users u ON o.added_by = u.id
+                WHERE o.{$config['id_field']} = ?";
+
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id]);
         $owner = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -153,7 +154,7 @@ function handleGet($pdo, $config) {
 function handleSave($pdo, $config, $user_data) {
     try {
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-        
+
         // Validate required fields
         foreach ($config['required_fields'] as $field) {
             if (empty($input[$field])) {
@@ -170,30 +171,30 @@ function handleSave($pdo, $config, $user_data) {
             return;
         }
 
-        // Validate contact number format
-        if (!preg_match('/^[6-9]\d{9}$/', $input['contact'])) {
+        // Validate phone (allow +, digits, spaces, dashes, parentheses)
+        if (!preg_match('/^[0-9+\-\s()]{7,20}$/', $input['phone'])) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Invalid contact number format']);
+            echo json_encode(['success' => false, 'message' => 'Invalid phone format']);
             return;
         }
 
         $id = $input['id'] ?? null;
         $is_update = !empty($id);
 
-        // Check for duplicate contact
-        $check_sql = "SELECT id FROM {$config['table_name']} WHERE contact = ?";
+        // Check for duplicate phone
+        $check_sql = "SELECT id FROM {$config['table_name']} WHERE phone = ?";
         if ($is_update) {
             $check_sql .= " AND id != ?";
             $stmt = $pdo->prepare($check_sql);
-            $stmt->execute([$input['contact'], $id]);
+            $stmt->execute([$input['phone'], $id]);
         } else {
             $stmt = $pdo->prepare($check_sql);
-            $stmt->execute([$input['contact']]);
+            $stmt->execute([$input['phone']]);
         }
-        
+
         if ($stmt->fetch()) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Contact number already exists']);
+            echo json_encode(['success' => false, 'message' => 'Phone already exists']);
             return;
         }
 
@@ -208,7 +209,7 @@ function handleSave($pdo, $config, $user_data) {
                 $stmt = $pdo->prepare($check_sql);
                 $stmt->execute([$input['email']]);
             }
-            
+
             if ($stmt->fetch()) {
                 http_response_code(400);
                 echo json_encode(['success' => false, 'message' => 'Email already exists']);
@@ -224,18 +225,15 @@ function handleSave($pdo, $config, $user_data) {
             }
         }
 
-        // Set default values
-        if (!isset($data['status'])) {
-            $data['status'] = 'active';
-        }
-        if (!isset($data['business_type'])) {
-            $data['business_type'] = 'individual';
+        // Ensure added_by is set for new records
+        if (!$is_update) {
+            $data['added_by'] = $data['added_by'] ?? ($user_data['user_id'] ?? ($user_data['id'] ?? null));
         }
 
         if ($is_update) {
             // Update existing owner
             $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
-            $sql = "UPDATE {$config['table_name']} SET $set_clause WHERE {$config['id_field']} = ?";
+            $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
             $values = array_merge(array_values($data), [$id]);
         } else {
             // Create new owner
@@ -250,9 +248,12 @@ function handleSave($pdo, $config, $user_data) {
 
         if ($result) {
             $owner_id = $is_update ? $id : $pdo->lastInsertId();
-            
+
             // Fetch the saved owner
-            $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+            $stmt = $pdo->prepare("SELECT o.*, u.username AS added_by_username
+                                   FROM {$config['table_name']} o
+                                   LEFT JOIN users u ON o.added_by = u.id
+                                   WHERE o.{$config['id_field']} = ?");
             $stmt->execute([$owner_id]);
             $saved_owner = $stmt->fetch(PDO::FETCH_ASSOC);
 

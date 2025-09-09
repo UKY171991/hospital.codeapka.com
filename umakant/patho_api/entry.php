@@ -19,14 +19,14 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 
-// Entity Configuration for Entries
+// Entity Configuration for Entries (match DB schema)
 $entity_config = [
     'table_name' => 'entries',
     'id_field' => 'id',
-    'required_fields' => ['patient_id', 'test_id', 'result_value'],
+    'required_fields' => ['patient_id', 'test_id'],
     'allowed_fields' => [
         'patient_id', 'test_id', 'result_value', 'status', 'remarks',
-        'entry_date', 'doctor_id', 'unit'
+        'entry_date', 'doctor_id', 'unit', 'added_by'
     ],
     'permission_map' => [
         'list' => 'read',
@@ -103,15 +103,16 @@ try {
 
 function handleList($pdo, $config) {
     try {
-        $sql = "SELECT e.*, 
-                       p.name as patient_name, p.uhid,
-                       t.name as test_name, t.unit as units, t.min_male as normal_value_male, t.max_male as normal_value_male_max, t.min_female as normal_value_female, t.max_female as normal_value_female_max, t.min as normal_value_child, t.max as normal_value_child_max,
-                       d.name as doctor_name
-                FROM {$config['table_name']} e 
-                LEFT JOIN patients p ON e.patient_id = p.id 
-                LEFT JOIN tests t ON e.test_id = t.id 
-                LEFT JOIN doctors d ON e.doctor_id = d.id 
-                ORDER BY e.entry_date DESC, e.id DESC";
+    $sql = "SELECT e.*, 
+               p.name AS patient_name, p.uhid,
+               t.name AS test_name, t.unit AS test_unit,
+               t.min_male, t.max_male, t.min_female, t.max_female, t.min, t.max,
+               d.name AS doctor_name
+        FROM {$config['table_name']} e 
+        LEFT JOIN patients p ON e.patient_id = p.id 
+        LEFT JOIN tests t ON e.test_id = t.id 
+        LEFT JOIN doctors d ON e.doctor_id = d.id 
+        ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
@@ -138,15 +139,16 @@ function handleGet($pdo, $config) {
             return;
         }
 
-        $sql = "SELECT e.*, 
-                       p.name as patient_name, p.uhid, p.age, p.sex as gender,
-                       t.name as test_name, t.unit as units, t.min_male as normal_value_male, t.max_male as normal_value_male_max, t.min_female as normal_value_female, t.max_female as normal_value_female_max, t.min as normal_value_child, t.max as normal_value_child_max,
-                       d.name as doctor_name
-                FROM {$config['table_name']} e 
-                LEFT JOIN patients p ON e.patient_id = p.id 
-                LEFT JOIN tests t ON e.test_id = t.id 
-                LEFT JOIN doctors d ON e.doctor_id = d.id 
-                WHERE e.{$config['id_field']} = ?";
+    $sql = "SELECT e.*, 
+               p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
+               t.name AS test_name, t.unit AS test_unit,
+               t.min_male, t.max_male, t.min_female, t.max_female, t.min, t.max,
+               d.name AS doctor_name
+        FROM {$config['table_name']} e 
+        LEFT JOIN patients p ON e.patient_id = p.id 
+        LEFT JOIN tests t ON e.test_id = t.id 
+        LEFT JOIN doctors d ON e.doctor_id = d.id 
+        WHERE e.{$config['id_field']} = ?";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id]);
@@ -186,7 +188,7 @@ function handleSave($pdo, $config, $user_data) {
             return;
         }
 
-        if (!is_numeric($input['test_id'])) {
+    if (!is_numeric($input['test_id'])) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Invalid test ID']);
             return;
@@ -219,14 +221,14 @@ function handleSave($pdo, $config, $user_data) {
         }
 
         // Set default values
-        if (!isset($data['test_date'])) {
-            $data['test_date'] = date('Y-m-d');
+        if (!isset($data['entry_date'])) {
+            $data['entry_date'] = date('Y-m-d H:i:s');
         }
         if (!isset($data['status'])) {
-            $data['status'] = 'active';
+            $data['status'] = 'pending';
         }
-        if (!isset($data['result_status'])) {
-            $data['result_status'] = 'normal';
+        if (!isset($data['added_by'])) {
+            $data['added_by'] = $user_data['user_id'] ?? ($user_data['id'] ?? null);
         }
 
         $id = $input['id'] ?? null;
@@ -252,15 +254,15 @@ function handleSave($pdo, $config, $user_data) {
             $entry_id = $is_update ? $id : $pdo->lastInsertId();
             
             // Fetch the saved entry with related data
-            $stmt = $pdo->prepare("SELECT e.*, 
-                                           p.patient_name, p.uhid,
-                                           t.name as test_name, t.unit as units,
-                                           d.doctor_name
-                                   FROM {$config['table_name']} e 
-                                   LEFT JOIN patients p ON e.patient_id = p.id 
-                                   LEFT JOIN tests t ON e.test_id = t.id 
-                                   LEFT JOIN doctors d ON e.doctor_id = d.id 
-                                   WHERE e.{$config['id_field']} = ?");
+        $stmt = $pdo->prepare("SELECT e.*, 
+                       p.name AS patient_name, p.uhid,
+                       t.name AS test_name, t.unit AS test_unit,
+                       d.name AS doctor_name
+                   FROM {$config['table_name']} e 
+                   LEFT JOIN patients p ON e.patient_id = p.id 
+                   LEFT JOIN tests t ON e.test_id = t.id 
+                   LEFT JOIN doctors d ON e.doctor_id = d.id 
+                   WHERE e.{$config['id_field']} = ?");
             $stmt->execute([$entry_id]);
             $saved_entry = $stmt->fetch(PDO::FETCH_ASSOC);
 
