@@ -21,15 +21,20 @@ require_once __DIR__ . '/../inc/api_config.php';
 // CONFIGURATION - Update these for each entity
 $ENTITY_TABLE = 'patients'; // Change this for each API
 $ENTITY_NAME = 'Patient'; // Change this for each API
-$REQUIRED_FIELDS = ['name', 'mobile']; // Change this for each API
+$REQUIRED_FIELDS = ['name', 'mobile']; // keep DB column 'mobile' required but accept 'phone' input
 // include 'added_by' so admin can provide it and it's recognized consistently
-$ALLOWED_FIELDS = ['name', 'mobile', 'age', 'age_unit', 'sex', 'uhid', 'address', 'father_husband', 'added_by']; // Change this for each API
+$ALLOWED_FIELDS = ['name', 'mobile', 'age', 'age_unit', 'sex', 'uhid', 'address', 'father_husband', 'added_by']; // DB columns (mobile remains the column)
 
 // Field mapping for form to database
 function mapFormToDb($data) {
     if (isset($data['gender'])) {
         $data['sex'] = $data['gender'];
         unset($data['gender']);
+    }
+    // Accept 'phone' from external clients and map to DB column 'mobile'
+    if (isset($data['phone']) && !isset($data['mobile'])) {
+        $data['mobile'] = $data['phone'];
+        unset($data['phone']);
     }
     // Normalize added_by if provided from frontend (admin override)
     if (isset($data['added_by'])) {
@@ -97,7 +102,7 @@ try {
         if ($ENTITY_NAME === 'Patient') {
             if (isset($data['mobile']) && !empty($data['mobile'])) {
                 if (!preg_match('/^[0-9+\-\s()]+$/', $data['mobile'])) {
-                    $errors[] = 'Invalid mobile number format';
+                    $errors[] = 'Invalid phone number format';
                 }
             }
             
