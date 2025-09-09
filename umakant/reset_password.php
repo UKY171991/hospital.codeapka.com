@@ -6,6 +6,25 @@ if (isset($_SESSION['user_id'])) { header('Location: index.php'); exit; }
 require_once 'inc/connection.php';
 
 $token = $_GET['token'] ?? '';
+// Fallback: some environments may not populate $_GET as expected (or rewrites strip it).
+// Try parsing the raw query string / request URI to locate token when missing.
+if (empty($token)) {
+  if (!empty($_SERVER['QUERY_STRING'])) {
+    parse_str($_SERVER['QUERY_STRING'], $_qs);
+    if (!empty($_qs['token'])) {
+      $token = $_qs['token'];
+    }
+  }
+  if (empty($token) && !empty($_SERVER['REQUEST_URI'])) {
+    $parts = parse_url($_SERVER['REQUEST_URI']);
+    if (!empty($parts['query'])) {
+      parse_str($parts['query'], $_qs2);
+      if (!empty($_qs2['token'])) {
+        $token = $_qs2['token'];
+      }
+    }
+  }
+}
 $error = '';
 $success = '';
 $valid = false;
