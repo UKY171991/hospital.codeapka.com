@@ -907,20 +907,39 @@ function deletePatient(id, name) {
 }
 
 function performDelete(id) {
+    showLoading();
     $.ajax({
-        url: `patho_api/patient.php?id=${id}`,
-        type: 'DELETE',
+        url: 'ajax/patient_api.php',
+        type: 'POST',
+        dataType: 'json',
+        data: { action: 'delete', id: id },
         success: function(response) {
-            if (response.status === 'success') {
+            if (response && response.success) {
                 showAlert('Patient deleted successfully!', 'success');
-                loadPatients();
-                updateStats();
+                // Refresh table via manager if available, otherwise fallback
+                try {
+                    if (patientTableManager && patientTableManager.dataTable && patientTableManager.dataTable.ajax && typeof patientTableManager.dataTable.ajax.reload === 'function') {
+                        patientTableManager.dataTable.ajax.reload(null, false);
+                    } else if (patientTableManager && typeof patientTableManager.refreshData === 'function') {
+                        patientTableManager.refreshData();
+                    } else if (typeof loadPatients === 'function') {
+                        loadPatients();
+                    }
+                } catch (e) {
+                    console.warn('Error refreshing list after delete:', e);
+                }
+                try { updateStats(); } catch(e){}
             } else {
-                showAlert('Error deleting patient: ' + response.message, 'error');
+                const msg = (response && response.message) ? response.message : 'Unknown error';
+                showAlert('Error deleting patient: ' + msg, 'error');
             }
         },
-        error: function() {
-            showAlert('Failed to delete patient', 'error');
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Delete AJAX error', textStatus, errorThrown, jqXHR.responseText);
+            showAlert('Failed to delete patient: ' + (errorThrown || textStatus), 'error');
+        },
+        complete: function() {
+            hideLoading();
         }
     });
 }
