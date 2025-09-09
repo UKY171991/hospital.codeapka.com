@@ -129,6 +129,47 @@ $role = $_SESSION['role'] ?? 'user';
           </ul>
         </li>
 
+        <?php
+        // OPD menu and its pages - adjust filenames as needed
+        $opdPages = ['opd_patient.php','opd_doctor.php','department.php','appointment.php'];
+        $isOpdActive = in_array($activePage, $opdPages);
+        ?>
+        <li class="nav-item has-treeview <?php echo $isOpdActive ? 'menu-open' : ''; ?>">
+          <a href="#" class="nav-link <?php echo $isOpdActive ? 'active' : ''; ?>">
+            <i class="nav-icon fas fa-clinic-medical"></i>
+            <p>
+              OPD
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="opd_patient.php" class="nav-link <?php echo ($activePage == 'opd_patient.php') ? 'active' : ''; ?>">
+                <i class="fas fa-user nav-icon"></i>
+                <p>Patient</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="opd_doctor.php" class="nav-link <?php echo ($activePage == 'opd_doctor.php') ? 'active' : ''; ?>">
+                <i class="fas fa-user-md nav-icon"></i>
+                <p>Doctor</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="department.php" class="nav-link <?php echo ($activePage == 'department.php') ? 'active' : ''; ?>">
+                <i class="fas fa-building nav-icon"></i>
+                <p>Department</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="appointment.php" class="nav-link <?php echo ($activePage == 'appointment.php') ? 'active' : ''; ?>">
+                <i class="fas fa-calendar-check nav-icon"></i>
+                <p>User Appointment</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
   <!-- Admins menu removed -->
 
   <!-- Logout moved to top navbar for easier access -->
