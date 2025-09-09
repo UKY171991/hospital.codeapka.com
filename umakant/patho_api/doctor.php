@@ -222,8 +222,30 @@ try {
                 'address' => trim($input['address'] ?? ''),
                 'registration_no' => trim($input['registration_no'] ?? ''),
                 'percent' => isset($input['percent']) ? floatval($input['percent']) : null,
-                'added_by' => trim($input['added_by'] ?? '') // $auth['user_id']
+                // will set added_by below after validating the provided value (if any)
+                'added_by' => null
             ];
+
+            // Normalize added_by: prefer provided added_by if it's a valid existing user id,
+            // otherwise default to the authenticated API user id to avoid FK constraint errors.
+            $providedAddedBy = isset($input['added_by']) && is_numeric($input['added_by']) ? intval($input['added_by']) : null;
+            if ($providedAddedBy !== null) {
+                try {
+                    $uStmt = $pdo->prepare('SELECT id FROM users WHERE id = ?');
+                    $uStmt->execute([$providedAddedBy]);
+                    $found = $uStmt->fetch(PDO::FETCH_ASSOC);
+                    if ($found && isset($found['id'])) {
+                        $data['added_by'] = (int)$found['id'];
+                    } else {
+                        // provided user does not exist -> fallback to authenticated user
+                        $data['added_by'] = $auth['user_id'];
+                    }
+                } catch (Throwable $e) {
+                    $data['added_by'] = $auth['user_id'];
+                }
+            } else {
+                $data['added_by'] = $auth['user_id'];
+            }
 
             if (isset($input['server_id'])) {
                 $data['server_id'] = intval($input['server_id']);
