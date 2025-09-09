@@ -39,6 +39,20 @@ switch($requestMethod) {
         break;
 }
 
+// Support unified 'save' action: choose create vs update by presence of id
+if ($action === 'save') {
+    $raw = file_get_contents('php://input');
+    $input = json_decode($raw, true);
+    if (!is_array($input) || empty($input)) { $input = $_POST; }
+    $id = $_GET['id'] ?? $_REQUEST['id'] ?? ($input['id'] ?? null);
+    if ($id) {
+        $_REQUEST['id'] = $id;
+        $action = 'update';
+    } else {
+        $action = 'create';
+    }
+}
+
 try {
     // Authenticate user
     function authenticateUser($pdo) {
