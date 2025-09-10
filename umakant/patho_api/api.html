@@ -652,115 +652,7 @@
                     }
                 ]
             },
-            {
-                name: 'Entry API',
-                file: 'entry.php',
-                description: 'Test entry and result management',
-                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/entry.php',
-                endpoints: [
-                    {
-                        action: 'list',
-                        method: 'GET',
-                        url: '?action=list',
-                        description: 'Get test entries with results',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        queryParams: {
-                            'patient_id': 1,
-                            'test_id': 1,
-                            'date_from': '2025-09-01',
-                            'date_to': '2025-09-08',
-                            'status': 'pending|completed|verified'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'patient_id': 1,
-                                    'patient_name': 'John Patient',
-                                    'test_id': 1,
-                                    'test_name': 'Complete Blood Count',
-                                    'result': '4.8 million cells/mcL',
-                                    'reference_range': '4.5-5.5',
-                                    'unit': 'million cells/mcL',
-                                    'status': 'completed',
-                                    'tested_by': 'Dr. Lab Tech',
-                                    'verified_by': 'Dr. Pathologist',
-                                    'test_date': '2025-09-08',
-                                    'created_at': '2025-09-08T10:30:00Z'
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'GET',
-                        url: '?action=get&id=1',
-                        description: 'Get single entry by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'patient_id': 1,
-                                'test_id': 1,
-                                'status': 'completed',
-                                'entry_date': '2025-09-08 10:30:00'
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save',
-                        description: 'Create or update test entry',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'patient_id': 1,
-                            'test_id': 1,
-                            'result': '5.2 million cells/mcL',
-                            'status': 'completed',
-                            'test_date': '2025-09-08',
-                            'notes': 'Slightly elevated but within normal range'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Entry saved successfully',
-                            'data': {
-                                'id': 2,
-                                'patient_name': 'John Patient',
-                                'test_name': 'Complete Blood Count'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete',
-                        description: 'Delete entry by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Entry deleted successfully'
-                        }
-                    }
-                ]
-            },
+
             {
                 name: 'User API',
                 file: 'user.php',
@@ -1083,13 +975,16 @@
                         body: {
                             'patient_id': 1,
                             'test_id': 2,
-                            'result_value': '95.5',
-                            'result_status': 'normal',
-                            'remarks': 'Fasting blood sugar within normal range',
+                            'doctor_id': 1,
+                            'entry_date': '2025-09-10 15:00:00',
                             'test_date': '2025-09-10',
                             'reported_date': '2025-09-10 15:00:00',
-                            'doctor_id': 1,
-                            'status': 'active'
+                            'result_value': '95.5',
+                            'result_status': 'normal',
+                            'unit': 'mg/dL',
+                            'remarks': 'Fasting blood sugar within normal range',
+                            'status': 'active',
+                            'added_by': 1
                         },
                         response: {
                             'success': true,
