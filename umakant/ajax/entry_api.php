@@ -42,15 +42,17 @@ if ($action === 'stats') {
 }
 
 if ($action === 'list') {
-    $stmt = $pdo->query("SELECT e.id, p.name AS patient_name, d.name AS doctor_name, t.name AS test_name, e.entry_date, e.result_value, e.unit, e.remarks, e.status FROM entries e LEFT JOIN patients p ON e.patient_id = p.id LEFT JOIN doctors d ON e.doctor_id = d.id LEFT JOIN tests t ON e.test_id = t.id ORDER BY e.id DESC");
-    $rows = $stmt->fetchAll();
+    // Use test_date as entry date and take unit from tests table when available
+    $stmt = $pdo->query("SELECT e.id, p.name AS patient_name, d.name AS doctor_name, t.name AS test_name, COALESCE(e.test_date, e.created_at) AS entry_date, e.result_value, COALESCE(t.unit, t.units, '') AS unit, e.remarks, e.status FROM entries e LEFT JOIN patients p ON e.patient_id = p.id LEFT JOIN doctors d ON e.doctor_id = d.id LEFT JOIN tests t ON e.test_id = t.id ORDER BY COALESCE(e.test_date, e.created_at) DESC, e.id DESC");
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     json_response(['success'=>true,'data'=>$rows]);
 }
 
 if ($action === 'get' && isset($_GET['id'])) {
-    $stmt = $pdo->prepare('SELECT * FROM entries WHERE id = ?');
+    // Return entry with related names and unit
+    $stmt = $pdo->prepare('SELECT e.*, p.name AS patient_name, p.uhid, d.name AS doctor_name, t.name AS test_name, COALESCE(t.unit,t.units,"") AS unit FROM entries e LEFT JOIN patients p ON e.patient_id = p.id LEFT JOIN doctors d ON e.doctor_id = d.id LEFT JOIN tests t ON e.test_id = t.id WHERE e.id = ?');
     $stmt->execute([$_GET['id']]);
-    $row = $stmt->fetch();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
     json_response(['success'=>true,'data'=>$row]);
 }
 
@@ -60,22 +62,20 @@ if ($action === 'save') {
     $patient_id = $_POST['patient_id'] ?? null;
     $doctor_id = $_POST['doctor_id'] ?? null;
     $test_id = $_POST['test_id'] ?? null;
-    // referring_doctor removed from schema; ignore if provided
-    $entry_date = $_POST['entry_date'] ?? null;
-    $entry_date = $_POST['entry_date'] ?? null;
-    $result_value = trim($_POST['result_value'] ?? '');
-    $unit = trim($_POST['unit'] ?? '');
-    $remarks = trim($_POST['remarks'] ?? '');
+    // Map form fields to schema: entry_date -> test_date, accept 'result' or 'result_value'
+    $test_date = $_POST['entry_date'] ?? $_POST['test_date'] ?? null;
+    $reported_date = $_POST['reported_date'] ?? date('Y-m-d H:i:s');
+    $result_value = trim($_POST['result'] ?? $_POST['result_value'] ?? '');
+    $remarks = trim($_POST['remarks'] ?? $_POST['notes'] ?? '');
     $status = $_POST['status'] ?? 'pending';
-    $added_by = $_SESSION['user_id'] ?? null;
 
     if ($id) {
-        $stmt = $pdo->prepare('UPDATE entries SET patient_id=?, doctor_id=?, test_id=?, entry_date=?, result_value=?, unit=?, remarks=?, status=?, added_by=?, created_at=created_at WHERE id=?');
-        $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $result_value, $unit, $remarks, $status, $added_by, $id]);
+        $stmt = $pdo->prepare('UPDATE entries SET patient_id=?, doctor_id=?, test_id=?, test_date=?, reported_date=?, result_value=?, remarks=?, status=? WHERE id=?');
+        $stmt->execute([$patient_id, $doctor_id, $test_id, $test_date, $reported_date, $result_value, $remarks, $status, $id]);
         json_response(['success'=>true,'message'=>'Entry updated']);
     } else {
-        $stmt = $pdo->prepare('INSERT INTO entries (patient_id, doctor_id, test_id, entry_date, result_value, unit, remarks, status, added_by, created_at) VALUES (?,?,?,?,?,?,?,?,?,NOW())');
-        $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $result_value, $unit, $remarks, $status, $added_by]);
+        $stmt = $pdo->prepare('INSERT INTO entries (patient_id, doctor_id, test_id, test_date, reported_date, result_value, remarks, status, created_at) VALUES (?,?,?,?,?,?,?,?,NOW())');
+        $stmt->execute([$patient_id, $doctor_id, $test_id, $test_date, $reported_date, $result_value, $remarks, $status]);
         json_response(['success'=>true,'message'=>'Entry created']);
     }
 }
