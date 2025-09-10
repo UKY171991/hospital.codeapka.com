@@ -25,8 +25,8 @@ $entity_config = [
     'id_field' => 'id',
     'required_fields' => ['patient_id', 'test_id'],
     'allowed_fields' => [
-        'patient_id', 'test_id', 'result_value', 'status', 'remarks',
-        'entry_date', 'doctor_id', 'unit', 'added_by'
+        'patient_id', 'test_id', 'result_value', 'result_status', 'remarks',
+        'test_date', 'reported_date', 'doctor_id', 'status'
     ],
     'permission_map' => [
         'list' => 'read',
@@ -104,15 +104,15 @@ try {
 function handleList($pdo, $config) {
     try {
     $sql = "SELECT e.*, 
-               p.name AS patient_name, p.uhid,
-               t.name AS test_name, t.unit AS test_unit,
-               t.min_male, t.max_male, t.min_female, t.max_female, t.min, t.max,
-               d.name AS doctor_name
+               p.patient_name, p.uhid,
+               t.test_name, t.units,
+               t.normal_value_male, t.normal_value_female, t.normal_value_child,
+               d.doctor_name
         FROM {$config['table_name']} e 
         LEFT JOIN patients p ON e.patient_id = p.id 
         LEFT JOIN tests t ON e.test_id = t.id 
         LEFT JOIN doctors d ON e.doctor_id = d.id 
-        ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
+        ORDER BY COALESCE(e.test_date, e.created_at) DESC, e.id DESC";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
@@ -140,10 +140,10 @@ function handleGet($pdo, $config) {
         }
 
     $sql = "SELECT e.*, 
-               p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
-               t.name AS test_name, t.unit AS test_unit,
-               t.min_male, t.max_male, t.min_female, t.max_female, t.min, t.max,
-               d.name AS doctor_name
+               p.patient_name, p.uhid, p.age, p.gender,
+               t.test_name, t.units,
+               t.normal_value_male, t.normal_value_female, t.normal_value_child,
+               d.doctor_name
         FROM {$config['table_name']} e 
         LEFT JOIN patients p ON e.patient_id = p.id 
         LEFT JOIN tests t ON e.test_id = t.id 
@@ -221,14 +221,17 @@ function handleSave($pdo, $config, $user_data) {
         }
 
         // Set default values
-        if (!isset($data['entry_date'])) {
-            $data['entry_date'] = date('Y-m-d H:i:s');
+        if (!isset($data['test_date'])) {
+            $data['test_date'] = date('Y-m-d');
+        }
+        if (!isset($data['reported_date'])) {
+            $data['reported_date'] = date('Y-m-d H:i:s');
+        }
+        if (!isset($data['result_status'])) {
+            $data['result_status'] = 'normal';
         }
         if (!isset($data['status'])) {
-            $data['status'] = 'pending';
-        }
-        if (!isset($data['added_by'])) {
-            $data['added_by'] = $user_data['user_id'] ?? ($user_data['id'] ?? null);
+            $data['status'] = 'active';
         }
 
         $id = $input['id'] ?? null;
@@ -255,9 +258,9 @@ function handleSave($pdo, $config, $user_data) {
             
             // Fetch the saved entry with related data
         $stmt = $pdo->prepare("SELECT e.*, 
-                       p.name AS patient_name, p.uhid,
-                       t.name AS test_name, t.unit AS test_unit,
-                       d.name AS doctor_name
+                       p.patient_name, p.uhid,
+                       t.test_name, t.units,
+                       d.doctor_name
                    FROM {$config['table_name']} e 
                    LEFT JOIN patients p ON e.patient_id = p.id 
                    LEFT JOIN tests t ON e.test_id = t.id 

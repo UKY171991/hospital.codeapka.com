@@ -985,6 +985,145 @@
                         }
                     }
                 ]
+            },
+            {
+                name: 'Entry API',
+                file: 'entry.php',
+                description: 'Manage test entries with patient results, reference ranges, and reporting',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/entry.php',
+                endpoints: [
+                    {
+                        action: 'list',
+                        method: 'GET',
+                        url: '?action=list',
+                        description: 'Get all test entries with patient and test details',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        queryParams: {
+                            'patient_id': 1,
+                            'test_id': 2,
+                            'doctor_id': 3,
+                            'status': 'active',
+                            'test_date_from': '2025-09-01',
+                            'test_date_to': '2025-09-30'
+                        },
+                        response: {
+                            'success': true,
+                            'data': [
+                                {
+                                    'id': 1,
+                                    'patient_id': 1,
+                                    'test_id': 2,
+                                    'result_value': '5.6',
+                                    'result_status': 'normal',
+                                    'remarks': 'No issues detected',
+                                    'test_date': '2025-09-10',
+                                    'reported_date': '2025-09-10 14:30:00',
+                                    'doctor_id': 1,
+                                    'status': 'active',
+                                    'patient_name': 'John Doe',
+                                    'uhid': 'P001',
+                                    'test_name': 'Blood Sugar',
+                                    'units': 'mg/dL',
+                                    'normal_value_male': '70-100 mg/dL',
+                                    'normal_value_female': '70-100 mg/dL',
+                                    'normal_value_child': '60-100 mg/dL',
+                                    'doctor_name': 'Dr. Smith'
+                                }
+                            ],
+                            'total': 1
+                        }
+                    },
+                    {
+                        action: 'get',
+                        method: 'GET',
+                        url: '?action=get&id=1',
+                        description: 'Get single entry by ID with complete details',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'id': 1,
+                                'patient_id': 1,
+                                'test_id': 2,
+                                'result_value': '5.6',
+                                'result_status': 'normal',
+                                'remarks': 'No issues detected',
+                                'test_date': '2025-09-10',
+                                'reported_date': '2025-09-10 14:30:00',
+                                'doctor_id': 1,
+                                'status': 'active',
+                                'patient_name': 'John Doe',
+                                'uhid': 'P001',
+                                'age': 35,
+                                'gender': 'Male',
+                                'test_name': 'Blood Sugar',
+                                'units': 'mg/dL',
+                                'normal_value_male': '70-100 mg/dL',
+                                'normal_value_female': '70-100 mg/dL',
+                                'normal_value_child': '60-100 mg/dL',
+                                'doctor_name': 'Dr. Smith'
+                            }
+                        }
+                    },
+                    {
+                        action: 'save',
+                        method: 'POST',
+                        url: '?action=save',
+                        description: 'Create or update test entry',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'patient_id': 1,
+                            'test_id': 2,
+                            'result_value': '95.5',
+                            'result_status': 'normal',
+                            'remarks': 'Fasting blood sugar within normal range',
+                            'test_date': '2025-09-10',
+                            'reported_date': '2025-09-10 15:00:00',
+                            'doctor_id': 1,
+                            'status': 'active'
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Entry created successfully',
+                            'data': {
+                                'id': 2,
+                                'patient_id': 1,
+                                'test_id': 2,
+                                'result_value': '95.5',
+                                'result_status': 'normal',
+                                'patient_name': 'John Doe',
+                                'test_name': 'Blood Sugar',
+                                'doctor_name': 'Dr. Smith'
+                            }
+                        }
+                    },
+                    {
+                        action: 'delete',
+                        method: 'POST',
+                        url: '?action=delete',
+                        description: 'Delete entry by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'id': 2
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Entry deleted successfully'
+                        }
+                    }
+                ]
             }
         ];
 

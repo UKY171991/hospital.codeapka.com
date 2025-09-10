@@ -1,0 +1,113 @@
+Entry Table SQL - Complete Database Schema and Queries
+
+=== TABLE STRUCTURE ===
+
+CREATE TABLE `entries` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `patient_id` INT UNSIGNED NOT NULL,
+  `test_id` INT UNSIGNED NOT NULL,
+  `result_value` TEXT,
+  `result_status` VARCHAR(50) DEFAULT 'normal',
+  `remarks` TEXT DEFAULT NULL,
+  `test_date` DATE DEFAULT NULL,
+  `reported_date` DATETIME DEFAULT NULL,
+  `doctor_id` INT UNSIGNED DEFAULT NULL,
+  `status` VARCHAR(20) DEFAULT 'active',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX (`patient_id`),
+  INDEX (`test_id`),
+  INDEX (`doctor_id`),
+  CONSTRAINT `fk_entries_patient` FOREIGN KEY (`patient_id`) REFERENCES `patients`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_entries_test` FOREIGN KEY (`test_id`) REFERENCES `tests`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_entries_doctor` FOREIGN KEY (`doctor_id`) REFERENCES `doctors`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+=== COLUMN DESCRIPTIONS ===
+
+- id: Primary key, auto-increment
+- patient_id: Foreign key to patients table (required)
+- test_id: Foreign key to tests table (required)
+- result_value: The actual test result (TEXT to accommodate various formats)
+- result_status: Status of result (normal, high, low, critical, etc.)
+- remarks: Additional notes or observations
+- test_date: Date when test was conducted
+- reported_date: Date and time when result was reported
+- doctor_id: Foreign key to doctors table (optional)
+- status: Entry status (active, inactive, deleted, etc.)
+- created_at: Timestamp when record was created
+- updated_at: Timestamp when record was last modified
+
+=== SAMPLE QUERIES ===
+
+-- List all entries with patient and test details
+SELECT e.*, 
+       p.patient_name, p.uhid,
+       t.test_name, t.units,
+       t.normal_value_male, t.normal_value_female, t.normal_value_child,
+       d.doctor_name
+FROM entries e 
+LEFT JOIN patients p ON e.patient_id = p.id 
+LEFT JOIN tests t ON e.test_id = t.id 
+LEFT JOIN doctors d ON e.doctor_id = d.id 
+ORDER BY e.test_date DESC, e.id DESC;
+
+-- Get single entry by ID with complete details
+SELECT e.*, 
+       p.patient_name, p.uhid, p.age, p.gender,
+       t.test_name, t.units,
+       t.normal_value_male, t.normal_value_female, t.normal_value_child,
+       d.doctor_name
+FROM entries e 
+LEFT JOIN patients p ON e.patient_id = p.id 
+LEFT JOIN tests t ON e.test_id = t.id 
+LEFT JOIN doctors d ON e.doctor_id = d.id 
+WHERE e.id = ?;
+
+-- Filter entries by patient
+SELECT * FROM entries WHERE patient_id = ?;
+
+-- Filter entries by test type
+SELECT * FROM entries WHERE test_id = ?;
+
+-- Filter entries by date range
+SELECT * FROM entries WHERE test_date BETWEEN ? AND ?;
+
+-- Filter entries by result status
+SELECT * FROM entries WHERE result_status = ?;
+
+-- Insert new entry
+INSERT INTO entries (patient_id, test_id, result_value, result_status, remarks, test_date, reported_date, doctor_id, status)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+-- Update existing entry
+UPDATE entries SET 
+    result_value = ?, 
+    result_status = ?, 
+    remarks = ?, 
+    reported_date = ?, 
+    doctor_id = ? 
+WHERE id = ?;
+
+-- Delete entry
+DELETE FROM entries WHERE id = ?;
+
+=== SAMPLE DATA ===
+
+INSERT INTO entries (patient_id, test_id, result_value, result_status, remarks, test_date, reported_date, doctor_id, status) VALUES
+(1, 1, '5.6', 'normal', 'No issues detected', '2025-09-10', '2025-09-10 14:30:00', 1, 'active'),
+(1, 2, '120/80', 'normal', 'Blood pressure within normal range', '2025-09-10', '2025-09-10 14:35:00', 1, 'active'),
+(2, 1, '7.2', 'high', 'Slightly elevated, recommend follow-up', '2025-09-09', '2025-09-09 16:20:00', 2, 'active'),
+(3, 3, '45', 'low', 'Below normal range, requires attention', '2025-09-08', '2025-09-08 11:15:00', 1, 'active');
+
+=== API ENDPOINTS ===
+
+Base URL: /umakant/patho_api/entry.php
+
+1. GET ?action=list - List all entries
+2. GET ?action=get&id={id} - Get single entry
+3. POST ?action=save - Create/update entry
+4. POST ?action=delete - Delete entry
+
+Authentication: X-Api-Key header required for all endpoints
