@@ -45,45 +45,44 @@ try {
     }
 
     if ($action === 'list') {
-    // Use test_date as entry date and take unit from tests table when available
-    $stmt = $pdo->query("SELECT e.id, p.name AS patient_name, d.name AS doctor_name, t.name AS test_name, COALESCE(e.test_date, e.created_at) AS entry_date, e.result_value, COALESCE(t.unit, t.units, '') AS unit, e.remarks, e.status FROM entries e LEFT JOIN patients p ON e.patient_id = p.id LEFT JOIN doctors d ON e.doctor_id = d.id LEFT JOIN tests t ON e.test_id = t.id ORDER BY COALESCE(e.test_date, e.created_at) DESC, e.id DESC");
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Use existing schema: entry_date, unit from entries table, fallback to tests.unit
+        $stmt = $pdo->query("SELECT e.id, p.name AS patient_name, d.name AS doctor_name, t.name AS test_name, e.entry_date, e.result_value, COALESCE(e.unit, t.unit, '') AS unit, e.remarks, e.status FROM entries e LEFT JOIN patients p ON e.patient_id = p.id LEFT JOIN doctors d ON e.doctor_id = d.id LEFT JOIN tests t ON e.test_id = t.id ORDER BY e.entry_date DESC, e.id DESC");
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         json_response(['success'=>true,'data'=>$rows]);
     }
 
     if ($action === 'get' && isset($_GET['id'])) {
-    // Return entry with related names and unit
-    $stmt = $pdo->prepare('SELECT e.*, p.name AS patient_name, p.uhid, d.name AS doctor_name, t.name AS test_name, COALESCE(t.unit,t.units,"") AS unit FROM entries e LEFT JOIN patients p ON e.patient_id = p.id LEFT JOIN doctors d ON e.doctor_id = d.id LEFT JOIN tests t ON e.test_id = t.id WHERE e.id = ?');
-    $stmt->execute([$_GET['id']]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Return entry with related names using existing schema
+        $stmt = $pdo->prepare('SELECT e.*, p.name AS patient_name, p.uhid, d.name AS doctor_name, t.name AS test_name FROM entries e LEFT JOIN patients p ON e.patient_id = p.id LEFT JOIN doctors d ON e.doctor_id = d.id LEFT JOIN tests t ON e.test_id = t.id WHERE e.id = ?');
+        $stmt->execute([$_GET['id']]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         json_response(['success'=>true,'data'=>$row]);
     }
 
     if ($action === 'save') {
-    if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) json_response(['success'=>false,'message'=>'Unauthorized'],401);
-    $id = $_POST['id'] ?? '';
-    $patient_id = $_POST['patient_id'] ?? null;
-    $doctor_id = $_POST['doctor_id'] ?? null;
-    $test_id = $_POST['test_id'] ?? null;
-    // Map form fields to schema: entry_date -> test_date, accept 'result' or 'result_value'
-    $test_date = $_POST['entry_date'] ?? $_POST['test_date'] ?? null;
-    $reported_date = $_POST['reported_date'] ?? date('Y-m-d H:i:s');
-    $result_value = trim($_POST['result'] ?? $_POST['result_value'] ?? '');
-    $remarks = trim($_POST['remarks'] ?? $_POST['notes'] ?? '');
-    $status = $_POST['status'] ?? 'pending';
+        if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) json_response(['success'=>false,'message'=>'Unauthorized'],401);
+        $id = $_POST['id'] ?? '';
+        $patient_id = $_POST['patient_id'] ?? null;
+        $doctor_id = $_POST['doctor_id'] ?? null;
+        $test_id = $_POST['test_id'] ?? null;
+        // Use existing schema: entry_date, unit, result_value
+        $entry_date = $_POST['entry_date'] ?? null;
+        $result_value = trim($_POST['result'] ?? $_POST['result_value'] ?? '');
+        $unit = trim($_POST['unit'] ?? '');
+        $remarks = trim($_POST['remarks'] ?? $_POST['notes'] ?? '');
+        $status = $_POST['status'] ?? 'pending';
+        $added_by = $_SESSION['user_id'] ?? null;
 
-    if ($id) {
-        $stmt = $pdo->prepare('UPDATE entries SET patient_id=?, doctor_id=?, test_id=?, test_date=?, reported_date=?, result_value=?, remarks=?, status=? WHERE id=?');
-        $stmt->execute([$patient_id, $doctor_id, $test_id, $test_date, $reported_date, $result_value, $remarks, $status, $id]);
-        json_response(['success'=>true,'message'=>'Entry updated']);
-    } else {
-        $stmt = $pdo->prepare('INSERT INTO entries (patient_id, doctor_id, test_id, test_date, reported_date, result_value, remarks, status, created_at) VALUES (?,?,?,?,?,?,?,?,NOW())');
-        $stmt->execute([$patient_id, $doctor_id, $test_id, $test_date, $reported_date, $result_value, $remarks, $status]);
-        json_response(['success'=>true,'message'=>'Entry created']);
-    }
-    }
-
-    if ($action === 'delete' && isset($_POST['id'])) {
+        if ($id) {
+            $stmt = $pdo->prepare('UPDATE entries SET patient_id=?, doctor_id=?, test_id=?, entry_date=?, result_value=?, unit=?, remarks=?, status=?, added_by=? WHERE id=?');
+            $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $result_value, $unit, $remarks, $status, $added_by, $id]);
+            json_response(['success'=>true,'message'=>'Entry updated']);
+        } else {
+            $stmt = $pdo->prepare('INSERT INTO entries (patient_id, doctor_id, test_id, entry_date, result_value, unit, remarks, status, added_by, created_at) VALUES (?,?,?,?,?,?,?,?,?,NOW())');
+            $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $result_value, $unit, $remarks, $status, $added_by]);
+            json_response(['success'=>true,'message'=>'Entry created']);
+        }
+    }    if ($action === 'delete' && isset($_POST['id'])) {
     if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) json_response(['success'=>false,'message'=>'Unauthorized'],401);
     $stmt = $pdo->prepare('DELETE FROM entries WHERE id = ?');
     $stmt->execute([$_POST['id']]);
