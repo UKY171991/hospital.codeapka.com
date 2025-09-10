@@ -104,10 +104,10 @@ try {
 function handleList($pdo, $config) {
     try {
     $sql = "SELECT e.*, 
-               p.patient_name, p.uhid,
-               t.test_name, t.units,
-               t.normal_value_male, t.normal_value_female, t.normal_value_child,
-               d.doctor_name
+               p.name as patient_name, p.uhid,
+               t.name as test_name, t.unit,
+               t.min_male, t.max_male, t.min_female, t.max_female,
+               d.name as doctor_name
         FROM {$config['table_name']} e 
         LEFT JOIN patients p ON e.patient_id = p.id 
         LEFT JOIN tests t ON e.test_id = t.id 
@@ -140,10 +140,10 @@ function handleGet($pdo, $config) {
         }
 
     $sql = "SELECT e.*, 
-               p.patient_name, p.uhid, p.age, p.gender,
-               t.test_name, t.units,
-               t.normal_value_male, t.normal_value_female, t.normal_value_child,
-               d.doctor_name
+               p.name as patient_name, p.uhid, p.age, p.sex as gender,
+               t.name as test_name, t.unit,
+               t.min_male, t.max_male, t.min_female, t.max_female,
+               d.name as doctor_name
         FROM {$config['table_name']} e 
         LEFT JOIN patients p ON e.patient_id = p.id 
         LEFT JOIN tests t ON e.test_id = t.id 
@@ -255,9 +255,9 @@ function handleSave($pdo, $config, $user_data) {
             
             // Fetch the saved entry with related data
         $stmt = $pdo->prepare("SELECT e.*, 
-                       p.patient_name, p.uhid,
-                       t.test_name, t.units,
-                       d.doctor_name
+                       p.name as patient_name, p.uhid,
+                       t.name as test_name, t.unit,
+                       d.name as doctor_name
                    FROM {$config['table_name']} e 
                    LEFT JOIN patients p ON e.patient_id = p.id 
                    LEFT JOIN tests t ON e.test_id = t.id 
