@@ -25,8 +25,8 @@ $entity_config = [
     'id_field' => 'id',
     'required_fields' => ['patient_id', 'test_id'],
     'allowed_fields' => [
-        'patient_id', 'test_id', 'result_value', 'result_status', 'remarks',
-        'test_date', 'reported_date', 'doctor_id', 'status'
+        'patient_id', 'test_id', 'doctor_id', 'entry_date', 'result_value', 
+        'unit', 'remarks', 'status', 'added_by'
     ],
     'permission_map' => [
         'list' => 'read',
@@ -112,7 +112,7 @@ function handleList($pdo, $config) {
         LEFT JOIN patients p ON e.patient_id = p.id 
         LEFT JOIN tests t ON e.test_id = t.id 
         LEFT JOIN doctors d ON e.doctor_id = d.id 
-        ORDER BY COALESCE(e.test_date, e.created_at) DESC, e.id DESC";
+        ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
@@ -220,18 +220,15 @@ function handleSave($pdo, $config, $user_data) {
             }
         }
 
-        // Set default values
-        if (!isset($data['test_date'])) {
-            $data['test_date'] = date('Y-m-d');
-        }
-        if (!isset($data['reported_date'])) {
-            $data['reported_date'] = date('Y-m-d H:i:s');
-        }
-        if (!isset($data['result_status'])) {
-            $data['result_status'] = 'normal';
+        // Set default values for current schema
+        if (!isset($data['entry_date'])) {
+            $data['entry_date'] = date('Y-m-d H:i:s');
         }
         if (!isset($data['status'])) {
-            $data['status'] = 'active';
+            $data['status'] = 'pending';
+        }
+        if (!isset($data['added_by'])) {
+            $data['added_by'] = $user_data['user_id'] ?? 1;
         }
 
         $id = $input['id'] ?? null;
