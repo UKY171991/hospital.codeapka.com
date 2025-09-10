@@ -185,29 +185,3 @@ $(function(){
   });
 });
 </script>
-        toastr.success('File deleted');
-        // remove row from table gracefully
-        if($row && $row.length){
-          $row.fadeOut(250, function(){
-            var table = $('#uploadsTable').DataTable();
-            // if DataTable exists remove row via API
-            if($.fn.dataTable.isDataTable('#uploadsTable')){
-              table.row($(this)).remove().draw(false);
-            } else { $(this).remove(); }
-          });
-        } else {
-          setTimeout(function(){ location.reload(); }, 500);
-        }
-      } else {
-        toastr.error('Delete failed: ' + (resp && resp.message ? resp.message : 'Unknown'));
-        console.error('Delete error:', resp);
-      }
-    }).fail(function(xhr, status, err){
-      toastr.error('Server error while deleting');
-      console.error('AJAX fail:', xhr.status, xhr.responseText, status, err);
-    }).always(function(){
-      $confirm.prop('disabled', false).text('Delete');
-    });
-  });
-});
-</script>
