@@ -44,7 +44,18 @@ function authenticateApiUser($pdo) {
     }
     
     // Method 2: Check Authorization header for Bearer token
-    $headers = getallheaders();
+    $headers = function_exists('getallheaders') ? getallheaders() : [];
+    
+    // Fallback for headers if getallheaders() doesn't work
+    if (empty($headers)) {
+        foreach ($_SERVER as $name => $value) {
+            if (substr($name, 0, 5) == 'HTTP_') {
+                $name = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))));
+                $headers[$name] = $value;
+            }
+        }
+    }
+    
     if (isset($headers['Authorization'])) {
         $authHeader = $headers['Authorization'];
         if (strpos($authHeader, 'Bearer ') === 0) {
