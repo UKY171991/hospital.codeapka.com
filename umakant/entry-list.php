@@ -166,6 +166,7 @@ require_once 'inc/sidebar.php';
                                             <th>Result</th>
                                             <th>Unit</th>
                                             <th>Status</th>
+                                            <th>Added By</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -421,7 +422,7 @@ function loadDropdownsForEntry() {
 }
 
 function loadEntries() {
-    $('#entriesTable tbody').html('<tr><td colspan="9" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
+    $('#entriesTable tbody').html('<tr><td colspan="10" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
     
     $.get('ajax/entry_api.php', { action: 'list', ajax: 1 })
         .done(function(response) {
@@ -429,13 +430,13 @@ function loadEntries() {
                 populateEntriesTable(response.data);
             } else {
                 showAlert('Failed to load entries: ' + (response.message || 'Unknown error'), 'error');
-                $('#entriesTable tbody').html('<tr><td colspan="9" class="text-center text-danger">Failed to load data</td></tr>');
+                $('#entriesTable tbody').html('<tr><td colspan="10" class="text-center text-danger">Failed to load data</td></tr>');
             }
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
             showAlert('Failed to load entries: ' + errorMsg, 'error');
-            $('#entriesTable tbody').html('<tr><td colspan="9" class="text-center text-danger">Failed to load data</td></tr>');
+            $('#entriesTable tbody').html('<tr><td colspan="10" class="text-center text-danger">Failed to load data</td></tr>');
         });
 }
 
@@ -443,7 +444,7 @@ function populateEntriesTable(entries) {
     let html = '';
     
     if (entries.length === 0) {
-        html = '<tr><td colspan="9" class="text-center text-muted">No entries found</td></tr>';
+        html = '<tr><td colspan="10" class="text-center text-muted">No entries found</td></tr>';
     } else {
         entries.forEach(entry => {
             const statusClass = {
@@ -463,6 +464,9 @@ function populateEntriesTable(entries) {
                     <td>${entry.unit || '-'}</td>
                     <td>
                         <span class="badge badge-${statusClass[entry.status] || 'secondary'}">${entry.status || 'Unknown'}</span>
+                    </td>
+                    <td>
+                        <span class="text-muted small">${entry.added_by_username || '-'}</span>
                     </td>
                     <td>
                         <div class="btn-group" role="group">

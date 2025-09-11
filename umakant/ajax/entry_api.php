@@ -54,11 +54,13 @@ try {
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
                    t.name AS test_name, COALESCE(t.unit, '') AS units,
                    t.reference_range, t.min_male, t.max_male, t.min_female, t.max_female,
-                   d.name AS doctor_name
+                   d.name AS doctor_name,
+                   u.username AS added_by_username
             FROM entries e 
             LEFT JOIN patients p ON e.patient_id = p.id 
             LEFT JOIN tests t ON e.test_id = t.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
+            LEFT JOIN users u ON e.added_by = u.id
             ORDER BY COALESCE(e.test_date, e.entry_date, e.created_at) DESC, e.id DESC";
         
         $stmt = $pdo->query($sql);
@@ -85,11 +87,13 @@ try {
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
                    t.name AS test_name, COALESCE(t.unit, '') AS units,
                    t.reference_range, t.min_male, t.max_male, t.min_female, t.max_female,
-                   d.name AS doctor_name
+                   d.name AS doctor_name,
+                   u.username AS added_by_username
             FROM entries e 
             LEFT JOIN patients p ON e.patient_id = p.id 
             LEFT JOIN tests t ON e.test_id = t.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
+            LEFT JOIN users u ON e.added_by = u.id
             WHERE e.id = ?";
         
         $stmt = $pdo->prepare($sql);
