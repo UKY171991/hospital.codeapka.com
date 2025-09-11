@@ -170,24 +170,6 @@ function handleSave($pdo, $config, $user_data) {
             }
         }
 
-    // Check for duplicate category name
-    $id = $input['id'] ?? null;
-    $check_sql = "SELECT id FROM {$config['table_name']} WHERE name = ?";
-        if ($id) {
-            $check_sql .= " AND id != ?";
-            $stmt = $pdo->prepare($check_sql);
-            $stmt->execute([$input['category_name'], $id]);
-        } else {
-            $stmt = $pdo->prepare($check_sql);
-            $stmt->execute([$input['category_name']]);
-        }
-        
-        if ($stmt->fetch()) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Category name already exists']);
-            return;
-        }
-
         // Prepare data for saving
         $data = [];
         foreach ($config['allowed_fields'] as $field) {
@@ -196,46 +178,91 @@ function handleSave($pdo, $config, $user_data) {
             }
         }
 
-        // Assign added_by on create
-        if (!$id) {
+        $id = $input['id'] ?? null;
+        $is_update = !empty($id);
+        
+        // Set added_by for new records
+        if (!$is_update && !isset($data['added_by'])) {
             $data['added_by'] = $user_data['user_id'] ?? ($user_data['id'] ?? null);
         }
 
-        $is_update = !empty($id);
-
         if ($is_update) {
-            // Update existing category
+            // Update existing category - only update provided fields
+            if (empty($data)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'No valid fields to update']);
+                return;
+            }
+            
+            // Check if category exists
+            $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+            $stmt->execute([$id]);
+            $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$existing) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Category not found']);
+                return;
+            }
+            
+            // Check for duplicate name if name is being updated
+            if (isset($data['name']) && $data['name'] !== $existing['name']) {
+                $stmt = $pdo->prepare("SELECT id FROM {$config['table_name']} WHERE name = ? AND id != ?");
+                $stmt->execute([$data['name'], $id]);
+                if ($stmt->fetch()) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'Category name already exists']);
+                    return;
+                }
+            }
+            
             $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
-            $sql = "UPDATE {$config['table_name']} SET $set_clause WHERE {$config['id_field']} = ?";
+            $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
             $values = array_merge(array_values($data), [$id]);
+            
+            $stmt = $pdo->prepare($sql);
+            $result = $stmt->execute($values);
+            $category_id = $id;
+            $action = 'updated';
         } else {
-            // Create new category
-            $fields = implode(', ', array_keys($data));
-            $placeholders = implode(', ', array_fill(0, count($data), '?'));
-            $sql = "INSERT INTO {$config['table_name']} ($fields) VALUES ($placeholders)";
-            $values = array_values($data);
+            // Create new category using upsert logic to prevent duplicates
+            
+            // Define unique criteria for duplicate detection
+            $uniqueWhere = [
+                'name' => $data['name']
+            ];
+            
+            // Use upsert function to handle duplicates properly
+            $result_info = upsert_or_skip($pdo, $config['table_name'], $uniqueWhere, $data);
+            $category_id = $result_info['id'];
+            $action = $result_info['action'];
+            $result = true;
         }
 
-        $stmt = $pdo->prepare($sql);
-        $result = $stmt->execute($values);
-
-        if ($result) {
-            $category_id = $is_update ? $id : $pdo->lastInsertId();
-            
+        if ($result) {            
             // Fetch the saved category
-        $stmt = $pdo->prepare("SELECT c.*, 
-                       COUNT(t.id) as test_count 
-                   FROM {$config['table_name']} c 
-                   LEFT JOIN tests t ON c.id = t.category_id 
-                   WHERE c.{$config['id_field']} = ?
-                   GROUP BY c.id");
+            $stmt = $pdo->prepare("SELECT c.*, 
+                           COUNT(t.id) as test_count 
+                       FROM {$config['table_name']} c 
+                       LEFT JOIN tests t ON c.id = t.category_id 
+                       WHERE c.{$config['id_field']} = ?
+                       GROUP BY c.id");
             $stmt->execute([$category_id]);
             $saved_category = $stmt->fetch(PDO::FETCH_ASSOC);
 
+            $message = match($action) {
+                'inserted' => 'Test category created successfully',
+                'updated' => 'Test category updated successfully', 
+                'skipped' => 'Test category already exists (no changes needed)',
+                default => 'Test category saved successfully'
+            };
+
             echo json_encode([
                 'success' => true,
-                'message' => $is_update ? 'Test category updated successfully' : 'Test category created successfully',
-                'data' => $saved_category
+                'message' => $message,
+                'data' => $saved_category,
+                'action' => $action,
+                'id' => $category_id
             ]);
         } else {
             throw new Exception('Failed to save test category');

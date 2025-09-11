@@ -195,30 +195,58 @@ function handleSave($pdo, $config, $user_data) {
             }
         }
 
-    // Set added_by if creating
-
+        // Set added_by for new records
         $id = $input['id'] ?? null;
         $is_update = !empty($id);
-
-        if ($is_update) {
-            // Update existing test
-            $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
-            $sql = "UPDATE {$config['table_name']} SET $set_clause WHERE {$config['id_field']} = ?";
-            $values = array_merge(array_values($data), [$id]);
-        } else {
-            // Create new test
-            $fields = implode(', ', array_keys($data));
-            $placeholders = implode(', ', array_fill(0, count($data), '?'));
-            $sql = "INSERT INTO {$config['table_name']} ($fields) VALUES ($placeholders)";
-            $values = array_values($data);
+        
+        if (!$is_update && !isset($data['added_by'])) {
+            $data['added_by'] = $user_data['user_id'] ?? ($user_data['id'] ?? null);
         }
 
-        $stmt = $pdo->prepare($sql);
-        $result = $stmt->execute($values);
-
-        if ($result) {
-            $test_id = $is_update ? $id : $pdo->lastInsertId();
+        if ($is_update) {
+            // Update existing test - only update provided fields
+            if (empty($data)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'No valid fields to update']);
+                return;
+            }
             
+            // Check if test exists
+            $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+            $stmt->execute([$id]);
+            $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$existing) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Test not found']);
+                return;
+            }
+            
+            $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
+            $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
+            $values = array_merge(array_values($data), [$id]);
+            
+            $stmt = $pdo->prepare($sql);
+            $result = $stmt->execute($values);
+            $test_id = $id;
+            $action = 'updated';
+        } else {
+            // Create new test using upsert logic to prevent duplicates
+            
+            // Define unique criteria for duplicate detection
+            $uniqueWhere = [
+                'name' => $data['name'],
+                'category_id' => $data['category_id']
+            ];
+            
+            // Use upsert function to handle duplicates properly
+            $result_info = upsert_or_skip($pdo, $config['table_name'], $uniqueWhere, $data);
+            $test_id = $result_info['id'];
+            $action = $result_info['action'];
+            $result = true;
+        }
+
+        if ($result) {            
             // Fetch the saved test
             $stmt = $pdo->prepare("SELECT t.*, c.name as category_name 
                                    FROM {$config['table_name']} t 
@@ -227,10 +255,19 @@ function handleSave($pdo, $config, $user_data) {
             $stmt->execute([$test_id]);
             $saved_test = $stmt->fetch(PDO::FETCH_ASSOC);
 
+            $message = match($action) {
+                'inserted' => 'Test created successfully',
+                'updated' => 'Test updated successfully', 
+                'skipped' => 'Test already exists (no changes needed)',
+                default => 'Test saved successfully'
+            };
+
             echo json_encode([
                 'success' => true,
-                'message' => $is_update ? 'Test updated successfully' : 'Test created successfully',
-                'data' => $saved_test
+                'message' => $message,
+                'data' => $saved_test,
+                'action' => $action,
+                'id' => $test_id
             ]);
         } else {
             throw new Exception('Failed to save test');

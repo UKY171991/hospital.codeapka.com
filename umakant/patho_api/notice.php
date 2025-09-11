@@ -193,24 +193,53 @@ function handleSave($pdo, $config, $user_data) {
         }
 
         if ($is_update) {
-            // Update existing notice
+            // Update existing notice - only update provided fields
+            if (empty($data)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'No valid fields to update']);
+                return;
+            }
+            
+            // Check if notice exists
+            $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+            $stmt->execute([$id]);
+            $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$existing) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Notice not found']);
+                return;
+            }
+            
             $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
-            $sql = "UPDATE {$config['table_name']} SET $set_clause WHERE {$config['id_field']} = ?";
+            $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
             $values = array_merge(array_values($data), [$id]);
+            
+            $stmt = $pdo->prepare($sql);
+            $result = $stmt->execute($values);
+            $notice_id = $id;
+            $action = 'updated';
         } else {
-            // Create new notice
-            $fields = implode(', ', array_keys($data));
-            $placeholders = implode(', ', array_fill(0, count($data), '?'));
-            $sql = "INSERT INTO {$config['table_name']} ($fields) VALUES ($placeholders)";
-            $values = array_values($data);
+            // Create new notice using upsert logic to prevent duplicates
+            
+            // Define unique criteria for duplicate detection
+            $uniqueWhere = [
+                'title' => $data['title']
+            ];
+            
+            // Add date range to uniqueness if available to prevent same-day duplicates
+            if (isset($data['start_date'])) {
+                $uniqueWhere['start_date'] = $data['start_date'];
+            }
+            
+            // Use upsert function to handle duplicates properly
+            $result_info = upsert_or_skip($pdo, $config['table_name'], $uniqueWhere, $data);
+            $notice_id = $result_info['id'];
+            $action = $result_info['action'];
+            $result = true;
         }
 
-        $stmt = $pdo->prepare($sql);
-        $result = $stmt->execute($values);
-
-        if ($result) {
-            $notice_id = $is_update ? $id : $pdo->lastInsertId();
-            
+        if ($result) {            
             // Fetch the saved notice with creator info
             $stmt = $pdo->prepare("SELECT n.*, u.username as added_by_username 
                                    FROM {$config['table_name']} n 
@@ -219,10 +248,19 @@ function handleSave($pdo, $config, $user_data) {
             $stmt->execute([$notice_id]);
             $saved_notice = $stmt->fetch(PDO::FETCH_ASSOC);
 
+            $message = match($action) {
+                'inserted' => 'Notice created successfully',
+                'updated' => 'Notice updated successfully', 
+                'skipped' => 'Notice already exists (no changes needed)',
+                default => 'Notice saved successfully'
+            };
+
             echo json_encode([
                 'success' => true,
-                'message' => $is_update ? 'Notice updated successfully' : 'Notice created successfully',
-                'data' => $saved_notice
+                'message' => $message,
+                'data' => $saved_notice,
+                'action' => $action,
+                'id' => $notice_id
             ]);
         } else {
             throw new Exception('Failed to save notice');

@@ -181,42 +181,6 @@ function handleSave($pdo, $config, $user_data) {
         $id = $input['id'] ?? null;
         $is_update = !empty($id);
 
-        // Check for duplicate phone
-        $check_sql = "SELECT id FROM {$config['table_name']} WHERE phone = ?";
-        if ($is_update) {
-            $check_sql .= " AND id != ?";
-            $stmt = $pdo->prepare($check_sql);
-            $stmt->execute([$input['phone'], $id]);
-        } else {
-            $stmt = $pdo->prepare($check_sql);
-            $stmt->execute([$input['phone']]);
-        }
-
-        if ($stmt->fetch()) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Phone already exists']);
-            return;
-        }
-
-        // Check for duplicate email if provided
-        if (!empty($input['email'])) {
-            $check_sql = "SELECT id FROM {$config['table_name']} WHERE email = ?";
-            if ($is_update) {
-                $check_sql .= " AND id != ?";
-                $stmt = $pdo->prepare($check_sql);
-                $stmt->execute([$input['email'], $id]);
-            } else {
-                $stmt = $pdo->prepare($check_sql);
-                $stmt->execute([$input['email']]);
-            }
-
-            if ($stmt->fetch()) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'Email already exists']);
-                return;
-            }
-        }
-
         // Prepare data for saving
         $data = [];
         foreach ($config['allowed_fields'] as $field) {
@@ -226,29 +190,80 @@ function handleSave($pdo, $config, $user_data) {
         }
 
         // Ensure added_by is set for new records
-        if (!$is_update) {
-            $data['added_by'] = $data['added_by'] ?? ($user_data['user_id'] ?? ($user_data['id'] ?? null));
+        if (!$is_update && !isset($data['added_by'])) {
+            $data['added_by'] = $user_data['user_id'] ?? ($user_data['id'] ?? null);
         }
 
         if ($is_update) {
-            // Update existing owner
+            // Update existing owner - only update provided fields
+            if (empty($data)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'No valid fields to update']);
+                return;
+            }
+            
+            // Check if owner exists
+            $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+            $stmt->execute([$id]);
+            $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$existing) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Owner not found']);
+                return;
+            }
+            
+            // Check for duplicate phone if being updated
+            if (isset($data['phone']) && $data['phone'] !== $existing['phone']) {
+                $stmt = $pdo->prepare("SELECT id FROM {$config['table_name']} WHERE phone = ? AND id != ?");
+                $stmt->execute([$data['phone'], $id]);
+                if ($stmt->fetch()) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'Phone already exists']);
+                    return;
+                }
+            }
+            
+            // Check for duplicate email if being updated
+            if (isset($data['email']) && !empty($data['email']) && $data['email'] !== $existing['email']) {
+                $stmt = $pdo->prepare("SELECT id FROM {$config['table_name']} WHERE email = ? AND id != ?");
+                $stmt->execute([$data['email'], $id]);
+                if ($stmt->fetch()) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'Email already exists']);
+                    return;
+                }
+            }
+            
             $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
             $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
             $values = array_merge(array_values($data), [$id]);
+            
+            $stmt = $pdo->prepare($sql);
+            $result = $stmt->execute($values);
+            $owner_id = $id;
+            $action = 'updated';
         } else {
-            // Create new owner
-            $fields = implode(', ', array_keys($data));
-            $placeholders = implode(', ', array_fill(0, count($data), '?'));
-            $sql = "INSERT INTO {$config['table_name']} ($fields) VALUES ($placeholders)";
-            $values = array_values($data);
+            // Create new owner using upsert logic to prevent duplicates
+            
+            // Define unique criteria for duplicate detection  
+            $uniqueWhere = [
+                'phone' => $data['phone']
+            ];
+            
+            // Add email to uniqueness if provided
+            if (!empty($data['email'])) {
+                $uniqueWhere['email'] = $data['email'];
+            }
+            
+            // Use upsert function to handle duplicates properly
+            $result_info = upsert_or_skip($pdo, $config['table_name'], $uniqueWhere, $data);
+            $owner_id = $result_info['id'];
+            $action = $result_info['action'];
+            $result = true;
         }
 
-        $stmt = $pdo->prepare($sql);
-        $result = $stmt->execute($values);
-
         if ($result) {
-            $owner_id = $is_update ? $id : $pdo->lastInsertId();
-
             // Fetch the saved owner
             $stmt = $pdo->prepare("SELECT o.*, u.username AS added_by_username
                                    FROM {$config['table_name']} o
@@ -257,10 +272,19 @@ function handleSave($pdo, $config, $user_data) {
             $stmt->execute([$owner_id]);
             $saved_owner = $stmt->fetch(PDO::FETCH_ASSOC);
 
+            $message = match($action) {
+                'inserted' => 'Owner created successfully',
+                'updated' => 'Owner updated successfully', 
+                'skipped' => 'Owner already exists (no changes needed)',
+                default => 'Owner saved successfully'
+            };
+
             echo json_encode([
                 'success' => true,
-                'message' => $is_update ? 'Owner updated successfully' : 'Owner created successfully',
-                'data' => $saved_owner
+                'message' => $message,
+                'data' => $saved_owner,
+                'action' => $action,
+                'id' => $owner_id
             ]);
         } else {
             throw new Exception('Failed to save owner');

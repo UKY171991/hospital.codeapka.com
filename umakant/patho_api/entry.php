@@ -235,41 +235,103 @@ function handleSave($pdo, $config, $user_data) {
         $is_update = !empty($id);
 
         if ($is_update) {
-            // Update existing entry
+            // Update existing entry - only update provided fields
+            if (empty($data)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'No valid fields to update']);
+                return;
+            }
+            
+            // Check if entry exists
+            $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+            $stmt->execute([$id]);
+            $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$existing) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Entry not found']);
+                return;
+            }
+            
             $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
-            $sql = "UPDATE {$config['table_name']} SET $set_clause WHERE {$config['id_field']} = ?";
+            $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
             $values = array_merge(array_values($data), [$id]);
+            
+            $stmt = $pdo->prepare($sql);
+            $result = $stmt->execute($values);
+            $entry_id = $id;
+            $action = 'updated';
         } else {
-            // Create new entry
-            $fields = implode(', ', array_keys($data));
-            $placeholders = implode(', ', array_fill(0, count($data), '?'));
-            $sql = "INSERT INTO {$config['table_name']} ($fields) VALUES ($placeholders)";
-            $values = array_values($data);
+            // Create new entry using upsert logic to prevent duplicates
+            
+            // Define unique criteria for duplicate detection
+            // For entries, consider same patient, test, and date as duplicate
+            $uniqueWhere = [
+                'patient_id' => $data['patient_id'],
+                'test_id' => $data['test_id']
+            ];
+            
+            // Add entry date to uniqueness (same day = potential duplicate)
+            if (isset($data['entry_date'])) {
+                $date_only = date('Y-m-d', strtotime($data['entry_date']));
+                // Use DATE() function to match only the date part
+                $stmt = $pdo->prepare("SELECT id FROM {$config['table_name']} 
+                                      WHERE patient_id = ? AND test_id = ? 
+                                      AND DATE(entry_date) = ? LIMIT 1");
+                $stmt->execute([$data['patient_id'], $data['test_id'], $date_only]);
+                $existing_entry = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($existing_entry) {
+                    // Update existing entry if found on same date
+                    $entry_id = $existing_entry['id'];
+                    $result_info = ['action' => 'updated', 'id' => $entry_id];
+                    
+                    // Update the existing entry with new data
+                    $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
+                    $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE id = ?";
+                    $values = array_merge(array_values($data), [$entry_id]);
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute($values);
+                } else {
+                    // No existing entry found, create new one
+                    $result_info = upsert_or_skip($pdo, $config['table_name'], $uniqueWhere, $data);
+                }
+            } else {
+                $result_info = upsert_or_skip($pdo, $config['table_name'], $uniqueWhere, $data);
+            }
+            
+            $entry_id = $result_info['id'];
+            $action = $result_info['action'];
+            $result = true;
         }
 
-        $stmt = $pdo->prepare($sql);
-        $result = $stmt->execute($values);
-
-        if ($result) {
-            $entry_id = $is_update ? $id : $pdo->lastInsertId();
-            
+        if ($result) {            
             // Fetch the saved entry with related data
-        $stmt = $pdo->prepare("SELECT e.*, 
-                       p.name as patient_name, p.uhid,
-                       t.name as test_name, t.unit,
-                       d.name as doctor_name
-                   FROM {$config['table_name']} e 
-                   LEFT JOIN patients p ON e.patient_id = p.id 
-                   LEFT JOIN tests t ON e.test_id = t.id 
-                   LEFT JOIN doctors d ON e.doctor_id = d.id 
-                   WHERE e.{$config['id_field']} = ?");
+            $stmt = $pdo->prepare("SELECT e.*, 
+                           p.name as patient_name, p.uhid,
+                           t.name as test_name, t.unit,
+                           d.name as doctor_name
+                       FROM {$config['table_name']} e 
+                       LEFT JOIN patients p ON e.patient_id = p.id 
+                       LEFT JOIN tests t ON e.test_id = t.id 
+                       LEFT JOIN doctors d ON e.doctor_id = d.id 
+                       WHERE e.{$config['id_field']} = ?");
             $stmt->execute([$entry_id]);
             $saved_entry = $stmt->fetch(PDO::FETCH_ASSOC);
 
+            $message = match($action) {
+                'inserted' => 'Entry created successfully',
+                'updated' => 'Entry updated successfully', 
+                'skipped' => 'Entry already exists (no changes needed)',
+                default => 'Entry saved successfully'
+            };
+
             echo json_encode([
                 'success' => true,
-                'message' => $is_update ? 'Entry updated successfully' : 'Entry created successfully',
-                'data' => $saved_entry
+                'message' => $message,
+                'data' => $saved_entry,
+                'action' => $action,
+                'id' => $entry_id
             ]);
         } else {
             throw new Exception('Failed to save entry');

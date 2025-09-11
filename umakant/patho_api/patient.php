@@ -331,17 +331,32 @@ try {
                 $data['uhid'] = $year . str_pad($nextNum, 6, '0', STR_PAD_LEFT);
             }
 
-            // Insert entity
-            $fields = array_keys($data);
-            $placeholders = implode(', ', array_fill(0, count($fields), '?'));
-            $query = "INSERT INTO {$ENTITY_TABLE} (" . implode(', ', $fields) . ", created_at) VALUES (" . $placeholders . ", NOW())";
+            // Use upsert logic to prevent duplicates
+            $uniqueWhere = [];
             
-            $stmt = $pdo->prepare($query);
-            $stmt->execute(array_values($data));
+            // Define unique criteria based on entity type
+            if ($ENTITY_NAME === 'Patient') {
+                // For patients, use mobile as unique identifier
+                if (!empty($data['mobile'])) {
+                    $uniqueWhere['mobile'] = $data['mobile'];
+                } else {
+                    // Fallback to name + address if mobile not provided
+                    $uniqueWhere['name'] = $data['name'];
+                    if (!empty($data['address'])) {
+                        $uniqueWhere['address'] = $data['address'];
+                    }
+                }
+            } else {
+                // Generic fallback - use name
+                $uniqueWhere['name'] = $data['name'];
+            }
+
+            // Use upsert function to handle duplicates properly
+            $result_info = upsert_or_skip($pdo, $ENTITY_TABLE, $uniqueWhere, $data);
+            $entityId = $result_info['id'];
+            $action = $result_info['action'];
             
-            $entityId = $pdo->lastInsertId();
-            
-            // Fetch the created entity
+            // Fetch the saved entity
             $stmt = $pdo->prepare("SELECT e.*, u.username AS added_by_username 
                                   FROM {$ENTITY_TABLE} e 
                                   LEFT JOIN users u ON e.added_by = u.id 
@@ -352,7 +367,14 @@ try {
             // Apply field mapping
             $entity = mapDbToResponse($entity);
 
-            json_response(['success' => true, 'status' => 'success', 'message' => $ENTITY_NAME . ' created successfully', 'data' => $entity, 'action' => 'inserted', 'id' => $entityId]);
+            $message = match($action) {
+                'inserted' => $ENTITY_NAME . ' created successfully',
+                'updated' => $ENTITY_NAME . ' updated successfully', 
+                'skipped' => $ENTITY_NAME . ' already exists (no changes needed)',
+                default => $ENTITY_NAME . ' saved successfully'
+            };
+
+            json_response(['success' => true, 'status' => 'success', 'message' => $message, 'data' => $entity, 'action' => $action, 'id' => $entityId]);
         }
     }
 
