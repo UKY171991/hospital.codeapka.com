@@ -286,9 +286,37 @@
     padding-right: 0 !important;
 }
 
+/* Prevent modal from closing when clicking on sidebar elements */
+.main-sidebar,
+.main-sidebar * {
+    pointer-events: auto !important;
+}
+
+/* Ensure modal stays open when sidebar is toggled */
+body.sidebar-mini.sidebar-collapse .modal,
+body.sidebar-mini.sidebar-open .modal {
+    display: block !important;
+}
+
+/* Prevent sidebar from interfering with modal */
+.main-sidebar {
+    z-index: 1040 !important;
+}
+
+/* Fix for pushmenu interaction with modals */
+.modal.show ~ .main-sidebar {
+    z-index: 1040 !important;
+}
+
 /* Prevent modal from closing when clicking on Select2 dropdown */
 .modal[aria-hidden="false"] .select2-dropdown {
-    z-index: 9999;
+    z-index: 1065 !important;
+}
+
+/* Fix modal position when sidebar is toggled */
+.modal-dialog {
+    position: relative;
+    z-index: 1061 !important;
 }
 
 /* Smooth transitions for modal */
@@ -402,13 +430,83 @@
     background-color: white;
 }
 
-/* Fix z-index issues */
+/* Fix z-index issues - AdminLTE sidebar has z-index of 1032, so we need higher values */
 .modal {
-    z-index: 1055;
+    z-index: 1060 !important;
 }
 
 .modal-backdrop {
-    z-index: 1050;
+    z-index: 1055 !important;
+}
+
+/* Ensure Select2 dropdowns in modals have even higher z-index */
+.select2-container--open .select2-dropdown {
+    z-index: 1065 !important;
+}
+
+.modal .select2-dropdown {
+    z-index: 1065 !important;
+    border: 2px solid #007bff !important;
+    border-radius: 8px !important;
+    margin-top: 2px;
+}
+
+/* Prevent modal from being affected by sidebar toggle */
+.modal.show {
+    z-index: 1060 !important;
+}
+
+.modal.show .modal-backdrop {
+    z-index: 1055 !important;
+}
+
+/* Fix for sidebar push/overlay interactions */
+body.sidebar-open .modal,
+body.sidebar-collapse .modal {
+    z-index: 1060 !important;
+}
+
+body.sidebar-open .modal-backdrop,
+body.sidebar-collapse .modal-backdrop {
+    z-index: 1055 !important;
+}
+
+/* Fix for AdminLTE sidebar interaction - specific AdminLTE classes */
+.hold-transition .modal,
+.sidebar-mini .modal,
+.layout-fixed .modal {
+    z-index: 1060 !important;
+}
+
+.hold-transition .modal-backdrop,
+.sidebar-mini .modal-backdrop,
+.layout-fixed .modal-backdrop {
+    z-index: 1055 !important;
+}
+
+/* Ensure wrapper doesn't interfere with modal */
+.wrapper .modal {
+    position: fixed !important;
+    z-index: 1060 !important;
+}
+
+/* AdminLTE specific navbar fix */
+.main-header {
+    z-index: 1030 !important;
+}
+
+/* Control sidebar z-index when modal is open */
+body.modal-open .main-sidebar {
+    z-index: 1040 !important;
+}
+
+body.modal-open .control-sidebar {
+    z-index: 1040 !important;
+}
+
+/* Fix for content-wrapper positioning */
+body.modal-open .content-wrapper {
+    z-index: auto !important;
 }
 
 /* Animation Improvements */
@@ -447,6 +545,38 @@
     margin-top: 0.25rem;
     font-size: 0.8rem;
     color: #28a745;
+}
+
+/* Prevent modal from being dismissed by sidebar clicks */
+.modal {
+    pointer-events: auto !important;
+}
+
+.modal-backdrop {
+    pointer-events: auto !important;
+}
+
+/* Ensure sidebar elements don't trigger modal dismiss */
+.main-sidebar,
+.main-sidebar *,
+.main-header,
+.main-header *,
+.control-sidebar,
+.control-sidebar * {
+    pointer-events: auto !important;
+}
+
+/* Override Bootstrap modal backdrop click behavior for AdminLTE */
+.modal-backdrop.show {
+    opacity: 0.6;
+    pointer-events: none !important;
+}
+
+/* Make sure modal content is clickable */
+.modal-content {
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 1061 !important;
 }
 
 /* Custom Scrollbar for Modal Body */

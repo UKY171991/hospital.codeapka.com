@@ -32,6 +32,8 @@
   <link rel="stylesheet" href="assets/css/comprehensive-tables.css?v=<?php echo time(); ?>">
   <!-- Modal Layout Fixes -->
   <link rel="stylesheet" href="assets/css/modal-fixes.css?v=<?php echo time(); ?>">
+  <!-- AdminLTE Modal Compatibility -->
+  <link rel="stylesheet" href="assets/css/modal-adminlte-fixes.css?v=<?php echo time(); ?>">
   <style>body{background:#f4f6f9}</style>
 </head>
 <?php if(session_status() === PHP_SESSION_NONE) session_start(); ?>

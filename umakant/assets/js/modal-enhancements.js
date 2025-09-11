@@ -4,6 +4,33 @@
  */
 
 $(document).ready(function() {
+    // Fix for AdminLTE sidebar toggle interaction with modals
+    $(document).on('click', '[data-widget="pushmenu"]', function(e) {
+        // If a modal is open, prevent the default pushmenu behavior temporarily
+        if ($('.modal.show').length > 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Toggle sidebar classes manually
+            $('body').toggleClass('sidebar-collapse sidebar-open');
+            
+            // Ensure modal stays visible
+            setTimeout(function() {
+                $('.modal.show').css('z-index', '1060');
+                $('.modal-backdrop').css('z-index', '1055');
+            }, 100);
+            
+            return false;
+        }
+    });
+    
+    // Prevent modal from closing when clicking on sidebar
+    $(document).on('click', '.main-sidebar, .main-sidebar *', function(e) {
+        if ($('.modal.show').length > 0) {
+            e.stopPropagation();
+        }
+    });
+    
     // Global modal event handlers
     $('.modal').on('shown.bs.modal', function() {
         // Fix for Select2 in modals
@@ -15,6 +42,19 @@ $(document).ready(function() {
         
         // Focus on first input field
         $(this).find('input:not([type=hidden]):first').focus();
+        
+        // Ensure modal stays on top
+        $(this).css('z-index', '1060');
+        $('.modal-backdrop').css('z-index', '1055');
+        
+        // Prevent modal from closing on sidebar interactions
+        const modal = $(this);
+        modal.off('click.sidebar-fix').on('click.sidebar-fix', function(e) {
+            if ($(e.target).closest('.main-sidebar').length > 0) {
+                e.stopPropagation();
+                return false;
+            }
+        });
     });
 
     $('.modal').on('hidden.bs.modal', function() {
@@ -88,6 +128,28 @@ $(document).ready(function() {
         showMethod: "fadeIn",
         hideMethod: "fadeOut"
     };
+    
+    // Override Bootstrap modal backdrop click behavior
+    $(document).on('click', '.modal-backdrop', function(e) {
+        // Check if click is on sidebar or header elements
+        if ($(e.target).closest('.main-sidebar, .main-header, .control-sidebar').length > 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    });
+    
+    // Prevent modal from closing on body clicks when sidebar is involved
+    $(document).on('click', 'body', function(e) {
+        if ($('.modal.show').length > 0) {
+            // If click is on sidebar or its children, don't close modal
+            if ($(e.target).closest('.main-sidebar, .main-header, .control-sidebar, [data-widget="pushmenu"]').length > 0) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }
+    });
 
     // Loading state helper
     window.setModalLoading = function(modalId, loading) {
