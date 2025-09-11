@@ -344,11 +344,12 @@ $(document).ready(function() {
 });
 
 function initializeEventListeners() {
-    // Save entry button
-    $('#saveEntryBtn').click(function() {
+    // Form submission
+    $('#entryForm').on('submit', function(e) {
+        e.preventDefault();
         saveEntryData();
     });
-
+    
     // Search functionality
     $('#entriesSearch').on('input', function() {
         applyEntriesFilters();
@@ -378,6 +379,13 @@ function initializeEventListeners() {
 }
 
 function loadDropdownsForEntry() {
+    // Initialize Select2 for entry form
+    $('.select2').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        dropdownParent: $('#entryModal')
+    });
+
     // Load patients
     $.get('ajax/patient_api.php', { action: 'list', ajax: 1 })
         .done(function(response) {
@@ -386,7 +394,7 @@ function loadDropdownsForEntry() {
                 response.data.forEach(patient => {
                     options += `<option value="${patient.id}">${patient.name || 'Unknown'}</option>`;
                 });
-                $('#entryPatient').html(options);
+                $('#entryPatient').html(options).trigger('change');
             }
         });
 
@@ -400,7 +408,7 @@ function loadDropdownsForEntry() {
                     options += `<option value="${doctor.id}">${doctor.name || 'Unknown'}</option>`;
                     filterOptions += `<option value="${doctor.name}">${doctor.name}</option>`;
                 });
-                $('#entryDoctor').html(options);
+                $('#entryDoctor').html(options).trigger('change');
                 $('#doctorFilter').html(filterOptions);
             }
         });
@@ -415,7 +423,7 @@ function loadDropdownsForEntry() {
                     options += `<option value="${test.id}">${test.name || 'Unknown'}</option>`;
                     filterOptions += `<option value="${test.name}">${test.name}</option>`;
                 });
-                $('#entryTest').html(options);
+                $('#entryTest').html(options).trigger('change');
                 $('#testFilter').html(filterOptions);
             }
         });
@@ -507,6 +515,15 @@ function openAddEntryModal() {
     $('#entryId').val('');
     $('#modalTitle').text('Add New Test Entry');
     resetModalForm();
+    
+    // Reinitialize Select2 for the modal
+    $('.select2').select2('destroy');
+    $('.select2').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        dropdownParent: $('#entryModal')
+    });
+    
     $('#entryModal').modal('show');
 }
 
@@ -571,27 +588,31 @@ function populateEntryForm(entry) {
 }
 
 function saveEntryData() {
+    // Validate form first
+    if (!validateModalForm('entryForm')) {
+        return false;
+    }
+    
     const data = $('#entryForm').serialize() + '&action=save&ajax=1';
     const isEdit = $('#entryId').val();
     
-    const submitBtn = $('#saveEntryBtn');
+    const submitBtn = $('#entryForm button[type="submit"]');
     const originalText = submitBtn.html();
     submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
 
     $.post('ajax/entry_api.php', data)
         .done(function(response) {
             if (response.success) {
-                showAlert(isEdit ? 'Entry updated successfully!' : 'Entry added successfully!', 'success');
+                toastr.success(isEdit ? 'Entry updated successfully!' : 'Entry added successfully!');
                 $('#entryModal').modal('hide');
                 loadEntries();
                 loadStats();
             } else {
-                showAlert('Error: ' + (response.message || 'Save failed'), 'error');
+                toastr.error('Error: ' + (response.message || 'Save failed'));
             }
         })
         .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
-            showAlert('Failed to save entry: ' + errorMsg, 'error');
+            handleAjaxError(xhr, 'save entry');
         })
         .always(function() {
             submitBtn.html(originalText).prop('disabled', false);
@@ -765,38 +786,5 @@ window.deleteEntry = deleteEntry;
 window.exportEntries = exportEntries;
 window.clearFilters = clearFilters;
 </script>
-
-<style>
-.small-box {
-    border-radius: 10px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.small-box:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-}
-
-.card-outline.card-primary {
-    border-top: 3px solid #007bff;
-}
-
-.btn-group .btn {
-    margin-right: 2px;
-}
-
-.btn-group .btn:last-child {
-    margin-right: 0;
-}
-
-.select2-container--default .select2-selection--single {
-    height: 38px;
-    border: 1px solid #ced4da;
-}
-
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 36px;
-}
-</style>
 
 <?php require_once 'inc/footer.php'; ?>

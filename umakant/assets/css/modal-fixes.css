@@ -1,0 +1,469 @@
+/* Modal Layout Fixes for Hospital Management System */
+
+/* Small Box Enhancements */
+.small-box {
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.small-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+/* Card Styling */
+.card-outline.card-primary {
+    border-top: 3px solid #007bff;
+}
+
+/* Button Group Styling */
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+/* Enhanced Modal Sizing and Positioning */
+.modal-xl {
+    max-width: 90%;
+    margin: 1rem auto;
+}
+
+@media (min-width: 1200px) {
+    .modal-xl {
+        max-width: 1100px;
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+    .modal-xl {
+        max-width: 900px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .modal-xl {
+        max-width: 750px;
+    }
+}
+
+@media (max-width: 767px) {
+    .modal-xl {
+        max-width: 95%;
+        margin: 0.5rem auto;
+    }
+}
+
+/* Modal Content Improvements */
+.modal-content {
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    max-height: 90vh;
+    overflow: hidden;
+}
+
+/* Modal Header Styling */
+.modal-header {
+    border-radius: 12px 12px 0 0;
+    padding: 1.25rem 1.5rem;
+    border-bottom: none;
+}
+
+.modal-header .modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.modal-header .close {
+    font-size: 1.5rem;
+    font-weight: 300;
+    opacity: 0.8;
+    text-shadow: none;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.modal-header .close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Modal Body Improvements */
+.modal-body {
+    padding: 2rem 1.5rem;
+    overflow-y: auto;
+    max-height: calc(90vh - 140px);
+}
+
+/* Form Layout Improvements */
+.modal-body .row {
+    margin-bottom: 1rem;
+}
+
+.modal-body .form-group {
+    margin-bottom: 1.25rem;
+}
+
+.modal-body .form-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Enhanced Label Styling */
+.modal-body .form-group label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+}
+
+.modal-body .form-group label i {
+    margin-right: 0.5rem;
+    width: 16px;
+    text-align: center;
+    color: #6c757d;
+}
+
+/* Form Control Enhancements */
+.modal-body .form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    background-color: #fff;
+}
+
+.modal-body .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+    background-color: #fff;
+}
+
+.modal-body .form-control:hover {
+    border-color: #ced4da;
+}
+
+/* Select2 Integration Fixes */
+.modal-body .select2-container {
+    width: 100% !important;
+    z-index: 9999;
+}
+
+.modal-body .select2-container .select2-selection--single {
+    height: auto !important;
+    min-height: 42px;
+    border: 2px solid #e9ecef !important;
+    border-radius: 8px !important;
+    padding: 0.3rem 0.5rem;
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+}
+
+.modal-body .select2-container .select2-selection--single .select2-selection__rendered {
+    color: #495057;
+    font-size: 0.9rem;
+    padding: 0;
+    line-height: 1.5;
+}
+
+.modal-body .select2-container .select2-selection--single .select2-selection__arrow {
+    height: auto;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Fix Select2 focus state */
+.modal-body .select2-container--focus .select2-selection--single,
+.modal-body .select2-container--open .select2-selection--single {
+    border-color: #007bff !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15) !important;
+}
+
+/* Select2 Dropdown Positioning */
+.select2-container--open .select2-dropdown {
+    z-index: 9999 !important;
+}
+
+.modal .select2-dropdown {
+    z-index: 9999 !important;
+    border: 2px solid #007bff !important;
+    border-radius: 8px !important;
+    margin-top: 2px;
+}
+
+.select2-container--bootstrap4 .select2-selection--single {
+    height: calc(2.25rem + 2px) !important;
+}
+
+.select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+    line-height: calc(2.25rem) !important;
+}
+
+/* Fix Select2 placeholder styling */
+.select2-container--bootstrap4 .select2-selection--single .select2-selection__placeholder {
+    color: #6c757d;
+}
+
+/* Textarea Styling */
+.modal-body textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Required Field Indicator */
+.text-danger {
+    color: #dc3545 !important;
+    font-weight: 600;
+}
+
+/* Modal Footer Improvements */
+.modal-footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+    border-radius: 0 0 12px 12px;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* Button Improvements */
+.modal-footer .btn {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 8px;
+    min-width: 100px;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.modal-footer .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.modal-footer .btn-secondary:hover {
+    background-color: #545b62;
+    border-color: #4e555b;
+    transform: translateY(-1px);
+}
+
+.modal-footer .btn-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border-color: #007bff;
+    color: white;
+}
+
+.modal-footer .btn-primary:hover {
+    background: linear-gradient(45deg, #0056b3, #004085);
+    border-color: #004085;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+/* Modal backdrop and interaction improvements */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.modal {
+    padding-right: 0 !important;
+}
+
+/* Prevent modal from closing when clicking on Select2 dropdown */
+.modal[aria-hidden="false"] .select2-dropdown {
+    z-index: 9999;
+}
+
+/* Smooth transitions for modal */
+.modal.fade .modal-dialog {
+    transition: transform 0.4s ease-out, opacity 0.15s linear;
+}
+
+/* Loading State */
+.modal-body.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.modal-body.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 767px) {
+    .modal-body {
+        padding: 1.5rem 1rem;
+    }
+    
+    .modal-body .row > [class*="col-"] {
+        margin-bottom: 1rem;
+    }
+    
+    .modal-footer {
+        padding: 1rem;
+        flex-direction: column;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .modal-footer .btn:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Make form fields stack better on mobile */
+    .modal-body .row > .col-md-6,
+    .modal-body .row > .col-md-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    /* Adjust form group spacing on mobile */
+    .modal-body .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    /* Make Select2 touch-friendly on mobile */
+    .modal-body .select2-container .select2-selection--single {
+        min-height: 48px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 575px) {
+    .modal-xl {
+        max-width: 98%;
+        margin: 0.25rem auto;
+    }
+    
+    .modal-header {
+        padding: 1rem;
+    }
+    
+    .modal-header .modal-title {
+        font-size: 1.1rem;
+    }
+    
+    .modal-body {
+        padding: 1rem 0.75rem;
+    }
+    
+    .modal-footer {
+        padding: 0.75rem;
+    }
+}
+
+/* Landscape phone orientation */
+@media (max-width: 767px) and (orientation: landscape) {
+    .modal-content {
+        max-height: 95vh;
+    }
+    
+    .modal-body {
+        max-height: calc(95vh - 120px);
+        padding: 1rem;
+    }
+}
+
+/* Fix for AdminLTE theme compatibility */
+.content-wrapper .modal-content {
+    background-color: white;
+}
+
+/* Fix z-index issues */
+.modal {
+    z-index: 1055;
+}
+
+.modal-backdrop {
+    z-index: 1050;
+}
+
+/* Animation Improvements */
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+    transform: translate(0, -50px);
+}
+
+.modal.show .modal-dialog {
+    transform: translate(0, 0);
+}
+
+/* Error State Styling */
+.form-control.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15) !important;
+}
+
+.invalid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: #dc3545;
+}
+
+/* Success State Styling */
+.form-control.is-valid {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.15) !important;
+}
+
+.valid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: #28a745;
+}
+
+/* Custom Scrollbar for Modal Body */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}

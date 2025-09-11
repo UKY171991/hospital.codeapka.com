@@ -21,12 +21,17 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
   <!-- Toastr -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+  <!-- Select2 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css">
   <!-- Global Improvements CSS -->
   <link rel="stylesheet" href="assets/css/global-improvements.css">
   <!-- Enhanced Tables CSS -->
   <link rel="stylesheet" href="assets/css/enhanced-tables.css">
   <!-- Comprehensive Table Styling -->
   <link rel="stylesheet" href="assets/css/comprehensive-tables.css?v=<?php echo time(); ?>">
+  <!-- Modal Layout Fixes -->
+  <link rel="stylesheet" href="assets/css/modal-fixes.css?v=<?php echo time(); ?>">
   <style>body{background:#f4f6f9}</style>
 </head>
 <?php if(session_status() === PHP_SESSION_NONE) session_start(); ?>
