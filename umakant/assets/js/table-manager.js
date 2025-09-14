@@ -320,6 +320,13 @@ function initializeUserTable() {
                         return `<span class="badge ${badgeClass}">${data}</span>`;
                     }
                 },
+                {
+                    data: 'user_type',
+                    title: 'User Type',
+                    render: function(data, type, row) {
+                        return data ? `<span class="badge badge-secondary">${data}</span>` : '-';
+                    }
+                },
                 { data: 'expire_date', title: 'Expire Date' },
                 {
                     data: null,
