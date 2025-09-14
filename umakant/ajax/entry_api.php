@@ -118,11 +118,7 @@ try {
     }
 
     if ($action === 'save') {
-        if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) {
-            json_response(['success' => false, 'message' => 'Unauthorized'], 401);
-        }
-        
-        // Parse JSON input if content-type is JSON
+        // Proxy the save request to the main API to enforce duplicate prevention and update-on-change logic
         $input = [];
         $content_type = $_SERVER['CONTENT_TYPE'] ?? '';
         if (strpos($content_type, 'application/json') !== false) {
@@ -130,52 +126,41 @@ try {
         } else {
             $input = $_POST;
         }
-        
-        $id = $input['id'] ?? '';
-        $patient_id = $input['patient_id'] ?? null;
-        $doctor_id = $input['doctor_id'] ?? null;
-        $test_id = $input['test_id'] ?? null;
-        
-        // Handle date fields
-        $entry_date = $input['entry_date'] ?? null;
-        $reported_date = $input['reported_date'] ?? date('Y-m-d H:i:s');
-        $result_value = trim($input['result'] ?? $input['result_value'] ?? '');
-        $result_status = $input['result_status'] ?? 'normal';
-        $unit = trim($input['unit'] ?? '');
-        $remarks = trim($input['remarks'] ?? $input['notes'] ?? '');
-        $status = $input['status'] ?? 'pending';
-        $added_by = $_SESSION['user_id'] ?? null;
 
-        // Validation
-        if (empty($patient_id) || empty($test_id)) {
-            json_response(['success' => false, 'message' => 'Patient ID and Test ID are required'], 400);
+        // Add user/session info if needed
+        if (!isset($input['added_by']) && isset($_SESSION['user_id'])) {
+            $input['added_by'] = $_SESSION['user_id'];
         }
 
-        if ($id) {
-            // Update
-            $stmt = $pdo->prepare('UPDATE entries SET patient_id=?, doctor_id=?, test_id=?, entry_date=?, reported_date=?, result_value=?, result_status=?, unit=?, remarks=?, status=?, added_by=? WHERE id=?');
-            $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $reported_date, $result_value, $result_status, $unit, $remarks, $status, $added_by, $id]);
-            
-            // Fetch updated entry
-            $stmt = $pdo->prepare('SELECT e.*, p.name AS patient_name, t.name AS test_name, d.name AS doctor_name FROM entries e LEFT JOIN patients p ON e.patient_id = p.id LEFT JOIN tests t ON e.test_id = t.id LEFT JOIN doctors d ON e.doctor_id = d.id WHERE e.id = ?');
-            $stmt->execute([$id]);
-            $saved_entry = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            json_response(['success' => true, 'message' => 'Entry updated successfully', 'data' => $saved_entry]);
-        } else {
-            // Create
-            $stmt = $pdo->prepare('INSERT INTO entries (patient_id, doctor_id, test_id, entry_date, reported_date, result_value, result_status, unit, remarks, status, added_by, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,NOW())');
-            $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $reported_date, $result_value, $result_status, $unit, $remarks, $status, $added_by]);
-            
-            $entry_id = $pdo->lastInsertId();
-            
-            // Fetch created entry
-            $stmt = $pdo->prepare('SELECT e.*, p.name AS patient_name, t.name AS test_name, d.name AS doctor_name FROM entries e LEFT JOIN patients p ON e.patient_id = p.id LEFT JOIN tests t ON e.test_id = t.id LEFT JOIN doctors d ON e.doctor_id = d.id WHERE e.id = ?');
-            $stmt->execute([$entry_id]);
-            $saved_entry = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            json_response(['success' => true, 'message' => 'Entry created successfully', 'data' => $saved_entry]);
+        // Prepare cURL request to patho_api/entry.php
+        $apiUrl = __DIR__ . '/../patho_api/entry.php';
+        $apiEndpoint = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['SCRIPT_NAME']) . '/../patho_api/entry.php';
+
+        // Use cURL to POST data to the API
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $apiEndpoint);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($input));
+        // Forward session cookie if needed
+        if (isset($_COOKIE[session_name()])) {
+            curl_setopt($ch, CURLOPT_COOKIE, session_name() . '=' . $_COOKIE[session_name()]);
         }
+        // Forward content-type
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+
+        $apiResponse = curl_exec($ch);
+        $curlErr = curl_error($ch);
+        curl_close($ch);
+
+        if ($apiResponse === false) {
+            json_response(['success' => false, 'message' => 'API request failed', 'error' => $curlErr], 500);
+        }
+
+        // Output the API response directly
+        header('Content-Type: application/json');
+        echo $apiResponse;
+        exit;
     } else if ($action === 'delete' && isset($_POST['id'])) {
         if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) {
             json_response(['success' => false, 'message' => 'Unauthorized'], 401);
