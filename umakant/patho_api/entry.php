@@ -104,7 +104,7 @@ try {
 
 function handleList($pdo, $config) {
     try {
-        // Enhanced query with all database columns
+        // Enhanced query with all database columns + enriched data for 7-column display
         $sql = "SELECT e.id,
                        e.patient_id,
                        e.doctor_id,
@@ -137,7 +137,7 @@ function handleList($pdo, $config) {
         $stmt->execute();
         $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Return entries with all database fields
+        // Return entries with all database fields + enriched data for 7-column display
         echo json_encode([
             'success' => true,
             'data' => $entries,

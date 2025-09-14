@@ -1,83 +1,105 @@
-/* Enhanced Entry Table Styling - Updated for 16-column layout */
+/* Enhanced Entry Table Styling - Updated for 7-column layout per specification */
 .entries-table {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
 }
 
 .entries-table th {
-    background-color: #343a40;
+    background-color: #1976d2; /* Colors.blue.shade700 equivalent */
     color: white;
     font-weight: 600;
     text-align: center;
     vertical-align: middle;
-    padding: 8px 4px;
+    padding: 12px 8px;
     border: 1px solid #dee2e6;
-    font-size: 0.75rem;
+    font-size: 16px;
+    letter-spacing: 0.3px;
 }
 
 .entries-table td {
-    padding: 6px 4px;
+    padding: 10px 8px;
     vertical-align: middle;
     border: 1px solid #dee2e6;
-    font-size: 0.75rem;
+    font-size: 15px;
+    font-weight: 400;
 }
 
-/* Entry ID Badge */
+/* Entry ID Badge - Exact specification */
 .entry-id-badge {
-    background: linear-gradient(45deg, #007bff, #0056b3);
-    color: white;
-    padding: 3px 6px;
+    background: rgba(102, 126, 234, 0.1); /* Color(0xFF667eea).withOpacity(0.1) */
+    color: #667eea; /* Color(0xFF667eea) */
+    padding: 4px 8px;
     border-radius: 8px;
     font-weight: 600;
-    font-size: 0.7rem;
-    box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+    font-size: 13px;
+    display: inline-block;
 }
 
-/* Status Badge Enhancements */
-.status-badge {
-    padding: 4px 8px;
-    border-radius: 12px;
+/* Test Date Cell */
+.test-date-cell {
+    font-size: 13px;
+    font-weight: 400;
+}
+
+/* Patient Name Container - Exact specification */
+.patient-name-container {
+    background: rgba(102, 126, 234, 0.1); /* Color(0xFF667eea).withOpacity(0.1) */
+    color: #333;
+    padding: 8px 12px;
+    border-radius: 8px;
     font-weight: 600;
-    font-size: 0.7rem;
+    font-size: 15px;
+    display: inline-block;
+}
+
+/* Status Badge Enhancements - Exact color specifications */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-weight: 500;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
 
 .status-badge.badge-success {
-    background: linear-gradient(45deg, #28a745, #1e7e34);
-    box-shadow: 0 2px 4px rgba(40,167,69,0.3);
+    background-color: #10B981; /* Color(0xFF10B981) - Completed */
+    color: white;
 }
 
 .status-badge.badge-warning {
-    background: linear-gradient(45deg, #ffc107, #e0a800);
-    color: #212529;
-    box-shadow: 0 2px 4px rgba(255,193,7,0.3);
+    background-color: #F59E0B; /* Color(0xFFF59E0B) - Pending */
+    color: white;
 }
 
 .status-badge.badge-danger {
-    background: linear-gradient(45deg, #dc3545, #c82333);
-    box-shadow: 0 2px 4px rgba(220,53,69,0.3);
+    background-color: #EF4444; /* Color(0xFFEF4444) - Failed */
+    color: white;
 }
 
 .status-badge.badge-secondary {
-    background: linear-gradient(45deg, #6c757d, #545b62);
-    box-shadow: 0 2px 4px rgba(108,117,125,0.3);
+    background-color: #6B7280;
+    color: white;
 }
 
-.status-badge.badge-info {
-    background: linear-gradient(45deg, #17a2b8, #138496);
-    box-shadow: 0 2px 4px rgba(23,162,184,0.3);
+/* Doctor Cell */
+.doctor-cell {
+    font-size: 14px;
+    font-weight: 400;
 }
 
-/* Cell Truncation */
-.remarks-cell, .test-names-cell, .test-results-cell, .result-value-cell {
-    max-width: 120px;
+/* Remarks Cell - Exact specification */
+.remarks-cell {
+    max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     cursor: help;
+    font-size: 12px;
+    font-weight: 400;
+    max-lines: 2;
 }
 
-.remarks-cell:hover, .test-names-cell:hover, .test-results-cell:hover, .result-value-cell:hover {
+.remarks-cell:hover {
     white-space: normal;
     overflow: visible;
     background-color: #f8f9fa;
@@ -88,17 +110,18 @@
     max-width: 300px;
 }
 
-/* Action Buttons */
+/* Action Buttons - Exact specification */
 .action-buttons {
     display: flex;
-    gap: 1px;
+    gap: 4px;
 }
 
 .action-buttons .btn {
-    padding: 2px 4px;
-    font-size: 0.7rem;
-    border-radius: 3px;
+    padding: 6px 8px;
+    font-size: 14px;
+    border-radius: 4px;
     transition: all 0.2s ease;
+    border: none;
 }
 
 .action-buttons .btn:hover {
@@ -106,11 +129,25 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
+.action-buttons .btn-info {
+    background-color: #1976d2;
+    color: white;
+}
+
+.action-buttons .btn-warning {
+    background-color: #1976d2;
+    color: white;
+}
+
+.action-buttons .btn-danger {
+    background-color: #d32f2f;
+    color: white;
+}
+
 /* Table Responsive Enhancements */
 .table-responsive {
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    overflow-x: auto;
 }
 
 /* Hover Effects */
@@ -119,64 +156,140 @@
     transition: all 0.2s ease;
 }
 
-/* Column Width Optimization for 16-column layout */
-.entries-table th:nth-child(1), .entries-table td:nth-child(1) { width: 6%; } /* Entry ID */
-.entries-table th:nth-child(2), .entries-table td:nth-child(2) { width: 6%; } /* Patient ID */
-.entries-table th:nth-child(3), .entries-table td:nth-child(3) { width: 6%; } /* Doctor ID */
-.entries-table th:nth-child(4), .entries-table td:nth-child(4) { width: 6%; } /* Test ID */
-.entries-table th:nth-child(5), .entries-table td:nth-child(5) { width: 8%; } /* Entry Date */
-.entries-table th:nth-child(6), .entries-table td:nth-child(6) { width: 8%; } /* Result Value */
-.entries-table th:nth-child(7), .entries-table td:nth-child(7) { width: 6%; } /* Unit */
-.entries-table th:nth-child(8), .entries-table td:nth-child(8) { width: 10%; } /* Remarks */
-.entries-table th:nth-child(9), .entries-table td:nth-child(9) { width: 8%; } /* Status */
-.entries-table th:nth-child(10), .entries-table td:nth-child(10) { width: 6%; } /* Added By */
-.entries-table th:nth-child(11), .entries-table td:nth-child(11) { width: 8%; } /* Created At */
-.entries-table th:nth-child(12), .entries-table td:nth-child(12) { width: 6%; } /* Grouped */
-.entries-table th:nth-child(13), .entries-table td:nth-child(13) { width: 6%; } /* Tests Count */
-.entries-table th:nth-child(14), .entries-table td:nth-child(14) { width: 10%; } /* Test Names */
-.entries-table th:nth-child(15), .entries-table td:nth-child(15) { width: 10%; } /* Test Results */
-.entries-table th:nth-child(16), .entries-table td:nth-child(16) { width: 8%; } /* Actions */
+/* Serial Number Cell */
+.sr-no-cell {
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: #666;
+    background-color: #f8f9fa;
+}
 
-/* Mobile Responsive */
-@media (max-width: 1200px) {
+/* Column Width Optimization for 8-column layout */
+.entries-table th:nth-child(1), .entries-table td:nth-child(1) { width: 8%; } /* Sr No. */
+.entries-table th:nth-child(2), .entries-table td:nth-child(2) { width: 10%; } /* Entry ID */
+.entries-table th:nth-child(3), .entries-table td:nth-child(3) { width: 16%; } /* Test Date */
+.entries-table th:nth-child(4), .entries-table td:nth-child(4) { width: 18%; } /* Patient Name */
+.entries-table th:nth-child(5), .entries-table td:nth-child(5) { width: 10%; } /* Status */
+.entries-table th:nth-child(6), .entries-table td:nth-child(6) { width: 16%; } /* Doctor */
+.entries-table th:nth-child(7), .entries-table td:nth-child(7) { width: 12%; } /* Remarks */
+.entries-table th:nth-child(8), .entries-table td:nth-child(8) { width: 10%; } /* Actions */
+
+/* Mobile Responsive - Card Layout for Width < 600px */
+@media (max-width: 600px) {
     .entries-table {
-        font-size: 0.7rem;
+        display: none; /* Hide table on mobile */
     }
     
-    .entries-table th,
-    .entries-table td {
-        padding: 4px 2px;
+    .mobile-card-layout {
+        display: block;
     }
     
-    .entry-id-badge {
-        font-size: 0.6rem;
-        padding: 2px 4px;
+    .entry-card {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #e0e0e0;
     }
     
-    .action-buttons .btn {
-        padding: 1px 2px;
-        font-size: 0.6rem;
+    .entry-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .entry-card-sr-no {
+        font-weight: 600;
+        font-size: 14px;
+        color: #666;
+        background-color: #f8f9fa;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+    
+    .entry-card-id {
+        font-weight: 600;
+        font-size: 16px;
+        color: #667eea;
+    }
+    
+    .entry-card-date {
+        font-size: 12px;
+        color: #666;
+    }
+    
+    .entry-card-patient {
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 8px;
+        padding: 8px 12px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 8px;
+        display: inline-block;
+    }
+    
+    .entry-card-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    
+    .entry-card-detail {
+        font-size: 14px;
+    }
+    
+    .entry-card-detail-label {
+        font-weight: 500;
+        color: #666;
+        margin-bottom: 2px;
+    }
+    
+    .entry-card-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
     }
 }
 
-@media (max-width: 768px) {
+/* Desktop Layout - Show table for Width >= 600px */
+@media (min-width: 600px) {
+    .mobile-card-layout {
+        display: none; /* Hide cards on desktop */
+    }
+    
     .entries-table {
-        font-size: 0.6rem;
+        display: table; /* Show table on desktop */
+    }
+}
+
+/* Tablet Responsive */
+@media (max-width: 768px) and (min-width: 600px) {
+    .entries-table {
+        font-size: 0.8rem;
     }
     
     .entries-table th,
     .entries-table td {
-        padding: 3px 1px;
+        padding: 8px 4px;
+    }
+    
+    .patient-name-container {
+        padding: 6px 10px;
+        font-size: 14px;
     }
     
     .entry-id-badge {
-        font-size: 0.5rem;
-        padding: 1px 3px;
+        font-size: 12px;
+        padding: 3px 6px;
     }
     
     .action-buttons .btn {
-        padding: 1px 1px;
-        font-size: 0.5rem;
+        padding: 4px 6px;
+        font-size: 12px;
     }
 }
 
