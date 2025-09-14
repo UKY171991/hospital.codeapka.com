@@ -1,4 +1,4 @@
-/* Enhanced Entry Table Styling - Updated for 7-column layout per specification */
+/* Enhanced Entry Table Styling - Updated for 8-column layout with Added By column */
 .entries-table {
     font-size: 0.9rem;
 }
@@ -32,6 +32,14 @@
     font-weight: 600;
     font-size: 13px;
     display: inline-block;
+}
+
+/* Added By Cell */
+.added-by-cell {
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    text-align: center;
 }
 
 /* Test Date Cell */
@@ -165,14 +173,15 @@
     background-color: #f8f9fa;
 }
 
-/* Column Width Optimization for 7-column layout (Important columns only) */
-.entries-table th:nth-child(1), .entries-table td:nth-child(1) { width: 8%; } /* Sr No. */
-.entries-table th:nth-child(2), .entries-table td:nth-child(2) { width: 12%; } /* Entry ID */
-.entries-table th:nth-child(3), .entries-table td:nth-child(3) { width: 20%; } /* Patient Name */
-.entries-table th:nth-child(4), .entries-table td:nth-child(4) { width: 20%; } /* Test Name */
-.entries-table th:nth-child(5), .entries-table td:nth-child(5) { width: 12%; } /* Status */
-.entries-table th:nth-child(6), .entries-table td:nth-child(6) { width: 16%; } /* Test Date */
-.entries-table th:nth-child(7), .entries-table td:nth-child(7) { width: 12%; } /* Actions */
+/* Column Width Optimization for 8-column layout (with Added By column) */
+.entries-table th:nth-child(1), .entries-table td:nth-child(1) { width: 7%; } /* Sr No. */
+.entries-table th:nth-child(2), .entries-table td:nth-child(2) { width: 10%; } /* Entry ID */
+.entries-table th:nth-child(3), .entries-table td:nth-child(3) { width: 18%; } /* Patient Name */
+.entries-table th:nth-child(4), .entries-table td:nth-child(4) { width: 18%; } /* Test Name */
+.entries-table th:nth-child(5), .entries-table td:nth-child(5) { width: 10%; } /* Status */
+.entries-table th:nth-child(6), .entries-table td:nth-child(6) { width: 14%; } /* Test Date */
+.entries-table th:nth-child(7), .entries-table td:nth-child(7) { width: 12%; } /* Added By */
+.entries-table th:nth-child(8), .entries-table td:nth-child(8) { width: 11%; } /* Actions */
 
 /* Test Name Cell */
 .test-name-cell {

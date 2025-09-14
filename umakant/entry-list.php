@@ -167,6 +167,7 @@ require_once 'inc/sidebar.php';
                                             <th>Test Name</th>
                                             <th>Status</th>
                                             <th>Test Date</th>
+                                            <th>Added By</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -430,7 +431,7 @@ function loadDropdownsForEntry() {
 }
 
 function loadEntries() {
-    $('#entriesTable tbody').html('<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
+    $('#entriesTable tbody').html('<tr><td colspan="8" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
     
     $.get('ajax/entry_api.php', { action: 'list', ajax: 1 })
         .done(function(response) {
@@ -438,13 +439,13 @@ function loadEntries() {
                 populateEntriesTable(response.data);
             } else {
                 showAlert('Failed to load entries: ' + (response.message || 'Unknown error'), 'error');
-                $('#entriesTable tbody').html('<tr><td colspan="7" class="text-center text-danger">Failed to load data</td></tr>');
+                $('#entriesTable tbody').html('<tr><td colspan="8" class="text-center text-danger">Failed to load data</td></tr>');
             }
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
             showAlert('Failed to load entries: ' + errorMsg, 'error');
-            $('#entriesTable tbody').html('<tr><td colspan="7" class="text-center text-danger">Failed to load data</td></tr>');
+            $('#entriesTable tbody').html('<tr><td colspan="8" class="text-center text-danger">Failed to load data</td></tr>');
         });
 }
 
@@ -452,7 +453,7 @@ function populateEntriesTable(entries) {
     let html = '';
     
     if (entries.length === 0) {
-        html = '<tr><td colspan="7" class="text-center text-muted">No entries found</td></tr>';
+        html = '<tr><td colspan="8" class="text-center text-muted">No entries found</td></tr>';
     } else {
         entries.forEach((entry, index) => {
             const statusClass = {
@@ -492,6 +493,7 @@ function populateEntriesTable(entries) {
                         </span>
                     </td>
                     <td class="test-date-cell">${testDate}</td>
+                    <td class="added-by-cell">${entry.added_by_username || entry.added_by || '-'}</td>
                     <td>
                         <div class="action-buttons">
                             <button class="btn btn-info btn-sm" onclick="viewEntry(${entry.id})" title="View Details">
@@ -732,18 +734,19 @@ function resetModalForm() {
 function exportEntries() {
     // Simple export functionality
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Sr No.,Entry ID,Patient Name,Test Name,Status,Test Date\n";
+    csvContent += "Sr No.,Entry ID,Patient Name,Test Name,Status,Test Date,Added By\n";
     
     $('#entriesTable tbody tr:visible').each(function() {
         const cells = $(this).find('td');
-        if (cells.length > 5) {
+        if (cells.length > 6) {
             const row = [
                 cells.eq(0).text(), // Sr No.
                 cells.eq(1).text().replace('#', ''), // Entry ID without badge
                 cells.eq(2).text(), // Patient Name
                 cells.eq(3).text(), // Test Name
                 cells.eq(4).find('.badge').text(), // Status
-                cells.eq(5).text() // Test Date
+                cells.eq(5).text(), // Test Date
+                cells.eq(6).text() // Added By
             ].join(',');
             csvContent += row + "\n";
         }
