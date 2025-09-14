@@ -1,11 +1,3 @@
-                            <div class="action-buttons">
-                            <button class="btn btn-info btn-sm" onclick="viewEntry(${entry.id})" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm delete-entry" data-id="${entry.id}" title="Delete Entry">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                            </div>
 <?php
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
@@ -121,7 +113,7 @@ require_once 'inc/sidebar.php';
                                         <label class="mr-2">Per page</label>
                                         <select id="entriesPerPage" class="form-control">
                                             <option value="10">10</option>
-                                            <option value="25">25</option>
+                                            <option value="25" selected>25</option>
                                             <option value="50">50</option>
                                         </select>
                                     </div>
@@ -327,7 +319,7 @@ require_once 'inc/sidebar.php';
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
                         <i class="fas fa-times"></i> Cancel
                     </button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="saveEntryBtn">
                         <i class="fas fa-save"></i> Save Entry
                     </button>
                 </div>
@@ -339,6 +331,9 @@ require_once 'inc/sidebar.php';
 <script>
 // Global variables
 let entriesTable;
+let allEntries = [];
+let currentPage = 1;
+let entriesPerPage = 25;
 
 // Initialize page
 $(document).ready(function() {
@@ -362,17 +357,14 @@ function initializeEventListeners() {
 
     // Clear search button
     $('#entriesSearchClear').click(function(e) {
-        $('#entriesTable tbody').html(html);
-        // Hide action buttons row if there are no entries
-        if (!entries || entries.length === 0) {
-            $('.action-buttons').remove();
-        }
-        applyEntriesFilters();
+        $('#entriesSearch').val('');
         applyEntriesFilters();
     });
 
     // Per page change
     $('#entriesPerPage').change(function() {
+        entriesPerPage = parseInt($(this).val());
+        currentPage = 1;
         applyEntriesFilters();
     });
 
@@ -383,6 +375,7 @@ function initializeEventListeners() {
 
     // Filter changes
     $('#statusFilter, #doctorFilter, #testFilter, #dateFromFilter, #dateToFilter').on('change', function() {
+        currentPage = 1;
         applyEntriesFilters();
     });
 }
@@ -405,6 +398,10 @@ function loadDropdownsForEntry() {
                 });
                 $('#entryPatient').html(options).trigger('change');
             }
+        })
+        .fail(function(xhr) {
+            const errorMsg = getErrorMessage(xhr);
+            showAlert('Failed to load patients: ' + errorMsg, 'error');
         });
 
     // Load doctors
@@ -415,20 +412,180 @@ function loadDropdownsForEntry() {
                 let filterOptions = '<option value="">All Doctors</option>';
                 response.data.forEach(doctor => {
                     options += `<option value="${doctor.id}">${doctor.name || 'Unknown'}</option>`;
-                    filterOptions += `<option value="${doctor.name}">${doctor.name}</option>`;
+                    filterOptions += `<option value="${doctor.id}">${doctor.name}</option>`;
                 });
                 $('#entryDoctor').html(options).trigger('change');
                 $('#doctorFilter').html(filterOptions);
             }
+        })
+        .fail(function(xhr) {
+            const errorMsg = getErrorMessage(xhr);
+            showAlert('Failed to load doctors: ' + errorMsg, 'error');
         });
 
     // Load tests
     $.get('ajax/test_api.php', { action: 'list', ajax: 1 })
         .done(function(response) {
             if (response.success) {
+                let options = '<option value="">Select Test</option>';
+                let filterOptions = '<option value="">All Tests</option>';
+                response.data.forEach(test => {
+                    options += `<option value="${test.id}">${test.name || 'Unknown'}</option>`;
+                    filterOptions += `<option value="${test.id}">${test.name}</option>`;
+                });
+                $('#entryTest').html(options).trigger('change');
+                $('#testFilter').html(filterOptions);
+            }
+        })
+        .fail(function(xhr) {
+            const errorMsg = getErrorMessage(xhr);
+            showAlert('Failed to load tests: ' + errorMsg, 'error');
+        });
+}
+
+function loadEntries() {
+    $.get('ajax/entry_api.php', { action: 'list', ajax: 1 })
+        .done(function(response) {
+            if (response.success) {
+                allEntries = response.data;
+                applyEntriesFilters();
+            } else {
+                showAlert('Error loading entries: ' + (response.message || 'Unknown error'), 'error');
+            }
+        })
+        .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
             showAlert('Failed to load entry data: ' + errorMsg, 'error');
         });
+}
+
+function applyEntriesFilters() {
+    const searchTerm = $('#entriesSearch').val().toLowerCase();
+    const statusFilter = $('#statusFilter').val();
+    const doctorFilter = $('#doctorFilter').val();
+    const testFilter = $('#testFilter').val();
+    const dateFrom = $('#dateFromFilter').val();
+    const dateTo = $('#dateToFilter').val();
+    
+    let filteredEntries = allEntries.filter(entry => {
+        // Search term filter
+        if (searchTerm && 
+            !((entry.patient_name || '').toLowerCase().includes(searchTerm)) &&
+            !((entry.doctor_name || '').toLowerCase().includes(searchTerm)) &&
+            !((entry.test_name || '').toLowerCase().includes(searchTerm)) &&
+            !(entry.id.toString().includes(searchTerm))) {
+            return false;
+        }
+        
+        // Status filter
+        if (statusFilter && entry.status !== statusFilter) {
+            return false;
+        }
+        
+        // Doctor filter
+        if (doctorFilter && entry.doctor_id != doctorFilter) {
+            return false;
+        }
+        
+        // Test filter
+        if (testFilter && entry.test_id != testFilter) {
+            return false;
+        }
+        
+        // Date range filter
+        if (dateFrom || dateTo) {
+            const entryDate = new Date(entry.entry_date || entry.created_at);
+            if (dateFrom && entryDate < new Date(dateFrom)) {
+                return false;
+            }
+            if (dateTo && entryDate > new Date(dateTo + 'T23:59:59')) {
+                return false;
+            }
+        }
+        
+        return true;
+    });
+    
+    renderEntriesTable(filteredEntries);
+}
+
+function renderEntriesTable(entries) {
+    const tbody = $('#entriesTable tbody');
+    tbody.empty();
+    
+    if (entries.length === 0) {
+        tbody.append('<tr><td colspan="7" class="text-center">No entries found</td></tr>');
+        return;
+    }
+    
+    // Calculate pagination
+    const startIndex = (currentPage - 1) * entriesPerPage;
+    const endIndex = Math.min(startIndex + entriesPerPage, entries.length);
+    const pageEntries = entries.slice(startIndex, endIndex);
+    
+    // Render entries
+    pageEntries.forEach((entry, index) => {
+        const serialNo = startIndex + index + 1;
+        const statusClass = getStatusBadgeClass(entry.status);
+        const statusText = formatStatus(entry.status);
+        const testDate = formatDate(entry.entry_date || entry.created_at);
+        const addedBy = entry.added_by_username || 'Unknown';
+        
+        const row = `
+            <tr>
+                <td class="sr-no-cell">${serialNo}</td>
+                <td><span class="entry-id-badge">${entry.id}</span></td>
+                <td><span class="patient-name-container">${entry.patient_name || 'N/A'}</span></td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td class="test-date-cell">${testDate}</td>
+                <td class="added-by-cell">${addedBy}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-info btn-sm" onclick="viewEntry(${entry.id})" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="editEntry(${entry.id})" title="Edit Entry">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm delete-entry" data-id="${entry.id}" title="Delete Entry">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+    
+    // Bind delete button events
+    $('.delete-entry').on('click', function() {
+        const id = $(this).data('id');
+        deleteEntry(id);
+    });
+}
+
+function getStatusBadgeClass(status) {
+    switch (status) {
+        case 'completed': return 'badge-success';
+        case 'pending': return 'badge-warning';
+        case 'cancelled': return 'badge-danger';
+        default: return 'badge-secondary';
+    }
+}
+
+function formatStatus(status) {
+    switch (status) {
+        case 'completed': return 'Completed';
+        case 'pending': return 'Pending';
+        case 'cancelled': return 'Cancelled';
+        default: return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
 }
 
 function viewEntry(id) {
@@ -451,24 +608,37 @@ function viewEntry(id) {
         });
 }
 
+function editEntry(id) {
+    $.get('ajax/entry_api.php', { action: 'get', id: id, ajax: 1 })
+        .done(function(response) {
+            if (response.success) {
+                const entry = response.data;
+                populateEntryForm(entry);
+                $('#modalTitle').text('Edit Test Entry');
+                $('#entryForm input, #entryForm textarea, #entryForm select').prop('disabled', false);
+                $('#saveEntryBtn').show();
+                $('#entryModal').modal('show');
+            } else {
+                showAlert('Error loading entry data: ' + (response.message || 'Entry not found'), 'error');
+            }
+        })
+        .fail(function(xhr) {
+            const errorMsg = getErrorMessage(xhr);
+            showAlert('Failed to load entry data: ' + errorMsg, 'error');
+        });
+}
+
 function populateEntryForm(entry) {
     $('#entryId').val(entry.id);
-    $('#entryPatient').val(entry.patient_id);
-    $('#entryDoctor').val(entry.doctor_id);
-    $('#entryTest').val(entry.test_id);
-    
-    // Convert server datetime to datetime-local format
-    const entryDate = entry.entry_date || '';
-    if (entryDate) {
-        const localDateTime = entryDate.replace(' ', 'T').slice(0, 16);
-        $('#entryDate').val(localDateTime);
-    } else {
-        $('#entryDate').val('');
-    }
-    
+    $('#entryPatient').val(entry.patient_id).trigger('change');
+    $('#entryDoctor').val(entry.doctor_id).trigger('change');
+    $('#entryTest').val(entry.test_id).trigger('change');
+    $('#entryDate').val(entry.entry_date ? entry.entry_date.split(' ')[0] : '');
     $('#entryResult').val(entry.result_value || '');
     $('#entryUnit').val(entry.unit || '');
     $('#entryStatus').val(entry.status || 'pending');
+    $('#entryAmount').val(entry.amount || '');
+    $('#entryDiscount').val(entry.discount || '');
     $('#entryNotes').val(entry.remarks || '');
 }
 
@@ -497,7 +667,8 @@ function saveEntryData() {
             }
         })
         .fail(function(xhr) {
-            handleAjaxError(xhr, 'save entry');
+            const errorMsg = getErrorMessage(xhr);
+            toastr.error('Failed to save entry: ' + errorMsg);
         })
         .always(function() {
             submitBtn.html(originalText).prop('disabled', false);
@@ -512,21 +683,169 @@ function deleteEntry(id) {
     $.post('ajax/entry_api.php', { action: 'delete', id: id, ajax: 1 })
         .done(function(response) {
             if (response.success) {
-                showAlert('Entry deleted successfully!', 'success');
+                toastr.success('Entry deleted successfully!');
                 loadEntries();
                 loadStats();
             } else {
-                showAlert('Error deleting entry: ' + (response.message || 'Delete failed'), 'error');
+                toastr.error('Error deleting entry: ' + (response.message || 'Delete failed'));
             }
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
-            showAlert('Failed to delete entry: ' + errorMsg, 'error');
+            toastr.error('Failed to delete entry: ' + errorMsg);
         });
+}
+
+function clearFilters() {
+    $('#statusFilter').val('');
+    $('#doctorFilter').val('');
+    $('#testFilter').val('');
+    $('#dateFromFilter').val('');
+    $('#dateToFilter').val('');
+    $('#entriesSearch').val('');
+    currentPage = 1;
+    applyEntriesFilters();
+}
+
+function loadStats() {
+    $.get('ajax/entry_api.php', { action: 'stats', ajax: 1 })
+        .done(function(response) {
+            if (response.success) {
+                const stats = response.data;
+                $('#totalEntries').text(stats.total || 0);
+                $('#pendingEntries').text(stats.pending || 0);
+                $('#completedEntries').text(stats.completed || 0);
+                $('#todayEntries').text(stats.today || 0);
+            }
+        })
+        .fail(function() {
+            console.error('Failed to load entry statistics');
+        });
+}
+
+function exportEntries() {
+    // Simple CSV export of current filtered data
+    const searchTerm = $('#entriesSearch').val().toLowerCase();
+    const statusFilter = $('#statusFilter').val();
+    const doctorFilter = $('#doctorFilter').val();
+    const testFilter = $('#testFilter').val();
+    const dateFrom = $('#dateFromFilter').val();
+    const dateTo = $('#dateToFilter').val();
+    
+    let filteredEntries = allEntries.filter(entry => {
+        // Apply same filters as in applyEntriesFilters
+        if (searchTerm && 
+            !((entry.patient_name || '').toLowerCase().includes(searchTerm)) &&
+            !((entry.doctor_name || '').toLowerCase().includes(searchTerm)) &&
+            !((entry.test_name || '').toLowerCase().includes(searchTerm)) &&
+            !(entry.id.toString().includes(searchTerm))) {
+            return false;
+        }
+        
+        if (statusFilter && entry.status !== statusFilter) {
+            return false;
+        }
+        
+        if (doctorFilter && entry.doctor_id != doctorFilter) {
+            return false;
+        }
+        
+        if (testFilter && entry.test_id != testFilter) {
+            return false;
+        }
+        
+        if (dateFrom || dateTo) {
+            const entryDate = new Date(entry.entry_date || entry.created_at);
+            if (dateFrom && entryDate < new Date(dateFrom)) {
+                return false;
+            }
+            if (dateTo && entryDate > new Date(dateTo + 'T23:59:59')) {
+                return false;
+            }
+        }
+        
+        return true;
+    });
+    
+    if (filteredEntries.length === 0) {
+        toastr.warning('No entries to export');
+        return;
+    }
+    
+    // Create CSV content
+    const headers = ['ID', 'Patient Name', 'Doctor Name', 'Test Name', 'Status', 'Entry Date', 'Added By'];
+    let csvContent = headers.join(',') + '\n';
+    
+    filteredEntries.forEach(entry => {
+        const row = [
+            entry.id,
+            `"${(entry.patient_name || 'N/A').replace(/"/g, '""')}"`,
+            `"${(entry.doctor_name || 'N/A').replace(/"/g, '""')}"`,
+            `"${(entry.test_name || 'N/A').replace(/"/g, '""')}"`,
+            entry.status,
+            entry.entry_date || entry.created_at || 'N/A',
+            entry.added_by_username || 'N/A'
+        ];
+        csvContent += row.join(',') + '\n';
+    });
+    
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `test_entries_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function validateModalForm(formId) {
+    let isValid = true;
+    const form = $('#' + formId);
+    
+    // Reset validation states
+    form.find('.is-invalid').removeClass('is-invalid');
+    
+    // Check required fields
+    form.find('[required]').each(function() {
+        if (!$(this).val()) {
+            $(this).addClass('is-invalid');
+            isValid = false;
+        }
+    });
+    
+    if (!isValid) {
+        toastr.error('Please fill in all required fields');
+    }
+    
+    return isValid;
+}
+
+function resetModalForm() {
+    $('#entryForm')[0].reset();
+    $('#entryForm input, #entryForm textarea, #entryForm select').prop('disabled', false);
+    $('#entryForm .is-invalid').removeClass('is-invalid');
+    $('#modalTitle').text('Add New Test Entry');
+    $('#saveEntryBtn').show();
+    $('.select2').trigger('change');
+}
+
+function getErrorMessage(xhr) {
+    try {
+        const response = JSON.parse(xhr.responseText);
+        return response.message || response.error || xhr.statusText;
+    } catch (e) {
+        return xhr.statusText || 'Unknown error';
+    }
 }
 
 // Event handlers using delegation
 $(document).on('click', '.edit-entry', function() {
+    const id = $(this).data('id');
+    editEntry(id);
+});
+</script>
 
-<!-- Entry Modal removed -->
 <?php require_once 'inc/footer.php'; ?>
