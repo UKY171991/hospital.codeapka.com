@@ -15,7 +15,7 @@ try {
         LEFT JOIN patients p ON e.patient_id = p.id 
         LEFT JOIN tests t ON e.test_id = t.id 
         LEFT JOIN doctors d ON e.doctor_id = d.id 
-        ORDER BY COALESCE(e.test_date, e.entry_date, e.created_at) DESC, e.id DESC 
+        ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC 
         LIMIT 5";
     
     $stmt = $pdo->query($sql);

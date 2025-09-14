@@ -39,7 +39,7 @@ try {
             $stats['completed'] = (int) $stmt->fetchColumn();
             
             // Today's entries - try both date fields
-            $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE DATE(COALESCE(test_date, entry_date, created_at)) = CURDATE()");
+            $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE DATE(COALESCE(entry_date, created_at)) = CURDATE()");
             $stats['today'] = (int) $stmt->fetchColumn();
             
         } catch (Exception $e) {
@@ -61,7 +61,7 @@ try {
             LEFT JOIN tests t ON e.test_id = t.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
             LEFT JOIN users u ON e.added_by = u.id
-            ORDER BY COALESCE(e.test_date, e.entry_date, e.created_at) DESC, e.id DESC";
+            ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
         
         $stmt = $pdo->query($sql);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -69,8 +69,8 @@ try {
         // Format data for frontend compatibility
         foreach ($rows as &$row) {
             // Ensure entry_date is available for frontend
-            if (empty($row['entry_date']) && !empty($row['test_date'])) {
-                $row['entry_date'] = $row['test_date'];
+            if (empty($row['entry_date'])) {
+                $row['entry_date'] = $row['created_at'];
             }
             // Ensure unit field exists
             if (empty($row['unit']) && !empty($row['units'])) {
@@ -107,8 +107,8 @@ try {
         }
         
         // Ensure compatibility fields
-        if (empty($row['entry_date']) && !empty($row['test_date'])) {
-            $row['entry_date'] = $row['test_date'];
+        if (empty($row['entry_date'])) {
+            $row['entry_date'] = $row['created_at'];
         }
         if (empty($row['unit']) && !empty($row['units'])) {
             $row['unit'] = $row['units'];
@@ -136,9 +136,8 @@ try {
         $doctor_id = $input['doctor_id'] ?? null;
         $test_id = $input['test_id'] ?? null;
         
-        // Handle both old and new schema fields
+        // Handle date fields
         $entry_date = $input['entry_date'] ?? null;
-        $test_date = $input['test_date'] ?? $entry_date ?? date('Y-m-d');
         $reported_date = $input['reported_date'] ?? date('Y-m-d H:i:s');
         $result_value = trim($input['result'] ?? $input['result_value'] ?? '');
         $result_status = $input['result_status'] ?? 'normal';
@@ -154,8 +153,8 @@ try {
 
         if ($id) {
             // Update
-            $stmt = $pdo->prepare('UPDATE entries SET patient_id=?, doctor_id=?, test_id=?, entry_date=?, test_date=?, reported_date=?, result_value=?, result_status=?, unit=?, remarks=?, status=?, added_by=? WHERE id=?');
-            $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $test_date, $reported_date, $result_value, $result_status, $unit, $remarks, $status, $added_by, $id]);
+            $stmt = $pdo->prepare('UPDATE entries SET patient_id=?, doctor_id=?, test_id=?, entry_date=?, reported_date=?, result_value=?, result_status=?, unit=?, remarks=?, status=?, added_by=? WHERE id=?');
+            $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $reported_date, $result_value, $result_status, $unit, $remarks, $status, $added_by, $id]);
             
             // Fetch updated entry
             $stmt = $pdo->prepare('SELECT e.*, p.name AS patient_name, t.name AS test_name, d.name AS doctor_name FROM entries e LEFT JOIN patients p ON e.patient_id = p.id LEFT JOIN tests t ON e.test_id = t.id LEFT JOIN doctors d ON e.doctor_id = d.id WHERE e.id = ?');
@@ -165,8 +164,8 @@ try {
             json_response(['success' => true, 'message' => 'Entry updated successfully', 'data' => $saved_entry]);
         } else {
             // Create
-            $stmt = $pdo->prepare('INSERT INTO entries (patient_id, doctor_id, test_id, entry_date, test_date, reported_date, result_value, result_status, unit, remarks, status, added_by, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,NOW())');
-            $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $test_date, $reported_date, $result_value, $result_status, $unit, $remarks, $status, $added_by]);
+            $stmt = $pdo->prepare('INSERT INTO entries (patient_id, doctor_id, test_id, entry_date, reported_date, result_value, result_status, unit, remarks, status, added_by, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,NOW())');
+            $stmt->execute([$patient_id, $doctor_id, $test_id, $entry_date, $reported_date, $result_value, $result_status, $unit, $remarks, $status, $added_by]);
             
             $entry_id = $pdo->lastInsertId();
             
