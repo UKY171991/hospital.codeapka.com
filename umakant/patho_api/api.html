@@ -881,14 +881,14 @@
             {
                 name: 'Entry API',
                 file: 'entry.php',
-                description: 'Manage test entries with patient results, reference ranges, and reporting',
+                description: 'Comprehensive test entry management with 8-column table display (Sr No., Entry ID, Test Date, Patient Name, Status, Doctor, Remarks, Actions)',
                 baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/entry.php',
                 endpoints: [
                     {
                         action: 'list',
                         method: 'GET',
                         url: '?action=list',
-                        description: 'Get all test entries with patient and test details',
+                        description: 'Get all test entries with enriched data for 8-column table display',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-Api-Key': 'hospital-api-secret-2024'
@@ -897,32 +897,35 @@
                             'patient_id': 1,
                             'test_id': 2,
                             'doctor_id': 3,
-                            'status': 'active',
-                            'test_date_from': '2025-09-01',
-                            'test_date_to': '2025-09-30'
+                            'status': 'pending|completed|failed',
+                            'entry_date_from': '2025-09-01',
+                            'entry_date_to': '2025-09-30'
                         },
                         response: {
                             'success': true,
                             'data': [
                                 {
-                                    'id': 1,
+                                    'id': 20,
                                     'patient_id': 1,
-                                    'test_id': 2,
+                                    'doctor_id': 2,
+                                    'test_id': 3,
+                                    'entry_date': '2025-09-14 11:23:00',
                                     'result_value': '5.6',
-                                    'result_status': 'normal',
-                                    'remarks': 'No issues detected',
-                                    'test_date': '2025-09-10',
-                                    'reported_date': '2025-09-10 14:30:00',
-                                    'doctor_id': 1,
-                                    'status': 'active',
-                                    'patient_name': 'John Doe',
-                                    'uhid': 'P001',
+                                    'unit': 'mg/dL',
+                                    'remarks': 'Fasting blood sugar test',
+                                    'status': 'pending',
+                                    'added_by': 1,
+                                    'created_at': '2025-09-14 11:23:00',
+                                    'grouped': 0,
+                                    'tests_count': 1,
+                                    'test_ids': '["3"]',
+                                    'test_names': '["Blood Sugar"]',
+                                    'test_results': '["5.6"]',
+                                    'patient_name': 'test alk',
+                                    'patient_uhid': 'UHID001',
+                                    'doctor_name': 'Dr. Smith',
                                     'test_name': 'Blood Sugar',
-                                    'units': 'mg/dL',
-                                    'normal_value_male': '70-100 mg/dL',
-                                    'normal_value_female': '70-100 mg/dL',
-                                    'normal_value_child': '60-100 mg/dL',
-                                    'doctor_name': 'Dr. Smith'
+                                    'added_by_username': 'admin'
                                 }
                             ],
                             'total': 1
@@ -931,8 +934,8 @@
                     {
                         action: 'get',
                         method: 'GET',
-                        url: '?action=get&id=1',
-                        description: 'Get single entry by ID with complete details',
+                        url: '?action=get&id=20',
+                        description: 'Get single entry by ID with all database fields and enriched data',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-Api-Key': 'hospital-api-secret-2024'
@@ -940,26 +943,27 @@
                         response: {
                             'success': true,
                             'data': {
-                                'id': 1,
+                                'id': 20,
                                 'patient_id': 1,
-                                'test_id': 2,
+                                'doctor_id': 2,
+                                'test_id': 3,
+                                'entry_date': '2025-09-14 11:23:00',
                                 'result_value': '5.6',
-                                'result_status': 'normal',
-                                'remarks': 'No issues detected',
-                                'test_date': '2025-09-10',
-                                'reported_date': '2025-09-10 14:30:00',
-                                'doctor_id': 1,
-                                'status': 'active',
-                                'patient_name': 'John Doe',
-                                'uhid': 'P001',
-                                'age': 35,
-                                'gender': 'Male',
+                                'unit': 'mg/dL',
+                                'remarks': 'Fasting blood sugar test',
+                                'status': 'pending',
+                                'added_by': 1,
+                                'created_at': '2025-09-14 11:23:00',
+                                'grouped': 0,
+                                'tests_count': 1,
+                                'test_ids': '["3"]',
+                                'test_names': '["Blood Sugar"]',
+                                'test_results': '["5.6"]',
+                                'patient_name': 'test alk',
+                                'patient_uhid': 'UHID001',
+                                'doctor_name': 'Dr. Smith',
                                 'test_name': 'Blood Sugar',
-                                'units': 'mg/dL',
-                                'normal_value_male': '70-100 mg/dL',
-                                'normal_value_female': '70-100 mg/dL',
-                                'normal_value_child': '60-100 mg/dL',
-                                'doctor_name': 'Dr. Smith'
+                                'added_by_username': 'admin'
                             }
                         }
                     },
@@ -967,35 +971,41 @@
                         action: 'save',
                         method: 'POST',
                         url: '?action=save',
-                        description: 'Create or update test entry',
+                        description: 'Create or update test entry with all database fields',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
+                            'id': '',
                             'patient_id': 1,
-                            'test_id': 2,
-                            'doctor_id': 1,
-                            'entry_date': '2025-09-10 15:00:00',
-                            'test_date': '2025-09-10',
-                            'reported_date': '2025-09-10 15:00:00',
+                            'doctor_id': 2,
+                            'test_id': 3,
+                            'entry_date': '2025-09-14 15:00:00',
                             'result_value': '95.5',
-                            'result_status': 'normal',
                             'unit': 'mg/dL',
                             'remarks': 'Fasting blood sugar within normal range',
-                            'status': 'active',
-                            'added_by': 1
+                            'status': 'completed',
+                            'grouped': 0,
+                            'tests_count': 1,
+                            'test_ids': '["3"]',
+                            'test_names': '["Blood Sugar"]',
+                            'test_results': '["95.5"]'
                         },
                         response: {
                             'success': true,
-                            'message': 'Entry created successfully',
+                            'message': 'Entry saved successfully',
                             'data': {
-                                'id': 2,
+                                'id': 21,
                                 'patient_id': 1,
-                                'test_id': 2,
+                                'doctor_id': 2,
+                                'test_id': 3,
+                                'entry_date': '2025-09-14 15:00:00',
                                 'result_value': '95.5',
-                                'result_status': 'normal',
-                                'patient_name': 'John Doe',
+                                'unit': 'mg/dL',
+                                'remarks': 'Fasting blood sugar within normal range',
+                                'status': 'completed',
+                                'patient_name': 'test alk',
                                 'test_name': 'Blood Sugar',
                                 'doctor_name': 'Dr. Smith'
                             }
@@ -1005,17 +1015,176 @@
                         action: 'delete',
                         method: 'POST',
                         url: '?action=delete',
-                        description: 'Delete entry by ID',
+                        description: 'Delete entry by ID (Admin/Master only)',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
-                            'id': 2
+                            'id': 21
                         },
                         response: {
                             'success': true,
                             'message': 'Entry deleted successfully'
+                        }
+                    },
+                    {
+                        action: 'stats',
+                        method: 'GET',
+                        url: '?action=stats',
+                        description: 'Get entry statistics for dashboard',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'status': 'success',
+                            'data': {
+                                'total': 25,
+                                'pending': 5,
+                                'completed': 18,
+                                'today': 3
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                name: 'AJAX Entry API',
+                file: 'ajax/entry_api.php',
+                description: 'Frontend entry API used by entry-list.php with 8-column table support and dashboard statistics',
+                baseUrl: 'https://hospital.codeapka.com/umakant/ajax/entry_api.php',
+                endpoints: [
+                    {
+                        action: 'list',
+                        method: 'GET',
+                        url: '?action=list&ajax=1',
+                        description: 'Get all entries for frontend table display with enriched data',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        queryParams: {
+                            'ajax': 1
+                        },
+                        response: {
+                            'success': true,
+                            'data': [
+                                {
+                                    'id': 20,
+                                    'patient_id': 1,
+                                    'doctor_id': 2,
+                                    'test_id': 3,
+                                    'entry_date': '2025-09-14 11:23:00',
+                                    'result_value': '5.6',
+                                    'unit': 'mg/dL',
+                                    'remarks': 'Fasting blood sugar test',
+                                    'status': 'pending',
+                                    'added_by': 1,
+                                    'created_at': '2025-09-14 11:23:00',
+                                    'patient_name': 'test alk',
+                                    'patient_uhid': 'UHID001',
+                                    'doctor_name': 'Dr. Smith',
+                                    'test_name': 'Blood Sugar',
+                                    'added_by_username': 'admin'
+                                }
+                            ],
+                            'total': 1
+                        }
+                    },
+                    {
+                        action: 'stats',
+                        method: 'GET',
+                        url: '?action=stats',
+                        description: 'Get dashboard statistics (Total, Pending, Completed, Today)',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        response: {
+                            'success': true,
+                            'status': 'success',
+                            'data': {
+                                'total': 25,
+                                'pending': 5,
+                                'completed': 18,
+                                'today': 3
+                            }
+                        }
+                    },
+                    {
+                        action: 'get',
+                        method: 'GET',
+                        url: '?action=get&id=20&ajax=1',
+                        description: 'Get single entry for editing/viewing',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        queryParams: {
+                            'id': 20,
+                            'ajax': 1
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'id': 20,
+                                'patient_id': 1,
+                                'doctor_id': 2,
+                                'test_id': 3,
+                                'entry_date': '2025-09-14 11:23:00',
+                                'result_value': '5.6',
+                                'unit': 'mg/dL',
+                                'remarks': 'Fasting blood sugar test',
+                                'status': 'pending',
+                                'patient_name': 'test alk',
+                                'test_name': 'Blood Sugar',
+                                'doctor_name': 'Dr. Smith'
+                            }
+                        }
+                    },
+                    {
+                        action: 'save',
+                        method: 'POST',
+                        url: '?action=save',
+                        description: 'Create or update entry (Admin/Master only)',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: {
+                            'patient_id': 1,
+                            'doctor_id': 2,
+                            'test_id': 3,
+                            'entry_date': '2025-09-14 15:00:00',
+                            'result_value': '95.5',
+                            'unit': 'mg/dL',
+                            'remarks': 'Fasting blood sugar within normal range',
+                            'status': 'completed'
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Entry saved successfully',
+                            'data': {
+                                'id': 21,
+                                'patient_id': 1,
+                                'test_id': 3,
+                                'result_value': '95.5',
+                                'status': 'completed'
+                            }
+                        }
+                    },
+                    {
+                        action: 'delete',
+                        method: 'POST',
+                        url: '?action=delete',
+                        description: 'Delete entry by ID (Admin/Master only)',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: {
+                            'id': 21
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Entry deleted'
                         }
                     }
                 ]

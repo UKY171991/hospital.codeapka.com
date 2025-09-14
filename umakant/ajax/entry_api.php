@@ -48,7 +48,7 @@ try {
         }
         
         json_response(['success' => true, 'status' => 'success', 'data' => $stats]);
-    }    if ($action === 'list') {
+    } else if ($action === 'list') {
         // Updated to match new schema with comprehensive data
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
@@ -177,11 +177,13 @@ try {
             
             json_response(['success' => true, 'message' => 'Entry created successfully', 'data' => $saved_entry]);
         }
-    }    if ($action === 'delete' && isset($_POST['id'])) {
-    if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) json_response(['success'=>false,'message'=>'Unauthorized'],401);
-    $stmt = $pdo->prepare('DELETE FROM entries WHERE id = ?');
-    $stmt->execute([$_POST['id']]);
-        json_response(['success'=>true,'message'=>'Entry deleted']);
+    } else if ($action === 'delete' && isset($_POST['id'])) {
+        if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) {
+            json_response(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        $stmt = $pdo->prepare('DELETE FROM entries WHERE id = ?');
+        $stmt->execute([$_POST['id']]);
+        json_response(['success' => true, 'message' => 'Entry deleted']);
     }
 
     json_response(['success'=>false,'message'=>'Invalid action'],400);
