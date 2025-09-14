@@ -150,14 +150,14 @@ function bulkExportUsers() {
     
     // Simple CSV export
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "ID,Username,Email,Full Name,Role\n";
+    csvContent += "ID,Username,Email,Full Name,Role,User Type\n";
     
     selectedIds.forEach(id => {
         const row = $(`input[value="${id}"]`).closest('tr');
         const cells = row.find('td');
             if (cells.length > 1) {
-            // Updated indexes after removing Status column: id=1, username=2, email=3, full_name=4, role=5
-            csvContent += `${cells.eq(1).text()},${cells.eq(2).find('.font-weight-bold').text()},${cells.eq(3).text()},${cells.eq(4).text()},${cells.eq(5).find('.badge').text()}\n`;
+            // columns: checkbox(0), id(1), username(2), email(3), full_name(4), role(5), user_type(6), expire_date(7)
+            csvContent += `${cells.eq(1).text()},${cells.eq(2).find('.font-weight-bold').text()},${cells.eq(3).text()},${cells.eq(4).text()},${cells.eq(5).find('.badge').text()},${cells.eq(6).find('.badge').text()}\n`;
         }
     });
     
@@ -228,8 +228,8 @@ function bulkDeleteUsers() {
  * Load users from the server
  */
 function loadUsers() {
-    // Show loading indicator
-    $('#usersTable tbody').html('<tr><td colspan="8" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
+    // Show loading indicator (updated colspan to account for User Type column)
+    $('#usersTable tbody').html('<tr><td colspan="9" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
 
     $.get('ajax/user_api.php', { action: 'list' })
         .done(function(response) {
@@ -238,13 +238,13 @@ function loadUsers() {
                 updateStats();
             } else {
                 showAlert('Failed to load users: ' + (response.message || 'Unknown error'), 'error');
-                $('#usersTable tbody').html('<tr><td colspan="8" class="text-center text-danger">Failed to load data</td></tr>');
+                $('#usersTable tbody').html('<tr><td colspan="9" class="text-center text-danger">Failed to load data</td></tr>');
             }
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
             showAlert('Failed to load users: ' + errorMsg, 'error');
-            $('#usersTable tbody').html('<tr><td colspan="8" class="text-center text-danger">Failed to load data</td></tr>');
+            $('#usersTable tbody').html('<tr><td colspan="9" class="text-center text-danger">Failed to load data</td></tr>');
         });
 }
 
@@ -255,7 +255,7 @@ function populateUsersTable(users) {
     let html = '';
     
     if (users.length === 0) {
-        html = '<tr><td colspan="8" class="text-center text-muted">No users found</td></tr>';
+        html = '<tr><td colspan="9" class="text-center text-muted">No users found</td></tr>';
     } else {
         users.forEach(user => {
             // Handle expire date styling
@@ -306,6 +306,9 @@ function populateUsersTable(users) {
                     <td>${user.full_name || '-'}</td>
                     <td>
                         ${user.role ? `<span class="badge badge-info">${user.role}</span>` : '-'}
+                    </td>
+                    <td>
+                        ${user.user_type ? `<span class="badge badge-secondary">${user.user_type}</span>` : '-'}
                     </td>
                     <td class="${expireDateClass}">${formatDateTime(expireDate) || '-'}</td>
                     <td>
@@ -466,14 +469,23 @@ function populateViewUserModal(user) {
             </div>
             
             <div class="col-md-6">
-                <div class="info-group">
-                    <label class="info-label">
-                        <i class="fas fa-shield-alt mr-2"></i>Role
-                    </label>
-                    <div class="info-value">
-                        <span class="badge badge-${roleColor[user.role] || 'secondary'}">${user.role || 'Unknown'}</span>
+                    <div class="info-group">
+                        <label class="info-label">
+                            <i class="fas fa-shield-alt mr-2"></i>Role
+                        </label>
+                        <div class="info-value">
+                            <span class="badge badge-${roleColor[user.role] || 'secondary'}">${user.role || 'Unknown'}</span>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="info-group">
+                        <label class="info-label">
+                            <i class="fas fa-building mr-2"></i>User Type
+                        </label>
+                        <div class="info-value">
+                            ${user.user_type || 'Not set'}
+                        </div>
+                    </div>
                 
                 <div class="info-group">
                     <label class="info-label">
@@ -569,6 +581,7 @@ function populateUserForm(user) {
     $('#userFullName').val(user.full_name);
     $('#userEmail').val(user.email);
     $('#userRole').val(user.role);
+    $('#userType').val(user.user_type || 'Pathology');
     $('#userIsActive').val(user.is_active ? 1 : 0);
     
     // Convert server datetime to datetime-local format

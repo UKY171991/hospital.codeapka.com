@@ -124,6 +124,7 @@ require_once 'inc/sidebar.php';
                                         <th>Email</th>
                                         <th>Full Name</th>
                                         <th>Role</th>
+                                        <th>User Type</th>
                                         <th>Expire Date</th>
                                         <th width="120">Actions</th>
                                     </tr>
@@ -198,6 +199,14 @@ require_once 'inc/sidebar.php';
                                             echo "<option value=\"user\">User</option>";
                                         }
                                         ?>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="userType">User Type *</label>
+                                    <select class="form-control" id="userType" name="user_type" required>
+                                        <option value="Pathology">Pathology</option>
+                                        <option value="Hospital">Hospital</option>
+                                        <option value="School">School</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
