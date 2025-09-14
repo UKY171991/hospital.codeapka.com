@@ -60,7 +60,7 @@ if ($action === 'list') {
     $orderBy = " ORDER BY id DESC";
     $limit = " LIMIT $start, $length";
     
-    $dataQuery = "SELECT id, username, email, full_name, role, added_by, is_active, last_login, expire_date " . 
+    $dataQuery = "SELECT id, username, email, full_name, role, user_type, added_by, is_active, last_login, expire_date " . 
                   $baseQuery . $whereClause . $orderBy . $limit;
     
     $dataStmt = $pdo->prepare($dataQuery);
@@ -80,7 +80,7 @@ if ($action === 'list') {
 if ($action === 'get' && isset($_GET['id'])) {
     $viewerRole = $_SESSION['role'] ?? 'user';
     $viewerId = $_SESSION['user_id'] ?? null;
-    $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, added_by, is_active, last_login, expire_date FROM users WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, user_type, added_by, is_active, last_login, expire_date FROM users WHERE id = ?');
     $stmt->execute([$_GET['id']]);
     $row = $stmt->fetch();
     if (!$row) json_response(['success' => false, 'message' => 'User not found'],404);
@@ -102,6 +102,7 @@ if ($action === 'save') {
     $full_name = trim($_POST['full_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $role = $_POST['role'] ?? 'user';
+    $user_type = $_POST['user_type'] ?? 'Pathology';
     $is_active = isset($_POST['is_active']) ? (int)$_POST['is_active'] : 0;
     // allow optional added_by from form (but fallback to session user)
     $creatorId = isset($_POST['added_by']) && is_numeric($_POST['added_by']) ? (int)$_POST['added_by'] : ($_SESSION['user_id']);
@@ -113,22 +114,22 @@ if ($action === 'save') {
         // update (only change password if provided)
         if (!empty($password)) {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare('UPDATE users SET username=?, password=?, full_name=?, email=?, role=?, is_active=?, added_by=?, last_login=?, expire_date=? WHERE id=?');
-            $stmt->execute([$username, $hash, $full_name, $email, $role, $is_active, $creatorId, $last_login ?: null, $expire_date ?: null, $id]);
+            $stmt = $pdo->prepare('UPDATE users SET username=?, password=?, full_name=?, email=?, role=?, user_type=?, is_active=?, added_by=?, last_login=?, expire_date=? WHERE id=?');
+            $stmt->execute([$username, $hash, $full_name, $email, $role, $user_type, $is_active, $creatorId, $last_login ?: null, $expire_date ?: null, $id]);
         } else {
-            $stmt = $pdo->prepare('UPDATE users SET username=?, full_name=?, email=?, role=?, is_active=?, added_by=?, last_login=?, expire_date=? WHERE id=?');
-            $stmt->execute([$username, $full_name, $email, $role, $is_active, $creatorId, $last_login ?: null, $expire_date ?: null, $id]);
+            $stmt = $pdo->prepare('UPDATE users SET username=?, full_name=?, email=?, role=?, user_type=?, is_active=?, added_by=?, last_login=?, expire_date=? WHERE id=?');
+            $stmt->execute([$username, $full_name, $email, $role, $user_type, $is_active, $creatorId, $last_login ?: null, $expire_date ?: null, $id]);
         }
         json_response(['success' => true, 'message' => 'User updated']);
     } else {
         // create
         $hash = password_hash($password ?: 'password', PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare('INSERT INTO users (username, password, full_name, email, role, added_by, is_active, last_login, expire_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())');
-        $stmt->execute([$username, $hash, $full_name, $email, $role, $creatorId, $is_active, $last_login ?: null, $expire_date ?: null]);
+    $stmt = $pdo->prepare('INSERT INTO users (username, password, full_name, email, role, user_type, added_by, is_active, last_login, expire_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())');
+    $stmt->execute([$username, $hash, $full_name, $email, $role, $user_type, $creatorId, $is_active, $last_login ?: null, $expire_date ?: null]);
         
         // Get the newly inserted record
         $newId = $pdo->lastInsertId();
-        $stmt = $pdo->prepare('SELECT id, username, full_name, email, role, is_active FROM users WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT id, username, full_name, email, role, user_type, is_active FROM users WHERE id = ?');
         $stmt->execute([$newId]);
         $newRecord = $stmt->fetch();
         

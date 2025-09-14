@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'] ?? '';
     $full_name = trim($_POST['full_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
+    $user_type = trim($_POST['user_type'] ?? 'Pathology');
 
     if ($username == '' || $password == '') {
         $error = 'Username and password are required.';
@@ -32,8 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             } else {
                 $hash = password_hash($password, PASSWORD_DEFAULT);
                 // Insert with explicit columns that exist in the users table (match table structure)
-                $insert = $pdo->prepare("INSERT INTO users (username, password, full_name, email, role, added_by, is_active, created_at) VALUES (?, ?, ?, ?, 'user', NULL, 1, NOW())");
-                $res = $insert->execute([$username, $hash, $full_name, $email]);
+                // Set expire_date to one month from now
+                $insert = $pdo->prepare("INSERT INTO users (username, password, full_name, email, role, user_type, added_by, is_active, expire_date, created_at) VALUES (?, ?, ?, ?, 'user', ?, NULL, 1, DATE_ADD(NOW(), INTERVAL 1 MONTH), NOW())");
+                $res = $insert->execute([$username, $hash, $full_name, $email, $user_type]);
                 if ($res) {
                     $success = 'Registration successful. You can now login.';
                 } else {
@@ -123,6 +125,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <span class="fas fa-lock"></span>
                         </div>
                     </div>
+                </div>
+                <div class="input-group mb-3">
+                    <select class="form-control" name="user_type">
+                        <option value="Pathology" <?php echo (isset($user_type) && $user_type === 'Pathology') ? 'selected' : ''; ?>>Pathology</option>
+                        <option value="Hospital" <?php echo (isset($user_type) && $user_type === 'Hospital') ? 'selected' : ''; ?>>Hospital</option>
+                        <option value="School" <?php echo (isset($user_type) && $user_type === 'School') ? 'selected' : ''; ?>>School</option>
+                    </select>
                 </div>
                 <div class="row">
                     <div class="col-8">
