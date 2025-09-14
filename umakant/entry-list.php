@@ -1,3 +1,11 @@
+                            <div class="action-buttons">
+                            <button class="btn btn-info btn-sm" onclick="viewEntry(${entry.id})" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm delete-entry" data-id="${entry.id}" title="Delete Entry">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            </div>
 <?php
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
@@ -85,9 +93,6 @@ require_once 'inc/sidebar.php';
                                 Test Entry Management
                             </h3>
                             <div class="card-tools">
-                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#entryModal" onclick="openAddEntryModal()">
-                                    <i class="fas fa-plus"></i> New Entry
-                                </button>
                                 <button type="button" class="btn btn-success btn-sm" onclick="exportEntries()">
                                     <i class="fas fa-download"></i> Export
                                 </button>
@@ -417,146 +422,6 @@ function loadDropdownsForEntry() {
     $.get('ajax/test_api.php', { action: 'list', ajax: 1 })
         .done(function(response) {
             if (response.success) {
-                let options = '<option value="">Select Test</option>';
-                let filterOptions = '<option value="">All Tests</option>';
-                response.data.forEach(test => {
-                    options += `<option value="${test.id}">${test.name || 'Unknown'}</option>`;
-                    filterOptions += `<option value="${test.name}">${test.name}</option>`;
-                });
-                $('#entryTest').html(options).trigger('change');
-                $('#testFilter').html(filterOptions);
-            }
-        });
-}
-
-function loadEntries() {
-    $('#entriesTable tbody').html('<tr><td colspan="8" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
-    
-    $.get('ajax/entry_api.php', { action: 'list', ajax: 1 })
-        .done(function(response) {
-            if (response.success) {
-                populateEntriesTable(response.data);
-            } else {
-                showAlert('Failed to load entries: ' + (response.message || 'Unknown error'), 'error');
-                $('#entriesTable tbody').html('<tr><td colspan="8" class="text-center text-danger">Failed to load data</td></tr>');
-            }
-        })
-        .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
-            showAlert('Failed to load entries: ' + errorMsg, 'error');
-            $('#entriesTable tbody').html('<tr><td colspan="8" class="text-center text-danger">Failed to load data</td></tr>');
-        });
-}
-
-function populateEntriesTable(entries) {
-    let html = '';
-    
-    if (entries.length === 0) {
-        html = '<tr><td colspan="8" class="text-center text-muted">No entries found</td></tr>';
-    } else {
-        entries.forEach((entry, index) => {
-            const statusClass = {
-                'pending': 'warning',
-                'completed': 'success',
-                'failed': 'danger',
-                'cancelled': 'danger',
-                'active': 'success',
-                'inactive': 'secondary'
-            };
-            
-            // Format test date as DD/MM/YYYY
-            let testDate = '-';
-            if (entry.entry_date) {
-                const date = new Date(entry.entry_date);
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                testDate = `${day}/${month}/${year}`;
-            }
-            
-            html += `
-                <tr>
-                    <td class="sr-no-cell">${index + 1}</td>
-                    <td>
-                        <span class="entry-id-badge">#${entry.id}</span>
-                    </td>
-                    <td>
-                        <div class="patient-name-container">
-                            ${entry.patient_name || 'Unknown'}
-                        </div>
-                    </td>
-                    <td>
-                        <span class="badge status-badge badge-${statusClass[entry.status] || 'secondary'}">
-                            ${entry.status || 'Unknown'}
-                        </span>
-                    </td>
-                    <td class="test-date-cell">${testDate}</td>
-                    <td class="added-by-cell">${entry.added_by_username || entry.added_by || '-'}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-info btn-sm" onclick="viewEntry(${entry.id})" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-warning btn-sm edit-entry" data-id="${entry.id}" title="Edit Entry">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm delete-entry" data-id="${entry.id}" title="Delete Entry">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-    
-    $('#entriesTable tbody').html(html);
-    applyEntriesFilters();
-}
-
-function loadStats() {
-    $.get('ajax/entry_api.php', { action: 'stats' })
-        .done(function(response) {
-            if (response.status === 'success') {
-                $('#totalEntries').text(response.data.total || 0);
-                $('#pendingEntries').text(response.data.pending || 0);
-                $('#completedEntries').text(response.data.completed || 0);
-                $('#todayEntries').text(response.data.today || 0);
-            }
-        });
-}
-
-function openAddEntryModal() {
-    $('#entryForm')[0].reset();
-    $('#entryId').val('');
-    $('#modalTitle').text('Add New Test Entry');
-    resetModalForm();
-    
-    // Reinitialize Select2 for the modal
-    $('.select2').select2('destroy');
-    $('.select2').select2({
-        theme: 'bootstrap4',
-        width: '100%',
-        dropdownParent: $('#entryModal')
-    });
-    
-    $('#entryModal').modal('show');
-}
-
-function editEntry(id) {
-    $.get('ajax/entry_api.php', { action: 'get', id: id, ajax: 1 })
-        .done(function(response) {
-            if (response.success) {
-                const entry = response.data;
-                populateEntryForm(entry);
-                $('#modalTitle').text('Edit Test Entry');
-                resetModalForm();
-                $('#entryModal').modal('show');
-            } else {
-                showAlert('Error loading entry data: ' + (response.message || 'Entry not found'), 'error');
-            }
-        })
-        .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
             showAlert('Failed to load entry data: ' + errorMsg, 'error');
         });
@@ -658,9 +523,6 @@ function deleteEntry(id) {
 
 // Event handlers using delegation
 $(document).on('click', '.edit-entry', function() {
-    const id = $(this).data('id');
-    editEntry(id);
-});
 
 $(document).on('click', '.delete-entry', function() {
     const id = $(this).data('id');
