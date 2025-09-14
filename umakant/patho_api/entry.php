@@ -103,25 +103,41 @@ try {
 
 function handleList($pdo, $config) {
     try {
-    $sql = "SELECT e.*, 
-               p.name as patient_name, p.uhid,
-               t.name as test_name, t.unit,
-               t.min_male, t.max_male, t.min_female, t.max_female,
-               d.name as doctor_name
-        FROM {$config['table_name']} e 
-        LEFT JOIN patients p ON e.patient_id = p.id 
-        LEFT JOIN tests t ON e.test_id = t.id 
-        LEFT JOIN doctors d ON e.doctor_id = d.id 
-        ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
+        // Enhanced query with all required columns for desktop table display
+        $sql = "SELECT e.id,
+                       e.patient_id,
+                       e.doctor_id,
+                       e.test_id,
+                       e.entry_date,
+                       e.result_value,
+                       e.unit,
+                       e.remarks,
+                       e.status,
+                       e.added_by,
+                       e.created_at,
+                       p.name as patient_name,
+                       p.uhid as patient_uhid,
+                       d.name as doctor_name,
+                       t.name as test_name,
+                       u.username as added_by_username
+                FROM {$config['table_name']} e 
+                LEFT JOIN patients p ON e.patient_id = p.id 
+                LEFT JOIN tests t ON e.test_id = t.id 
+                LEFT JOIN doctors d ON e.doctor_id = d.id 
+                LEFT JOIN users u ON e.added_by = u.id
+                ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
         $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Process entries for grouped display if needed
+        $processed_entries = processEntriesForDisplay($entries);
+
         echo json_encode([
             'success' => true,
-            'data' => $entries,
-            'total' => count($entries)
+            'data' => $processed_entries,
+            'total' => count($processed_entries)
         ]);
     } catch (Exception $e) {
         error_log("List entries error: " . $e->getMessage());
@@ -139,16 +155,30 @@ function handleGet($pdo, $config) {
             return;
         }
 
-    $sql = "SELECT e.*, 
-               p.name as patient_name, p.uhid, p.age, p.sex as gender,
-               t.name as test_name, t.unit,
-               t.min_male, t.max_male, t.min_female, t.max_female,
-               d.name as doctor_name
-        FROM {$config['table_name']} e 
-        LEFT JOIN patients p ON e.patient_id = p.id 
-        LEFT JOIN tests t ON e.test_id = t.id 
-        LEFT JOIN doctors d ON e.doctor_id = d.id 
-        WHERE e.{$config['id_field']} = ?";
+        $sql = "SELECT e.id,
+                       e.patient_id,
+                       e.doctor_id,
+                       e.test_id,
+                       e.entry_date,
+                       e.result_value,
+                       e.unit,
+                       e.remarks,
+                       e.status,
+                       e.added_by,
+                       e.created_at,
+                       p.name as patient_name,
+                       p.uhid as patient_uhid,
+                       p.age,
+                       p.sex as gender,
+                       d.name as doctor_name,
+                       t.name as test_name,
+                       u.username as added_by_username
+                FROM {$config['table_name']} e 
+                LEFT JOIN patients p ON e.patient_id = p.id 
+                LEFT JOIN tests t ON e.test_id = t.id 
+                LEFT JOIN doctors d ON e.doctor_id = d.id 
+                LEFT JOIN users u ON e.added_by = u.id
+                WHERE e.{$config['id_field']} = ?";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id]);
@@ -377,5 +407,53 @@ function handleDelete($pdo, $config) {
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => 'Failed to delete entry']);
     }
+}
+
+/**
+ * Process entries for grouped display
+ * Groups entries by patient and date for better organization
+ */
+function processEntriesForDisplay($entries) {
+    $grouped = [];
+    $processed = [];
+    
+    // Group entries by patient_id and entry_date
+    foreach ($entries as $entry) {
+        $key = $entry['patient_id'] . '_' . date('Y-m-d', strtotime($entry['entry_date']));
+        
+        if (!isset($grouped[$key])) {
+            $grouped[$key] = [];
+        }
+        $grouped[$key][] = $entry;
+    }
+    
+    // Process each group
+    foreach ($grouped as $group) {
+        if (count($group) === 1) {
+            // Single entry - no grouping needed
+            $processed[] = $group[0];
+        } else {
+            // Multiple entries - create grouped entry
+            $first_entry = $group[0];
+            $grouped_entry = $first_entry;
+            
+            // Add grouping information
+            $grouped_entry['grouped'] = true;
+            $grouped_entry['tests_count'] = count($group);
+            $grouped_entry['test_names'] = array_column($group, 'test_name');
+            $grouped_entry['test_results'] = array_column($group, 'result_value');
+            $grouped_entry['test_ids'] = array_column($group, 'test_id');
+            
+            // Combine test names for display
+            $grouped_entry['test_name'] = implode(', ', $grouped_entry['test_names']);
+            
+            // Combine results for display
+            $grouped_entry['result_value'] = implode(' | ', $grouped_entry['test_results']);
+            
+            $processed[] = $grouped_entry;
+        }
+    }
+    
+    return $processed;
 }
 ?>

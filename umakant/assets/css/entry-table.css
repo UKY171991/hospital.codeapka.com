@@ -1,0 +1,218 @@
+/* Enhanced Entry Table Styling */
+.entries-table {
+    font-size: 0.9rem;
+}
+
+.entries-table th {
+    background-color: #343a40;
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    vertical-align: middle;
+    padding: 12px 8px;
+    border: 1px solid #dee2e6;
+}
+
+.entries-table td {
+    padding: 10px 8px;
+    vertical-align: middle;
+    border: 1px solid #dee2e6;
+}
+
+/* Entry ID Badge */
+.entry-id-badge {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+}
+
+/* Patient Name Container */
+.patient-name-container {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 500;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(0,123,255,0.2);
+}
+
+/* Test Name with Group Badge */
+.test-name-grouped {
+    position: relative;
+}
+
+.test-count-badge {
+    background-color: #17a2b8;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 5px;
+    font-weight: 500;
+}
+
+/* Status Badge Enhancements */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.badge-success {
+    background: linear-gradient(45deg, #28a745, #1e7e34);
+    box-shadow: 0 2px 4px rgba(40,167,69,0.3);
+}
+
+.status-badge.badge-warning {
+    background: linear-gradient(45deg, #ffc107, #e0a800);
+    color: #212529;
+    box-shadow: 0 2px 4px rgba(255,193,7,0.3);
+}
+
+.status-badge.badge-danger {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    box-shadow: 0 2px 4px rgba(220,53,69,0.3);
+}
+
+.status-badge.badge-secondary {
+    background: linear-gradient(45deg, #6c757d, #545b62);
+    box-shadow: 0 2px 4px rgba(108,117,125,0.3);
+}
+
+/* Remarks Truncation */
+.remarks-cell {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: help;
+}
+
+.remarks-cell:hover {
+    white-space: normal;
+    overflow: visible;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 4px;
+    position: relative;
+    z-index: 10;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 2px;
+}
+
+.action-buttons .btn {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.action-buttons .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Table Responsive Enhancements */
+.table-responsive {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Hover Effects */
+.entries-table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .entries-table {
+        font-size: 0.8rem;
+    }
+    
+    .entries-table th,
+    .entries-table td {
+        padding: 8px 4px;
+    }
+    
+    .patient-name-container {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+    
+    .entry-id-badge {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+    }
+    
+    .action-buttons .btn {
+        padding: 2px 4px;
+        font-size: 0.7rem;
+    }
+}
+
+/* Loading State */
+.table-loading {
+    position: relative;
+}
+
+.table-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Filter Enhancements */
+.filter-section {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #dee2e6;
+}
+
+.filter-section .form-control {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.2s ease;
+}
+
+.filter-section .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}

@@ -242,7 +242,7 @@ function loadUsers() {
             }
         })
         .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
+            const errorMsg = (window.utils && utils.parseAjaxError) ? utils.parseAjaxError(xhr) : getErrorMessage(xhr);
             showAlert('Failed to load users: ' + errorMsg, 'error');
             $('#usersTable tbody').html('<tr><td colspan="9" class="text-center text-danger">Failed to load data</td></tr>');
         });
@@ -389,7 +389,7 @@ function editUser(id) {
             }
         })
         .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
+            const errorMsg = (window.utils && utils.parseAjaxError) ? utils.parseAjaxError(xhr) : getErrorMessage(xhr);
             showAlert('Failed to load user data: ' + errorMsg, 'error');
         });
 }
@@ -409,7 +409,7 @@ function viewUser(id) {
             }
         })
         .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
+            const errorMsg = (window.utils && utils.parseAjaxError) ? utils.parseAjaxError(xhr) : getErrorMessage(xhr);
             showAlert('Failed to load user data: ' + errorMsg, 'error');
         });
 }
@@ -623,7 +623,7 @@ function saveUserData() {
             }
         })
         .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
+            const errorMsg = (window.utils && utils.parseAjaxError) ? utils.parseAjaxError(xhr) : getErrorMessage(xhr);
             showAlert('Failed to save user: ' + errorMsg, 'error');
         })
         .always(function() {
@@ -649,7 +649,7 @@ function deleteUser(id) {
             }
         })
         .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
+            const errorMsg = (window.utils && utils.parseAjaxError) ? utils.parseAjaxError(xhr) : getErrorMessage(xhr);
             showAlert('Failed to delete user: ' + errorMsg, 'error');
         });
 }

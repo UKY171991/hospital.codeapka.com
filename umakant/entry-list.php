@@ -3,6 +3,9 @@ require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 ?>
 
+<!-- Custom CSS for Entry Table -->
+<link rel="stylesheet" href="assets/css/entry-table.css">
+
 <!-- Content Wrapper. Contains page content -->
 <div class="content-wrapper">
     <!-- Content Header (Page header) -->
@@ -155,18 +158,18 @@ require_once 'inc/sidebar.php';
 
                             <!-- Entries DataTable -->
                             <div class="table-responsive">
-                                <table id="entriesTable" class="table table-bordered table-striped table-hover">
+                                <table id="entriesTable" class="table table-bordered table-striped table-hover entries-table">
                                     <thead class="thead-dark">
                                         <tr>
-                                            <th>ID</th>
-                                            <th>Patient</th>
-                                            <th>Doctor</th>
-                                            <th>Test</th>
-                                            <th>Entry Date</th>
-                                            <th>Result</th>
-                                            <th>Unit</th>
+                                            <th>Entry ID</th>
+                                            <th>Test Date</th>
+                                            <th>Patient Name</th>
+                                            <th>UHID</th>
+                                            <th>Test Name</th>
+                                            <th>Result Value</th>
                                             <th>Status</th>
-                                            <th>Added By</th>
+                                            <th>Doctor</th>
+                                            <th>Remarks</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -458,26 +461,47 @@ function populateEntriesTable(entries) {
             const statusClass = {
                 'pending': 'warning',
                 'completed': 'success',
-                'cancelled': 'danger'
+                'cancelled': 'danger',
+                'active': 'success',
+                'inactive': 'secondary'
             };
+            
+            // Format test date
+            const testDate = entry.entry_date ? new Date(entry.entry_date).toLocaleDateString() : '-';
+            
+            // Handle grouped entries
+            const testNameDisplay = entry.grouped ? 
+                `${entry.test_name} <span class="test-count-badge">${entry.tests_count} tests</span>` : 
+                entry.test_name || '-';
+            
+            // Truncate remarks for display
+            const remarksDisplay = entry.remarks ? 
+                (entry.remarks.length > 50 ? entry.remarks.substring(0, 50) + '...' : entry.remarks) : 
+                '-';
             
             html += `
                 <tr>
-                    <td>${entry.id}</td>
-                    <td>${entry.patient_name || '-'}</td>
-                    <td>${entry.doctor_name || '-'}</td>
-                    <td>${entry.test_name || '-'}</td>
-                    <td>${entry.entry_date ? new Date(entry.entry_date).toLocaleDateString() : '-'}</td>
+                    <td>
+                        <span class="entry-id-badge">#${entry.id}</span>
+                    </td>
+                    <td>${testDate}</td>
+                    <td>
+                        <div class="patient-name-container">
+                            ${entry.patient_name || '-'}
+                        </div>
+                    </td>
+                    <td>${entry.patient_uhid || '-'}</td>
+                    <td class="test-name-grouped">${testNameDisplay}</td>
                     <td>${entry.result_value || '-'}</td>
-                    <td>${entry.unit || '-'}</td>
                     <td>
-                        <span class="badge badge-${statusClass[entry.status] || 'secondary'}">${entry.status || 'Unknown'}</span>
+                        <span class="badge status-badge badge-${statusClass[entry.status] || 'secondary'}">
+                            ${entry.status || 'Unknown'}
+                        </span>
                     </td>
+                    <td>${entry.doctor_name || '-'}</td>
+                    <td class="remarks-cell" title="${entry.remarks || ''}">${remarksDisplay}</td>
                     <td>
-                        <span class="text-muted small">${entry.added_by_username || '-'}</span>
-                    </td>
-                    <td>
-                        <div class="btn-group" role="group">
+                        <div class="action-buttons">
                             <button class="btn btn-info btn-sm" onclick="viewEntry(${entry.id})" title="View">
                                 <i class="fas fa-eye"></i>
                             </button>
@@ -716,20 +740,21 @@ function resetModalForm() {
 function exportEntries() {
     // Simple export functionality
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "ID,Patient,Doctor,Test,Entry Date,Result,Unit,Status\n";
+    csvContent += "Entry ID,Test Date,Patient Name,UHID,Test Name,Result Value,Status,Doctor,Remarks\n";
     
     $('#entriesTable tbody tr:visible').each(function() {
         const cells = $(this).find('td');
         if (cells.length > 8) {
             const row = [
-                cells.eq(0).text(),
-                cells.eq(1).text(),
-                cells.eq(2).text(),
-                cells.eq(3).text(),
-                cells.eq(4).text(),
-                cells.eq(5).text(),
-                cells.eq(6).text(),
-                cells.eq(7).find('.badge').text()
+                cells.eq(0).text().replace('#', ''), // Entry ID without badge
+                cells.eq(1).text(), // Test Date
+                cells.eq(2).text(), // Patient Name
+                cells.eq(3).text(), // UHID
+                cells.eq(4).text().replace(/\s+\d+\s+tests/, ''), // Test Name without badge
+                cells.eq(5).text(), // Result Value
+                cells.eq(6).find('.badge').text(), // Status
+                cells.eq(7).text(), // Doctor
+                cells.eq(8).text() // Remarks
             ].join(',');
             csvContent += row + "\n";
         }

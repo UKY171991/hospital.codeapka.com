@@ -198,6 +198,29 @@ const utils = {
         return $.ajax(options);
     },
 
+    // Parse jqXHR to produce a concise user-friendly error message
+    parseAjaxError: function(jqxhr) {
+        // jqxhr may be null in some failure modes
+        if (!jqxhr) return 'Unknown network error';
+
+        // Try to parse JSON response if present
+        var respText = jqxhr.responseText || '';
+        try {
+            var json = JSON.parse(respText || '{}');
+            if (json && json.message) return json.message;
+        } catch (e) {
+            // not JSON
+        }
+
+        // Fallback messages based on status
+        if (jqxhr.status === 0) return 'Network error: Could not reach the server.';
+        if (jqxhr.status >= 500) return 'Server error (' + jqxhr.status + '): ' + (jqxhr.statusText || 'Internal Server Error');
+        if (jqxhr.status >= 400) return 'Request error (' + jqxhr.status + '): ' + (jqxhr.statusText || 'Bad request');
+
+        // Last resort: include a short portion of responseText
+        return (jqxhr.status ? ('Error ' + jqxhr.status + ': ') : '') + (jqxhr.statusText || '') + (respText ? ' - ' + respText.substring(0, 400) : '');
+    },
+
     // Format currency
     formatCurrency: function(amount, currency = '₹') {
         if (!amount) return currency + '0.00';
@@ -313,6 +336,18 @@ $(document).ready(function() {
                 alert.fadeOut();
             }, 5000);
         }
+    });
+
+    // Global jQuery AJAX error handler to show parsed server messages
+    $(document).ajaxError(function(event, jqxhr, settings, thrown) {
+        // Ignore OPTIONS preflight messages
+        if (jqxhr && jqxhr.status === 0 && !navigator.onLine) {
+            utils.showError('Network offline. Please check your internet connection.');
+            return;
+        }
+
+        var msg = utils.parseAjaxError(jqxhr);
+        utils.showError(msg, 7000);
     });
 });
 
