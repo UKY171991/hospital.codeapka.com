@@ -26,7 +26,8 @@ $entity_config = [
     'required_fields' => ['patient_id', 'test_id'],
     'allowed_fields' => [
         'patient_id', 'test_id', 'doctor_id', 'entry_date', 'result_value', 
-        'unit', 'remarks', 'status', 'added_by'
+        'unit', 'remarks', 'status', 'added_by', 'grouped', 'tests_count',
+        'test_ids', 'test_names', 'test_results'
     ],
     'permission_map' => [
         'list' => 'read',
@@ -103,7 +104,7 @@ try {
 
 function handleList($pdo, $config) {
     try {
-        // Enhanced query with all required columns for desktop table display
+        // Enhanced query with all database columns
         $sql = "SELECT e.id,
                        e.patient_id,
                        e.doctor_id,
@@ -115,6 +116,11 @@ function handleList($pdo, $config) {
                        e.status,
                        e.added_by,
                        e.created_at,
+                       e.grouped,
+                       e.tests_count,
+                       e.test_ids,
+                       e.test_names,
+                       e.test_results,
                        p.name as patient_name,
                        p.uhid as patient_uhid,
                        d.name as doctor_name,
@@ -131,13 +137,11 @@ function handleList($pdo, $config) {
         $stmt->execute();
         $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Process entries for grouped display if needed
-        $processed_entries = processEntriesForDisplay($entries);
-
+        // Return entries with all database fields
         echo json_encode([
             'success' => true,
-            'data' => $processed_entries,
-            'total' => count($processed_entries)
+            'data' => $entries,
+            'total' => count($entries)
         ]);
     } catch (Exception $e) {
         error_log("List entries error: " . $e->getMessage());
@@ -166,6 +170,11 @@ function handleGet($pdo, $config) {
                        e.status,
                        e.added_by,
                        e.created_at,
+                       e.grouped,
+                       e.tests_count,
+                       e.test_ids,
+                       e.test_names,
+                       e.test_results,
                        p.name as patient_name,
                        p.uhid as patient_uhid,
                        p.age,

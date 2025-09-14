@@ -162,14 +162,20 @@ require_once 'inc/sidebar.php';
                                     <thead class="thead-dark">
                                         <tr>
                                             <th>Entry ID</th>
-                                            <th>Test Date</th>
-                                            <th>Patient Name</th>
-                                            <th>UHID</th>
-                                            <th>Test Name</th>
+                                            <th>Patient ID</th>
+                                            <th>Doctor ID</th>
+                                            <th>Test ID</th>
+                                            <th>Entry Date</th>
                                             <th>Result Value</th>
-                                            <th>Status</th>
-                                            <th>Doctor</th>
+                                            <th>Unit</th>
                                             <th>Remarks</th>
+                                            <th>Status</th>
+                                            <th>Added By</th>
+                                            <th>Created At</th>
+                                            <th>Grouped</th>
+                                            <th>Tests Count</th>
+                                            <th>Test Names</th>
+                                            <th>Test Results</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -433,7 +439,7 @@ function loadDropdownsForEntry() {
 }
 
 function loadEntries() {
-    $('#entriesTable tbody').html('<tr><td colspan="10" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
+    $('#entriesTable tbody').html('<tr><td colspan="16" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
     
     $.get('ajax/entry_api.php', { action: 'list', ajax: 1 })
         .done(function(response) {
@@ -441,13 +447,13 @@ function loadEntries() {
                 populateEntriesTable(response.data);
             } else {
                 showAlert('Failed to load entries: ' + (response.message || 'Unknown error'), 'error');
-                $('#entriesTable tbody').html('<tr><td colspan="10" class="text-center text-danger">Failed to load data</td></tr>');
+                $('#entriesTable tbody').html('<tr><td colspan="16" class="text-center text-danger">Failed to load data</td></tr>');
             }
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
             showAlert('Failed to load entries: ' + errorMsg, 'error');
-            $('#entriesTable tbody').html('<tr><td colspan="10" class="text-center text-danger">Failed to load data</td></tr>');
+            $('#entriesTable tbody').html('<tr><td colspan="16" class="text-center text-danger">Failed to load data</td></tr>');
         });
 }
 
@@ -455,51 +461,79 @@ function populateEntriesTable(entries) {
     let html = '';
     
     if (entries.length === 0) {
-        html = '<tr><td colspan="10" class="text-center text-muted">No entries found</td></tr>';
+        html = '<tr><td colspan="16" class="text-center text-muted">No entries found</td></tr>';
     } else {
         entries.forEach(entry => {
             const statusClass = {
                 'pending': 'warning',
                 'completed': 'success',
+                'failed': 'danger',
                 'cancelled': 'danger',
                 'active': 'success',
                 'inactive': 'secondary'
             };
             
-            // Format test date
-            const testDate = entry.entry_date ? new Date(entry.entry_date).toLocaleDateString() : '-';
+            // Format entry date
+            const entryDate = entry.entry_date ? new Date(entry.entry_date).toLocaleDateString() : '-';
             
-            // Handle grouped entries
-            const testNameDisplay = entry.grouped ? 
-                `${entry.test_name} <span class="test-count-badge">${entry.tests_count} tests</span>` : 
-                entry.test_name || '-';
+            // Format created date
+            const createdDate = entry.created_at ? new Date(entry.created_at).toLocaleDateString() : '-';
             
             // Truncate remarks for display
             const remarksDisplay = entry.remarks ? 
-                (entry.remarks.length > 50 ? entry.remarks.substring(0, 50) + '...' : entry.remarks) : 
+                (entry.remarks.length > 30 ? entry.remarks.substring(0, 30) + '...' : entry.remarks) : 
                 '-';
+            
+            // Handle grouped status
+            const groupedDisplay = entry.grouped ? 
+                '<span class="badge badge-info">Yes</span>' : 
+                '<span class="badge badge-secondary">No</span>';
+            
+            // Handle test names (JSON array)
+            let testNamesDisplay = '-';
+            if (entry.test_names) {
+                try {
+                    const testNames = JSON.parse(entry.test_names);
+                    testNamesDisplay = Array.isArray(testNames) ? testNames.join(', ') : entry.test_names;
+                } catch (e) {
+                    testNamesDisplay = entry.test_names;
+                }
+            }
+            
+            // Handle test results (JSON array)
+            let testResultsDisplay = '-';
+            if (entry.test_results) {
+                try {
+                    const testResults = JSON.parse(entry.test_results);
+                    testResultsDisplay = Array.isArray(testResults) ? testResults.join(', ') : entry.test_results;
+                } catch (e) {
+                    testResultsDisplay = entry.test_results;
+                }
+            }
             
             html += `
                 <tr>
                     <td>
                         <span class="entry-id-badge">#${entry.id}</span>
                     </td>
-                    <td>${testDate}</td>
-                    <td>
-                        <div class="patient-name-container">
-                            ${entry.patient_name || '-'}
-                        </div>
-                    </td>
-                    <td>${entry.patient_uhid || '-'}</td>
-                    <td class="test-name-grouped">${testNameDisplay}</td>
-                    <td>${entry.result_value || '-'}</td>
+                    <td>${entry.patient_id || '-'}</td>
+                    <td>${entry.doctor_id || '-'}</td>
+                    <td>${entry.test_id || '-'}</td>
+                    <td>${entryDate}</td>
+                    <td class="result-value-cell" title="${entry.result_value || ''}">${entry.result_value || '-'}</td>
+                    <td>${entry.unit || '-'}</td>
+                    <td class="remarks-cell" title="${entry.remarks || ''}">${remarksDisplay}</td>
                     <td>
                         <span class="badge status-badge badge-${statusClass[entry.status] || 'secondary'}">
                             ${entry.status || 'Unknown'}
                         </span>
                     </td>
-                    <td>${entry.doctor_name || '-'}</td>
-                    <td class="remarks-cell" title="${entry.remarks || ''}">${remarksDisplay}</td>
+                    <td>${entry.added_by || '-'}</td>
+                    <td>${createdDate}</td>
+                    <td>${groupedDisplay}</td>
+                    <td>${entry.tests_count || '-'}</td>
+                    <td class="test-names-cell" title="${testNamesDisplay}">${testNamesDisplay}</td>
+                    <td class="test-results-cell" title="${testResultsDisplay}">${testResultsDisplay}</td>
                     <td>
                         <div class="action-buttons">
                             <button class="btn btn-info btn-sm" onclick="viewEntry(${entry.id})" title="View">
@@ -740,21 +774,27 @@ function resetModalForm() {
 function exportEntries() {
     // Simple export functionality
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Entry ID,Test Date,Patient Name,UHID,Test Name,Result Value,Status,Doctor,Remarks\n";
+    csvContent += "Entry ID,Patient ID,Doctor ID,Test ID,Entry Date,Result Value,Unit,Remarks,Status,Added By,Created At,Grouped,Tests Count,Test Names,Test Results\n";
     
     $('#entriesTable tbody tr:visible').each(function() {
         const cells = $(this).find('td');
-        if (cells.length > 8) {
+        if (cells.length > 14) {
             const row = [
                 cells.eq(0).text().replace('#', ''), // Entry ID without badge
-                cells.eq(1).text(), // Test Date
-                cells.eq(2).text(), // Patient Name
-                cells.eq(3).text(), // UHID
-                cells.eq(4).text().replace(/\s+\d+\s+tests/, ''), // Test Name without badge
+                cells.eq(1).text(), // Patient ID
+                cells.eq(2).text(), // Doctor ID
+                cells.eq(3).text(), // Test ID
+                cells.eq(4).text(), // Entry Date
                 cells.eq(5).text(), // Result Value
-                cells.eq(6).find('.badge').text(), // Status
-                cells.eq(7).text(), // Doctor
-                cells.eq(8).text() // Remarks
+                cells.eq(6).text(), // Unit
+                cells.eq(7).text(), // Remarks
+                cells.eq(8).find('.badge').text(), // Status
+                cells.eq(9).text(), // Added By
+                cells.eq(10).text(), // Created At
+                cells.eq(11).find('.badge').text(), // Grouped
+                cells.eq(12).text(), // Tests Count
+                cells.eq(13).text(), // Test Names
+                cells.eq(14).text() // Test Results
             ].join(',');
             csvContent += row + "\n";
         }
