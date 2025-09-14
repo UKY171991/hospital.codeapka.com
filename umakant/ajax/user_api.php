@@ -6,6 +6,8 @@ session_start();
 
 $action = $_REQUEST['action'] ?? 'list';
 
+try {
+
 if ($action === 'list') {
     // Support DataTables server-side processing
     $draw = $_POST['draw'] ?? 1;
@@ -112,28 +114,66 @@ if ($action === 'save') {
     if ($id) {
         // update (only change password if provided)
         // update (only change password if provided)
-        if (!empty($password)) {
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare('UPDATE users SET username=?, password=?, full_name=?, email=?, role=?, user_type=?, is_active=?, added_by=?, last_login=?, expire_date=? WHERE id=?');
-            $stmt->execute([$username, $hash, $full_name, $email, $role, $user_type, $is_active, $creatorId, $last_login ?: null, $expire_date ?: null, $id]);
-        } else {
-            $stmt = $pdo->prepare('UPDATE users SET username=?, full_name=?, email=?, role=?, user_type=?, is_active=?, added_by=?, last_login=?, expire_date=? WHERE id=?');
-            $stmt->execute([$username, $full_name, $email, $role, $user_type, $is_active, $creatorId, $last_login ?: null, $expire_date ?: null, $id]);
+        // Detect if `user_type` column exists; if not, omit it from queries
+        try {
+            $colCheck = $pdo->prepare("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'user_type'");
+            $colCheck->execute();
+            $hasUserType = (bool)$colCheck->fetchColumn();
+
+            if (!empty($password)) {
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+                if ($hasUserType) {
+                    $stmt = $pdo->prepare('UPDATE users SET username=?, password=?, full_name=?, email=?, role=?, user_type=?, is_active=?, added_by=?, last_login=?, expire_date=? WHERE id=?');
+                    $stmt->execute([$username, $hash, $full_name, $email, $role, $user_type, $is_active, $creatorId, $last_login ?: null, $expire_date ?: null, $id]);
+                } else {
+                    $stmt = $pdo->prepare('UPDATE users SET username=?, password=?, full_name=?, email=?, role=?, is_active=?, added_by=?, last_login=?, expire_date=? WHERE id=?');
+                    $stmt->execute([$username, $hash, $full_name, $email, $role, $is_active, $creatorId, $last_login ?: null, $expire_date ?: null, $id]);
+                }
+            } else {
+                if ($hasUserType) {
+                    $stmt = $pdo->prepare('UPDATE users SET username=?, full_name=?, email=?, role=?, user_type=?, is_active=?, added_by=?, last_login=?, expire_date=? WHERE id=?');
+                    $stmt->execute([$username, $full_name, $email, $role, $user_type, $is_active, $creatorId, $last_login ?: null, $expire_date ?: null, $id]);
+                } else {
+                    $stmt = $pdo->prepare('UPDATE users SET username=?, full_name=?, email=?, role=?, is_active=?, added_by=?, last_login=?, expire_date=? WHERE id=?');
+                    $stmt->execute([$username, $full_name, $email, $role, $is_active, $creatorId, $last_login ?: null, $expire_date ?: null, $id]);
+                }
+            }
+
+            json_response(['success' => true, 'message' => 'User updated']);
+        } catch (Exception $e) {
+            // Return structured JSON error so client can show message instead of generic 500
+            json_response(['success' => false, 'message' => 'Database error updating user: ' . $e->getMessage()], 500);
         }
-        json_response(['success' => true, 'message' => 'User updated']);
     } else {
         // create
-        $hash = password_hash($password ?: 'password', PASSWORD_DEFAULT);
-    $stmt = $pdo->prepare('INSERT INTO users (username, password, full_name, email, role, user_type, added_by, is_active, last_login, expire_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())');
-    $stmt->execute([$username, $hash, $full_name, $email, $role, $user_type, $creatorId, $is_active, $last_login ?: null, $expire_date ?: null]);
-        
-        // Get the newly inserted record
-        $newId = $pdo->lastInsertId();
-    $stmt = $pdo->prepare('SELECT id, username, full_name, email, role, user_type, is_active FROM users WHERE id = ?');
-        $stmt->execute([$newId]);
-        $newRecord = $stmt->fetch();
-        
-        json_response(['success' => true, 'message' => 'User created', 'data' => $newRecord]);
+        try {
+            $hash = password_hash($password ?: 'password', PASSWORD_DEFAULT);
+            $colCheck = $pdo->prepare("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'user_type'");
+            $colCheck->execute();
+            $hasUserType = (bool)$colCheck->fetchColumn();
+
+            if ($hasUserType) {
+                $stmt = $pdo->prepare('INSERT INTO users (username, password, full_name, email, role, user_type, added_by, is_active, last_login, expire_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())');
+                $stmt->execute([$username, $hash, $full_name, $email, $role, $user_type, $creatorId, $is_active, $last_login ?: null, $expire_date ?: null]);
+            } else {
+                $stmt = $pdo->prepare('INSERT INTO users (username, password, full_name, email, role, added_by, is_active, last_login, expire_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())');
+                $stmt->execute([$username, $hash, $full_name, $email, $role, $creatorId, $is_active, $last_login ?: null, $expire_date ?: null]);
+            }
+
+            // Get the newly inserted record
+            $newId = $pdo->lastInsertId();
+            if ($hasUserType) {
+                $stmt = $pdo->prepare('SELECT id, username, full_name, email, role, user_type, is_active FROM users WHERE id = ?');
+            } else {
+                $stmt = $pdo->prepare('SELECT id, username, full_name, email, role, is_active FROM users WHERE id = ?');
+            }
+            $stmt->execute([$newId]);
+            $newRecord = $stmt->fetch();
+
+            json_response(['success' => true, 'message' => 'User created', 'data' => $newRecord]);
+        } catch (Exception $e) {
+            json_response(['success' => false, 'message' => 'Database error creating user: ' . $e->getMessage()], 500);
+        }
     }
 }
 
@@ -145,4 +185,10 @@ if ($action === 'delete' && isset($_POST['id'])) {
     json_response(['success' => true, 'message' => 'User deleted']);
 }
 
+} catch (Throwable $e) {
+    // Return error details as JSON for debugging (development only)
+    json_response(['success' => false, 'message' => 'Unhandled server error: ' . $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString()], 500);
+}
+
+// Fallback
 json_response(['success' => false, 'message' => 'Invalid action'], 400);
