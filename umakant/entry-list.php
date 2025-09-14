@@ -362,8 +362,12 @@ function initializeEventListeners() {
 
     // Clear search button
     $('#entriesSearchClear').click(function(e) {
-        e.preventDefault();
-        $('#entriesSearch').val('');
+        $('#entriesTable tbody').html(html);
+        // Hide action buttons row if there are no entries
+        if (!entries || entries.length === 0) {
+            $('.action-buttons').remove();
+        }
+        applyEntriesFilters();
         applyEntriesFilters();
     });
 
