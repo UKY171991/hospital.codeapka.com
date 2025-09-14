@@ -164,7 +164,6 @@ require_once 'inc/sidebar.php';
                                             <th>Sr No.</th>
                                             <th>Entry ID</th>
                                             <th>Patient Name</th>
-                                            <th>Test Name</th>
                                             <th>Status</th>
                                             <th>Test Date</th>
                                             <th>Added By</th>
@@ -486,7 +485,6 @@ function populateEntriesTable(entries) {
                             ${entry.patient_name || 'Unknown'}
                         </div>
                     </td>
-                    <td class="test-name-cell">${entry.test_name || '-'}</td>
                     <td>
                         <span class="badge status-badge badge-${statusClass[entry.status] || 'secondary'}">
                             ${entry.status || 'Unknown'}
