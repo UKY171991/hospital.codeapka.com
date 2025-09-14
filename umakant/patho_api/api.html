@@ -881,14 +881,14 @@
             {
                 name: 'Entry API',
                 file: 'entry.php',
-                description: 'Comprehensive test entry management with 8-column table display (Sr No., Entry ID, Test Date, Patient Name, Status, Doctor, Remarks, Actions)',
+                description: 'Comprehensive test entry management with complete database structure (16 columns: id, patient_id, doctor_id, test_id, entry_date, result_value, unit, remarks, status, added_by, created_at, grouped, tests_count, test_ids, test_names, test_results)',
                 baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/entry.php',
                 endpoints: [
                     {
                         action: 'list',
                         method: 'GET',
                         url: '?action=list',
-                        description: 'Get all test entries with enriched data for 8-column table display',
+                        description: 'Get all test entries with complete database structure and enriched data (16 columns from SQL file)',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-Api-Key': 'hospital-api-secret-2024'
@@ -935,7 +935,7 @@
                         action: 'get',
                         method: 'GET',
                         url: '?action=get&id=20',
-                        description: 'Get single entry by ID with all database fields and enriched data',
+                        description: 'Get single entry by ID with complete database structure (all 16 columns from SQL file)',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-Api-Key': 'hospital-api-secret-2024'
@@ -971,7 +971,7 @@
                         action: 'save',
                         method: 'POST',
                         url: '?action=save',
-                        description: 'Create or update test entry with all database fields',
+                        description: 'Create or update test entry with complete database structure (all 16 columns from SQL file)',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-Api-Key': 'hospital-api-secret-2024'
