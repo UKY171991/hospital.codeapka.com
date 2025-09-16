@@ -168,14 +168,7 @@ require_once 'inc/sidebar.php';
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <div class="form-inline float-right">
-                                        <label class="mr-2">Per page</label>
-                                        <select id="doctorsPerPage" class="form-control">
-                                            <option value="10">10</option>
-                                            <option value="25">25</option>
-                                            <option value="50">50</option>
-                                        </select>
-                                    </div>
+                                    <!-- DataTables will handle "Per page" selector -->
                                 </div>
                             </div>
 
@@ -189,29 +182,20 @@ require_once 'inc/sidebar.php';
                                             <th>Qualification</th>
                                             <th>Specialization</th>
                                             <th>Hospital</th>
-                                            <th>Contact</th>
+                                            <th>Contact & Email</th>
                                             <th>Percent</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="doctorsTableBody">
-                                        <!-- Dynamic content will be loaded here -->
+                                        <!-- Dynamic content will be loaded here by DataTables -->
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                         <!-- /.card-body -->
                         <div class="card-footer">
-                            <div class="row">
-                                <div class="col-sm-12 col-md-5">
-                                    <div class="dataTables_info" id="doctorsInfo"></div>
-                                </div>
-                                <div class="col-sm-12 col-md-7">
-                                    <div class="dataTables_paginate paging_simple_numbers" id="doctorsPagination">
-                                        <!-- Pagination will be inserted here -->
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- DataTables will generate its own pagination and info -->
                         </div>
                     </div>
                     <!-- /.card -->

@@ -1,16 +1,14 @@
 // Enhanced Doctor Management JavaScript
 
-// Global variables for pagination and filtering
-let currentPage = 1;
-let recordsPerPage = 10; // Default records per page
-let totalRecords = 0; // To be updated by API response
+// Global DataTable instance
+let doctorsDataTable;
 
 $(document).ready(function() {
     initializeDoctorPage();
 });
 
 function initializeDoctorPage() {
-    loadDoctors();
+    initializeDataTable(); // Initialize DataTables first
     loadStats();
     loadFilters(); // Load specializations and hospitals for filters
     setupEventListeners();
@@ -20,28 +18,21 @@ function initializeDoctorPage() {
 function setupEventListeners() {
     // Search functionality
     $('#doctorsSearch').on('input', utils.debounce(function() {
-        currentPage = 1; // Reset page on search
-        loadDoctors();
+        doctorsDataTable.search($(this).val()).draw();
     }, 300));
 
     // Specialization filter
     $('#specializationFilter').on('change', function() {
-        currentPage = 1; // Reset page on filter change
-        loadDoctors();
+        doctorsDataTable.ajax.reload(); // Reload data with new filter
     });
 
     // Hospital filter
     $('#hospitalFilter').on('change', function() {
-        currentPage = 1; // Reset page on filter change
-        loadDoctors();
+        doctorsDataTable.ajax.reload(); // Reload data with new filter
     });
 
-    // Records per page change
-    $('#doctorsPerPage').on('change', function() {
-        recordsPerPage = parseInt($(this).val());
-        currentPage = 1; // Reset page on records per page change
-        loadDoctors();
-    });
+    // Records per page change - DataTables handles this automatically with lengthMenu
+    // We just need to ensure the select element is present in HTML and DataTables picks it up.
 
     // Clear filters button
     $('#doctorsSearchClear').on('click', function() {
@@ -60,151 +51,121 @@ function setupEventListeners() {
     });
 }
 
-// Removed initializeDataTable as the table is now dynamically populated and managed by populateDoctorsTable and updatePagination.
-// If DataTables functionality is still desired, it would need to be re-initialized *after* populateDoctorsTable has rendered the table,
-// and its server-server-side processing features would need to be integrated with the patho_api/doctor.php's pagination and filtering.
-// For now, I've removed the DataTables initialization to simplify and remove potential conflicts.
+function initializeDataTable() {
+    if ($.fn.DataTable.isDataTable('#doctorsTable')) {
+        $('#doctorsTable').DataTable().destroy();
+        $('#doctorsTableBody').empty(); // Clear old tbody content
+    }
 
-function loadDoctors() {
-    utils.showLoading('#doctorsTableBody');
-
-    const searchTerm = $('#doctorsSearch').val();
-    const specialization = $('#specializationFilter').val();
-    const hospital = $('#hospitalFilter').val();
-
-    const params = new URLSearchParams({
-        action: 'list',
-        page: currentPage,
-        limit: recordsPerPage,
-        ...(searchTerm && { search: searchTerm }),
-        ...(specialization && { specialization: specialization }),
-        ...(hospital && { hospital: hospital })
-    });
-
-    $.get(`patho_api/doctor.php?${params}`)
-        .done(function(response) {
-            if (response.success) {
-                populateDoctorsTable(response.data);
-                updatePagination(response.pagination);
-            } else {
-                showAlert('Error loading doctors: ' + response.message, 'error');
-                $('#doctorsTableBody').html('<tr><td colspan="8" class="text-center text-muted">Failed to load doctors.</td></tr>');
+    doctorsDataTable = $('#doctorsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        responsive: true,
+        pageLength: 10, // Default records per page
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        order: [[0, 'desc']], // Order by ID descending by default
+        ajax: {
+            url: 'patho_api/doctor.php',
+            type: 'GET',
+            dataType: 'json',
+            data: function(d) {
+                // DataTables sends its own parameters, we add our custom filters
+                d.action = 'list';
+                d.page = (d.start / d.length) + 1; // Calculate page number
+                d.limit = d.length; // Records per page
+                d.search = d.search.value; // DataTables global search
+                d.specialization = $('#specializationFilter').val();
+                d.hospital = $('#hospitalFilter').val();
+            },
+            dataSrc: function(json) {
+                // Map API response to DataTables format
+                json.recordsTotal = json.pagination.total;
+                json.recordsFiltered = json.pagination.total; // Assuming server-side filtering is applied
+                return json.data;
+            },
+            error: function(xhr, error, thrown) {
+                console.error("DataTables AJAX error:", xhr, error, thrown);
+                showAlert('Error loading doctors data. Please try again.', 'error');
             }
-        })
-        .fail(function() {
-            showAlert('Failed to load doctors data from API.', 'error');
-            $('#doctorsTableBody').html('<tr><td colspan="8" class="text-center text-muted">Failed to load doctors.</td></tr>');
-        })
-        .always(function() {
-            utils.hideLoading('#doctorsTableBody');
-        });
-}
-
-function populateDoctorsTable(doctors) {
-    let html = '';
-
-    if (doctors.length === 0) {
-        html = `
-            <tr>
-                <td colspan="8" class="text-center text-muted py-4">
-                    <i class="fas fa-user-md fa-3x mb-3 d-block"></i>
-                    No doctors found. <a href="#" onclick="openAddDoctorModal()" class="text-primary">Add the first doctor</a>
-                </td>
-            </tr>
-        `;
-    } else {
-        doctors.forEach(doctor => {
-            const avatar = utils.generateAvatar(doctor.name, 'bg-info');
-            html += `
-                <tr>
-                    <td>${doctor.id}</td>
-                    <td>
+        },
+        columns: [
+            { data: 'id' },
+            {
+                data: 'name',
+                render: function(data, type, row) {
+                    const avatar = utils.generateAvatar(row.name, 'bg-info');
+                    return `
                         <div class="d-flex align-items-center">
                             <div class="avatar-circle bg-primary text-white mr-2">
-                                ${doctor.name.charAt(0).toUpperCase()}
+                                ${row.name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <div class="font-weight-bold">${doctor.name}</div>
-                                ${doctor.registration_no ? `<small class="text-muted">Reg: ${doctor.registration_no}</small>` : ''}
+                                <div class="font-weight-bold">${row.name}</div>
+                                ${row.registration_no ? `<small class="text-muted">Reg: ${row.registration_no}</small>` : ''}
                             </div>
                         </div>
-                    </td>
-                    <td>${doctor.qualification || '-'}</td>
-                    <td>
-                        ${doctor.specialization ? `<span class="badge badge-info">${doctor.specialization}</span>` : '-'}
-                    </td>
-                    <td>${doctor.hospital || '-'}</td>
-                    <td>
+                    `;
+                }
+            },
+            { data: 'qualification', defaultContent: '-' },
+            {
+                data: 'specialization',
+                render: function(data) {
+                    return data ? `<span class="badge badge-info">${data}</span>` : '-';
+                }
+            },
+            { data: 'hospital', defaultContent: '-' },
+            {
+                data: null,
+                render: function(data, type, row) {
+                    return `
                         <div>
-                            ${doctor.contact_no ? `<div><i class="fas fa-phone text-primary"></i> ${doctor.contact_no}</div>` : ''}
-                            ${doctor.email ? `<div><i class="fas fa-envelope text-info"></i> ${doctor.email}</div>` : ''}
+                            ${row.contact_no ? `<div><i class="fas fa-phone text-primary"></i> ${row.contact_no}</div>` : ''}
+                            ${row.email ? `<div><i class="fas fa-envelope text-info"></i> ${row.email}</div>` : ''}
                         </div>
-                    </td>
-                    <td>
-                        ${doctor.percent ? `<span class="badge badge-success">${doctor.percent}%</span>` : '-'}
-                    </td>
-                    <td>
+                    `;
+                }
+            },
+            {
+                data: 'percent',
+                render: function(data) {
+                    return data ? `<span class="badge badge-success">${data}%</span>` : '-';
+                }
+            },
+            {
+                data: null,
+                orderable: false,
+                render: function(data, type, row) {
+                    return `
                         <div class="btn-group" role="group">
-                            <button class="btn btn-info btn-sm" onclick="viewDoctor(${doctor.id})" title="View">
+                            <button class="btn btn-info btn-sm" onclick="viewDoctor(${row.id})" title="View">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="btn btn-warning btn-sm" onclick="editDoctor(${doctor.id})" title="Edit">
+                            <button class="btn btn-warning btn-sm" onclick="editDoctor(${row.id})" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteDoctor(${doctor.id}, '${doctor.name}')" title="Delete">
+                            <button class="btn btn-danger btn-sm" onclick="deleteDoctor(${row.id}, '${row.name}')" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-
-    $('#doctorsTableBody').html(html);
-}
-
-function updatePagination(pagination) {
-    totalRecords = pagination.total;
-    const totalPages = Math.ceil(totalRecords / recordsPerPage);
-
-    // Update info
-    const start = ((currentPage - 1) * recordsPerPage) + 1;
-    const end = Math.min(currentPage * recordsPerPage, totalRecords);
-    $('#doctorsInfo').html(`Showing ${start} to ${end} of ${totalRecords} entries`);
-
-    // Update pagination
-    let paginationHtml = '';
-    if (totalPages > 1) {
-        paginationHtml += `
-            <ul class="pagination pagination-sm m-0 float-right">
-                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
-                </li>
-        `;
-
-        for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                paginationHtml += `
-                    <li class="page-item ${i === currentPage ? 'active' : ''}">
-                        <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
-                    </li>
-                `;
-            } else if (i === currentPage - 3 || i === currentPage + 3) {
-                paginationHtml += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                    `;
+                }
             }
-        }
-
-        paginationHtml += `
-                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                    <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
-                </li>
-            </ul>
-        `;
-    }
-
-    $('#doctorsPagination').html(paginationHtml);
+        ],
+        language: {
+            search: "Search doctors:",
+            lengthMenu: "Show _MENU_ doctors per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ doctors",
+            infoEmpty: "No doctors found",
+            infoFiltered: "(filtered from _MAX_ total doctors)",
+            zeroRecords: "No matching doctors found"
+        },
+        dom: '<"row"<"col-sm-6"l><"col-sm-6"f>>rtip'
+    });
 }
+
+// loadDoctors, populateDoctorsTable, updatePagination, changePage are no longer needed
+// as DataTables handles these.
 
 function loadStats() {
     $.get('patho_api/doctor.php?action=stats')
@@ -248,20 +209,11 @@ function loadFilters() {
         });
 }
 
-function changePage(page) {
-    if (page < 1) page = 1;
-    const totalPages = Math.ceil(totalRecords / recordsPerPage); // totalRecords needs to be global or passed
-    if (page > totalPages) page = totalPages;
-    currentPage = page;
-    loadDoctors();
-}
-
 function clearFilters() {
     $('#doctorsSearch').val('');
     $('#specializationFilter').val('');
     $('#hospitalFilter').val('');
-    currentPage = 1;
-    loadDoctors();
+    doctorsDataTable.search('').columns().search('').draw(); // Clear all DataTables searches
 }
 
 function openAddDoctorModal() {
@@ -362,10 +314,6 @@ function saveDoctorData() {
     const id = $('#doctorId').val();
     const method = id ? 'POST' : 'POST'; // patho_api uses POST for both create and update (upsert)
 
-    // Convert FormData to a plain object for JSON payload if needed,
-    // but patho_api/doctor.php handles both JSON and form data.
-    // For simplicity and consistency with existing form submission, we'll stick to FormData.
-
     const submitBtn = $('#doctorForm button[type="submit"]');
     const originalText = submitBtn.html();
     submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
@@ -380,7 +328,7 @@ function saveDoctorData() {
             if (response.success) {
                 showAlert(id ? 'Doctor updated successfully!' : 'Doctor added successfully!', 'success');
                 $('#doctorModal').modal('hide');
-                loadDoctors();
+                doctorsDataTable.ajax.reload(); // Reload DataTables after save
                 loadStats(); // Update stats after save
             } else {
                 showAlert('Error: ' + (response.message || 'Unknown error'), 'error');
@@ -425,7 +373,7 @@ function performDeleteDoctor(id) {
         success: function(response) {
             if (response.success) {
                 showAlert('Doctor deleted successfully!', 'success');
-                loadDoctors();
+                doctorsDataTable.ajax.reload(); // Reload DataTables after delete
                 loadStats(); // Update stats after delete
             } else {
                 showAlert('Error deleting doctor: ' + (response.message || 'Unknown error'), 'error');
