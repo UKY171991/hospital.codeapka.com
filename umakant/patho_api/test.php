@@ -159,48 +159,11 @@ function handleGet($pdo, $config) {
 }
 
 function handleSave($pdo, $config, $user_data) {
-    echo json_encode(['debug' => 'handleSave: start']);
     try {
-        echo json_encode(['debug' => 'handleSave: before json_decode']);
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-        echo json_encode(['debug' => 'handleSave: after json_decode', 'input' => $input]);
+        var_dump($input); exit;
         
         // Validate required fields
-        echo json_encode(['debug' => 'handleSave: before required fields validation']);
-        foreach ($config['required_fields'] as $field) {
-            if (empty($input[$field])) {
-                echo json_encode(['debug' => 'handleSave: required field empty', 'field' => $field]);
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required']);
-                return;
-            }
-        }
-        echo json_encode(['debug' => 'handleSave: after required fields validation']);
-
-        // Additional validation for tests
-        echo json_encode(['debug' => 'handleSave: before category_id numeric check']);
-        if (!is_numeric($input['category_id'])) {
-            echo json_encode(['debug' => 'handleSave: category_id not numeric', 'category_id' => $input['category_id']]);
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Invalid category ID']);
-            return;
-        }
-        echo json_encode(['debug' => 'handleSave: after category_id numeric check']);
-
-        // Check if category exists
-        echo json_encode(['debug' => 'handleSave: before category exists check']);
-    $stmt = $pdo->prepare("SELECT id FROM categories WHERE id = ?");
-        $stmt->execute([$input['category_id']]);
-        if (!$stmt->fetch()) {
-            echo json_encode(['debug' => 'handleSave: category does not exist', 'category_id' => $input['category_id']]);
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Category does not exist']);
-            return;
-        }
-        echo json_encode(['debug' => 'handleSave: after category exists check']);
-
-        // Prepare data for saving
-        echo json_encode(['debug' => 'handleSave: before data preparation']);
         foreach ($config['allowed_fields'] as $field) {
             if (isset($input[$field])) {
                 $data[$field] = $input[$field];
