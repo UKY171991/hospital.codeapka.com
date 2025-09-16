@@ -178,13 +178,19 @@ require_once 'inc/sidebar.php';
                                     <thead>
                                         <tr>
                                             <th>Sr. No.</th>
-                                            <th>ID</th> <!-- Added ID column -->
+                                            <th>ID</th>
                                             <th>Name</th>
                                             <th>Qualification</th>
                                             <th>Specialization</th>
                                             <th>Hospital</th>
-                                            <th>Contact & Email</th>
+                                            <th>Contact No</th>
+                                            <th>Phone</th>
+                                            <th>Email</th>
+                                            <th>Registration No</th>
                                             <th>Percent</th>
+                                            <th>Added By</th>
+                                            <th>Created At</th>
+                                            <th>Updated At</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>

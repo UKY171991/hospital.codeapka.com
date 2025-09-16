@@ -115,6 +115,7 @@ function initializeDataTable() {
                     return meta.row + meta.settings._iDisplayStart + 1;
                 }
             },
+            { data: 'id' },
             {
                 data: 'name',
                 render: function(data, type, row) {
@@ -142,19 +143,24 @@ function initializeDataTable() {
                 }
             },
             { data: 'hospital', defaultContent: '-' },
-            {
-                data: null,
+            { data: 'contact_no', defaultContent: '-' },
+            { data: 'phone', defaultContent: '-' },
+            { data: 'email', defaultContent: '-' },
+            { data: 'registration_no', defaultContent: '-' },
+            { data: 'percent', defaultContent: '-' },
+            { data: 'added_by_username', defaultContent: '-' },
+            { 
+                data: 'created_at',
                 render: function(data, type, row) {
-                    console.log("Rendering Contact & Email for row:", row); // Debugging
-                    return `
-                        <div>
-                            ${row.contact_no ? `<div><i class="fas fa-phone text-primary"></i> ${row.contact_no}</div>` : ''}
-                            ${row.email ? `<div><i class="fas fa-envelope text-info"></i> ${row.email}</div>` : ''}
-                        </div>
-                    `;
+                    return data ? new Date(data).toLocaleDateString() : '-';
                 }
             },
-            { data: 'percent', defaultContent: '-' },
+            { 
+                data: 'updated_at',
+                render: function(data, type, row) {
+                    return data ? new Date(data).toLocaleDateString() : '-';
+                }
+            },
             {
                 data: null,
                 orderable: false,
@@ -298,20 +304,24 @@ function viewDoctor(id) {
                     <div class="row">
                         <div class="col-md-6">
                             <table class="table table-borderless">
+                                <tr><td><strong>ID:</strong></td><td>${doctor.id || '-'}</td></tr>
                                 <tr><td><strong>Name:</strong></td><td>${doctor.name || '-'}</td></tr>
                                 <tr><td><strong>Qualification:</strong></td><td>${doctor.qualification || '-'}</td></tr>
                                 <tr><td><strong>Specialization:</strong></td><td>${doctor.specialization || '-'}</td></tr>
                                 <tr><td><strong>Hospital:</strong></td><td>${doctor.hospital || '-'}</td></tr>
                                 <tr><td><strong>Registration No:</strong></td><td>${doctor.registration_no || '-'}</td></tr>
+                                <tr><td><strong>Contact:</strong></td><td>${doctor.contact_no || '-'}</td></tr>
+                                <tr><td><strong>Phone:</strong></td><td>${doctor.phone || '-'}</td></tr>
                             </table>
                         </div>
                         <div class="col-md-6">
                             <table class="table table-borderless">
-                                <tr><td><strong>Contact:</strong></td><td>${doctor.contact_no || '-'}</td></tr>
-                                <tr><td><strong>Phone:</strong></td><td>${doctor.phone || '-'}</td></tr>
                                 <tr><td><strong>Email:</strong></td><td>${doctor.email || '-'}</td></tr>
                                 <tr><td><strong>Commission:</strong></td><td>${doctor.percent ? doctor.percent + '%' : '-'}</td></tr>
+                                <tr><td><strong>Added By:</strong></td><td>${doctor.added_by_username || doctor.added_by || '-'}</td></tr>
+                                <tr><td><strong>Server ID:</strong></td><td>${doctor.server_id || '-'}</td></tr>
                                 <tr><td><strong>Created:</strong></td><td>${formatDateTime(doctor.created_at)}</td></tr>
+                                <tr><td><strong>Updated:</strong></td><td>${formatDateTime(doctor.updated_at)}</td></tr>
                             </table>
                         </div>
                     </div>

@@ -13,6 +13,9 @@
 
 .table td {
     vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .btn-group .btn {
@@ -58,8 +61,94 @@
 
 .table-responsive {
     border-radius: 0.375rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .card-outline.card-primary {
     border-top: 3px solid #007bff;
+}
+
+/* Adjust column widths for better readability */
+#doctorsTable th:nth-child(1),
+#doctorsTable td:nth-child(1) { /* Sr. No. */
+    width: 50px;
+}
+
+#doctorsTable th:nth-child(2),
+#doctorsTable td:nth-child(2) { /* ID */
+    width: 60px;
+}
+
+#doctorsTable th:nth-child(3),
+#doctorsTable td:nth-child(3) { /* Name */
+    width: 150px;
+}
+
+#doctorsTable th:nth-child(4),
+#doctorsTable td:nth-child(4) { /* Qualification */
+    width: 120px;
+}
+
+#doctorsTable th:nth-child(5),
+#doctorsTable td:nth-child(5) { /* Specialization */
+    width: 120px;
+}
+
+#doctorsTable th:nth-child(6),
+#doctorsTable td:nth-child(6) { /* Hospital */
+    width: 120px;
+}
+
+#doctorsTable th:nth-child(7),
+#doctorsTable td:nth-child(7) { /* Contact No */
+    width: 100px;
+}
+
+#doctorsTable th:nth-child(8),
+#doctorsTable td:nth-child(8) { /* Phone */
+    width: 100px;
+}
+
+#doctorsTable th:nth-child(9),
+#doctorsTable td:nth-child(9) { /* Email */
+    width: 150px;
+}
+
+#doctorsTable th:nth-child(10),
+#doctorsTable td:nth-child(10) { /* Registration No */
+    width: 120px;
+}
+
+#doctorsTable th:nth-child(11),
+#doctorsTable td:nth-child(11) { /* Percent */
+    width: 80px;
+}
+
+#doctorsTable th:nth-child(12),
+#doctorsTable td:nth-child(12) { /* Added By */
+    width: 100px;
+}
+
+#doctorsTable th:nth-child(13),
+#doctorsTable td:nth-child(13) { /* Created At */
+    width: 100px;
+}
+
+#doctorsTable th:nth-child(14),
+#doctorsTable td:nth-child(14) { /* Updated At */
+    width: 100px;
+}
+
+#doctorsTable th:nth-child(15),
+#doctorsTable td:nth-child(15) { /* Actions */
+    width: 120px;
+}
+
+/* Make the table scrollable on smaller screens */
+@media (max-width: 1200px) {
+    .table-responsive {
+        overflow-x: auto;
+        display: block;
+    }
 }
