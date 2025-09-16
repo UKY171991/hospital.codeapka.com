@@ -387,15 +387,7 @@ require_once 'inc/sidebar.php';
         </div>
     </div>
 </div>
-            <div class="modal-body" id="viewDoctorContent">
-                <!-- Doctor details will be loaded here -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
+            
 
 <!-- Page specific CSS -->
 <link rel="stylesheet" href="assets/css/doctor.css">

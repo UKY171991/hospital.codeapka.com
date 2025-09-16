@@ -57,14 +57,6 @@
                   <small>HIPAA compliant platform</small>
                 </div>
               </a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="umakant/index.php">
-                <span class="dropdown-icon">🚀</span>
-                <div>
-                  <strong>Admin Portal</strong>
-                  <small>Access management system</small>
-                </div>
-              </a></li>
             </ul>
           </li>
           
