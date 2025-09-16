@@ -19,6 +19,11 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 
+// Helper function to convert array keys to lowercase
+function array_keys_to_lowercase($array) {
+    return array_combine(array_map('strtolower', array_keys($array)), array_values($array));
+}
+
 // Get action from request
 $action = $_REQUEST['action'] ?? $_SERVER['REQUEST_METHOD'];
 $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -131,6 +136,9 @@ try {
         
         $doctors = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Convert all keys to lowercase for consistency with JavaScript
+        $doctors = array_map('array_keys_to_lowercase', $doctors);
+
         json_response([
             'success' => true,
             'data' => $doctors,
@@ -165,6 +173,9 @@ try {
             json_response(['success' => false, 'message' => 'Doctor not found'], 404);
         }
         
+        // Convert all keys to lowercase for consistency with JavaScript
+        $doctor = array_keys_to_lowercase($doctor);
+
         json_response(['success' => true, 'data' => $doctor]);
     }
 
@@ -245,6 +256,9 @@ try {
             $stmt->execute([$doctorId]);
             $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
             
+            // Convert all keys to lowercase for consistency with JavaScript
+            $doctor = array_keys_to_lowercase($doctor);
+
             json_response(['success' => true, 'message' => 'Doctor updated successfully', 'data' => $doctor, 'action' => 'updated', 'id' => $doctorId]);
             
         } else {
@@ -327,6 +341,9 @@ try {
                                   WHERE d.id = ?');
             $stmt->execute([$result['id']]);
             $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Convert all keys to lowercase for consistency with JavaScript
+            $doctor = array_keys_to_lowercase($doctor);
 
             $message = ($result['action'] === 'inserted') ? 'Doctor created successfully' : 
                       (($result['action'] === 'updated') ? 'Doctor updated successfully' : 'Doctor already exists (no changes needed)');
