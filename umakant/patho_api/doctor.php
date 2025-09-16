@@ -26,7 +26,7 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 // Map HTTP methods to actions
 switch($requestMethod) {
     case 'GET':
-        $action = isset($_GET['id']) ? 'get' : 'list';
+        $action = isset($_GET['id']) ? 'get' : ($_GET['action'] ?? 'list'); // Added $_GET['action'] for specific GET actions like 'specializations', 'hospitals', 'stats'
         break;
     case 'POST':
         $action = $_REQUEST['action'] ?? 'save';
@@ -76,25 +76,71 @@ try {
         
         $userId = $_GET['user_id'] ?? $auth['user_id'];
         
-        // Check if user wants to see all (master/admin only)
-        if (isset($_GET['all']) && $_GET['all'] == '1' && in_array($auth['role'], ['master', 'admin'])) {
-            $query = 'SELECT d.*, u.username AS added_by_username 
-                     FROM doctors d 
-                     LEFT JOIN users u ON d.added_by = u.id 
-                     ORDER BY d.id DESC';
-            $stmt = $pdo->query($query);
-        } else {
-            $query = 'SELECT d.*, u.username AS added_by_username 
-                     FROM doctors d 
-                     LEFT JOIN users u ON d.added_by = u.id 
-                     WHERE d.added_by = ? 
-                     ORDER BY d.id DESC';
-            $stmt = $pdo->prepare($query);
-            $stmt->execute([$userId]);
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $offset = ($page - 1) * $limit;
+
+        $search = $_GET['search'] ?? '';
+        $specializationFilter = $_GET['specialization'] ?? '';
+        $hospitalFilter = $_GET['hospital'] ?? '';
+
+        $whereClauses = [];
+        $params = [];
+
+        // Base query for doctors
+        $baseQuery = "FROM doctors d LEFT JOIN users u ON d.added_by = u.id";
+
+        // Add user-specific filter unless 'all' is requested by master/admin
+        if (!(isset($_GET['all']) && $_GET['all'] == '1' && in_array($auth['role'], ['master', 'admin']))) {
+            $whereClauses[] = "d.added_by = ?";
+            $params[] = $userId;
         }
+
+        // Add search filter
+        if (!empty($search)) {
+            $whereClauses[] = "(d.name LIKE ? OR d.qualification LIKE ? OR d.specialization LIKE ? OR d.hospital LIKE ? OR d.contact_no LIKE ? OR d.email LIKE ?)";
+            $searchTerm = "%" . $search . "%";
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+        }
+
+        // Add specialization filter
+        if (!empty($specializationFilter)) {
+            $whereClauses[] = "d.specialization = ?";
+            $params[] = $specializationFilter;
+        }
+
+        // Add hospital filter
+        if (!empty($hospitalFilter)) {
+            $whereClauses[] = "d.hospital = ?";
+            $params[] = $hospitalFilter;
+        }
+
+        $whereSql = count($whereClauses) > 0 ? " WHERE " . implode(" AND ", $whereClauses) : "";
+
+        // Get total records (for pagination info)
+        $totalStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereSql);
+        $totalStmt->execute($params);
+        $totalRecords = $totalStmt->fetchColumn();
+
+        // Get doctors with pagination and filters
+        $query = "SELECT d.*, u.username AS added_by_username " . $baseQuery . $whereSql . " ORDER BY d.id DESC LIMIT ?, ?";
+        $stmt = $pdo->prepare($query);
+        $params[] = $offset;
+        $params[] = $limit;
+        $stmt->execute($params);
         
         $doctors = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        json_response(['success' => true, 'data' => $doctors, 'total' => count($doctors)]);
+
+        json_response([
+            'success' => true,
+            'data' => $doctors,
+            'pagination' => [
+                'total' => $totalRecords,
+                'page' => $page,
+                'limit' => $limit,
+                'totalPages' => ceil($totalRecords / $limit)
+            ]
+        ]);
     }
 
     if ($action === 'get') {
@@ -328,6 +374,55 @@ try {
         $stmt->execute([$id]);
 
         json_response(['success' => true, 'message' => 'Doctor deleted successfully']);
+    }
+
+    if ($action === 'specializations') {
+        $auth = authenticateApiUser($pdo);
+        if (!$auth) {
+            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        }
+        $stmt = $pdo->query('SELECT DISTINCT specialization FROM doctors WHERE specialization IS NOT NULL AND specialization != "" ORDER BY specialization');
+        $specializations = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        json_response(['success' => true, 'data' => $specializations]);
+    }
+
+    if ($action === 'hospitals') {
+        $auth = authenticateApiUser($pdo);
+        if (!$auth) {
+            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        }
+        $stmt = $pdo->query('SELECT DISTINCT hospital FROM doctors WHERE hospital IS NOT NULL AND hospital != "" ORDER BY hospital');
+        $hospitals = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        json_response(['success' => true, 'data' => $hospitals]);
+    }
+
+    if ($action === 'stats') {
+        $auth = authenticateApiUser($pdo);
+        if (!$auth) {
+            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        }
+        $totalStmt = $pdo->query("SELECT COUNT(*) FROM doctors");
+        $total = $totalStmt->fetchColumn();
+        
+        // Example: active doctors could be those added in the last 30 days, or with recent activity
+        $activeStmt = $pdo->query("SELECT COUNT(*) FROM doctors WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+        $active = $activeStmt->fetchColumn();
+        
+        $specializationsStmt = $pdo->query("SELECT COUNT(DISTINCT specialization) FROM doctors WHERE specialization IS NOT NULL AND specialization != ''");
+        $specializations = $specializationsStmt->fetchColumn();
+        
+        $hospitalsStmt = $pdo->query("SELECT COUNT(DISTINCT hospital) FROM doctors WHERE hospital IS NOT NULL AND hospital != ''");
+        $hospitals = $hospitalsStmt->fetchColumn();
+        
+        json_response([
+            'success' => true,
+            'data' => [
+                'total' => $total,
+                'active' => $active,
+                'specializations' => $specializations,
+                'hospitals' => $hospitals
+            ]
+        ]);
     }
 
     // Invalid action
