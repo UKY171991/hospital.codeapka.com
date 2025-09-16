@@ -63,7 +63,7 @@ require_once 'inc/sidebar.php';
                 <div class="col-lg-3 col-6">
                     <div class="small-box bg-danger">
                         <div class="inner">
-                            <h3 id="hospitals">0</h3>
+                            <h3 id="hospitals">0</h1>
                             <p>Hospitals</p>
                         </div>
                         <div class="icon">
@@ -178,6 +178,7 @@ require_once 'inc/sidebar.php';
                                     <thead>
                                         <tr>
                                             <th>Sr. No.</th>
+                                            <th>ID</th> <!-- Added ID column -->
                                             <th>Name</th>
                                             <th>Qualification</th>
                                             <th>Specialization</th>
