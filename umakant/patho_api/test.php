@@ -75,8 +75,27 @@ try {
         exit;
     }
 
-echo json_encode(['success' => true, 'message' => 'Test file loaded successfully with authentication and permissions.']);
-exit;
+    switch($action) {
+        case 'list':
+            handleList($pdo, $entity_config);
+            break;
+            
+        case 'get':
+            handleGet($pdo, $entity_config);
+            break;
+            
+        case 'save':
+            handleSave($pdo, $entity_config, $user_data);
+            break;
+            
+        case 'delete':
+            handleDelete($pdo, $entity_config);
+            break;
+            
+        default:
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid action']);
+    }
 
 } catch (Exception $e) {
     error_log("Test API Error: " . $e->getMessage());
