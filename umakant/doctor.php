@@ -82,7 +82,7 @@ require_once 'inc/sidebar.php';
                                 Doctors Directory
                             </h3>
                             <div class="card-tools">
-                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#doctorModal" onclick="openAddDoctorModal()">
+                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#doctorModal">
                                     <i class="fas fa-plus"></i> Add New Doctor
                                 </button>
                                 <button type="button" class="btn btn-success btn-sm" onclick="exportDoctors()">
@@ -152,6 +152,9 @@ require_once 'inc/sidebar.php';
                                             <span class="input-group-text"><i class="fas fa-search"></i></span>
                                         </div>
                                         <input id="doctorsSearch" class="form-control" placeholder="Search doctors...">
+                                        <div class="input-group-append">
+                                            <button id="doctorsSearchClear" class="btn btn-outline-secondary">Clear</button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -165,28 +168,30 @@ require_once 'inc/sidebar.php';
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <button class="btn btn-outline-secondary btn-block" onclick="clearFilters()">
-                                        <i class="fas fa-times"></i> Clear
-                                    </button>
+                                    <div class="form-inline float-right">
+                                        <label class="mr-2">Per page</label>
+                                        <select id="doctorsPerPage" class="form-control">
+                                            <option value="10">10</option>
+                                            <option value="25">25</option>
+                                            <option value="50">50</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Doctors Table -->
                             <div class="table-responsive">
-                                <table id="doctorsTable" class="table table-enhanced">
+                                <table id="doctorsTable" class="table table-bordered table-striped table-hover">
                                     <thead>
                                         <tr>
-                                            <th width="40">
-                                                <input type="checkbox" id="selectAll" class="selection-checkbox">
-                                            </th>
                                             <th>ID</th>
                                             <th>Name</th>
                                             <th>Qualification</th>
                                             <th>Specialization</th>
                                             <th>Hospital</th>
                                             <th>Contact</th>
-                                            <th>Percentage</th>
-                                            <th width="120">Actions</th>
+                                            <th>Percent</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="doctorsTableBody">

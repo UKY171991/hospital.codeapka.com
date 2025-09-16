@@ -1,5 +1,10 @@
 // Enhanced Doctor Management JavaScript
 
+// Global variables for pagination and filtering
+let currentPage = 1;
+let recordsPerPage = 10; // Default records per page
+let totalRecords = 0; // To be updated by API response
+
 $(document).ready(function() {
     initializeDoctorPage();
 });
@@ -7,400 +12,109 @@ $(document).ready(function() {
 function initializeDoctorPage() {
     loadDoctors();
     loadStats();
-    initializeDataTable();
+    loadFilters(); // Load specializations and hospitals for filters
     setupEventListeners();
     utils.initTooltips();
 }
 
 function setupEventListeners() {
     // Search functionality
-    $('#searchDoctor').on('input', utils.debounce(function() {
-        const searchTerm = $(this).val();
-        filterDoctors(searchTerm);
+    $('#doctorsSearch').on('input', utils.debounce(function() {
+        currentPage = 1; // Reset page on search
+        loadDoctors();
     }, 300));
 
     // Specialization filter
     $('#specializationFilter').on('change', function() {
-        const specialization = $(this).val();
-        filterDoctorsBySpecialization(specialization);
+        currentPage = 1; // Reset page on filter change
+        loadDoctors();
     });
 
-    // Export functionality
-    $('#exportDoctors').on('click', function() {
-        utils.exportTableToCSV('#doctorsTable', 'doctors-export.csv');
+    // Hospital filter
+    $('#hospitalFilter').on('change', function() {
+        currentPage = 1; // Reset page on filter change
+        loadDoctors();
     });
 
-    // Form submission
+    // Records per page change
+    $('#doctorsPerPage').on('change', function() {
+        recordsPerPage = parseInt($(this).val());
+        currentPage = 1; // Reset page on records per page change
+        loadDoctors();
+    });
+
+    // Clear filters button
+    $('#doctorsSearchClear').on('click', function() {
+        clearFilters();
+    });
+
+    // Form submission for Add/Edit Doctor Modal
     $('#doctorForm').on('submit', function(e) {
         e.preventDefault();
-        saveDoctorWithValidation();
+        saveDoctorData();
+    });
+
+    // Click handler for "Add New Doctor" button
+    $('.card-header').on('click', 'button[data-target="#doctorModal"]', function() {
+        openAddDoctorModal();
     });
 }
 
-function initializeDataTable() {
-    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#doctorsTable')) {
-        $('#doctorsTable').DataTable().destroy();
-    }
-    
-    $('#doctorsTable').DataTable({
-        responsive: true,
-        pageLength: 25,
-        order: [[1, 'asc']],
-        columnDefs: [
-            {
-                targets: [0, -1],
-                orderable: false
-            }
-        ],
-        language: {
-            search: "Search doctors:",
-            lengthMenu: "Show _MENU_ doctors per page",
-            info: "Showing _START_ to _END_ of _TOTAL_ doctors",
-            infoEmpty: "No doctors found",
-            infoFiltered: "(filtered from _MAX_ total doctors)"
-        },
-        dom: '<"row"<"col-sm-6"l><"col-sm-6"f>>rtip'
-    });
-}
+// Removed initializeDataTable as the table is now dynamically populated and managed by populateDoctorsTable and updatePagination.
+// If DataTables functionality is still desired, it would need to be re-initialized *after* populateDoctorsTable has rendered the table,
+// and its server-server-side processing features would need to be integrated with the patho_api/doctor.php's pagination and filtering.
+// For now, I've removed the DataTables initialization to simplify and remove potential conflicts.
 
 function loadDoctors() {
-    utils.showLoading('#doctorsTableContainer');
-    
-    $.ajax({
-        url: 'ajax/doctor_api.php',
-        method: 'GET',
-        data: { action: 'list' },
-        dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                populateDoctorsTable(response.data || []);
-                loadSpecializationFilter(response.data || []);
-            } else {
-                utils.showError('Failed to load doctors: ' + (response.message || 'Unknown error'));
-                $('#doctorsTableContainer').html('<div class="alert alert-danger">Failed to load doctors</div>');
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Error loading doctors:', error);
-            utils.showError('Error loading doctors: ' + error);
-            $('#doctorsTableContainer').html('<div class="alert alert-danger">Error loading doctors</div>');
-        }
-    });
-}
+    utils.showLoading('#doctorsTableBody');
 
-function populateDoctorsTable(doctors) {
-    let html = `
-        <div class="table-responsive">
-            <table id="doctorsTable" class="table table-bordered table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>Avatar</th>
-                        <th>Name</th>
-                        <th>Specialization</th>
-                        <th>Hospital</th>
-                        <th>Contact</th>
-                        <th>Email</th>
-                        <th>Experience</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
+    const searchTerm = $('#doctorsSearch').val();
+    const specialization = $('#specializationFilter').val();
+    const hospital = $('#hospitalFilter').val();
 
-    if (doctors.length === 0) {
-        html += `
-                    <tr>
-                        <td colspan="9" class="text-center text-muted py-4">
-                            <i class="fas fa-user-md fa-3x mb-3 d-block"></i>
-                            No doctors found. <a href="#" onclick="openAddDoctorModal()" class="text-primary">Add the first doctor</a>
-                        </td>
-                    </tr>
-        `;
-    } else {
-        doctors.forEach(doctor => {
-            const avatar = utils.generateAvatar(doctor.name, 'bg-info');
-            const statusBadge = doctor.status === 'active' 
-                ? '<span class="badge badge-success">Active</span>'
-                : '<span class="badge badge-secondary">Inactive</span>';
-            
-            html += `
-                <tr>
-                    <td>${avatar}</td>
-                    <td>
-                        <strong>${doctor.name || 'N/A'}</strong>
-                        ${doctor.designation ? `<br><small class="text-muted">${doctor.designation}</small>` : ''}
-                    </td>
-                    <td>
-                        <span class="badge badge-primary">${doctor.specialization || 'General'}</span>
-                    </td>
-                    <td>${doctor.hospital || 'N/A'}</td>
-                    <td>
-                        ${doctor.phone ? `<i class="fas fa-phone text-success"></i> ${doctor.phone}<br>` : ''}
-                        ${doctor.mobile ? `<i class="fas fa-mobile text-info"></i> ${doctor.mobile}` : ''}
-                    </td>
-                    <td>
-                        ${doctor.email ? `<a href="mailto:${doctor.email}" class="text-primary">${doctor.email}</a>` : 'N/A'}
-                    </td>
-                    <td>
-                        ${doctor.experience ? `${doctor.experience} years` : 'N/A'}
-                    </td>
-                    <td>${statusBadge}</td>
-                    <td>
-                        <div class="btn-group btn-group-sm" role="group">
-                            <button class="btn btn-info btn-sm" onclick="viewDoctor(${doctor.id})" title="View Details" data-toggle="tooltip">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-warning btn-sm" onclick="editDoctor(${doctor.id})" title="Edit" data-toggle="tooltip">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteDoctor(${doctor.id})" title="Delete" data-toggle="tooltip">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-
-    html += `
-                </tbody>
-            </table>
-        </div>
-    `;
-
-    $('#doctorsTableContainer').html(html);
-    initializeDataTable();
-    utils.initTooltips();
-}
-
-function loadSpecializationFilter(doctors) {
-    const specializations = [...new Set(doctors.map(d => d.specialization).filter(s => s))];
-    
-    let options = '<option value="">All Specializations</option>';
-    specializations.forEach(spec => {
-        options += `<option value="${spec}">${spec}</option>`;
-    });
-    
-    $('#specializationFilter').html(options);
-}
-
-function loadStats() {
-    $.ajax({
-        url: 'ajax/doctor_api.php',
-        method: 'GET',
-        data: { action: 'stats' },
-        dataType: 'json',
-        success: function(response) {
-            if (response.success && response.data) {
-                const stats = response.data;
-                $('#totalDoctors').text(stats.total || 0);
-                $('#activeDoctors').text(stats.active || 0);
-                $('#specializations').text(stats.specializations || 0);
-                $('#hospitals').text(stats.hospitals || 0);
-            }
-        },
-        error: function() {
-            console.warn('Could not load doctor statistics');
-        }
-    });
-}
-
-function openAddDoctorModal() {
-    $('#doctorModalLabel').text('Add New Doctor');
-    $('#doctorForm')[0].reset();
-    $('#doctorId').val('');
-    $('#doctorModal').modal('show');
-}
-
-function editDoctor(id) {
-    utils.showLoading('#doctorModal .modal-body');
-    $('#doctorModal').modal('show');
-    
-    $.ajax({
-        url: 'ajax/doctor_api.php',
-        method: 'GET',
-        data: { action: 'get', id: id },
-        dataType: 'json',
-        success: function(response) {
-            if (response.success && response.data) {
-                const doctor = response.data;
-                $('#doctorModalLabel').text('Edit Doctor');
-                $('#doctorId').val(doctor.id);
-                $('#doctorName').val(doctor.name);
-                $('#doctorSpecialization').val(doctor.specialization);
-                $('#doctorDesignation').val(doctor.designation);
-                $('#doctorHospital').val(doctor.hospital);
-                $('#doctorPhone').val(doctor.phone);
-                $('#doctorMobile').val(doctor.mobile);
-                $('#doctorEmail').val(doctor.email);
-                $('#doctorAddress').val(doctor.address);
-                $('#doctorExperience').val(doctor.experience);
-                $('#doctorQualification').val(doctor.qualification);
-                $('#doctorStatus').val(doctor.status || 'active');
-            } else {
-                utils.showError('Failed to load doctor details');
-                $('#doctorModal').modal('hide');
-            }
-        },
-        error: function() {
-            utils.showError('Error loading doctor details');
-            $('#doctorModal').modal('hide');
-        },
-        complete: function() {
-            utils.hideLoading('#doctorModal .modal-body');
-        }
-    });
-}
-
-function saveDoctorWithValidation() {
-    const formData = {
-        id: $('#doctorId').val(),
-        name: $('#doctorName').val(),
-        specialization: $('#doctorSpecialization').val(),
-        designation: $('#doctorDesignation').val(),
-        hospital: $('#doctorHospital').val(),
-        phone: $('#doctorPhone').val(),
-        mobile: $('#doctorMobile').val(),
-        email: $('#doctorEmail').val(),
-        address: $('#doctorAddress').val(),
-        experience: $('#doctorExperience').val(),
-        qualification: $('#doctorQualification').val(),
-        status: $('#doctorStatus').val()
-    };
-
-    // Validation rules
-    const rules = {
-        name: { required: true, label: 'Doctor Name', minLength: 2 },
-        specialization: { required: true, label: 'Specialization' },
-        email: { type: 'email', label: 'Email Address' },
-        phone: { type: 'phone', label: 'Phone Number' },
-        mobile: { type: 'phone', label: 'Mobile Number' }
-    };
-
-    const errors = utils.validateForm(formData, rules);
-    
-    if (errors.length > 0) {
-        utils.showError('Please fix the following errors:<br>• ' + errors.join('<br>• '));
-        return;
-    }
-
-    saveDoctor(formData);
-}
-
-function saveDoctor(formData) {
-    const action = formData.id ? 'update' : 'create';
-    
-    $.ajax({
-        url: 'ajax/doctor_api.php',
-        method: 'POST',
-        data: {
-            action: action,
-            ...formData
-        },
-        dataType: 'json',
-        beforeSend: function() {
-            $('#saveDoctorBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
-        },
-        success: function(response) {
-            if (response.success) {
-                utils.showSuccess(formData.id ? 'Doctor updated successfully!' : 'Doctor added successfully!');
-                $('#doctorModal').modal('hide');
-                loadDoctors();
-                loadStats();
-            } else {
-                utils.showError('Failed to save doctor: ' + (response.message || 'Unknown error'));
-            }
-        },
-        error: function(xhr, status, error) {
-            utils.showError('Error saving doctor: ' + error);
-        },
-        complete: function() {
-            $('#saveDoctorBtn').prop('disabled', false).html('<i class="fas fa-save"></i> Save Doctor');
-        }
-    });
-}
-
-function deleteDoctor(id) {
-    utils.confirm(
-        'Are you sure you want to delete this doctor? This action cannot be undone.',
-        'Delete Doctor'
-    ).then(confirmed => {
-        if (confirmed) {
-            $.ajax({
-                url: 'ajax/doctor_api.php',
-                method: 'POST',
-                data: { action: 'delete', id: id },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        utils.showSuccess('Doctor deleted successfully!');
-                        loadDoctors();
-                        loadStats();
-                    } else {
-                        utils.showError('Failed to delete doctor: ' + (response.message || 'Unknown error'));
-                    }
-                },
-                error: function() {
-                    utils.showError('Error deleting doctor');
-                }
-            });
-        }
-    });
-}
-
-function viewDoctor(id) {
-    // Implementation for viewing doctor details in a modal
-    utils.showInfo('View doctor functionality will be implemented here');
-}
-
-function filterDoctors(searchTerm) {
-    const table = $('#doctorsTable').DataTable();
-    table.search(searchTerm).draw();
-}
-
-function filterDoctorsBySpecialization(specialization) {
-    const table = $('#doctorsTable').DataTable();
-    if (specialization) {
-        table.column(2).search(specialization).draw();
-    } else {
-        table.column(2).search('').draw();
-    }
-}
+    const params = new URLSearchParams({
+        action: 'list',
+        page: currentPage,
+        limit: recordsPerPage,
+        ...(searchTerm && { search: searchTerm }),
         ...(specialization && { specialization: specialization }),
         ...(hospital && { hospital: hospital })
     });
 
     $.get(`patho_api/doctor.php?${params}`)
         .done(function(response) {
-            if (response.status === 'success') {
+            if (response.success) {
                 populateDoctorsTable(response.data);
                 updatePagination(response.pagination);
-                updateStats();
             } else {
                 showAlert('Error loading doctors: ' + response.message, 'error');
+                $('#doctorsTableBody').html('<tr><td colspan="8" class="text-center text-muted">Failed to load doctors.</td></tr>');
             }
         })
         .fail(function() {
-            // Fallback to legacy API
-            $.get('ajax/doctor_api.php', {action: 'list'}, function(resp) {
-                if (resp.success) {
-                    populateLegacyDoctorsTable(resp.data);
-                } else {
-                    toastr.error('Failed to load doctors');
-                }
-            }, 'json');
+            showAlert('Failed to load doctors data from API.', 'error');
+            $('#doctorsTableBody').html('<tr><td colspan="8" class="text-center text-muted">Failed to load doctors.</td></tr>');
+        })
+        .always(function() {
+            utils.hideLoading('#doctorsTableBody');
         });
 }
 
 function populateDoctorsTable(doctors) {
     let html = '';
-    
+
     if (doctors.length === 0) {
-        html = '<tr><td colspan="8" class="text-center text-muted">No doctors found</td></tr>';
+        html = `
+            <tr>
+                <td colspan="8" class="text-center text-muted py-4">
+                    <i class="fas fa-user-md fa-3x mb-3 d-block"></i>
+                    No doctors found. <a href="#" onclick="openAddDoctorModal()" class="text-primary">Add the first doctor</a>
+                </td>
+            </tr>
+        `;
     } else {
         doctors.forEach(doctor => {
+            const avatar = utils.generateAvatar(doctor.name, 'bg-info');
             html += `
                 <tr>
                     <td>${doctor.id}</td>
@@ -446,39 +160,19 @@ function populateDoctorsTable(doctors) {
             `;
         });
     }
-    
-    $('#doctorsTableBody').html(html);
-}
 
-function populateLegacyDoctorsTable(doctors) {
-    let html = '';
-    doctors.forEach(function(r) {
-        html += '<tr>' +
-            '<td>' + r.id + '</td>' +
-            '<td>' + (r.name || '') + '</td>' +
-            '<td>' + (r.qualification || '') + '</td>' +
-            '<td>' + (r.specialization || '') + '</td>' +
-            '<td>' + (r.hospital || '') + '</td>' +
-            '<td>' + (r.contact_no || r.phone || '') + '</td>' +
-            '<td>' + (r.percent || '') + '</td>' +
-            '<td>' + (r.email || '') + '</td>' +
-            '<td><button class="btn btn-sm btn-info view-doctor" data-id="' + r.id + '">View</button> ' +
-            '<button class="btn btn-sm btn-warning edit-doctor" data-id="' + r.id + '">Edit</button> ' +
-            '<button class="btn btn-sm btn-danger delete-doctor" data-id="' + r.id + '">Delete</button></td>' +
-            '</tr>';
-    });
-    $('#doctorsTable tbody').html(html);
+    $('#doctorsTableBody').html(html);
 }
 
 function updatePagination(pagination) {
     totalRecords = pagination.total;
     const totalPages = Math.ceil(totalRecords / recordsPerPage);
-    
+
     // Update info
     const start = ((currentPage - 1) * recordsPerPage) + 1;
     const end = Math.min(currentPage * recordsPerPage, totalRecords);
     $('#doctorsInfo').html(`Showing ${start} to ${end} of ${totalRecords} entries`);
-    
+
     // Update pagination
     let paginationHtml = '';
     if (totalPages > 1) {
@@ -488,7 +182,7 @@ function updatePagination(pagination) {
                     <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
                 </li>
         `;
-        
+
         for (let i = 1; i <= totalPages; i++) {
             if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
                 paginationHtml += `
@@ -500,7 +194,7 @@ function updatePagination(pagination) {
                 paginationHtml += '<li class="page-item disabled"><span class="page-link">...</span></li>';
             }
         }
-        
+
         paginationHtml += `
                 <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
                     <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
@@ -508,19 +202,23 @@ function updatePagination(pagination) {
             </ul>
         `;
     }
-    
+
     $('#doctorsPagination').html(paginationHtml);
 }
 
-function updateStats() {
+function loadStats() {
     $.get('patho_api/doctor.php?action=stats')
         .done(function(response) {
-            if (response.status === 'success') {
-                $('#totalDoctors').text(response.data.total || 0);
-                $('#activeDoctors').text(response.data.active || 0);
-                $('#specializations').text(response.data.specializations || 0);
-                $('#hospitals').text(response.data.hospitals || 0);
+            if (response.success) {
+                const stats = response.data;
+                $('#totalDoctors').text(stats.total || 0);
+                $('#activeDoctors').text(stats.active || 0);
+                $('#specializations').text(stats.specializations || 0);
+                $('#hospitals').text(stats.hospitals || 0);
             }
+        })
+        .fail(function() {
+            console.warn('Could not load doctor statistics');
         });
 }
 
@@ -528,7 +226,7 @@ function loadFilters() {
     // Load specializations
     $.get('patho_api/doctor.php?action=specializations')
         .done(function(response) {
-            if (response.status === 'success') {
+            if (response.success) {
                 let options = '<option value="">All Specializations</option>';
                 response.data.forEach(spec => {
                     options += `<option value="${spec}">${spec}</option>`;
@@ -540,7 +238,7 @@ function loadFilters() {
     // Load hospitals
     $.get('patho_api/doctor.php?action=hospitals')
         .done(function(response) {
-            if (response.status === 'success') {
+            if (response.success) {
                 let options = '<option value="">All Hospitals</option>';
                 response.data.forEach(hospital => {
                     options += `<option value="${hospital}">${hospital}</option>`;
@@ -551,6 +249,9 @@ function loadFilters() {
 }
 
 function changePage(page) {
+    if (page < 1) page = 1;
+    const totalPages = Math.ceil(totalRecords / recordsPerPage); // totalRecords needs to be global or passed
+    if (page > totalPages) page = totalPages;
     currentPage = page;
     loadDoctors();
 }
@@ -571,27 +272,27 @@ function openAddDoctorModal() {
 }
 
 function editDoctor(id) {
-    $.get(`patho_api/doctor.php?id=${id}`)
+    utils.showLoading('#doctorModal .modal-body');
+    $('#doctorModal').modal('show');
+
+    $.get(`patho_api/doctor.php?action=get&id=${id}`)
         .done(function(response) {
-            if (response.status === 'success') {
+            if (response.success) {
                 const doctor = response.data;
                 populateDoctorForm(doctor);
                 $('#modalTitle').text('Edit Doctor');
-                $('#doctorModal').modal('show');
-            } else {
+            }
+            else {
                 showAlert('Error loading doctor data: ' + response.message, 'error');
+                $('#doctorModal').modal('hide');
             }
         })
         .fail(function() {
-            // Fallback to legacy API
-            $.get('ajax/doctor_api.php', {action: 'get', id: id}, function(resp) {
-                if (resp.success) {
-                    populateDoctorForm(resp.data);
-                    $('#doctorModal').modal('show');
-                } else {
-                    toastr.error('Doctor not found');
-                }
-            }, 'json');
+            showAlert('Failed to load doctor data for editing.', 'error');
+            $('#doctorModal').modal('hide');
+        })
+        .always(function() {
+            utils.hideLoading('#doctorModal .modal-body');
         });
 }
 
@@ -610,9 +311,12 @@ function populateDoctorForm(doctor) {
 }
 
 function viewDoctor(id) {
-    $.get(`patho_api/doctor.php?id=${id}`)
+    utils.showLoading('#viewDoctorModal .modal-body');
+    $('#viewDoctorModal').modal('show');
+
+    $.get(`patho_api/doctor.php?action=get&id=${id}`)
         .done(function(response) {
-            if (response.status === 'success') {
+            if (response.success) {
                 const doctor = response.data;
                 const content = `
                     <div class="row">
@@ -638,22 +342,30 @@ function viewDoctor(id) {
                     ${doctor.address ? `<div class="row"><div class="col-12"><strong>Address:</strong><br>${doctor.address}</div></div>` : ''}
                 `;
                 $('#viewDoctorContent').html(content);
-                $('#viewDoctorModal').modal('show');
-            } else {
+            }
+            else {
                 showAlert('Error loading doctor data: ' + response.message, 'error');
+                $('#viewDoctorModal').modal('hide');
             }
         })
         .fail(function() {
-            showAlert('Failed to load doctor data', 'error');
+            showAlert('Failed to load doctor data for viewing.', 'error');
+            $('#viewDoctorModal').modal('hide');
+        })
+        .always(function() {
+            utils.hideLoading('#viewDoctorModal .modal-body');
         });
 }
 
 function saveDoctorData() {
     const formData = new FormData($('#doctorForm')[0]);
     const id = $('#doctorId').val();
-    const method = id ? 'PUT' : 'POST';
-    
-    // Add loading state
+    const method = id ? 'POST' : 'POST'; // patho_api uses POST for both create and update (upsert)
+
+    // Convert FormData to a plain object for JSON payload if needed,
+    // but patho_api/doctor.php handles both JSON and form data.
+    // For simplicity and consistency with existing form submission, we'll stick to FormData.
+
     const submitBtn = $('#doctorForm button[type="submit"]');
     const originalText = submitBtn.html();
     submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
@@ -663,18 +375,19 @@ function saveDoctorData() {
         type: method,
         data: formData,
         processData: false,
-        contentType: false,
+        contentType: false, // Important for FormData
         success: function(response) {
-            if (response.status === 'success') {
+            if (response.success) {
                 showAlert(id ? 'Doctor updated successfully!' : 'Doctor added successfully!', 'success');
                 $('#doctorModal').modal('hide');
                 loadDoctors();
+                loadStats(); // Update stats after save
             } else {
-                showAlert('Error: ' + response.message, 'error');
+                showAlert('Error: ' + (response.message || 'Unknown error'), 'error');
             }
         },
         error: function() {
-            showAlert('Failed to save doctor data', 'error');
+            showAlert('Failed to save doctor data.', 'error');
         },
         complete: function() {
             submitBtn.html(originalText).prop('disabled', false);
@@ -710,23 +423,16 @@ function performDeleteDoctor(id) {
         url: `patho_api/doctor.php?id=${id}`,
         type: 'DELETE',
         success: function(response) {
-            if (response.status === 'success') {
+            if (response.success) {
                 showAlert('Doctor deleted successfully!', 'success');
                 loadDoctors();
+                loadStats(); // Update stats after delete
             } else {
-                showAlert('Error deleting doctor: ' + response.message, 'error');
+                showAlert('Error deleting doctor: ' + (response.message || 'Unknown error'), 'error');
             }
         },
         error: function() {
-            // Fallback to legacy API
-            $.post('ajax/doctor_api.php', {action: 'delete', id: id}, function(resp) {
-                if (resp.success) {
-                    toastr.success(resp.message);
-                    loadDoctors();
-                } else {
-                    toastr.error(resp.message || 'Delete failed');
-                }
-            }, 'json');
+            showAlert('Failed to delete doctor.', 'error');
         }
     });
 }
@@ -734,7 +440,7 @@ function performDeleteDoctor(id) {
 function showAlert(message, type) {
     const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
     const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-    
+
     const alert = `
         <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
             <i class="${icon} mr-2"></i>${message}
@@ -743,13 +449,13 @@ function showAlert(message, type) {
             </button>
         </div>
     `;
-    
+
     // Remove existing alerts
     $('.alert').remove();
-    
+
     // Add new alert at the top of content
     $('.content-wrapper .content').prepend(alert);
-    
+
     // Auto hide after 5 seconds
     setTimeout(() => {
         $('.alert').fadeOut();
@@ -762,52 +468,80 @@ function formatDateTime(dateString) {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
 }
 
-// Legacy jQuery ready function for backward compatibility
-$(function() {
-    loadDoctors();
-    
-    $('#saveDoctorBtn').click(function() {
-        var data = $('#doctorForm').serialize() + '&action=save';
-        $.post('ajax/doctor_api.php', data, function(resp) {
-            if (resp.success) {
-                toastr.success(resp.message || 'Saved');
-                $('#doctorModal').modal('hide');
-                loadDoctors();
-            } else {
-                toastr.error(resp.message || 'Save failed');
-            }
-        }, 'json').fail(function(xhr) {
-            var msg = xhr.responseText || 'Server error';
-            try {
-                var j = JSON.parse(xhr.responseText || '{}');
-                if (j.message) msg = j.message;
-            } catch (e) {}
-            toastr.error(msg);
-        });
-    });
+// Helper function to generate avatar (assuming utils.js provides this)
+// If utils.js is not available or doesn't have this, you might need to implement it here.
+// For now, assuming utils.generateAvatar exists.
+// function generateAvatar(name, bgColorClass) {
+//     const initials = name ? name.charAt(0).toUpperCase() : '?';
+//     return `<div class="avatar-circle ${bgColorClass}">${initials}</div>`;
+// }
 
-    $('#doctorsTable').on('click', '.edit-doctor', function() {
-        var id = $(this).data('id');
-        $.get('ajax/doctor_api.php', {action: 'get', id: id}, function(resp) {
-            if (resp.success) {
-                populateDoctorForm(resp.data);
-                $('#doctorModal').modal('show');
-            } else {
-                toastr.error('Doctor not found');
-            }
-        }, 'json');
-    });
+// Placeholder for utils.debounce and utils.initTooltips if not defined elsewhere
+// if (typeof utils === 'undefined') {
+//     var utils = {
+//         debounce: function(func, delay) {
+//             let timeout;
+//             return function(...args) {
+//                 const context = this;
+//                 clearTimeout(timeout);
+//                 timeout = setTimeout(() => func.apply(context, args), delay);
+//             };
+//         },
+//         initTooltips: function() {
+//             $('[data-toggle="tooltip"]').tooltip();
+//         },
+//         showLoading: function(selector) {
+//             $(selector).append('<div class="overlay"><i class="fas fa-2x fa-sync-alt fa-spin"></i></div>');
+//         },
+//         hideLoading: function(selector) {
+//             $(selector).find('.overlay').remove();
+//         },
+//         showError: function(message) {
+//             showAlert(message, 'error');
+//         },
+//         showSuccess: function(message) {
+//             showAlert(message, 'success');
+//         },
+//         confirm: function(message, title) {
+//             return new Promise((resolve) => {
+//                 if (typeof Swal !== 'undefined') {
+//                     Swal.fire({
+//                         title: title,
+//                         text: message,
+//                         icon: 'warning',
+//                         showCancelButton: true,
+//                         confirmButtonColor: '#3085d6',
+//                         cancelButtonColor: '#d33',
+//                         confirmButtonText: 'Yes'
+//                     }).then((result) => {
+//                         resolve(result.isConfirmed);
+//                     });
+//                 } else {
+//                     resolve(confirm(message));
+//                 }
+//             });
+//         },
+//         validateForm: function(formData, rules) {
+//             const errors = [];
+//             for (const field in rules) {
+//                 const rule = rules[field];
+//                 const value = formData[field];
 
-    $('#doctorsTable').on('click', '.delete-doctor', function() {
-        if (!confirm('Delete doctor?')) return;
-        var id = $(this).data('id');
-        $.post('ajax/doctor_api.php', {action: 'delete', id: id}, function(resp) {
-            if (resp.success) {
-                toastr.success(resp.message);
-                loadDoctors();
-            } else {
-                toastr.error(resp.message || 'Delete failed');
-            }
-        }, 'json');
-    });
-});
+//                 if (rule.required && (!value || value.trim() === '')) {
+//                     errors.push(`${rule.label || field} is required.`);
+//                 }
+//                 if (value && rule.minLength && value.length < rule.minLength) {
+//                     errors.push(`${rule.label || field} must be at least ${rule.minLength} characters long.`);
+//                 }
+//                 if (value && rule.type === 'email' && !/^[^
+// @]+@[^
+// @]+\.[^
+// @]+$/.test(value)) {
+//                     errors.push(`Invalid ${rule.label || field} format.`);
+//                 }
+//                 // Add more validation types as needed
+//             }
+//             return errors;
+//         }
+//     };
+// }
