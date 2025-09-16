@@ -61,6 +61,7 @@ function initializeDataTable() {
         processing: true,
         serverSide: true,
         responsive: true,
+        autoWidth: false, // Added to prevent potential auto-width issues
         pageLength: 10, // Default records per page
         lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
         order: [[0, 'desc']], // Order by ID descending by default
@@ -78,14 +79,30 @@ function initializeDataTable() {
                 d.hospital = $('#hospitalFilter').val();
             },
             dataSrc: function(json) {
+                console.log("API Response (dataSrc):", json); // Log entire JSON response
                 // Map API response to DataTables format
+                if (!json.success) {
+                    console.error("API returned an error:", json.message);
+                    showAlert('Error loading doctors: ' + (json.message || 'Unknown API error'), 'error');
+                    return []; // Return empty array to prevent DataTables error
+                }
+                if (!json.data) {
+                    console.warn("API returned no data array.");
+                    return [];
+                }
                 json.recordsTotal = json.pagination.total;
                 json.recordsFiltered = json.pagination.total; // Assuming server-side filtering is applied
                 return json.data;
             },
             error: function(xhr, error, thrown) {
                 console.error("DataTables AJAX error:", xhr, error, thrown);
-                showAlert('Error loading doctors data. Please try again.', 'error');
+                let errorMessage = 'Error loading doctors data. ';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage += xhr.responseJSON.message;
+                } else {
+                    errorMessage += thrown ? thrown : 'Unknown error.';
+                }
+                showAlert(errorMessage, 'error');
             }
         },
         columns: [
@@ -93,6 +110,7 @@ function initializeDataTable() {
                 data: null, // Use null for Sr. No. as it's not directly from data
                 orderable: false,
                 render: function (data, type, row, meta) {
+                    console.log("Rendering Sr. No. for row:", row); // Debugging
                     // Calculate serial number based on current page and row index
                     return meta.row + meta.settings._iDisplayStart + 1;
                 }
@@ -100,14 +118,15 @@ function initializeDataTable() {
             {
                 data: 'name',
                 render: function(data, type, row) {
-                    const avatar = utils.generateAvatar(row.name, 'bg-info');
+                    console.log("Rendering Name for row:", row); // Debugging
+                    const avatar = utils.generateAvatar(row.name || '', 'bg-info'); // Ensure name is not null/undefined
                     return `
                         <div class="d-flex align-items-center">
                             <div class="avatar-circle bg-primary text-white mr-2">
-                                ${row.name.charAt(0).toUpperCase()}
+                                ${row.name ? row.name.charAt(0).toUpperCase() : '?'}
                             </div>
                             <div>
-                                <div class="font-weight-bold">${row.name}</div>
+                                <div class="font-weight-bold">${row.name || '-'}</div>
                                 ${row.registration_no ? `<small class="text-muted">Reg: ${row.registration_no}</small>` : ''}
                             </div>
                         </div>
@@ -117,7 +136,8 @@ function initializeDataTable() {
             { data: 'qualification', defaultContent: '-' },
             {
                 data: 'specialization',
-                render: function(data) {
+                render: function(data, type, row) { // Added row parameter for consistency
+                    console.log("Rendering Specialization for row:", row); // Debugging
                     return data ? `<span class="badge badge-info">${data}</span>` : '-';
                 }
             },
@@ -125,6 +145,7 @@ function initializeDataTable() {
             {
                 data: null,
                 render: function(data, type, row) {
+                    console.log("Rendering Contact & Email for row:", row); // Debugging
                     return `
                         <div>
                             ${row.contact_no ? `<div><i class="fas fa-phone text-primary"></i> ${row.contact_no}</div>` : ''}
@@ -138,6 +159,7 @@ function initializeDataTable() {
                 data: null,
                 orderable: false,
                 render: function(data, type, row) {
+                    console.log("Rendering Actions for row:", row); // Debugging
                     return `
                         <div class="btn-group" role="group">
                             <button class="btn btn-info btn-sm" onclick="viewDoctor(${row.id})" title="View">
@@ -146,7 +168,7 @@ function initializeDataTable() {
                             <button class="btn btn-warning btn-sm" onclick="editDoctor(${row.id})" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteDoctor(${row.id}, '${row.name}')" title="Delete">
+                            <button class="btn btn-danger btn-sm" onclick="deleteDoctor(${row.id}, '${row.name || ''}')" title="Delete"> // Ensure name is not null/undefined
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -276,27 +298,19 @@ function viewDoctor(id) {
                     <div class="row">
                         <div class="col-md-6">
                             <table class="table table-borderless">
-                                <tr><td><strong>Name:</strong></td><td>${doctor.name}</td></tr>
-                                <tr><td><strong>Qualification:</strong></td><td>${doctor.qualification || '-'}
-</td></tr>
-                                <tr><td><strong>Specialization:</strong></td><td>${doctor.specialization || '-'}
-</td></tr>
-                                <tr><td><strong>Hospital:</strong></td><td>${doctor.hospital || '-'}
-</td></tr>
-                                <tr><td><strong>Registration No:</strong></td><td>${doctor.registration_no || '-'}
-</td></tr>
+                                <tr><td><strong>Name:</strong></td><td>${doctor.name || '-'}</td></tr>
+                                <tr><td><strong>Qualification:</strong></td><td>${doctor.qualification || '-'}</td></tr>
+                                <tr><td><strong>Specialization:</strong></td><td>${doctor.specialization || '-'}</td></tr>
+                                <tr><td><strong>Hospital:</strong></td><td>${doctor.hospital || '-'}</td></tr>
+                                <tr><td><strong>Registration No:</strong></td><td>${doctor.registration_no || '-'}</td></tr>
                             </table>
                         </div>
                         <div class="col-md-6">
                             <table class="table table-borderless">
-                                <tr><td><strong>Contact:</strong></td><td>${doctor.contact_no || '-'}
-</td></tr>
-                                <tr><td><strong>Phone:</strong></td><td>${doctor.phone || '-'}
-</td></tr>
-                                <tr><td><strong>Email:</strong></td><td>${doctor.email || '-'}
-</td></tr>
-                                <tr><td><strong>Commission:</strong></td><td>${doctor.percent ? doctor.percent + '%' : '-'}
-</td></tr>
+                                <tr><td><strong>Contact:</strong></td><td>${doctor.contact_no || '-'}</td></tr>
+                                <tr><td><strong>Phone:</strong></td><td>${doctor.phone || '-'}</td></tr>
+                                <tr><td><strong>Email:</strong></td><td>${doctor.email || '-'}</td></tr>
+                                <tr><td><strong>Commission:</strong></td><td>${doctor.percent ? doctor.percent + '%' : '-'}</td></tr>
                                 <tr><td><strong>Created:</strong></td><td>${formatDateTime(doctor.created_at)}</td></tr>
                             </table>
                         </div>
@@ -492,7 +506,10 @@ function formatDateTime(dateString) {
 //                 if (value && rule.minLength && value.length < rule.minLength) {
 //                     errors.push(`${rule.label || field} must be at least ${rule.minLength} characters long.`);
 //                 }
-//                 if (value && rule.type === 'email' && !/^[^\n@]+@[^\n@]+\.[^\n@]+$/.test(value)) {
+//                 if (value && rule.type === 'email' && !/^[^
+// @]+@[^
+// @]+\.[^
+// @]+$/.test(value)) {
 //                     errors.push(`Invalid ${rule.label || field} format.`);
 //                 }
 //                 // Add more validation types as needed
