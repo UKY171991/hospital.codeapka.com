@@ -159,7 +159,21 @@ function handleGet($pdo, $config) {
 }
 
 function handleSave($pdo, $config, $user_data) {
+    // file_put_contents(__DIR__ . '/debug.log', "handleSave called at " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
+    
+    // Temporarily return input for debugging
+    $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+    echo json_encode([
+        'success' => false,
+        'message' => 'Debugging input',
+        'input' => $input,
+        '_POST' => $_POST,
+        '_REQUEST' => $_REQUEST
+    ]);
+    return;
+
     try {
+
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
         
         // Validate required fields
@@ -274,6 +288,13 @@ function handleSave($pdo, $config, $user_data) {
         }
 
     } catch (Exception $e) {
+        // Detailed error logging
+        $log_message = "Save test error: " . $e->getMessage() . "\n";
+        $log_message .= "Input data: " . json_encode($input) . "\n";
+        $log_message .= "User data: " . json_encode($user_data) . "\n";
+        $log_message .= "Trace: " . $e->getTraceAsString() . "\n";
+        file_put_contents(__DIR__ . '/debug.log', $log_message, FILE_APPEND);
+
         error_log("Save test error: " . $e->getMessage());
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => 'Failed to save test']);
