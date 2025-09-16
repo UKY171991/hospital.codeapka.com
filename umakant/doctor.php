@@ -177,7 +177,7 @@ require_once 'inc/sidebar.php';
                                 <table id="doctorsTable" class="table table-bordered table-striped table-hover">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
+                                            <th>Sr. No.</th>
                                             <th>Name</th>
                                             <th>Qualification</th>
                                             <th>Specialization</th>
@@ -382,6 +382,7 @@ require_once 'inc/sidebar.php';
 <link rel="stylesheet" href="assets/css/doctor.css">
 
 <!-- Page specific JavaScript -->
+<script src="assets/js/utils.js"></script> <!-- Include utils.js first -->
 <script src="assets/js/doctor.js"></script>
 
 <style>

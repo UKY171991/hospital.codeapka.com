@@ -89,7 +89,14 @@ function initializeDataTable() {
             }
         },
         columns: [
-            { data: 'id' },
+            {
+                data: null, // Use null for Sr. No. as it's not directly from data
+                orderable: false,
+                render: function (data, type, row, meta) {
+                    // Calculate serial number based on current page and row index
+                    return meta.row + meta.settings._iDisplayStart + 1;
+                }
+            },
             {
                 data: 'name',
                 render: function(data, type, row) {
@@ -126,12 +133,7 @@ function initializeDataTable() {
                     `;
                 }
             },
-            {
-                data: 'percent',
-                render: function(data) {
-                    return data ? `<span class="badge badge-success">${data}%</span>` : '-';
-                }
-            },
+            { data: 'percent', defaultContent: '-' },
             {
                 data: null,
                 orderable: false,
@@ -275,18 +277,26 @@ function viewDoctor(id) {
                         <div class="col-md-6">
                             <table class="table table-borderless">
                                 <tr><td><strong>Name:</strong></td><td>${doctor.name}</td></tr>
-                                <tr><td><strong>Qualification:</strong></td><td>${doctor.qualification || '-'}</td></tr>
-                                <tr><td><strong>Specialization:</strong></td><td>${doctor.specialization || '-'}</td></tr>
-                                <tr><td><strong>Hospital:</strong></td><td>${doctor.hospital || '-'}</td></tr>
-                                <tr><td><strong>Registration No:</strong></td><td>${doctor.registration_no || '-'}</td></tr>
+                                <tr><td><strong>Qualification:</strong></td><td>${doctor.qualification || '-'}
+</td></tr>
+                                <tr><td><strong>Specialization:</strong></td><td>${doctor.specialization || '-'}
+</td></tr>
+                                <tr><td><strong>Hospital:</strong></td><td>${doctor.hospital || '-'}
+</td></tr>
+                                <tr><td><strong>Registration No:</strong></td><td>${doctor.registration_no || '-'}
+</td></tr>
                             </table>
                         </div>
                         <div class="col-md-6">
                             <table class="table table-borderless">
-                                <tr><td><strong>Contact:</strong></td><td>${doctor.contact_no || '-'}</td></tr>
-                                <tr><td><strong>Phone:</strong></td><td>${doctor.phone || '-'}</td></tr>
-                                <tr><td><strong>Email:</strong></td><td>${doctor.email || '-'}</td></tr>
-                                <tr><td><strong>Commission:</strong></td><td>${doctor.percent ? doctor.percent + '%' : '-'}</td></tr>
+                                <tr><td><strong>Contact:</strong></td><td>${doctor.contact_no || '-'}
+</td></tr>
+                                <tr><td><strong>Phone:</strong></td><td>${doctor.phone || '-'}
+</td></tr>
+                                <tr><td><strong>Email:</strong></td><td>${doctor.email || '-'}
+</td></tr>
+                                <tr><td><strong>Commission:</strong></td><td>${doctor.percent ? doctor.percent + '%' : '-'}
+</td></tr>
                                 <tr><td><strong>Created:</strong></td><td>${formatDateTime(doctor.created_at)}</td></tr>
                             </table>
                         </div>
@@ -375,7 +385,8 @@ function performDeleteDoctor(id) {
                 showAlert('Doctor deleted successfully!', 'success');
                 doctorsDataTable.ajax.reload(); // Reload DataTables after delete
                 loadStats(); // Update stats after delete
-            } else {
+            }
+            else {
                 showAlert('Error deleting doctor: ' + (response.message || 'Unknown error'), 'error');
             }
         },
@@ -481,10 +492,7 @@ function formatDateTime(dateString) {
 //                 if (value && rule.minLength && value.length < rule.minLength) {
 //                     errors.push(`${rule.label || field} must be at least ${rule.minLength} characters long.`);
 //                 }
-//                 if (value && rule.type === 'email' && !/^[^
-// @]+@[^
-// @]+\.[^
-// @]+$/.test(value)) {
+//                 if (value && rule.type === 'email' && !/^[^\n@]+@[^\n@]+\.[^\n@]+$/.test(value)) {
 //                     errors.push(`Invalid ${rule.label || field} format.`);
 //                 }
 //                 // Add more validation types as needed
