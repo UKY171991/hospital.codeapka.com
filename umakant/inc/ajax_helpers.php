@@ -190,6 +190,9 @@ function checkPermission($auth, $action, $resourceOwnerId = null) {
  * @return array ['action'=>'skipped'|'updated'|'inserted', 'id'=>int|null]
  */
 function upsert_or_skip($pdo, $table, $uniqueWhere, $data) {
+    // Temporarily force inserted for debugging
+    return ['action'=>'inserted','id'=> 9999];
+
     // Build WHERE clause and params
     $whereParts = [];
     $params = [];
