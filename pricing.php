@@ -20,7 +20,7 @@
         <div class="hero-gradient"></div>
       </div>
       <div class="container">
-        <div class="hero-content">
+        <div class="hero-content"> 
           <div class="hero-left">
             <div class="hero-badge">
               <span class="badge-icon">💎</span>
