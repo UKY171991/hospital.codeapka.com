@@ -19,18 +19,12 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 
-// Entity Configuration for Test Categories (match DB categories table)
+// Entity Configuration for Test Categories
 $entity_config = [
     'table_name' => 'categories',
     'id_field' => 'id',
     'required_fields' => ['name'],
-    'allowed_fields' => ['name', 'description', 'added_by'],
-    'permission_map' => [
-        'list' => 'read',
-        'get' => 'read', 
-        'save' => 'write',
-        'delete' => 'delete'
-    ]
+    'allowed_fields' => ['name', 'description', 'added_by']
 ];
 
 // Get action from request
@@ -54,270 +48,189 @@ switch($requestMethod) {
 }
 
 try {
-    // Authenticate user
-    $user_data = authenticateApiUser($pdo);
-    if (!$user_data) {
-        http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Authentication required']);
-        exit;
-    }
-
-    // Check permissions
-    $required_permission = $entity_config['permission_map'][$action] ?? 'read';
-    if (!checkPermission($user_data, $required_permission)) {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Insufficient permissions']);
-        exit;
-    }
-
     switch($action) {
         case 'list':
             handleList($pdo, $entity_config);
             break;
-            
         case 'get':
             handleGet($pdo, $entity_config);
             break;
-            
         case 'save':
-            handleSave($pdo, $entity_config, $user_data);
+            handleSave($pdo, $entity_config);
             break;
-            
         case 'delete':
             handleDelete($pdo, $entity_config);
             break;
-            
         default:
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Invalid action']);
+            json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
     }
-
 } catch (Exception $e) {
-    error_log("Test Category API Error: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    error_log("Test Category API Uncaught Error: " . $e->getMessage());
+    json_response(['success' => false, 'message' => 'An internal server error occurred.'], 500);
 }
 
 function handleList($pdo, $config) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
+    if (!checkPermission($user_data, 'list')) {
+        json_response(['success' => false, 'message' => 'Permission denied to list categories'], 403);
+    }
+
     try {
-    $sql = "SELECT c.*, 
-               COUNT(t.id) as test_count 
-        FROM {$config['table_name']} c 
-        LEFT JOIN tests t ON c.id = t.category_id 
-        GROUP BY c.id 
-        ORDER BY c.name";
-        
+        $sql = "SELECT c.*, COUNT(t.id) as test_count FROM {$config['table_name']} c LEFT JOIN tests t ON c.id = t.category_id GROUP BY c.id ORDER BY c.name";
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
         $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        echo json_encode([
-            'success' => true,
-            'data' => $categories,
-            'total' => count($categories)
-        ]);
+        json_response(['success' => true, 'data' => $categories, 'total' => count($categories)]);
     } catch (Exception $e) {
         error_log("List test categories error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to fetch test categories']);
+        json_response(['success' => false, 'message' => 'Failed to fetch test categories'], 500);
     }
 }
 
 function handleGet($pdo, $config) {
-    try {
-        $id = $_GET['id'] ?? null;
-        if (!$id) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Category ID is required']);
-            return;
-        }
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
 
-    $sql = "SELECT c.*, 
-               COUNT(t.id) as test_count 
-        FROM {$config['table_name']} c 
-        LEFT JOIN tests t ON c.id = t.category_id 
-        WHERE c.{$config['id_field']} = ?
-        GROUP BY c.id";
-        
+    $id = $_GET['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Category ID is required'], 400);
+    }
+
+    try {
+        $sql = "SELECT c.*, COUNT(t.id) as test_count FROM {$config['table_name']} c LEFT JOIN tests t ON c.id = t.category_id WHERE c.{$config['id_field']} = ? GROUP BY c.id";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id]);
         $category = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$category) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Test category not found']);
-            return;
+            json_response(['success' => false, 'message' => 'Test category not found'], 404);
         }
 
-        echo json_encode(['success' => true, 'data' => $category]);
+        if (!checkPermission($user_data, 'get', $category['added_by'] ?? null)) {
+            json_response(['success' => false, 'message' => 'Permission denied to view this category'], 403);
+        }
+
+        json_response(['success' => true, 'data' => $category]);
     } catch (Exception $e) {
         error_log("Get test category error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to fetch test category']);
+        json_response(['success' => false, 'message' => 'Failed to fetch test category'], 500);
     }
 }
 
-function handleSave($pdo, $config, $user_data) {
-    try {
-        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-        
-        // Validate required fields
-        foreach ($config['required_fields'] as $field) {
-            if (empty($input[$field])) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required']);
-                return;
-            }
-        }
+function handleSave($pdo, $config) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
 
-        // Prepare data for saving
+    $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+    $id = $input['id'] ?? null;
+
+    if ($id) { // Update
+        $stmt = $pdo->prepare("SELECT added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $stmt->execute([$id]);
+        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$existing) {
+            json_response(['success' => false, 'message' => 'Category not found'], 404);
+        }
+        if (!checkPermission($user_data, 'save', $existing['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to update this category'], 403);
+        }
+    } else { // Create
+        if (!checkPermission($user_data, 'save')) {
+            json_response(['success' => false, 'message' => 'Permission denied to create categories'], 403);
+        }
+    }
+
+    foreach ($config['required_fields'] as $field) {
+        if (empty($input[$field])) {
+            json_response(['success' => false, 'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'], 400);
+        }
+    }
+
+    try {
         $data = [];
         foreach ($config['allowed_fields'] as $field) {
             if (isset($input[$field])) {
                 $data[$field] = $input[$field];
             }
         }
+        $data['added_by'] = $data['added_by'] ?? $user_data['user_id'];
 
-        $id = $input['id'] ?? null;
-        $is_update = !empty($id);
-        
-        // Set added_by for new records
-        if (!$is_update && !isset($data['added_by'])) {
-            $data['added_by'] = $user_data['user_id'] ?? ($user_data['id'] ?? null);
-        }
-
-        if ($is_update) {
-            // Update existing category - only update provided fields
-            if (empty($data)) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'No valid fields to update']);
-                return;
-            }
-            
-            // Check if category exists
-            $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
-            $stmt->execute([$id]);
-            $existing = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (!$existing) {
-                http_response_code(404);
-                echo json_encode(['success' => false, 'message' => 'Category not found']);
-                return;
-            }
-            
-            // Check for duplicate name if name is being updated
-            if (isset($data['name']) && $data['name'] !== $existing['name']) {
-                $stmt = $pdo->prepare("SELECT id FROM {$config['table_name']} WHERE name = ? AND id != ?");
-                $stmt->execute([$data['name'], $id]);
-                if ($stmt->fetch()) {
-                    http_response_code(400);
-                    echo json_encode(['success' => false, 'message' => 'Category name already exists']);
-                    return;
-                }
-            }
-            
+        if ($id) {
             $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
             $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
             $values = array_merge(array_values($data), [$id]);
-            
             $stmt = $pdo->prepare($sql);
-            $result = $stmt->execute($values);
+            $stmt->execute($values);
             $category_id = $id;
             $action = 'updated';
         } else {
-            // Create new category using upsert logic to prevent duplicates
-            
-            // Define unique criteria for duplicate detection
-            $uniqueWhere = [
-                'name' => $data['name']
-            ];
-            
-            // Use upsert function to handle duplicates properly
-            $result_info = upsert_or_skip($pdo, $config['table_name'], $uniqueWhere, $data);
-            $category_id = $result_info['id'];
-            $action = $result_info['action'];
-            $result = true;
+            $cols = implode(', ', array_keys($data));
+            $placeholders = implode(', ', array_fill(0, count($data), '?'));
+            $sql = "INSERT INTO {$config['table_name']} ($cols) VALUES ($placeholders)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(array_values($data));
+            $category_id = $pdo->lastInsertId();
+            $action = 'inserted';
         }
 
-        if ($result) {            
-            // Fetch the saved category
-            $stmt = $pdo->prepare("SELECT c.*, 
-                           COUNT(t.id) as test_count 
-                       FROM {$config['table_name']} c 
-                       LEFT JOIN tests t ON c.id = t.category_id 
-                       WHERE c.{$config['id_field']} = ?
-                       GROUP BY c.id");
-            $stmt->execute([$category_id]);
-            $saved_category = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt = $pdo->prepare("SELECT c.*, COUNT(t.id) as test_count FROM {$config['table_name']} c LEFT JOIN tests t ON c.id = t.category_id WHERE c.id = ? GROUP BY c.id");
+        $stmt->execute([$category_id]);
+        $saved_category = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            $message = match($action) {
-                'inserted' => 'Test category created successfully',
-                'updated' => 'Test category updated successfully', 
-                'skipped' => 'Test category already exists (no changes needed)',
-                default => 'Test category saved successfully'
-            };
-
-            echo json_encode([
-                'success' => true,
-                'message' => $message,
-                'data' => $saved_category,
-                'action' => $action,
-                'id' => $category_id
-            ]);
-        } else {
-            throw new Exception('Failed to save test category');
-        }
-
+        json_response([
+            'success' => true,
+            'message' => "Category {$action} successfully",
+            'data' => $saved_category,
+            'id' => $category_id
+        ]);
     } catch (Exception $e) {
         error_log("Save test category error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to save test category']);
+        json_response(['success' => false, 'message' => 'Failed to save test category'], 500);
     }
 }
 
 function handleDelete($pdo, $config) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
+
+    $id = $_REQUEST['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Category ID is required'], 400);
+    }
+
     try {
-        $id = $_REQUEST['id'] ?? null;
-        if (!$id) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Category ID is required']);
-            return;
-        }
-
-        // Check if category exists
-        $stmt = $pdo->prepare("SELECT id FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $stmt = $pdo->prepare("SELECT added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
         $stmt->execute([$id]);
-        if (!$stmt->fetch()) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Test category not found']);
-            return;
+        $category = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$category) {
+            json_response(['success' => false, 'message' => 'Test category not found'], 404);
         }
 
-        // Check if category is used in tests (prevent deletion if used)
-        $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM tests WHERE category_id = ?");
-        $stmt->execute([$id]);
-        $usage = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($usage['count'] > 0) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Cannot delete category that has associated tests']);
-            return;
+        if (!checkPermission($user_data, 'delete', $category['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to delete this category'], 403);
         }
 
-        // Delete the category
         $stmt = $pdo->prepare("DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
         $result = $stmt->execute([$id]);
 
         if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Test category deleted successfully']);
+            json_response(['success' => true, 'message' => 'Test category deleted successfully']);
         } else {
-            throw new Exception('Failed to delete test category');
+            json_response(['success' => false, 'message' => 'Failed to delete test category'], 500);
         }
-
     } catch (Exception $e) {
         error_log("Delete test category error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to delete test category']);
+        json_response(['success' => false, 'message' => 'Failed to delete test category'], 500);
     }
 }
 ?>

@@ -17,18 +17,12 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 
-// Entity Configuration for Owners (match DB)
+// Entity Configuration for Owners
 $entity_config = [
     'table_name' => 'owners',
     'id_field' => 'id',
     'required_fields' => ['name', 'phone'],
-    'allowed_fields' => ['name', 'phone', 'whatsapp', 'email', 'address', 'added_by'],
-    'permission_map' => [
-        'list' => 'read',
-        'get' => 'read',
-        'save' => 'write',
-        'delete' => 'delete'
-    ]
+    'allowed_fields' => ['name', 'phone', 'whatsapp', 'email', 'address', 'added_by']
 ];
 
 // Get action from request
@@ -52,283 +46,189 @@ switch($requestMethod) {
 }
 
 try {
-    // Authenticate user
-    $user_data = authenticateApiUser($pdo);
-    if (!$user_data) {
-        http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Authentication required']);
-        exit;
-    }
-
-    // Check permissions
-    $required_permission = $entity_config['permission_map'][$action] ?? 'read';
-    if (!checkPermission($user_data, $required_permission)) {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Insufficient permissions']);
-        exit;
-    }
-
     switch($action) {
         case 'list':
             handleList($pdo, $entity_config);
             break;
-
         case 'get':
             handleGet($pdo, $entity_config);
             break;
-
         case 'save':
-            handleSave($pdo, $entity_config, $user_data);
+            handleSave($pdo, $entity_config);
             break;
-
         case 'delete':
             handleDelete($pdo, $entity_config);
             break;
-
         default:
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Invalid action']);
+            json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
     }
-
 } catch (Exception $e) {
-    error_log("Owner API Error: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    error_log("Owner API Uncaught Error: " . $e->getMessage());
+    json_response(['success' => false, 'message' => 'An internal server error occurred.'], 500);
 }
 
 function handleList($pdo, $config) {
-    try {
-        $sql = "SELECT o.*, u.username AS added_by_username
-                FROM {$config['table_name']} o
-                LEFT JOIN users u ON o.added_by = u.id
-                ORDER BY o.name";
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
+    if (!checkPermission($user_data, 'list')) {
+        json_response(['success' => false, 'message' => 'Permission denied to list owners'], 403);
+    }
 
+    try {
+        $sql = "SELECT o.*, u.username AS added_by_username FROM {$config['table_name']} o LEFT JOIN users u ON o.added_by = u.id ORDER BY o.name";
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
         $owners = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        echo json_encode([
-            'success' => true,
-            'data' => $owners,
-            'total' => count($owners)
-        ]);
+        json_response(['success' => true, 'data' => $owners, 'total' => count($owners)]);
     } catch (Exception $e) {
         error_log("List owners error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to fetch owners']);
+        json_response(['success' => false, 'message' => 'Failed to fetch owners'], 500);
     }
 }
 
 function handleGet($pdo, $config) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
+
+    $id = $_GET['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Owner ID is required'], 400);
+    }
+
     try {
-        $id = $_GET['id'] ?? null;
-        if (!$id) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Owner ID is required']);
-            return;
-        }
-
-        $sql = "SELECT o.*, u.username AS added_by_username
-                FROM {$config['table_name']} o
-                LEFT JOIN users u ON o.added_by = u.id
-                WHERE o.{$config['id_field']} = ?";
-
+        $sql = "SELECT o.*, u.username AS added_by_username FROM {$config['table_name']} o LEFT JOIN users u ON o.added_by = u.id WHERE o.{$config['id_field']} = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id]);
         $owner = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$owner) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Owner not found']);
-            return;
+            json_response(['success' => false, 'message' => 'Owner not found'], 404);
         }
 
-        echo json_encode(['success' => true, 'data' => $owner]);
+        if (!checkPermission($user_data, 'get', $owner['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to view this owner'], 403);
+        }
+
+        json_response(['success' => true, 'data' => $owner]);
     } catch (Exception $e) {
         error_log("Get owner error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to fetch owner']);
+        json_response(['success' => false, 'message' => 'Failed to fetch owner'], 500);
     }
 }
 
-function handleSave($pdo, $config, $user_data) {
+function handleSave($pdo, $config) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+    $id = $input['id'] ?? null;
+
+    if ($id) { // Update
+        $stmt = $pdo->prepare("SELECT added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $stmt->execute([$id]);
+        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$existing) {
+            json_response(['success' => false, 'message' => 'Owner not found'], 404);
+        }
+        if (!checkPermission($user_data, 'save', $existing['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to update this owner'], 403);
+        }
+    } else { // Create
+        if (!checkPermission($user_data, 'save')) {
+            json_response(['success' => false, 'message' => 'Permission denied to create owners'], 403);
+        }
+    }
+
+    foreach ($config['required_fields'] as $field) {
+        if (empty($input[$field])) {
+            json_response(['success' => false, 'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'], 400);
+        }
+    }
+
     try {
-        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-
-        // Validate required fields
-        foreach ($config['required_fields'] as $field) {
-            if (empty($input[$field])) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required']);
-                return;
-            }
-        }
-
-        // Validate email format if provided
-        if (!empty($input['email']) && !filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Invalid email format']);
-            return;
-        }
-
-        // Validate phone (allow +, digits, spaces, dashes, parentheses)
-        if (!preg_match('/^[0-9+\-\s()]{7,20}$/', $input['phone'])) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Invalid phone format']);
-            return;
-        }
-
-        $id = $input['id'] ?? null;
-        $is_update = !empty($id);
-
-        // Prepare data for saving
         $data = [];
         foreach ($config['allowed_fields'] as $field) {
             if (isset($input[$field])) {
                 $data[$field] = $input[$field];
             }
         }
+        $data['added_by'] = $data['added_by'] ?? $user_data['user_id'];
 
-        // Ensure added_by is set for new records
-        if (!$is_update && !isset($data['added_by'])) {
-            $data['added_by'] = $user_data['user_id'] ?? ($user_data['id'] ?? null);
-        }
-
-        if ($is_update) {
-            // Update existing owner - only update provided fields
-            if (empty($data)) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'No valid fields to update']);
-                return;
-            }
-            
-            // Check if owner exists
-            $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
-            $stmt->execute([$id]);
-            $existing = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (!$existing) {
-                http_response_code(404);
-                echo json_encode(['success' => false, 'message' => 'Owner not found']);
-                return;
-            }
-            
-            // Check for duplicate phone if being updated
-            if (isset($data['phone']) && $data['phone'] !== $existing['phone']) {
-                $stmt = $pdo->prepare("SELECT id FROM {$config['table_name']} WHERE phone = ? AND id != ?");
-                $stmt->execute([$data['phone'], $id]);
-                if ($stmt->fetch()) {
-                    http_response_code(400);
-                    echo json_encode(['success' => false, 'message' => 'Phone already exists']);
-                    return;
-                }
-            }
-            
-            // Check for duplicate email if being updated
-            if (isset($data['email']) && !empty($data['email']) && $data['email'] !== $existing['email']) {
-                $stmt = $pdo->prepare("SELECT id FROM {$config['table_name']} WHERE email = ? AND id != ?");
-                $stmt->execute([$data['email'], $id]);
-                if ($stmt->fetch()) {
-                    http_response_code(400);
-                    echo json_encode(['success' => false, 'message' => 'Email already exists']);
-                    return;
-                }
-            }
-            
+        if ($id) {
             $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
             $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
             $values = array_merge(array_values($data), [$id]);
-            
             $stmt = $pdo->prepare($sql);
-            $result = $stmt->execute($values);
+            $stmt->execute($values);
             $owner_id = $id;
             $action = 'updated';
         } else {
-            // Create new owner using upsert logic to prevent duplicates
-            
-            // Define unique criteria for duplicate detection  
-            $uniqueWhere = [
-                'phone' => $data['phone']
-            ];
-            
-            // Add email to uniqueness if provided
-            if (!empty($data['email'])) {
-                $uniqueWhere['email'] = $data['email'];
-            }
-            
-            // Use upsert function to handle duplicates properly
-            $result_info = upsert_or_skip($pdo, $config['table_name'], $uniqueWhere, $data);
-            $owner_id = $result_info['id'];
-            $action = $result_info['action'];
-            $result = true;
+            $cols = implode(', ', array_keys($data));
+            $placeholders = implode(', ', array_fill(0, count($data), '?'));
+            $sql = "INSERT INTO {$config['table_name']} ($cols) VALUES ($placeholders)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(array_values($data));
+            $owner_id = $pdo->lastInsertId();
+            $action = 'inserted';
         }
 
-        if ($result) {
-            // Fetch the saved owner
-            $stmt = $pdo->prepare("SELECT o.*, u.username AS added_by_username
-                                   FROM {$config['table_name']} o
-                                   LEFT JOIN users u ON o.added_by = u.id
-                                   WHERE o.{$config['id_field']} = ?");
-            $stmt->execute([$owner_id]);
-            $saved_owner = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt = $pdo->prepare("SELECT o.*, u.username AS added_by_username FROM {$config['table_name']} o LEFT JOIN users u ON o.added_by = u.id WHERE o.id = ?");
+        $stmt->execute([$owner_id]);
+        $saved_owner = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            $message = match($action) {
-                'inserted' => 'Owner created successfully',
-                'updated' => 'Owner updated successfully', 
-                'skipped' => 'Owner already exists (no changes needed)',
-                default => 'Owner saved successfully'
-            };
-
-            echo json_encode([
-                'success' => true,
-                'message' => $message,
-                'data' => $saved_owner,
-                'action' => $action,
-                'id' => $owner_id
-            ]);
-        } else {
-            throw new Exception('Failed to save owner');
-        }
-
+        json_response([
+            'success' => true,
+            'message' => "Owner {$action} successfully",
+            'data' => $saved_owner,
+            'id' => $owner_id
+        ]);
     } catch (Exception $e) {
         error_log("Save owner error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to save owner']);
+        json_response(['success' => false, 'message' => 'Failed to save owner'], 500);
     }
 }
 
 function handleDelete($pdo, $config) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
+
+    $id = $_REQUEST['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Owner ID is required'], 400);
+    }
+
     try {
-        $id = $_REQUEST['id'] ?? null;
-        if (!$id) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Owner ID is required']);
-            return;
-        }
-
-        // Check if owner exists
-        $stmt = $pdo->prepare("SELECT id FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $stmt = $pdo->prepare("SELECT added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
         $stmt->execute([$id]);
-        if (!$stmt->fetch()) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Owner not found']);
-            return;
+        $owner = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$owner) {
+            json_response(['success' => false, 'message' => 'Owner not found'], 404);
         }
 
-        // Delete the owner
+        if (!checkPermission($user_data, 'delete', $owner['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to delete this owner'], 403);
+        }
+
         $stmt = $pdo->prepare("DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
         $result = $stmt->execute([$id]);
 
         if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Owner deleted successfully']);
+            json_response(['success' => true, 'message' => 'Owner deleted successfully']);
         } else {
-            throw new Exception('Failed to delete owner');
+            json_response(['success' => false, 'message' => 'Failed to delete owner'], 500);
         }
-
     } catch (Exception $e) {
         error_log("Delete owner error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to delete owner']);
+        json_response(['success' => false, 'message' => 'Failed to delete owner'], 500);
     }
 }
 ?>

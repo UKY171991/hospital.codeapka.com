@@ -131,6 +131,10 @@ try {
             json_response(['success' => false, 'status' => 'error', 'message' => 'Authentication required'], 401);
         }
 
+        if (!checkPermission($auth, 'list')) {
+            json_response(['success' => false, 'message' => 'Permission denied'], 403);
+        }
+
         $userId = $_GET['user_id'] ?? $auth['user_id'];
 
         // Pagination params (frontend sends page & limit)
@@ -207,6 +211,10 @@ try {
         
         if (!$entity) {
             json_response(['success' => false, 'status' => 'error', 'message' => $ENTITY_NAME . ' not found'], 404);
+        }
+
+        if (!checkPermission($auth, 'get', $entity['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
         
         // Apply field mapping

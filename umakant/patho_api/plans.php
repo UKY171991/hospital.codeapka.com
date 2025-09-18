@@ -7,7 +7,7 @@
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key, X-API-Secret');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -43,13 +43,9 @@ switch($requestMethod) {
 if ($action === 'save') {
     $raw = file_get_contents('php://input');
     $input = json_decode($raw, true);
-    // Allow form-data as well
-    if (!is_array($input) || empty($input)) {
-        $input = $_POST;
-    }
+    if (!is_array($input) || empty($input)) { $input = $_POST; }
     $id = $_GET['id'] ?? $_REQUEST['id'] ?? ($input['id'] ?? null);
     if ($id) {
-        // expose id for downstream update branch
         $_REQUEST['id'] = $id;
         $action = 'update';
     } else {
@@ -58,79 +54,54 @@ if ($action === 'save') {
 }
 
 try {
-    // Authenticate user
-    function authenticateUser($pdo) {
-        global $_SESSION;
-        
-        // Check session first
-        if (isset($_SESSION['user_id'])) {
-            return $_SESSION['user_id'];
-        }
-        
-        // Check Authorization header
-        $headers = getallheaders();
-        if (isset($headers['Authorization'])) {
-            $token = str_replace('Bearer ', '', $headers['Authorization']);
-            $stmt = $pdo->prepare('SELECT id FROM users WHERE api_token = ? AND is_active = 1');
-            $stmt->execute([$token]);
-            $user = $stmt->fetch();
-            if ($user) return $user['id'];
-        }
-        
-        return null;
+    switch($action) {
+        case 'list':
+            handleList($pdo);
+            break;
+        case 'get':
+            handleGet($pdo);
+            break;
+        case 'create':
+            handleCreate($pdo);
+            break;
+        case 'update':
+            handleUpdate($pdo);
+            break;
+        case 'delete':
+            handleDelete($pdo);
+            break;
+        default:
+            json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
+    }
+} catch (Exception $e) {
+    error_log("Plans API Uncaught Error: " . $e->getMessage());
+    json_response(['success' => false, 'message' => 'An internal server error occurred.'], 500);
+}
+
+function validatePlanData($data, $isUpdate = false) {
+    $errors = [];
+    if (!$isUpdate && empty($data['name'])) {
+        $errors[] = 'Plan name is required';
+    }
+    if (!$isUpdate && !isset($data['price'])) {
+        $errors[] = 'Plan price is required';
+    }
+    if (isset($data['price']) && !is_numeric($data['price'])) {
+        $errors[] = 'Plan price must be a number';
+    }
+    return $errors;
+}
+
+function handleList($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
+    if (!checkPermission($user_data, 'list')) {
+        json_response(['success' => false, 'message' => 'Permission denied to list plans'], 403);
     }
 
-    // Check if user has permission to manage plans
-    function checkPlanPermission($pdo, $userId) {
-        $stmt = $pdo->prepare('SELECT role FROM users WHERE id = ?');
-        $stmt->execute([$userId]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $user && in_array($user['role'], ['master', 'admin']);
-    }
-
-    // Validate plan data
-    function validatePlanData($data, $isUpdate = false) {
-        $errors = [];
-        
-        if (!$isUpdate || isset($data['name'])) {
-            if (empty(trim($data['name'] ?? ''))) {
-                $errors[] = 'Plan name is required';
-            }
-        }
-        
-        if (isset($data['price'])) {
-            $price = floatval($data['price']);
-            if ($price < 0) {
-                $errors[] = 'Price cannot be negative';
-            }
-        }
-        
-        if (isset($data['time_type'])) {
-            $validTypes = ['monthly', 'yearly'];
-            if (!in_array($data['time_type'], $validTypes)) {
-                $errors[] = 'Time type must be monthly or yearly';
-            }
-        }
-        
-        if (isset($data['start_date']) && isset($data['end_date'])) {
-            $startDate = $data['start_date'];
-            $endDate = $data['end_date'];
-            
-            if (!empty($startDate) && !empty($endDate)) {
-                $start = new DateTime($startDate);
-                $end = new DateTime($endDate);
-                
-                if ($start > $end) {
-                    $errors[] = 'Start date cannot be after end date';
-                }
-            }
-        }
-        
-        return $errors;
-    }
-
-    if ($action === 'list') {
-        // Plans can be viewed publicly or by authenticated users
+    try {
         $search = $_GET['search'] ?? '';
         $timeType = $_GET['time_type'] ?? '';
         $limit = intval($_GET['limit'] ?? 50);
@@ -155,13 +126,11 @@ try {
             $whereClause = 'WHERE ' . implode(' AND ', $whereConditions);
         }
         
-        // Count total records
         $countQuery = 'SELECT COUNT(*) as total FROM plans ' . $whereClause;
         $stmt = $pdo->prepare($countQuery);
         $stmt->execute($params);
         $total = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         
-        // Fetch plans
         $query = 'SELECT p.*, u.username AS added_by_username 
                  FROM plans p 
                  LEFT JOIN users u ON p.added_by = u.id 
@@ -183,14 +152,24 @@ try {
             'limit' => $limit,
             'offset' => $offset
         ]);
+    } catch (Exception $e) {
+        error_log("List plans error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to fetch plans'], 500);
+    }
+}
+
+function handleGet($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
     }
 
-    if ($action === 'get') {
-        $id = $_GET['id'] ?? null;
-        if (!$id) {
-            json_response(['success' => false, 'message' => 'Plan ID is required'], 400);
-        }
-        
+    $id = $_GET['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Plan ID is required'], 400);
+    }
+
+    try {
         $stmt = $pdo->prepare('SELECT p.*, u.username AS added_by_username 
                               FROM plans p 
                               LEFT JOIN users u ON p.added_by = u.id 
@@ -201,31 +180,36 @@ try {
         if (!$plan) {
             json_response(['success' => false, 'message' => 'Plan not found'], 404);
         }
+
+        if (!checkPermission($user_data, 'get', $plan['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to view this plan'], 403);
+        }
         
         json_response(['success' => true, 'data' => $plan]);
+    } catch (Exception $e) {
+        error_log("Get plan error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to fetch plan'], 500);
+    }
+}
+
+function handleCreate($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
     }
 
-    if ($action === 'create') {
-        $authenticatedUserId = authenticateUser($pdo);
-        if (!$authenticatedUserId) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
-        }
+    if (!checkPermission($user_data, 'create')) {
+        json_response(['success' => false, 'message' => 'Permission denied to create plans'], 403);
+    }
 
-        // Check permission
-        if (!checkPlanPermission($pdo, $authenticatedUserId)) {
-            json_response(['success' => false, 'message' => 'Insufficient permissions'], 403);
-        }
+    $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+    
+    $errors = validatePlanData($input);
+    if (!empty($errors)) {
+        json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
+    }
 
-        // Get input data
-        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-        
-        // Validate input
-        $errors = validatePlanData($input);
-        if (!empty($errors)) {
-            json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
-        }
-
-        // Prepare data for insertion
+    try {
         $data = [
             'name' => trim($input['name']),
             'description' => trim($input['description'] ?? ''),
@@ -235,10 +219,9 @@ try {
             'start_date' => isset($input['start_date']) && !empty($input['start_date']) ? $input['start_date'] : null,
             'end_date' => isset($input['end_date']) && !empty($input['end_date']) ? $input['end_date'] : null,
             'qr_code' => trim($input['qr_code'] ?? ''),
-            'added_by' => $authenticatedUserId
+            'added_by' => $user_data['user_id']
         ];
 
-        // Insert plan
         $fields = array_keys($data);
         $placeholders = ':' . implode(', :', $fields);
         $query = 'INSERT INTO plans (' . implode(', ', $fields) . ') VALUES (' . $placeholders . ')';
@@ -248,7 +231,6 @@ try {
         
         $planId = $pdo->lastInsertId();
         
-        // Fetch the created plan
         $stmt = $pdo->prepare('SELECT p.*, u.username AS added_by_username 
                               FROM plans p 
                               LEFT JOIN users u ON p.added_by = u.id 
@@ -257,27 +239,25 @@ try {
         $plan = $stmt->fetch(PDO::FETCH_ASSOC);
 
         json_response(['success' => true, 'message' => 'Plan created successfully', 'data' => $plan]);
+    } catch (Exception $e) {
+        error_log("Create plan error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to create plan'], 500);
+    }
+}
+
+function handleUpdate($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
     }
 
-    if ($action === 'update') {
-        $authenticatedUserId = authenticateUser($pdo);
-        if (!$authenticatedUserId) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
-        }
+    $id = $_GET['id'] ?? $_REQUEST['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Plan ID is required'], 400);
+    }
 
-        // Check permission
-        if (!checkPlanPermission($pdo, $authenticatedUserId)) {
-            json_response(['success' => false, 'message' => 'Insufficient permissions'], 403);
-        }
-
-        // Get plan ID from URL or input
-        $id = $_GET['id'] ?? $_REQUEST['id'] ?? null;
-        if (!$id) {
-            json_response(['success' => false, 'message' => 'Plan ID is required'], 400);
-        }
-
-        // Check if plan exists
-        $stmt = $pdo->prepare('SELECT * FROM plans WHERE id = ?');
+    try {
+        $stmt = $pdo->prepare('SELECT added_by FROM plans WHERE id = ?');
         $stmt->execute([$id]);
         $existingPlan = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -285,16 +265,17 @@ try {
             json_response(['success' => false, 'message' => 'Plan not found'], 404);
         }
 
-        // Get input data
+        if (!checkPermission($user_data, 'update', $existingPlan['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to update this plan'], 403);
+        }
+
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
         
-        // Validate input
         $errors = validatePlanData($input, true);
         if (!empty($errors)) {
             json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
         }
 
-        // Prepare update data
         $updateData = [];
         $allowedFields = ['name', 'description', 'price', 'upi', 'time_type', 'start_date', 'end_date', 'qr_code'];
         
@@ -314,19 +295,17 @@ try {
             json_response(['success' => false, 'message' => 'No valid fields to update'], 400);
         }
 
-        // Build update query
         $setParts = [];
         foreach ($updateData as $field => $value) {
             $setParts[] = "$field = :$field";
         }
         
-        $query = 'UPDATE plans SET ' . implode(', ', $setParts) . ' WHERE id = :id';
+        $query = 'UPDATE plans SET ' . implode(', ', $setParts) . ', updated_at = NOW() WHERE id = :id';
         $updateData['id'] = $id;
         
         $stmt = $pdo->prepare($query);
         $stmt->execute($updateData);
 
-        // Fetch updated plan
         $stmt = $pdo->prepare('SELECT p.*, u.username AS added_by_username 
                               FROM plans p 
                               LEFT JOIN users u ON p.added_by = u.id 
@@ -335,26 +314,25 @@ try {
         $plan = $stmt->fetch(PDO::FETCH_ASSOC);
 
         json_response(['success' => true, 'message' => 'Plan updated successfully', 'data' => $plan]);
+    } catch (Exception $e) {
+        error_log("Update plan error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to update plan'], 500);
+    }
+}
+
+function handleDelete($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
     }
 
-    if ($action === 'delete') {
-        $authenticatedUserId = authenticateUser($pdo);
-        if (!$authenticatedUserId) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
-        }
+    $id = $_GET['id'] ?? $_REQUEST['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Plan ID is required'], 400);
+    }
 
-        // Check permission
-        if (!checkPlanPermission($pdo, $authenticatedUserId)) {
-            json_response(['success' => false, 'message' => 'Insufficient permissions'], 403);
-        }
-
-        $id = $_GET['id'] ?? $_REQUEST['id'] ?? null;
-        if (!$id) {
-            json_response(['success' => false, 'message' => 'Plan ID is required'], 400);
-        }
-
-        // Check if plan exists
-        $stmt = $pdo->prepare('SELECT * FROM plans WHERE id = ?');
+    try {
+        $stmt = $pdo->prepare('SELECT added_by FROM plans WHERE id = ?');
         $stmt->execute([$id]);
         $plan = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -362,18 +340,21 @@ try {
             json_response(['success' => false, 'message' => 'Plan not found'], 404);
         }
 
-        // Delete plan
+        if (!checkPermission($user_data, 'delete', $plan['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to delete this plan'], 403);
+        }
+
         $stmt = $pdo->prepare('DELETE FROM plans WHERE id = ?');
-        $stmt->execute([$id]);
+        $result = $stmt->execute([$id]);
 
-        json_response(['success' => true, 'message' => 'Plan deleted successfully']);
+        if ($result) {
+            json_response(['success' => true, 'message' => 'Plan deleted successfully']);
+        } else {
+            json_response(['success' => false, 'message' => 'Failed to delete plan'], 500);
+        }
+    } catch (Exception $e) {
+        error_log("Delete plan error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to delete plan'], 500);
     }
-
-    // Invalid action
-    json_response(['success' => false, 'message' => 'Invalid action'], 400);
-
-} catch (Exception $e) {
-    error_log('Plans API Error: ' . $e->getMessage());
-    json_response(['success' => false, 'message' => 'Internal server error', 'error' => $e->getMessage()], 500);
 }
 ?>

@@ -6,18 +6,6 @@
  * Database Schema: Complete 16-column support with enriched data
  */
 
-// Immediate response to test if file is being executed
-if (isset($_GET['test']) && $_GET['test'] === 'access') {
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode([
-        'success' => true,
-        'message' => 'Entry API file is accessible',
-        'timestamp' => date('Y-m-d H:i:s'),
-        'php_version' => PHP_VERSION
-    ]);
-    exit;
-}
-
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -28,45 +16,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// Debug: Log that the file is being executed
-error_log("DEBUG Entry API: File execution started at " . date('Y-m-d H:i:s'));
-
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-// Debug: Log before requiring files
-error_log("DEBUG Entry API: About to require connection.php");
+require_once __DIR__ . '/../inc/connection.php';
+require_once __DIR__ . '/../inc/ajax_helpers.php';
+require_once __DIR__ . '/../inc/api_config.php';
 
-try {
-    require_once __DIR__ . '/../inc/connection.php';
-    error_log("DEBUG Entry API: connection.php loaded successfully");
-} catch (Exception $e) {
-    error_log("DEBUG Entry API: Error loading connection.php: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Database connection error: ' . $e->getMessage()]);
-    exit;
-}
-
-try {
-    require_once __DIR__ . '/../inc/ajax_helpers.php';
-    error_log("DEBUG Entry API: ajax_helpers.php loaded successfully");
-} catch (Exception $e) {
-    error_log("DEBUG Entry API: Error loading ajax_helpers.php: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Helper functions error: ' . $e->getMessage()]);
-    exit;
-}
-
-try {
-    require_once __DIR__ . '/../inc/api_config.php';
-    error_log("DEBUG Entry API: api_config.php loaded successfully");
-} catch (Exception $e) {
-    error_log("DEBUG Entry API: Error loading api_config.php: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'API config error: ' . $e->getMessage()]);
-    exit;
-}
-
-// Entity Configuration for Entries (complete database schema)
+// Entity Configuration for Entries
 $entity_config = [
     'table_name' => 'entries',
     'id_field' => 'id',
@@ -75,13 +31,6 @@ $entity_config = [
         'patient_id', 'test_id', 'doctor_id', 'entry_date', 'result_value', 
         'unit', 'remarks', 'status', 'added_by', 'created_at', 'updated_at',
         'grouped', 'tests_count', 'test_ids', 'test_names', 'test_results'
-    ],
-    'permission_map' => [
-        'list' => 'read',
-        'get' => 'read', 
-        'save' => 'write',
-        'delete' => 'delete',
-        'stats' => 'read'
     ]
 ];
 
@@ -92,7 +41,7 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 // Map HTTP methods to actions
 switch($requestMethod) {
     case 'GET':
-        $action = isset($_GET['id']) ? 'get' : ($action === 'stats' ? 'stats' : 'list');
+        $action = isset($_GET['id']) ? 'get' : ($_GET['action'] ?? 'list');
         break;
     case 'POST':
         $action = $_REQUEST['action'] ?? 'save';
@@ -106,175 +55,41 @@ switch($requestMethod) {
 }
 
 try {
-    // Authenticate user
-    $user_data = authenticateApiUser($pdo);
-    
-    // Debug: Log authentication result
-    error_log("DEBUG Entry API: Authentication result: " . json_encode($user_data));
-    
-    
-    
-    if (!$user_data) {
-        // Debug information for authentication failure
-        $debug_info = [
-            'headers_received' => function_exists('getallheaders') ? getallheaders() : 'getallheaders not available',
-            'x_api_key_header' => $_SERVER['HTTP_X_API_KEY'] ?? 'not set',
-            'request_method' => $_SERVER['REQUEST_METHOD'] ?? 'not set',
-            'server_vars' => array_filter($_SERVER, function($key) {
-                return strpos($key, 'HTTP_') === 0;
-            }, ARRAY_FILTER_USE_KEY)
-        ];
-        
-        http_response_code(401);
-        echo json_encode([
-            'success' => false, 
-            'message' => 'Authentication required',
-            'debug' => $debug_info
-        ]);
-        exit;
-    }
-
-    // Check permissions
-    $required_permission = $entity_config['permission_map'][$action] ?? 'read';
-    
-    // Debug: Log permission check
-    error_log("DEBUG Entry API: Checking permissions - User: " . json_encode($user_data) . ", Required: " . $required_permission . ", Action: " . $action);
-    
-    $permission_result = checkPermission($user_data, $required_permission);
-    error_log("DEBUG Entry API: Permission check result: " . ($permission_result ? 'true' : 'false'));
-
     switch($action) {
         case 'list':
-            try {
-                handleList($pdo, $entity_config, $user_data);
-            } catch (Exception $e) {
-                error_log("DEBUG Entry API: handleList error: " . $e->getMessage());
-                http_response_code(500);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Error retrieving entries: ' . $e->getMessage(),
-                    'debug' => [
-                        'error' => $e->getMessage(),
-                        'file' => $e->getFile(),
-                        'line' => $e->getLine()
-                    ]
-                ]);
-                exit;
-            }
+            handleList($pdo, $entity_config);
             break;
-            
         case 'get':
-            try {
-                handleGet($pdo, $entity_config, $user_data);
-            } catch (Exception $e) {
-                error_log("DEBUG Entry API: handleGet error: " . $e->getMessage());
-                http_response_code(500);
-                echo json_encode(['success' => false, 'message' => 'Error retrieving entry: ' . $e->getMessage()]);
-                exit;
-            }
+            handleGet($pdo, $entity_config);
             break;
-            
         case 'save':
-            try {
-                handleSave($pdo, $entity_config, $user_data);
-            } catch (Exception $e) {
-                error_log("DEBUG Entry API: handleSave error: " . $e->getMessage());
-                http_response_code(500);
-                echo json_encode(['success' => false, 'message' => 'Error saving entry: ' . $e->getMessage()]);
-                exit;
-            }
+            handleSave($pdo, $entity_config);
             break;
-            
         case 'delete':
-            try {
-                handleDelete($pdo, $entity_config, $user_data);
-            } catch (Exception $e) {
-                error_log("DEBUG Entry API: handleDelete error: " . $e->getMessage());
-                http_response_code(500);
-                echo json_encode(['success' => false, 'message' => 'Error deleting entry: ' . $e->getMessage()]);
-                exit;
-            }
+            handleDelete($pdo, $entity_config);
             break;
-            
         case 'stats':
-            try {
-                handleStats($pdo, $user_data);
-            } catch (Exception $e) {
-                error_log("DEBUG Entry API: handleStats error: " . $e->getMessage());
-                http_response_code(500);
-                echo json_encode(['success' => false, 'message' => 'Error retrieving stats: ' . $e->getMessage()]);
-                exit;
-            }
+            handleStats($pdo);
             break;
-            
         default:
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Invalid action']);
+            json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
     }
-
 } catch (Exception $e) {
-    error_log("Entry API Error: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    error_log("Entry API Uncaught Error: " . $e->getMessage());
+    json_response(['success' => false, 'message' => 'An internal server error occurred.'], 500);
 }
 
-function handleList($pdo, $config, $user_data) {
-    if (!checkPermission($user_data, 'list')) {
-        json_response(['success' => false, 'message' => 'Permission denied'], 403);
+function handleList($pdo, $config) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
     }
+    if (!checkPermission($user_data, 'list')) {
+        json_response(['success' => false, 'message' => 'Permission denied to list entries'], 403);
+    }
+
     try {
-        // First, check if the entries table exists
-        $table_check_sql = "SHOW TABLES LIKE '{$config['table_name']}'";
-        $table_check_stmt = $pdo->prepare($table_check_sql);
-        $table_check_stmt->execute();
-        $table_exists = $table_check_stmt->fetch();
-        
-        if (!$table_exists) {
-            error_log("DEBUG Entry API: Table '{$config['table_name']}' does not exist");
-            echo json_encode([
-                'success' => true,
-                'data' => [],
-                'total' => 0,
-                'message' => 'Entries table not found - returning empty list for testing',
-                'debug' => [
-                    'table_name' => $config['table_name'],
-                    'table_exists' => false
-                ]
-            ]);
-            return;
-        }
-        
-        // Enhanced query with all database columns + enriched data
-        $sql = "SELECT e.id,
-                       e.patient_id,
-                       e.doctor_id,
-                       e.test_id,
-                       e.entry_date,
-                       e.result_value,
-                       e.unit,
-                       e.remarks,
-                       e.status,
-                       e.added_by,
-                       e.created_at,
-                       e.updated_at,
-                       e.grouped,
-                       e.tests_count,
-                       e.test_ids,
-                       e.test_names,
-                       e.test_results,
-                       p.name as patient_name,
-                       p.uhid as patient_uhid,
-                       p.age,
-                       p.sex as gender,
-                       d.name as doctor_name,
-                       t.name as test_name,
-                       t.unit as test_unit,
-                       t.reference_range,
-                       t.min_male,
-                       t.max_male,
-                       t.min_female,
-                       t.max_female,
-                       u.username as added_by_username
+        $sql = "SELECT e.*, p.name as patient_name, p.uhid as patient_uhid, d.name as doctor_name, t.name as test_name, u.username as added_by_username
                 FROM {$config['table_name']} e 
                 LEFT JOIN patients p ON e.patient_id = p.id 
                 LEFT JOIN tests t ON e.test_id = t.id 
@@ -286,67 +101,26 @@ function handleList($pdo, $config, $user_data) {
         $stmt->execute();
         $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Process entries for better display
-        $processed_entries = processEntriesForDisplay($entries);
-
-        echo json_encode([
-            'success' => true,
-            'data' => $processed_entries,
-            'total' => count($processed_entries),
-            'raw_total' => count($entries)
-        ]);
+        json_response(['success' => true, 'data' => $entries, 'total' => count($entries)]);
     } catch (Exception $e) {
         error_log("List entries error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to fetch entries']);
+        json_response(['success' => false, 'message' => 'Failed to fetch entries'], 500);
     }
 }
 
-function handleGet($pdo, $config, $user_data) {
-    try {
-        $id = $_GET['id'] ?? null;
-        if (!$id) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Entry ID is required']);
-            return;
-        }
+function handleGet($pdo, $config) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
 
-        $sql = "SELECT e.id,
-                       e.patient_id,
-                       e.doctor_id,
-                       e.test_id,
-                       e.entry_date,
-                       e.result_value,
-                       e.unit,
-                       e.remarks,
-                       e.status,
-                       e.added_by,
-                       e.created_at,
-                       e.updated_at,
-                       e.grouped,
-                       e.tests_count,
-                       e.test_ids,
-                       e.test_names,
-                       e.test_results,
-                       p.name as patient_name,
-                       p.uhid as patient_uhid,
-                       p.age,
-                       p.sex as gender,
-                       p.phone,
-                       p.email,
-                       p.address,
-                       d.name as doctor_name,
-                       d.qualification,
-                       d.specialization,
-                       t.name as test_name,
-                       t.unit as test_unit,
-                       t.reference_range,
-                       t.min_male,
-                       t.max_male,
-                       t.min_female,
-                       t.max_female,
-                       t.description,
-                       u.username as added_by_username
+    $id = $_GET['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Entry ID is required'], 400);
+    }
+
+    try {
+        $sql = "SELECT e.*, p.name as patient_name, p.uhid as patient_uhid, d.name as doctor_name, t.name as test_name, u.username as added_by_username
                 FROM {$config['table_name']} e 
                 LEFT JOIN patients p ON e.patient_id = p.id 
                 LEFT JOIN tests t ON e.test_id = t.id 
@@ -359,331 +133,156 @@ function handleGet($pdo, $config, $user_data) {
         $entry = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$entry) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Entry not found']);
-            return;
+            json_response(['success' => false, 'message' => 'Entry not found'], 404);
         }
 
         if (!checkPermission($user_data, 'get', $entry['added_by'])) {
-            json_response(['success' => false, 'message' => 'Permission denied'], 403);
+            json_response(['success' => false, 'message' => 'Permission denied to view this entry'], 403);
         }
 
-        echo json_encode(['success' => true, 'data' => $entry]);
+        json_response(['success' => true, 'data' => $entry]);
     } catch (Exception $e) {
         error_log("Get entry error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to fetch entry']);
+        json_response(['success' => false, 'message' => 'Failed to fetch entry'], 500);
     }
 }
 
-function handleSave($pdo, $config, $user_data) {
-    if (!checkPermission($user_data, 'save')) {
-        json_response(['success' => false, 'message' => 'Permission denied'], 403);
+function handleSave($pdo, $config) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
     }
+
+    $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+    $id = $input['id'] ?? null;
+
+    if ($id) { // Update
+        $stmt = $pdo->prepare("SELECT added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $stmt->execute([$id]);
+        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$existing) {
+            json_response(['success' => false, 'message' => 'Entry not found'], 404);
+        }
+        if (!checkPermission($user_data, 'save', $existing['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to update this entry'], 403);
+        }
+    } else { // Create
+        if (!checkPermission($user_data, 'save')) {
+            json_response(['success' => false, 'message' => 'Permission denied to create entries'], 403);
+        }
+    }
+
+    foreach ($config['required_fields'] as $field) {
+        if (empty($input[$field])) {
+            json_response(['success' => false, 'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'], 400);
+        }
+    }
+
     try {
-        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-        
-        // Validate required fields
-        foreach ($config['required_fields'] as $field) {
-            if (empty($input[$field])) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required']);
-                return;
-            }
-        }
-
-        // Additional validation for entries
-        if (!is_numeric($input['patient_id'])) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Invalid patient ID']);
-            return;
-        }
-
-        if (!is_numeric($input['test_id'])) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Invalid test ID']);
-            return;
-        }
-
-        // Check if patient exists
-        $stmt = $pdo->prepare("SELECT id FROM patients WHERE id = ?");
-        $stmt->execute([$input['patient_id']]);
-        if (!$stmt->fetch()) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Patient does not exist']);
-            return;
-        }
-
-        // Check if test exists
-        $stmt = $pdo->prepare("SELECT id FROM tests WHERE id = ?");
-        $stmt->execute([$input['test_id']]);
-        if (!$stmt->fetch()) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Test does not exist']);
-            return;
-        }
-
-        // Prepare data for saving
         $data = [];
         foreach ($config['allowed_fields'] as $field) {
             if (isset($input[$field])) {
                 $data[$field] = $input[$field];
             }
         }
+        $data['added_by'] = $data['added_by'] ?? $user_data['user_id'];
 
-        // Set default values
-        if (!isset($data['entry_date'])) {
-            $data['entry_date'] = date('Y-m-d H:i:s');
-        }
-        if (!isset($data['status'])) {
-            $data['status'] = 'pending';
-        }
-        if (!isset($data['added_by'])) {
-            $data['added_by'] = $user_data['user_id'] ?? 1;
-        }
-
-        $id = $input['id'] ?? null;
-        $is_update = !empty($id);
-
-        if ($is_update) {
-            // Update existing entry
-            if (empty($data)) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'No valid fields to update']);
-                return;
-            }
-            
-            // Check if entry exists
-            $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
-            $stmt->execute([$id]);
-            $existing = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (!$existing) {
-                http_response_code(404);
-                echo json_encode(['success' => false, 'message' => 'Entry not found']);
-                return;
-            }
-            
+        if ($id) {
             $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
             $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
             $values = array_merge(array_values($data), [$id]);
-            
             $stmt = $pdo->prepare($sql);
-            $result = $stmt->execute($values);
+            $stmt->execute($values);
             $entry_id = $id;
             $action = 'updated';
         } else {
-            // Create new entry with duplicate prevention
-            $uniqueWhere = [
-                'patient_id' => $data['patient_id'],
-                'test_id' => $data['test_id']
-            ];
-            
-            // Check for same-day duplicates
-            if (isset($data['entry_date'])) {
-                $date_only = date('Y-m-d', strtotime($data['entry_date']));
-                $stmt = $pdo->prepare("SELECT id FROM {$config['table_name']} 
-                                      WHERE patient_id = ? AND test_id = ? 
-                                      AND DATE(entry_date) = ? LIMIT 1");
-                $stmt->execute([$data['patient_id'], $data['test_id'], $date_only]);
-                $existing_entry = $stmt->fetch(PDO::FETCH_ASSOC);
-                
-                if ($existing_entry) {
-                    // Update existing entry if found on same date
-                    $entry_id = $existing_entry['id'];
-                    $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
-                    $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE id = ?";
-                    $values = array_merge(array_values($data), [$entry_id]);
-                    $stmt = $pdo->prepare($sql);
-                    $stmt->execute($values);
-                    $action = 'updated';
-                } else {
-                    // Create new entry
-                    $result_info = upsert_or_skip($pdo, $config['table_name'], $uniqueWhere, $data);
-                    $entry_id = $result_info['id'];
-                    $action = $result_info['action'];
-                }
-            } else {
-                $result_info = upsert_or_skip($pdo, $config['table_name'], $uniqueWhere, $data);
-                $entry_id = $result_info['id'];
-                $action = $result_info['action'];
-            }
-            $result = true;
+            $cols = implode(', ', array_keys($data));
+            $placeholders = implode(', ', array_fill(0, count($data), '?'));
+            $sql = "INSERT INTO {$config['table_name']} ($cols) VALUES ($placeholders)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(array_values($data));
+            $entry_id = $pdo->lastInsertId();
+            $action = 'inserted';
         }
 
-        if ($result) {            
-            // Fetch the saved entry with related data
-            $stmt = $pdo->prepare("SELECT e.*, 
-                           p.name as patient_name, p.uhid,
-                           t.name as test_name, t.unit,
-                           d.name as doctor_name
-                       FROM {$config['table_name']} e 
-                       LEFT JOIN patients p ON e.patient_id = p.id 
-                       LEFT JOIN tests t ON e.test_id = t.id 
-                       LEFT JOIN doctors d ON e.doctor_id = d.id 
-                       WHERE e.{$config['id_field']} = ?");
-            $stmt->execute([$entry_id]);
-            $saved_entry = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt = $pdo->prepare("SELECT e.*, p.name as patient_name, d.name as doctor_name, t.name as test_name FROM {$config['table_name']} e LEFT JOIN patients p ON e.patient_id = p.id LEFT JOIN doctors d ON e.doctor_id = d.id LEFT JOIN tests t ON e.test_id = t.id WHERE e.id = ?");
+        $stmt->execute([$entry_id]);
+        $saved_entry = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            $message = match($action) {
-                'inserted' => 'Entry created successfully',
-                'updated' => 'Entry updated successfully', 
-                'skipped' => 'Entry already exists (no changes needed)',
-                default => 'Entry saved successfully'
-            };
-
-            echo json_encode([
-                'success' => true,
-                'message' => $message,
-                'data' => $saved_entry,
-                'action' => $action,
-                'id' => $entry_id
-            ]);
-        } else {
-            throw new Exception('Failed to save entry');
-        }
-
+        json_response([
+            'success' => true,
+            'message' => "Entry {$action} successfully",
+            'data' => $saved_entry,
+            'id' => $entry_id
+        ]);
     } catch (Exception $e) {
         error_log("Save entry error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to save entry']);
+        json_response(['success' => false, 'message' => 'Failed to save entry'], 500);
     }
 }
 
-function handleDelete($pdo, $config, $user_data) {
-    try {
-        $id = $_REQUEST['id'] ?? null;
-        if (!$id) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Entry ID is required']);
-            return;
-        }
+function handleDelete($pdo, $config) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
 
-        // Check if entry exists
-        $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+    $id = $_REQUEST['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Entry ID is required'], 400);
+    }
+
+    try {
+        $stmt = $pdo->prepare("SELECT added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
         $stmt->execute([$id]);
         $entry = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$entry) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Entry not found']);
-            return;
+            json_response(['success' => false, 'message' => 'Entry not found'], 404);
         }
 
         if (!checkPermission($user_data, 'delete', $entry['added_by'])) {
-            json_response(['success' => false, 'message' => 'Permission denied'], 403);
+            json_response(['success' => false, 'message' => 'Permission denied to delete this entry'], 403);
         }
 
-        // Delete the entry
         $stmt = $pdo->prepare("DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
         $result = $stmt->execute([$id]);
 
         if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Entry deleted successfully']);
+            json_response(['success' => true, 'message' => 'Entry deleted successfully']);
         } else {
-            throw new Exception('Failed to delete entry');
+            json_response(['success' => false, 'message' => 'Failed to delete entry'], 500);
         }
-
     } catch (Exception $e) {
         error_log("Delete entry error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to delete entry']);
+        json_response(['success' => false, 'message' => 'Failed to delete entry'], 500);
     }
 }
 
-function handleStats($pdo, $user_data) {
-    if (!checkPermission($user_data, 'list')) {
-        json_response(['success' => false, 'message' => 'Permission denied'], 403);
+function handleStats($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
     }
+    if (!checkPermission($user_data, 'list')) {
+        json_response(['success' => false, 'message' => 'Permission denied to view stats'], 403);
+    }
+
     try {
         $stats = [];
-        
-        // Total entries
         $stmt = $pdo->query("SELECT COUNT(*) FROM entries");
         $stats['total'] = (int) $stmt->fetchColumn();
-        
-        // Pending entries
         $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE status = 'pending'");
         $stats['pending'] = (int) $stmt->fetchColumn();
-        
-        // Completed entries  
         $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE status = 'completed'");
         $stats['completed'] = (int) $stmt->fetchColumn();
-        
-        // Failed entries
-        $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE status = 'failed'");
-        $stats['failed'] = (int) $stmt->fetchColumn();
-        
-        // Today's entries
         $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE DATE(COALESCE(entry_date, created_at)) = CURDATE()");
         $stats['today'] = (int) $stmt->fetchColumn();
         
-        // This week's entries
-        $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE DATE(COALESCE(entry_date, created_at)) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
-        $stats['this_week'] = (int) $stmt->fetchColumn();
-        
-        // This month's entries
-        $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE MONTH(COALESCE(entry_date, created_at)) = MONTH(CURDATE()) AND YEAR(COALESCE(entry_date, created_at)) = YEAR(CURDATE())");
-        $stats['this_month'] = (int) $stmt->fetchColumn();
-        
-        echo json_encode([
-            'success' => true,
-            'status' => 'success',
-            'data' => $stats
-        ]);
-        
+        json_response(['success' => true, 'data' => $stats]);
     } catch (Exception $e) {
         error_log("Stats error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to fetch statistics']);
+        json_response(['success' => false, 'message' => 'Failed to fetch statistics'], 500);
     }
-}
-
-/**
- * Process entries for grouped display
- * Groups entries by patient and date for better organization
- */
-function processEntriesForDisplay($entries) {
-    $grouped = [];
-    $processed = [];
-    
-    // Group entries by patient_id and entry_date
-    foreach ($entries as $entry) {
-        $key = $entry['patient_id'] . '_' . date('Y-m-d', strtotime($entry['entry_date']));
-        
-        if (!isset($grouped[$key])) {
-            $grouped[$key] = [];
-        }
-        $grouped[$key][] = $entry;
-    }
-    
-    // Process each group
-    foreach ($grouped as $group) {
-        if (count($group) === 1) {
-            // Single entry - no grouping needed
-            $processed[] = $group[0];
-        } else {
-            // Multiple entries - create grouped entry
-            $first_entry = $group[0];
-            $grouped_entry = $first_entry;
-            
-            // Add grouping information
-            $grouped_entry['grouped'] = true;
-            $grouped_entry['tests_count'] = count($group);
-            $grouped_entry['test_names'] = array_column($group, 'test_name');
-            $grouped_entry['test_results'] = array_column($group, 'result_value');
-            $grouped_entry['test_ids'] = array_column($group, 'test_id');
-            
-            // Combine test names for display
-            $grouped_entry['test_name'] = implode(', ', $grouped_entry['test_names']);
-            
-            // Combine results for display
-            $grouped_entry['result_value'] = implode(' | ', $grouped_entry['test_results']);
-            
-            $processed[] = $grouped_entry;
-        }
-    }
-    
-    return $processed;
 }
 ?>

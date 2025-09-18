@@ -7,7 +7,7 @@
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key, X-API-Secret');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -54,64 +54,62 @@ if ($action === 'save') {
 }
 
 try {
-    // Authenticate user
-    function authenticateUser($pdo) {
-        global $_SESSION;
-        
-        // Check session first
-        if (isset($_SESSION['user_id'])) {
-            return $_SESSION['user_id'];
-        }
-        
-        // Check Authorization header
-        $headers = getallheaders();
-        if (isset($headers['Authorization'])) {
-            $token = str_replace('Bearer ', '', $headers['Authorization']);
-            $stmt = $pdo->prepare('SELECT id FROM users WHERE api_token = ? AND is_active = 1');
-            $stmt->execute([$token]);
-            $user = $stmt->fetch();
-            if ($user) return $user['id'];
-        }
-        
-        return null;
+    switch($action) {
+        case 'list':
+            handleList($pdo);
+            break;
+        case 'get':
+            handleGet($pdo);
+            break;
+        case 'create':
+            handleCreate($pdo);
+            break;
+        case 'update':
+            handleUpdate($pdo);
+            break;
+        case 'delete':
+            handleDelete($pdo);
+            break;
+        default:
+            json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
+    }
+} catch (Exception $e) {
+    error_log("Reports API Uncaught Error: " . $e->getMessage());
+    json_response(['success' => false, 'message' => 'An internal server error occurred.'], 500);
+}
+
+function validateReportData($data, $isUpdate = false) {
+    $errors = [];
+    if (!$isUpdate && empty($data['data'])) {
+        $errors[] = 'Report data is required';
+    }
+    return $errors;
+}
+
+function handleList($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
+    if (!checkPermission($user_data, 'list')) {
+        json_response(['success' => false, 'message' => 'Permission denied to list reports'], 403);
     }
 
-    // Validate report data
-    function validateReportData($data, $isUpdate = false) {
-        $errors = [];
-        
-        if (!$isUpdate || isset($data['data'])) {
-            if (empty(trim($data['data'] ?? ''))) {
-                $errors[] = 'Report data is required';
-            }
-        }
-        
-        return $errors;
-    }
-
-    if ($action === 'list') {
-        $userId = $_GET['user_id'] ?? null;
-        $authenticatedUserId = authenticateUser($pdo);
-        
-        if (!$userId && $authenticatedUserId) {
-            $userId = $authenticatedUserId;
-        }
-        
-        // Search functionality
+    try {
+        $userId = $_GET['user_id'] ?? $user_data['user_id'];
         $search = $_GET['search'] ?? '';
         $dateFrom = $_GET['date_from'] ?? null;
         $dateTo = $_GET['date_to'] ?? null;
         $limit = intval($_GET['limit'] ?? 50);
         $offset = intval($_GET['offset'] ?? 0);
         
-        // Check if user wants to see all (master only)
-        $viewerRole = $_SESSION['role'] ?? 'user';
+        $viewerRole = $user_data['role'] ?? 'user';
         
         $whereConditions = [];
         $params = [];
         
-        if (isset($_GET['all']) && $_GET['all'] == '1' && $viewerRole === 'master') {
-            // Master can see all reports
+        if (isset($_GET['all']) && $_GET['all'] == '1' && ($viewerRole === 'master' || $viewerRole === 'admin')) {
+            // Master/Admin can see all reports
         } else if ($userId) {
             $whereConditions[] = 'r.added_by = ?';
             $params[] = $userId;
@@ -140,13 +138,11 @@ try {
             $whereClause = 'WHERE ' . implode(' AND ', $whereConditions);
         }
         
-        // Count total records
         $countQuery = 'SELECT COUNT(*) as total FROM reports r ' . $whereClause;
         $stmt = $pdo->prepare($countQuery);
         $stmt->execute($params);
         $total = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         
-        // Fetch reports
         $query = 'SELECT r.*, u.username AS added_by_username 
                  FROM reports r 
                  LEFT JOIN users u ON r.added_by = u.id 
@@ -168,14 +164,24 @@ try {
             'limit' => $limit,
             'offset' => $offset
         ]);
+    } catch (Exception $e) {
+        error_log("List reports error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to fetch reports'], 500);
+    }
+}
+
+function handleGet($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
     }
 
-    if ($action === 'get') {
-        $id = $_GET['id'] ?? null;
-        if (!$id) {
-            json_response(['success' => false, 'message' => 'Report ID is required'], 400);
-        }
-        
+    $id = $_GET['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Report ID is required'], 400);
+    }
+
+    try {
         $stmt = $pdo->prepare('SELECT r.*, u.username AS added_by_username 
                               FROM reports r 
                               LEFT JOIN users u ON r.added_by = u.id 
@@ -186,32 +192,41 @@ try {
         if (!$report) {
             json_response(['success' => false, 'message' => 'Report not found'], 404);
         }
+
+        if (!checkPermission($user_data, 'get', $report['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to view this report'], 403);
+        }
         
         json_response(['success' => true, 'data' => $report]);
+    } catch (Exception $e) {
+        error_log("Get report error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to fetch report'], 500);
+    }
+}
+
+function handleCreate($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
     }
 
-    if ($action === 'create' || $action === 'save') {
-        $authenticatedUserId = authenticateUser($pdo);
-        if (!$authenticatedUserId) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
-        }
+    if (!checkPermission($user_data, 'create')) {
+        json_response(['success' => false, 'message' => 'Permission denied to create reports'], 403);
+    }
 
-        // Get input data
-        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-        
-        // Validate input
-        $errors = validateReportData($input);
-        if (!empty($errors)) {
-            json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
-        }
+    $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+    
+    $errors = validateReportData($input);
+    if (!empty($errors)) {
+        json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
+    }
 
-        // Prepare data for insertion
+    try {
         $data = [
             'data' => trim($input['data']),
-            'added_by' => $authenticatedUserId
+            'added_by' => $user_data['user_id']
         ];
 
-        // Insert report
         $fields = array_keys($data);
         $placeholders = ':' . implode(', :', $fields);
         $query = 'INSERT INTO reports (' . implode(', ', $fields) . ') VALUES (' . $placeholders . ')';
@@ -221,7 +236,6 @@ try {
         
         $reportId = $pdo->lastInsertId();
         
-        // Fetch the created report
         $stmt = $pdo->prepare('SELECT r.*, u.username AS added_by_username 
                               FROM reports r 
                               LEFT JOIN users u ON r.added_by = u.id 
@@ -230,22 +244,25 @@ try {
         $report = $stmt->fetch(PDO::FETCH_ASSOC);
 
         json_response(['success' => true, 'message' => 'Report created successfully', 'data' => $report]);
+    } catch (Exception $e) {
+        error_log("Create report error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to create report'], 500);
+    }
+}
+
+function handleUpdate($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
     }
 
-    if ($action === 'update') {
-        $authenticatedUserId = authenticateUser($pdo);
-        if (!$authenticatedUserId) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
-        }
+    $id = $_GET['id'] ?? $_REQUEST['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Report ID is required'], 400);
+    }
 
-        // Get report ID from URL or input
-        $id = $_GET['id'] ?? $_REQUEST['id'] ?? null;
-        if (!$id) {
-            json_response(['success' => false, 'message' => 'Report ID is required'], 400);
-        }
-
-        // Check if report exists
-        $stmt = $pdo->prepare('SELECT * FROM reports WHERE id = ?');
+    try {
+        $stmt = $pdo->prepare('SELECT added_by FROM reports WHERE id = ?');
         $stmt->execute([$id]);
         $existingReport = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -253,16 +270,17 @@ try {
             json_response(['success' => false, 'message' => 'Report not found'], 404);
         }
 
-        // Get input data
+        if (!checkPermission($user_data, 'update', $existingReport['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to update this report'], 403);
+        }
+
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
         
-        // Validate input
         $errors = validateReportData($input, true);
         if (!empty($errors)) {
             json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
         }
 
-        // Prepare update data
         $updateData = [];
         if (isset($input['data'])) {
             $updateData['data'] = trim($input['data']);
@@ -272,19 +290,17 @@ try {
             json_response(['success' => false, 'message' => 'No valid fields to update'], 400);
         }
 
-        // Build update query
         $setParts = [];
         foreach ($updateData as $field => $value) {
             $setParts[] = "$field = :$field";
         }
         
-        $query = 'UPDATE reports SET ' . implode(', ', $setParts) . ' WHERE id = :id';
+        $query = 'UPDATE reports SET ' . implode(', ', $setParts) . ', updated_at = NOW() WHERE id = :id';
         $updateData['id'] = $id;
         
         $stmt = $pdo->prepare($query);
         $stmt->execute($updateData);
 
-        // Fetch updated report
         $stmt = $pdo->prepare('SELECT r.*, u.username AS added_by_username 
                               FROM reports r 
                               LEFT JOIN users u ON r.added_by = u.id 
@@ -293,21 +309,25 @@ try {
         $report = $stmt->fetch(PDO::FETCH_ASSOC);
 
         json_response(['success' => true, 'message' => 'Report updated successfully', 'data' => $report]);
+    } catch (Exception $e) {
+        error_log("Update report error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to update report'], 500);
+    }
+}
+
+function handleDelete($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
     }
 
-    if ($action === 'delete') {
-        $authenticatedUserId = authenticateUser($pdo);
-        if (!$authenticatedUserId) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
-        }
+    $id = $_GET['id'] ?? $_REQUEST['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Report ID is required'], 400);
+    }
 
-        $id = $_GET['id'] ?? $_REQUEST['id'] ?? null;
-        if (!$id) {
-            json_response(['success' => false, 'message' => 'Report ID is required'], 400);
-        }
-
-        // Check if report exists
-        $stmt = $pdo->prepare('SELECT * FROM reports WHERE id = ?');
+    try {
+        $stmt = $pdo->prepare('SELECT added_by FROM reports WHERE id = ?');
         $stmt->execute([$id]);
         $report = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -315,18 +335,21 @@ try {
             json_response(['success' => false, 'message' => 'Report not found'], 404);
         }
 
-        // Delete report
+        if (!checkPermission($user_data, 'delete', $report['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to delete this report'], 403);
+        }
+
         $stmt = $pdo->prepare('DELETE FROM reports WHERE id = ?');
-        $stmt->execute([$id]);
+        $result = $stmt->execute([$id]);
 
-        json_response(['success' => true, 'message' => 'Report deleted successfully']);
+        if ($result) {
+            json_response(['success' => true, 'message' => 'Report deleted successfully']);
+        } else {
+            json_response(['success' => false, 'message' => 'Failed to delete report'], 500);
+        }
+    } catch (Exception $e) {
+        error_log("Delete report error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to delete report'], 500);
     }
-
-    // Invalid action
-    json_response(['success' => false, 'message' => 'Invalid action'], 400);
-
-} catch (Exception $e) {
-    error_log('Reports API Error: ' . $e->getMessage());
-    json_response(['success' => false, 'message' => 'Internal server error', 'error' => $e->getMessage()], 500);
 }
 ?>
