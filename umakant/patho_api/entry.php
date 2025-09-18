@@ -63,16 +63,42 @@ try {
     // Authenticate user
     $user_data = authenticateApiUser($pdo);
     if (!$user_data) {
+        // Debug information for authentication failure
+        $debug_info = [
+            'headers_received' => function_exists('getallheaders') ? getallheaders() : 'getallheaders not available',
+            'x_api_key_header' => $_SERVER['HTTP_X_API_KEY'] ?? 'not set',
+            'request_method' => $_SERVER['REQUEST_METHOD'] ?? 'not set',
+            'server_vars' => array_filter($_SERVER, function($key) {
+                return strpos($key, 'HTTP_') === 0;
+            }, ARRAY_FILTER_USE_KEY)
+        ];
+        
         http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Authentication required']);
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Authentication required',
+            'debug' => $debug_info
+        ]);
         exit;
     }
 
     // Check permissions
     $required_permission = $entity_config['permission_map'][$action] ?? 'read';
     if (!checkPermission($user_data, $required_permission)) {
+        // Debug information for permission failure
+        $debug_info = [
+            'user_data' => $user_data,
+            'required_permission' => $required_permission,
+            'action' => $action,
+            'permission_map' => $entity_config['permission_map']
+        ];
+        
         http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Insufficient permissions']);
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Insufficient permissions',
+            'debug' => $debug_info
+        ]);
         exit;
     }
 
