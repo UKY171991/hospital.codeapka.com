@@ -774,7 +774,7 @@
                         },
                         body: {
                             'username': 'admin',
-                            'password': 'your_password'
+                            'password': 'admin123'
                         },
                         response: {
                             'success': true,
@@ -898,6 +898,7 @@
                             'Content-Type': 'application/json',
                             'X-Api-Key': 'hospital-api-secret-2024'
                         },
+                        note: 'This API requires authentication - may need session-based auth instead of API key',
                         queryParams: {
                             'patient_id': 1,
                             'test_id': 2,
@@ -1491,12 +1492,19 @@
         }
 
         function createApiCard(api, index) {
-            const card = document.createElement('div');
-            card.className = 'card api-card';
-            
-            // Get unique methods from all endpoints
-            const methods = [...new Set(api.endpoints.map(ep => ep.method))];
-            const actions = api.endpoints.map(ep => ep.action);
+            try {
+                const card = document.createElement('div');
+                card.className = 'card api-card';
+                
+                // Validate API structure
+                if (!api.endpoints || !Array.isArray(api.endpoints)) {
+                    console.warn(`API ${api.name} has no endpoints array`);
+                    return card;
+                }
+                
+                // Get unique methods from all endpoints
+                const methods = [...new Set(api.endpoints.map(ep => ep.method))];
+                const actions = api.endpoints.map(ep => ep.action);
             
             card.innerHTML = `
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -1628,6 +1636,18 @@
                 </div>
             `;
             return card;
+            } catch (error) {
+                console.error(`Error creating card for API ${api.name}:`, error);
+                const errorCard = document.createElement('div');
+                errorCard.className = 'card api-card border-danger';
+                errorCard.innerHTML = `
+                    <div class="card-body">
+                        <h5 class="card-title text-danger">${api.name}</h5>
+                        <p class="card-text text-danger">Error loading API details</p>
+                    </div>
+                `;
+                return errorCard;
+            }
         }
 
         function getMethodColor(method) {
@@ -1757,6 +1777,17 @@ echo json_encode($data, JSON_PRETTY_PRINT);
                 
                 const data = await response.json();
                 const isSuccess = response.ok && data.success !== false;
+                
+                // Log detailed error information for debugging
+                if (!isSuccess) {
+                    console.error(`API Test Failed for ${api.name}:`, {
+                        url: url,
+                        status: response.status,
+                        statusText: response.statusText,
+                        response: data,
+                        headers: { ...endpoint.headers, ...headers }
+                    });
+                }
                 
                 apiResults[api.file] = {
                     status: isSuccess ? 'success' : 'error',
@@ -1919,19 +1950,28 @@ echo json_encode($data, JSON_PRETTY_PRINT);
         }
 
         function generateDocumentation() {
-            const docsDiv = document.getElementById('endpointsDocs');
-            docsDiv.innerHTML = apiEndpoints.map(api => `
+            try {
+                const docsDiv = document.getElementById('endpointsDocs');
+                if (!docsDiv) {
+                    console.warn('Documentation div not found');
+                    return;
+                }
+                
+                docsDiv.innerHTML = apiEndpoints.map(api => `
                 <div class="mb-3 p-3 border rounded">
                     <h6>${api.name}</h6>
                     <p>${api.description}</p>
                     <div class="endpoint-url">${getBaseUrl()}${api.file}</div>
                     <div class="mt-2">
-                        <strong>Methods:</strong> ${api.methods.join(', ')}<br>
-                        <strong>Actions:</strong> ${api.actions.join(', ')}<br>
-                        <strong>Sample Data:</strong> <code>${JSON.stringify(api.sampleData, null, 2)}</code>
+                        <strong>Methods:</strong> ${[...new Set(api.endpoints.map(ep => ep.method))].join(', ')}<br>
+                        <strong>Actions:</strong> ${api.endpoints.map(ep => ep.action).join(', ')}<br>
+                        <strong>Endpoints:</strong> ${api.endpoints.length} endpoints available
                     </div>
                 </div>
             `).join('');
+            } catch (error) {
+                console.error('Error generating documentation:', error);
+            }
         }
 
         function getBaseUrl() {
