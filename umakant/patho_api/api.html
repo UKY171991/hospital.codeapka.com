@@ -1050,6 +1050,294 @@
                     }
             },
             {
+                name: 'Owner API',
+                file: 'owner.php',
+                description: 'Owner management with contact information and business details',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/owner.php',
+                endpoints: [
+                    {
+                        action: 'list',
+                        method: 'GET',
+                        url: '?action=list',
+                        description: 'Get all owners with contact details',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'data': [
+                                {
+                                    'id': 1,
+                                    'name': 'John Owner',
+                                    'phone': '9876543210',
+                                    'whatsapp': '9876543210',
+                                    'email': 'john@owner.com',
+                                    'address': '123 Business Street',
+                                    'added_by': 1,
+                                    'created_at': '2025-09-08T10:30:00Z'
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        action: 'get',
+                        method: 'GET',
+                        url: '?action=get&id=1',
+                        description: 'Get single owner by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'id': 1,
+                                'name': 'John Owner',
+                                'phone': '9876543210',
+                                'whatsapp': '9876543210',
+                                'email': 'john@owner.com',
+                                'address': '123 Business Street'
+                            }
+                        }
+                    },
+                    {
+                        action: 'save',
+                        method: 'POST',
+                        url: '?action=save',
+                        description: 'Create or update owner',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'name': 'Jane Owner',
+                            'phone': '9876543211',
+                            'whatsapp': '9876543211',
+                            'email': 'jane@owner.com',
+                            'address': '456 Business Avenue'
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Owner saved successfully',
+                            'data': {
+                                'id': 2,
+                                'name': 'Jane Owner'
+                            }
+                        }
+                    },
+                    {
+                        action: 'delete',
+                        method: 'POST',
+                        url: '?action=delete',
+                        description: 'Delete owner by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'id': 2
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Owner deleted successfully'
+                        }
+                    }
+                ]
+            },
+            {
+                name: 'Plans API',
+                file: 'plans.php',
+                description: 'Subscription plans management with pricing and features',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/plans.php',
+                endpoints: [
+                    {
+                        action: 'list',
+                        method: 'GET',
+                        url: '?action=list',
+                        description: 'Get all subscription plans',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'data': [
+                                {
+                                    'id': 1,
+                                    'name': 'Basic Plan',
+                                    'description': 'Basic subscription plan',
+                                    'price': 99.99,
+                                    'duration_days': 30,
+                                    'features': 'Basic features included',
+                                    'is_active': true,
+                                    'created_at': '2025-09-08T10:30:00Z'
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        action: 'get',
+                        method: 'GET',
+                        url: '?action=get&id=1',
+                        description: 'Get single plan by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'id': 1,
+                                'name': 'Basic Plan',
+                                'description': 'Basic subscription plan',
+                                'price': 99.99,
+                                'duration_days': 30,
+                                'features': 'Basic features included',
+                                'is_active': true
+                            }
+                        }
+                    },
+                    {
+                        action: 'save',
+                        method: 'POST',
+                        url: '?action=save',
+                        description: 'Create or update plan',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'name': 'Premium Plan',
+                            'description': 'Premium subscription plan',
+                            'price': 199.99,
+                            'duration_days': 30,
+                            'features': 'Premium features included',
+                            'is_active': true
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Plan saved successfully',
+                            'data': {
+                                'id': 2,
+                                'name': 'Premium Plan'
+                            }
+                        }
+                    },
+                    {
+                        action: 'delete',
+                        method: 'POST',
+                        url: '?action=delete',
+                        description: 'Delete plan by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'id': 2
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Plan deleted successfully'
+                        }
+                    }
+                ]
+            },
+            {
+                name: 'Zip Uploads API',
+                file: 'zip_uploads.php',
+                description: 'File upload management with zip compression and organization',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/zip_uploads.php',
+                endpoints: [
+                    {
+                        action: 'list',
+                        method: 'GET',
+                        url: '?action=list',
+                        description: 'Get all uploaded files',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'data': [
+                                {
+                                    'id': 1,
+                                    'filename': 'test_report.pdf',
+                                    'original_name': 'test_report.pdf',
+                                    'file_path': '/uploads/test_report.pdf',
+                                    'file_size': 1024000,
+                                    'mime_type': 'application/pdf',
+                                    'uploaded_by': 1,
+                                    'created_at': '2025-09-08T10:30:00Z'
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        action: 'get',
+                        method: 'GET',
+                        url: '?action=get&id=1',
+                        description: 'Get single file by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'id': 1,
+                                'filename': 'test_report.pdf',
+                                'original_name': 'test_report.pdf',
+                                'file_path': '/uploads/test_report.pdf',
+                                'file_size': 1024000,
+                                'mime_type': 'application/pdf'
+                            }
+                        }
+                    },
+                    {
+                        action: 'upload',
+                        method: 'POST',
+                        url: '?action=upload',
+                        description: 'Upload new file',
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'file': '[FILE_DATA]',
+                            'description': 'Test file upload'
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'File uploaded successfully',
+                            'data': {
+                                'id': 2,
+                                'filename': 'uploaded_file.pdf',
+                                'file_path': '/uploads/uploaded_file.pdf'
+                            }
+                        }
+                    },
+                    {
+                        action: 'delete',
+                        method: 'POST',
+                        url: '?action=delete',
+                        description: 'Delete file by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'id': 2
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'File deleted successfully'
+                        }
+                    }
+                ]
+            },
+            {
                 name: 'Entry Management Page',
                 file: 'entry.html',
                 description: 'Complete web interface for managing test entries with real-time statistics, filtering, and CRUD operations',
