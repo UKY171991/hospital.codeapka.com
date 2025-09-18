@@ -78,7 +78,7 @@ try {
             break;
             
         case 'get':
-            handleGet($pdo, $entity_config);
+            handleGet($pdo, $entity_config, $user_data);
             break;
             
         case 'save':
