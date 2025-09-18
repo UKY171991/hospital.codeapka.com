@@ -881,7 +881,7 @@
             {
                 name: 'Entry API',
                 file: 'entry.php',
-                description: 'Comprehensive test entry management with complete database structure (16 columns: id, patient_id, doctor_id, test_id, entry_date, result_value, unit, remarks, status, added_by, created_at, grouped, tests_count, test_ids, test_names, test_results)',
+                description: 'Comprehensive test entry management with complete database structure (16 columns: id, patient_id, doctor_id, test_id, entry_date, result_value, unit, remarks, status, added_by, created_at, updated_at, grouped, tests_count, test_ids, test_names, test_results)',
                 baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/entry.php',
                 endpoints: [
                     {
@@ -1046,6 +1046,33 @@
                                 'completed': 18,
                                 'today': 3
                             }
+                        }
+                    }
+            },
+            {
+                name: 'Entry Management Page',
+                file: 'entry.html',
+                description: 'Complete web interface for managing test entries with real-time statistics, filtering, and CRUD operations',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/entry.html',
+                endpoints: [
+                    {
+                        action: 'view',
+                        method: 'GET',
+                        url: '',
+                        description: 'Load the entry management interface',
+                        headers: {
+                            'Content-Type': 'text/html'
+                        },
+                        response: {
+                            'type': 'HTML Page',
+                            'features': [
+                                'Real-time statistics dashboard',
+                                'Advanced filtering and search',
+                                'Add/Edit/Delete entries',
+                                'View detailed entry information',
+                                'Responsive design with Bootstrap 5',
+                                'DataTables integration for sorting/pagination'
+                            ]
                         }
                     }
                 ]
