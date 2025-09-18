@@ -78,6 +78,11 @@ try {
         if (!$auth) {
             json_response(['success' => false, 'message' => 'Authentication required'], 401);
         }
+
+        // Check permissions
+        if (!checkPermission($auth, 'list')) {
+            json_response(['success' => false, 'message' => 'Permission denied'], 403);
+        }
         
         $userId = $_GET['user_id'] ?? $auth['user_id'];
         
@@ -171,6 +176,11 @@ try {
         
         if (!$doctor) {
             json_response(['success' => false, 'message' => 'Doctor not found'], 404);
+        }
+
+        // Check permissions
+        if (!checkPermission($auth, 'get', $doctor['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
         
         // Convert all keys to lowercase for consistency with JavaScript
@@ -398,6 +408,9 @@ try {
         if (!$auth) {
             json_response(['success' => false, 'message' => 'Authentication required'], 401);
         }
+        if (!checkPermission($auth, 'list')) {
+            json_response(['success' => false, 'message' => 'Permission denied'], 403);
+        }
         $stmt = $pdo->query('SELECT DISTINCT specialization FROM doctors WHERE specialization IS NOT NULL AND specialization != "" ORDER BY specialization');
         $specializations = $stmt->fetchAll(PDO::FETCH_COLUMN);
         json_response(['success' => true, 'data' => $specializations]);
@@ -408,6 +421,9 @@ try {
         if (!$auth) {
             json_response(['success' => false, 'message' => 'Authentication required'], 401);
         }
+        if (!checkPermission($auth, 'list')) {
+            json_response(['success' => false, 'message' => 'Permission denied'], 403);
+        }
         $stmt = $pdo->query('SELECT DISTINCT hospital FROM doctors WHERE hospital IS NOT NULL AND hospital != "" ORDER BY hospital');
         $hospitals = $stmt->fetchAll(PDO::FETCH_COLUMN);
         json_response(['success' => true, 'data' => $hospitals]);
@@ -417,6 +433,9 @@ try {
         $auth = authenticateApiUser($pdo);
         if (!$auth) {
             json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        }
+        if (!checkPermission($auth, 'list')) {
+            json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
         $totalStmt = $pdo->query("SELECT COUNT(*) FROM doctors");
         $total = $totalStmt->fetchColumn();
