@@ -5,6 +5,19 @@
  * Authentication: Multiple methods supported
  * Database Schema: Complete 16-column support with enriched data
  */
+
+// Immediate response to test if file is being executed
+if (isset($_GET['test']) && $_GET['test'] === 'access') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'success' => true,
+        'message' => 'Entry API file is accessible',
+        'timestamp' => date('Y-m-d H:i:s'),
+        'php_version' => PHP_VERSION
+    ]);
+    exit;
+}
+
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -15,10 +28,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+// Debug: Log that the file is being executed
+error_log("DEBUG Entry API: File execution started at " . date('Y-m-d H:i:s'));
+
 if (session_status() === PHP_SESSION_NONE) session_start();
-require_once __DIR__ . '/../inc/connection.php';
-require_once __DIR__ . '/../inc/ajax_helpers.php';
-require_once __DIR__ . '/../inc/api_config.php';
+
+// Debug: Log before requiring files
+error_log("DEBUG Entry API: About to require connection.php");
+
+try {
+    require_once __DIR__ . '/../inc/connection.php';
+    error_log("DEBUG Entry API: connection.php loaded successfully");
+} catch (Exception $e) {
+    error_log("DEBUG Entry API: Error loading connection.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Database connection error: ' . $e->getMessage()]);
+    exit;
+}
+
+try {
+    require_once __DIR__ . '/../inc/ajax_helpers.php';
+    error_log("DEBUG Entry API: ajax_helpers.php loaded successfully");
+} catch (Exception $e) {
+    error_log("DEBUG Entry API: Error loading ajax_helpers.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Helper functions error: ' . $e->getMessage()]);
+    exit;
+}
+
+try {
+    require_once __DIR__ . '/../inc/api_config.php';
+    error_log("DEBUG Entry API: api_config.php loaded successfully");
+} catch (Exception $e) {
+    error_log("DEBUG Entry API: Error loading api_config.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'API config error: ' . $e->getMessage()]);
+    exit;
+}
 
 // Entity Configuration for Entries (complete database schema)
 $entity_config = [
