@@ -892,13 +892,12 @@
                     {
                         action: 'list',
                         method: 'GET',
-                        url: '?action=list',
+                        url: '?action=list&secret_key=hospital-api-secret-2024',
                         description: 'Get all test entries with complete database structure and enriched data (16 columns from SQL file)',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
+                            'Content-Type': 'application/json'
                         },
-                        note: 'This API requires authentication - may need session-based auth instead of API key',
+                        note: 'Using secret_key parameter for authentication',
                         queryParams: {
                             'patient_id': 1,
                             'test_id': 2,
@@ -940,11 +939,10 @@
                     {
                         action: 'get',
                         method: 'GET',
-                        url: '?action=get&id=20',
+                        url: '?action=get&id=20&secret_key=hospital-api-secret-2024',
                         description: 'Get single entry by ID with complete database structure (all 16 columns from SQL file)',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
+                            'Content-Type': 'application/json'
                         },
                         response: {
                             'success': true,
@@ -976,11 +974,10 @@
                     {
                         action: 'save',
                         method: 'POST',
-                        url: '?action=save',
+                        url: '?action=save&secret_key=hospital-api-secret-2024',
                         description: 'Create or update test entry with complete database structure (all 16 columns from SQL file)',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
+                            'Content-Type': 'application/json'
                         },
                         body: {
                             'id': '',
@@ -1020,11 +1017,10 @@
                     {
                         action: 'delete',
                         method: 'POST',
-                        url: '?action=delete',
+                        url: '?action=delete&secret_key=hospital-api-secret-2024',
                         description: 'Delete entry by ID (Admin/Master only)',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
+                            'Content-Type': 'application/json'
                         },
                         body: {
                             'id': 21
@@ -1037,11 +1033,10 @@
                     {
                         action: 'stats',
                         method: 'GET',
-                        url: '?action=stats',
+                        url: '?action=stats&secret_key=hospital-api-secret-2024',
                         description: 'Get entry statistics for dashboard',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
+                            'Content-Type': 'application/json'
                         },
                         response: {
                             'success': true,

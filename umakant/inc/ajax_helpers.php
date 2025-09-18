@@ -111,15 +111,25 @@ function authenticateApiUser($pdo) {
     $sharedSecret = getenv('PATHO_API_SECRET') ?: 'hospital-api-secret-2024';
     $defaultUserId = getenv('PATHO_API_DEFAULT_USER_ID') !== false ? (int)getenv('PATHO_API_DEFAULT_USER_ID') : 1;
     
+    // Debug: Log header information
+    error_log("DEBUG: Headers received: " . json_encode($headers));
+    error_log("DEBUG: X-Api-Key header: " . ($headers['X-Api-Key'] ?? 'not set'));
+    error_log("DEBUG: Expected secret: " . $sharedSecret);
+    
     if (isset($headers['X-Api-Key']) && !empty($sharedSecret)) {
         if ($headers['X-Api-Key'] === $sharedSecret) {
+            error_log("DEBUG: API Key authentication successful");
             return [
                 'user_id' => $defaultUserId,
                 'role' => 'master',
                 'username' => 'api_system',
                 'auth_method' => 'shared_secret_header'
             ];
+        } else {
+            error_log("DEBUG: API Key mismatch - received: " . $headers['X-Api-Key'] . ", expected: " . $sharedSecret);
         }
+    } else {
+        error_log("DEBUG: X-Api-Key header not found or empty");
     }
     
     // Method 6: Check secret_key parameter (server-to-server)
@@ -138,6 +148,7 @@ function authenticateApiUser($pdo) {
     // No authentication found - return fallback for anonymous inserts if configured
     // For development/testing purposes, allow anonymous access with default user
     if (!empty($defaultUserId)) {
+        error_log("DEBUG: Using fallback authentication with user ID: " . $defaultUserId);
         return [
             'user_id' => $defaultUserId,
             'role' => 'admin', // Grant admin role for testing
@@ -146,6 +157,7 @@ function authenticateApiUser($pdo) {
         ];
     }
     
+    error_log("DEBUG: No authentication method worked, returning null");
     return null;
 }
 
