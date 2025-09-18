@@ -1,0 +1,41 @@
+version: "1.0"
+metadata:
+  name: "api_permission_fix"
+  description: "Fix API listing page and resolve access/permission issues for restricted APIs."
+
+ricce:
+  role: |
+    You are a backend developer responsible for fixing API access permissions and ensuring the
+    API listing page works consistently.
+  instructions: |
+    - Review the API listing page at `/umakant/patho_api/api.html`.
+    - Identify APIs returning "Access to this resource on the server is denied!".
+    - Fix permission issues by:
+        * Updating server configuration (Apache/Nginx `.htaccess` / vhost rules).
+        * Verifying file and folder permissions (644 for files, 755 for directories).
+        * Ensuring API routes are not blocked by authentication/authorization misconfigurations.
+    - Confirm that each listed API is accessible if the user has correct permissions.
+    - If some APIs require authentication:
+        * Add clear documentation or error messages.
+        * Redirect unauthorized users instead of showing a generic "denied" message.
+    - Test all APIs in both local and live environments after fixes.
+  context: |
+    - Current issue: Some APIs listed in `api.html` return "Access denied" due to server restrictions.
+    - Server environment: Likely Apache or Nginx with PHP backend.
+    - APIs should be public or protected based on intended design, not accidentally blocked.
+  constraints:
+    - Do not expose sensitive APIs without authentication.
+    - Maintain security while fixing access issues.
+    - Avoid hardcoding credentials or removing .htaccess protections unnecessarily.
+    - Ensure fixes are compatible with both local and live deployments.
+  examples:
+    - name: "public_api_example"
+      description: "GET /api/patients"
+      behavior: |
+        - Returns patient list JSON.
+        - Accessible from browser without authentication if marked public.
+    - name: "protected_api_example"
+      description: "POST /api/update_result"
+      behavior: |
+        - Requires API key or session authentication.
+        - If unauthorized, return JSON { "error": "Unauthorized access" } instead of server 403.
