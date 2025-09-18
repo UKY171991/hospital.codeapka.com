@@ -1488,18 +1488,18 @@
 
         function createApiCard(api, index) {
             try {
-                const card = document.createElement('div');
-                card.className = 'card api-card';
+            const card = document.createElement('div');
+            card.className = 'card api-card';
                 
                 // Validate API structure
                 if (!api.endpoints || !Array.isArray(api.endpoints)) {
                     console.warn(`API ${api.name} has no endpoints array`);
                     return card;
                 }
-                
-                // Get unique methods from all endpoints
-                const methods = [...new Set(api.endpoints.map(ep => ep.method))];
-                const actions = api.endpoints.map(ep => ep.action);
+            
+            // Get unique methods from all endpoints
+            const methods = [...new Set(api.endpoints.map(ep => ep.method))];
+            const actions = api.endpoints.map(ep => ep.action);
             
             card.innerHTML = `
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -1946,13 +1946,13 @@ echo json_encode($data, JSON_PRETTY_PRINT);
 
         function generateDocumentation() {
             try {
-                const docsDiv = document.getElementById('endpointsDocs');
+            const docsDiv = document.getElementById('endpointsDocs');
                 if (!docsDiv) {
                     console.warn('Documentation div not found');
                     return;
                 }
                 
-                docsDiv.innerHTML = apiEndpoints.map(api => `
+            docsDiv.innerHTML = apiEndpoints.map(api => `
                 <div class="mb-3 p-3 border rounded">
                     <h6>${api.name}</h6>
                     <p>${api.description}</p>

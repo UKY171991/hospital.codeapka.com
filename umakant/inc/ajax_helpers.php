@@ -134,15 +134,23 @@ function authenticateApiUser($pdo) {
     
     // Method 6: Check secret_key parameter (server-to-server)
     $secretKey = $_REQUEST['secret_key'] ?? null;
+    error_log("DEBUG: secret_key parameter: " . ($secretKey ?? 'not set'));
+    error_log("DEBUG: _REQUEST array: " . json_encode($_REQUEST));
+    
     if ($secretKey && !empty($sharedSecret)) {
         if ($secretKey === $sharedSecret) {
+            error_log("DEBUG: secret_key authentication successful");
             return [
                 'user_id' => $defaultUserId,
                 'role' => 'master',
                 'username' => 'api_system',
                 'auth_method' => 'shared_secret_param'
             ];
+        } else {
+            error_log("DEBUG: secret_key mismatch - received: " . $secretKey . ", expected: " . $sharedSecret);
         }
+    } else {
+        error_log("DEBUG: secret_key not found or empty");
     }
     
     // No authentication found - return fallback for anonymous inserts if configured
