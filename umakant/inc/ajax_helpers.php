@@ -153,18 +153,6 @@ function authenticateApiUser($pdo) {
         error_log("DEBUG: secret_key not found or empty");
     }
     
-    // No authentication found - return fallback for anonymous inserts if configured
-    // For development/testing purposes, allow anonymous access with default user
-    if (!empty($defaultUserId)) {
-        error_log("DEBUG: Using fallback authentication with user ID: " . $defaultUserId);
-        return [
-            'user_id' => $defaultUserId,
-            'role' => 'admin', // Grant admin role for testing
-            'username' => 'api_user',
-            'auth_method' => 'fallback'
-        ];
-    }
-    
     error_log("DEBUG: No authentication method worked, returning null");
     return null;
 }
@@ -178,22 +166,29 @@ function checkPermission($auth, $action, $resourceOwnerId = null) {
     $userId = $auth['user_id'];
     $role = $auth['role'];
     
-    // Map permission types to actions
+    // Master and admin have full access
+    if ($role === 'master' || $role === 'admin') {
+        return true;
+    }
+    
+    // User-specific permissions
     switch ($action) {
         case 'read':
         case 'list':
         case 'get':
-            return true; // Anyone authenticated can view
+            // Users can only view their own data unless it's a public resource
+            return ($resourceOwnerId && $userId == $resourceOwnerId) || is_null($resourceOwnerId);
             
         case 'write':
         case 'create':
         case 'save':
         case 'update':
-            return true; // Anyone authenticated can create/modify
+            // Users can only create/modify their own data
+            return ($resourceOwnerId && $userId == $resourceOwnerId) || is_null($resourceOwnerId);
             
         case 'delete':
-            // Masters and admins can delete anything, others can only delete their own records
-            return ($role === 'master' || $role === 'admin') || ($resourceOwnerId && $userId == $resourceOwnerId);
+            // Users can only delete their own records
+            return ($resourceOwnerId && $userId == $resourceOwnerId);
             
         default:
             return false;
