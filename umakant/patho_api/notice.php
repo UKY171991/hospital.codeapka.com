@@ -74,7 +74,7 @@ try {
 
     switch($action) {
         case 'list':
-            handleList($pdo, $entity_config);
+            handleList($pdo, $entity_config, $user_data);
             break;
             
         case 'get':
@@ -100,7 +100,10 @@ try {
     echo json_encode(['success' => false, 'message' => 'Internal server error']);
 }
 
-function handleList($pdo, $config) {
+function handleList($pdo, $config, $user_data) {
+    if (!checkPermission($user_data, 'list')) {
+        json_response(['success' => false, 'message' => 'Permission denied'], 403);
+    }
     try {
     $sql = "SELECT n.*, u.username as added_by_username 
         FROM {$config['table_name']} n 
@@ -123,7 +126,7 @@ function handleList($pdo, $config) {
     }
 }
 
-function handleGet($pdo, $config) {
+function handleGet($pdo, $config, $user_data) {
     try {
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -145,6 +148,10 @@ function handleGet($pdo, $config) {
             http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'Notice not found']);
             return;
+        }
+
+        if (!checkPermission($user_data, 'get', $notice['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
 
         echo json_encode(['success' => true, 'data' => $notice]);

@@ -112,16 +112,7 @@ try {
     // Debug: Log authentication result
     error_log("DEBUG Entry API: Authentication result: " . json_encode($user_data));
     
-    // Temporary: Allow all requests for testing
-    if (!$user_data) {
-        error_log("DEBUG Entry API: No authentication found, using fallback for testing");
-        $user_data = [
-            'user_id' => 1,
-            'role' => 'admin',
-            'username' => 'test_user',
-            'auth_method' => 'fallback_test'
-        ];
-    }
+    
     
     if (!$user_data) {
         // Debug information for authentication failure
@@ -149,37 +140,13 @@ try {
     // Debug: Log permission check
     error_log("DEBUG Entry API: Checking permissions - User: " . json_encode($user_data) . ", Required: " . $required_permission . ", Action: " . $action);
     
-    // Temporary: Allow all authenticated users for testing
-    if ($user_data && $user_data['user_id']) {
-        error_log("DEBUG Entry API: Permission check bypassed for testing - user authenticated");
-        // Skip permission check for testing
-    } else {
-        $permission_result = checkPermission($user_data, $required_permission);
-        error_log("DEBUG Entry API: Permission check result: " . ($permission_result ? 'true' : 'false'));
-        
-        if (!$permission_result) {
-            // Debug information for permission failure
-            $debug_info = [
-                'user_data' => $user_data,
-                'required_permission' => $required_permission,
-                'action' => $action,
-                'permission_map' => $entity_config['permission_map']
-            ];
-            
-            http_response_code(403);
-            echo json_encode([
-                'success' => false, 
-                'message' => 'Insufficient permissions',
-                'debug' => $debug_info
-            ]);
-            exit;
-        }
-    }
+    $permission_result = checkPermission($user_data, $required_permission);
+    error_log("DEBUG Entry API: Permission check result: " . ($permission_result ? 'true' : 'false'));
 
     switch($action) {
         case 'list':
             try {
-                handleList($pdo, $entity_config);
+                handleList($pdo, $entity_config, $user_data);
             } catch (Exception $e) {
                 error_log("DEBUG Entry API: handleList error: " . $e->getMessage());
                 http_response_code(500);
@@ -198,7 +165,7 @@ try {
             
         case 'get':
             try {
-                handleGet($pdo, $entity_config);
+                handleGet($pdo, $entity_config, $user_data);
             } catch (Exception $e) {
                 error_log("DEBUG Entry API: handleGet error: " . $e->getMessage());
                 http_response_code(500);
@@ -220,7 +187,7 @@ try {
             
         case 'delete':
             try {
-                handleDelete($pdo, $entity_config);
+                handleDelete($pdo, $entity_config, $user_data);
             } catch (Exception $e) {
                 error_log("DEBUG Entry API: handleDelete error: " . $e->getMessage());
                 http_response_code(500);
@@ -231,7 +198,7 @@ try {
             
         case 'stats':
             try {
-                handleStats($pdo);
+                handleStats($pdo, $user_data);
             } catch (Exception $e) {
                 error_log("DEBUG Entry API: handleStats error: " . $e->getMessage());
                 http_response_code(500);
@@ -251,7 +218,10 @@ try {
     echo json_encode(['success' => false, 'message' => 'Internal server error']);
 }
 
-function handleList($pdo, $config) {
+function handleList($pdo, $config, $user_data) {
+    if (!checkPermission($user_data, 'list')) {
+        json_response(['success' => false, 'message' => 'Permission denied'], 403);
+    }
     try {
         // First, check if the entries table exists
         $table_check_sql = "SHOW TABLES LIKE '{$config['table_name']}'";
@@ -332,7 +302,7 @@ function handleList($pdo, $config) {
     }
 }
 
-function handleGet($pdo, $config) {
+function handleGet($pdo, $config, $user_data) {
     try {
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -394,6 +364,10 @@ function handleGet($pdo, $config) {
             return;
         }
 
+        if (!checkPermission($user_data, 'get', $entry['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied'], 403);
+        }
+
         echo json_encode(['success' => true, 'data' => $entry]);
     } catch (Exception $e) {
         error_log("Get entry error: " . $e->getMessage());
@@ -403,6 +377,9 @@ function handleGet($pdo, $config) {
 }
 
 function handleSave($pdo, $config, $user_data) {
+    if (!checkPermission($user_data, 'save')) {
+        json_response(['success' => false, 'message' => 'Permission denied'], 403);
+    }
     try {
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
         
@@ -573,7 +550,7 @@ function handleSave($pdo, $config, $user_data) {
     }
 }
 
-function handleDelete($pdo, $config) {
+function handleDelete($pdo, $config, $user_data) {
     try {
         $id = $_REQUEST['id'] ?? null;
         if (!$id) {
@@ -583,12 +560,18 @@ function handleDelete($pdo, $config) {
         }
 
         // Check if entry exists
-        $stmt = $pdo->prepare("SELECT id FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
         $stmt->execute([$id]);
-        if (!$stmt->fetch()) {
+        $entry = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$entry) {
             http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'Entry not found']);
             return;
+        }
+
+        if (!checkPermission($user_data, 'delete', $entry['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
 
         // Delete the entry
@@ -608,7 +591,10 @@ function handleDelete($pdo, $config) {
     }
 }
 
-function handleStats($pdo) {
+function handleStats($pdo, $user_data) {
+    if (!checkPermission($user_data, 'list')) {
+        json_response(['success' => false, 'message' => 'Permission denied'], 403);
+    }
     try {
         $stats = [];
         
