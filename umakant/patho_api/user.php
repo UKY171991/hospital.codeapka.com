@@ -82,9 +82,21 @@ function handleList($pdo, $config) {
     }
 
     try {
-        $sql = "SELECT id, username, full_name, email, role, is_active, created_at, last_login, expire_date, added_by FROM {$config['table_name']} ORDER BY username";
+        // Role-based scoping
+        $scopeIds = getScopedUserIds($pdo, $user_data); // null => no restriction (master)
+        $params = [];
+        $where = '';
+        if (is_array($scopeIds)) {
+            // admin: own + users they added; user: own only
+            // Visible rows: id in scope OR added_by in scope
+            $placeholders = implode(',', array_fill(0, count($scopeIds), '?'));
+            $where = " WHERE id IN ($placeholders) OR added_by IN ($placeholders)";
+            $params = array_merge($scopeIds, $scopeIds);
+        }
+
+        $sql = "SELECT id, username, full_name, email, role, is_active, created_at, last_login, expire_date, added_by FROM {$config['table_name']}" . $where . " ORDER BY username";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute();
+        $stmt->execute($params);
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         json_response(['success' => true, 'data' => $users, 'total' => count($users)]);
     } catch (Exception $e) {
@@ -114,8 +126,12 @@ function handleGet($pdo, $config) {
             json_response(['success' => false, 'message' => 'User not found'], 404);
         }
 
-        if (!checkPermission($user_data, 'get', $user['id'])) {
-            json_response(['success' => false, 'message' => 'Permission denied to view this user'], 403);
+        // Scoped visibility: master all; admin self + users they added; user self
+        $scopeIds = getScopedUserIds($pdo, $user_data);
+        if (is_array($scopeIds)) {
+            if (!in_array((int)$user['id'], $scopeIds, true) && !in_array((int)($user['added_by'] ?? 0), $scopeIds, true)) {
+                json_response(['success' => false, 'message' => 'Permission denied to view this user'], 403);
+            }
         }
 
         json_response(['success' => true, 'data' => $user]);
@@ -135,17 +151,23 @@ function handleSave($pdo, $config) {
     $id = $input['id'] ?? null;
 
     if ($id) { // Update
-        $stmt = $pdo->prepare("SELECT added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $stmt = $pdo->prepare("SELECT id, added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
         $stmt->execute([$id]);
         $existing = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$existing) {
             json_response(['success' => false, 'message' => 'User not found'], 404);
         }
-        if (!checkPermission($user_data, 'save', $existing['id'])) {
-            json_response(['success' => false, 'message' => 'Permission denied to update this user'], 403);
+        // Scoped visibility
+        $scopeIds = getScopedUserIds($pdo, $user_data);
+        if (is_array($scopeIds)) {
+            if (!in_array((int)$existing['id'], $scopeIds, true) && !in_array((int)($existing['added_by'] ?? 0), $scopeIds, true)) {
+                json_response(['success' => false, 'message' => 'Permission denied to update this user'], 403);
+            }
         }
     } else { // Create
-        if (!checkPermission($user_data, 'save')) {
+        // Only master or admin can create users; user cannot
+        $role = $user_data['role'] ?? 'user';
+        if (!in_array($role, ['master','admin'], true)) {
             json_response(['success' => false, 'message' => 'Permission denied to create users'], 403);
         }
     }
@@ -218,7 +240,7 @@ function handleDelete($pdo, $config) {
     }
 
     try {
-        $stmt = $pdo->prepare("SELECT added_by, role FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $stmt = $pdo->prepare("SELECT id, added_by, role FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
         $stmt->execute([$id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -226,8 +248,12 @@ function handleDelete($pdo, $config) {
             json_response(['success' => false, 'message' => 'User not found'], 404);
         }
 
-        if (!checkPermission($user_data, 'delete', $user['id'])) {
-            json_response(['success' => false, 'message' => 'Permission denied to delete this user'], 403);
+        // Scoped visibility
+        $scopeIds = getScopedUserIds($pdo, $user_data);
+        if (is_array($scopeIds)) {
+            if (!in_array((int)$user['id'], $scopeIds, true) && !in_array((int)($user['added_by'] ?? 0), $scopeIds, true)) {
+                json_response(['success' => false, 'message' => 'Permission denied to delete this user'], 403);
+            }
         }
 
         if ($user['role'] === 'admin') {

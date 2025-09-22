@@ -171,8 +171,8 @@ function checkPermission($auth, $action, $resourceOwnerId = null) {
     $userId = $auth['user_id'];
     $role = $auth['role'];
     
-    // Master and admin have full access
-    if ($role === 'master' || $role === 'admin') {
+    // Only master has full access; admin is scoped via getScopedUserIds in endpoints
+    if ($role === 'master') {
         return true;
     }
     
@@ -198,6 +198,36 @@ function checkPermission($auth, $action, $resourceOwnerId = null) {
         default:
             return false;
     }
+}
+
+/**
+ * Get list of user IDs whose data is visible to the current auth scope
+ * - master: all (return null to indicate no restriction)
+ * - admin: self + users they created (users.added_by = admin_id)
+ * - user: only self
+ */
+function getScopedUserIds($pdo, $auth) {
+    if (!$auth) return [0];
+    $role = $auth['role'] ?? 'user';
+    $userId = (int)($auth['user_id'] ?? 0);
+    if ($role === 'master') {
+        return null; // no restriction
+    }
+    if ($role === 'admin') {
+        // fetch users added by this admin
+        try {
+            $stmt = $pdo->prepare('SELECT id FROM users WHERE added_by = ?');
+            $stmt->execute([$userId]);
+            $ids = array_map(fn($r) => (int)$r['id'], $stmt->fetchAll(PDO::FETCH_ASSOC));
+            $ids[] = $userId; // include self
+            return $ids;
+        } catch (Throwable $e) {
+            // fallback to only self on error
+            return [$userId];
+        }
+    }
+    // regular user
+    return [$userId];
 }
 
 /**

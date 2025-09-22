@@ -89,16 +89,27 @@ function handleList($pdo, $config) {
     }
 
     try {
+        // Role-based scoping by added_by
+        $scopeIds = getScopedUserIds($pdo, $user_data); // null => no restriction
+        $where = '';
+        $params = [];
+        if (is_array($scopeIds)) {
+            $placeholders = implode(',', array_fill(0, count($scopeIds), '?'));
+            $where = ' WHERE e.added_by IN (' . $placeholders . ')';
+            $params = $scopeIds;
+        }
+
         $sql = "SELECT e.*, p.name as patient_name, p.uhid as patient_uhid, d.name as doctor_name, t.name as test_name, u.username as added_by_username
                 FROM {$config['table_name']} e 
                 LEFT JOIN patients p ON e.patient_id = p.id 
                 LEFT JOIN tests t ON e.test_id = t.id 
                 LEFT JOIN doctors d ON e.doctor_id = d.id 
-                LEFT JOIN users u ON e.added_by = u.id
-                ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
+                LEFT JOIN users u ON e.added_by = u.id" .
+                $where .
+                " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
         
         $stmt = $pdo->prepare($sql);
-        $stmt->execute();
+        $stmt->execute($params);
         $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         json_response(['success' => true, 'data' => $entries, 'total' => count($entries)]);
@@ -136,8 +147,12 @@ function handleGet($pdo, $config) {
             json_response(['success' => false, 'message' => 'Entry not found'], 404);
         }
 
-        if (!checkPermission($user_data, 'get', $entry['added_by'])) {
-            json_response(['success' => false, 'message' => 'Permission denied to view this entry'], 403);
+        // Scoped visibility
+        $scopeIds = getScopedUserIds($pdo, $user_data);
+        if (is_array($scopeIds)) {
+            if (!in_array((int)$entry['added_by'], $scopeIds, true)) {
+                json_response(['success' => false, 'message' => 'Permission denied to view this entry'], 403);
+            }
         }
 
         json_response(['success' => true, 'data' => $entry]);
@@ -163,13 +178,15 @@ function handleSave($pdo, $config) {
         if (!$existing) {
             json_response(['success' => false, 'message' => 'Entry not found'], 404);
         }
-        if (!checkPermission($user_data, 'save', $existing['added_by'])) {
-            json_response(['success' => false, 'message' => 'Permission denied to update this entry'], 403);
+        // Scoped visibility
+        $scopeIds = getScopedUserIds($pdo, $user_data);
+        if (is_array($scopeIds)) {
+            if (!in_array((int)$existing['added_by'], $scopeIds, true)) {
+                json_response(['success' => false, 'message' => 'Permission denied to update this entry'], 403);
+            }
         }
     } else { // Create
-        if (!checkPermission($user_data, 'save')) {
-            json_response(['success' => false, 'message' => 'Permission denied to create entries'], 403);
-        }
+        // Any authenticated user can create; added_by will be current user
     }
 
     foreach ($config['required_fields'] as $field) {
@@ -241,8 +258,12 @@ function handleDelete($pdo, $config) {
             json_response(['success' => false, 'message' => 'Entry not found'], 404);
         }
 
-        if (!checkPermission($user_data, 'delete', $entry['added_by'])) {
-            json_response(['success' => false, 'message' => 'Permission denied to delete this entry'], 403);
+        // Scoped visibility
+        $scopeIds = getScopedUserIds($pdo, $user_data);
+        if (is_array($scopeIds)) {
+            if (!in_array((int)$entry['added_by'], $scopeIds, true)) {
+                json_response(['success' => false, 'message' => 'Permission denied to delete this entry'], 403);
+            }
         }
 
         $stmt = $pdo->prepare("DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?");

@@ -96,25 +96,29 @@ function handleList($pdo) {
     }
 
     try {
+        // Role-based scoping
+        $scopeIds = getScopedUserIds($pdo, $user_data); // null => master, no restriction
+        $viewerRole = $user_data['role'] ?? 'user';
+
         $userId = $_GET['user_id'] ?? $user_data['user_id'];
         $search = $_GET['search'] ?? '';
         $dateFrom = $_GET['date_from'] ?? null;
         $dateTo = $_GET['date_to'] ?? null;
         $limit = intval($_GET['limit'] ?? 50);
         $offset = intval($_GET['offset'] ?? 0);
-        
-        $viewerRole = $user_data['role'] ?? 'user';
-        
+
         $whereConditions = [];
         $params = [];
-        
-        if (isset($_GET['all']) && $_GET['all'] == '1' && ($viewerRole === 'master' || $viewerRole === 'admin')) {
-            // Master/Admin can see all reports
-        } else if ($userId) {
-            $whereConditions[] = 'r.added_by = ?';
-            $params[] = $userId;
+
+        // all=1 only for master; otherwise enforce scoping
+        if (isset($_GET['all']) && $_GET['all'] == '1' && ($viewerRole === 'master')) {
+            // Master can see all
         } else {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+            if (is_array($scopeIds)) {
+                $placeholders = implode(',', array_fill(0, count($scopeIds), '?'));
+                $whereConditions[] = 'r.added_by IN (' . $placeholders . ')';
+                $params = array_merge($params, $scopeIds);
+            }
         }
         
         if (!empty($search)) {
@@ -183,9 +187,9 @@ function handleGet($pdo) {
 
     try {
         $stmt = $pdo->prepare('SELECT r.*, u.username AS added_by_username 
-                              FROM reports r 
-                              LEFT JOIN users u ON r.added_by = u.id 
-                              WHERE r.id = ?');
+                             FROM reports r 
+                             LEFT JOIN users u ON r.added_by = u.id 
+                             WHERE r.id = ?');
         $stmt->execute([$id]);
         $report = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -193,8 +197,12 @@ function handleGet($pdo) {
             json_response(['success' => false, 'message' => 'Report not found'], 404);
         }
 
-        if (!checkPermission($user_data, 'get', $report['added_by'])) {
-            json_response(['success' => false, 'message' => 'Permission denied to view this report'], 403);
+        // Scoped visibility
+        $scopeIds = getScopedUserIds($pdo, $user_data);
+        if (is_array($scopeIds)) {
+            if (!in_array((int)$report['added_by'], $scopeIds, true)) {
+                json_response(['success' => false, 'message' => 'Permission denied to view this report'], 403);
+            }
         }
         
         json_response(['success' => true, 'data' => $report]);
@@ -269,9 +277,12 @@ function handleUpdate($pdo) {
         if (!$existingReport) {
             json_response(['success' => false, 'message' => 'Report not found'], 404);
         }
-
-        if (!checkPermission($user_data, 'update', $existingReport['added_by'])) {
-            json_response(['success' => false, 'message' => 'Permission denied to update this report'], 403);
+        // Scoped visibility
+        $scopeIds = getScopedUserIds($pdo, $user_data);
+        if (is_array($scopeIds)) {
+            if (!in_array((int)$existingReport['added_by'], $scopeIds, true)) {
+                json_response(['success' => false, 'message' => 'Permission denied to update this report'], 403);
+            }
         }
 
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
@@ -334,9 +345,12 @@ function handleDelete($pdo) {
         if (!$report) {
             json_response(['success' => false, 'message' => 'Report not found'], 404);
         }
-
-        if (!checkPermission($user_data, 'delete', $report['added_by'])) {
-            json_response(['success' => false, 'message' => 'Permission denied to delete this report'], 403);
+        // Scoped visibility
+        $scopeIds = getScopedUserIds($pdo, $user_data);
+        if (is_array($scopeIds)) {
+            if (!in_array((int)$report['added_by'], $scopeIds, true)) {
+                json_response(['success' => false, 'message' => 'Permission denied to delete this report'], 403);
+            }
         }
 
         $stmt = $pdo->prepare('DELETE FROM reports WHERE id = ?');
