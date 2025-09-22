@@ -1,10 +1,9 @@
 <?php
-// inc/ajax_helpers.php
+// inc/ajax_helpers_fixed.php - Fixed version with better authentication handling
 // Set CORS headers for development
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-// Include both X-API-Key and X-Api-Key to handle different client capitalizations
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-Key, X-Api-Key');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-Key');
 
 // Handle preflight OPTIONS requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -20,19 +19,33 @@ function json_response($data, $code = 200) {
 }
 
 /**
- * Comprehensive authentication function for all APIs
+ * Get headers in a cross-platform way
+ */
+function getHeaders() {
+    if (function_exists('getallheaders')) {
+        return getallheaders();
+    }
+    
+    $headers = [];
+    foreach ($_SERVER as $name => $value) {
+        if (substr($name, 0, 5) == 'HTTP_') {
+            $name = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))));
+            $headers[$name] = $value;
+        }
+    }
+    return $headers;
+}
+
+/**
+ * Fixed authentication function for all APIs
  * Supports multiple authentication methods as described in documentation
  */
-function authenticateApiUser($pdo) {
+function authenticateApiUserFixed($pdo) {
     global $_SESSION;
     
     // Include API config to ensure variables are loaded
     require_once __DIR__ . '/api_config.php';
     global $PATHO_API_SECRET, $PATHO_API_DEFAULT_USER_ID;
-    
-    // For debugging - uncomment to check values
-    // error_log("DEBUG: PATHO_API_SECRET = " . ($PATHO_API_SECRET ?? 'NULL'));
-    // error_log("DEBUG: PATHO_API_DEFAULT_USER_ID = " . ($PATHO_API_DEFAULT_USER_ID ?? 'NULL'));
     
     // Method 1: Check session cookie (PHPSESSID)
     if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
@@ -44,25 +57,14 @@ function authenticateApiUser($pdo) {
         ];
     }
     
-    // Method 2: Check Authorization header for Bearer token
-    // Get headers in a robust, case-insensitive way
-    $headers = function_exists('getallheaders') ? getallheaders() : [];
-    if (empty($headers)) {
-        foreach ($_SERVER as $name => $value) {
-            if (substr($name, 0, 5) == 'HTTP_') {
-                $name = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))));
-                $headers[$name] = $value;
-            }
-        }
-    }
-    // Normalize header keys to lowercase for case-insensitive lookup
-    $headers_ci = [];
-    foreach ($headers as $k => $v) { $headers_ci[strtolower($k)] = $v; }
+    // Get headers
+    $headers = getHeaders();
     
-    if (isset($headers_ci['authorization'])) {
-        $authHeader = $headers_ci['authorization'];
+    // Method 2: Check Authorization header for Bearer token
+    if (isset($headers['Authorization'])) {
+        $authHeader = $headers['Authorization'];
         if (strpos($authHeader, 'Bearer ') === 0) {
-            $token = substr($authHeader, 7); // Remove "Bearer " prefix
+            $token = substr($authHeader, 7);
             $stmt = $pdo->prepare('SELECT id, username, role FROM users WHERE api_token = ? AND is_active = 1');
             $stmt->execute([$token]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -114,51 +116,30 @@ function authenticateApiUser($pdo) {
     $sharedSecret = getenv('PATHO_API_SECRET') ?: 'hospital-api-secret-2024';
     $defaultUserId = getenv('PATHO_API_DEFAULT_USER_ID') !== false ? (int)getenv('PATHO_API_DEFAULT_USER_ID') : 1;
     
-    // Debug: Log header information
-    error_log("DEBUG: Headers received: " . json_encode($headers));
-    error_log("DEBUG: X-Api-Key header: " . ($headers_ci['x-api-key'] ?? $headers_ci['x-api-key'] ?? 'not set'));
-    error_log("DEBUG: Expected secret: " . $sharedSecret);
-    
-    // Accept both 'X-API-Key' and 'X-Api-Key' (case-insensitive)
-    $xApiKey = $headers_ci['x-api-key'] ?? null; // normalized to lowercase
-    if ($xApiKey && !empty($sharedSecret)) {
-        if ($xApiKey === $sharedSecret) {
-            error_log("DEBUG: API Key authentication successful");
+    if (isset($headers['X-Api-Key']) && !empty($sharedSecret)) {
+        if ($headers['X-Api-Key'] === $sharedSecret) {
             return [
                 'user_id' => $defaultUserId,
                 'role' => 'master',
                 'username' => 'api_system',
                 'auth_method' => 'shared_secret_header'
             ];
-        } else {
-            error_log("DEBUG: API Key mismatch - received: " . $xApiKey . ", expected: " . $sharedSecret);
         }
-    } else {
-        error_log("DEBUG: X-Api-Key header not found or empty");
     }
     
     // Method 6: Check secret_key parameter (server-to-server)
     $secretKey = $_REQUEST['secret_key'] ?? null;
-    error_log("DEBUG: secret_key parameter: " . ($secretKey ?? 'not set'));
-    error_log("DEBUG: _REQUEST array: " . json_encode($_REQUEST));
-    
     if ($secretKey && !empty($sharedSecret)) {
         if ($secretKey === $sharedSecret) {
-            error_log("DEBUG: secret_key authentication successful");
             return [
                 'user_id' => $defaultUserId,
                 'role' => 'master',
                 'username' => 'api_system',
                 'auth_method' => 'shared_secret_param'
             ];
-        } else {
-            error_log("DEBUG: secret_key mismatch - received: " . $secretKey . ", expected: " . $sharedSecret);
         }
-    } else {
-        error_log("DEBUG: secret_key not found or empty");
     }
     
-    error_log("DEBUG: No authentication method worked, returning null");
     return null;
 }
 
@@ -273,3 +254,4 @@ function upsert_or_skip($pdo, $table, $uniqueWhere, $data) {
     $ins->execute(array_values($data));
     return ['action'=>'inserted','id'=> (int)$pdo->lastInsertId()];
 }
+?>

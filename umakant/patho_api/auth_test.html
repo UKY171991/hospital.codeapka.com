@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Test - Hospital API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .test-section h3 { margin-top: 0; color: #333; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .success { color: green; }
+        .error { color: red; }
+        .response { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 3px; white-space: pre-wrap; }
+        input, select { padding: 8px; margin: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hospital API Authentication Test</h1>
+        
+        <div class="test-section">
+            <h3>1. Test Users</h3>
+            <button onclick="testUsers()">List Test Users</button>
+            <div id="users-response" class="response"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Login Test</h3>
+            <input type="text" id="username" placeholder="Username" value="admin">
+            <input type="password" id="password" placeholder="Password" value="admin123">
+            <button onclick="testLogin()">Test Login</button>
+            <div id="login-response" class="response"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Authentication Test (No Credentials)</h3>
+            <button onclick="testAuth()">Test Authentication</button>
+            <div id="auth-response" class="response"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>4. Token Authentication Test</h3>
+            <input type="text" id="token" placeholder="API Token" style="width: 400px;">
+            <button onclick="testTokenAuth()">Test Token Auth</button>
+            <div id="token-response" class="response"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>5. Shared Secret Test</h3>
+            <input type="text" id="secret" placeholder="Shared Secret" value="hospital-api-secret-2024">
+            <button onclick="testSecretAuth()">Test Secret Auth</button>
+            <div id="secret-response" class="response"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>6. API Endpoints Test</h3>
+            <button onclick="testPatientAPI()">Test Patients API</button>
+            <button onclick="testDoctorAPI()">Test Doctors API</button>
+            <button onclick="testReportsAPI()">Test Reports API</button>
+            <div id="api-response" class="response"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentToken = '';
+        
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                const data = await response.json();
+                return { success: response.ok, status: response.status, data };
+            } catch (error) {
+                return { success: false, status: 0, data: { error: error.message } };
+            }
+        }
+        
+        async function testUsers() {
+            const result = await makeRequest('test_auth_web.php?action=users');
+            document.getElementById('users-response').innerHTML = 
+                `<strong>Status: ${result.status}</strong>\n${JSON.stringify(result.data, null, 2)}`;
+        }
+        
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const result = await makeRequest('test_auth_web.php?action=login', {
+                method: 'POST',
+                body: JSON.stringify({ username, password })
+            });
+            
+            if (result.success && result.data.user) {
+                currentToken = result.data.user.api_token;
+                document.getElementById('token').value = currentToken;
+            }
+            
+            document.getElementById('login-response').innerHTML = 
+                `<strong>Status: ${result.status}</strong>\n${JSON.stringify(result.data, null, 2)}`;
+        }
+        
+        async function testAuth() {
+            const result = await makeRequest('test_auth_web.php?action=test');
+            document.getElementById('auth-response').innerHTML = 
+                `<strong>Status: ${result.status}</strong>\n${JSON.stringify(result.data, null, 2)}`;
+        }
+        
+        async function testTokenAuth() {
+            const token = document.getElementById('token').value;
+            const result = await makeRequest(`test_auth_web.php?action=test_with_token&token=${token}`);
+            document.getElementById('token-response').innerHTML = 
+                `<strong>Status: ${result.status}</strong>\n${JSON.stringify(result.data, null, 2)}`;
+        }
+        
+        async function testSecretAuth() {
+            const secret = document.getElementById('secret').value;
+            const result = await makeRequest(`test_auth_web.php?action=test_with_secret&secret=${secret}`);
+            document.getElementById('secret-response').innerHTML = 
+                `<strong>Status: ${result.status}</strong>\n${JSON.stringify(result.data, null, 2)}`;
+        }
+        
+        async function testPatientAPI() {
+            const result = await makeRequest('patient.php', {
+                headers: currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {}
+            });
+            document.getElementById('api-response').innerHTML = 
+                `<strong>Patients API Status: ${result.status}</strong>\n${JSON.stringify(result.data, null, 2)}`;
+        }
+        
+        async function testDoctorAPI() {
+            const result = await makeRequest('doctor.php', {
+                headers: currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {}
+            });
+            document.getElementById('api-response').innerHTML = 
+                `<strong>Doctors API Status: ${result.status}</strong>\n${JSON.stringify(result.data, null, 2)}`;
+        }
+        
+        async function testReportsAPI() {
+            const result = await makeRequest('reports.php', {
+                headers: currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {}
+            });
+            document.getElementById('api-response').innerHTML = 
+                `<strong>Reports API Status: ${result.status}</strong>\n${JSON.stringify(result.data, null, 2)}`;
+        }
+    </script>
+</body>
+</html>
