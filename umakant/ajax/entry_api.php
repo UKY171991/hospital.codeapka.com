@@ -24,22 +24,34 @@ try {
     if ($action === 'stats') {
         // Get statistics for dashboard
         $stats = [];
-        
+        $viewerRole = $_SESSION['role'] ?? 'user';
+        $viewerId = (int)($_SESSION['user_id'] ?? 0);
+        $scopeWhere = '';
+        $params = [];
+        if ($viewerRole !== 'master') {
+            $scopeWhere = ' WHERE added_by = ?';
+            $params = [$viewerId];
+        }
+
         try {
             // Total entries
-            $stmt = $pdo->query("SELECT COUNT(*) FROM entries");
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM entries" . $scopeWhere);
+            $stmt->execute($params);
             $stats['total'] = (int) $stmt->fetchColumn();
             
             // Pending entries
-            $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE status = 'pending'");
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM entries" . ($scopeWhere ? $scopeWhere . " AND status = 'pending'" : " WHERE status = 'pending'"));
+            $stmt->execute($params);
             $stats['pending'] = (int) $stmt->fetchColumn();
             
             // Completed entries  
-            $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE status = 'completed'");
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM entries" . ($scopeWhere ? $scopeWhere . " AND status = 'completed'" : " WHERE status = 'completed'"));
+            $stmt->execute($params);
             $stats['completed'] = (int) $stmt->fetchColumn();
             
             // Today's entries - try both date fields
-            $stmt = $pdo->query("SELECT COUNT(*) FROM entries WHERE DATE(COALESCE(entry_date, created_at)) = CURDATE()");
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM entries" . ($scopeWhere ? $scopeWhere . " AND DATE(COALESCE(entry_date, created_at)) = CURDATE()" : " WHERE DATE(COALESCE(entry_date, created_at)) = CURDATE()"));
+            $stmt->execute($params);
             $stats['today'] = (int) $stmt->fetchColumn();
             
         } catch (Exception $e) {
@@ -50,6 +62,15 @@ try {
         json_response(['success' => true, 'status' => 'success', 'data' => $stats]);
     } else if ($action === 'list') {
         // Updated to match new schema with comprehensive data
+        $viewerRole = $_SESSION['role'] ?? 'user';
+        $viewerId = (int)($_SESSION['user_id'] ?? 0);
+        $scopeWhere = '';
+        $params = [];
+        if ($viewerRole !== 'master') {
+            $scopeWhere = ' WHERE e.added_by = ?';
+            $params = [$viewerId];
+        }
+
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
                    t.name AS test_name, COALESCE(t.unit, '') AS units,
@@ -60,10 +81,12 @@ try {
             LEFT JOIN patients p ON e.patient_id = p.id 
             LEFT JOIN tests t ON e.test_id = t.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
-            LEFT JOIN users u ON e.added_by = u.id
-            ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
+            LEFT JOIN users u ON e.added_by = u.id" .
+            $scopeWhere .
+            " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
         
-        $stmt = $pdo->query($sql);
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Format data for frontend compatibility
@@ -83,6 +106,15 @@ try {
 
     if ($action === 'get' && isset($_GET['id'])) {
         // Return comprehensive entry data
+        $viewerRole = $_SESSION['role'] ?? 'user';
+        $viewerId = (int)($_SESSION['user_id'] ?? 0);
+        $scopeWhere = '';
+        $params = [$_GET['id']];
+        if ($viewerRole !== 'master') {
+            $scopeWhere = ' AND e.added_by = ?';
+            $params[] = $viewerId;
+        }
+
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
                    t.name AS test_name, COALESCE(t.unit, '') AS units,
@@ -94,10 +126,10 @@ try {
             LEFT JOIN tests t ON e.test_id = t.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
             LEFT JOIN users u ON e.added_by = u.id
-            WHERE e.id = ?";
+            WHERE e.id = ?" . $scopeWhere;
         
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$_GET['id']]);
+        $stmt->execute($params);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$row) {

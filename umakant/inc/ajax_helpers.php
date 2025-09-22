@@ -214,19 +214,10 @@ function getScopedUserIds($pdo, $auth) {
         return null; // no restriction
     }
     if ($role === 'admin') {
-        // fetch users added by this admin
-        try {
-            $stmt = $pdo->prepare('SELECT id FROM users WHERE added_by = ?');
-            $stmt->execute([$userId]);
-            $ids = array_map(fn($r) => (int)$r['id'], $stmt->fetchAll(PDO::FETCH_ASSOC));
-            $ids[] = $userId; // include self
-            return $ids;
-        } catch (Throwable $e) {
-            // fallback to only self on error
-            return [$userId];
-        }
+        // Admin scope restricted to only their own user_id
+        return [$userId];
     }
-    // regular user
+    // Regular user scope restricted to only their own user_id
     return [$userId];
 }
 
