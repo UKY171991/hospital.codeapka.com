@@ -183,87 +183,8 @@ function displayPatientDetails(patient) {
     
     $('#patientViewDetails').html(detailsHtml);
     
-    // Store patient ID for edit function
+    // Store patient ID for view function
     $('#viewPatientModal').data('patient-id', patient.id);
-}
-
-function editPatient(id) {
-    showLoading();
-    
-    $.get('ajax/patient_api.php', {action: 'get', id: id})
-        .done(function(response) {
-            if (response.success) {
-                populatePatientForm(response.data);
-                $('#patientModalLabel .modal-title-text').text('Edit Patient');
-                $('#patientModal').modal('show');
-                showSuccess('Patient data loaded for editing');
-            } else {
-                showError('Failed to load patient data: ' + response.message);
-            }
-        })
-        .fail(function() {
-            showError('Error loading patient data');
-        })
-        .always(function() {
-            hideLoading();
-        });
-}
-
-function editPatientFromView() {
-    const patientId = $('#viewPatientModal').data('patient-id');
-    $('#viewPatientModal').modal('hide');
-    setTimeout(() => editPatient(patientId), 300);
-}
-
-function populatePatientForm(patient) {
-    $('#patientId').val(patient.id);
-    $('#patientName').val(patient.name);
-    $('#patientMobile').val(patient.mobile);
-    $('#patientEmail').val(patient.email);
-    $('#patientAge').val(patient.age);
-    $('#patientAgeUnit').val(patient.age_unit);
-    $('#patientGender').val(patient.gender);
-    $('#patientFatherHusband').val(patient.father_husband);
-    $('#patientAddress').val(patient.address);
-}
-
-function savePatient() {
-    const formData = new FormData($('#patientForm')[0]);
-    formData.append('action', 'save');
-    
-    const isEdit = $('#patientId').val() !== '';
-    
-    showLoading();
-    
-    $.ajax({
-        url: 'ajax/patient_api.php',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false
-    })
-    .done(function(response) {
-        if (response.success) {
-            $('#patientModal').modal('hide');
-            patientTableManager.refreshData();
-            loadPatientStats();
-            
-            const message = isEdit ? 'Patient updated successfully' : 'Patient added successfully';
-            showSuccess(message);
-            
-            // Reset form
-            $('#patientForm')[0].reset();
-            $('#patientId').val('');
-        } else {
-            showError('Failed to save patient: ' + response.message);
-        }
-    })
-    .fail(function() {
-        showError('Error saving patient');
-    })
-    .always(function() {
-        hideLoading();
-    });
 }
 
 function deletePatient(id) {
@@ -551,52 +472,78 @@ function downloadCSV(data, filename) {
     window.URL.revokeObjectURL(url);
 }
 
-function applyFilters() {
-    const searchTerm = $('#patientsSearch').val().trim();
-    const gender = $('#genderFilter').val();
-    const ageRange = $('#ageRangeFilter').val();
-    const date = $('#dateFilter').val();
-    
-    // Build search parameters
-    const params = new URLSearchParams({
-        page: currentPage,
-        limit: recordsPerPage
-    });
-    
-    if (searchTerm) params.append('search', searchTerm);
-    if (gender) params.append('gender', gender);
-    if (ageRange) params.append('age_range', ageRange);
-    if (date) params.append('date', date);
+function populatePatientsTable(patients) {
+    const tbody = $('#patientsTableBody');
+    tbody.empty();
 
-    // Use the table manager to apply filters if available
-    if (patientTableManager) {
-    // set custom params on the manager then reload
-    const addedBy = $('#filterAddedBy').val();
-    patientTableManager.extraParams = patientTableManager.extraParams || {};
-    if (addedBy) patientTableManager.extraParams.added_by = addedBy; else delete patientTableManager.extraParams.added_by;
-    patientTableManager.loadData();
-    } else {
-        // Fallback: load data manually
-        $.get(`ajax/patient_api.php?action=list&${params}`)
-            .done(function(response) {
-                if (response.success) {
-                    // Handle response data
-                    APP_LOG('Patients loaded:', response.data);
-                } else {
-                    showError('Error loading patients: ' + response.message);
-                }
-            })
-            .fail(function(jqXHR, textStatus, errorThrown) {
-                if (jqXHR && jqXHR.status === 0 && navigator.onLine) {
-                    console.warn('Suppressed patient load toast for XHR status 0 while online. Likely aborted by extension or network probe.');
-                } else {
-                    showError('Failed to load patients');
-                }
-            });
+    if (patients.length === 0) {
+        tbody.append(`
+            <tr>
+                <td colspan="9" class="text-center py-4">
+                    <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                    <p class="text-muted mb-0">No patients found</p>
+                </td>
+            </tr>
+        `);
+        return;
     }
+
+    patients.forEach(patient => {
+        const row = `
+            <tr data-id="${patient.id}">
+                <td class="text-center">
+                    <input type="checkbox" class="patient-checkbox" value="${patient.id}">
+                </td>
+                <td>${patient.uhid || 'N/A'}</td>
+                <td>
+                    <div class="font-weight-bold">${patient.name || 'N/A'}</div>
+                    <small class="text-muted">${patient.father_husband || ''}</small>
+                </td>
+                <td>
+                    <div>${patient.mobile || 'N/A'}</div>
+                    <small class="text-muted">${patient.email || ''}</small>
+                </td>
+                <td>
+                    ${patient.age ? `${patient.age} ${patient.age_unit || 'years'}` : 'N/A'} 
+                    <span class="badge ${patient.gender === 'Male' ? 'bg-primary' : patient.gender === 'Female' ? 'bg-pink' : 'bg-secondary'}">
+                        ${patient.gender || 'N/A'}
+                    </span>
+                </td>
+                <td class="text-truncate" style="max-width: 200px;" title="${patient.address || ''}">
+                    ${patient.address || 'N/A'}
+                </td>
+                <td>${formatDateTime(patient.created_at) || 'N/A'}</td>
+                <td>${patient.added_by_username || 'System'}</td>
+                <td class="text-nowrap">
+                    <button class="btn btn-xs btn-info view-patient" data-id="${patient.id}" title="View">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-xs btn-danger delete-patient" data-id="${patient.id}" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
 }
 
-// Load users to populate the Added By dropdown
+// Event delegation for view buttons
+$(document).on('click', '.view-patient', function() {
+    const patientId = $(this).data('id');
+    if (patientId) {
+        viewPatient(patientId);
+    }
+});
+
+// Event delegation for delete buttons
+$(document).on('click', '.delete-patient', function() {
+    const patientId = $(this).data('id');
+    if (patientId) {
+        deletePatient(patientId);
+    }
+});
+
 function loadAddedByOptions(){
     // Request a larger page to ensure we get all users for the dropdown; log response for debugging
     $.ajax({
@@ -625,420 +572,11 @@ function loadAddedByOptions(){
     });
 }
 
-function populatePatientsTable(patients) {
-    let html = '';
-    
-    if (patients.length === 0) {
-        html = '<tr><td colspan="8" class="text-center text-muted">No patients found</td></tr>';
-    } else {
-        patients.forEach(patient => {
-            const ageDisplay = patient.age ? `${patient.age} ${patient.age_unit || 'Years'}` : '-';
-            const gender = patient.gender || patient.sex; // Use gender if available, fallback to sex
-            const genderBadge = gender ? 
-                `<span class="badge badge-${gender === 'Male' ? 'primary' : gender === 'Female' ? 'danger' : 'secondary'}">${gender}</span>` : '-';
-            
-            html += `
-                <tr>
-                    <td>
-                        <div class="font-weight-bold text-primary">${patient.uhid || 'N/A'}</div>
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="avatar-circle bg-info text-white mr-2">
-                                ${patient.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                                <div class="font-weight-bold">${patient.name}</div>
-                                ${patient.father_husband ? `<small class="text-muted">S/D/W of ${patient.father_husband}</small>` : ''}
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div>
-                            ${patient.mobile ? `<div><i class="fas fa-mobile-alt text-primary"></i> ${patient.mobile}</div>` : ''}
-                            ${patient.email ? `<div><i class="fas fa-envelope text-info"></i> ${patient.email}</div>` : ''}
-                        </div>
-                    </td>
-                    <td>
-                        <div>${ageDisplay}</div>
-                        <div>${genderBadge}</div>
-                    </td>
-                    <td>
-                        <div class="text-truncate" style="max-width: 150px;" title="${patient.address || ''}">
-                            ${patient.address || '-'}
-                        </div>
-                    </td>
-                    <td>
-                        <small class="text-muted">${formatDateTime(patient.created_at)}</small>
-                    </td>
-                    <td>
-                        <small class="text-muted">${patient.added_by_username || '—'}</small>
-                    </td>
-                    <td>
-                        <div class="btn-group" role="group">
-                            <button class="btn btn-info btn-sm" onclick="viewPatient(${patient.id})" title="View">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-warning btn-sm" onclick="editPatient(${patient.id})" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="deletePatient(${patient.id}, '${patient.name}')" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-    
-    $('#patientsTableBody').html(html);
-}
-
-function updatePagination(pagination) {
-    totalRecords = pagination.total;
-    const totalPages = Math.ceil(totalRecords / recordsPerPage);
-    
-    // Update info
-    const start = ((currentPage - 1) * recordsPerPage) + 1;
-    const end = Math.min(currentPage * recordsPerPage, totalRecords);
-    $('#patientsInfo').html(`Showing ${start} to ${end} of ${totalRecords} entries`);
-    
-    // Update pagination
-    let paginationHtml = '';
-    if (totalPages > 1) {
-        paginationHtml += `
-            <ul class="pagination pagination-sm m-0 float-right">
-                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
-                </li>
-        `;
-        
-        for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                paginationHtml += `
-                    <li class="page-item ${i === currentPage ? 'active' : ''}">
-                        <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
-                    </li>
-                `;
-            } else if (i === currentPage - 3 || i === currentPage + 3) {
-                paginationHtml += '<li class="page-item disabled"><span class="page-link">...</span></li>';
-            }
-        }
-        
-        paginationHtml += `
-                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                    <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
-                </li>
-            </ul>
-        `;
-    }
-    
-    $('#patientsPagination').html(paginationHtml);
-}
-
-function updateStats() {
-    $.get('patho_api/patient.php?action=stats')
-        .done(function(response) {
-            if (response.status === 'success') {
-                $('#totalPatients').text(response.data.total || 0);
-                $('#todayPatients').text(response.data.today || 0);
-                $('#malePatients').text(response.data.male || 0);
-                $('#femalePatients').text(response.data.female || 0);
-            }
-        });
-}
-
-function changePage(page) {
-    currentPage = page;
-    loadPatients();
-}
-
-function clearFilters() {
-    $('#patientsSearch').val('');
-    $('#genderFilter').val('');
-    $('#ageRangeFilter').val('');
-    $('#dateFilter').val('');
-    currentPage = 1;
-    loadPatients();
-}
-
-function openAddPatientModal() {
-    $('#patientForm')[0].reset();
-    $('#patientId').val('');
-    $('#modalTitle').text('Add New Patient');
-    generateUHID();
-    $('#patientModal').modal('show');
-}
-
-function generateUHID() {
-    const timestamp = Date.now().toString();
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    const uhid = 'P' + timestamp.slice(-6) + random;
-    $('#patientUHID').val(uhid);
-}
-
-function editPatient(id) {
-    $.get(`patho_api/patient.php?id=${id}`)
-        .done(function(response) {
-            if (response.status === 'success') {
-                const patient = response.data;
-                $('#patientId').val(patient.id);
-                $('#patientName').val(patient.name);
-                $('#patientUHID').val(patient.uhid);
-                $('#patientMobile').val(patient.mobile);
-                $('#patientEmail').val(patient.email);
-                $('#patientAge').val(patient.age);
-                $('#patientAgeUnit').val(patient.age_unit);
-                $('#patientGender').val(patient.gender || patient.sex); // Use gender if available, fallback to sex
-                $('#patientFatherHusband').val(patient.father_husband);
-                $('#patientAddress').val(patient.address);
-                    // Fill added_by if available (admin override)
-                    if (typeof patient.added_by !== 'undefined' && patient.added_by !== null) {
-                        $('#patientAddedBy').val(patient.added_by);
-                    } else {
-                        $('#patientAddedBy').val('');
-                    }
-                
-                $('#modalTitle').text('Edit Patient');
-                $('#patientModal').modal('show');
-            } else {
-                showAlert('Error loading patient data: ' + response.message, 'error');
-            }
-        })
-        .fail(function() {
-            showAlert('Failed to load patient data', 'error');
-        });
-}
-
-// Fallback global function used by inline onclick on View buttons
-function viewPatient(id) {
-    try {
-        console.debug('viewPatient() called', id);
-        $.get('ajax/patient_api.php', {action: 'get', id: id}, function(resp) {
-            if (resp.success) {
-                var d = resp.data;
-                $('#patientId').val(d.id);
-                $('#patientName').val(d.name);
-                $('#patientMobile').val(d.mobile);
-                $('#patientFatherHusband').val(d.father_husband);
-                $('#patientAddress').val(d.address);
-                $('#patientSex').val(d.sex);
-                $('#patientAge').val(d.age);
-                $('#patientAgeUnit').val(d.age_unit || 'Years');
-                $('#patientUHID').val(d.uhid);
-                $('#patientModalLabel').text('View Patient');
-                $('#patientForm').find('input,textarea,select').prop('disabled', true);
-                $('#savePatientBtn').hide();
-                $('#patientModal').modal('show');
-            } else {
-                toastr.error('Patient not found');
-            }
-        }, 'json').fail(function(xhr) {
-            var msg = xhr.responseText || 'Server error';
-            try {
-                var j = JSON.parse(xhr.responseText || '{}');
-                if (j.message) msg = j.message;
-            } catch (e) {}
-            toastr.error(msg);
-        });
-    } catch (err) {
-        console.error('viewPatient error', err);
-        toastr.error('Error: ' + (err.message || err));
-    }
-}
-
-function savePatientData() {
-    const formData = new FormData($('#patientForm')[0]);
-    const id = $('#patientId').val();
-    const method = id ? 'PUT' : 'POST';
-    
-    // Add loading state
-    const submitBtn = $('#patientForm button[type="submit"]');
-    const originalText = submitBtn.html();
-    submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
-
-    $.ajax({
-        url: 'patho_api/patient.php',
-        type: method,
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-            if (response.status === 'success') {
-                showAlert(id ? 'Patient updated successfully!' : 'Patient added successfully!', 'success');
-                $('#patientModal').modal('hide');
-                loadPatients();
-                updateStats();
-            } else {
-                showAlert('Error: ' + response.message, 'error');
-            }
-        },
-        error: function() {
-            showAlert('Failed to save patient data', 'error');
-        },
-        complete: function() {
-            submitBtn.html(originalText).prop('disabled', false);
-        }
-    });
-}
-
-function deletePatient(id, name) {
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: `You want to delete patient "${name}"?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                performDelete(id);
-            }
-        });
-    } else {
-        // Fallback to confirm if SweetAlert is not available
-        if (confirm(`Delete patient "${name}"?`)) {
-            performDelete(id);
-        }
-    }
-}
-
-function performDelete(id) {
-    showLoading();
-    $.ajax({
-        url: 'ajax/patient_api.php',
-        type: 'POST',
-        dataType: 'json',
-        data: { action: 'delete', id: id },
-        success: function(response) {
-            if (response && response.success) {
-                showAlert('Patient deleted successfully!', 'success');
-                // Refresh table via manager if available, otherwise fallback
-                try {
-                    if (patientTableManager && patientTableManager.dataTable && patientTableManager.dataTable.ajax && typeof patientTableManager.dataTable.ajax.reload === 'function') {
-                        patientTableManager.dataTable.ajax.reload(null, false);
-                    } else if (patientTableManager && typeof patientTableManager.refreshData === 'function') {
-                        patientTableManager.refreshData();
-                    } else if (typeof loadPatients === 'function') {
-                        loadPatients();
-                    }
-                } catch (e) {
-                    console.warn('Error refreshing list after delete:', e);
-                }
-                try { updateStats(); } catch(e){}
-            } else {
-                const msg = (response && response.message) ? response.message : 'Unknown error';
-                showAlert('Error deleting patient: ' + msg, 'error');
-            }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            console.error('Delete AJAX error', textStatus, errorThrown, jqXHR.responseText);
-            showAlert('Failed to delete patient: ' + (errorThrown || textStatus), 'error');
-        },
-        complete: function() {
-            hideLoading();
-        }
-    });
-}
-
-function showAlert(message, type) {
-    const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
-    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-    
-    const alert = `
-        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-            <i class="${icon} mr-2"></i>${message}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    `;
-    
-    // Remove existing alerts
-    $('.alert').remove();
-    
-    // Add new alert at the top of content
-    $('.content-wrapper .content').prepend(alert);
-    
-    // Auto hide after 5 seconds
-    setTimeout(() => {
-        $('.alert').fadeOut();
-    }, 5000);
-}
-
 function formatDateTime(dateString) {
     if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
 }
-
-// Legacy jQuery ready function for backward compatibility
-$(function() {
-    loadPatients();
-
-    // Search/filter UI
-    $('#patientsSearch').on('input', function() {
-        var q = $(this).val().toLowerCase().trim();
-        if (!q) {
-            $('#patientsTable tbody tr').show();
-            return;
-        }
-        $('#patientsTable tbody tr').each(function() {
-            var row = $(this);
-            var text = row.text().toLowerCase();
-            row.toggle(text.indexOf(q) !== -1);
-        });
-    });
-
-    $('#patientsSearchClear').click(function(e) {
-        e.preventDefault();
-        $('#patientsSearch').val('');
-        $('#patientsSearch').trigger('input');
-    });
-
-    $('#savePatientBtn').click(function() {
-        var data = $('#patientForm').serialize() + '&action=save';
-        $.post('ajax/patient_api.php', data, function(resp) {
-            if (resp.success) {
-                toastr.success(resp.message || 'Saved');
-                $('#patientModal').modal('hide');
-                if (resp.data && !$('#patientId').val()) {
-                    // New record - add to table directly
-                    addPatientToTable(resp.data);
-                } else {
-                    // Update - reload table
-                    loadPatients();
-                }
-                $('#patientForm')[0].reset();
-                $('#patientId').val('');
-            } else {
-                toastr.error(resp.message || 'Save failed');
-            }
-        }, 'json').fail(function(xhr) {
-            var msg = xhr.responseText || 'Server error';
-            try {
-                var j = JSON.parse(xhr.responseText || '{}');
-                if (j.message) msg = j.message;
-            } catch (e) {}
-            toastr.error(msg);
-        });
-    });
-
-    // Edit - use document delegation to be robust against dynamic table rebuilds
-    $(document).on('click', '.edit-patient', function() {
-        try {
-            console.debug('edit-patient clicked', this, $(this).data('id'));
-            var id = $(this).data('id');
-            $.get('ajax/patient_api.php', {action: 'get', id: id}, function(resp) {
-                if (resp.success) {
-                    var d = resp.data;
-                    $('#patientId').val(d.id);
-                    $('#patientName').val(d.name);
-                    $('#patientMobile').val(d.mobile);
-                    $('#patientFatherHusband').val(d.father_husband);
                     $('#patientAddress').val(d.address);
                     $('#patientSex').val(d.sex);
                     $('#patientAge').val(d.age);
