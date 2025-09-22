@@ -28,9 +28,22 @@ $entity_config = [
     'id_field' => 'id',
     'required_fields' => ['patient_id', 'test_id'],
     'allowed_fields' => [
-        'patient_id', 'test_id', 'doctor_id', 'entry_date', 'result_value', 
-        'unit', 'remarks', 'status', 'added_by', 'created_at', 'updated_at',
-        'grouped', 'tests_count', 'test_ids', 'test_names', 'test_results'
+        // Exact columns per DB schema
+        'server_id',
+        'patient_id',
+        'doctor_id',
+        'test_id',
+        'entry_date',
+        'result_value',
+        'unit',
+        'remarks',
+        'status',
+        'added_by',
+        'price',
+        'discount_amount',
+        'total_price',
+        'created_at',
+        'updated_at'
     ]
 ];
 
@@ -198,15 +211,47 @@ function handleSave($pdo, $config) {
     try {
         $data = [];
         foreach ($config['allowed_fields'] as $field) {
-            if (isset($input[$field])) {
+            if (array_key_exists($field, $input)) {
                 $data[$field] = $input[$field];
             }
         }
+
+        // Defaults and normalization
         $data['added_by'] = $data['added_by'] ?? $user_data['user_id'];
+        if (isset($data['status']) && !in_array($data['status'], ['pending','completed','cancelled'], true)) {
+            $data['status'] = 'pending';
+        }
+        if (!isset($data['status'])) {
+            $data['status'] = 'pending';
+        }
+        // Normalize entry_date to Y-m-d (accepts date or datetime)
+        if (isset($data['entry_date']) && $data['entry_date'] !== '') {
+            $ts = strtotime($data['entry_date']);
+            if ($ts !== false) {
+                $data['entry_date'] = date('Y-m-d', $ts);
+            }
+        }
+        // Normalize decimals
+        foreach (['price','discount_amount','total_price'] as $numField) {
+            if (isset($data[$numField]) && $data[$numField] !== '') {
+                $data[$numField] = number_format((float)$data[$numField], 2, '.', '');
+            }
+        }
+        // Compute total_price if not provided but price/discount present
+        if ((!isset($data['total_price']) || $data['total_price'] === '') && isset($data['price'])) {
+            $price = (float)($data['price'] ?? 0);
+            $disc = (float)($data['discount_amount'] ?? 0);
+            $data['total_price'] = number_format($price - $disc, 2, '.', '');
+        }
 
         if ($id) {
             $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
-            $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
+            // Do not override DB-managed updated_at if client provided none
+            if (!array_key_exists('updated_at', $data)) {
+                $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
+            } else {
+                $sql = "UPDATE {$config['table_name']} SET $set_clause WHERE {$config['id_field']} = ?";
+            }
             $values = array_merge(array_values($data), [$id]);
             $stmt = $pdo->prepare($sql);
             $stmt->execute($values);
