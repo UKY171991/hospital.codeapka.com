@@ -30,7 +30,6 @@ include_once 'inc/sidebar.php';
             <table class="table table-bordered table-sm" id="doctorTable">
                 <thead>
                   <tr>
-                    <th>View</th>
                     <th>ID</th>
                     <th>Name</th>
                     <th>Hospital</th>
@@ -73,11 +72,6 @@ $(function(){
     },
     columns: [
       // View - will be filled in drawCallback to handle paging and ordering
-      { data: null, orderable: false, searchable: false, render: function(data,type,row){
-        return '<div class="btn-group btn-group-sm action-buttons" role="group" aria-label="Actions" style="white-space:nowrap;">'
-           + '<button class="btn btn-primary btn-action view-btn" data-id="'+row.id+'">View</button>'
-           + '</div>';
-      } },
       { data: 'id' },
       { data: 'name', className: 'text-truncate', defaultContent: '' },
       { data: 'hospital', className: 'text-truncate', defaultContent: '' },
@@ -87,6 +81,7 @@ $(function(){
       { data: 'created_at' },
       { data: null, orderable: false, searchable: false, render: function(data,type,row){
         return '<div class="btn-group btn-group-sm action-buttons" role="group" aria-label="Actions" style="white-space:nowrap;">'
+           + '<button class="btn btn-primary btn-action view-btn mr-1" data-id="'+row.id+'">View</button>'
            + '<button class="btn btn-danger del-btn" data-id="'+row.id+'">Delete</button>'
            + '</div>';
       } }
