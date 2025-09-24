@@ -35,6 +35,7 @@ require_once 'inc/sidebar.php';
                                         <th>WhatsApp</th>
                                         <th>Email</th>
                                         <th>Address</th>
+                                        <th>Link</th>
                                         <th>Added By</th>
                                         <th>Actions</th>
                                     </tr>
@@ -65,6 +66,7 @@ require_once 'inc/sidebar.php';
             <div class="form-group col-md-6"><label for="ownerPhone">Phone</label><input class="form-control" name="phone" id="ownerPhone" type="text"></div>
             <div class="form-group col-md-6"><label for="ownerWhatsapp">WhatsApp</label><input class="form-control" name="whatsapp" id="ownerWhatsapp" type="text"></div>
           </div>
+          <div class="form-group"><label for="ownerLink">Link (URL)</label><input class="form-control" name="link" id="ownerLink" type="url" placeholder="https://example.com"></div>
           <div class="form-group"><label for="ownerAddress">Address</label><textarea class="form-control" name="address" id="ownerAddress" rows="3"></textarea></div>
         </form>
       </div>
@@ -93,6 +95,7 @@ function loadOwners(){
     '<td>'+(o.whatsapp||'')+'</td>'+
     '<td>'+(o.email||'')+'</td>'+
     '<td>'+(o.address||'')+'</td>'+
+    '<td>'+(o.link?("<a href="+JSON.stringify(o.link)+" target=_blank>Open</a>"):'')+'</td>'+
     '<td>'+(o.added_by_username||'')+'</td>'+
     '<td><button class="btn btn-sm btn-info" onclick="viewOwner('+o.id+')">View</button> '
       +'<button class="btn btn-sm btn-warning edit-owner" data-id="'+o.id+'">Edit</button> '
@@ -115,6 +118,7 @@ $(function(){
         $('#ownerForm').find('input,textarea,select').prop('disabled', false);
         $('#saveOwnerBtn').show();
         $('#ownerId').val(o.id); $('#ownerName').val(o.name); $('#ownerPhone').val(o.phone); $('#ownerWhatsapp').val(o.whatsapp||''); $('#ownerEmail').val(o.email); $('#ownerAddress').val(o.address);
+        $('#ownerLink').val(o.link||'');
         $('#ownerModal').modal('show');
       } else toastr.error('Not found');
     },'json');
@@ -154,6 +158,7 @@ function viewOwner(id){
         '<tr><th>WhatsApp</th><td>'+ (o.whatsapp||'') +'</td></tr>'+
         '<tr><th>Email</th><td>'+(o.email?('<a href="mailto:'+o.email+'">'+o.email+'</a>'):'N/A')+'</td></tr>'+
         '<tr><th>Address</th><td>'+ (o.address||'') +'</td></tr>'+
+        '<tr><th>Link</th><td>'+(o.link?('<a href="'+o.link+'" target="_blank">'+o.link+'</a>'):'')+'</td></tr>'+
         '<tr><th>Added By</th><td>'+ (o.added_by_username||o.added_by||'') +'</td></tr>'+
         '</table>';
       $('#ownerViewModal .owner-view-content').html(html);

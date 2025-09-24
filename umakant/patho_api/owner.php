@@ -22,7 +22,7 @@ $entity_config = [
     'table_name' => 'owners',
     'id_field' => 'id',
     'required_fields' => ['name', 'phone'],
-    'allowed_fields' => ['name', 'phone', 'whatsapp', 'email', 'address', 'added_by']
+    'allowed_fields' => ['name', 'phone', 'whatsapp', 'email', 'address', 'link', 'added_by']
 ];
 
 // Get action from request
