@@ -26,13 +26,13 @@ require_once __DIR__ . '/../inc/api_config.php';
 $entity_config = [
     'table_name' => 'entries',
     'id_field' => 'id',
-    'required_fields' => ['patient_id', 'test_id'],
+    'required_fields' => ['patient_id'], // test_id is now optional for multiple tests
     'allowed_fields' => [
         // Exact columns per DB schema
         'server_id',
         'patient_id',
         'doctor_id',
-        'test_id',
+        'test_id', // Primary test for backward compatibility
         'entry_date',
         'result_value',
         'unit',
@@ -43,7 +43,14 @@ $entity_config = [
         'discount_amount',
         'total_price',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'reported_date',
+        'result_status',
+        'grouped',
+        'tests_count',
+        'test_ids',
+        'test_names',
+        'test_results'
     ]
 ];
 
@@ -83,6 +90,18 @@ try {
             break;
         case 'stats':
             handleStats($pdo);
+            break;
+        case 'add_test':
+            handleAddTest($pdo);
+            break;
+        case 'remove_test':
+            handleRemoveTest($pdo);
+            break;
+        case 'get_tests':
+            handleGetTests($pdo);
+            break;
+        case 'update_test_result':
+            handleUpdateTestResult($pdo);
             break;
         default:
             json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
@@ -349,6 +368,255 @@ function handleStats($pdo) {
     } catch (Exception $e) {
         error_log("Stats error: " . $e->getMessage());
         json_response(['success' => false, 'message' => 'Failed to fetch statistics'], 500);
+    }
+}
+
+// Handle adding a test to an entry
+function handleAddTest($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
+    
+    $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+    $entry_id = $input['entry_id'] ?? null;
+    $test_id = $input['test_id'] ?? null;
+    
+    if (!$entry_id || !$test_id) {
+        json_response(['success' => false, 'message' => 'Entry ID and Test ID are required'], 400);
+    }
+    
+    try {
+        // Check if entry exists
+        $stmt = $pdo->prepare("SELECT id FROM entries WHERE id = ?");
+        $stmt->execute([$entry_id]);
+        if (!$stmt->fetch()) {
+            json_response(['success' => false, 'message' => 'Entry not found'], 404);
+        }
+        
+        // Check if test exists
+        $stmt = $pdo->prepare("SELECT id, name, price, unit FROM tests WHERE id = ?");
+        $stmt->execute([$test_id]);
+        $test = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$test) {
+            json_response(['success' => false, 'message' => 'Test not found'], 404);
+        }
+        
+        // Insert into entry_tests table
+        $stmt = $pdo->prepare("INSERT INTO entry_tests (entry_id, test_id, result_value, unit, status, price, total_price) VALUES (?, ?, ?, ?, 'pending', ?, ?)");
+        $result = $stmt->execute([
+            $entry_id, 
+            $test_id, 
+            $input['result_value'] ?? null,
+            $input['unit'] ?? $test['unit'],
+            $input['price'] ?? $test['price'],
+            $input['price'] ?? $test['price']
+        ]);
+        
+        if ($result) {
+            // Update entry's test count and aggregated data
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM entry_tests WHERE entry_id = ?");
+            $stmt->execute([$entry_id]);
+            $tests_count = $stmt->fetchColumn();
+            
+            $stmt = $pdo->prepare("SELECT GROUP_CONCAT(test_id ORDER BY test_id) FROM entry_tests WHERE entry_id = ?");
+            $stmt->execute([$entry_id]);
+            $test_ids = $stmt->fetchColumn();
+            
+            $stmt = $pdo->prepare("SELECT GROUP_CONCAT(t.name ORDER BY et.test_id SEPARATOR ', ') FROM entry_tests et JOIN tests t ON et.test_id = t.id WHERE et.entry_id = ?");
+            $stmt->execute([$entry_id]);
+            $test_names = $stmt->fetchColumn();
+            
+            $stmt = $pdo->prepare("UPDATE entries SET grouped = ?, tests_count = ?, test_ids = ?, test_names = ?, updated_at = NOW() WHERE id = ?");
+            $stmt->execute([
+                $tests_count > 1 ? 1 : 0,
+                $tests_count,
+                $test_ids,
+                $test_names,
+                $entry_id
+            ]);
+            
+            json_response([
+                'success' => true, 
+                'message' => 'Test added to entry successfully',
+                'data' => [
+                    'entry_id' => $entry_id,
+                    'test_id' => $test_id,
+                    'test_name' => $test['name'],
+                    'tests_count' => $tests_count
+                ]
+            ]);
+        } else {
+            json_response(['success' => false, 'message' => 'Failed to add test to entry'], 500);
+        }
+    } catch (Exception $e) {
+        error_log("Add test error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to add test to entry'], 500);
+    }
+}
+
+// Handle removing a test from an entry
+function handleRemoveTest($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
+    
+    $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+    $entry_id = $input['entry_id'] ?? null;
+    $test_id = $input['test_id'] ?? null;
+    
+    if (!$entry_id || !$test_id) {
+        json_response(['success' => false, 'message' => 'Entry ID and Test ID are required'], 400);
+    }
+    
+    try {
+        // Remove from entry_tests table
+        $stmt = $pdo->prepare("DELETE FROM entry_tests WHERE entry_id = ? AND test_id = ?");
+        $result = $stmt->execute([$entry_id, $test_id]);
+        
+        if ($result) {
+            // Check remaining tests count
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM entry_tests WHERE entry_id = ?");
+            $stmt->execute([$entry_id]);
+            $tests_count = $stmt->fetchColumn();
+            
+            if ($tests_count == 0) {
+                // No tests left, delete the entry
+                $stmt = $pdo->prepare("DELETE FROM entries WHERE id = ?");
+                $stmt->execute([$entry_id]);
+                json_response(['success' => true, 'message' => 'Test removed and entry deleted (no tests remaining)']);
+            } else {
+                // Update entry's test count and aggregated data
+                $stmt = $pdo->prepare("SELECT GROUP_CONCAT(test_id ORDER BY test_id) FROM entry_tests WHERE entry_id = ?");
+                $stmt->execute([$entry_id]);
+                $test_ids = $stmt->fetchColumn();
+                
+                $stmt = $pdo->prepare("SELECT GROUP_CONCAT(t.name ORDER BY et.test_id SEPARATOR ', ') FROM entry_tests et JOIN tests t ON et.test_id = t.id WHERE et.entry_id = ?");
+                $stmt->execute([$entry_id]);
+                $test_names = $stmt->fetchColumn();
+                
+                $stmt = $pdo->prepare("UPDATE entries SET grouped = ?, tests_count = ?, test_ids = ?, test_names = ?, updated_at = NOW() WHERE id = ?");
+                $stmt->execute([
+                    $tests_count > 1 ? 1 : 0,
+                    $tests_count,
+                    $test_ids,
+                    $test_names,
+                    $entry_id
+                ]);
+                
+                json_response([
+                    'success' => true, 
+                    'message' => 'Test removed from entry successfully',
+                    'data' => [
+                        'entry_id' => $entry_id,
+                        'test_id' => $test_id,
+                        'tests_count' => $tests_count
+                    ]
+                ]);
+            }
+        } else {
+            json_response(['success' => false, 'message' => 'Failed to remove test from entry'], 500);
+        }
+    } catch (Exception $e) {
+        error_log("Remove test error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to remove test from entry'], 500);
+    }
+}
+
+// Handle getting all tests for an entry
+function handleGetTests($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
+    
+    $entry_id = $_GET['entry_id'] ?? null;
+    if (!$entry_id) {
+        json_response(['success' => false, 'message' => 'Entry ID is required'], 400);
+    }
+    
+    try {
+        $sql = "SELECT et.*, t.name as test_name, t.category_id, t.normal_value_male, t.normal_value_female, 
+                       t.min_range_male, t.max_range_male, t.min_range_female, t.max_range_female, t.unit as test_unit
+                FROM entry_tests et
+                LEFT JOIN tests t ON et.test_id = t.id
+                WHERE et.entry_id = ?
+                ORDER BY et.test_id";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$entry_id]);
+        $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        json_response(['success' => true, 'data' => $tests]);
+    } catch (Exception $e) {
+        error_log("Get tests error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to fetch tests'], 500);
+    }
+}
+
+// Handle updating test result
+function handleUpdateTestResult($pdo) {
+    $user_data = authenticateApiUser($pdo);
+    if (!$user_data) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
+    
+    $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+    $entry_test_id = $input['entry_test_id'] ?? null;
+    
+    if (!$entry_test_id) {
+        json_response(['success' => false, 'message' => 'Entry Test ID is required'], 400);
+    }
+    
+    try {
+        $update_fields = [];
+        $update_values = [];
+        
+        if (isset($input['result_value'])) {
+            $update_fields[] = 'result_value = ?';
+            $update_values[] = $input['result_value'];
+        }
+        if (isset($input['unit'])) {
+            $update_fields[] = 'unit = ?';
+            $update_values[] = $input['unit'];
+        }
+        if (isset($input['remarks'])) {
+            $update_fields[] = 'remarks = ?';
+            $update_values[] = $input['remarks'];
+        }
+        if (isset($input['status'])) {
+            $update_fields[] = 'status = ?';
+            $update_values[] = $input['status'];
+        }
+        if (isset($input['price'])) {
+            $update_fields[] = 'price = ?';
+            $update_values[] = $input['price'];
+        }
+        if (isset($input['discount_amount'])) {
+            $update_fields[] = 'discount_amount = ?';
+            $update_values[] = $input['discount_amount'];
+        }
+        
+        if (empty($update_fields)) {
+            json_response(['success' => false, 'message' => 'No fields to update'], 400);
+        }
+        
+        $update_fields[] = 'updated_at = NOW()';
+        $update_values[] = $entry_test_id;
+        
+        $sql = "UPDATE entry_tests SET " . implode(', ', $update_fields) . " WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        $result = $stmt->execute($update_values);
+        
+        if ($result) {
+            json_response(['success' => true, 'message' => 'Test result updated successfully']);
+        } else {
+            json_response(['success' => false, 'message' => 'Failed to update test result'], 500);
+        }
+    } catch (Exception $e) {
+        error_log("Update test result error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to update test result'], 500);
     }
 }
 ?>

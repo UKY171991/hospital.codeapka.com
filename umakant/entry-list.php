@@ -161,6 +161,7 @@ require_once 'inc/sidebar.php';
                                             <th>Sr No.</th>
                                             <th>Entry ID</th>
                                             <th>Patient Name</th>
+                                            <th>Tests</th>
                                             <th>Status</th>
                                             <th>Test Date</th>
                                             <th>Added By</th>
@@ -234,10 +235,10 @@ require_once 'inc/sidebar.php';
                             <div class="form-group">
                                 <label for="entryTest">
                                     <i class="fas fa-vial mr-1"></i>
-                                    Test <span class="text-danger">*</span>
+                                    Primary Test
                                 </label>
-                                <select class="form-control select2" id="entryTest" name="test_id" required>
-                                    <option value="">Select Test</option>
+                                <select class="form-control select2" id="entryTest" name="test_id">
+                                    <option value="">Select Primary Test (Optional)</option>
                                 </select>
                             </div>
                         </div>
@@ -248,6 +249,33 @@ require_once 'inc/sidebar.php';
                                     Entry Date
                                 </label>
                                 <input type="date" class="form-control" id="entryDate" name="entry_date" value="<?php echo date('Y-m-d'); ?>">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Multiple Tests Section -->
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-list mr-1"></i>
+                            Tests <span class="text-danger">*</span>
+                        </label>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6 class="mb-0">Selected Tests</h6>
+                                    </div>
+                                    <div class="col-md-4 text-right">
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="addTestToEntry()">
+                                            <i class="fas fa-plus"></i> Add Test
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="selectedTestsList">
+                                    <p class="text-muted">No tests selected. Click "Add Test" to add tests to this entry.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -324,6 +352,67 @@ require_once 'inc/sidebar.php';
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Test Modal -->
+<div class="modal fade" id="addTestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus mr-1"></i>
+                    Add Test to Entry
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="testSelect">Select Test <span class="text-danger">*</span></label>
+                    <select class="form-control select2" id="testSelect" required>
+                        <option value="">Select Test</option>
+                    </select>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="testResultValue">Result Value</label>
+                            <input type="text" class="form-control" id="testResultValue" placeholder="Enter result value">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="testUnit">Unit</label>
+                            <input type="text" class="form-control" id="testUnit" placeholder="Enter unit">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="testPrice">Price</label>
+                            <input type="number" step="0.01" class="form-control" id="testPrice" placeholder="Enter price">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="testDiscount">Discount</label>
+                            <input type="number" step="0.01" class="form-control" id="testDiscount" placeholder="Enter discount">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="testRemarks">Remarks</label>
+                    <textarea class="form-control" id="testRemarks" rows="2" placeholder="Enter remarks"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmAddTest()">Add Test</button>
+            </div>
         </div>
     </div>
 </div>
@@ -514,7 +603,7 @@ function renderEntriesTable(entries) {
     tbody.empty();
     
     if (entries.length === 0) {
-        tbody.append('<tr><td colspan="7" class="text-center">No entries found</td></tr>');
+        tbody.append('<tr><td colspan="8" class="text-center">No entries found</td></tr>');
         return;
     }
     
@@ -531,11 +620,27 @@ function renderEntriesTable(entries) {
         const testDate = formatDate(entry.entry_date || entry.created_at);
         const addedBy = entry.added_by_username || 'Unknown';
         
+        // Handle multiple tests display
+        let testDisplay = '';
+        if (entry.grouped && entry.tests_count > 1) {
+            // Multiple tests entry
+            testDisplay = `
+                <div class="multiple-tests-display">
+                    <span class="badge badge-info">${entry.tests_count} Tests</span>
+                    <small class="text-muted d-block">${entry.test_names || 'Multiple Tests'}</small>
+                </div>
+            `;
+        } else {
+            // Single test entry
+            testDisplay = `<span class="single-test-display">${entry.test_name || 'N/A'}</span>`;
+        }
+        
         const row = `
             <tr>
                 <td class="sr-no-cell">${serialNo}</td>
                 <td><span class="entry-id-badge">${entry.id}</span></td>
                 <td><span class="patient-name-container">${entry.patient_name || 'N/A'}</span></td>
+                <td class="test-name-cell">${testDisplay}</td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td class="test-date-cell">${testDate}</td>
                 <td class="added-by-cell">${addedBy}</td>
@@ -594,6 +699,14 @@ function viewEntry(id) {
             if (response.success) {
                 const entry = response.data;
                 populateEntryForm(entry);
+                
+                // Load multiple tests if this is a grouped entry
+                if (entry.grouped && entry.tests_count > 1) {
+                    loadEntryTests(id);
+                } else {
+                    clearSelectedTests();
+                }
+                
                 $('#modalTitle').text('View Test Entry');
                 $('#entryForm input, #entryForm textarea, #entryForm select').prop('disabled', true);
                 $('#saveEntryBtn').hide();
@@ -614,6 +727,14 @@ function editEntry(id) {
             if (response.success) {
                 const entry = response.data;
                 populateEntryForm(entry);
+                
+                // Load multiple tests if this is a grouped entry
+                if (entry.grouped && entry.tests_count > 1) {
+                    loadEntryTests(id);
+                } else {
+                    clearSelectedTests();
+                }
+                
                 $('#modalTitle').text('Edit Test Entry');
                 $('#entryForm input, #entryForm textarea, #entryForm select').prop('disabled', false);
                 $('#saveEntryBtn').show();
@@ -625,6 +746,31 @@ function editEntry(id) {
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
             showAlert('Failed to load entry data: ' + errorMsg, 'error');
+        });
+}
+
+function loadEntryTests(entryId) {
+    $.get('patho_api/entry.php', { action: 'get_tests', entry_id: entryId })
+        .done(function(response) {
+            if (response.success) {
+                selectedTests = response.data.map(test => ({
+                    test_id: test.test_id,
+                    test_name: test.test_name,
+                    result_value: test.result_value,
+                    unit: test.unit,
+                    price: test.price,
+                    discount_amount: test.discount_amount,
+                    remarks: test.remarks
+                }));
+                updateSelectedTestsDisplay();
+            } else {
+                console.log('No tests found for entry:', entryId);
+                clearSelectedTests();
+            }
+        })
+        .fail(function(xhr) {
+            console.log('Failed to load tests for entry:', entryId);
+            clearSelectedTests();
         });
 }
 
@@ -846,6 +992,189 @@ $(document).on('click', '.edit-entry', function() {
     const id = $(this).data('id');
     editEntry(id);
 });
+
+// Multiple Tests Management
+let selectedTests = [];
+
+function addTestToEntry() {
+    // Load tests for the add test modal
+    $.get('ajax/test_api.php', { action: 'list', ajax: 1 })
+        .done(function(response) {
+            if (response.success) {
+                let options = '<option value="">Select Test</option>';
+                response.data.forEach(test => {
+                    // Check if test is already selected
+                    const isSelected = selectedTests.some(t => t.test_id == test.id);
+                    if (!isSelected) {
+                        options += `<option value="${test.id}" data-price="${test.price || 0}" data-unit="${test.unit || ''}">${test.name || 'Unknown'}</option>`;
+                    }
+                });
+                $('#testSelect').html(options).trigger('change');
+                $('#addTestModal').modal('show');
+            }
+        })
+        .fail(function(xhr) {
+            const errorMsg = getErrorMessage(xhr);
+            showAlert('Failed to load tests: ' + errorMsg, 'error');
+        });
+}
+
+function confirmAddTest() {
+    const testId = $('#testSelect').val();
+    const testName = $('#testSelect option:selected').text();
+    const resultValue = $('#testResultValue').val();
+    const unit = $('#testUnit').val();
+    const price = $('#testPrice').val();
+    const discount = $('#testDiscount').val();
+    const remarks = $('#testRemarks').val();
+    
+    if (!testId) {
+        showAlert('Please select a test', 'error');
+        return;
+    }
+    
+    // Add test to selected tests array
+    const testData = {
+        test_id: testId,
+        test_name: testName,
+        result_value: resultValue,
+        unit: unit,
+        price: price,
+        discount_amount: discount,
+        remarks: remarks
+    };
+    
+    selectedTests.push(testData);
+    updateSelectedTestsDisplay();
+    
+    // Clear form and close modal
+    $('#testSelect').val('').trigger('change');
+    $('#testResultValue').val('');
+    $('#testUnit').val('');
+    $('#testPrice').val('');
+    $('#testDiscount').val('');
+    $('#testRemarks').val('');
+    $('#addTestModal').modal('hide');
+    
+    showAlert('Test added successfully', 'success');
+}
+
+function removeTestFromEntry(testId) {
+    selectedTests = selectedTests.filter(test => test.test_id != testId);
+    updateSelectedTestsDisplay();
+    showAlert('Test removed successfully', 'success');
+}
+
+function updateSelectedTestsDisplay() {
+    const container = $('#selectedTestsList');
+    
+    if (selectedTests.length === 0) {
+        container.html('<p class="text-muted">No tests selected. Click "Add Test" to add tests to this entry.</p>');
+        return;
+    }
+    
+    let html = '';
+    selectedTests.forEach((test, index) => {
+        html += `
+            <div class="card mb-2">
+                <div class="card-body py-2">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <strong>${test.test_name}</strong>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Result: ${test.result_value || 'N/A'}</small>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Unit: ${test.unit || 'N/A'}</small>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Price: ₹${test.price || '0'}</small>
+                        </div>
+                        <div class="col-md-2 text-right">
+                            <button type="button" class="btn btn-sm btn-danger" onclick="removeTestFromEntry(${test.test_id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.html(html);
+}
+
+function clearSelectedTests() {
+    selectedTests = [];
+    updateSelectedTestsDisplay();
+}
+
+// Override the saveEntryData function to handle multiple tests
+function saveEntryData() {
+    if (!validateModalForm('entryForm')) {
+        return;
+    }
+    
+    // Check if at least one test is selected
+    if (selectedTests.length === 0) {
+        showAlert('Please add at least one test to this entry', 'error');
+        return;
+    }
+    
+    const formData = new FormData($('#entryForm')[0]);
+    
+    // Add selected tests to form data
+    formData.append('tests', JSON.stringify(selectedTests));
+    
+    const entryId = $('#entryId').val();
+    const isEdit = entryId && entryId !== '';
+    
+    $.ajax({
+        url: 'ajax/entry_api.php',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json'
+    })
+    .done(function(response) {
+        if (response.success) {
+            showAlert(response.message || 'Entry saved successfully', 'success');
+            $('#entryModal').modal('hide');
+            loadEntries();
+            loadStats();
+        } else {
+            showAlert('Error saving entry: ' + (response.message || 'Unknown error'), 'error');
+        }
+    })
+    .fail(function(xhr) {
+        const errorMsg = getErrorMessage(xhr);
+        showAlert('Failed to save entry: ' + errorMsg, 'error');
+    });
+}
+
+// Override the resetModalForm function to clear selected tests
+function resetModalForm() {
+    $('#entryForm')[0].reset();
+    $('#entryId').val('');
+    $('#entryPatient').val('').trigger('change');
+    $('#entryDoctor').val('').trigger('change');
+    $('#entryTest').val('').trigger('change');
+    $('#entryDate').val(new Date().toISOString().split('T')[0]);
+    $('#entryStatus').val('pending');
+    $('#entryAmount').val('');
+    $('#entryDiscount').val('');
+    $('#entryNotes').val('');
+    
+    // Clear selected tests
+    clearSelectedTests();
+    
+    // Reset modal title and buttons
+    $('#modalTitle').text('Add New Test Entry');
+    $('#saveEntryBtn').show().text('Save Entry');
+    $('#entryForm input, #entryForm textarea, #entryForm select').prop('disabled', false);
+}
 </script>
 
 <?php require_once 'inc/footer.php'; ?>

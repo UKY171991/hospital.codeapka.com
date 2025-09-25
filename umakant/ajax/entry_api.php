@@ -150,7 +150,7 @@ try {
     }
 
     if ($action === 'save') {
-        // Proxy the save request to the main API to enforce duplicate prevention and update-on-change logic
+        // Handle multiple tests per entry
         $input = [];
         $content_type = $_SERVER['CONTENT_TYPE'] ?? '';
         if (strpos($content_type, 'application/json') !== false) {
@@ -164,35 +164,142 @@ try {
             $input['added_by'] = $_SESSION['user_id'];
         }
 
-        // Prepare cURL request to patho_api/entry.php
-        $apiUrl = __DIR__ . '/../patho_api/entry.php';
-        $apiEndpoint = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['SCRIPT_NAME']) . '/../patho_api/entry.php';
+        // Check if this is a multiple tests entry
+        if (isset($input['tests']) && !empty($input['tests'])) {
+            $tests = json_decode($input['tests'], true);
+            
+            if (is_array($tests) && count($tests) > 0) {
+                try {
+                    $pdo->beginTransaction();
+                    
+                    // Create the main entry
+                    $entryData = [
+                        'patient_id' => $input['patient_id'],
+                        'doctor_id' => $input['doctor_id'] ?? null,
+                        'entry_date' => $input['entry_date'] ?? date('Y-m-d'),
+                        'status' => $input['status'] ?? 'pending',
+                        'added_by' => $input['added_by'],
+                        'remarks' => $input['notes'] ?? null,
+                        'grouped' => 1, // This is a grouped entry
+                        'tests_count' => count($tests)
+                    ];
+                    
+                    // Calculate total price
+                    $totalPrice = 0;
+                    $totalDiscount = 0;
+                    foreach ($tests as $test) {
+                        $price = floatval($test['price'] ?? 0);
+                        $discount = floatval($test['discount_amount'] ?? 0);
+                        $totalPrice += $price;
+                        $totalDiscount += $discount;
+                    }
+                    
+                    $entryData['price'] = $totalPrice;
+                    $entryData['discount_amount'] = $totalDiscount;
+                    $entryData['total_price'] = $totalPrice - $totalDiscount;
+                    
+                    // Set primary test if provided
+                    if (!empty($input['test_id'])) {
+                        $entryData['test_id'] = $input['test_id'];
+                    } else {
+                        $entryData['test_id'] = $tests[0]['test_id']; // Use first test as primary
+                    }
+                    
+                    // Insert entry
+                    $entryFields = implode(', ', array_keys($entryData));
+                    $entryPlaceholders = ':' . implode(', :', array_keys($entryData));
+                    $sql = "INSERT INTO entries ($entryFields) VALUES ($entryPlaceholders)";
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute($entryData);
+                    $entryId = $pdo->lastInsertId();
+                    
+                    // Insert individual tests
+                    $testIds = [];
+                    $testNames = [];
+                    foreach ($tests as $test) {
+                        $testData = [
+                            'entry_id' => $entryId,
+                            'test_id' => $test['test_id'],
+                            'result_value' => $test['result_value'] ?? null,
+                            'unit' => $test['unit'] ?? null,
+                            'remarks' => $test['remarks'] ?? null,
+                            'status' => 'pending',
+                            'price' => $test['price'] ?? 0,
+                            'discount_amount' => $test['discount_amount'] ?? 0,
+                            'total_price' => ($test['price'] ?? 0) - ($test['discount_amount'] ?? 0)
+                        ];
+                        
+                        $testFields = implode(', ', array_keys($testData));
+                        $testPlaceholders = ':' . implode(', :', array_keys($testData));
+                        $testSql = "INSERT INTO entry_tests ($testFields) VALUES ($testPlaceholders)";
+                        $testStmt = $pdo->prepare($testSql);
+                        $testStmt->execute($testData);
+                        
+                        $testIds[] = $test['test_id'];
+                        $testNames[] = $test['test_name'];
+                    }
+                    
+                    // Update entry with aggregated test data
+                    $updateSql = "UPDATE entries SET 
+                        test_ids = :test_ids,
+                        test_names = :test_names,
+                        updated_at = NOW()
+                        WHERE id = :entry_id";
+                    $updateStmt = $pdo->prepare($updateSql);
+                    $updateStmt->execute([
+                        'test_ids' => implode(',', $testIds),
+                        'test_names' => implode(', ', $testNames),
+                        'entry_id' => $entryId
+                    ]);
+                    
+                    $pdo->commit();
+                    
+                    json_response([
+                        'success' => true,
+                        'message' => 'Entry with multiple tests created successfully',
+                        'data' => ['id' => $entryId, 'tests_count' => count($tests)]
+                    ]);
+                    
+                } catch (Exception $e) {
+                    $pdo->rollBack();
+                    error_log("Multiple tests entry save error: " . $e->getMessage());
+                    json_response(['success' => false, 'message' => 'Failed to save entry with multiple tests'], 500);
+                }
+            } else {
+                json_response(['success' => false, 'message' => 'No valid tests provided'], 400);
+            }
+        } else {
+            // Handle single test entry (existing logic)
+            // Proxy the save request to the main API to enforce duplicate prevention and update-on-change logic
+            $apiUrl = __DIR__ . '/../patho_api/entry.php';
+            $apiEndpoint = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['SCRIPT_NAME']) . '/../patho_api/entry.php';
 
-        // Use cURL to POST data to the API
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $apiEndpoint);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($input));
-        // Forward session cookie if needed
-        if (isset($_COOKIE[session_name()])) {
-            curl_setopt($ch, CURLOPT_COOKIE, session_name() . '=' . $_COOKIE[session_name()]);
+            // Use cURL to POST data to the API
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $apiEndpoint);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($input));
+            // Forward session cookie if needed
+            if (isset($_COOKIE[session_name()])) {
+                curl_setopt($ch, CURLOPT_COOKIE, session_name() . '=' . $_COOKIE[session_name()]);
+            }
+            // Forward content-type
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+
+            $apiResponse = curl_exec($ch);
+            $curlErr = curl_error($ch);
+            curl_close($ch);
+
+            if ($apiResponse === false) {
+                json_response(['success' => false, 'message' => 'API request failed', 'error' => $curlErr], 500);
+            }
+
+            // Output the API response directly
+            header('Content-Type: application/json');
+            echo $apiResponse;
+            exit;
         }
-        // Forward content-type
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
-
-        $apiResponse = curl_exec($ch);
-        $curlErr = curl_error($ch);
-        curl_close($ch);
-
-        if ($apiResponse === false) {
-            json_response(['success' => false, 'message' => 'API request failed', 'error' => $curlErr], 500);
-        }
-
-        // Output the API response directly
-        header('Content-Type: application/json');
-        echo $apiResponse;
-        exit;
     } else if ($action === 'delete' && isset($_POST['id'])) {
         if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) {
             json_response(['success' => false, 'message' => 'Unauthorized'], 401);
