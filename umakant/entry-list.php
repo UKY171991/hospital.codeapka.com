@@ -378,48 +378,48 @@ require_once 'inc/sidebar.php';
                 </div>
                 
                 <div class="form-group">
-                    <label for="testSelect">Select Test <span class="text-danger">*</span></label>
-                    <select class="form-control select2" id="testSelect" required disabled>
-                        <option value="">Select Category First</option>
-                    </select>
+                    <label>Select Tests <span class="text-danger">*</span></label>
+                    <div id="testsContainer" class="border rounded p-3" style="max-height: 300px; overflow-y: auto; display: none;">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAllTests">
+                            <label class="form-check-label font-weight-bold" for="selectAllTests">
+                                Select All Tests
+                            </label>
+                        </div>
+                        <hr>
+                        <div id="testsList">
+                            <!-- Tests will be loaded here -->
+                        </div>
+                    </div>
+                    <div id="noTestsMessage" class="text-muted text-center py-3" style="display: none;">
+                        <i class="fas fa-info-circle"></i> Select a category to see available tests
+                    </div>
                 </div>
                 
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="testResultValue">Result Value</label>
-                            <input type="text" class="form-control" id="testResultValue" placeholder="Enter result value">
+                            <label for="testResultValue">Default Result Value</label>
+                            <input type="text" class="form-control" id="testResultValue" placeholder="Enter default result value">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="testUnit">Unit</label>
-                            <input type="text" class="form-control" id="testUnit" placeholder="Enter unit">
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="testPrice">Price</label>
-                            <input type="number" step="0.01" class="form-control" id="testPrice" placeholder="Enter price">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="testDiscount">Discount</label>
-                            <input type="number" step="0.01" class="form-control" id="testDiscount" placeholder="Enter discount">
+                            <label for="testDiscount">Default Discount</label>
+                            <input type="number" step="0.01" class="form-control" id="testDiscount" placeholder="Enter default discount">
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="testRemarks">Remarks</label>
-                    <textarea class="form-control" id="testRemarks" rows="2" placeholder="Enter remarks"></textarea>
+                    <label for="testRemarks">Default Remarks</label>
+                    <textarea class="form-control" id="testRemarks" rows="2" placeholder="Enter default remarks"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="confirmAddTest()">Add Test</button>
+                <button type="button" class="btn btn-primary" onclick="confirmAddTest()">
+                    <i class="fas fa-plus"></i> Add Selected Tests
+                </button>
             </div>
         </div>
     </div>
@@ -1037,91 +1037,145 @@ $(document).on('change', '#categorySelect', function() {
         // Load tests for selected category
         $.get('ajax/test_api.php', { action: 'list', category_id: categoryId, ajax: 1 })
             .done(function(response) {
-                if (response.success) {
-                    let options = '<option value="">Select Test</option>';
+                if (response.success && response.data.length > 0) {
+                    let html = '';
                     response.data.forEach(test => {
                         // Check if test is already selected
                         const isSelected = selectedTests.some(t => t.test_id == test.id);
-                        if (!isSelected) {
-                            options += `<option value="${test.id}" data-price="${test.price || 0}" data-unit="${test.unit || ''}">${test.name || 'Unknown'}</option>`;
-                        }
+                        const disabledAttr = isSelected ? 'disabled' : '';
+                        const checkedAttr = isSelected ? 'checked' : '';
+                        
+                        html += `
+                            <div class="form-check mb-2">
+                                <input class="form-check-input test-checkbox" type="checkbox" 
+                                       id="test_${test.id}" 
+                                       value="${test.id}" 
+                                       data-name="${test.name}"
+                                       data-price="${test.price || 0}"
+                                       data-unit="${test.unit || ''}"
+                                       ${disabledAttr}
+                                       ${checkedAttr}>
+                                <label class="form-check-label" for="test_${test.id}">
+                                    <strong>${test.name || 'Unknown'}</strong>
+                                    <small class="text-muted d-block">
+                                        Price: ₹${test.price || '0'} | Unit: ${test.unit || 'N/A'}
+                                        ${isSelected ? ' <span class="text-warning">(Already Added)</span>' : ''}
+                                    </small>
+                                </label>
+                            </div>
+                        `;
                     });
-                    $('#testSelect').html(options).prop('disabled', false).trigger('change');
+                    
+                    $('#testsList').html(html);
+                    $('#testsContainer').show();
+                    $('#noTestsMessage').hide();
+                    
+                    // Update select all checkbox
+                    updateSelectAllCheckbox();
+                } else {
+                    $('#testsContainer').hide();
+                    $('#noTestsMessage').show().html('<i class="fas fa-info-circle"></i> No tests available in this category');
                 }
             })
             .fail(function(xhr) {
                 const errorMsg = getErrorMessage(xhr);
                 showAlert('Failed to load tests: ' + errorMsg, 'error');
-                $('#testSelect').html('<option value="">Error loading tests</option>').prop('disabled', true);
+                $('#testsContainer').hide();
+                $('#noTestsMessage').show().html('<i class="fas fa-exclamation-triangle"></i> Error loading tests');
             });
     } else {
-        // Reset test dropdown
-        $('#testSelect').html('<option value="">Select Category First</option>').prop('disabled', true).trigger('change');
+        // Reset tests container
+        $('#testsContainer').hide();
+        $('#noTestsMessage').show().html('<i class="fas fa-info-circle"></i> Select a category to see available tests');
     }
 });
 
-// Handle test selection change to auto-fill price and unit
-$(document).on('change', '#testSelect', function() {
-    const selectedOption = $(this).find('option:selected');
-    const price = selectedOption.data('price');
-    const unit = selectedOption.data('unit');
-    
-    if (price) {
-        $('#testPrice').val(price);
-    }
-    if (unit) {
-        $('#testUnit').val(unit);
-    }
+// Handle select all checkbox
+$(document).on('change', '#selectAllTests', function() {
+    const isChecked = $(this).is(':checked');
+    $('.test-checkbox:not(:disabled)').prop('checked', isChecked);
 });
+
+// Handle individual test checkbox change
+$(document).on('change', '.test-checkbox', function() {
+    updateSelectAllCheckbox();
+});
+
+function updateSelectAllCheckbox() {
+    const totalCheckboxes = $('.test-checkbox:not(:disabled)').length;
+    const checkedCheckboxes = $('.test-checkbox:not(:disabled):checked').length;
+    
+    if (checkedCheckboxes === 0) {
+        $('#selectAllTests').prop('indeterminate', false).prop('checked', false);
+    } else if (checkedCheckboxes === totalCheckboxes) {
+        $('#selectAllTests').prop('indeterminate', false).prop('checked', true);
+    } else {
+        $('#selectAllTests').prop('indeterminate', true);
+    }
+}
 
 function confirmAddTest() {
     const categoryId = $('#categorySelect').val();
     const categoryName = $('#categorySelect option:selected').text();
-    const testId = $('#testSelect').val();
-    const testName = $('#testSelect option:selected').text();
-    const resultValue = $('#testResultValue').val();
-    const unit = $('#testUnit').val();
-    const price = $('#testPrice').val();
-    const discount = $('#testDiscount').val();
-    const remarks = $('#testRemarks').val();
+    const defaultResultValue = $('#testResultValue').val();
+    const defaultDiscount = $('#testDiscount').val();
+    const defaultRemarks = $('#testRemarks').val();
     
     if (!categoryId) {
         showAlert('Please select a category', 'error');
         return;
     }
     
-    if (!testId) {
-        showAlert('Please select a test', 'error');
+    // Get all checked tests
+    const checkedTests = $('.test-checkbox:checked');
+    
+    if (checkedTests.length === 0) {
+        showAlert('Please select at least one test', 'error');
         return;
     }
     
-    // Add test to selected tests array
-    const testData = {
-        category_id: categoryId,
-        category_name: categoryName,
-        test_id: testId,
-        test_name: testName,
-        result_value: resultValue,
-        unit: unit,
-        price: price,
-        discount_amount: discount,
-        remarks: remarks
-    };
+    let addedCount = 0;
     
-    selectedTests.push(testData);
-    updateSelectedTestsDisplay();
+    // Add each selected test to the entry
+    checkedTests.each(function() {
+        const testId = $(this).val();
+        const testName = $(this).data('name');
+        const testPrice = $(this).data('price');
+        const testUnit = $(this).data('unit');
+        
+        // Check if test is already added
+        const isAlreadyAdded = selectedTests.some(t => t.test_id == testId);
+        if (!isAlreadyAdded) {
+            const testData = {
+                category_id: categoryId,
+                category_name: categoryName,
+                test_id: testId,
+                test_name: testName,
+                result_value: defaultResultValue,
+                unit: testUnit,
+                price: testPrice,
+                discount_amount: defaultDiscount,
+                remarks: defaultRemarks
+            };
+            
+            selectedTests.push(testData);
+            addedCount++;
+        }
+    });
     
-    // Clear form and close modal
-    $('#categorySelect').val('').trigger('change');
-    $('#testSelect').html('<option value="">Select Category First</option>').prop('disabled', true).trigger('change');
-    $('#testResultValue').val('');
-    $('#testUnit').val('');
-    $('#testPrice').val('');
-    $('#testDiscount').val('');
-    $('#testRemarks').val('');
-    $('#addTestModal').modal('hide');
-    
-    showAlert('Test added successfully', 'success');
+    if (addedCount > 0) {
+        updateSelectedTestsDisplay();
+        showAlert(`${addedCount} test(s) added successfully`, 'success');
+        
+        // Clear form and close modal
+        $('#categorySelect').val('').trigger('change');
+        $('#testResultValue').val('');
+        $('#testDiscount').val('');
+        $('#testRemarks').val('');
+        $('#addTestModal').modal('hide');
+    } else {
+        showAlert('All selected tests are already added to this entry', 'warning');
+    }
 }
 
 function removeTestFromEntry(testId) {
