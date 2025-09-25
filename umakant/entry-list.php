@@ -281,7 +281,7 @@ require_once 'inc/sidebar.php';
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="form-group">
                                 <label for="entryStatus">
                                     <i class="fas fa-flag mr-1"></i>
@@ -292,15 +292,6 @@ require_once 'inc/sidebar.php';
                                     <option value="completed">Completed</option>
                                     <option value="cancelled">Cancelled</option>
                                 </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="entryDate">
-                                    <i class="fas fa-calendar mr-1"></i>
-                                    Entry Date
-                                </label>
-                                <input type="date" class="form-control" id="entryDate" name="entry_date">
                             </div>
                         </div>
                     </div>
