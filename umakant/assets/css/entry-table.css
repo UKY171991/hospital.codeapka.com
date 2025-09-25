@@ -215,6 +215,20 @@
     font-style: italic;
     color: #6c757d;
 }
+
+/* Auto-calculated fields styling */
+.form-control[readonly] {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+    color: #495057;
+    font-weight: 500;
+}
+
+.form-control[readonly]:focus {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+    box-shadow: none;
+}
 .entries-table {
     font-size: 0.9rem;
 }

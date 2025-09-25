@@ -281,25 +281,7 @@ require_once 'inc/sidebar.php';
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="entryResult">
-                                    <i class="fas fa-chart-line mr-1"></i>
-                                    Result
-                                </label>
-                                <input type="text" class="form-control" id="entryResult" name="result">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="entryUnit">
-                                    <i class="fas fa-ruler mr-1"></i>
-                                    Unit
-                                </label>
-                                <input type="text" class="form-control" id="entryUnit" name="unit">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label for="entryStatus">
                                     <i class="fas fa-flag mr-1"></i>
@@ -312,6 +294,15 @@ require_once 'inc/sidebar.php';
                                 </select>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="entryDate">
+                                    <i class="fas fa-calendar mr-1"></i>
+                                    Entry Date
+                                </label>
+                                <input type="date" class="form-control" id="entryDate" name="entry_date">
+                            </div>
+                        </div>
                     </div>
 
                     <div class="row">
@@ -319,18 +310,18 @@ require_once 'inc/sidebar.php';
                             <div class="form-group">
                                 <label for="entryAmount">
                                     <i class="fas fa-rupee-sign mr-1"></i>
-                                    Amount
+                                    Total Amount (Auto-calculated)
                                 </label>
-                                <input type="number" class="form-control" id="entryAmount" name="amount" step="0.01">
+                                <input type="number" class="form-control" id="entryAmount" name="amount" step="0.01" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="entryDiscount">
                                     <i class="fas fa-percentage mr-1"></i>
-                                    Discount (%)
+                                    Discount % (Auto-calculated)
                                 </label>
-                                <input type="number" class="form-control" id="entryDiscount" name="discount" min="0" max="100" step="0.01">
+                                <input type="number" class="form-control" id="entryDiscount" name="discount" min="0" max="100" step="0.01" readonly>
                             </div>
                         </div>
                     </div>
@@ -784,12 +775,11 @@ function populateEntryForm(entry) {
     $('#entryDoctor').val(entry.doctor_id).trigger('change');
     $('#entryTest').val(entry.test_id).trigger('change');
     $('#entryDate').val(entry.entry_date ? entry.entry_date.split(' ')[0] : '');
-    $('#entryResult').val(entry.result_value || '');
-    $('#entryUnit').val(entry.unit || '');
     $('#entryStatus').val(entry.status || 'pending');
-    $('#entryAmount').val(entry.amount || '');
-    $('#entryDiscount').val(entry.discount || '');
     $('#entryNotes').val(entry.remarks || '');
+    
+    // Calculate and set auto-calculated fields
+    calculateEntryTotals();
 }
 
 function saveEntryData() {
@@ -1001,6 +991,14 @@ $(document).on('click', '.edit-entry', function() {
 let selectedTests = [];
 
 function addTestToEntry() {
+    // Clear previous selections
+    $('#categorySelect').val('').trigger('change');
+    $('#testRemarks').val('');
+    $('#testsContainer').hide();
+    $('#noTestsMessage').show();
+    $('#testDetailsSection').hide();
+    $('#testDetailsContainer').html('');
+    
     // Load categories for the add test modal
     $.get('ajax/test_category_api.php', { action: 'list', ajax: 1 })
         .done(function(response) {
@@ -1010,9 +1008,6 @@ function addTestToEntry() {
                     options += `<option value="${category.id}">${category.name || 'Unknown'}</option>`;
                 });
                 $('#categorySelect').html(options).trigger('change');
-                
-                // Reset test dropdown
-                $('#testSelect').html('<option value="">Select Category First</option>').prop('disabled', true).trigger('change');
                 
                 $('#addTestModal').modal('show');
             }
@@ -1088,6 +1083,7 @@ $(document).on('change', '#categorySelect', function() {
 $(document).on('change', '#selectAllTests', function() {
     const isChecked = $(this).is(':checked');
     $('.test-checkbox:not(:disabled)').prop('checked', isChecked);
+    updateTestDetailsSection();
 });
 
 // Handle individual test checkbox change
@@ -1098,6 +1094,7 @@ $(document).on('change', '.test-checkbox', function() {
 
 function updateTestDetailsSection() {
     const checkedTests = $('.test-checkbox:checked');
+    console.log('updateTestDetailsSection called, checked tests:', checkedTests.length);
     
     if (checkedTests.length === 0) {
         $('#testDetailsSection').hide();
@@ -1110,6 +1107,8 @@ function updateTestDetailsSection() {
         const testName = $(this).data('name');
         const defaultPrice = $(this).data('price');
         const defaultUnit = $(this).data('unit');
+        
+        console.log('Processing test:', testName, 'ID:', testId, 'Price:', defaultPrice, 'Unit:', defaultUnit);
         
         html += `
             <div class="test-detail-card mb-3 p-3 border rounded">
@@ -1153,6 +1152,7 @@ function updateTestDetailsSection() {
     
     $('#testDetailsContainer').html(html);
     $('#testDetailsSection').show();
+    console.log('Test details section updated and shown');
 }
 
 function updateSelectAllCheckbox() {
@@ -1169,9 +1169,12 @@ function updateSelectAllCheckbox() {
 }
 
 function confirmAddTest() {
+    console.log('confirmAddTest called');
     const categoryId = $('#categorySelect').val();
     const categoryName = $('#categorySelect option:selected').text();
     const defaultRemarks = $('#testRemarks').val();
+    
+    console.log('Category ID:', categoryId, 'Category Name:', categoryName);
     
     if (!categoryId) {
         showAlert('Please select a category', 'error');
@@ -1180,6 +1183,7 @@ function confirmAddTest() {
     
     // Get all checked tests
     const checkedTests = $('.test-checkbox:checked');
+    console.log('Checked tests count:', checkedTests.length);
     
     if (checkedTests.length === 0) {
         showAlert('Please select at least one test', 'error');
@@ -1194,11 +1198,15 @@ function confirmAddTest() {
         const testId = $(this).val();
         const testName = $(this).data('name');
         
+        console.log('Processing test for addition:', testName, 'ID:', testId);
+        
         // Get individual test details
         const resultValue = $(`#result_${testId}`).val();
         const unit = $(`#unit_${testId}`).val();
         const price = $(`#price_${testId}`).val();
         const remarks = $(`#remarks_${testId}`).val() || defaultRemarks;
+        
+        console.log('Test details:', { resultValue, unit, price, remarks });
         
         // Validate required fields
         if (!resultValue.trim()) {
@@ -1234,10 +1242,15 @@ function confirmAddTest() {
                 remarks: remarks
             };
             
+            console.log('Adding test data:', testData);
             selectedTests.push(testData);
             addedCount++;
+        } else {
+            console.log('Test already added:', testName);
         }
     });
+    
+    console.log('Added count:', addedCount, 'Has validation errors:', hasValidationErrors);
     
     if (hasValidationErrors) {
         return;
@@ -1262,11 +1275,32 @@ function removeTestFromEntry(testId) {
     showAlert('Test removed successfully', 'success');
 }
 
+function calculateEntryTotals() {
+    let totalAmount = 0;
+    let totalDiscount = 0;
+    
+    // Calculate from selected tests
+    selectedTests.forEach(test => {
+        totalAmount += parseFloat(test.price) || 0;
+        totalDiscount += parseFloat(test.discount_amount) || 0;
+    });
+    
+    // Set the calculated values
+    $('#entryAmount').val(totalAmount.toFixed(2));
+    
+    // Calculate discount percentage
+    const discountPercentage = totalAmount > 0 ? (totalDiscount / totalAmount) * 100 : 0;
+    $('#entryDiscount').val(discountPercentage.toFixed(2));
+    
+    console.log('Calculated totals:', { totalAmount, totalDiscount, discountPercentage });
+}
+
 function updateSelectedTestsDisplay() {
     const container = $('#selectedTestsList');
     
     if (selectedTests.length === 0) {
         container.html('<p class="text-muted">No tests selected. Click "Add Test" to add tests to this entry.</p>');
+        calculateEntryTotals(); // Update totals even when no tests
         return;
     }
     
@@ -1304,6 +1338,9 @@ function updateSelectedTestsDisplay() {
     });
     
     container.html(html);
+    
+    // Update calculated totals
+    calculateEntryTotals();
 }
 
 function clearSelectedTests() {
