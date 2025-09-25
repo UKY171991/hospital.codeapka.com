@@ -537,10 +537,12 @@ function handleGetTests($pdo) {
     }
     
     try {
-        $sql = "SELECT et.*, t.name as test_name, t.category_id, t.normal_value_male, t.normal_value_female, 
+        $sql = "SELECT et.*, t.name as test_name, t.category_id, c.name as category_name, 
+                       t.normal_value_male, t.normal_value_female, 
                        t.min_range_male, t.max_range_male, t.min_range_female, t.max_range_female, t.unit as test_unit
                 FROM entry_tests et
                 LEFT JOIN tests t ON et.test_id = t.id
+                LEFT JOIN categories c ON t.category_id = c.id
                 WHERE et.entry_id = ?
                 ORDER BY et.test_id";
         

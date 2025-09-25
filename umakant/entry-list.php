@@ -371,11 +371,19 @@ require_once 'inc/sidebar.php';
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="testSelect">Select Test <span class="text-danger">*</span></label>
-                    <select class="form-control select2" id="testSelect" required>
-                        <option value="">Select Test</option>
+                    <label for="categorySelect">Select Test Category <span class="text-danger">*</span></label>
+                    <select class="form-control select2" id="categorySelect" required>
+                        <option value="">Select Category First</option>
                     </select>
                 </div>
+                
+                <div class="form-group">
+                    <label for="testSelect">Select Test <span class="text-danger">*</span></label>
+                    <select class="form-control select2" id="testSelect" required disabled>
+                        <option value="">Select Category First</option>
+                    </select>
+                </div>
+                
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
@@ -754,6 +762,8 @@ function loadEntryTests(entryId) {
         .done(function(response) {
             if (response.success) {
                 selectedTests = response.data.map(test => ({
+                    category_id: test.category_id,
+                    category_name: test.category_name || 'Unknown Category',
                     test_id: test.test_id,
                     test_name: test.test_name,
                     result_value: test.result_value,
@@ -997,29 +1007,76 @@ $(document).on('click', '.edit-entry', function() {
 let selectedTests = [];
 
 function addTestToEntry() {
-    // Load tests for the add test modal
-    $.get('ajax/test_api.php', { action: 'list', ajax: 1 })
+    // Load categories for the add test modal
+    $.get('ajax/test_category_api.php', { action: 'list', ajax: 1 })
         .done(function(response) {
             if (response.success) {
-                let options = '<option value="">Select Test</option>';
-                response.data.forEach(test => {
-                    // Check if test is already selected
-                    const isSelected = selectedTests.some(t => t.test_id == test.id);
-                    if (!isSelected) {
-                        options += `<option value="${test.id}" data-price="${test.price || 0}" data-unit="${test.unit || ''}">${test.name || 'Unknown'}</option>`;
-                    }
+                let options = '<option value="">Select Category First</option>';
+                response.data.forEach(category => {
+                    options += `<option value="${category.id}">${category.name || 'Unknown'}</option>`;
                 });
-                $('#testSelect').html(options).trigger('change');
+                $('#categorySelect').html(options).trigger('change');
+                
+                // Reset test dropdown
+                $('#testSelect').html('<option value="">Select Category First</option>').prop('disabled', true).trigger('change');
+                
                 $('#addTestModal').modal('show');
             }
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
-            showAlert('Failed to load tests: ' + errorMsg, 'error');
+            showAlert('Failed to load categories: ' + errorMsg, 'error');
         });
 }
 
+// Handle category selection change
+$(document).on('change', '#categorySelect', function() {
+    const categoryId = $(this).val();
+    
+    if (categoryId) {
+        // Load tests for selected category
+        $.get('ajax/test_api.php', { action: 'list', category_id: categoryId, ajax: 1 })
+            .done(function(response) {
+                if (response.success) {
+                    let options = '<option value="">Select Test</option>';
+                    response.data.forEach(test => {
+                        // Check if test is already selected
+                        const isSelected = selectedTests.some(t => t.test_id == test.id);
+                        if (!isSelected) {
+                            options += `<option value="${test.id}" data-price="${test.price || 0}" data-unit="${test.unit || ''}">${test.name || 'Unknown'}</option>`;
+                        }
+                    });
+                    $('#testSelect').html(options).prop('disabled', false).trigger('change');
+                }
+            })
+            .fail(function(xhr) {
+                const errorMsg = getErrorMessage(xhr);
+                showAlert('Failed to load tests: ' + errorMsg, 'error');
+                $('#testSelect').html('<option value="">Error loading tests</option>').prop('disabled', true);
+            });
+    } else {
+        // Reset test dropdown
+        $('#testSelect').html('<option value="">Select Category First</option>').prop('disabled', true).trigger('change');
+    }
+});
+
+// Handle test selection change to auto-fill price and unit
+$(document).on('change', '#testSelect', function() {
+    const selectedOption = $(this).find('option:selected');
+    const price = selectedOption.data('price');
+    const unit = selectedOption.data('unit');
+    
+    if (price) {
+        $('#testPrice').val(price);
+    }
+    if (unit) {
+        $('#testUnit').val(unit);
+    }
+});
+
 function confirmAddTest() {
+    const categoryId = $('#categorySelect').val();
+    const categoryName = $('#categorySelect option:selected').text();
     const testId = $('#testSelect').val();
     const testName = $('#testSelect option:selected').text();
     const resultValue = $('#testResultValue').val();
@@ -1028,6 +1085,11 @@ function confirmAddTest() {
     const discount = $('#testDiscount').val();
     const remarks = $('#testRemarks').val();
     
+    if (!categoryId) {
+        showAlert('Please select a category', 'error');
+        return;
+    }
+    
     if (!testId) {
         showAlert('Please select a test', 'error');
         return;
@@ -1035,6 +1097,8 @@ function confirmAddTest() {
     
     // Add test to selected tests array
     const testData = {
+        category_id: categoryId,
+        category_name: categoryName,
         test_id: testId,
         test_name: testName,
         result_value: resultValue,
@@ -1048,7 +1112,8 @@ function confirmAddTest() {
     updateSelectedTestsDisplay();
     
     // Clear form and close modal
-    $('#testSelect').val('').trigger('change');
+    $('#categorySelect').val('').trigger('change');
+    $('#testSelect').html('<option value="">Select Category First</option>').prop('disabled', true).trigger('change');
     $('#testResultValue').val('');
     $('#testUnit').val('');
     $('#testPrice').val('');
@@ -1079,8 +1144,9 @@ function updateSelectedTestsDisplay() {
             <div class="card mb-2">
                 <div class="card-body py-2">
                     <div class="row align-items-center">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <strong>${test.test_name}</strong>
+                            <br><small class="text-info">${test.category_name}</small>
                         </div>
                         <div class="col-md-2">
                             <small class="text-muted">Result: ${test.result_value || 'N/A'}</small>
@@ -1091,7 +1157,10 @@ function updateSelectedTestsDisplay() {
                         <div class="col-md-2">
                             <small class="text-muted">Price: ₹${test.price || '0'}</small>
                         </div>
-                        <div class="col-md-2 text-right">
+                        <div class="col-md-2">
+                            <small class="text-muted">Discount: ₹${test.discount_amount || '0'}</small>
+                        </div>
+                        <div class="col-md-1 text-right">
                             <button type="button" class="btn btn-sm btn-danger" onclick="removeTestFromEntry(${test.test_id})">
                                 <i class="fas fa-trash"></i>
                             </button>
