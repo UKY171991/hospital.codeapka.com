@@ -162,6 +162,59 @@
 #noTestsMessage i {
     margin-right: 0.5rem;
 }
+
+/* Individual Test Details Section */
+#testDetailsSection {
+    margin-top: 1rem;
+}
+
+#testDetailsContainer {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6 !important;
+}
+
+.test-detail-card {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    transition: box-shadow 0.2s;
+}
+
+.test-detail-card:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.test-detail-card h6 {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.test-detail-card .form-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.25rem;
+}
+
+.test-detail-card .form-control-sm {
+    font-size: 0.8rem;
+}
+
+.test-detail-card .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+/* Updated selected tests display */
+#selectedTestsList .card-body .col-md-2 small {
+    font-size: 0.75rem;
+    line-height: 1.2;
+}
+
+#selectedTestsList .card-body .col-md-2:last-of-type small {
+    font-style: italic;
+    color: #6c757d;
+}
 .entries-table {
     font-size: 0.9rem;
 }

@@ -396,23 +396,17 @@ require_once 'inc/sidebar.php';
                     </div>
                 </div>
                 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="testResultValue">Default Result Value</label>
-                            <input type="text" class="form-control" id="testResultValue" placeholder="Enter default result value">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="testDiscount">Default Discount</label>
-                            <input type="number" step="0.01" class="form-control" id="testDiscount" placeholder="Enter default discount">
-                        </div>
+                <!-- Individual Test Details Section -->
+                <div id="testDetailsSection" class="form-group" style="display: none;">
+                    <label>Test Details <span class="text-danger">*</span></label>
+                    <div id="testDetailsContainer" class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
+                        <!-- Individual test details will be loaded here -->
                     </div>
                 </div>
+                
                 <div class="form-group">
                     <label for="testRemarks">Default Remarks</label>
-                    <textarea class="form-control" id="testRemarks" rows="2" placeholder="Enter default remarks"></textarea>
+                    <textarea class="form-control" id="testRemarks" rows="2" placeholder="Enter default remarks for all selected tests"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1058,7 +1052,7 @@ $(document).on('change', '#categorySelect', function() {
                                 <label class="form-check-label" for="test_${test.id}">
                                     <strong>${test.name || 'Unknown'}</strong>
                                     <small class="text-muted d-block">
-                                        Price: ₹${test.price || '0'} | Unit: ${test.unit || 'N/A'}
+                                        Default Price: ₹${test.price || '0'} | Unit: ${test.unit || 'N/A'}
                                         ${isSelected ? ' <span class="text-warning">(Already Added)</span>' : ''}
                                     </small>
                                 </label>
@@ -1099,7 +1093,67 @@ $(document).on('change', '#selectAllTests', function() {
 // Handle individual test checkbox change
 $(document).on('change', '.test-checkbox', function() {
     updateSelectAllCheckbox();
+    updateTestDetailsSection();
 });
+
+function updateTestDetailsSection() {
+    const checkedTests = $('.test-checkbox:checked');
+    
+    if (checkedTests.length === 0) {
+        $('#testDetailsSection').hide();
+        return;
+    }
+    
+    let html = '';
+    checkedTests.each(function() {
+        const testId = $(this).val();
+        const testName = $(this).data('name');
+        const defaultPrice = $(this).data('price');
+        const defaultUnit = $(this).data('unit');
+        
+        html += `
+            <div class="test-detail-card mb-3 p-3 border rounded">
+                <h6 class="mb-3 text-primary">
+                    <i class="fas fa-vial"></i> ${testName}
+                </h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="result_${testId}" class="form-label">Result Value</label>
+                        <input type="text" class="form-control form-control-sm" 
+                               id="result_${testId}" 
+                               placeholder="Enter result value">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="unit_${testId}" class="form-label">Unit</label>
+                        <input type="text" class="form-control form-control-sm" 
+                               id="unit_${testId}" 
+                               value="${defaultUnit}"
+                               placeholder="Enter unit">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="price_${testId}" class="form-label">Price</label>
+                        <input type="number" step="0.01" class="form-control form-control-sm" 
+                               id="price_${testId}" 
+                               value="${defaultPrice}"
+                               placeholder="Enter price">
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label for="remarks_${testId}" class="form-label">Remarks</label>
+                        <textarea class="form-control form-control-sm" 
+                                  id="remarks_${testId}" 
+                                  rows="2" 
+                                  placeholder="Enter remarks for this test"></textarea>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    $('#testDetailsContainer').html(html);
+    $('#testDetailsSection').show();
+}
 
 function updateSelectAllCheckbox() {
     const totalCheckboxes = $('.test-checkbox:not(:disabled)').length;
@@ -1117,8 +1171,6 @@ function updateSelectAllCheckbox() {
 function confirmAddTest() {
     const categoryId = $('#categorySelect').val();
     const categoryName = $('#categorySelect option:selected').text();
-    const defaultResultValue = $('#testResultValue').val();
-    const defaultDiscount = $('#testDiscount').val();
     const defaultRemarks = $('#testRemarks').val();
     
     if (!categoryId) {
@@ -1135,13 +1187,37 @@ function confirmAddTest() {
     }
     
     let addedCount = 0;
+    let hasValidationErrors = false;
     
-    // Add each selected test to the entry
+    // Validate and collect individual test details
     checkedTests.each(function() {
         const testId = $(this).val();
         const testName = $(this).data('name');
-        const testPrice = $(this).data('price');
-        const testUnit = $(this).data('unit');
+        
+        // Get individual test details
+        const resultValue = $(`#result_${testId}`).val();
+        const unit = $(`#unit_${testId}`).val();
+        const price = $(`#price_${testId}`).val();
+        const remarks = $(`#remarks_${testId}`).val() || defaultRemarks;
+        
+        // Validate required fields
+        if (!resultValue.trim()) {
+            showAlert(`Please enter result value for ${testName}`, 'error');
+            hasValidationErrors = true;
+            return false;
+        }
+        
+        if (!unit.trim()) {
+            showAlert(`Please enter unit for ${testName}`, 'error');
+            hasValidationErrors = true;
+            return false;
+        }
+        
+        if (!price || parseFloat(price) <= 0) {
+            showAlert(`Please enter valid price for ${testName}`, 'error');
+            hasValidationErrors = true;
+            return false;
+        }
         
         // Check if test is already added
         const isAlreadyAdded = selectedTests.some(t => t.test_id == testId);
@@ -1151,11 +1227,11 @@ function confirmAddTest() {
                 category_name: categoryName,
                 test_id: testId,
                 test_name: testName,
-                result_value: defaultResultValue,
-                unit: testUnit,
-                price: testPrice,
-                discount_amount: defaultDiscount,
-                remarks: defaultRemarks
+                result_value: resultValue,
+                unit: unit,
+                price: parseFloat(price),
+                discount_amount: 0, // No discount at test level
+                remarks: remarks
             };
             
             selectedTests.push(testData);
@@ -1163,14 +1239,16 @@ function confirmAddTest() {
         }
     });
     
+    if (hasValidationErrors) {
+        return;
+    }
+    
     if (addedCount > 0) {
         updateSelectedTestsDisplay();
         showAlert(`${addedCount} test(s) added successfully`, 'success');
         
         // Clear form and close modal
         $('#categorySelect').val('').trigger('change');
-        $('#testResultValue').val('');
-        $('#testDiscount').val('');
         $('#testRemarks').val('');
         $('#addTestModal').modal('hide');
     } else {
@@ -1212,7 +1290,7 @@ function updateSelectedTestsDisplay() {
                             <small class="text-muted">Price: ₹${test.price || '0'}</small>
                         </div>
                         <div class="col-md-2">
-                            <small class="text-muted">Discount: ₹${test.discount_amount || '0'}</small>
+                            <small class="text-muted">Remarks: ${test.remarks ? (test.remarks.length > 20 ? test.remarks.substring(0, 20) + '...' : test.remarks) : 'N/A'}</small>
                         </div>
                         <div class="col-md-1 text-right">
                             <button type="button" class="btn btn-sm btn-danger" onclick="removeTestFromEntry(${test.test_id})">
