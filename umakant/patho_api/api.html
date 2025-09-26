@@ -1762,24 +1762,84 @@ echo json_encode($data, JSON_PRETTY_PRINT);
 
         function generateDocumentation() {
             try {
-            const docsDiv = document.getElementById('endpointsDocs');
+                const docsDiv = document.getElementById('endpointsDocs');
                 if (!docsDiv) {
                     console.warn('Documentation div not found');
                     return;
                 }
-                
-            docsDiv.innerHTML = apiEndpoints.map(api => `
-                <div class="mb-3 p-3 border rounded">
-                    <h6>${api.name}</h6>
-                    <p>${api.description}</p>
-                    <div class="endpoint-url">${getBaseUrl()}${api.file}</div>
-                    <div class="mt-2">
-                        <strong>Methods:</strong> ${[...new Set(api.endpoints.map(ep => ep.method))].join(', ')}<br>
-                        <strong>Actions:</strong> ${api.endpoints.map(ep => ep.action).join(', ')}<br>
-                        <strong>Endpoints:</strong> ${api.endpoints.length} endpoints available
-                    </div>
-                </div>
-            `).join('');
+
+                // Render full docs directly from apiEndpoints (no duplicates, single source)
+                const docsHtml = apiEndpoints.map((api, apiIdx) => {
+                    const methodList = [...new Set(api.endpoints.map(ep => ep.method))].join(', ');
+                    return `
+                    <div class="mb-4 p-3 border rounded">
+                        <h5 class="mb-1">${api.name}</h5>
+                        <p class="mb-2 text-muted">${api.description || ''}</p>
+                        <div class="endpoint-url mb-3"><i class="fas fa-link"></i> ${api.baseUrl}</div>
+                        <div class="small mb-3">
+                            <strong>Methods:</strong> ${methodList} &nbsp;|&nbsp;
+                            <strong>Actions:</strong> ${api.endpoints.map(ep => ep.action).join(', ')} &nbsp;|&nbsp;
+                            <strong>Total Endpoints:</strong> ${api.endpoints.length}
+                        </div>
+
+                        <div class="accordion" id="doc-acc-${apiIdx}">
+                            ${api.endpoints.map((ep, epIdx) => {
+                                const url = `${api.baseUrl}${ep.url}`;
+                                const headers = { ...getHeaders(), ...(ep.headers || {}) };
+                                return `
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="doc-h-${apiIdx}-${epIdx}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#doc-c-${apiIdx}-${epIdx}" aria-expanded="false">
+                                            <span class="badge bg-${getMethodColor(ep.method)} me-2">${ep.method}</span>
+                                            <strong>${ep.action}</strong> - ${ep.description || ''}
+                                        </button>
+                                    </h2>
+                                    <div id="doc-c-${apiIdx}-${epIdx}" class="accordion-collapse collapse" data-bs-parent="#doc-acc-${apiIdx}">
+                                        <div class="accordion-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <h6 class="mb-2"><i class="fas fa-arrow-up text-success"></i> Request</h6>
+                                                    <div class="mb-2"><strong>URL:</strong><div class="endpoint-url">${url}</div></div>
+                                                    <div class="mb-2"><strong>Headers:</strong><pre class="bg-light p-2 rounded"><code>${JSON.stringify(headers, null, 2)}</code></pre></div>
+                                                    ${ep.queryParams ? `<div class=\"mb-2\"><strong>Query Params:</strong><pre class=\"bg-light p-2 rounded\"><code>${JSON.stringify(ep.queryParams, null, 2)}</code></pre></div>` : ''}
+                                                    ${ep.body ? `<div class=\"mb-2\"><strong>Request Body:</strong><pre class=\"bg-light p-2 rounded\"><code>${JSON.stringify(ep.body, null, 2)}</code></pre></div>` : ''}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6 class="mb-2"><i class="fas fa-arrow-down text-info"></i> Sample Response</h6>
+                                                    <pre class="bg-light p-2 rounded"><code>${JSON.stringify(ep.response || { success: true }, null, 2)}</code></pre>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-3">
+                                                <h6 class="mb-2"><i class="fas fa-terminal"></i> Code Examples</h6>
+                                                <div class="row g-3">
+                                                    <div class="col-md-4">
+                                                        <div class="small text-muted mb-1">cURL</div>
+                                                        <pre class="bg-dark text-light p-2 rounded"><code>${generateCurlCommand(api, ep)}</code></pre>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="small text-muted mb-1">JavaScript (fetch)</div>
+                                                        <pre class="bg-light p-2 rounded"><code>${generateJavaScriptExample(api, ep)}</code></pre>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="small text-muted mb-1">PHP</div>
+                                                        <pre class="bg-light p-2 rounded"><code>${generatePhpExample(api, ep)}</code></pre>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-2 text-end">
+                                                <button class="btn btn-sm btn-primary" onclick="testSpecificEndpoint(${apiIdx}, ${epIdx})"><i class="fas fa-play"></i> Test This</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
+                }).join('');
+
+                docsDiv.innerHTML = docsHtml;
             } catch (error) {
                 console.error('Error generating documentation:', error);
             }
