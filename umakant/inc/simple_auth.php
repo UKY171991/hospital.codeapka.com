@@ -16,9 +16,15 @@
  * @return array|false User data if authenticated, false otherwise
  */
 function simpleAuthenticate($pdo) {
+    // Prefer configured secret from api_config if available
+    $configuredSecret = null;
+    if (isset($GLOBALS['PATHO_API_SECRET']) && !empty($GLOBALS['PATHO_API_SECRET'])) {
+        $configuredSecret = $GLOBALS['PATHO_API_SECRET'];
+    }
+    $sharedSecret = $configuredSecret ?: 'hospital-api-secret-2024';
     // Method 1: Check for secret_key parameter (most reliable)
     $secretKey = $_REQUEST['secret_key'] ?? $_GET['secret_key'] ?? $_POST['secret_key'] ?? null;
-    if ($secretKey === 'hospital-api-secret-2024') {
+    if ($secretKey && hash_equals($sharedSecret, $secretKey)) {
         return [
             'user_id' => 1,
             'role' => 'master',
@@ -51,7 +57,7 @@ function simpleAuthenticate($pdo) {
     }
     
     // Check X-Api-Key header
-    if (isset($headers['X-Api-Key']) && $headers['X-Api-Key'] === 'hospital-api-secret-2024') {
+    if (isset($headers['X-Api-Key']) && hash_equals($sharedSecret, $headers['X-Api-Key'])) {
         return [
             'user_id' => 1,
             'role' => 'master',
@@ -159,11 +165,13 @@ function simpleCheckPermission($user_data, $action, $resource_owner_id = null) {
  * @param array $data Response data
  * @param int $status_code HTTP status code
  */
-function json_response($data, $status_code = 200) {
-    http_response_code($status_code);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($data);
-    exit;
+if (!function_exists('json_response')) {
+    function json_response($data, $status_code = 200) {
+        http_response_code($status_code);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($data);
+        exit;
+    }
 }
 
 /**
@@ -171,21 +179,23 @@ function json_response($data, $status_code = 200) {
  * 
  * @return array Debug information about available auth methods
  */
-function getAuthDebugInfo() {
-    return [
-        'available_auth_methods' => [
-            '1. Add secret_key=hospital-api-secret-2024 parameter (RECOMMENDED)',
-            '2. Add X-Api-Key: hospital-api-secret-2024 header',
-            '3. Login with session authentication',
-            '4. Add Authorization: Bearer <token> header',
-            '5. Add api_key=<token> parameter'
-        ],
-        'current_request' => [
-            'method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
-            'has_secret_key' => isset($_REQUEST['secret_key']),
-            'has_session' => isset($_SESSION['user_id']),
-            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
-        ]
-    ];
+if (!function_exists('getAuthDebugInfo')) {
+    function getAuthDebugInfo() {
+        return [
+            'available_auth_methods' => [
+                '1. Add secret_key=hospital-api-secret-2024 parameter (RECOMMENDED)',
+                '2. Add X-Api-Key: hospital-api-secret-2024 header',
+                '3. Login with session authentication',
+                '4. Add Authorization: Bearer <token> header',
+                '5. Add api_key=<token> parameter'
+            ],
+            'current_request' => [
+                'method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
+                'has_secret_key' => isset($_REQUEST['secret_key']),
+                'has_session' => isset($_SESSION['user_id']),
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
+            ]
+        ];
+    }
 }
 ?>
