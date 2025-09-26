@@ -240,13 +240,17 @@ require_once 'inc/sidebar.php';
                         
                         <!-- Test Selection Controls -->
                         <div class="row mb-3">
-                            <div class="col-md-8">
+                            <div class="col-md-6">
                                 <button type="button" class="btn btn-outline-success btn-sm" onclick="showAddTestInterface()">
                                     <i class="fas fa-plus mr-1"></i>
                                     Add Test
                                 </button>
+                                <button type="button" class="btn btn-outline-info btn-sm ml-2" onclick="testShowFields()">
+                                    <i class="fas fa-eye mr-1"></i>
+                                    Show Fields
+                                </button>
                             </div>
-                            <div class="col-md-4 text-right">
+                            <div class="col-md-6 text-right">
                                 <span class="badge badge-info" id="selectedTestsCount">0 tests selected</span>
                             </div>
                         </div>
@@ -254,7 +258,7 @@ require_once 'inc/sidebar.php';
                         <!-- Add Test Interface -->
                         <div id="addTestInterface" class="card mb-3" style="display: none;">
                             <div class="card-header">
-                                <div class="row">
+                    <div class="row">
                                     <div class="col-md-8">
                                         <h6 class="mb-0">
                                             <i class="fas fa-plus mr-1"></i>
@@ -272,7 +276,7 @@ require_once 'inc/sidebar.php';
                             <div class="card-body">
                                 <!-- Test Selection -->
                                 <div class="row mb-3">
-                                    <div class="col-md-6">
+                        <div class="col-md-6">
                                         <label class="form-label">
                                             <i class="fas fa-folder mr-1"></i>
                                             Category
@@ -283,14 +287,14 @@ require_once 'inc/sidebar.php';
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">
-                                            <i class="fas fa-vial mr-1"></i>
+                                    <i class="fas fa-vial mr-1"></i>
                                             Test
-                                        </label>
+                                </label>
                                         <select class="form-control" id="testSelect" onchange="loadTestDetails()">
                                             <option value="">Choose category first...</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                </select>
+                            </div>
+                        </div>
                                 
                                 <!-- Test Details Fields -->
                                 <div id="testDetailsFields" style="display: none;">
@@ -299,9 +303,9 @@ require_once 'inc/sidebar.php';
                                             <label class="form-label">
                                                 <i class="fas fa-clipboard-check mr-1"></i>
                                                 Result Value
-                                            </label>
+                                </label>
                                             <input type="text" class="form-control" id="testResultValue" placeholder="Enter result">
-                                        </div>
+                            </div>
                                         <div class="col-md-3">
                                             <label class="form-label">
                                                 <i class="fas fa-arrows-alt-h mr-1"></i>
@@ -322,17 +326,17 @@ require_once 'inc/sidebar.php';
                                                 Price
                                             </label>
                                             <input type="number" class="form-control" id="testPriceValue" placeholder="0.00" step="0.01">
-                                        </div>
-                                    </div>
-                                    
+                        </div>
+                    </div>
+
                                     <div class="row mb-3">
                                         <div class="col-md-12">
                                             <label class="form-label">
                                                 <i class="fas fa-comment mr-1"></i>
                                                 Remarks (Optional)
-                                            </label>
+                        </label>
                                             <textarea class="form-control" id="testRemarksValue" rows="2" placeholder="Enter any remarks or notes"></textarea>
-                                        </div>
+                                    </div>
                                     </div>
                                     
                                     <div class="row">
@@ -340,11 +344,11 @@ require_once 'inc/sidebar.php';
                                             <button type="button" class="btn btn-success" onclick="addTestWithDetails()">
                                                 <i class="fas fa-plus mr-1"></i>
                                                 Add Test
-                                            </button>
-                                        </div>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
+                                </div>
                         </div>
                         
                         <!-- Selected Tests Display -->
@@ -431,7 +435,7 @@ require_once 'inc/sidebar.php';
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                <div class="form-group">
                             <label><strong>Patient:</strong></label>
                             <p id="viewPatientName" class="form-control-plaintext"></p>
                         </div>
@@ -443,22 +447,22 @@ require_once 'inc/sidebar.php';
                         </div>
                     </div>
                 </div>
-
+                
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                <div class="form-group">
                             <label><strong>Entry Date:</strong></label>
                             <p id="viewEntryDate" class="form-control-plaintext"></p>
                         </div>
-                    </div>
+                        </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label><strong>Status:</strong></label>
                             <p id="viewEntryStatus" class="form-control-plaintext"></p>
-                        </div>
+                    </div>
                     </div>
                 </div>
-
+                
                 <div class="form-group">
                     <label><strong>Tests:</strong></label>
                     <div id="viewSelectedTests">
@@ -468,7 +472,7 @@ require_once 'inc/sidebar.php';
                         </div>
                     </div>
                 </div>
-
+                
                 <div class="form-group">
                     <label><strong>Notes:</strong></label>
                     <p id="viewEntryNotes" class="form-control-plaintext"></p>
@@ -1212,11 +1216,11 @@ function loadTestsForCategory() {
         .done(function(response) {
             if (response.success) {
                 populateTestSelect(response.data);
-            } else {
+                } else {
                 $('#testSelect').html('<option value="">Error loading tests</option>');
-            }
-        })
-        .fail(function(xhr) {
+                }
+            })
+            .fail(function(xhr) {
             $('#testSelect').html('<option value="">Error loading tests</option>');
         });
 }
@@ -1243,8 +1247,11 @@ function populateTestSelect(tests) {
 }
 
 function loadTestDetails() {
+    console.log('loadTestDetails called');
     const testId = $('#testSelect').val();
     const selectedOption = $('#testSelect option:selected');
+    
+    console.log('testId:', testId);
     
     if (!testId) {
         $('#testDetailsFields').hide();
@@ -1252,6 +1259,7 @@ function loadTestDetails() {
     }
     
     const testData = JSON.parse(selectedOption.data('test'));
+    console.log('testData:', testData);
     
     // Populate the fields with test data
     $('#testResultValue').val('');
@@ -1261,6 +1269,7 @@ function loadTestDetails() {
     $('#testRemarksValue').val('');
     
     // Show the details fields
+    console.log('Showing testDetailsFields');
     $('#testDetailsFields').show();
 }
 
@@ -1313,8 +1322,11 @@ function addSelectedTest() {
 }
 
 function addTestWithDetails() {
+    console.log('addTestWithDetails called');
     const testId = $('#testSelect').val();
     const selectedOption = $('#testSelect option:selected');
+    
+    console.log('testId:', testId);
     
     if (!testId) {
         showAlert('Please select a test', 'error');
@@ -1371,7 +1383,7 @@ function addTestWithDetails() {
     });
     
     console.log('About to call updateSelectedTestsDisplay, selectedTests length:', selectedTests.length);
-    updateSelectedTestsDisplay();
+        updateSelectedTestsDisplay();
     showAlert('Test added successfully with details', 'success');
     
     // Clear the form
@@ -1388,6 +1400,14 @@ function clearTestDetailsForm() {
     $('#testPriceValue').val('');
     $('#testRemarksValue').val('');
     $('#testDetailsFields').hide();
+}
+
+// Test function to force show the fields
+function testShowFields() {
+    console.log('testShowFields called');
+    $('#addTestInterface').show();
+    $('#testDetailsFields').show();
+    showAlert('Test fields are now visible', 'info');
 }
 
 
