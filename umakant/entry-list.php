@@ -240,17 +240,13 @@ require_once 'inc/sidebar.php';
                         
                         <!-- Test Selection Controls -->
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-8">
                                 <button type="button" class="btn btn-outline-success btn-sm" onclick="showAddTestInterface()">
                                     <i class="fas fa-plus mr-1"></i>
                                     Add Test
                                 </button>
-                                <button type="button" class="btn btn-outline-info btn-sm ml-2" onclick="testDisplayFormat()">
-                                    <i class="fas fa-vial mr-1"></i>
-                                    Test Format
-                                </button>
                             </div>
-                            <div class="col-md-6 text-right">
+                            <div class="col-md-4 text-right">
                                 <span class="badge badge-info" id="selectedTestsCount">0 tests selected</span>
                             </div>
                         </div>
@@ -1351,24 +1347,6 @@ function removeTestFromEntry(testId) {
     }
 }
 
-// Test function to manually add a test for debugging
-function testDisplayFormat() {
-    selectedTests = [{
-        category_id: 1,
-        category_name: 'Biochemistry',
-        test_id: 999,
-        test_name: 'Blood Glucose Test',
-        result_value: '95',
-        unit: 'mg/dL',
-        price: 150.00,
-        discount_amount: 0,
-        remarks: '',
-        min: 70,
-        max: 100
-    }];
-    updateSelectedTestsDisplay();
-    showAlert('Test display format added for testing', 'success');
-}
 
 // Override the saveEntryData function to handle multiple tests
 function saveEntryData() {
