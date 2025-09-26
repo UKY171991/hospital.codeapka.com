@@ -1303,6 +1303,11 @@
                     <div class="endpoint-url mb-2">
                         <i class="fas fa-link"></i> ${api.baseUrl}
                     </div>
+                    <div class="alert alert-warning py-2">
+                        <strong>Auth sent:</strong> <code>?secret_key=hospital-api-secret-2024</code> (auto-added for /patho_api/)
+                        <br/>
+                        <small>Also accepted: <code>X-Api-Key</code> or <code>X-API-Key</code> header with the same secret, <code>api_key</code> param, session, or <code>Authorization: Bearer &lt;token&gt;</code>.</small>
+                    </div>
                     <div class="mb-2">
                         <strong>Actions:</strong> 
                         ${actions.map(action => `<span class="badge bg-secondary me-1">${action}</span>`).join('')}
@@ -1337,7 +1342,8 @@
                                                     
                                                     <div class="mb-3">
                                                         <strong>Headers:</strong>
-                                                        <pre class="bg-light p-2 rounded"><code>${JSON.stringify(endpoint.headers, null, 2)}</code></pre>
+                                                        <pre class="bg-light p-2 rounded"><code>${JSON.stringify({ 'Content-Type':'application/json', ...(endpoint.headers||{}) }, null, 2)}</code></pre>
+                                                        <small class="text-muted">Note: For patho_api endpoints the tester also appends <code>?secret_key=hospital-api-secret-2024</code> to the URL.</small>
                                                     </div>
                                                     
                                                     ${endpoint.queryParams ? `

@@ -286,7 +286,7 @@ try {
             json_response(['success' => true, 'message' => 'Doctor updated successfully', 'data' => $doctor, 'action' => 'updated', 'id' => $doctorId]);
             
         } else {
-            // Create new doctor or upsert
+            // Create new doctor or upsert (insert new if name differs for same unique key)
             
             // Validate input
             $errors = validateDoctorData($input);
@@ -340,38 +340,66 @@ try {
                 unset($data['percent']);
             }
 
-            // Use smart upsert to prevent duplicates and handle updates
-            $uniqueWhere = getUniqueWhere('doctor', $data);
-            
+            // Build unique key preference
+            $uniqueWhere = [];
+            if (!empty($data['registration_no'])) {
+                $uniqueWhere['registration_no'] = $data['registration_no'];
+            } elseif (!empty($data['email'])) {
+                $uniqueWhere['email'] = $data['email'];
+            } elseif (!empty($data['name']) && !empty($data['hospital'])) {
+                $uniqueWhere = [ 'name' => $data['name'], 'hospital' => $data['hospital'] ];
+            }
             if (empty($uniqueWhere)) {
                 json_response(['success' => false, 'message' => 'Cannot determine unique criteria for duplicate prevention'], 400);
             }
 
-            // Use smart upsert function
-            $result = smartUpsert($pdo, 'doctors', $uniqueWhere, $data, [
-                'compare_timestamps' => true,
-                'force_update' => false
-            ]);
-            
-            if ($result['action'] === 'error') {
-                json_response(['success' => false, 'message' => $result['message']], 500);
+            // If existing doc found by unique key but name differs, INSERT a new one
+            $whereSql = implode(' AND ', array_map(fn($c) => "$c = ?", array_keys($uniqueWhere)));
+            $stmt = $pdo->prepare("SELECT id, name FROM doctors WHERE $whereSql LIMIT 1");
+            $stmt->execute(array_values($uniqueWhere));
+            $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($existing && isset($data['name']) && trim($data['name']) !== trim($existing['name'])) {
+                $cols = implode(', ', array_keys($data));
+                $placeholders = implode(', ', array_fill(0, count($data), '?'));
+                $stmt = $pdo->prepare("INSERT INTO doctors ($cols) VALUES ($placeholders)");
+                $stmt->execute(array_values($data));
+                $newId = (int)$pdo->lastInsertId();
+                $action = 'inserted';
+            } else {
+                // Upsert behavior: try update first
+                $setParts = [];
+                $params = [];
+                foreach ($data as $field => $value) { $setParts[] = "$field = ?"; $params[] = $value; }
+                $params = array_merge($params, array_values($uniqueWhere));
+                $sql = 'UPDATE doctors SET ' . implode(', ', $setParts) . ', updated_at = NOW() WHERE ' . $whereSql;
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($params);
+                if ($stmt->rowCount() === 0) {
+                    $cols = implode(', ', array_keys($data));
+                    $placeholders = implode(', ', array_fill(0, count($data), '?'));
+                    $stmt = $pdo->prepare("INSERT INTO doctors ($cols) VALUES ($placeholders)");
+                    $stmt->execute(array_values($data));
+                    $newId = (int)$pdo->lastInsertId();
+                    $action = 'inserted';
+                } else {
+                    $stmt = $pdo->prepare('SELECT id FROM doctors WHERE ' . $whereSql . ' LIMIT 1');
+                    $stmt->execute(array_values($uniqueWhere));
+                    $newId = (int)($stmt->fetchColumn() ?: 0);
+                    $action = 'updated';
+                }
             }
-            
-            // Fetch the doctor record
+
+            // Fetch the saved doctor
             $stmt = $pdo->prepare('SELECT d.*, u.username AS added_by_username 
                                   FROM doctors d 
                                   LEFT JOIN users u ON d.added_by = u.id 
                                   WHERE d.id = ?');
-            $stmt->execute([$result['id']]);
+            $stmt->execute([$newId]);
             $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            // Convert all keys to lowercase for consistency with JavaScript
             $doctor = array_keys_to_lowercase($doctor);
-
-            $message = ($result['action'] === 'inserted') ? 'Doctor created successfully' : 
-                      (($result['action'] === 'updated') ? 'Doctor updated successfully' : 'Doctor already exists (no changes needed)');
-            
-            json_response(['success' => true, 'message' => $message, 'data' => $doctor, 'action' => $result['action'], 'id' => $result['id']]);
+            $message = $action === 'inserted' ? 'Doctor created successfully' : 'Doctor updated successfully';
+            json_response(['success' => true, 'message' => $message, 'data' => $doctor, 'action' => $action, 'id' => $newId]);
         }
     }
 
