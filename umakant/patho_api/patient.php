@@ -42,6 +42,7 @@ register_shutdown_function(function(){
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
+// Guard against redeclare by including only once
 require_once __DIR__ . '/../inc/smart_upsert.php';
 require_once __DIR__ . '/../inc/simple_auth.php';
 
