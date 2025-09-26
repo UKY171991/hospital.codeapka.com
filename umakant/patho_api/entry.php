@@ -122,7 +122,7 @@ function handleList($pdo, $config) {
             'debug_info' => getAuthDebugInfo()
         ], 401);
     }
-    if (!checkPermission($user_data, 'list')) {
+    if (!simpleCheckPermission($user_data, 'list')) {
         json_response(['success' => false, 'message' => 'Permission denied to list entries'], 403);
     }
 
@@ -374,7 +374,7 @@ function handleStats($pdo) {
             'debug_info' => getAuthDebugInfo()
         ], 401);
     }
-    if (!checkPermission($user_data, 'list')) {
+    if (!simpleCheckPermission($user_data, 'list')) {
         json_response(['success' => false, 'message' => 'Permission denied to view stats'], 403);
     }
 

@@ -19,6 +19,7 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 require_once __DIR__ . '/../inc/smart_upsert.php';
+require_once __DIR__ . '/../inc/simple_auth.php';
 
 // Helper function to convert array keys to lowercase
 function array_keys_to_lowercase($array) {
@@ -73,15 +74,19 @@ try {
     }
 
     if ($action === 'list') {
-        $auth = authenticateApiUser($pdo);
+        $auth = simpleAuthenticate($pdo);
         
         // For listing, we need some form of authentication
         if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+            json_response([
+                'success' => false, 
+                'message' => 'Authentication required',
+                'debug_info' => getAuthDebugInfo()
+            ], 401);
         }
 
         // Check permissions
-        if (!checkPermission($auth, 'list')) {
+        if (!simpleCheckPermission($auth, 'list')) {
             json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
         
@@ -158,9 +163,13 @@ try {
     }
 
     if ($action === 'get') {
-        $auth = authenticateApiUser($pdo);
+        $auth = simpleAuthenticate($pdo);
         if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+            json_response([
+                'success' => false, 
+                'message' => 'Authentication required',
+                'debug_info' => getAuthDebugInfo()
+            ], 401);
         }
         
         $id = $_GET['id'] ?? null;
@@ -180,7 +189,7 @@ try {
         }
 
         // Check permissions
-        if (!checkPermission($auth, 'get', $doctor['added_by'])) {
+        if (!simpleCheckPermission($auth, 'get', $doctor['added_by'])) {
             json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
         
@@ -191,9 +200,13 @@ try {
     }
 
     if ($action === 'save') {
-        $auth = authenticateApiUser($pdo);
+        $auth = simpleAuthenticate($pdo);
         if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+            json_response([
+                'success' => false, 
+                'message' => 'Authentication required',
+                'debug_info' => getAuthDebugInfo()
+            ], 401);
         }
 
         // Get input data
@@ -216,7 +229,7 @@ try {
             }
             
             // Check permissions
-            if (!checkPermission($auth, 'update', $existingDoctor['added_by'])) {
+            if (!simpleCheckPermission($auth, 'update', $existingDoctor['added_by'])) {
                 json_response(['success' => false, 'message' => 'Permission denied'], 403);
             }
             
@@ -363,9 +376,13 @@ try {
     }
 
     if ($action === 'delete') {
-        $auth = authenticateApiUser($pdo);
+        $auth = simpleAuthenticate($pdo);
         if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+            json_response([
+                'success' => false, 
+                'message' => 'Authentication required',
+                'debug_info' => getAuthDebugInfo()
+            ], 401);
         }
 
         $id = $_GET['id'] ?? $_REQUEST['id'] ?? null;
@@ -383,7 +400,7 @@ try {
         }
 
         // Check permissions
-        if (!checkPermission($auth, 'delete', $doctor['added_by'])) {
+        if (!simpleCheckPermission($auth, 'delete', $doctor['added_by'])) {
             json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
 
@@ -404,11 +421,15 @@ try {
     }
 
     if ($action === 'specializations') {
-        $auth = authenticateApiUser($pdo);
+        $auth = simpleAuthenticate($pdo);
         if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+            json_response([
+                'success' => false, 
+                'message' => 'Authentication required',
+                'debug_info' => getAuthDebugInfo()
+            ], 401);
         }
-        if (!checkPermission($auth, 'list')) {
+        if (!simpleCheckPermission($auth, 'list')) {
             json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
         $stmt = $pdo->query('SELECT DISTINCT specialization FROM doctors WHERE specialization IS NOT NULL AND specialization != "" ORDER BY specialization');
@@ -417,11 +438,15 @@ try {
     }
 
     if ($action === 'hospitals') {
-        $auth = authenticateApiUser($pdo);
+        $auth = simpleAuthenticate($pdo);
         if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+            json_response([
+                'success' => false, 
+                'message' => 'Authentication required',
+                'debug_info' => getAuthDebugInfo()
+            ], 401);
         }
-        if (!checkPermission($auth, 'list')) {
+        if (!simpleCheckPermission($auth, 'list')) {
             json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
         $stmt = $pdo->query('SELECT DISTINCT hospital FROM doctors WHERE hospital IS NOT NULL AND hospital != "" ORDER BY hospital');
@@ -430,11 +455,15 @@ try {
     }
 
     if ($action === 'stats') {
-        $auth = authenticateApiUser($pdo);
+        $auth = simpleAuthenticate($pdo);
         if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+            json_response([
+                'success' => false, 
+                'message' => 'Authentication required',
+                'debug_info' => getAuthDebugInfo()
+            ], 401);
         }
-        if (!checkPermission($auth, 'list')) {
+        if (!simpleCheckPermission($auth, 'list')) {
             json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
         $totalStmt = $pdo->query("SELECT COUNT(*) FROM doctors");

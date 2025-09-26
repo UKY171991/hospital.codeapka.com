@@ -18,6 +18,7 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 require_once __DIR__ . '/../inc/smart_upsert.php';
+require_once __DIR__ . '/../inc/simple_auth.php';
 
 // CONFIGURATION - Update these for each entity
 $ENTITY_TABLE = 'patients'; // Change this for each API
@@ -126,13 +127,18 @@ try {
     }
 
     if ($action === 'list') {
-        $auth = authenticateApiUser($pdo);
+        $auth = simpleAuthenticate($pdo);
 
         if (!$auth) {
-            json_response(['success' => false, 'status' => 'error', 'message' => 'Authentication required'], 401);
+            json_response([
+                'success' => false, 
+                'status' => 'error', 
+                'message' => 'Authentication required',
+                'debug_info' => getAuthDebugInfo()
+            ], 401);
         }
 
-        if (!checkPermission($auth, 'list')) {
+        if (!simpleCheckPermission($auth, 'list')) {
             json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
 
@@ -193,9 +199,13 @@ try {
     }
 
     if ($action === 'get') {
-        $auth = authenticateApiUser($pdo);
+        $auth = simpleAuthenticate($pdo);
         if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+            json_response([
+                'success' => false, 
+                'message' => 'Authentication required',
+                'debug_info' => getAuthDebugInfo()
+            ], 401);
         }
         
         $id = $_GET['id'] ?? null;
@@ -214,7 +224,7 @@ try {
             json_response(['success' => false, 'status' => 'error', 'message' => $ENTITY_NAME . ' not found'], 404);
         }
 
-        if (!checkPermission($auth, 'get', $entity['added_by'])) {
+        if (!simpleCheckPermission($auth, 'get', $entity['added_by'])) {
             json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
         
@@ -225,9 +235,13 @@ try {
     }
 
     if ($action === 'save') {
-        $auth = authenticateApiUser($pdo);
+        $auth = simpleAuthenticate($pdo);
         if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+            json_response([
+                'success' => false, 
+                'message' => 'Authentication required',
+                'debug_info' => getAuthDebugInfo()
+            ], 401);
         }
 
         // Get input data
@@ -253,7 +267,7 @@ try {
             }
             
             // Check permissions
-            if (!checkPermission($auth, 'update', $existingEntity['added_by'])) {
+            if (!simpleCheckPermission($auth, 'update', $existingEntity['added_by'])) {
                 json_response(['success' => false, 'message' => 'Permission denied'], 403);
             }
             
@@ -383,9 +397,13 @@ try {
     }
 
     if ($action === 'delete') {
-        $auth = authenticateApiUser($pdo);
+        $auth = simpleAuthenticate($pdo);
         if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
+            json_response([
+                'success' => false, 
+                'message' => 'Authentication required',
+                'debug_info' => getAuthDebugInfo()
+            ], 401);
         }
 
         $id = $_GET['id'] ?? $_REQUEST['id'] ?? null;
@@ -403,7 +421,7 @@ try {
         }
 
         // Check permissions
-        if (!checkPermission($auth, 'delete', $entity['added_by'])) {
+        if (!simpleCheckPermission($auth, 'delete', $entity['added_by'])) {
             json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
 

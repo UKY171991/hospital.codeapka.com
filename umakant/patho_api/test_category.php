@@ -18,6 +18,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
+require_once __DIR__ . '/../inc/simple_auth.php';
 
 // Entity Configuration for Test Categories
 $entity_config = [
@@ -70,11 +71,15 @@ try {
 }
 
 function handleList($pdo, $config) {
-    $user_data = authenticateApiUser($pdo);
+    $user_data = simpleAuthenticate($pdo);
     if (!$user_data) {
-        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        json_response([
+            'success' => false, 
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
     }
-    if (!checkPermission($user_data, 'list')) {
+    if (!simpleCheckPermission($user_data, 'list')) {
         json_response(['success' => false, 'message' => 'Permission denied to list categories'], 403);
     }
 
@@ -91,9 +96,13 @@ function handleList($pdo, $config) {
 }
 
 function handleGet($pdo, $config) {
-    $user_data = authenticateApiUser($pdo);
+    $user_data = simpleAuthenticate($pdo);
     if (!$user_data) {
-        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        json_response([
+            'success' => false, 
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
     }
 
     $id = $_GET['id'] ?? null;
@@ -111,7 +120,7 @@ function handleGet($pdo, $config) {
             json_response(['success' => false, 'message' => 'Test category not found'], 404);
         }
 
-        if (!checkPermission($user_data, 'get', $category['added_by'] ?? null)) {
+        if (!simpleCheckPermission($user_data, 'get', $category['added_by'] ?? null)) {
             json_response(['success' => false, 'message' => 'Permission denied to view this category'], 403);
         }
 
@@ -123,9 +132,13 @@ function handleGet($pdo, $config) {
 }
 
 function handleSave($pdo, $config) {
-    $user_data = authenticateApiUser($pdo);
+    $user_data = simpleAuthenticate($pdo);
     if (!$user_data) {
-        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        json_response([
+            'success' => false, 
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
     }
 
     $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
@@ -138,11 +151,11 @@ function handleSave($pdo, $config) {
         if (!$existing) {
             json_response(['success' => false, 'message' => 'Category not found'], 404);
         }
-        if (!checkPermission($user_data, 'save', $existing['added_by'])) {
+        if (!simpleCheckPermission($user_data, 'save', $existing['added_by'])) {
             json_response(['success' => false, 'message' => 'Permission denied to update this category'], 403);
         }
     } else { // Create
-        if (!checkPermission($user_data, 'save')) {
+        if (!simpleCheckPermission($user_data, 'save')) {
             json_response(['success' => false, 'message' => 'Permission denied to create categories'], 403);
         }
     }
@@ -197,9 +210,13 @@ function handleSave($pdo, $config) {
 }
 
 function handleDelete($pdo, $config) {
-    $user_data = authenticateApiUser($pdo);
+    $user_data = simpleAuthenticate($pdo);
     if (!$user_data) {
-        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        json_response([
+            'success' => false, 
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
     }
 
     $id = $_REQUEST['id'] ?? null;
@@ -216,7 +233,7 @@ function handleDelete($pdo, $config) {
             json_response(['success' => false, 'message' => 'Test category not found'], 404);
         }
 
-        if (!checkPermission($user_data, 'delete', $category['added_by'])) {
+        if (!simpleCheckPermission($user_data, 'delete', $category['added_by'])) {
             json_response(['success' => false, 'message' => 'Permission denied to delete this category'], 403);
         }
 

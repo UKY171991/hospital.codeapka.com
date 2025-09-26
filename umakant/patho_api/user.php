@@ -18,6 +18,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
+require_once __DIR__ . '/../inc/simple_auth.php';
 
 // Entity Configuration for Users
 $entity_config = [
@@ -73,11 +74,15 @@ try {
 }
 
 function handleList($pdo, $config) {
-    $user_data = authenticateApiUser($pdo);
+    $user_data = simpleAuthenticate($pdo);
     if (!$user_data) {
-        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        json_response([
+            'success' => false, 
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
     }
-    if (!checkPermission($user_data, 'list')) {
+    if (!simpleCheckPermission($user_data, 'list')) {
         json_response(['success' => false, 'message' => 'Permission denied to list users'], 403);
     }
 
@@ -106,9 +111,13 @@ function handleList($pdo, $config) {
 }
 
 function handleGet($pdo, $config) {
-    $user_data = authenticateApiUser($pdo);
+    $user_data = simpleAuthenticate($pdo);
     if (!$user_data) {
-        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        json_response([
+            'success' => false, 
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
     }
 
     $id = $_GET['id'] ?? null;
@@ -142,9 +151,13 @@ function handleGet($pdo, $config) {
 }
 
 function handleSave($pdo, $config) {
-    $user_data = authenticateApiUser($pdo);
+    $user_data = simpleAuthenticate($pdo);
     if (!$user_data) {
-        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        json_response([
+            'success' => false, 
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
     }
 
     $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
@@ -263,9 +276,13 @@ function handleSave($pdo, $config) {
 }
 
 function handleDelete($pdo, $config) {
-    $user_data = authenticateApiUser($pdo);
+    $user_data = simpleAuthenticate($pdo);
     if (!$user_data) {
-        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+        json_response([
+            'success' => false, 
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
     }
 
     $id = $_REQUEST['id'] ?? null;
