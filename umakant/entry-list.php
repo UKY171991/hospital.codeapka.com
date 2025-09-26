@@ -230,17 +230,6 @@ require_once 'inc/sidebar.php';
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="entryDate">
-                                    <i class="fas fa-calendar mr-1"></i>
-                                    Entry Date
-                                </label>
-                                <input type="date" class="form-control" id="entryDate" name="entry_date" value="<?php echo date('Y-m-d'); ?>">
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Multiple Tests Section -->
                     <div class="form-group">
@@ -384,6 +373,100 @@ require_once 'inc/sidebar.php';
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="confirmAddTest()">
                     <i class="fas fa-plus"></i> Add Selected Tests
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Entry Modal -->
+<div class="modal fade" id="viewEntryModal" tabindex="-1" role="dialog" aria-labelledby="viewEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="viewEntryModalLabel">
+                    <i class="fas fa-eye mr-2"></i>
+                    View Entry Details
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label><strong>Patient:</strong></label>
+                            <p id="viewPatientName" class="form-control-plaintext"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label><strong>Doctor:</strong></label>
+                            <p id="viewDoctorName" class="form-control-plaintext"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label><strong>Entry Date:</strong></label>
+                            <p id="viewEntryDate" class="form-control-plaintext"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label><strong>Status:</strong></label>
+                            <p id="viewEntryStatus" class="form-control-plaintext"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><strong>Tests:</strong></label>
+                    <div id="viewSelectedTests">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            No tests found for this entry.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><strong>Notes:</strong></label>
+                    <p id="viewEntryNotes" class="form-control-plaintext"></p>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label><strong>Total Price:</strong></label>
+                            <p id="viewTotalPrice" class="form-control-plaintext"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label><strong>Discount:</strong></label>
+                            <p id="viewDiscount" class="form-control-plaintext"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label><strong>Final Amount:</strong></label>
+                            <p id="viewFinalAmount" class="form-control-plaintext"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>
+                    Close
+                </button>
+                <button type="button" class="btn btn-primary" id="editFromViewBtn">
+                    <i class="fas fa-edit mr-1"></i>
+                    Edit Entry
                 </button>
             </div>
         </div>
@@ -668,19 +751,14 @@ function viewEntry(id) {
         .done(function(response) {
             if (response.success) {
                 const entry = response.data;
-                populateEntryForm(entry);
+                populateViewModal(entry);
                 
                 // Load multiple tests if this is a grouped entry
                 if (entry.grouped && entry.tests_count > 1) {
-                    loadEntryTests(id);
-                } else {
-                    clearSelectedTests();
+                    loadEntryTestsForView(id);
                 }
                 
-                $('#modalTitle').text('View Test Entry');
-                $('#entryForm input, #entryForm textarea, #entryForm select').prop('disabled', true);
-                $('#saveEntryBtn').hide();
-                $('#entryModal').modal('show');
+                $('#viewEntryModal').modal('show');
             } else {
                 showAlert('Error loading entry data: ' + (response.message || 'Entry not found'), 'error');
             }
@@ -750,12 +828,84 @@ function populateEntryForm(entry) {
     $('#entryId').val(entry.id);
     $('#entryPatient').val(entry.patient_id).trigger('change');
     $('#entryDoctor').val(entry.doctor_id).trigger('change');
-    $('#entryDate').val(entry.entry_date ? entry.entry_date.split(' ')[0] : '');
     $('#entryStatus').val(entry.status || 'pending');
     $('#entryNotes').val(entry.remarks || '');
     
     // Calculate and set auto-calculated fields
     calculateEntryTotals();
+}
+
+function populateViewModal(entry) {
+    $('#viewPatientName').text(entry.patient_name || 'N/A');
+    $('#viewDoctorName').text(entry.doctor_name || 'N/A');
+    $('#viewEntryDate').text(formatDate(entry.entry_date || entry.created_at));
+    $('#viewEntryStatus').text(entry.status || 'pending');
+    $('#viewEntryNotes').text(entry.remarks || 'N/A');
+    
+    // Format currency values
+    const totalPrice = parseFloat(entry.price || 0);
+    const discount = parseFloat(entry.discount_amount || 0);
+    const finalAmount = totalPrice - discount;
+    
+    $('#viewTotalPrice').text('₹' + totalPrice.toFixed(2));
+    $('#viewDiscount').text('₹' + discount.toFixed(2));
+    $('#viewFinalAmount').text('₹' + finalAmount.toFixed(2));
+    
+    // Show primary test if available
+    if (entry.test_name) {
+        $('#viewSelectedTests').html(`
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">${entry.test_name}</h6>
+                    <p class="card-text">Primary Test</p>
+                </div>
+            </div>
+        `);
+    } else {
+        $('#viewSelectedTests').html(`
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle mr-2"></i>
+                No primary test found for this entry.
+            </div>
+        `);
+    }
+    
+    // Store entry ID for edit functionality
+    $('#editFromViewBtn').data('entry-id', entry.id);
+}
+
+function loadEntryTestsForView(entryId) {
+    $.get('patho_api/entry.php', { action: 'get_tests', entry_id: entryId })
+        .done(function(response) {
+            if (response.success && response.data.length > 0) {
+                let testsHtml = '<div class="row">';
+                response.data.forEach(test => {
+                    testsHtml += `
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">${test.test_name}</h6>
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            Category: ${test.category_name || 'N/A'}<br>
+                                            Result: ${test.result_value || 'Pending'}<br>
+                                            Unit: ${test.unit || 'N/A'}<br>
+                                            Price: ₹${parseFloat(test.price || 0).toFixed(2)}
+                                        </small>
+                                    </p>
+                                    ${test.remarks ? `<p class="card-text"><small><strong>Remarks:</strong> ${test.remarks}</small></p>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                testsHtml += '</div>';
+                $('#viewSelectedTests').html(testsHtml);
+            }
+        })
+        .fail(function(xhr) {
+            console.log('Failed to load tests for view:', xhr);
+        });
 }
 
 function saveEntryData() {
@@ -961,6 +1111,14 @@ function getErrorMessage(xhr) {
 $(document).on('click', '.edit-entry', function() {
     const id = $(this).data('id');
     editEntry(id);
+});
+
+$(document).on('click', '#editFromViewBtn', function() {
+    const entryId = $(this).data('entry-id');
+    if (entryId) {
+        $('#viewEntryModal').modal('hide');
+        editEntry(entryId);
+    }
 });
 
 // Multiple Tests Management
@@ -1374,7 +1532,6 @@ function resetModalForm() {
     $('#entryId').val('');
     $('#entryPatient').val('').trigger('change');
     $('#entryDoctor').val('').trigger('change');
-    $('#entryDate').val(new Date().toISOString().split('T')[0]);
     $('#entryStatus').val('pending');
     $('#entryAmount').val('');
     $('#entryDiscount').val('');

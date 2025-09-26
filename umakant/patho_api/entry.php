@@ -249,6 +249,9 @@ function handleSave($pdo, $config) {
             if ($ts !== false) {
                 $data['entry_date'] = date('Y-m-d', $ts);
             }
+        } else {
+            // Set default entry_date to current date if not provided
+            $data['entry_date'] = date('Y-m-d');
         }
         // Normalize decimals
         foreach (['price','discount_amount','total_price'] as $numField) {
