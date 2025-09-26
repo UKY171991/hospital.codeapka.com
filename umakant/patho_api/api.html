@@ -1342,7 +1342,7 @@
                                                     
                                                     <div class="mb-3">
                                                         <strong>Headers:</strong>
-                                                        <pre class="bg-light p-2 rounded"><code>${JSON.stringify({ 'Content-Type':'application/json', ...(endpoint.headers||{}) }, null, 2)}</code></pre>
+                                                        <pre class="bg-light p-2 rounded"><code>${JSON.stringify({ ...(getHeaders()), ...(endpoint.headers||{}) }, null, 2)}</code></pre>
                                                         <small class="text-muted">Note: For patho_api endpoints the tester also appends <code>?secret_key=hospital-api-secret-2024</code> to the URL.</small>
                                                     </div>
                                                     
