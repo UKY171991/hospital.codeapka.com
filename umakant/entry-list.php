@@ -270,27 +270,32 @@ require_once 'inc/sidebar.php';
                                 </div>
                             </div>
                             <div class="card-body">
-                                <!-- Step 1: Select Category -->
-                                <div id="categorySelectionStep" class="mb-3">
-                                    <label class="form-label">
-                                        <i class="fas fa-folder mr-1"></i>
-                                        Step 1: Select Test Category
-                                    </label>
-                                    <select class="form-control" id="testCategorySelect" onchange="loadTestsForCategory()">
-                                        <option value="">Choose a category...</option>
-                                    </select>
-                                </div>
-                                
-                                <!-- Step 2: Select Tests -->
-                                <div id="testSelectionStep" style="display: none;">
-                                    <label class="form-label">
-                                        <i class="fas fa-vial mr-1"></i>
-                                        Step 2: Select Tests
-                                    </label>
-                                    <div id="testsForCategoryContainer">
-                                        <div class="text-center">
-                                            <i class="fas fa-spinner fa-spin"></i> Loading tests...
-                                        </div>
+                                <!-- Single Line Test Selection -->
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <label class="form-label">
+                                            <i class="fas fa-folder mr-1"></i>
+                                            Category
+                                        </label>
+                                        <select class="form-control" id="testCategorySelect" onchange="loadTestsForCategory()">
+                                            <option value="">Choose category...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label">
+                                            <i class="fas fa-vial mr-1"></i>
+                                            Test
+                                        </label>
+                                        <select class="form-control" id="testSelect">
+                                            <option value="">Choose category first...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button type="button" class="btn btn-success btn-block" onclick="addSelectedTest()">
+                                            <i class="fas fa-plus"></i>
+                                            Add
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1115,18 +1120,15 @@ function showAddTestInterface() {
     $('#addTestInterface').show();
     loadCategories();
     // Reset the interface
-    $('#categorySelectionStep').show();
-    $('#testSelectionStep').hide();
     $('#testCategorySelect').val('');
+    $('#testSelect').val('').html('<option value="">Choose category first...</option>');
 }
 
 function hideAddTestInterface() {
     $('#addTestInterface').hide();
-    // Clear any selected tests in the interface
-    $('.test-category-checkbox').prop('checked', false);
+    // Clear the interface
     $('#testCategorySelect').val('');
-    $('#categorySelectionStep').show();
-    $('#testSelectionStep').hide();
+    $('#testSelect').val('').html('<option value="">Choose category first...</option>');
 }
 
 function loadCategories() {
@@ -1150,127 +1152,83 @@ function loadTestsForCategory() {
     const categoryId = $('#testCategorySelect').val();
     
     if (!categoryId) {
-        $('#testSelectionStep').hide();
+        $('#testSelect').val('').html('<option value="">Choose category first...</option>');
         return;
     }
     
-    // Show the test selection step
-    $('#testSelectionStep').show();
-    $('#testsForCategoryContainer').html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading tests...</div>');
+    $('#testSelect').html('<option value="">Loading tests...</option>');
     
     $.get('ajax/test_api.php', { action: 'list', category_id: categoryId, ajax: 1 })
         .done(function(response) {
             if (response.success) {
-                displayTestsForCategory(response.data);
+                populateTestSelect(response.data);
             } else {
-                $('#testsForCategoryContainer').html('<div class="alert alert-danger">Failed to load tests: ' + (response.message || 'Unknown error') + '</div>');
+                $('#testSelect').html('<option value="">Error loading tests</option>');
             }
         })
         .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
-            $('#testsForCategoryContainer').html('<div class="alert alert-danger">Failed to load tests: ' + errorMsg + '</div>');
+            $('#testSelect').html('<option value="">Error loading tests</option>');
         });
 }
 
-function displayTestsForCategory(tests) {
+function populateTestSelect(tests) {
     if (tests.length === 0) {
-        $('#testsForCategoryContainer').html(`
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle mr-2"></i>
-                No tests found in this category.
-            </div>
-        `);
+        $('#testSelect').html('<option value="">No tests in this category</option>');
         return;
     }
     
-    let html = `
-        <div class="row mb-3">
-            <div class="col-md-12">
-                <button type="button" class="btn btn-success btn-sm" onclick="addSelectedTestsToEntry()">
-                    <i class="fas fa-plus mr-1"></i>
-                    Add Selected Tests
-                </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm ml-2" onclick="selectAllTests()">
-                    <i class="fas fa-check-square mr-1"></i>
-                    Select All
-                </button>
-            </div>
-        </div>
-        <div class="row">
-    `;
-    
+    let options = '<option value="">Select a test...</option>';
     tests.forEach(test => {
         const isSelected = selectedTests.some(t => t.test_id == test.id);
+        const disabledAttr = isSelected ? ' disabled' : '';
+        const selectedAttr = isSelected ? ' selected' : '';
+        const selectedText = isSelected ? ' (Already Added)' : '';
         
-        html += `
-            <div class="col-md-6 mb-2">
-                <div class="form-check">
-                    <input class="form-check-input test-category-checkbox" type="checkbox" 
-                           id="test_cat_${test.id}" 
-                           value="${test.id}"
-                           data-test='${JSON.stringify(test)}'
-                           ${isSelected ? 'checked' : ''}>
-                    <label class="form-check-label" for="test_cat_${test.id}">
-                        <strong>${test.name}</strong>
-                        <small class="text-muted d-block">
-                            Price: ₹${parseFloat(test.price || 0).toFixed(2)}
-                            ${test.unit ? ' | Unit: ' + test.unit : ''}
-                        </small>
-                    </label>
-                </div>
-            </div>
-        `;
+        options += `<option value="${test.id}" data-test='${JSON.stringify(test)}'${disabledAttr}>${test.name} - ₹${parseFloat(test.price || 0).toFixed(2)}${selectedText}</option>`;
     });
     
-    html += `
-        </div>
-    `;
-    
-    $('#testsForCategoryContainer').html(html);
+    $('#testSelect').html(options);
 }
 
-function selectAllTests() {
-    $('.test-category-checkbox').prop('checked', true);
-}
-
-function addSelectedTestsToEntry() {
-    const checkedTests = $('.test-category-checkbox:checked');
+function addSelectedTest() {
+    const testId = $('#testSelect').val();
+    const selectedOption = $('#testSelect option:selected');
     
-    if (checkedTests.length === 0) {
-        showAlert('Please select at least one test', 'error');
+    if (!testId) {
+        showAlert('Please select a test', 'error');
         return;
     }
     
-    let addedCount = 0;
+    const testData = JSON.parse(selectedOption.data('test'));
     
-    checkedTests.each(function() {
-        const testData = JSON.parse($(this).data('test'));
-        
-        // Check if test is already selected
-        const isAlreadyAdded = selectedTests.some(t => t.test_id == testData.id);
-        if (!isAlreadyAdded) {
-            selectedTests.push({
-                category_id: testData.category_id,
-                category_name: testData.category_name,
-                test_id: testData.id,
-                test_name: testData.name,
-                result_value: '',
-                unit: testData.unit,
-                price: testData.price,
-                discount_amount: 0,
-                remarks: ''
-            });
-            addedCount++;
-        }
+    // Check if test is already selected
+    const isAlreadyAdded = selectedTests.some(t => t.test_id == testId);
+    if (isAlreadyAdded) {
+        showAlert('This test is already added to the entry', 'warning');
+        return;
+    }
+    
+    // Add the test
+    selectedTests.push({
+        category_id: testData.category_id,
+        category_name: testData.category_name,
+        test_id: testData.id,
+        test_name: testData.name,
+        result_value: '',
+        unit: testData.unit,
+        price: testData.price,
+        discount_amount: 0,
+        remarks: ''
     });
     
-    if (addedCount > 0) {
-        updateSelectedTestsDisplay();
-        showAlert(`${addedCount} test(s) added successfully`, 'success');
-        hideAddTestInterface();
-    } else {
-        showAlert('All selected tests are already added to this entry', 'warning');
-    }
+    updateSelectedTestsDisplay();
+    showAlert('Test added successfully', 'success');
+    
+    // Refresh the test dropdown to show updated status
+    loadTestsForCategory();
+    
+    // Clear the selection
+    $('#testSelect').val('');
 }
 
 
