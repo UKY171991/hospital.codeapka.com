@@ -1565,8 +1565,15 @@ echo json_encode($data, JSON_PRETTY_PRINT);
                     headers: { ...endpoint.headers, ...headers }
                 });
                 
-                const data = await response.json();
-                const isSuccess = response.ok && data.success !== false;
+                let data;
+                let rawText = '';
+                try {
+                    rawText = await response.text();
+                    data = rawText ? JSON.parse(rawText) : { success: false, message: 'Empty response body', raw: '' };
+                } catch (e) {
+                    data = { success: false, message: 'Non-JSON response', raw: rawText };
+                }
+                const isSuccess = response.ok && data && data.success !== false;
                 
                 // Log detailed error information for debugging
                 if (!isSuccess) {
@@ -1640,8 +1647,15 @@ echo json_encode($data, JSON_PRETTY_PRINT);
                 }
                 
                 const response = await fetch(url, options);
-                const data = await response.json();
-                const isSuccess = response.ok && data.success !== false;
+                let data;
+                let rawText = '';
+                try {
+                    rawText = await response.text();
+                    data = rawText ? JSON.parse(rawText) : { success: false, message: 'Empty response body', raw: '' };
+                } catch (e) {
+                    data = { success: false, message: 'Non-JSON response', raw: rawText };
+                }
+                const isSuccess = response.ok && data && data.success !== false;
                 
                 resultDiv.innerHTML = `
                     <div class="p-2 rounded ${isSuccess ? 'result-success' : 'result-error'}">
