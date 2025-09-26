@@ -231,18 +231,7 @@ require_once 'inc/sidebar.php';
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="entryTest">
-                                    <i class="fas fa-vial mr-1"></i>
-                                    Primary Test
-                                </label>
-                                <select class="form-control select2" id="entryTest" name="test_id">
-                                    <option value="">Select Primary Test (Optional)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="form-group">
                                 <label for="entryDate">
                                     <i class="fas fa-calendar mr-1"></i>
@@ -496,17 +485,14 @@ function loadDropdownsForEntry() {
             showAlert('Failed to load doctors: ' + errorMsg, 'error');
         });
 
-    // Load tests
+    // Load tests for filter only
     $.get('ajax/test_api.php', { action: 'list', ajax: 1 })
         .done(function(response) {
             if (response.success) {
-                let options = '<option value="">Select Test</option>';
                 let filterOptions = '<option value="">All Tests</option>';
                 response.data.forEach(test => {
-                    options += `<option value="${test.id}">${test.name || 'Unknown'}</option>`;
                     filterOptions += `<option value="${test.id}">${test.name}</option>`;
                 });
-                $('#entryTest').html(options).trigger('change');
                 $('#testFilter').html(filterOptions);
             }
         })
@@ -764,7 +750,6 @@ function populateEntryForm(entry) {
     $('#entryId').val(entry.id);
     $('#entryPatient').val(entry.patient_id).trigger('change');
     $('#entryDoctor').val(entry.doctor_id).trigger('change');
-    $('#entryTest').val(entry.test_id).trigger('change');
     $('#entryDate').val(entry.entry_date ? entry.entry_date.split(' ')[0] : '');
     $('#entryStatus').val(entry.status || 'pending');
     $('#entryNotes').val(entry.remarks || '');
@@ -1389,7 +1374,6 @@ function resetModalForm() {
     $('#entryId').val('');
     $('#entryPatient').val('').trigger('change');
     $('#entryDoctor').val('').trigger('change');
-    $('#entryTest').val('').trigger('change');
     $('#entryDate').val(new Date().toISOString().split('T')[0]);
     $('#entryStatus').val('pending');
     $('#entryAmount').val('');

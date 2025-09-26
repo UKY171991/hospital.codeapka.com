@@ -198,10 +198,8 @@ try {
                     $entryData['discount_amount'] = $totalDiscount;
                     $entryData['total_price'] = $totalPrice - $totalDiscount;
                     
-                    // Set primary test if provided
-                    if (!empty($input['test_id'])) {
-                        $entryData['test_id'] = $input['test_id'];
-                    } else {
+                    // Set primary test to first test for backward compatibility
+                    if (!empty($tests)) {
                         $entryData['test_id'] = $tests[0]['test_id']; // Use first test as primary
                     }
                     
