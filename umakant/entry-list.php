@@ -1218,7 +1218,9 @@ function addSelectedTest() {
         unit: testData.unit,
         price: testData.price,
         discount_amount: 0,
-        remarks: ''
+        remarks: '',
+        min: testData.min || null,
+        max: testData.max || null
     });
     
     updateSelectedTestsDisplay();
@@ -1256,7 +1258,7 @@ function calculateEntryTotals() {
 }
 
 function updateSelectedTestsDisplay() {
-    const container = $('#selectedTestsList');
+    const container = $('#testsByCategoryContainer');
     
     if (selectedTests.length === 0) {
         container.html('<p class="text-muted">No tests selected. Click "Add Test" to add tests to this entry.</p>');
@@ -1266,27 +1268,36 @@ function updateSelectedTestsDisplay() {
     
     let html = '';
     selectedTests.forEach((test, index) => {
+        // Format test range if available
+        const testRange = test.min && test.max ? `${test.min}-${test.max}` : 'N/A';
+        const testValue = test.result_value || 'Pending';
+        const testUnit = test.unit || 'N/A';
+        
+        // Single line format: Value | Range | Unit
+        const valueRangeUnit = `${testValue} | ${testRange} | ${testUnit}`;
+        
         html += `
             <div class="card mb-2">
                 <div class="card-body py-2">
                     <div class="row align-items-center">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <strong>${test.test_name}</strong>
                             <br><small class="text-info">${test.category_name}</small>
                         </div>
-                        <div class="col-md-2">
-                            <small class="text-muted">Result: ${test.result_value || 'N/A'}</small>
+                        <div class="col-md-4">
+                            <small class="text-primary">
+                                <strong>Value:</strong> ${testValue} | 
+                                <strong>Range:</strong> ${testRange} | 
+                                <strong>Unit:</strong> ${testUnit}
+                            </small>
                         </div>
                         <div class="col-md-2">
-                            <small class="text-muted">Unit: ${test.unit || 'N/A'}</small>
+                            <small class="text-muted">Price: ₹${parseFloat(test.price || 0).toFixed(2)}</small>
                         </div>
-                        <div class="col-md-2">
-                            <small class="text-muted">Price: ₹${test.price || '0'}</small>
-                        </div>
-                        <div class="col-md-2">
-                            <small class="text-muted">Remarks: ${test.remarks ? (test.remarks.length > 20 ? test.remarks.substring(0, 20) + '...' : test.remarks) : 'N/A'}</small>
-                        </div>
-                        <div class="col-md-1 text-right">
+                        <div class="col-md-2 text-right">
+                            <button type="button" class="btn btn-sm btn-outline-primary mr-1" onclick="editTestDetails(${test.test_id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
                             <button type="button" class="btn btn-sm btn-danger" onclick="removeTestFromEntry(${test.test_id})">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -1306,6 +1317,26 @@ function updateSelectedTestsDisplay() {
 function clearSelectedTests() {
     selectedTests = [];
     updateSelectedTestsDisplay();
+}
+
+function editTestDetails(testId) {
+    const test = selectedTests.find(t => t.test_id == testId);
+    if (!test) return;
+    
+    const newResultValue = prompt(`Enter result value for ${test.test_name}:`, test.result_value || '');
+    if (newResultValue !== null) {
+        test.result_value = newResultValue;
+        updateSelectedTestsDisplay();
+        showAlert('Test details updated', 'success');
+    }
+}
+
+function removeTestFromEntry(testId) {
+    if (confirm('Are you sure you want to remove this test from the entry?')) {
+        selectedTests = selectedTests.filter(test => test.test_id != testId);
+        updateSelectedTestsDisplay();
+        showAlert('Test removed successfully', 'success');
+    }
 }
 
 // Override the saveEntryData function to handle multiple tests
