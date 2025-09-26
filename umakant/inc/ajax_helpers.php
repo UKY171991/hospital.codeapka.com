@@ -267,7 +267,7 @@ function upsert_or_skip($pdo, $table, $uniqueWhere, $data) {
         }
         // Build UPDATE statement for changed fields
         $setParts = [];
-        $setParams = [];
+        $setParams = []; 
         foreach ($changed as $col => $val) {
             $setParts[] = "$col = ?";
             $setParams[] = $val;

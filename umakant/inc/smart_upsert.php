@@ -256,6 +256,7 @@ function getUniqueWhere($entityType, $data) {
  * @param array $data Data to validate
  * @return array Array of error messages (empty if valid)
  */
+if (!function_exists('validateEntityData')) {
 function validateEntityData($entityType, $data) {
     $errors = [];
     
@@ -289,5 +290,6 @@ function validateEntityData($entityType, $data) {
     }
     
     return $errors;
+}
 }
 ?>

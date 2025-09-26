@@ -112,8 +112,8 @@ switch($requestMethod) {
 }
 
 try {
-    // Entity-specific validation function
-    function validateEntityData($data, $isUpdate = false) {
+    // Entity-specific validation function (renamed to avoid conflicts)
+    function validatePatientData($data, $isUpdate = false) {
         global $ENTITY_NAME, $REQUIRED_FIELDS;
         $errors = [];
         
@@ -297,7 +297,11 @@ try {
             }
             
             // Validate input
-            $errors = validateEntityData($input, true);
+            if (function_exists('validateEntityData')) {
+                $errors = validateEntityData('patient', $input);
+            } else {
+                $errors = validatePatientData($input, true);
+            }
             if (!empty($errors)) {
                 json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
             }
@@ -349,7 +353,11 @@ try {
             // Create new entity
             
             // Validate input
-            $errors = validateEntityData($input);
+            if (function_exists('validateEntityData')) {
+                $errors = validateEntityData('patient', $input);
+            } else {
+                $errors = validatePatientData($input);
+            }
             if (!empty($errors)) {
                 json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
             }
