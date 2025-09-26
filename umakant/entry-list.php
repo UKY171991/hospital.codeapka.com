@@ -270,9 +270,9 @@ require_once 'inc/sidebar.php';
                                 </div>
                             </div>
                             <div class="card-body">
-                                <!-- Single Line Test Selection -->
-                                <div class="row">
-                                    <div class="col-md-5">
+                                <!-- Test Selection -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
                                         <label class="form-label">
                                             <i class="fas fa-folder mr-1"></i>
                                             Category
@@ -281,21 +281,67 @@ require_once 'inc/sidebar.php';
                                             <option value="">Choose category...</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-5">
+                                    <div class="col-md-6">
                                         <label class="form-label">
                                             <i class="fas fa-vial mr-1"></i>
                                             Test
                                         </label>
-                                        <select class="form-control" id="testSelect">
+                                        <select class="form-control" id="testSelect" onchange="loadTestDetails()">
                                             <option value="">Choose category first...</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">&nbsp;</label>
-                                        <button type="button" class="btn btn-success btn-block" onclick="addSelectedTest()">
-                                            <i class="fas fa-plus"></i>
-                                            Add
-                                        </button>
+                                </div>
+                                
+                                <!-- Test Details Fields -->
+                                <div id="testDetailsFields" style="display: none;">
+                                    <div class="row mb-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label">
+                                                <i class="fas fa-clipboard-check mr-1"></i>
+                                                Result Value
+                                            </label>
+                                            <input type="text" class="form-control" id="testResultValue" placeholder="Enter result">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">
+                                                <i class="fas fa-arrows-alt-h mr-1"></i>
+                                                Range
+                                            </label>
+                                            <input type="text" class="form-control" id="testRangeValue" placeholder="e.g., 70-100" readonly>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">
+                                                <i class="fas fa-ruler mr-1"></i>
+                                                Unit
+                                            </label>
+                                            <input type="text" class="form-control" id="testUnitValue" placeholder="e.g., mg/dL">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">
+                                                <i class="fas fa-rupee-sign mr-1"></i>
+                                                Price
+                                            </label>
+                                            <input type="number" class="form-control" id="testPriceValue" placeholder="0.00" step="0.01">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">
+                                                <i class="fas fa-comment mr-1"></i>
+                                                Remarks (Optional)
+                                            </label>
+                                            <textarea class="form-control" id="testRemarksValue" rows="2" placeholder="Enter any remarks or notes"></textarea>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-12 text-right">
+                                            <button type="button" class="btn btn-success" onclick="addTestWithDetails()">
+                                                <i class="fas fa-plus mr-1"></i>
+                                                Add Test
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1132,6 +1178,7 @@ function hideAddTestInterface() {
     // Clear the interface
     $('#testCategorySelect').val('');
     $('#testSelect').val('').html('<option value="">Choose category first...</option>');
+    clearTestDetailsForm();
 }
 
 function loadCategories() {
@@ -1177,6 +1224,7 @@ function loadTestsForCategory() {
 function populateTestSelect(tests) {
     if (tests.length === 0) {
         $('#testSelect').html('<option value="">No tests in this category</option>');
+        $('#testDetailsFields').hide();
         return;
     }
     
@@ -1191,6 +1239,29 @@ function populateTestSelect(tests) {
     });
     
     $('#testSelect').html(options);
+    $('#testDetailsFields').hide();
+}
+
+function loadTestDetails() {
+    const testId = $('#testSelect').val();
+    const selectedOption = $('#testSelect option:selected');
+    
+    if (!testId) {
+        $('#testDetailsFields').hide();
+        return;
+    }
+    
+    const testData = JSON.parse(selectedOption.data('test'));
+    
+    // Populate the fields with test data
+    $('#testResultValue').val('');
+    $('#testRangeValue').val(testData.min && testData.max ? `${testData.min}-${testData.max}` : 'N/A');
+    $('#testUnitValue').val(testData.unit || '');
+    $('#testPriceValue').val(testData.price || '');
+    $('#testRemarksValue').val('');
+    
+    // Show the details fields
+    $('#testDetailsFields').show();
 }
 
 function addSelectedTest() {
@@ -1238,6 +1309,85 @@ function addSelectedTest() {
     
     // Clear the selection
     $('#testSelect').val('');
+    $('#testDetailsFields').hide();
+}
+
+function addTestWithDetails() {
+    const testId = $('#testSelect').val();
+    const selectedOption = $('#testSelect option:selected');
+    
+    if (!testId) {
+        showAlert('Please select a test', 'error');
+        return;
+    }
+    
+    // Get form values
+    const resultValue = $('#testResultValue').val().trim();
+    const unitValue = $('#testUnitValue').val().trim();
+    const priceValue = $('#testPriceValue').val();
+    const remarksValue = $('#testRemarksValue').val().trim();
+    
+    // Validate required fields
+    if (!resultValue) {
+        showAlert('Please enter a result value', 'error');
+        $('#testResultValue').focus();
+        return;
+    }
+    
+    if (!unitValue) {
+        showAlert('Please enter a unit', 'error');
+        $('#testUnitValue').focus();
+        return;
+    }
+    
+    if (!priceValue || parseFloat(priceValue) <= 0) {
+        showAlert('Please enter a valid price', 'error');
+        $('#testPriceValue').focus();
+        return;
+    }
+    
+    const testData = JSON.parse(selectedOption.data('test'));
+    
+    // Check if test is already selected
+    const isAlreadyAdded = selectedTests.some(t => t.test_id == testId);
+    if (isAlreadyAdded) {
+        showAlert('This test is already added to the entry', 'warning');
+        return;
+    }
+    
+    // Add the test with details
+    selectedTests.push({
+        category_id: testData.category_id,
+        category_name: testData.category_name,
+        test_id: testData.id,
+        test_name: testData.name,
+        result_value: resultValue,
+        unit: unitValue,
+        price: parseFloat(priceValue),
+        discount_amount: 0,
+        remarks: remarksValue,
+        min: testData.min || null,
+        max: testData.max || null
+    });
+    
+    console.log('About to call updateSelectedTestsDisplay, selectedTests length:', selectedTests.length);
+    updateSelectedTestsDisplay();
+    showAlert('Test added successfully with details', 'success');
+    
+    // Clear the form
+    clearTestDetailsForm();
+    
+    // Refresh the test dropdown to show updated status
+    loadTestsForCategory();
+}
+
+function clearTestDetailsForm() {
+    $('#testSelect').val('');
+    $('#testResultValue').val('');
+    $('#testUnitValue').val('');
+    $('#testPriceValue').val('');
+    $('#testRemarksValue').val('');
+    $('#testDetailsFields').hide();
 }
 
 
@@ -1331,12 +1481,43 @@ function editTestDetails(testId) {
     const test = selectedTests.find(t => t.test_id == testId);
     if (!test) return;
     
+    // Create a simple edit form using prompts
     const newResultValue = prompt(`Enter result value for ${test.test_name}:`, test.result_value || '');
-    if (newResultValue !== null) {
-        test.result_value = newResultValue;
-        updateSelectedTestsDisplay();
-        showAlert('Test details updated', 'success');
+    if (newResultValue === null) return; // User cancelled
+    
+    const newUnit = prompt(`Enter unit for ${test.test_name}:`, test.unit || '');
+    if (newUnit === null) return; // User cancelled
+    
+    const newPrice = prompt(`Enter price for ${test.test_name}:`, test.price || '');
+    if (newPrice === null) return; // User cancelled
+    
+    const newRemarks = prompt(`Enter remarks for ${test.test_name}:`, test.remarks || '');
+    if (newRemarks === null) return; // User cancelled
+    
+    // Validate inputs
+    if (!newResultValue.trim()) {
+        showAlert('Result value cannot be empty', 'error');
+        return;
     }
+    
+    if (!newUnit.trim()) {
+        showAlert('Unit cannot be empty', 'error');
+        return;
+    }
+    
+    if (!newPrice || parseFloat(newPrice) <= 0) {
+        showAlert('Please enter a valid price', 'error');
+        return;
+    }
+    
+    // Update the test
+    test.result_value = newResultValue.trim();
+    test.unit = newUnit.trim();
+    test.price = parseFloat(newPrice);
+    test.remarks = newRemarks.trim();
+    
+    updateSelectedTestsDisplay();
+    showAlert('Test details updated successfully', 'success');
 }
 
 function removeTestFromEntry(testId) {
