@@ -14,6 +14,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 if (session_status() === PHP_SESSION_NONE) session_start();
+
+// Robust error handling to always return JSON (prevents empty 500 bodies)
+set_exception_handler(function($ex){
+    if (function_exists('json_response')) {
+        json_response(['success' => false, 'message' => 'Server error', 'error' => $ex->getMessage()], 500);
+    } else {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'message' => 'Server error', 'error' => $ex->getMessage()]);
+        exit;
+    }
+});
+
+set_error_handler(function($severity, $message, $file, $line){
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
+
+register_shutdown_function(function(){
+    $e = error_get_last();
+    if ($e && in_array($e['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'message' => 'Server fatal error', 'error' => $e['message']]);
+    }
+});
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';

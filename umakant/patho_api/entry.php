@@ -18,6 +18,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
+// Robust: always return JSON for unhandled errors
+set_exception_handler(function($ex){
+    json_response(['success' => false, 'message' => 'Server error', 'error' => $ex->getMessage()], 500);
+});
+set_error_handler(function($severity, $message, $file, $line){
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
+register_shutdown_function(function(){
+    $e = error_get_last();
+    if ($e && in_array($e['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'message' => 'Fatal error', 'error' => $e['message']]);
+    }
+});
+
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
