@@ -17,6 +17,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
+require_once __DIR__ . '/../inc/smart_upsert.php';
 
 // CONFIGURATION - Update these for each entity
 $ENTITY_TABLE = 'patients'; // Change this for each API
@@ -339,28 +340,23 @@ try {
                 $data['uhid'] = $year . str_pad($nextNum, 6, '0', STR_PAD_LEFT);
             }
 
-            // Use upsert logic to prevent duplicates
-            $uniqueWhere = [];
+            // Use smart upsert to prevent duplicates and handle updates
+            $uniqueWhere = getUniqueWhere($ENTITY_NAME, $data);
             
-            // Define unique criteria based on entity type
-            if ($ENTITY_NAME === 'Patient') {
-                // For patients, use mobile as unique identifier
-                if (!empty($data['mobile'])) {
-                    $uniqueWhere['mobile'] = $data['mobile'];
-                } else {
-                    // Fallback to name + address if mobile not provided
-                    $uniqueWhere['name'] = $data['name'];
-                    if (!empty($data['address'])) {
-                        $uniqueWhere['address'] = $data['address'];
-                    }
-                }
-            } else {
-                // Generic fallback - use name
-                $uniqueWhere['name'] = $data['name'];
+            if (empty($uniqueWhere)) {
+                json_response(['success' => false, 'message' => 'Cannot determine unique criteria for duplicate prevention'], 400);
             }
 
-            // Use upsert function to handle duplicates properly
-            $result_info = upsert_or_skip($pdo, $ENTITY_TABLE, $uniqueWhere, $data);
+            // Use smart upsert function
+            $result_info = smartUpsert($pdo, $ENTITY_TABLE, $uniqueWhere, $data, [
+                'compare_timestamps' => true,
+                'force_update' => false
+            ]);
+            
+            if ($result_info['action'] === 'error') {
+                json_response(['success' => false, 'message' => $result_info['message']], 500);
+            }
+            
             $entityId = $result_info['id'];
             $action = $result_info['action'];
             

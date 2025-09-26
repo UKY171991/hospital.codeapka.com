@@ -18,6 +18,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
+require_once __DIR__ . '/../inc/smart_upsert.php';
 
 // Helper function to convert array keys to lowercase
 function array_keys_to_lowercase($array) {
@@ -326,23 +327,22 @@ try {
                 unset($data['percent']);
             }
 
-            // Determine unique criteria for upsert
-            $uniqueWhere = [];
-            if (!empty($data['registration_no'])) {
-                $uniqueWhere['registration_no'] = $data['registration_no'];
-            } else {
-                $uniqueWhere['name'] = $data['name'];
-                $uniqueWhere['hospital'] = $data['hospital'];
-                // Use contact_no if available, otherwise phone
-                $contactField = !empty($data['contact_no']) ? 'contact_no' : 'phone';
-                $contactValue = !empty($data['contact_no']) ? $data['contact_no'] : $data['phone'];
-                if (!empty($contactValue)) {
-                    $uniqueWhere[$contactField] = $contactValue;
-                }
+            // Use smart upsert to prevent duplicates and handle updates
+            $uniqueWhere = getUniqueWhere('doctor', $data);
+            
+            if (empty($uniqueWhere)) {
+                json_response(['success' => false, 'message' => 'Cannot determine unique criteria for duplicate prevention'], 400);
             }
 
-            // Perform upsert
-            $result = upsert_or_skip($pdo, 'doctors', $uniqueWhere, $data);
+            // Use smart upsert function
+            $result = smartUpsert($pdo, 'doctors', $uniqueWhere, $data, [
+                'compare_timestamps' => true,
+                'force_update' => false
+            ]);
+            
+            if ($result['action'] === 'error') {
+                json_response(['success' => false, 'message' => $result['message']], 500);
+            }
             
             // Fetch the doctor record
             $stmt = $pdo->prepare('SELECT d.*, u.username AS added_by_username 

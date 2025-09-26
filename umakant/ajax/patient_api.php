@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../inc/connection.php';
+require_once __DIR__ . '/../inc/smart_upsert.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');

@@ -18,6 +18,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
+require_once __DIR__ . '/../inc/smart_upsert.php';
 
 // Entity Configuration for Tests
 $entity_config = [
@@ -176,13 +177,25 @@ function handleSave($pdo, $config) {
             $test_id = $id;
             $action = 'updated';
         } else {
-            $cols = implode(', ', array_keys($data));
-            $placeholders = implode(', ', array_fill(0, count($data), '?'));
-            $sql = "INSERT INTO {$config['table_name']} ($cols) VALUES ($placeholders)";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute(array_values($data));
-            $test_id = $pdo->lastInsertId();
-            $action = 'inserted';
+            // Use smart upsert to prevent duplicates
+            $uniqueWhere = getUniqueWhere('test', $data);
+            
+            if (empty($uniqueWhere)) {
+                json_response(['success' => false, 'message' => 'Cannot determine unique criteria for duplicate prevention'], 400);
+            }
+
+            // Use smart upsert function
+            $result = smartUpsert($pdo, $config['table_name'], $uniqueWhere, $data, [
+                'compare_timestamps' => true,
+                'force_update' => false
+            ]);
+            
+            if ($result['action'] === 'error') {
+                json_response(['success' => false, 'message' => $result['message']], 500);
+            }
+            
+            $test_id = $result['id'];
+            $action = $result['action'];
         }
 
         $stmt = $pdo->prepare("SELECT t.*, c.name as category_name FROM {$config['table_name']} t LEFT JOIN categories c ON t.category_id = c.id WHERE t.id = ?");
