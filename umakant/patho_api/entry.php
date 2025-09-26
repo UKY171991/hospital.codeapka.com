@@ -169,7 +169,7 @@ function handleList($pdo, $config) {
         json_response(['success' => true, 'data' => $entries, 'total' => count($entries)]);
     } catch (Exception $e) {
         error_log("List entries error: " . $e->getMessage());
-        json_response(['success' => false, 'message' => 'Failed to fetch entries'], 500);
+        json_response(['success' => false, 'message' => 'Failed to fetch entries', 'error' => $e->getMessage()], 500);
     }
 }
 
