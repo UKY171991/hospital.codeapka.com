@@ -254,7 +254,7 @@ require_once 'inc/sidebar.php';
                         <!-- Add Test Interface -->
                         <div id="addTestInterface" class="card mb-3" style="display: none;">
                             <div class="card-header">
-                    <div class="row">
+                                <div class="row">
                                     <div class="col-md-8">
                                         <h6 class="mb-0">
                                             <i class="fas fa-plus mr-1"></i>
@@ -280,7 +280,7 @@ require_once 'inc/sidebar.php';
                                         <select class="form-control" id="testCategorySelect" onchange="loadTestsForCategory()">
                                             <option value="">Choose category...</option>
                                         </select>
-                                    </div>
+                                </div>
                                     <div class="col-md-5">
                                         <label class="form-label">
                                             <i class="fas fa-vial mr-1"></i>
