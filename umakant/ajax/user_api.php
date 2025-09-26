@@ -113,9 +113,24 @@ if ($action === 'save') {
 
     if ($id) {
         // update (only change password if provided)
-        // update (only change password if provided)
-        // Detect if `user_type` column exists; if not, omit it from queries
         try {
+            // Check for duplicate username (excluding current user)
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
+            $stmt->execute([$username, $id]);
+            if ($stmt->fetch()) {
+                json_response(['success' => false, 'message' => 'Username already exists'], 409);
+            }
+            
+            // Check for duplicate email (excluding current user, if email provided)
+            if (!empty($email)) {
+                $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
+                $stmt->execute([$email, $id]);
+                if ($stmt->fetch()) {
+                    json_response(['success' => false, 'message' => 'Email already exists'], 409);
+                }
+            }
+            
+            // Detect if `user_type` column exists; if not, omit it from queries
             $colCheck = $pdo->prepare("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'user_type'");
             $colCheck->execute();
             $hasUserType = (bool)$colCheck->fetchColumn();
@@ -147,6 +162,22 @@ if ($action === 'save') {
     } else {
         // create
         try {
+            // Check for duplicate username
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
+            $stmt->execute([$username]);
+            if ($stmt->fetch()) {
+                json_response(['success' => false, 'message' => 'Username already exists'], 409);
+            }
+            
+            // Check for duplicate email (if provided)
+            if (!empty($email)) {
+                $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+                $stmt->execute([$email]);
+                if ($stmt->fetch()) {
+                    json_response(['success' => false, 'message' => 'Email already exists'], 409);
+                }
+            }
+            
             $hash = password_hash($password ?: 'password', PASSWORD_DEFAULT);
             $colCheck = $pdo->prepare("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'user_type'");
             $colCheck->execute();

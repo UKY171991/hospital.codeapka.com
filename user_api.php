@@ -159,6 +159,15 @@ try {
                 json_response(['success' => false, 'message' => 'Username already exists'], 409);
             }
             
+            // Check if email already exists (if provided)
+            if (!empty($data['email'])) {
+                $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+                $stmt->execute([$data['email']]);
+                if ($stmt->fetch()) {
+                    json_response(['success' => false, 'message' => 'Email already exists'], 409);
+                }
+            }
+            
             // Hash password
             $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
             
@@ -242,6 +251,15 @@ try {
                 $stmt->execute([$data['username'], $id]);
                 if ($stmt->fetch()) {
                     json_response(['success' => false, 'message' => 'Username already exists'], 409);
+                }
+            }
+            
+            // Check email uniqueness if updating email
+            if (isset($data['email']) && !empty($data['email'])) {
+                $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
+                $stmt->execute([$data['email'], $id]);
+                if ($stmt->fetch()) {
+                    json_response(['success' => false, 'message' => 'Email already exists'], 409);
                 }
             }
             

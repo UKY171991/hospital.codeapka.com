@@ -179,6 +179,40 @@ function handleSave($pdo, $config) {
     }
 
     try {
+        // Check for duplicate username
+        if (!empty($input['username'])) {
+            $check_sql = "SELECT id FROM {$config['table_name']} WHERE username = ?";
+            if ($id) {
+                $check_sql .= " AND id != ?";
+                $stmt = $pdo->prepare($check_sql);
+                $stmt->execute([$input['username'], $id]);
+            } else {
+                $stmt = $pdo->prepare($check_sql);
+                $stmt->execute([$input['username']]);
+            }
+            
+            if ($stmt->fetch()) {
+                json_response(['success' => false, 'message' => 'Username already exists'], 409);
+            }
+        }
+        
+        // Check for duplicate email (if provided)
+        if (!empty($input['email'])) {
+            $check_sql = "SELECT id FROM {$config['table_name']} WHERE email = ?";
+            if ($id) {
+                $check_sql .= " AND id != ?";
+                $stmt = $pdo->prepare($check_sql);
+                $stmt->execute([$input['email'], $id]);
+            } else {
+                $stmt = $pdo->prepare($check_sql);
+                $stmt->execute([$input['email']]);
+            }
+            
+            if ($stmt->fetch()) {
+                json_response(['success' => false, 'message' => 'Email already exists'], 409);
+            }
+        }
+        
         $data = [];
         foreach ($config['allowed_fields'] as $field) {
             if (isset($input[$field])) {
