@@ -824,6 +824,9 @@ function populateEntryForm(entry) {
     
     // Calculate and set auto-calculated fields
     calculateEntryTotals();
+    
+    // Update selected tests display
+    updateSelectedTestsDisplay();
 }
 
 function populateViewModal(entry) {
@@ -1191,8 +1194,11 @@ function populateTestSelect(tests) {
 }
 
 function addSelectedTest() {
+    console.log('addSelectedTest called');
     const testId = $('#testSelect').val();
     const selectedOption = $('#testSelect option:selected');
+    
+    console.log('testId:', testId);
     
     if (!testId) {
         showAlert('Please select a test', 'error');
@@ -1223,6 +1229,7 @@ function addSelectedTest() {
         max: testData.max || null
     });
     
+    console.log('About to call updateSelectedTestsDisplay, selectedTests length:', selectedTests.length);
     updateSelectedTestsDisplay();
     showAlert('Test added successfully', 'success');
     
@@ -1259,9 +1266,10 @@ function calculateEntryTotals() {
 
 function updateSelectedTestsDisplay() {
     const container = $('#testsByCategoryContainer');
+    console.log('updateSelectedTestsDisplay called, selectedTests:', selectedTests.length);
     
     if (selectedTests.length === 0) {
-        container.html('<p class="text-muted">No tests selected. Click "Add Test" to add tests to this entry.</p>');
+        container.html('<div class="alert alert-info"><i class="fas fa-info-circle mr-2"></i>No tests selected. Click "Add Test" to choose tests for this entry.</div>');
         calculateEntryTotals(); // Update totals even when no tests
         return;
     }
