@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Sep 26, 2025 at 04:23 AM
+-- Generation Time: Sep 26, 2025 at 04:49 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -274,10 +274,21 @@ CREATE TABLE `users` (
   `email` varchar(255) DEFAULT NULL,
   `role` varchar(50) NOT NULL DEFAULT 'user',
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `user_type` int(11) NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `last_login` datetime DEFAULT NULL,
-  `expire_date` datetime DEFAULT NULL
+  `expire_date` datetime DEFAULT NULL,
+  `added_by` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `added_by`, `updated_at`) VALUES
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', NULL, '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(2, 'uma', '$2y$12$yBaDoENR.9MOXDLizW.UYunvNev1XOICwYC.WNCRmPEd1fQ5TS85q', 'Uma Yadav', 'umakant171991@gmail.com', 'user', 1, 0, '2025-09-26 10:13:58', NULL, '2025-10-11 10:13:00', '0000-00-00 00:00:00', '2025-09-26 04:43:58');
 
 -- --------------------------------------------------------
 
@@ -498,7 +509,7 @@ ALTER TABLE `tests`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `zip_uploads`
