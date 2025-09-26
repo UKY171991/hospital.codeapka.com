@@ -73,17 +73,22 @@ try {
 
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
-                   t.name AS test_name, COALESCE(t.unit, '') AS units,
-                   t.reference_range, t.min_male, t.max_male, t.min_female, t.max_female,
                    d.name AS doctor_name,
-                   u.username AS added_by_username
+                   u.username AS added_by_username,
+                   COUNT(et.id) as tests_count,
+                   GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,
+                   GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,
+                   SUM(et.price) as total_price,
+                   SUM(et.discount_amount) as total_discount
             FROM entries e 
             LEFT JOIN patients p ON e.patient_id = p.id 
-            LEFT JOIN tests t ON e.test_id = t.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
-            LEFT JOIN users u ON e.added_by = u.id" .
+            LEFT JOIN users u ON e.added_by = u.id
+            LEFT JOIN entry_tests et ON e.id = et.entry_id
+            LEFT JOIN tests t ON et.test_id = t.id" .
             $scopeWhere .
-            " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
+            " GROUP BY e.id
+              ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
@@ -95,9 +100,27 @@ try {
             if (empty($row['entry_date'])) {
                 $row['entry_date'] = $row['created_at'];
             }
-            // Ensure unit field exists
-            if (empty($row['unit']) && !empty($row['units'])) {
-                $row['unit'] = $row['units'];
+            
+            // Format test information
+            $row['tests_count'] = (int)($row['tests_count'] ?? 0);
+            $row['test_names'] = $row['test_names'] ?? '';
+            $row['test_ids'] = $row['test_ids'] ?? '';
+            
+            // Format pricing
+            $row['total_price'] = (float)($row['total_price'] ?? 0);
+            $row['total_discount'] = (float)($row['total_discount'] ?? 0);
+            $row['final_amount'] = $row['total_price'] - $row['total_discount'];
+            
+            // Set grouped flag based on test count
+            $row['grouped'] = $row['tests_count'] > 1 ? 1 : 0;
+            
+            // For backward compatibility, set test_name to first test or all tests
+            if ($row['tests_count'] == 1) {
+                $row['test_name'] = $row['test_names'];
+            } else if ($row['tests_count'] > 1) {
+                $row['test_name'] = $row['tests_count'] . ' tests: ' . $row['test_names'];
+            } else {
+                $row['test_name'] = 'No tests';
             }
         }
         
@@ -117,16 +140,21 @@ try {
 
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
-                   t.name AS test_name, COALESCE(t.unit, '') AS units,
-                   t.reference_range, t.min_male, t.max_male, t.min_female, t.max_female,
                    d.name AS doctor_name,
-                   u.username AS added_by_username
+                   u.username AS added_by_username,
+                   COUNT(et.id) as tests_count,
+                   GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,
+                   GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,
+                   SUM(et.price) as total_price,
+                   SUM(et.discount_amount) as total_discount
             FROM entries e 
             LEFT JOIN patients p ON e.patient_id = p.id 
-            LEFT JOIN tests t ON e.test_id = t.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
             LEFT JOIN users u ON e.added_by = u.id
-            WHERE e.id = ?" . $scopeWhere;
+            LEFT JOIN entry_tests et ON e.id = et.entry_id
+            LEFT JOIN tests t ON et.test_id = t.id
+            WHERE e.id = ?" . $scopeWhere . "
+            GROUP BY e.id";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
@@ -138,12 +166,31 @@ try {
             return;
         }
         
-        // Ensure compatibility fields
+        // Format data for frontend compatibility
         if (empty($row['entry_date'])) {
             $row['entry_date'] = $row['created_at'];
         }
-        if (empty($row['unit']) && !empty($row['units'])) {
-            $row['unit'] = $row['units'];
+        
+        // Format test information
+        $row['tests_count'] = (int)($row['tests_count'] ?? 0);
+        $row['test_names'] = $row['test_names'] ?? '';
+        $row['test_ids'] = $row['test_ids'] ?? '';
+        
+        // Format pricing
+        $row['total_price'] = (float)($row['total_price'] ?? 0);
+        $row['total_discount'] = (float)($row['total_discount'] ?? 0);
+        $row['final_amount'] = $row['total_price'] - $row['total_discount'];
+        
+        // Set grouped flag based on test count
+        $row['grouped'] = $row['tests_count'] > 1 ? 1 : 0;
+        
+        // For backward compatibility, set test_name to first test or all tests
+        if ($row['tests_count'] == 1) {
+            $row['test_name'] = $row['test_names'];
+        } else if ($row['tests_count'] > 1) {
+            $row['test_name'] = $row['tests_count'] . ' tests: ' . $row['test_names'];
+        } else {
+            $row['test_name'] = 'No tests';
         }
         
         json_response(['success' => true, 'data' => $row]);
