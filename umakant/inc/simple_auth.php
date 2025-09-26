@@ -56,8 +56,9 @@ function simpleAuthenticate($pdo) {
         }
     }
     
-    // Check X-Api-Key header
-    if (isset($headers['X-Api-Key']) && hash_equals($sharedSecret, $headers['X-Api-Key'])) {
+    // Check X-Api-Key or X-API-Key header (both variants)
+    $xApiKeyHeader = $headers['X-Api-Key'] ?? ($headers['X-API-Key'] ?? null);
+    if ($xApiKeyHeader && hash_equals($sharedSecret, $xApiKeyHeader)) {
         return [
             'user_id' => 1,
             'role' => 'master',
@@ -89,6 +90,15 @@ function simpleAuthenticate($pdo) {
     // Method 5: Check api_key parameter
     $apiKey = $_REQUEST['api_key'] ?? $_GET['api_key'] ?? $_POST['api_key'] ?? null;
     if ($apiKey) {
+        // If api_key equals the shared secret, accept as master auth too
+        if (hash_equals($sharedSecret, $apiKey)) {
+            return [
+                'user_id' => 1,
+                'role' => 'master',
+                'username' => 'api_system',
+                'auth_method' => 'api_key_shared_secret'
+            ];
+        }
         try {
             $stmt = $pdo->prepare('SELECT id, username, role FROM users WHERE api_token = ? AND is_active = 1');
             $stmt->execute([$apiKey]);
