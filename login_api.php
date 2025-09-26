@@ -7,7 +7,7 @@
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key, X-Api-Key');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -19,9 +19,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Include database connection
+// Include database connection and simple auth
 try {
     require_once __DIR__ . '/umakant/inc/connection.php';
+    require_once __DIR__ . '/umakant/inc/api_config.php';
+    require_once __DIR__ . '/umakant/inc/simple_auth.php';
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
@@ -109,6 +111,17 @@ try {
             ]);
             break;
             
+        case 'health':
+            // Simple health check
+            $auth = function_exists('simpleAuthenticate') ? simpleAuthenticate($pdo) : null;
+            json_response([
+                'success' => true,
+                'message' => 'Login API is healthy',
+                'auth' => $auth ? ['method' => $auth['auth_method'] ?? null, 'role' => $auth['role'] ?? null] : null,
+                'time' => date('Y-m-d H:i:s')
+            ]);
+            break;
+
         case 'logout':
             // User logout
             if (isset($_SESSION['user_id'])) {
@@ -169,9 +182,25 @@ try {
                         'login_time' => $_SESSION['login_time'] ?? null
                     ]
                 ]);
-            } else {
-                json_response(['success' => false, 'message' => 'No active session'], 401);
             }
+
+            // Allow secret_key auth as fallback for diagnostics
+            if (function_exists('simpleAuthenticate')) {
+                $auth = simpleAuthenticate($pdo);
+                if ($auth) {
+                    json_response([
+                        'success' => true,
+                        'message' => 'Authenticated via secret (no active PHP session)',
+                        'data' => [
+                            'user' => [ 'id' => $auth['user_id'] ?? 0, 'username' => $auth['username'] ?? 'api', 'role' => $auth['role'] ?? 'master' ],
+                            'session_id' => null,
+                            'login_time' => null
+                        ]
+                    ]);
+                }
+            }
+
+            json_response(['success' => false, 'message' => 'No active session'], 401);
             break;
             
         case 'change_password':
