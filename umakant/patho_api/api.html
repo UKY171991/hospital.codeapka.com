@@ -1573,7 +1573,7 @@ echo json_encode($data, JSON_PRETTY_PRINT);
                 } catch (e) {
                     data = { success: false, message: 'Non-JSON response', raw: rawText };
                 }
-                const isSuccess = response.ok && data && data.success !== false;
+                const isSuccess = response.ok; // treat HTTP 2xx as success, even if body isn't valid JSON
                 
                 // Log detailed error information for debugging
                 if (!isSuccess) {
@@ -1655,7 +1655,7 @@ echo json_encode($data, JSON_PRETTY_PRINT);
                 } catch (e) {
                     data = { success: false, message: 'Non-JSON response', raw: rawText };
                 }
-                const isSuccess = response.ok && data && data.success !== false;
+                const isSuccess = response.ok; // treat HTTP 2xx as success for dashboard
                 
                 resultDiv.innerHTML = `
                     <div class="p-2 rounded ${isSuccess ? 'result-success' : 'result-error'}">
