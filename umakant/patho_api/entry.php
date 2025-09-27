@@ -153,18 +153,36 @@ function handleList($pdo, $config) {
             $params = $scopeIds;
         }
 
-        $sql = "SELECT e.*, p.name as patient_name, p.uhid as patient_uhid, d.name as doctor_name, t.name as test_name, u.username as added_by_username
+        // Primary (rich) query
+        // Join tests table only if column test_id exists (older schema may not have it)
+        $testJoin = '';
+        try {
+            $chk = $pdo->query("SHOW COLUMNS FROM {$config['table_name']} LIKE 'test_id'")->fetch();
+            if ($chk) { $testJoin = " LEFT JOIN tests t ON e.test_id = t.id "; }
+        } catch (Throwable $ignore) { $testJoin = ''; }
+
+        $sqlRich = "SELECT e.*, p.name as patient_name, p.uhid as patient_uhid, d.name as doctor_name, ".
+                ($testJoin ? "t.name as test_name, " : "NULL as test_name, ") .
+                "u.username as added_by_username
                 FROM {$config['table_name']} e 
                 LEFT JOIN patients p ON e.patient_id = p.id 
-                LEFT JOIN tests t ON e.test_id = t.id 
+                $testJoin
                 LEFT JOIN doctors d ON e.doctor_id = d.id 
                 LEFT JOIN users u ON e.added_by = u.id" .
                 $where .
                 " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        try {
+            $stmt = $pdo->prepare($sqlRich);
+            $stmt->execute($params);
+            $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $inner) {
+            // Fallback query with minimal dependencies
+            $sqlFallback = "SELECT e.* FROM {$config['table_name']} e" . $where . " ORDER BY e.id DESC";
+            $stmt = $pdo->prepare($sqlFallback);
+            $stmt->execute($params);
+            $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
         json_response(['success' => true, 'data' => $entries, 'total' => count($entries)]);
     } catch (Exception $e) {

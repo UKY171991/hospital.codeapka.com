@@ -131,7 +131,7 @@ $role = $_SESSION['role'] ?? 'user';
 
         <?php
         // OPD menu and its pages - adjust filenames as needed
-        $opdPages = ['opd_patient.php','opd_doctor.php','department.php','appointment.php'];
+        $opdPages = ['opd_dashboard.php', 'opd_patient.php','opd_doctor.php','department.php','appointment.php', 'opd_billing.php', 'opd_reports.php'];
         $isOpdActive = in_array($activePage, $opdPages);
         ?>
         <li class="nav-item has-treeview <?php echo $isOpdActive ? 'menu-open' : ''; ?>">
@@ -143,6 +143,12 @@ $role = $_SESSION['role'] ?? 'user';
             </p>
           </a>
           <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="opd_dashboard.php" class="nav-link <?php echo ($activePage == 'opd_dashboard.php') ? 'active' : ''; ?>">
+                <i class="fas fa-tachometer-alt nav-icon"></i>
+                <p>Dashboard</p>
+              </a>
+            </li>
             <li class="nav-item">
               <a href="opd_patient.php" class="nav-link <?php echo ($activePage == 'opd_patient.php') ? 'active' : ''; ?>">
                 <i class="fas fa-user nav-icon"></i>
@@ -165,6 +171,18 @@ $role = $_SESSION['role'] ?? 'user';
               <a href="appointment.php" class="nav-link <?php echo ($activePage == 'appointment.php') ? 'active' : ''; ?>">
                 <i class="fas fa-calendar-check nav-icon"></i>
                 <p>User Appointment</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="opd_billing.php" class="nav-link <?php echo ($activePage == 'opd_billing.php') ? 'active' : ''; ?>">
+                <i class="fas fa-file-invoice-dollar nav-icon"></i>
+                <p>Billing</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="opd_reports.php" class="nav-link <?php echo ($activePage == 'opd_reports.php') ? 'active' : ''; ?>">
+                <i class="fas fa-chart-line nav-icon"></i>
+                <p>Reports</p>
               </a>
             </li>
           </ul>
