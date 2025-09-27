@@ -85,6 +85,12 @@ include_once 'inc/sidebar.php';
             <label for="editDoctorAddress">Address</label>
             <textarea class="form-control" id="editDoctorAddress" name="address"></textarea>
           </div>
+          <div class="form-group">
+            <label for="editDoctorAddedBy">Added By</label>
+            <select class="form-control" id="editDoctorAddedBy" name="added_by">
+              <!-- Options will be loaded via JavaScript -->
+            </select>
+          </div>
         </form>
       </div>
       <div class="modal-footer">
@@ -126,6 +132,12 @@ include_once 'inc/sidebar.php';
           <div class="form-group">
             <label for="addDoctorAddress">Address</label>
             <textarea class="form-control" id="addDoctorAddress" name="address"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="addDoctorAddedBy">Added By</label>
+            <select class="form-control" id="addDoctorAddedBy" name="added_by">
+              <!-- Options will be loaded via JavaScript -->
+            </select>
           </div>
         </form>
       </div>
