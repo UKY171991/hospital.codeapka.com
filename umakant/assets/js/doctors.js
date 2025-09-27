@@ -1,6 +1,6 @@
 $(function(){
   // Initialize DataTable (assuming it's already initialized in the PHP file)
-  var table = $('#doctorTable').DataTable();
+  var table = window.doctorTable;
 
   // Handle click on Add New Doctor button
   $(document).on('click', '#addDoctorBtn', function(){

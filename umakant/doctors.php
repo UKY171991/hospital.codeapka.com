@@ -147,7 +147,7 @@ include_once 'inc/sidebar.php';
 <script>
 $(function(){
   // Initialize DataTable with Ajax source and buttons
-  var table = $('#doctorTable').DataTable({
+  window.doctorTable = $('#doctorTable').DataTable({
     processing: true,
     responsive: true,
     ajax: {
