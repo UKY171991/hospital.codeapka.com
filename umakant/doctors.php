@@ -141,8 +141,8 @@ include_once 'inc/sidebar.php';
 
 
 <!-- Page-specific CSS/JS -->
-<link rel="stylesheet" href="umakant/assets/css/doctors.css">
-<script src="umakant/assets/js/doctors.js"></script>
+<link rel="stylesheet" href="assets/css/doctors.css">
+<script src="assets/js/doctors.js"></script>
 
 <script>
 $(function(){
