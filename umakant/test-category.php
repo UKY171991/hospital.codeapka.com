@@ -133,16 +133,33 @@ require_once __DIR__ . '/inc/category_view_modal.php'; ?>
 <script>
 function loadCategories(){
     $.get('ajax/test_category_api.php',{action:'list'},function(resp){
-    if(resp.success){ var t=''; resp.data.forEach(function(c){ t += '<tr>'+
-        '<td>'+c.id+'</td>'+
-        '<td>'+ (c.name||'') +'</td>'+
-        '<td>'+ (c.description||'') +'</td>'+
-        '<td>'+ ((c.added_by_username && c.added_by_username!='')?c.added_by_username:(c.added_by||'')) +'</td>'+
-        '<td><button class="btn btn-sm btn-info view-category" data-id="'+c.id+'" onclick="viewCategory('+c.id+')">View</button> '+
-            '<button class="btn btn-sm btn-warning edit-category" data-id="'+c.id+'">Edit</button> '+
-            '<button class="btn btn-sm btn-danger delete-category" data-id="'+c.id+'">Delete</button></td>'+
-        '</tr>'; }); $('#categoriesTable tbody').html(t);
-        } else toastr.error('Failed to load categories');
+        if(resp.success){
+            var $table = $('#categoriesTable');
+            // Destroy existing DataTable instance if it exists
+            if ($.fn.DataTable.isDataTable($table)) {
+                $table.DataTable().destroy();
+            }
+
+            var t='';
+            resp.data.forEach(function(c, idx){
+                t += '<tr>'+
+                    '<td>'+(idx+1)+'</td>'+ // S.No.
+                    '<td>'+c.id+'</td>'+
+                    '<td>'+ (c.name||'') +'</td>'+
+                    '<td>'+ (c.description||'') +'</td>'+
+                    '<td>'+ (c.test_count||0) +'</td>'+
+                    '<td>'+ ((c.added_by_username && c.added_by_username!='')?c.added_by_username:(c.added_by||'')) +'</td>'+
+                    '<td><button class="btn btn-sm btn-info view-category" data-id="'+c.id+'" onclick="viewCategory('+c.id+')">View</button> '+
+                        '<button class="btn btn-sm btn-primary edit-category" data-id="'+c.id+'">Edit</button> '+
+                        '<button class="btn btn-sm btn-danger delete-category" data-id="'+c.id+'">Delete</button></td>'+
+                    '</tr>';
+            });
+            $('#categoriesTable tbody').html(t);
+            // Reinitialize DataTable
+            initDataTable('#categoriesTable');
+        } else {
+            toastr.error('Failed to load categories');
+        }
     },'json');
 }
 
@@ -169,51 +186,72 @@ function viewCategory(id){
 }
 
 $(function(){
-    // Load categories and initialize DataTable after data is loaded
-    $.get('ajax/test_category_api.php', { action: 'list' }, function(resp){
-        if(resp.success && Array.isArray(resp.data)){
-            var $tbody = $('#categoriesTable tbody');
-            $tbody.empty();
-            resp.data.forEach(function(c, idx){
-                var tr = $('<tr>').attr('data-id', c.id)
-                    .attr('data-name', c.name)
-                    .attr('data-description', c.description)
-                    .attr('data-added_by_username', c.added_by_username);
-                tr.append($('<td>').text(idx+1)); // S.No.
-                tr.append($('<td>').text(c.id));
-                tr.append($('<td>').text(c.name));
-                tr.append($('<td>').text(c.description));
-                tr.append($('<td>').text(c.test_count || 0)); // Test Count
-                tr.append($('<td>').text(c.added_by_username));
-                var actions = '<button class="btn btn-sm btn-info" onclick="viewCategory('+c.id+')">View</button> '
-                    +'<button class="btn btn-sm btn-primary edit-category" data-id="'+c.id+'">Edit</button> '
-                    +'<button class="btn btn-sm btn-danger delete-category" data-id="'+c.id+'">Delete</button>';
-                tr.append($('<td>').html(actions));
-                $tbody.append(tr);
-            });
-            // Initialize DataTable globally
-            initDataTable('#categoriesTable');
-        } else {
-            toastr.error(resp.message || 'Failed to load categories');
-        }
-    }, 'json');
+    // Initial load of categories
+    loadCategories();
 
-    // Save, edit, delete handlers remain unchanged
-    $('#saveCategoryBtn').click(function(){ var data=$('#categoryForm').serialize() + '&action=save'; $.post('ajax/test_category_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message||'Saved'); $('#categoryModal').modal('hide'); location.reload(); } else toastr.error(resp.message||'Save failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); }); });
+    // Save, edit, delete handlers
+    $('#saveCategoryBtn').click(function(){
+        var data=$('#categoryForm').serialize() + '&action=save';
+        $.post('ajax/test_category_api.php', data, function(resp){
+            if(resp.success){
+                toastr.success(resp.message||'Saved');
+                $('#categoryModal').modal('hide');
+                loadCategories(); // Refresh table after save
+            } else {
+                toastr.error(resp.message||'Save failed');
+            }
+        }, 'json').fail(function(xhr){
+            var msg = xhr.responseText || 'Server error';
+            try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){}
+            toastr.error(msg);
+        });
+    });
 
     $(document).on('click', '.edit-category', function(){
         try{
             var id=$(this).data('id');
             $.get('ajax/test_category_api.php',{action:'get',id:id}, function(resp){
-                if(resp.success){ var d=resp.data; $('#categoryId').val(d.id); $('#categoryName').val(d.name); $('#categoryDescription').val(d.description); $('#categoryModalLabel').text('Edit Category'); $('#saveCategoryBtn').show(); $('#categoryForm').find('input,textarea,select').prop('disabled', false); $('#categoryModal').modal('show'); } else toastr.error('Category not found');
-            },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
-        }catch(err){ toastr.error('Error: '+(err.message||err)); }
+                if(resp.success){
+                    var d=resp.data;
+                    $('#categoryId').val(d.id);
+                    $('#categoryName').val(d.name);
+                    $('#categoryDescription').val(d.description);
+                    $('#categoryModalLabel').text('Edit Category');
+                    $('#saveCategoryBtn').show();
+                    $('#categoryForm').find('input,textarea,select').prop('disabled', false);
+                    $('#categoryModal').modal('show');
+                } else {
+                    toastr.error('Category not found');
+                }
+            },'json').fail(function(xhr){
+                var msg = xhr.responseText || 'Server error';
+                try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){}
+                toastr.error(msg);
+            });
+        }catch(err){
+            toastr.error('Error: '+(err.message||err));
+        }
     });
 
     $(document).on('click', '.delete-category', function(){
         try{
-            if(!confirm('Delete category?')) return; var id=$(this).data('id'); $.post('ajax/test_category_api.php',{action:'delete',id:id}, function(resp){ if(resp.success){ toastr.success(resp.message); location.reload(); } else toastr.error(resp.message||'Delete failed'); }, 'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
-        }catch(err){ toastr.error('Error: '+(err.message||err)); }
+            if(!confirm('Delete category?')) return;
+            var id=$(this).data('id');
+            $.post('ajax/test_category_api.php',{action:'delete',id:id}, function(resp){
+                if(resp.success){
+                    toastr.success(resp.message);
+                    loadCategories(); // Refresh table after delete
+                } else {
+                    toastr.error(resp.message||'Delete failed');
+                }
+            }, 'json').fail(function(xhr){
+                var msg = xhr.responseText || 'Server error';
+                try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){}
+                toastr.error(msg);
+            });
+        }catch(err){
+            toastr.error('Error: '+(err.message||err));
+        }
     });
 
     $('#categoryModal').on('hidden.bs.modal', function(){
