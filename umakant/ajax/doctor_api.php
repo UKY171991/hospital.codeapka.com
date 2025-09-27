@@ -128,12 +128,12 @@ try {
         $address = trim($_POST['address'] ?? '');
         $registration_no = trim($_POST['registration_no'] ?? '');
         $percent = isset($_POST['percent']) ? (float)$_POST['percent'] : 0.00;
-        $added_by = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+        $added_by = isset($_POST['added_by']) ? (int)$_POST['added_by'] : (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null);
 
         if ($id) {
             try {
-                $stmt = $pdo->prepare('UPDATE doctors SET name=?, hospital=?, contact_no=?, percent=?, address=?, updated_at=NOW() WHERE id=?');
-                $stmt->execute([$name, $hospital, $contact_no, $percent, $address, $id]);
+                $stmt = $pdo->prepare('UPDATE doctors SET name=?, hospital=?, contact_no=?, percent=?, address=?, added_by=?, updated_at=NOW() WHERE id=?');
+                $stmt->execute([$name, $hospital, $contact_no, $percent, $address, $added_by, $id]);
                 json_response(['success' => true, 'message' => 'Doctor updated']);
             } catch (PDOException $e) {
                 json_response(['success' => false, 'message' => 'Server error: ' . $e->getMessage()], 500);
