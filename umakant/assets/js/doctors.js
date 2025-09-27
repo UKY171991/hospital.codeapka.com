@@ -1,11 +1,53 @@
 $(function(){
-  // Nothing heavy here — keep page-specific behavior in this file if needed.
-  // The DataTable initialization is kept inline in the PHP file because it
-  // references server-rendered variables and modal IDs directly. If you want
-  // I can fully move the initialization as well and use a small init function.
+  // Handle click on Edit button
+  $(document).on('click', '#doctorTable .edit-btn', function(e){
+    e.preventDefault();
+    var id = $(this).data('id');
+    if(!id){ console.warn('edit-btn clicked but data-id missing'); return; }
 
-  // Example helper: ensure buttons in action column don't collapse when table is redrawn.
-  $('#doctorTable').on('draw.dt', function(){
-    // No-op for now; placeholder for page-specific JS hooks.
+    // Fetch doctor data
+    $.get('ajax/doctor_api.php', { action: 'get', id: id }, function(r){
+      if(r && r.success){
+        var d = r.data;
+        // Populate the form fields
+        $('#editDoctorId').val(d.id);
+        $('#editDoctorName').val(d.name);
+        $('#editDoctorHospital').val(d.hospital);
+        $('#editDoctorContactNo').val(d.contact_no);
+        $('#editDoctorPercent').val(d.percent);
+        $('#editDoctorAddress').val(d.address);
+
+        // Show the modal
+        $('#editDoctorModal').modal('show');
+      } else {
+        console.error('Failed to load doctor for editing:', r && r.message);
+        toastr.error((r && r.message) || 'Failed to load doctor for editing');
+      }
+    }, 'json').fail(function(xhr){
+      console.error('Ajax error fetching doctor for editing', xhr);
+      toastr.error('Server error fetching doctor details');
+    });
+  });
+
+  // Handle Save Changes button click in the edit modal
+  $('#saveDoctorChanges').on('click', function(e){
+    e.preventDefault();
+    var formData = $('#editDoctorForm').serializeArray();
+    formData.push({name: 'action', value: 'update'});
+
+    $.post('ajax/doctor_api.php', formData, function(r){
+      if(r && r.success){
+        toastr.success(r.message || 'Doctor updated successfully!');
+        $('#editDoctorModal').modal('hide');
+        // Reload the DataTable
+        $('#doctorTable').DataTable().ajax.reload(null, false);
+      } else {
+        console.error('Failed to update doctor:', r && r.message);
+        toastr.error((r && r.message) || 'Failed to update doctor');
+      }
+    }, 'json').fail(function(xhr){
+      console.error('Ajax error updating doctor', xhr);
+      toastr.error('Server error updating doctor');
+    });
   });
 });

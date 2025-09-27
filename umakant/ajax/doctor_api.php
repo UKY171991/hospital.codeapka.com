@@ -7,6 +7,11 @@ session_start();
 try {
     $action = $_REQUEST['action'] ?? ($_SERVER['REQUEST_METHOD'] === 'POST' ? 'save' : 'list');
 
+    // If action is 'update', change it to 'save' to reuse existing logic
+    if ($action === 'update') {
+        $action = 'save';
+    }
+
     if ($action === 'list') {
         // Support DataTables server-side processing
         $draw = $_POST['draw'] ?? 1;

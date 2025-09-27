@@ -48,7 +48,52 @@ include_once 'inc/sidebar.php';
     </div>
   </div>
 
+
+<!-- Edit Doctor Modal -->
+<div class="modal fade" id="editDoctorModal" tabindex="-1" role="dialog" aria-labelledby="editDoctorModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editDoctorModalLabel">Edit Doctor</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editDoctorForm">
+          <input type="hidden" id="editDoctorId" name="id">
+          <div class="form-group">
+            <label for="editDoctorName">Name</label>
+            <input type="text" class="form-control" id="editDoctorName" name="name" required>
+          </div>
+          <div class="form-group">
+            <label for="editDoctorHospital">Hospital</label>
+            <input type="text" class="form-control" id="editDoctorHospital" name="hospital">
+          </div>
+          <div class="form-group">
+            <label for="editDoctorContactNo">Contact No</label>
+            <input type="text" class="form-control" id="editDoctorContactNo" name="contact_no">
+          </div>
+          <div class="form-group">
+            <label for="editDoctorPercent">Percent</label>
+            <input type="number" step="0.01" class="form-control" id="editDoctorPercent" name="percent">
+          </div>
+          <div class="form-group">
+            <label for="editDoctorAddress">Address</label>
+            <textarea class="form-control" id="editDoctorAddress" name="address"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="saveDoctorChanges">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <?php include_once 'inc/footer.php'; ?>
+
 
 <!-- Page-specific CSS/JS -->
 <link rel="stylesheet" href="umakant/assets/css/doctors.css">
@@ -82,6 +127,7 @@ $(function(){
       { data: null, orderable: false, searchable: false, render: function(data,type,row){
         return '<div class="btn-group btn-group-sm action-buttons" role="group" aria-label="Actions" style="white-space:nowrap;">'
            + '<button class="btn btn-primary btn-action view-btn mr-1" data-id="'+row.id+'">View</button>'
+           + '<button class="btn btn-info btn-action edit-btn mr-1" data-id="'+row.id+'">Edit</button>'
            + '<button class="btn btn-danger del-btn" data-id="'+row.id+'">Delete</button>'
            + '</div>';
       } }
