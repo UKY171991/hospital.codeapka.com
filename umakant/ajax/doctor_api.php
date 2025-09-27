@@ -132,16 +132,16 @@ try {
 
         if ($id) {
             try {
-                $stmt = $pdo->prepare('UPDATE doctors SET server_id=?, name=?, qualification=?, specialization=?, hospital=?, contact_no=?, phone=?, percent=?, email=?, address=?, registration_no=?, updated_at=NOW() WHERE id=?');
-                $stmt->execute([$server_id, $name, $qualification, $specialization, $hospital, $contact_no, $phone, $percent, $email, $address, $registration_no, $id]);
+                $stmt = $pdo->prepare('UPDATE doctors SET name=?, hospital=?, contact_no=?, percent=?, address=?, updated_at=NOW() WHERE id=?');
+                $stmt->execute([$name, $hospital, $contact_no, $percent, $address, $id]);
                 json_response(['success' => true, 'message' => 'Doctor updated']);
             } catch (PDOException $e) {
                 json_response(['success' => false, 'message' => 'Server error: ' . $e->getMessage()], 500);
             }
         } else {
             try {
-                $stmt = $pdo->prepare('INSERT INTO doctors (server_id, name, qualification, specialization, hospital, contact_no, phone, percent, email, address, registration_no, added_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
-                $stmt->execute([$server_id, $name, $qualification, $specialization, $hospital, $contact_no, $phone, $percent, $email, $address, $registration_no, $added_by]);
+                $stmt = $pdo->prepare('INSERT INTO doctors (name, hospital, contact_no, percent, address, added_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())');
+                $stmt->execute([$name, $hospital, $contact_no, $percent, $address, $added_by]);
                 json_response(['success' => true, 'message' => 'Doctor added']);
             } catch (PDOException $e) {
                 json_response(['success' => false, 'message' => 'Server error: ' . $e->getMessage()], 500);
