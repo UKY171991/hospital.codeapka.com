@@ -2,9 +2,32 @@ $(function(){
   // Initialize DataTable (assuming it's already initialized in the PHP file)
   var table = window.doctorTable;
 
+  // Function to load users into the "Added By" dropdowns
+  function loadAddedByUsers(selectedUserId = null) {
+    $.get('ajax/user_api.php', { action: 'list' }, function(r){
+      if(r && r.success && r.data){
+        var options = '<option value="">Select User</option>';
+        $.each(r.data, function(i, user){
+          options += '<option value="' + user.id + '"' + (selectedUserId == user.id ? ' selected' : '') + '>' + user.username + '</option>';
+        });
+        $('#filterAddedBy, #addDoctorAddedBy, #editDoctorAddedBy').html(options);
+      } else {
+        console.error('Failed to load users:', r && r.message);
+        toastr.error((r && r.message) || 'Failed to load users for "Added By" dropdown.');
+      }
+    }, 'json').fail(function(xhr){
+      console.error('Ajax error fetching users', xhr);
+      toastr.error('Server error fetching users for "Added By" dropdown.');
+    });
+  }
+
+  // Load users when the page loads
+  loadAddedByUsers();
+
   // Handle click on Add New Doctor button
   $(document).on('click', '#addDoctorBtn', function(){
     $('#addDoctorForm')[0].reset(); // Clear form fields
+    loadAddedByUsers(); // Reload users for add form
     $('#addDoctorModal').modal('show');
   });
 
@@ -46,6 +69,7 @@ $(function(){
         $('#editDoctorContactNo').val(d.contact_no);
         $('#editDoctorPercent').val(d.percent);
         $('#editDoctorAddress').val(d.address);
+        loadAddedByUsers(d.added_by); // Load users and pre-select the doctor's added_by user
 
         // Show the modal
         $('#editDoctorModal').modal('show');
