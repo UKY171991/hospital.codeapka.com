@@ -149,6 +149,33 @@ include_once 'inc/sidebar.php';
   </div>
 </div>
 
+<!-- View Doctor Modal -->
+<div class="modal fade" id="viewDoctorModal" tabindex="-1" role="dialog" aria-labelledby="viewDoctorModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="viewDoctorModalLabel">Doctor Details</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p><strong>ID:</strong> <span id="viewDoctorId"></span></p>
+        <p><strong>Name:</strong> <span id="viewDoctorName"></span></p>
+        <p><strong>Hospital:</strong> <span id="viewDoctorHospital"></span></p>
+        <p><strong>Contact No:</strong> <span id="viewDoctorContactNo"></span></p>
+        <p><strong>Percent:</strong> <span id="viewDoctorPercent"></span></p>
+        <p><strong>Address:</strong> <span id="viewDoctorAddress"></span></p>
+        <p><strong>Added By:</strong> <span id="viewDoctorAddedBy"></span></p>
+        <p><strong>Created At:</strong> <span id="viewDoctorCreatedAt"></span></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <?php include_once 'inc/footer.php'; ?>
 
 
@@ -179,8 +206,8 @@ include_once 'inc/sidebar.php';
         { data: 'created_at' },
         { data: null, orderable: false, searchable: false, render: function(data,type,row){
           return '<div class="btn-group btn-group-sm action-buttons" role="group" aria-label="Actions" style="white-space:nowrap;">'
-             + '<button class="btn btn-primary btn-action view-btn mr-1" data-id="'+row.id+'">View</button>'
-             + '<button class="btn btn-info btn-action edit-btn mr-1" data-id="'+row.id+'">Edit</button>'
+             + '<button class="btn btn-primary btn-action view-btn" data-id="'+row.id+'">View</button>'
+             + '<button class="btn btn-info btn-action edit-btn" data-id="'+row.id+'">Edit</button>'
              + '<button class="btn btn-danger del-btn" data-id="'+row.id+'">Delete</button>'
              + '</div>';
         } }

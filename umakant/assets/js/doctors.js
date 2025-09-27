@@ -80,4 +80,54 @@ $(function(){
       toastr.error('Server error updating doctor');
     });
   });
+
+  // Handle click on View button
+  $(document).on('click', '#doctorTable .view-btn', function(e){
+    e.preventDefault();
+    var id = $(this).data('id');
+    if(!id){ console.warn('view-btn clicked but data-id missing'); return; }
+
+    $.get('ajax/doctor_api.php', { action: 'get', id: id }, function(r){
+      if(r && r.success){
+        var d = r.data;
+        $('#viewDoctorId').text(d.id);
+        $('#viewDoctorName').text(d.name);
+        $('#viewDoctorHospital').text(d.hospital);
+        $('#viewDoctorContactNo').text(d.contact_no);
+        $('#viewDoctorPercent').text(d.percent);
+        $('#viewDoctorAddress').text(d.address);
+        $('#viewDoctorAddedBy').text(d.added_by_username);
+        $('#viewDoctorCreatedAt').text(d.created_at);
+        $('#viewDoctorModal').modal('show');
+      } else {
+        console.error('Failed to load doctor for viewing:', r && r.message);
+        toastr.error((r && r.message) || 'Failed to load doctor for viewing');
+      }
+    }, 'json').fail(function(xhr){
+      console.error('Ajax error fetching doctor for viewing', xhr);
+      toastr.error('Server error fetching doctor details');
+    });
+  });
+
+  // Handle click on Delete button
+  $(document).on('click', '#doctorTable .del-btn', function(e){
+    e.preventDefault();
+    var id = $(this).data('id');
+    if(!id){ console.warn('del-btn clicked but data-id missing'); return; }
+
+    if(confirm('Are you sure you want to delete this doctor?')){
+      $.post('ajax/doctor_api.php', { action: 'delete', id: id }, function(r){
+        if(r && r.success){
+          toastr.success(r.message || 'Doctor deleted successfully!');
+          table.ajax.reload(null, false);
+        } else {
+          console.error('Failed to delete doctor:', r && r.message);
+          toastr.error((r && r.message) || 'Failed to delete doctor');
+        }
+      }, 'json').fail(function(xhr){
+        console.error('Ajax error deleting doctor', xhr);
+        toastr.error('Server error deleting doctor');
+      });
+    }
+  });
 });
