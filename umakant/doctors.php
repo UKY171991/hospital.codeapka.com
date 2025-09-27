@@ -26,6 +26,9 @@ include_once 'inc/sidebar.php';
                   <option value="">All</option>
                 </select>
               </div>
+              <div class="col-md-9 text-right">
+                <button class="btn btn-success" id="addDoctorBtn">Add New Doctor</button>
+              </div>
             </div>
             <table class="table table-bordered table-sm" id="doctorTable">
                 <thead>
@@ -87,6 +90,48 @@ include_once 'inc/sidebar.php';
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         <button type="button" class="btn btn-primary" id="saveDoctorChanges">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Doctor Modal -->
+<div class="modal fade" id="addDoctorModal" tabindex="-1" role="dialog" aria-labelledby="addDoctorModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addDoctorModalLabel">Add New Doctor</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="addDoctorForm">
+          <div class="form-group">
+            <label for="addDoctorName">Name</label>
+            <input type="text" class="form-control" id="addDoctorName" name="name" required>
+          </div>
+          <div class="form-group">
+            <label for="addDoctorHospital">Hospital</label>
+            <input type="text" class="form-control" id="addDoctorHospital" name="hospital">
+          </div>
+          <div class="form-group">
+            <label for="addDoctorContactNo">Contact No</label>
+            <input type="text" class="form-control" id="addDoctorContactNo" name="contact_no">
+          </div>
+          <div class="form-group">
+            <label for="addDoctorPercent">Percent</label>
+            <input type="number" step="0.01" class="form-control" id="addDoctorPercent" name="percent">
+          </div>
+          <div class="form-group">
+            <label for="addDoctorAddress">Address</label>
+            <textarea class="form-control" id="addDoctorAddress" name="address"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="createDoctor">Add Doctor</button>
       </div>
     </div>
   </div>

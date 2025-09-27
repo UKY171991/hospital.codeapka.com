@@ -1,4 +1,34 @@
 $(function(){
+  // Initialize DataTable (assuming it's already initialized in the PHP file)
+  var table = $('#doctorTable').DataTable();
+
+  // Handle click on Add New Doctor button
+  $(document).on('click', '#addDoctorBtn', function(){
+    $('#addDoctorForm')[0].reset(); // Clear form fields
+    $('#addDoctorModal').modal('show');
+  });
+
+  // Handle Save Changes button click in the add modal
+  $(document).on('click', '#createDoctor', function(e){
+    e.preventDefault();
+    var formData = $('#addDoctorForm').serializeArray();
+    formData.push({name: 'action', value: 'save'});
+
+    $.post('ajax/doctor_api.php', formData, function(r){
+      if(r && r.success){
+        toastr.success(r.message || 'Doctor added successfully!');
+        $('#addDoctorModal').modal('hide');
+        table.ajax.reload(null, false);
+      } else {
+        console.error('Failed to add doctor:', r && r.message);
+        toastr.error((r && r.message) || 'Failed to add doctor');
+      }
+    }, 'json').fail(function(xhr){
+      console.error('Ajax error adding doctor', xhr);
+      toastr.error('Server error adding doctor');
+    });
+  });
+
   // Handle click on Edit button
   $(document).on('click', '#doctorTable .edit-btn', function(e){
     e.preventDefault();
@@ -30,7 +60,7 @@ $(function(){
   });
 
   // Handle Save Changes button click in the edit modal
-  $('#saveDoctorChanges').on('click', function(e){
+  $(document).on('click', '#saveDoctorChanges', function(e){
     e.preventDefault();
     var formData = $('#editDoctorForm').serializeArray();
     formData.push({name: 'action', value: 'update'});
@@ -40,7 +70,7 @@ $(function(){
         toastr.success(r.message || 'Doctor updated successfully!');
         $('#editDoctorModal').modal('hide');
         // Reload the DataTable
-        $('#doctorTable').DataTable().ajax.reload(null, false);
+        table.ajax.reload(null, false);
       } else {
         console.error('Failed to update doctor:', r && r.message);
         toastr.error((r && r.message) || 'Failed to update doctor');
