@@ -1,4 +1,5 @@
 $(function(){
+  console.log('patient.js script started.');
   // Initialize DataTable
   window.patientTable = $('#patientsTable').DataTable({
     processing: true,
@@ -77,6 +78,7 @@ $(function(){
 
   // Handle click on Add New Patient button
   $(document).on('click', '#addPatientBtn', function() {
+    console.log('#addPatientBtn clicked');
     resetForm();
     generateUHID();
     loadAddedByUsers(); // Reload users for add form
@@ -86,6 +88,7 @@ $(function(){
 
   // Handle Save Patient button click in the add/edit modal
   $(document).on('submit', '#patientForm', function(e) {
+    console.log('#patientForm submitted');
     e.preventDefault();
     var formData = new FormData(this);
     formData.append('action', 'save');
@@ -134,6 +137,7 @@ $(function(){
 
   // Handle click on Edit button
   $(document).on('click', '#patientsTable .edit-btn', function(e) {
+    console.log('Edit button clicked');
     e.preventDefault();
     var id = $(this).data('id');
     if (!id) { console.warn('edit-btn clicked but data-id missing'); return; }
@@ -156,6 +160,7 @@ $(function(){
 
   // Handle click on Delete button
   $(document).on('click', '#patientsTable .del-btn', function(e) {
+    console.log('Delete button clicked');
     e.preventDefault();
     var id = $(this).data('id');
     if (!id) { console.warn('del-btn clicked but data-id missing'); return; }
@@ -178,6 +183,7 @@ $(function(){
 
   // Handle click on View button
   $(document).on('click', '#patientsTable .view-btn', function(e) {
+    console.log('View button clicked');
     e.preventDefault();
     var id = $(this).data('id');
     if (!id) { console.warn('view-btn clicked but data-id missing'); return; }
@@ -198,6 +204,7 @@ $(function(){
 
   // Handle change event on the "Filter: Added By" dropdown
   $(document).on('change', '#filterAddedBy', function() {
+    console.log('Filter Added By changed');
     table.ajax.reload(); // Reload the DataTable when the filter changes
   });
 
