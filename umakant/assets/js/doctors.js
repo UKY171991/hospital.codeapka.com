@@ -154,4 +154,9 @@ $(function(){
       });
     }
   });
+
+  // Handle change event on the "Filter: Added By" dropdown
+  $(document).on('change', '#filterAddedBy', function() {
+    table.ajax.reload(); // Reload the DataTable when the filter changes
+  });
 });
