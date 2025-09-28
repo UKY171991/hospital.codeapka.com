@@ -391,6 +391,10 @@ function handleSave() {
         
         $gender = $_POST['gender'] ?? $_POST['sex'] ?? null;
 
+        error_log("DEBUG: handleSave - POST added_by: " . ($_POST['added_by'] ?? 'not set'));
+        $addedByValue = !empty($_POST['added_by']) && is_numeric($_POST['added_by']) ? (int)$_POST['added_by'] : (isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null);
+        error_log("DEBUG: handleSave - Final added_by value: " . $addedByValue);
+
         $data = [
             'name' => trim($_POST['name']),
             'uhid' => !empty($_POST['uhid']) ? trim($_POST['uhid']) : null,
@@ -401,7 +405,7 @@ function handleSave() {
             'father_husband' => !empty($_POST['father_husband']) ? trim($_POST['father_husband']) : null,
             'address' => !empty($_POST['address']) ? trim($_POST['address']) : null,
             // Use numeric user id for foreign-key column if available; otherwise NULL to avoid FK violations
-            'added_by' => !empty($_POST['added_by']) && is_numeric($_POST['added_by']) ? (int)$_POST['added_by'] : (isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null)
+            'added_by' => $addedByValue
         ];
 
         // Attach gender/sex fields only if columns exist in the DB
