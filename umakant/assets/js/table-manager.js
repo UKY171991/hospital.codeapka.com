@@ -25,7 +25,12 @@ function initializeAllTables() {
     
     // Check each table type and initialize only once
     if ($('#patientsTable').length > 0 && !window.initializedTables.has('patientsTable')) {
-        initializePatientTable();
+        if ($.fn.DataTable.isDataTable('#patientsTable')) {
+            // Patient table already initialized elsewhere (e.g., patient.js). Preserve existing instance.
+            markTableAsInitialized('patientsTable');
+        } else {
+            initializePatientTable();
+        }
     }
     
     if ($('#doctorsTable').length > 0 && !window.initializedTables.has('doctorsTable')) {
