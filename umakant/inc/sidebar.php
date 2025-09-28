@@ -62,13 +62,6 @@ $role = $_SESSION['role'] ?? 'user';
             </li>
 
             <li class="nav-item">
-              <a href="owner.php" class="nav-link <?php echo ($activePage == 'owner.php') ? 'active' : ''; ?>">
-                <i class="fas fa-id-badge nav-icon"></i>
-                <p>Owners</p>
-              </a>
-            </li>
-
-            <li class="nav-item">
               <a href="test-category.php" class="nav-link <?php echo ($activePage == 'test-category.php') ? 'active' : ''; ?>">
                 <i class="fas fa-th-list nav-icon"></i>
                 <p>Test Categories</p>
@@ -125,6 +118,13 @@ $role = $_SESSION['role'] ?? 'user';
               </a>
             </li>
             <?php endif; ?>
+
+            <li class="nav-item">
+              <a href="owner.php" class="nav-link <?php echo ($activePage == 'owner.php') ? 'active' : ''; ?>">
+                <i class="fas fa-id-badge nav-icon"></i>
+                <p>Owners</p>
+              </a>
+            </li>
 
           </ul>
         </li>
