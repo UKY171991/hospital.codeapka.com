@@ -249,8 +249,12 @@ require_once 'inc/sidebar.php';
             <label for="patientAddress">Address</label>
             <textarea class="form-control" id="patientAddress" name="address" rows="3"></textarea>
           </div>
-          <!-- Hidden field for added_by, will be set by JS if needed -->
-          <input type="hidden" id="patientAddedBy" name="added_by">
+          <div class="form-group">
+            <label for="patientAddedBy">Added By</label>
+            <select class="form-control" id="patientAddedBy" name="added_by">
+              <!-- Options will be loaded via JavaScript -->
+            </select>
+          </div>
         </form>
       </div>
       <div class="modal-footer">
