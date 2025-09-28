@@ -282,7 +282,6 @@ $(function(){
   });
 
 });
-});
 
 // Global functions for direct calls from HTML (e.g., onclick)
 // These functions need to be in the global scope to be called by onclick attributes
