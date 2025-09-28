@@ -279,8 +279,9 @@ $(function(){
   // Handle click on Export All button
   $(document).on('click', '#exportPatientsBtn', function() {
     console.log('Export All button clicked');
-    // DataTables has built-in export buttons, so this might just trigger those
-    // table.button('.buttons-csv').trigger(); // Example to trigger CSV export
+    // Trigger DataTables CSV export
+    table.button('.buttons-csv').trigger();
+    toastr.info('Exporting patient data...'); // Add a toastr notification
   });
 
 });
