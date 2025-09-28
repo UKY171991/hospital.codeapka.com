@@ -427,6 +427,11 @@ function handleSave() {
                 $setParts[] = "$f = ?";
                 $params[] = $data[$f];
             }
+            // Update added_by only if explicitly provided as a valid numeric value in the request
+            if (isset($_POST['added_by']) && is_numeric($_POST['added_by'])) {
+                $setParts[] = "added_by = ?";
+                $params[] = (int)$_POST['added_by'];
+            }
             if (isset($data['gender'])) {
                 $setParts[] = "gender = ?";
                 $params[] = $data['gender'];
