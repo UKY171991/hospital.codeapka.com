@@ -21,7 +21,7 @@ require_once 'inc/sidebar.php';
                         <div class="card-header">
                             <h3 class="card-title">Owners</h3>
                             <div class="card-tools">
-                                <button class="btn btn-primary" onclick="openAddOwnerModal()"><i class="fas fa-plus"></i> Add Owner</button>
+                                <button type="button" class="btn btn-primary" id="addOwnerBtn"><i class="fas fa-plus"></i> Add Owner</button>
                             </div>
                         </div>
                         <div class="card-body">
@@ -70,100 +70,12 @@ require_once 'inc/sidebar.php';
           <div class="form-group"><label for="ownerAddress">Address</label><textarea class="form-control" name="address" id="ownerAddress" rows="3"></textarea></div>
         </form>
       </div>
-      <div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal">Cancel</button><button id="saveOwnerBtn" class="btn btn-primary">Save Owner</button></div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal">Cancel</button><button id="saveOwnerBtn" type="submit" form="ownerForm" class="btn btn-primary">Save Owner</button></div>
     </div>
   </div>
 </div>
 
-<?php require_once 'inc/footer.php'; ?>
-
 <?php // Include a dedicated, read-only view modal for owners
 require_once __DIR__ . '/inc/owner_view_modal.php'; ?>
 
-<script>
-function loadOwners(){
-  $.get('ajax/owner_api.php',{action:'list'},function(resp){
-   if(resp.success){ 
-    // destroy existing DataTable instance if present to ensure clean re-init
-    try{ if ($.fn.dataTable && $.fn.dataTable.isDataTable('#ownersTable')){ $('#ownersTable').DataTable().clear().destroy(); $('#ownersTable tbody').empty(); } }catch(e){}
-    var t=''; resp.data.forEach(function(o,idx){
-    t += '<tr>'+
-    '<td>'+(idx+1)+'</td>'+
-    '<td>'+o.id+'</td>'+
-    '<td>'+(o.name||'')+'</td>'+
-    '<td>'+(o.phone||'')+'</td>'+
-    '<td>'+(o.whatsapp||'')+'</td>'+
-    '<td>'+(o.email||'')+'</td>'+
-    '<td>'+(o.address||'')+'</td>'+
-    '<td>'+(o.link?("<a href="+JSON.stringify(o.link)+" target=_blank>Open</a>"):'')+'</td>'+
-    '<td>'+(o.added_by_username||'')+'</td>'+
-    '<td><button class="btn btn-sm btn-info" onclick="viewOwner('+o.id+')">View</button> '
-      +'<button class="btn btn-sm btn-warning edit-owner" data-id="'+o.id+'">Edit</button> '
-      +'<button class="btn btn-sm btn-danger delete-owner" data-id="'+o.id+'">Delete</button></td>'+
-    '</tr>';
-    }); $('#ownersTable tbody').html(t); initDataTable('#ownersTable'); }
-    else toastr.error(resp.message||'Failed to load');
-  },'json');
-}
-
-function openAddOwnerModal(){ $('#ownerForm')[0].reset(); $('#ownerId').val(''); $('#ownerModal').modal('show'); }
-
-$(function(){
-  loadOwners();
-  // Edit handler: load data and ensure form is editable
-  $(document).on('click','.edit-owner', function(){
-    var id=$(this).data('id');
-    $.get('ajax/owner_api.php',{action:'get',id:id}, function(resp){
-      if(resp.success){ var o=resp.data;
-        $('#ownerForm').find('input,textarea,select').prop('disabled', false);
-        $('#saveOwnerBtn').show();
-        $('#ownerId').val(o.id); $('#ownerName').val(o.name); $('#ownerPhone').val(o.phone); $('#ownerWhatsapp').val(o.whatsapp||''); $('#ownerEmail').val(o.email); $('#ownerAddress').val(o.address);
-        $('#ownerLink').val(o.link||'');
-        $('#ownerModal').modal('show');
-      } else toastr.error('Not found');
-    },'json');
-  });
-
-  // Delete via AJAX and refresh table (no page reload)
-  $(document).on('click','.delete-owner', function(){
-    if(!confirm('Delete?')) return;
-    var id=$(this).data('id');
-    $.post('ajax/owner_api.php',{action:'delete',id:id}, function(resp){
-      if(resp.success){ toastr.success(resp.message); loadOwners(); }
-      else toastr.error(resp.message||'Delete failed');
-    },'json');
-  });
-
-  // Save via AJAX and refresh table (hide modal first, then reload table)
-  $('#saveOwnerBtn').click(function(){
-    var data=$('#ownerForm').serialize()+'&action=save';
-    $.post('ajax/owner_api.php', data, function(resp){ if(resp.success){ toastr.success(resp.message); $('#ownerModal').modal('hide'); setTimeout(loadOwners, 250); } else toastr.error(resp.message||'Save failed'); },'json');
-  });
-
-  // When modal closes, reset form state so next open is editable
-  $('#ownerModal').on('hidden.bs.modal', function(){
-    $('#ownerForm').find('input,textarea,select').prop('disabled', false);
-    $('#saveOwnerBtn').show();
-  });
-});
-
-function viewOwner(id){
-  $.get('ajax/owner_api.php',{action:'get',id:id}, function(resp){
-    if(resp.success){
-      var o = resp.data;
-      var html = '<table class="table table-sm table-borderless">'+
-        '<tr><th>ID</th><td>'+ (o.id||'') +'</td></tr>'+
-        '<tr><th>Name</th><td>'+ (o.name||'') +'</td></tr>'+
-        '<tr><th>Phone</th><td>'+ (o.phone||'') +'</td></tr>'+
-        '<tr><th>WhatsApp</th><td>'+ (o.whatsapp||'') +'</td></tr>'+
-        '<tr><th>Email</th><td>'+(o.email?('<a href="mailto:'+o.email+'">'+o.email+'</a>'):'N/A')+'</td></tr>'+
-        '<tr><th>Address</th><td>'+ (o.address||'') +'</td></tr>'+
-        '<tr><th>Link</th><td>'+(o.link?('<a href="'+o.link+'" target="_blank">'+o.link+'</a>'):'')+'</td></tr>'+
-        '<tr><th>Added By</th><td>'+ (o.added_by_username||o.added_by||'') +'</td></tr>'+
-        '</table>';
-      $('#ownerViewModal .owner-view-content').html(html);
-      $('#ownerViewModal').modal('show');
-    } else toastr.error('Not found');
-  },'json');
-}
-</script>
+<?php require_once 'inc/footer.php'; ?>
