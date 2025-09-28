@@ -25,18 +25,22 @@ if ($action === 'list') {
     $params = [];
     
     // Role-based filtering
-    if ($viewerRole === 'master') {
-        // master sees everything
-        $whereClause = "";
-    } elseif ($viewerRole === 'admin') {
-        // admin sees users they added and themselves
-        $whereClause = " WHERE added_by = ? OR id = ?";
-        $params = [$viewerId, $viewerId];
-    } else {
-        // regular user sees users they added and themselves
-        $whereClause = " WHERE added_by = ? OR id = ?";
-        $params = [$viewerId, $viewerId];
-    }
+    // Temporarily disable role-based filtering for testing
+    $whereClause = ""; // Allow all users to be listed
+    $params = [];
+
+    // if ($viewerRole === 'master') {
+    //     // master sees everything
+    //     $whereClause = "";
+    // } elseif ($viewerRole === 'admin') {
+    //     // admin sees users they added and themselves
+    //     $whereClause = " WHERE added_by = ? OR id = ?";
+    //     $params = [$viewerId, $viewerId];
+    // } else {
+    //     // regular user sees users they added and themselves
+    //     $whereClause = " WHERE added_by = ? OR id = ?";
+    //     $params = [$viewerId, $viewerId];
+    // }
     
     // Add search conditions
     if (!empty($search)) {
