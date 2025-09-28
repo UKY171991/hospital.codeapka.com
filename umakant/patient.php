@@ -94,74 +94,14 @@ require_once 'inc/sidebar.php';
                         
                         <!-- Card Body -->
                         <div class="card-body">
-                            <!-- Search and Filter Section -->
+                            <!-- Filter Section -->
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="form-group">
-                                        <label>Search Patients</label>
-                                        <input type="text" id="patientsSearch" class="form-control" placeholder="Search by name, mobile, UHID...">
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label>Gender</label>
-                                        <select id="genderFilter" class="form-control">
-                                            <option value="">All Genders</option>
-                                            <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                    </div>
-                                </div>
-                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label>Age Range</label>
-                    <select id="ageRangeFilter" class="form-control">
-                                            <option value="">All Ages</option>
-                                            <option value="0-18">0-18 years</option>
-                                            <option value="19-35">19-35 years</option>
-                                            <option value="36-60">36-60 years</option>
-                                            <option value="60+">60+ years</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label>Registration Date</label>
-                                        <input type="date" id="dateFilter" class="form-control">
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="filterAddedBy">Added By</label>
+                                        <label for="filterAddedBy">Filter: Added By</label>
                                         <select id="filterAddedBy" class="form-control">
                                             <option value="">All</option>
                                         </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                        <div class="form-group">
-                                        <label>&nbsp;</label>
-                                        <button class="btn btn-secondary btn-block" onclick="clearFilters()">
-                                            <i class="fas fa-times"></i> Clear
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Bulk Actions -->
-                            <div id="bulkActions" class="alert alert-info bulk-actions" style="display: none;">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <span class="selected-count">0</span> patients selected
-                                    </div>
-                                    <div class="col-md-6 text-right">
-                                        <button class="btn btn-sm btn-info bulk-export">
-                                            <i class="fas fa-download"></i> Export Selected
-                                        </button>
-                                        <button class="btn btn-sm btn-danger bulk-delete">
-                                            <i class="fas fa-trash"></i> Delete Selected
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -171,52 +111,27 @@ require_once 'inc/sidebar.php';
                                 <table id="patientsTable" class="table table-bordered table-striped">
                                     <thead>
                                         <tr>
-                                            <th width="40px">
-                                                <input type="checkbox" id="selectAll">
-                                            </th>
+                                            <th>ID</th>
                                             <th>UHID</th>
-                                            <th>Patient Details</th>
-                                            <th>Contact</th>
+                                            <th>Name</th>
+                                            <th>Mobile</th>
                                             <th>Age/Gender</th>
                                             <th>Address</th>
                                             <th>Registration</th>
                                             <th>Added By</th>
-                                            <th width="120px">Actions</th>
+                                            <th style="white-space:nowrap; width:150px;">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="patientsTableBody">
-                                        <!-- Dynamic content will be loaded here -->
+                                    <tbody>
+                                        <!-- DataTables will populate this -->
                                     </tbody>
                                 </table>
                             </div>
-
-                            <!-- Loading indicator -->
-                            <div id="loadingIndicator" class="text-center" style="display: none;">
-                                <i class="fas fa-spinner fa-spin fa-2x"></i>
-                                <p>Loading patients...</p>
-                            </div>
-
-                            <!-- No data message -->
-                            <div id="noDataMessage" class="text-center" style="display: none;">
-                                <i class="fas fa-users fa-3x text-muted"></i>
-                                <p class="text-muted">No patients found</p>
-                            </div>
                         </div>
 
-                        <!-- Card Footer with Pagination -->
+                        <!-- Card Footer - DataTables will manage its own pagination -->
                         <div class="card-footer">
-                            <div class="row">
-                                <div class="col-sm-12 col-md-5">
-                                    <div id="paginationInfo"></div>
-                                </div>
-                                <div class="col-sm-12 col-md-7">
-                                    <nav>
-                                        <ul id="pagination" class="pagination pagination-sm m-0 float-right">
-                                            <!-- Pagination will be inserted here -->
-                                        </ul>
-                                    </nav>
-                                </div>
-                            </div>
+                            <!-- DataTables will render pagination here -->
                         </div>
                     </div>
                 </div>

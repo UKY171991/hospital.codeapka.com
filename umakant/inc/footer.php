@@ -33,7 +33,7 @@
     // Load patient-enhanced script on patient.php (it provides enhanced table/export handlers).
     $currentPage = basename($_SERVER['SCRIPT_NAME']);
     if ($currentPage === 'patient.php') {
-        echo '<script src="assets/js/patient-enhanced.js?v=' . time() . '"></script>';
+        echo '<script src="assets/js/patient.js?v=' . time() . '"></script>';
     } else {
         echo '<script src="assets/js/patient-new.js?v=' . time() . '"></script>';
     }
