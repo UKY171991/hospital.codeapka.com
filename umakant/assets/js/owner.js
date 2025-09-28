@@ -34,7 +34,7 @@
     if (!$('#ownersTable').length) return;
 
     bindEvents();
-    loadOwners();
+    ensureOwnerTable();
   }
 
   function bindEvents() {
@@ -68,6 +68,26 @@
       autoWidth: false,
       responsive: true,
       lengthMenu: [10, 25, 50, 100],
+      ajax: function (_data, callback) {
+        $.ajax({
+          url: API_URL,
+          method: 'GET',
+          dataType: 'json',
+          data: { action: 'list' }
+        })
+          .done(function (resp) {
+            const success = resp && resp.success;
+            if (!success && window.toastr) {
+              toastr.warning((resp && resp.message) || 'Failed to load owner records');
+            }
+            callback({ data: success && Array.isArray(resp.data) ? resp.data : [] });
+          })
+          .fail(function (xhr) {
+            console.error('Failed to load owners', xhr);
+            if (window.toastr) toastr.error('Failed to load owner records');
+            callback({ data: [] });
+          });
+      },
       language: {
         search: 'Search:',
         lengthMenu: 'Show _MENU_ entries',
@@ -168,28 +188,7 @@
     const table = ensureOwnerTable();
     if (!table) return;
 
-    table.processing(true);
-
-    $.getJSON(API_URL, { action: 'list' })
-      .done(function (resp) {
-        const rows = resp && resp.success && Array.isArray(resp.data) ? resp.data : [];
-        table.clear();
-        table.rows.add(rows);
-        table.draw();
-
-        if (!(resp && resp.success)) {
-          const message = resp && resp.message ? resp.message : 'Failed to load owner records';
-          if (window.toastr) toastr.warning(message);
-        }
-      })
-      .fail(function (xhr) {
-        console.error('Failed to load owners', xhr);
-        table.clear().draw();
-        if (window.toastr) toastr.error('Failed to load owner records');
-      })
-      .always(function () {
-        table.processing(false);
-      });
+    table.ajax.reload(null, false);
   }
 
   function handleSaveOwner(event) {
