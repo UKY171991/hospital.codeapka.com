@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Sep 26, 2025 at 04:49 AM
+-- Generation Time: Sep 28, 2025 at 08:49 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -31,8 +31,19 @@ CREATE TABLE `categories` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
-  `added_by` int(11) DEFAULT NULL
+  `added_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`id`, `name`, `description`, `added_by`, `created_at`, `updated_at`) VALUES
+(3, 'asd', 'qw', 1, '2025-09-27 10:14:02', '2025-09-27 10:14:36'),
+(4, 'asdf hh', 'sdf', 1, '2025-09-27 10:14:09', '2025-09-27 10:14:40'),
+(5, 'erfg  hh', 'qws', 1, '2025-09-27 10:30:03', '2025-09-27 10:30:11');
 
 -- --------------------------------------------------------
 
@@ -57,6 +68,23 @@ CREATE TABLE `doctors` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+--
+-- Dumping data for table `doctors`
+--
+
+INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specialization`, `hospital`, `contact_no`, `phone`, `email`, `address`, `registration_no`, `percent`, `added_by`, `created_at`, `updated_at`) VALUES
+(5, NULL, 'Test Doctor 2', 'MBBS', 'General', 'Test Hospital', '1234567890', '1234567890', 'test2@example.com', 'Test Address', 'REG124', 10.00, 1, NULL, NULL),
+(6, NULL, 'Wade Solomon', '', '', 'Quas nostrud quibusd', 'Assumenda et suscipi', '', '', 'Ipsum labore eaque a', '', 57.00, 1, '2025-09-27 17:08:37', '2025-09-27 17:08:37'),
+(7, NULL, 'Constance Conrad', NULL, NULL, 'Nostrud obcaecati co', 'Ipsa iusto totam oc', NULL, NULL, 'Porro eum irure odio', NULL, 60.00, 1, '2025-09-27 17:10:52', '2025-09-27 17:10:52'),
+(8, NULL, 'Sylvester Harmon', NULL, NULL, 'Quia et repellendus', 'Cum occaecat dicta u', NULL, NULL, 'Fugiat quas reiciend', NULL, 24.00, 1, '2025-09-27 17:13:41', '2025-09-27 17:13:41'),
+(9, NULL, 'sdef', NULL, NULL, 'qw', 'qw', NULL, NULL, 'qw', NULL, 4.00, 1, '2025-09-27 17:18:42', '2025-09-27 17:18:42'),
+(10, NULL, 'Malcolm Callahan', NULL, NULL, 'Vero qui esse omnis', 'Quis consectetur si', NULL, NULL, 'Adipisicing nobis te', NULL, 34.00, 1, '2025-09-27 17:19:16', '2025-09-27 17:19:16'),
+(11, NULL, 'Candace Lowe', NULL, NULL, 'Sunt cum expedita l', 'Rerum qui id fuga E', NULL, NULL, 'Cumque soluta sint', NULL, 83.00, 1, '2025-09-27 17:26:52', '2025-09-27 17:26:52'),
+(12, NULL, 'Alma Cooke', NULL, NULL, 'Quia et rerum totam', 'Cupiditate sunt et', NULL, NULL, 'Dolor soluta quibusd', NULL, 96.00, 1, '2025-09-27 17:27:21', '2025-09-27 17:27:21'),
+(13, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, 'Ea vero eos et aut t', NULL, 44.00, 2, '2025-09-28 11:32:44', '2025-09-28 11:32:44'),
+(14, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, 'Tempore proident s', NULL, 41.00, 2, '2025-09-28 11:41:15', '2025-09-28 11:41:15'),
+(15, NULL, 'ASD', NULL, NULL, 'QW', 'Q', NULL, NULL, 'Q', NULL, 2.00, 2, '2025-09-28 11:44:10', '2025-09-28 11:44:10');
 
 -- --------------------------------------------------------
 
@@ -174,6 +202,7 @@ CREATE TABLE `patients` (
   `id` int(11) NOT NULL,
   `server_id` int(11) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
+  `email` varchar(100) NOT NULL,
   `mobile` varchar(20) NOT NULL,
   `father_husband` varchar(255) DEFAULT NULL,
   `address` text DEFAULT NULL,
@@ -185,6 +214,15 @@ CREATE TABLE `patients` (
   `updated_at` datetime DEFAULT NULL,
   `added_by` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+--
+-- Dumping data for table `patients`
+--
+
+INSERT INTO `patients` (`id`, `server_id`, `name`, `email`, `mobile`, `father_husband`, `address`, `sex`, `age`, `age_unit`, `uhid`, `created_at`, `updated_at`, `added_by`) VALUES
+(1, NULL, 'Naida Marquez', 'jejasiduw@mailinator.com', '5454455454', 'Indigo Holman', 'Voluptate quibusdam', 'Male', 45, 'Months', 'P033679005', '2025-09-28 12:02:58', '2025-09-28 13:52:46', 2),
+(2, NULL, 'James Sears', 'ciwi@mailinator.com', '5656565656', 'Arthur Oneal', 'Vel nobis error corr', 'Female', 10, 'Years', 'P642622065', '2025-09-28 12:27:50', '2025-09-28 13:52:29', 2),
+(3, NULL, 'Indigo Cortez', 'feloz@mailinator.com', '5454545454', 'Odette Villarreal', 'Et quaerat voluptati', 'Female', 86, 'Days', 'P483791824', '2025-09-28 13:31:49', '2025-09-28 13:55:01', 1);
 
 -- --------------------------------------------------------
 
@@ -287,7 +325,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', NULL, '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-09-28 11:32:26', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
 (2, 'uma', '$2y$12$yBaDoENR.9MOXDLizW.UYunvNev1XOICwYC.WNCRmPEd1fQ5TS85q', 'Uma Yadav', 'umakant171991@gmail.com', 'user', 1, 0, '2025-09-26 10:13:58', NULL, '2025-10-11 10:13:00', '0000-00-00 00:00:00', '2025-09-26 04:43:58');
 
 -- --------------------------------------------------------
@@ -443,13 +481,13 @@ ALTER TABLE `zip_uploads`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `doctors`
 --
 ALTER TABLE `doctors`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `entries`
@@ -485,7 +523,7 @@ ALTER TABLE `password_resets`
 -- AUTO_INCREMENT for table `patients`
 --
 ALTER TABLE `patients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `plans`

@@ -78,7 +78,11 @@
           $tbody.html('<tr><td colspan="10" class="text-center text-muted">' + message + '</td></tr>');
         }
 
-        ownersTableInstance = initDataTable('#ownersTable');
+        try {
+          ownersTableInstance = initDataTable('#ownersTable');
+        } catch (err) {
+          console.error('Failed to initialize owners table DataTable', err);
+        }
       })
       .fail(function (xhr) {
         console.error('Failed to load owners', xhr);
