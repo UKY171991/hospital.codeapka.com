@@ -189,6 +189,7 @@ include_once 'inc/sidebar.php';
       responsive: true,
       ajax: {
         url: 'ajax/doctor_api.php',
+        cache: false,
         data: function(d){
           d.action = 'list';
           var addedBy = $('#filterAddedBy').val();
