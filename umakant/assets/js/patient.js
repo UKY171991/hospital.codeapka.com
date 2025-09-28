@@ -11,11 +11,18 @@ function openAddPatientModal() {
 function loadAddedByUsers(selectedUserId = null) {
   $.get('ajax/user_api.php', { action: 'list' }, function(r){
     if(r && r.success && r.data){
-      var options = '<option value="">All</option>';
+      var filterOptions = '<option value="">All</option>';
+      var formOptions = '<option value="">Select Added By</option>';
       $.each(r.data, function(i, user){
-        options += `<option value="${user.id}" ${selectedUserId == user.id ? 'selected' : ''}>${user.username}</option>`;
+        var optionHtml = `<option value="${user.id}">${user.username}</option>`;
+        filterOptions += optionHtml;
+        formOptions += optionHtml;
       });
-      $('#filterAddedBy, #patientAddedBy').html(options); // Populate filter and modal dropdown
+      $('#filterAddedBy').html(filterOptions); // Populate filter dropdown with "All"
+      $('#patientAddedBy').html(formOptions);
+      if (selectedUserId) {
+        $('#patientAddedBy').val(selectedUserId);
+      }
     } else {
       console.error('Failed to load users:', r && r.message);
       toastr.error((r && r.message) || 'Failed to load users for "Added By" dropdown.');
