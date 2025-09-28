@@ -83,6 +83,9 @@ require_once 'inc/sidebar.php';
                                 Patient Directory
                             </h3>
                             <div class="card-tools">
+                                <button type="button" class="btn btn-primary btn-sm mr-2" onclick="openAddPatientModal()">
+                                    <i class="fas fa-plus"></i> Add New Patient
+                                </button>
                                 <button type="button" class="btn btn-success btn-sm" onclick="exportPatients()">
                                     <i class="fas fa-download"></i> Export All
                                 </button>
@@ -252,5 +255,95 @@ require_once 'inc/sidebar.php';
 
 <!-- Include custom CSS and JavaScript -->
 <link rel="stylesheet" href="assets/css/patient.css">
+
+<!-- Add/Edit Patient Modal -->
+<div class="modal fade" id="patientModal" tabindex="-1" role="dialog" aria-labelledby="patientModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalTitle">Add New Patient</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="patientForm">
+          <input type="hidden" id="patientId" name="id">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="patientName">Patient Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="patientName" name="name" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="patientUHID">UHID</label>
+                <input type="text" class="form-control" id="patientUHID" name="uhid" readonly>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="patientMobile">Mobile No. <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="patientMobile" name="mobile" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="patientEmail">Email</label>
+                <input type="email" class="form-control" id="patientEmail" name="email">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="patientAge">Age</label>
+                <input type="number" class="form-control" id="patientAge" name="age">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="patientAgeUnit">Age Unit</label>
+                <select class="form-control" id="patientAgeUnit" name="age_unit">
+                  <option value="Years">Years</option>
+                  <option value="Months">Months</option>
+                  <option value="Days">Days</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="patientGender">Gender</label>
+                <select class="form-control" id="patientGender" name="gender">
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="patientFatherHusband">Father/Husband Name</label>
+            <input type="text" class="form-control" id="patientFatherHusband" name="father_husband">
+          </div>
+          <div class="form-group">
+            <label for="patientAddress">Address</label>
+            <textarea class="form-control" id="patientAddress" name="address" rows="3"></textarea>
+          </div>
+          <!-- Hidden field for added_by, will be set by JS if needed -->
+          <input type="hidden" id="patientAddedBy" name="added_by">
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" form="patientForm" class="btn btn-primary">Save Patient</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <?php require_once 'inc/footer.php'; ?>
