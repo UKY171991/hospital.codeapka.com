@@ -8,10 +8,63 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 ob_start();
 
 try{
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid method');
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    $action = $_REQUEST['action'] ?? ($method === 'GET' ? 'list' : 'upload');
+
+    // LIST action (supports DataTables / client fetch)
+    if ($action === 'list') {
+        $uploadsDir = realpath(__DIR__ . '/../uploads');
+        $rows = [];
+
+        $hasTable = false;
+        try {
+            $stmt = $pdo->query("SHOW TABLES LIKE 'zip_uploads'");
+            $hasTable = $stmt->fetch() ? true : false;
+        } catch (Throwable $e) {
+            $hasTable = false;
+        }
+
+        if ($hasTable) {
+            $stmt = $pdo->query("SELECT z.id, z.file_name, z.original_name, z.relative_path, z.mime_type, z.file_size, z.uploaded_by, z.status, z.created_at, u.username AS uploaded_by_username FROM zip_uploads z LEFT JOIN users u ON z.uploaded_by = u.id ORDER BY z.created_at DESC");
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } else {
+            if ($uploadsDir && is_dir($uploadsDir)) {
+                $dir = new DirectoryIterator($uploadsDir);
+                foreach ($dir as $fileinfo) {
+                    if ($fileinfo->isFile()) {
+                        $rows[] = [
+                            'id' => null,
+                            'file_name' => $fileinfo->getFilename(),
+                            'original_name' => $fileinfo->getFilename(),
+                            'relative_path' => 'uploads/' . $fileinfo->getFilename(),
+                            'mime_type' => mime_content_type($fileinfo->getPathname()) ?: '',
+                            'file_size' => $fileinfo->getSize(),
+                            'uploaded_by' => null,
+                            'uploaded_by_username' => null,
+                            'status' => 'uploaded',
+                            'created_at' => date('Y-m-d H:i:s', $fileinfo->getMTime())
+                        ];
+                    }
+                }
+                // sort newest first
+                usort($rows, function($a, $b){
+                    return strtotime($b['created_at']) <=> strtotime($a['created_at']);
+                });
+            }
+        }
+
+        echo json_encode([
+            'success' => true,
+            'data' => $rows
+        ]);
+        ob_end_flush();
+        exit;
+    }
+
+    if ($method !== 'POST') throw new Exception('Invalid method');
 
     // delete action
-    if(isset($_POST['action']) && $_POST['action'] === 'delete'){
+    if($action === 'delete'){
         if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')){
             echo json_encode(['success'=>false,'message'=>'Unauthorized']); ob_end_flush(); exit;
         }
@@ -33,6 +86,8 @@ try{
         ob_end_flush();
         exit;
     }
+
+    if ($action !== 'upload') throw new Exception('Invalid action');
 
     if (empty($_FILES['file'])) throw new Exception('No file uploaded');
 

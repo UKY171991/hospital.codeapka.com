@@ -1,109 +1,81 @@
 <?php
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
-require_once 'inc/connection.php';
-
-$uploadsDir = __DIR__ . '/uploads';
-$files = [];
-
-// Prefer DB table if exists
-try{
-    $stmt = $pdo->query("SHOW TABLES LIKE 'zip_uploads'");
-    $hasTable = $stmt->fetch() ? true : false;
-}catch(Throwable $e){ $hasTable = false; }
-
-if($hasTable){
-  // join users table if present to show uploader username
-  $stmt = $pdo->query('SELECT z.id, z.file_name, z.original_name, z.relative_path, z.file_size, z.uploaded_by, z.status, z.created_at, u.username as uploaded_by_username FROM zip_uploads z LEFT JOIN users u ON z.uploaded_by = u.id ORDER BY z.created_at DESC');
-  $files = $stmt->fetchAll();
-} else {
-    // fallback: list files in uploads directory
-    if(is_dir($uploadsDir)){
-        $dir = new DirectoryIterator($uploadsDir);
-        foreach($dir as $fileinfo){
-            if($fileinfo->isFile()){
-                $files[] = [
-                    'file_name' => $fileinfo->getFilename(),
-                    'original_name' => $fileinfo->getFilename(),
-                    'relative_path' => 'uploads/' . $fileinfo->getFilename(),
-                    'file_size' => $fileinfo->getSize(),
-                    'created_at' => date('Y-m-d H:i:s', $fileinfo->getMTime())
-                ];
-            }
-        }
-    }
-}
 ?>
 
 <div class="content-wrapper">
   <section class="content-header">
     <div class="container-fluid">
       <div class="row mb-2">
-        <div class="col-sm-6"><h1>Uploaded Files</h1></div>
+        <div class="col-sm-6"><h1>Uploads</h1></div>
       </div>
     </div>
   </section>
   <section class="content">
     <div class="container-fluid">
-      <div class="card">
-        <div class="card-body">
-          <table class="table table-bordered table-striped" id="uploadsTable">
-            <thead><tr><th>#</th><th>Name</th><th>Size (MB)</th><th>Uploaded</th><th>Uploaded By</th><th>Actions</th></tr></thead>
-            <tbody>
-              <?php foreach($files as $i => $f): ?>
-                <tr>
-                  <td><?php echo $i+1; ?></td>
-                  <td>
-                    <a class="btn btn-sm btn-outline-primary" href="<?php echo htmlspecialchars($f['relative_path']); ?>" target="_blank">Download</a>
-                    &nbsp;
-                    <a href="<?php echo htmlspecialchars($f['relative_path']); ?>" target="_blank"><?php echo htmlspecialchars($f['original_name'] ?? $f['file_name']); ?></a>
-                  </td>
-                  <td>
-                    <?php
-                      $bytes = isset($f['file_size']) ? floatval($f['file_size']) : 0;
-                      $mb = $bytes / (1024 * 1024);
-                      echo number_format($mb, 2) . ' MB';
-                    ?>
-                  </td>
-                  <td>
-                    <?php
-                      $raw = $f['created_at'] ?? null;
-                      $out = '';
-                      if($raw){
-                        // Try parse common formats, prefer DB Y-m-d H:i:s
-                        $tz = new DateTimeZone('Asia/Kolkata');
-                        $dt = DateTime::createFromFormat('Y-m-d H:i:s', $raw, $tz);
-                        if(!$dt){
-                          // fallback: try strtotime
-                          $ts = strtotime($raw);
-                          if($ts !== false){
-                            $dt = new DateTime('@' . $ts);
-                            $dt->setTimezone($tz);
-                          }
-                        }
-                        if($dt){
-                          $out = $dt->format('d-m-Y H:i:s');
-                        } else {
-                          $out = htmlspecialchars($raw);
-                        }
-                      }
-                      echo $out;
-                    ?>
-                  </td>
-                  <td><?php echo htmlspecialchars($f['uploaded_by_username'] ?? ($f['uploaded_by'] ?? '')); ?></td>
-                  <td>
-                    <button class="btn btn-sm btn-danger delete-upload" data-file="<?php echo htmlspecialchars($f['file_name']); ?>">Delete</button>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
+      <div class="row">
+        <div class="col-lg-4">
+          <div class="card" id="uploadCard">
+            <div class="card-header bg-primary text-white">
+              <h3 class="card-title mb-0"><i class="fas fa-file-upload mr-2"></i>Upload ZIP / EXE</h3>
+            </div>
+            <div class="card-body">
+              <div id="uploadMessage" class="mb-3"></div>
+              <form id="uploadForm" onsubmit="return false;" autocomplete="off">
+                <div class="form-group">
+                  <label for="file_input">Choose file</label>
+                  <div class="upload-area" id="uploadArea">
+                    <div class="upload-area__icon mb-2"><i class="fas fa-cloud-upload-alt fa-2x"></i></div>
+                    <p class="mb-1">Drag &amp; drop ZIP/EXE here</p>
+                    <p class="text-muted">or click below</p>
+                    <input type="file" class="form-control-file" id="file_input" name="file" accept=".zip,.exe" required>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div id="uploadProgressWrap" class="progress" style="height:20px; display:none;">
+                    <div id="uploadProgress" class="progress-bar" role="progressbar" style="width:0%">0%</div>
+                  </div>
+                  <small id="uploadProgressText" class="form-text text-muted" style="display:none;">&nbsp;</small>
+                </div>
+                <div class="d-flex align-items-center justify-content-between">
+                  <button id="startUpload" type="button" class="btn btn-primary"><i class="fas fa-upload mr-1"></i>Upload</button>
+                  <button id="cancelUpload" type="button" class="btn btn-outline-danger d-none"><i class="fas fa-stop mr-1"></i>Cancel</button>
+                </div>
+              </form>
+            </div>
+            <div class="card-footer text-muted">
+              <small>Allowed types: ZIP, EXE • Max size 100MB</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header bg-info text-white">
+              <h3 class="card-title mb-0"><i class="fas fa-folder-open mr-2"></i>Uploaded Files</h3>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-bordered table-striped" id="uploadsTable" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>File</th>
+                      <th>Size</th>
+                      <th>Uploaded</th>
+                      <th>Uploaded By</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Delete confirmation modal -->
   <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
       <div class="modal-content">
@@ -126,62 +98,6 @@ if($hasTable){
 
 </div>
 
+<link rel="stylesheet" href="assets/css/upload.css">
+
 <?php require_once 'inc/footer.php'; ?>
-
-<script>
-$(function(){
-  // initialize DataTable after jQuery is loaded
-  $('#uploadsTable').DataTable();
-
-  $(document).on('click', '.delete-upload', function(){
-    var $btn = $(this);
-    var file = $btn.data('file');
-    var $row = $btn.closest('tr');
-    // store target row on modal for later removal
-    $('#confirmDeleteModal').data('targetRow', $row).data('targetFile', file).modal('show');
-  });
-
-  $('#confirmDeleteBtn').on('click', function(){
-    var $modal = $('#confirmDeleteModal');
-    var file = $modal.data('targetFile');
-    var $row = $modal.data('targetRow');
-    var $confirm = $(this);
-    if(!file){ toastr.error('No file selected'); return; }
-    // close modal and disable button while request runs
-    $modal.modal('hide');
-    $confirm.prop('disabled', true).text('Deleting...');
-
-    $.ajax({
-      url: 'ajax/upload_file.php',
-      method: 'POST',
-      data: { action: 'delete', file: file },
-      dataType: 'json'
-    }).done(function(resp){
-      console.log('Delete response:', resp);
-      if(resp && resp.success){
-        toastr.success('File deleted');
-        // remove row from table gracefully
-        if($row && $row.length){
-          $row.fadeOut(250, function(){
-            var table = $('#uploadsTable').DataTable();
-            // if DataTable exists remove row via API
-            if($.fn.dataTable.isDataTable('#uploadsTable')){
-              table.row($(this)).remove().draw(false);
-            } else { $(this).remove(); }
-          });
-        } else {
-          setTimeout(function(){ location.reload(); }, 500);
-        }
-      } else {
-        toastr.error('Delete failed: ' + (resp && resp.message ? resp.message : 'Unknown'));
-        console.error('Delete error:', resp);
-      }
-    }).fail(function(xhr, status, err){
-      toastr.error('Server error while deleting');
-      console.error('AJAX fail:', xhr.status, xhr.responseText, status, err);
-    }).always(function(){
-      $confirm.prop('disabled', false).text('Delete');
-    });
-  });
-});
-</script>

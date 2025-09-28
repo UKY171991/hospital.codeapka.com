@@ -40,6 +40,9 @@
     if ($currentPage === 'owner.php') {
         echo '<script src="assets/js/owner.js?v=' . time() . '"></script>';
     }
+    if ($currentPage === 'upload_list.php') {
+        echo '<script src="assets/js/uploads.js?v=' . time() . '"></script>';
+    }
     // Load plan page script when viewing plan.php
     if ($currentPage === 'plan.php') {
         echo '<script src="assets/js/plan.js?v=' . time() . '"></script>';
