@@ -83,10 +83,10 @@ require_once 'inc/sidebar.php';
                                 Patient Directory
                             </h3>
                             <div class="card-tools">
-                                <button type="button" class="btn btn-primary btn-sm mr-2" onclick="openAddPatientModal()">
+                                <button type="button" class="btn btn-primary btn-sm mr-2" id="addPatientBtn">
                                     <i class="fas fa-plus"></i> Add New Patient
                                 </button>
-                                <button type="button" class="btn btn-success btn-sm" onclick="exportPatients()">
+                                <button type="button" class="btn btn-success btn-sm" id="exportPatientsBtn">
                                     <i class="fas fa-download"></i> Export All
                                 </button>
                             </div>
@@ -160,7 +160,7 @@ require_once 'inc/sidebar.php';
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">
                     <i class="fas fa-times"></i> Close
                 </button>
-                <button type="button" class="btn btn-info" onclick="printPatientDetails()">
+                <button type="button" class="btn btn-info" id="printPatientDetailsBtn">
                     <i class="fas fa-print"></i> Print
                 </button>
             </div>
