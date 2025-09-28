@@ -56,66 +56,140 @@
     });
   }
 
+  function ensureOwnerTable() {
+    if (ownersTableInstance) return ownersTableInstance;
+
+    if (!$.fn.DataTable) {
+      console.error('DataTables library missing for owners table');
+      return null;
+    }
+
+    ownersTableInstance = $('#ownersTable').DataTable({
+      autoWidth: false,
+      responsive: true,
+      lengthMenu: [10, 25, 50, 100],
+      language: {
+        search: 'Search:',
+        lengthMenu: 'Show _MENU_ entries',
+        info: 'Showing _START_ to _END_ of _TOTAL_ owners',
+        infoEmpty: 'No owners to show',
+        zeroRecords: 'No matching owners found',
+        emptyTable: 'No owners available'
+      },
+      columns: [
+        {
+          data: null,
+          orderable: false,
+          searchable: false,
+          className: 'text-center',
+          width: '60px',
+          render: function (data, type, row, meta) {
+            return meta.row + 1;
+          }
+        },
+        { data: 'id', defaultContent: '' },
+        {
+          data: 'name',
+          defaultContent: '',
+          render: function (data) {
+            return safeText(data || '');
+          }
+        },
+        {
+          data: 'phone',
+          defaultContent: '',
+          render: function (data) {
+            return safeText(data || '');
+          }
+        },
+        {
+          data: 'whatsapp',
+          defaultContent: '',
+          render: function (data) {
+            return safeText(data || '');
+          }
+        },
+        {
+          data: 'email',
+          defaultContent: '',
+          render: function (data) {
+            return safeText(data || '');
+          }
+        },
+        {
+          data: 'address',
+          defaultContent: '',
+          render: function (data) {
+            return safeText(data || '');
+          }
+        },
+        {
+          data: 'link',
+          orderable: false,
+          searchable: false,
+          defaultContent: '',
+          render: function (data) {
+            const linkHref = sanitizeUrl(data);
+            return linkHref ? '<a href="' + linkHref + '" target="_blank" rel="noopener">Open</a>' : '';
+          }
+        },
+        {
+          data: null,
+          orderable: false,
+          searchable: false,
+          render: function (data) {
+            const added = data && (data.added_by_username || data.added_by);
+            return safeText(added || '');
+          }
+        },
+        {
+          data: null,
+          orderable: false,
+          searchable: false,
+          className: 'text-nowrap text-center',
+          render: function (data) {
+            const id = safeText(data && data.id ? data.id : '');
+            return (
+              '<div class="btn-group btn-group-sm" role="group">' +
+              '<button type="button" class="btn btn-info owner-view" data-id="' + id + '"><i class="fas fa-eye"></i></button>' +
+              '<button type="button" class="btn btn-warning owner-edit" data-id="' + id + '"><i class="fas fa-edit"></i></button>' +
+              '<button type="button" class="btn btn-danger owner-delete" data-id="' + id + '"><i class="fas fa-trash"></i></button>' +
+              '</div>'
+            );
+          }
+        }
+      ]
+    });
+
+    return ownersTableInstance;
+  }
+
   function loadOwners() {
-    const $tbody = $('#ownersTable tbody');
+    const table = ensureOwnerTable();
+    if (!table) return;
+
+    table.processing(true);
 
     $.getJSON(API_URL, { action: 'list' })
       .done(function (resp) {
-        if (ownersTableInstance) {
-          ownersTableInstance.clear().destroy();
-          ownersTableInstance = null;
-        }
+        const rows = resp && resp.success && Array.isArray(resp.data) ? resp.data : [];
+        table.clear();
+        table.rows.add(rows);
+        table.draw();
 
-        if (resp && resp.success && Array.isArray(resp.data) && resp.data.length) {
-          const rowsHtml = resp.data
-            .map(function (owner, index) {
-              return buildTableRow(owner, index);
-            })
-            .join('');
-          $tbody.html(rowsHtml);
-        } else {
-          const message = resp && resp.message ? safeText(resp.message) : 'No owners found';
-          $tbody.html('<tr><td colspan="10" class="text-center text-muted">' + message + '</td></tr>');
-        }
-
-        try {
-          ownersTableInstance = initDataTable('#ownersTable');
-        } catch (err) {
-          console.error('Failed to initialize owners table DataTable', err);
+        if (!(resp && resp.success)) {
+          const message = resp && resp.message ? resp.message : 'Failed to load owner records';
+          if (window.toastr) toastr.warning(message);
         }
       })
       .fail(function (xhr) {
         console.error('Failed to load owners', xhr);
-        $tbody.html('<tr><td colspan="10" class="text-center text-danger">Failed to load owner records.</td></tr>');
+        table.clear().draw();
         if (window.toastr) toastr.error('Failed to load owner records');
+      })
+      .always(function () {
+        table.processing(false);
       });
-  }
-
-  function buildTableRow(owner, index) {
-    const linkHref = sanitizeUrl(owner.link);
-    const linkHtml = linkHref ? '<a href="' + linkHref + '" target="_blank" rel="noopener">Open</a>' : '';
-    const addedBy = owner.added_by_username || owner.added_by || '';
-
-    return [
-      '<tr>',
-      '<td>', index + 1, '</td>',
-      '<td>', safeText(owner.id || ''), '</td>',
-      '<td>', safeText(owner.name || ''), '</td>',
-      '<td>', safeText(owner.phone || ''), '</td>',
-      '<td>', safeText(owner.whatsapp || ''), '</td>',
-      '<td>', safeText(owner.email || ''), '</td>',
-      '<td>', safeText(owner.address || ''), '</td>',
-      '<td>', linkHtml, '</td>',
-      '<td>', safeText(addedBy), '</td>',
-      '<td class="text-nowrap">',
-      '  <div class="btn-group btn-group-sm" role="group">',
-      '    <button type="button" class="btn btn-info owner-view" data-id="', safeText(owner.id || ''), '"><i class="fas fa-eye"></i></button>',
-      '    <button type="button" class="btn btn-warning owner-edit" data-id="', safeText(owner.id || ''), '"><i class="fas fa-edit"></i></button>',
-      '    <button type="button" class="btn btn-danger owner-delete" data-id="', safeText(owner.id || ''), '"><i class="fas fa-trash"></i></button>',
-      '  </div>',
-      '</td>',
-      '</tr>'
-    ].join('');
   }
 
   function handleSaveOwner(event) {
