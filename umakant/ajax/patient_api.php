@@ -371,22 +371,6 @@ function handleSave() {
         $patientId = $_POST['id'] ?? null;
         $isEdit = !empty($patientId);
         
-        // Check for duplicate mobile (excluding current patient if editing)
-        $duplicateCheckSql = "SELECT id FROM patients WHERE mobile = ?";
-        $duplicateParams = [$_POST['mobile']];
-        
-        if ($isEdit) {
-            $duplicateCheckSql .= " AND id != ?";
-            $duplicateParams[] = $patientId;
-        }
-        
-        $stmt = $pdo->prepare($duplicateCheckSql);
-        $stmt->execute($duplicateParams);
-        
-        if ($stmt->fetch()) {
-            throw new Exception('Mobile number already exists');
-        }
-        
         // Check for duplicate UHID if provided
         if (!empty($_POST['uhid'])) {
             $uhidCheckSql = "SELECT id FROM patients WHERE uhid = ?";
@@ -417,7 +401,7 @@ function handleSave() {
             'father_husband' => !empty($_POST['father_husband']) ? trim($_POST['father_husband']) : null,
             'address' => !empty($_POST['address']) ? trim($_POST['address']) : null,
             // Use numeric user id for foreign-key column if available; otherwise NULL to avoid FK violations
-            'added_by' => isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null
+            'added_by' => isset($_POST['added_by']) && is_numeric($_POST['added_by']) ? (int)$_POST['added_by'] : (isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null)
         ];
 
         // Attach gender/sex fields only if columns exist in the DB

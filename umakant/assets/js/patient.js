@@ -236,7 +236,9 @@ $(function(){
         if (r && r.success) {
           toastr.success(r.message || 'Patient saved successfully!');
           $('#patientModal').modal('hide');
+          console.log('Save successful, attempting to reload DataTable.'); // Add this log
           table.ajax.reload(null, false); // Reload the DataTable
+          console.log('DataTable reload initiated.'); // Add this log
         } else {
           console.error('Failed to save patient:', r && r.message);
           toastr.error((r && r.message) || 'Failed to save patient');
