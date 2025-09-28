@@ -28,6 +28,7 @@ function initializePatientPage() {
     // Load initial data
     loadPatients();
     loadStats();
+    loadAddedByUsers(); // Load users for the "Added By" filter
     
     // Auto-generate UHID for new patients
     generateUHID();
@@ -47,7 +48,7 @@ function initializeEventListeners() {
     });
 
     // Filter change events
-    $('#genderFilter, #ageFilter, #dateFilter').on('change', function() {
+    $('#genderFilter, #ageFilter, #dateFilter, #filterAddedBy').on('change', function() {
         currentPage = 1;
         loadPatients();
     });
@@ -88,12 +89,14 @@ function loadPatients() {
     const gender = $('#genderFilter').val() || '';
     const ageRange = $('#ageFilter').val() || '';
     const date = $('#dateFilter').val() || '';
+    const addedBy = $('#filterAddedBy').val() || '';
 
     const filters = {
         search: searchTerm,
         gender: gender,
         age_range: ageRange,
         date: date,
+        added_by: addedBy,
         page: currentPage,
         limit: recordsPerPage
     };
@@ -339,6 +342,27 @@ function loadStats() {
             $('#malePatients').text('0');
             $('#femalePatients').text('0');
         }
+    });
+}
+
+/**
+ * Function to load users into the "Added By" dropdowns
+ */
+function loadAddedByUsers(selectedUserId = null) {
+    $.get('ajax/user_api.php', { action: 'list' }, function(r){
+      if(r && r.success && r.data){
+        var options = '<option value="">All</option>';
+        $.each(r.data, function(i, user){
+          options += '<option value="' + user.id + '"' + (selectedUserId == user.id ? ' selected' : '') + '>' + user.username + '</option>';
+        });
+        $('#filterAddedBy, #patientAddedBy').html(options); // Also populate the hidden added_by in the form
+      } else {
+        console.error('Failed to load users:', r && r.message);
+        showError((r && r.message) || 'Failed to load users for "Added By" dropdown.');
+      }
+    }, 'json').fail(function(xhr){
+      console.error('Ajax error fetching users', xhr);
+      showError('Server error fetching users for "Added By" dropdown.');
     });
 }
 
