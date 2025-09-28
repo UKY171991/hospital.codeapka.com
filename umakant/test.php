@@ -1097,14 +1097,14 @@ function saveTestData() {
                 $('#testModal').modal('hide');
                 
                 // Always reload the DataTable to keep column alignment stable
-                if (typeof reloadDataTable === 'function') {
+                if (testsTable && typeof testsTable.ajax === 'function') {
+                    testsTable.ajax.reload(null, false);
+                } else if (typeof reloadDataTable === 'function') {
                     reloadDataTable('testsTable', false);
                 } else if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
                     try { $('#testsTable').DataTable().ajax.reload(null, false); } catch(e){}
-                } else if (typeof reloadTestsDebounced === 'function') {
-                    reloadTestsDebounced();
-                } else if (typeof loadTests === 'function') {
-                    loadTests();
+                } else if (typeof initializeDataTable === 'function') {
+                    initializeDataTable();
                 }
                 
                 loadStats();
