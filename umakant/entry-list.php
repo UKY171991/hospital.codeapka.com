@@ -565,7 +565,11 @@ function loadDropdownsForEntry() {
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
+            if (typeof showAlert === 'function') {
             showAlert('Failed to load patients: ' + errorMsg, 'error');
+        } else {
+            console.error('Failed to load patients:', errorMsg);
+        }
         });
 
     // Load doctors
@@ -583,17 +587,22 @@ function loadDropdownsForEntry() {
                     };
                     const optionLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (Added by ' + doctor.added_by_username + ')' : ''}`;
                     options += `<option value="${doctor.id}" data-added-by="${doctor.added_by_username || ''}">${optionLabel}</option>`;
-                    const filterLabel = `${doctor.name}${doctor.added_by_username ? ' (' + doctor.added_by_username + ')' : ''}`;
-                    filterOptions += `<option value="${doctor.id}">${filterLabel}</option>`;
+                    const filterLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (' + doctor.added_by_username + ')' : ''}`;
+                filterOptions += `<option value="${doctor.id}">${filterLabel}</option>`;
                 });
                 $('#entryDoctor').html(options).trigger('change');
                 $('#doctorFilter').html(filterOptions);
                 updateDoctorAddedByDisplay();
             }
+{{ ... }}
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
-            showAlert('Failed to load doctors: ' + errorMsg, 'error');
+            if (typeof showAlert === 'function') {
+                showAlert('Failed to load doctors: ' + errorMsg, 'error');
+            } else {
+                console.error('Failed to load doctors:', errorMsg);
+            }
         });
 
     // Load tests for filter only
@@ -609,7 +618,11 @@ function loadDropdownsForEntry() {
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
-            showAlert('Failed to load tests: ' + errorMsg, 'error');
+            if (typeof showAlert === 'function') {
+                showAlert('Failed to load tests: ' + errorMsg, 'error');
+            } else {
+                console.error('Failed to load tests:', errorMsg);
+            }
         });
     
 }
