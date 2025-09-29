@@ -523,7 +523,6 @@ function initializeEventListeners() {
 
     // Modal reset on hide
     $('#entryModal').on('hidden.bs.modal', function() {
-{{ ... }}
         resetModalForm();
     });
 
