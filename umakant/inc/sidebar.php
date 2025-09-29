@@ -103,6 +103,7 @@ $role = $_SESSION['role'] ?? 'user';
 
             <?php if (isset($_SESSION['user_id'])): ?>
             <li class="nav-item">
+              <a href="user.php" class="nav-link <?php echo ($activePage == 'user.php') ? 'active' : ''; ?>">
                 <i class="fas fa-users nav-icon"></i>
                 <p>Users</p>
               </a>
