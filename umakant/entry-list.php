@@ -3,9 +3,6 @@ require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 ?>
 
-<!-- Custom CSS for Entry Table -->
-<link rel="stylesheet" href="assets/css/entry-table.css">
-
 <!-- Content Wrapper. Contains page content -->
 <div class="content-wrapper">
     <!-- Content Header (Page header) -->
@@ -566,10 +563,10 @@ function loadDropdownsForEntry() {
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
             if (typeof showAlert === 'function') {
-            showAlert('Failed to load patients: ' + errorMsg, 'error');
-        } else {
-            console.error('Failed to load patients:', errorMsg);
-        }
+                showAlert('Failed to load patients: ' + errorMsg, 'error');
+            } else {
+                console.error('Failed to load patients:', errorMsg);
+            }
         });
 
     // Load doctors
@@ -580,21 +577,19 @@ function loadDropdownsForEntry() {
                 let filterOptions = '<option value="">All Doctors</option>';
                 doctorDirectory = {};
                 response.data.forEach(doctor => {
-                    const addedByName = doctor.added_by_username || 'Unknown';
+                    const optionLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (Added by ' + doctor.added_by_username + ')' : ''}`;
+                    options += `<option value="${doctor.id}" data-added-by="${doctor.added_by_username || ''}">${optionLabel}</option>`;
+                    const filterLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (' + doctor.added_by_username + ')' : ''}`;
+                    filterOptions += `<option value="${doctor.id}">${filterLabel}</option>`;
                     doctorDirectory[doctor.id] = {
                         name: doctor.name || 'Unknown',
                         addedByUsername: doctor.added_by_username || ''
                     };
-                    const optionLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (Added by ' + doctor.added_by_username + ')' : ''}`;
-                    options += `<option value="${doctor.id}" data-added-by="${doctor.added_by_username || ''}">${optionLabel}</option>`;
-                    const filterLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (' + doctor.added_by_username + ')' : ''}`;
-                filterOptions += `<option value="${doctor.id}">${filterLabel}</option>`;
                 });
                 $('#entryDoctor').html(options).trigger('change');
                 $('#doctorFilter').html(filterOptions);
                 updateDoctorAddedByDisplay();
             }
-{{ ... }}
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
@@ -624,7 +619,6 @@ function loadDropdownsForEntry() {
                 console.error('Failed to load tests:', errorMsg);
             }
         });
-    
 }
 
 function loadEntries() {
