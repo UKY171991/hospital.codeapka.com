@@ -73,24 +73,32 @@ try {
 
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
-                   d.name AS doctor_name, d.added_by AS doctor_added_by,
+                   d.name AS doctor_name,
                    du.username AS doctor_added_by_username,
                    u.username AS added_by_username,
-                   COUNT(et.id) as tests_count,
-                   GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,
-                   GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,
-                   SUM(et.price) as total_price,
-                   SUM(et.discount_amount) as total_discount
+                   COALESCE(agg.tests_count, 0) as tests_count,
+                   COALESCE(agg.test_names, '') as test_names,
+                   COALESCE(agg.test_ids, '') as test_ids,
+                   COALESCE(agg.total_price, 0) as total_price,
+                   COALESCE(agg.total_discount, 0) as total_discount
             FROM entries e 
             LEFT JOIN patients p ON e.patient_id = p.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
             LEFT JOIN users du ON d.added_by = du.id
             LEFT JOIN users u ON e.added_by = u.id
-            LEFT JOIN entry_tests et ON e.id = et.entry_id
-            LEFT JOIN tests t ON et.test_id = t.id" .
+            LEFT JOIN (
+                SELECT et.entry_id,
+                       COUNT(*) as tests_count,
+                       GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,
+                       GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,
+                       SUM(et.price) as total_price,
+                       SUM(et.discount_amount) as total_discount
+                FROM entry_tests et
+                LEFT JOIN tests t ON et.test_id = t.id
+                GROUP BY et.entry_id
+            ) agg ON agg.entry_id = e.id" .
             $scopeWhere .
-            " GROUP BY e.id
-              ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
+            " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
@@ -142,23 +150,31 @@ try {
 
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
-                   d.name AS doctor_name, d.added_by AS doctor_added_by,
+                   d.name AS doctor_name,
                    du.username AS doctor_added_by_username,
                    u.username AS added_by_username,
-                   COUNT(et.id) as tests_count,
-                   GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,
-                   GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,
-                   SUM(et.price) as total_price,
-                   SUM(et.discount_amount) as total_discount
+                   COALESCE(agg.tests_count, 0) AS tests_count,
+                   COALESCE(agg.test_names, '') AS test_names,
+                   COALESCE(agg.test_ids, '') AS test_ids,
+                   COALESCE(agg.total_price, 0) AS total_price,
+                   COALESCE(agg.total_discount, 0) AS total_discount
             FROM entries e 
             LEFT JOIN patients p ON e.patient_id = p.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
             LEFT JOIN users du ON d.added_by = du.id
             LEFT JOIN users u ON e.added_by = u.id
-            LEFT JOIN entry_tests et ON e.id = et.entry_id
-            LEFT JOIN tests t ON et.test_id = t.id
-            WHERE e.id = ?" . $scopeWhere . "
-            GROUP BY e.id";
+            LEFT JOIN (
+                SELECT et.entry_id,
+                       COUNT(*) AS tests_count,
+                       GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') AS test_names,
+                       GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) AS test_ids,
+                       SUM(et.price) AS total_price,
+                       SUM(et.discount_amount) AS total_discount
+                FROM entry_tests et
+                LEFT JOIN tests t ON et.test_id = t.id
+                GROUP BY et.entry_id
+            ) agg ON agg.entry_id = e.id
+            WHERE e.id = ?" . $scopeWhere;
         
 {{ ... }}
         $stmt = $pdo->prepare($sql);

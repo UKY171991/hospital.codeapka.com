@@ -466,11 +466,24 @@ require_once 'inc/sidebar.php';
 </div>
 
 <script>
+// Ensure showAlert exists for uniform messaging
+if (typeof window.showAlert !== 'function') {
+    window.showAlert = function(message, type) {
+        if (window.toastr && typeof window.toastr[type] === 'function') {
+            window.toastr[type](message);
+        } else if (window.toastr && typeof window.toastr.error === 'function') {
+            window.toastr.error(message);
+        } else {
+            console[(type === 'error' ? 'error' : 'log')](message);
+        }
+    };
+}
+
 // Global variables
 let entriesTable;
 let allEntries = [];
-let currentPage = 1;
-let entriesPerPage = 25;
+let entriesCurrentPage = 1;
+let entriesPerPageCount = 25;
 let doctorDirectory = {};
 
 // Initialize page
@@ -503,19 +516,20 @@ function initializeEventListeners() {
 
     // Per page change
     $('#entriesPerPage').change(function() {
-        entriesPerPage = parseInt($(this).val());
-        currentPage = 1;
+        entriesPerPageCount = parseInt($(this).val());
+        entriesCurrentPage = 1;
         applyEntriesFilters();
     });
 
     // Modal reset on hide
     $('#entryModal').on('hidden.bs.modal', function() {
+{{ ... }}
         resetModalForm();
     });
 
     // Filter changes
     $('#statusFilter, #doctorFilter, #testFilter, #dateFromFilter, #dateToFilter').on('change', function() {
-        currentPage = 1;
+        entriesCurrentPage = 1;
         applyEntriesFilters();
     });
 }
@@ -704,8 +718,8 @@ function renderEntriesTable(entries) {
     }
     
     // Calculate pagination
-    const startIndex = (currentPage - 1) * entriesPerPage;
-    const endIndex = Math.min(startIndex + entriesPerPage, entries.length);
+    const startIndex = (entriesCurrentPage - 1) * entriesPerPageCount;
+    const endIndex = Math.min(startIndex + entriesPerPageCount, entries.length);
     const pageEntries = entries.slice(startIndex, endIndex);
     
     // Render entries
@@ -1051,7 +1065,7 @@ function clearFilters() {
     $('#dateFromFilter').val('');
     $('#dateToFilter').val('');
     $('#entriesSearch').val('');
-    currentPage = 1;
+    entriesCurrentPage = 1;
     applyEntriesFilters();
 }
 
