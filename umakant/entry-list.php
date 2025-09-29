@@ -84,8 +84,11 @@ require_once 'inc/sidebar.php';
                                 <i class="fas fa-list-alt mr-1"></i>
                                 Test Entry Management
                             </h3>
-                            <div class="card-tools">
-                                <button type="button" class="btn btn-success btn-sm" onclick="exportEntries()">
+                            <div class="card-tools d-flex align-items-center">
+                                <button type="button" class="btn btn-primary btn-sm mr-2" onclick="openAddEntryModal()">
+                                    <i class="fas fa-plus"></i> Add Entry
+                                </button>
+                                <button type="button" class="btn btn-success btn-sm mr-2" onclick="exportEntries()">
                                     <i class="fas fa-download"></i> Export
                                 </button>
                                 <button type="button" class="btn btn-tool" data-card-widget="collapse">
@@ -592,6 +595,13 @@ function loadEntries() {
         });
 }
 
+function openAddEntryModal() {
+    resetModalForm();
+    $('#selectedTestsCount').text('0 tests selected');
+    $('#testsByCategoryContainer').html('<div class="alert alert-info"><i class="fas fa-info-circle mr-2"></i>No tests selected. Click "Add Test" to choose tests for this entry.</div>');
+    $('#entryModal').modal('show');
+}
+
 function applyEntriesFilters() {
     const searchTerm = $('#entriesSearch').val().toLowerCase();
     const statusFilter = $('#statusFilter').val();
@@ -766,13 +776,12 @@ function editEntry(id) {
             if (response.success) {
                 const entry = response.data;
                 populateEntryForm(entry);
-                
-                // Load multiple tests if this is a grouped entry
-                if (entry.grouped && entry.tests_count > 1) {
-                    loadEntryTests(id);
-                } else {
-                    clearSelectedTests();
-                }
+                $('#saveEntryBtn').text('Update Entry');
+                $('#testsByCategoryContainer').html('<div class="text-center py-3 text-muted"><i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...</div>');
+                $('#selectedTestsCount').text('Loading tests...');
+
+                // Load tests for editing, fallback to entry data if needed
+                loadEntryTests(id, entry);
                 
                 $('#modalTitle').text('Edit Test Entry');
                 $('#entryForm input, #entryForm textarea, #entryForm select').prop('disabled', false);
@@ -788,31 +797,58 @@ function editEntry(id) {
         });
 }
 
-function loadEntryTests(entryId) {
+function loadEntryTests(entryId, fallbackEntry = null) {
     $.get('patho_api/entry.php', { action: 'get_tests', entry_id: entryId })
         .done(function(response) {
-            if (response.success) {
+            if (response.success && response.data.length > 0) {
                 selectedTests = response.data.map(test => ({
                     category_id: test.category_id,
                     category_name: test.category_name || 'Unknown Category',
                     test_id: test.test_id,
                     test_name: test.test_name,
                     result_value: test.result_value,
-                    unit: test.unit,
+                    unit: test.unit || test.test_unit,
                     price: test.price,
                     discount_amount: test.discount_amount,
-                    remarks: test.remarks
+                    remarks: test.remarks,
+                    min: test.min || test.min_range_male || test.min_range_female || null,
+                    max: test.max || test.max_range_male || test.max_range_female || null
                 }));
                 updateSelectedTestsDisplay();
-            } else {
-                console.log('No tests found for entry:', entryId);
+            } else if (!populateSelectedTestsFromFallback(fallbackEntry)) {
+                console.log('No detailed tests found for entry:', entryId);
                 clearSelectedTests();
             }
         })
         .fail(function(xhr) {
             console.log('Failed to load tests for entry:', entryId);
-            clearSelectedTests();
+            if (!populateSelectedTestsFromFallback(fallbackEntry)) {
+                clearSelectedTests();
+            }
         });
+}
+
+function populateSelectedTestsFromFallback(entry) {
+    if (!entry || !entry.test_id) {
+        return false;
+    }
+
+    selectedTests = [{
+        category_id: entry.category_id || null,
+        category_name: entry.category_name || 'Unknown Category',
+        test_id: entry.test_id,
+        test_name: entry.test_name || 'Selected Test',
+        result_value: entry.result_value || '',
+        unit: entry.unit || '',
+        price: parseFloat(entry.price || entry.total_price || 0),
+        discount_amount: parseFloat(entry.discount_amount || 0),
+        remarks: entry.remarks || '',
+        min: entry.min || null,
+        max: entry.max || null
+    }];
+
+    updateSelectedTestsDisplay();
+    return true;
 }
 
 function populateEntryForm(entry) {
@@ -1118,6 +1154,12 @@ $(document).on('click', '#editFromViewBtn', function() {
 // Multiple Tests Management
 let selectedTests = [];
 
+function updateSelectedTestsCount() {
+    const count = selectedTests.length;
+    const label = count === 0 ? '0 tests selected' : `${count} test${count === 1 ? '' : 's'} selected`;
+    $('#selectedTestsCount').text(label);
+}
+
 // Add Test Functions
 function showAddTestInterface() {
     $('#addTestInterface').show();
@@ -1264,6 +1306,7 @@ function calculateEntryTotals() {
 function updateSelectedTestsDisplay() {
     const container = $('#testsByCategoryContainer');
     console.log('updateSelectedTestsDisplay called, selectedTests:', selectedTests.length);
+    updateSelectedTestsCount();
     
     if (selectedTests.length === 0) {
         container.html('<div class="alert alert-info"><i class="fas fa-info-circle mr-2"></i>No tests selected. Click "Add Test" to choose tests for this entry.</div>');
@@ -1361,9 +1404,14 @@ function saveEntryData() {
     
     // Add selected tests to form data
     formData.append('tests', JSON.stringify(selectedTests));
+    formData.append('action', 'save');
+    formData.append('ajax', 1);
     
     const entryId = $('#entryId').val();
     const isEdit = entryId && entryId !== '';
+    const submitBtn = $('#saveEntryBtn');
+    const originalText = submitBtn.html();
+    submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
     
     $.ajax({
         url: 'ajax/entry_api.php',
@@ -1386,6 +1434,9 @@ function saveEntryData() {
     .fail(function(xhr) {
         const errorMsg = getErrorMessage(xhr);
         showAlert('Failed to save entry: ' + errorMsg, 'error');
+    })
+    .always(function() {
+        submitBtn.prop('disabled', false).html(originalText);
     });
 }
 
