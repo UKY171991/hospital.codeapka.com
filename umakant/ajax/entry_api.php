@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // ajax/entry_api.php - CRUD for entries
 try {
     require_once __DIR__ . '/../inc/connection.php';
@@ -176,7 +176,6 @@ try {
             ) agg ON agg.entry_id = e.id
             WHERE e.id = ?" . $scopeWhere;
         
-{{ ... }}
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
