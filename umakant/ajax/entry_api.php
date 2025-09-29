@@ -74,6 +74,8 @@ try {
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
                    d.name AS doctor_name,
+                   d.added_by AS doctor_added_by,
+                   du.username AS doctor_added_by_username,
                    u.username AS added_by_username,
                    COUNT(et.id) as tests_count,
                    GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,
@@ -83,6 +85,7 @@ try {
             FROM entries e 
             LEFT JOIN patients p ON e.patient_id = p.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
+            LEFT JOIN users du ON d.added_by = du.id
             LEFT JOIN users u ON e.added_by = u.id
             LEFT JOIN entry_tests et ON e.id = et.entry_id
             LEFT JOIN tests t ON et.test_id = t.id" .
@@ -141,6 +144,8 @@ try {
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
                    d.name AS doctor_name,
+                   d.added_by AS doctor_added_by,
+                   du.username AS doctor_added_by_username,
                    u.username AS added_by_username,
                    COUNT(et.id) as tests_count,
                    GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,
@@ -150,12 +155,12 @@ try {
             FROM entries e 
             LEFT JOIN patients p ON e.patient_id = p.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
+            LEFT JOIN users du ON d.added_by = du.id
             LEFT JOIN users u ON e.added_by = u.id
             LEFT JOIN entry_tests et ON e.id = et.entry_id
             LEFT JOIN tests t ON et.test_id = t.id
             WHERE e.id = ?" . $scopeWhere . "
             GROUP BY e.id";
-        
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
