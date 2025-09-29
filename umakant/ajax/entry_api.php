@@ -73,8 +73,7 @@ try {
 
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
-                   d.name AS doctor_name,
-                   d.added_by AS doctor_added_by,
+                   d.name AS doctor_name, d.added_by AS doctor_added_by,
                    du.username AS doctor_added_by_username,
                    u.username AS added_by_username,
                    COUNT(et.id) as tests_count,
@@ -143,8 +142,7 @@ try {
 
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
-                   d.name AS doctor_name,
-                   d.added_by AS doctor_added_by,
+                   d.name AS doctor_name, d.added_by AS doctor_added_by,
                    du.username AS doctor_added_by_username,
                    u.username AS added_by_username,
                    COUNT(et.id) as tests_count,
@@ -161,6 +159,8 @@ try {
             LEFT JOIN tests t ON et.test_id = t.id
             WHERE e.id = ?" . $scopeWhere . "
             GROUP BY e.id";
+        
+{{ ... }}
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);

@@ -54,19 +54,19 @@ try {
         $orderBy = " ORDER BY d.id DESC";
         $limit = " LIMIT $start, $length";
         
-    // Select the fields expected by the client-side DataTable columns
     $dataQuery = "SELECT d.id,
                  d.name,
                  d.hospital,
                  d.contact_no,
                  d.percent,
+                 d.added_by,
                  u.username as added_by_username,
                  d.created_at
               " . $baseQuery . $whereClause . $orderBy . $limit;
-        
-        $dataStmt = $pdo->prepare($dataQuery);
-        $dataStmt->execute($params);
-        $data = $dataStmt->fetchAll();
+
+    $dataStmt = $pdo->prepare($dataQuery);
+    $dataStmt->execute($params);
+    $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Return DataTables format
         json_response([

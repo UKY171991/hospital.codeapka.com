@@ -230,7 +230,7 @@ require_once 'inc/sidebar.php';
                                 <select class="form-control select2" id="entryDoctor" name="doctor_id" required>
                                     <option value="">Select Doctor</option>
                                 </select>
-                                <small id="doctorAddedByInfo" class="form-text text-muted">Select a doctor to see who added them.</small>
+                                <small id="doctorAddedByInfo" class="form-text text-muted" style="display: none;"></small>
                             </div>
                         </div>
                     </div>
@@ -474,6 +474,7 @@ let entriesTable;
 let allEntries = [];
 let currentPage = 1;
 let entriesPerPage = 25;
+let doctorDirectory = {};
 
 // Initialize page
 $(document).ready(function() {
@@ -489,6 +490,8 @@ function initializeEventListeners() {
         e.preventDefault();
         saveEntryData();
     });
+
+    $('#entryDoctor').on('change', updateDoctorAddedByDisplay);
     
     // Search functionality
     $('#entriesSearch').on('input', function() {
@@ -518,10 +521,27 @@ function initializeEventListeners() {
         currentPage = 1;
         applyEntriesFilters();
     });
+}
 
-    $('#entryDoctor').on('change', function() {
-        updateDoctorAddedByInfo();
-    });
+function updateDoctorAddedByDisplay() {
+    const selected = $('#entryDoctor option:selected');
+    const info = $('#doctorAddedByInfo');
+    if (!selected || !selected.val()) {
+        info.text('').hide();
+        return;
+    }
+    const addedBy = selected.data('added-by');
+    if (addedBy) {
+        info.text(`Doctor added by: ${addedBy}`).show();
+    } else {
+        const doctorId = selected.val();
+        const fallback = doctorDirectory[doctorId] && doctorDirectory[doctorId].addedByUsername;
+        if (fallback) {
+            info.text(`Doctor added by: ${fallback}`).show();
+        } else {
+            info.text('').hide();
+        }
+    }
 }
 
 function loadDropdownsForEntry() {
@@ -554,20 +574,21 @@ function loadDropdownsForEntry() {
             if (response.success) {
                 let options = '<option value="">Select Doctor</option>';
                 let filterOptions = '<option value="">All Doctors</option>';
-                const doctorInfoMap = {};
+                doctorDirectory = {};
                 response.data.forEach(doctor => {
-                    const addedBy = doctor.added_by_username || 'Unknown';
-                    options += `<option value="${doctor.id}" data-added-by="${addedBy.replace(/"/g, '&quot;')}">${doctor.name || 'Unknown'}</option>`;
-                    filterOptions += `<option value="${doctor.id}">${doctor.name}</option>`;
-                    doctorInfoMap[doctor.id] = {
+                    const addedByName = doctor.added_by_username || 'Unknown';
+                    doctorDirectory[doctor.id] = {
                         name: doctor.name || 'Unknown',
-                        addedBy: addedBy
+                        addedByUsername: doctor.added_by_username || ''
                     };
+                    const optionLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (Added by ' + doctor.added_by_username + ')' : ''}`;
+                    options += `<option value="${doctor.id}" data-added-by="${doctor.added_by_username || ''}">${optionLabel}</option>`;
+                    const filterLabel = `${doctor.name}${doctor.added_by_username ? ' (' + doctor.added_by_username + ')' : ''}`;
+                    filterOptions += `<option value="${doctor.id}">${filterLabel}</option>`;
                 });
                 $('#entryDoctor').html(options).trigger('change');
-                $('#entryDoctor').data('doctorInfo', doctorInfoMap);
-                updateDoctorAddedByInfo();
                 $('#doctorFilter').html(filterOptions);
+                updateDoctorAddedByDisplay();
             }
         })
         .fail(function(xhr) {
@@ -687,12 +708,9 @@ function renderEntriesTable(entries) {
         const statusText = formatStatus(entry.status);
         const testDate = formatDate(entry.entry_date || entry.created_at);
         const addedBy = entry.added_by_username || 'Unknown';
-        const doctorName = entry.doctor_name || 'N/A';
-        const doctorAddedBy = entry.doctor_added_by_username || '';
-        const doctorDisplay = `
-            <div class="doctor-name">${doctorName}</div>
-            ${doctorAddedBy ? `<small class="text-muted">Added by ${doctorAddedBy}</small>` : ''}
-        `;
+        const doctorMeta = entry.doctor_name
+            ? `${entry.doctor_name}${entry.doctor_added_by_username ? `<br><small class="text-muted">Added by: ${entry.doctor_added_by_username}</small>` : ''}`
+            : 'N/A';
         
         // Handle multiple tests display
         let testDisplay = '';
@@ -714,7 +732,7 @@ function renderEntriesTable(entries) {
                 <td class="sr-no-cell">${serialNo}</td>
                 <td><span class="entry-id-badge">${entry.id}</span></td>
                 <td><span class="patient-name-container">${entry.patient_name || 'N/A'}</span></td>
-                <td class="doctor-cell">${doctorDisplay}</td>
+                <td class="doctor-cell">${doctorMeta}</td>
                 <td class="test-name-cell">${testDisplay}</td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td class="test-date-cell">${testDate}</td>
@@ -878,9 +896,7 @@ function populateEntryForm(entry) {
     $('#entryDoctor').val(entry.doctor_id).trigger('change');
     $('#entryStatus').val(entry.status || 'pending');
     $('#entryNotes').val(entry.remarks || '');
-    if (entry.doctor_added_by_username) {
-        updateDoctorAddedByInfo(entry.doctor_added_by_username);
-    }
+    updateDoctorAddedByDisplay();
     
     // Calculate and set auto-calculated fields
     calculateEntryTotals();
@@ -891,8 +907,12 @@ function populateEntryForm(entry) {
 
 function populateViewModal(entry) {
     $('#viewPatientName').text(entry.patient_name || 'N/A');
-    const doctorAddedByText = entry.doctor_added_by_username ? `<small class="text-muted d-block">Added by ${entry.doctor_added_by_username}</small>` : '';
-    $('#viewDoctorName').html(`${entry.doctor_name || 'N/A'}${doctorAddedByText}`);
+    if (entry.doctor_name) {
+        const doctorInfo = `${entry.doctor_name}${entry.doctor_added_by_username ? ' (Added by ' + entry.doctor_added_by_username + ')' : ''}`;
+        $('#viewDoctorName').text(doctorInfo);
+    } else {
+        $('#viewDoctorName').text('N/A');
+    }
     $('#viewEntryDate').text(formatDate(entry.entry_date || entry.created_at));
     $('#viewEntryStatus').text(entry.status || 'pending');
     $('#viewEntryNotes').text(entry.remarks || 'N/A');
@@ -1151,6 +1171,7 @@ function resetModalForm() {
     $('#modalTitle').text('Add New Test Entry');
     $('#saveEntryBtn').show();
     $('.select2').trigger('change');
+    updateDoctorAddedByDisplay();
 }
 
 function getErrorMessage(xhr) {
@@ -1178,31 +1199,6 @@ $(document).on('click', '#editFromViewBtn', function() {
 
 // Multiple Tests Management
 let selectedTests = [];
-
-function updateDoctorAddedByInfo(overrideName = null) {
-    const infoElement = $('#doctorAddedByInfo');
-    if (!infoElement.length) {
-        return;
-    }
-
-    let message = 'Select a doctor to see who added them.';
-    if (overrideName) {
-        message = `Added by ${overrideName}`;
-    } else {
-        const doctorId = $('#entryDoctor').val();
-        if (doctorId) {
-            const map = $('#entryDoctor').data('doctorInfo') || {};
-            const info = map[doctorId];
-            if (info && info.addedBy) {
-                message = `Added by ${info.addedBy}`;
-            } else {
-                message = 'Added by Unknown';
-            }
-        }
-    }
-
-    infoElement.text(message);
-}
 
 function updateSelectedTestsCount() {
     const count = selectedTests.length;
