@@ -3,7 +3,7 @@ session_start();
 
 // If user is already logged in, redirect to dashboard
 if (isset($_SESSION['user_id'])) {
-    header('Location: index.php');
+    header('Location: dashboard.php');
     exit();
 }
 
@@ -23,9 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         require_once 'inc/connection.php';
         try {
             // Check if user exists and is active (only admin allowed to access admin UI)
-                // Note: the users table uses 'expire_date' for the expiry column and contains last_login/updated_at
-                // allow any active user to authenticate (admins are still recognized via role)
-                $stmt = $pdo->prepare("SELECT id, username, password, role, is_active, full_name, email, created_at, updated_at, expire_date, last_login, added_by FROM users WHERE username = ? AND is_active = 1");
+            // Note: the users table uses 'expire_date' for the expiry column and contains last_login/updated_at
+            // allow any active user to authenticate (admins are still recognized via role)
+            $stmt = $pdo->prepare("SELECT id, username, password, role, is_active, full_name, email, created_at, updated_at, expire_date, last_login, added_by FROM users WHERE username = ? AND is_active = 1");
             $stmt->execute([$username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -48,10 +48,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 if ($isAjax) {
                     header('Content-Type: application/json');
-                    echo json_encode(['success'=>true,'message'=>'Login successful','redirect'=>'index.php']);
+                    echo json_encode(['success'=>true,'message'=>'Login successful','redirect'=>'dashboard.php']);
                     exit();
                 }
-                header('Location: index.php');
+                header('Location: dashboard.php');
                 exit();
             } else {
                 $error = 'Invalid username or password';
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($isAjax) {
                 header('Content-Type: application/json');
                 echo json_encode(['success'=>false,'message'=>$msg . ' ' . $e->getMessage()]);
-                exit;
+                exit();
             }
             // Non-AJAX: set error to show on page
             $error = $msg;
@@ -173,7 +173,7 @@ $(function(){
             success: function(resp){
                 if(resp.success){
                     toastr.success(resp.message||'Logged in');
-                    setTimeout(function(){ window.location = resp.redirect || 'index.php'; }, 600);
+                    setTimeout(function(){ window.location = resp.redirect || 'dashboard.php'; }, 600);
                 } else {
                     toastr.error(resp.message || 'Login failed');
                 }
