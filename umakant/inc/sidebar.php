@@ -23,7 +23,7 @@ $role = $_SESSION['role'] ?? 'user';
     <?php
     // Pages to include under Pathology
     $pathologyPages = [
-      'index.php','doctors.php','patient.php','owner.php',
+      'dashboard.php','index.php','doctors.php','patient.php','owner.php',
       'test-category.php','test.php','upload_zip.php','upload_list.php',
       'entry-list.php','plan.php','notice.php','user.php'
     ];
@@ -41,8 +41,15 @@ $role = $_SESSION['role'] ?? 'user';
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="index.php" class="nav-link <?php echo ($activePage == 'index.php') ? 'active' : ''; ?>">
+              <a href="dashboard.php" class="nav-link <?php echo ($activePage == 'dashboard.php') ? 'active' : ''; ?>">
                 <i class="fas fa-tachometer-alt nav-icon"></i>
+                <p>Dashboard Main</p>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="index.php" class="nav-link <?php echo ($activePage == 'index.php') ? 'active' : ''; ?>">
+                <i class="fas fa-chart-pie nav-icon"></i>
                 <p>Dashboard</p>
               </a>
             </li>
