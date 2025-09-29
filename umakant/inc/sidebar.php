@@ -63,31 +63,22 @@ $role = $_SESSION['role'] ?? 'user';
 
             <li class="nav-item">
               <a href="test-category.php" class="nav-link <?php echo ($activePage == 'test-category.php') ? 'active' : ''; ?>">
-                <i class="fas fa-th-list nav-icon"></i>
                 <p>Test Categories</p>
               </a>
             </li>
 
             <li class="nav-item">
-              <a href="test.php" class="nav-link <?php echo ($activePage == 'test.php') ? 'active' : ''; ?>">
-                <i class="fas fa-vial nav-icon"></i>
-                <p>Tests</p>
-              </a>
-            </li>
-
-            <li class="nav-item">
-              <a href="upload_list.php" class="nav-link <?php echo ($activePage == 'upload_list.php') ? 'active' : ''; ?>">
-                <i class="fas fa-folder-open nav-icon"></i>
-                <p>Uploads</p>
-              </a>
-            </li>
-
-            <li class="nav-item">
-              <a href="entry-list.php" class="nav-link <?php echo ($activePage == 'entry-list.php') ? 'active' : ''; ?>">
-                <i class="fas fa-file-medical nav-icon"></i>
-                <p>Entries</p>
-              </a>
-            </li>
+             <a href="test.php" class="nav-link <?php echo ($activePage == 'test.php') ? 'active' : ''; ?>">
+               <i class="fas fa-vial nav-icon"></i>
+               <p>Tests</p>
+             </a>
+           </li>
+           <li class="nav-item">
+             <a href="entry-list.php" class="nav-link <?php echo ($activePage == 'entry-list.php') ? 'active' : ''; ?>">
+               <i class="fas fa-file-medical nav-icon"></i>
+               <p>Entries</p>
+             </a>
+           </li>
 
             <li class="nav-item">
               <a href="plan.php" class="nav-link <?php echo ($activePage == 'plan.php') ? 'active' : ''; ?>">
@@ -97,15 +88,21 @@ $role = $_SESSION['role'] ?? 'user';
             </li>
 
             <li class="nav-item">
-              <a href="notice.php" class="nav-link <?php echo ($activePage == 'notice.php') ? 'active' : ''; ?>">
-                <i class="fas fa-bell nav-icon"></i>
-                <p>Notices</p>
+             <a href="notice.php" class="nav-link <?php echo ($activePage == 'notice.php') ? 'active' : ''; ?>">
+               <i class="fas fa-bell nav-icon"></i>
+               <p>Notices</p>
+             </a>
+           </li>
+
+            <li class="nav-item">
+              <a href="upload_list.php" class="nav-link <?php echo ($activePage == 'upload_list.php') ? 'active' : ''; ?>">
+                <i class="fas fa-folder-open nav-icon"></i>
+                <p>Uploads</p>
               </a>
             </li>
 
             <?php if (isset($_SESSION['user_id'])): ?>
             <li class="nav-item">
-              <a href="user.php" class="nav-link <?php echo ($activePage == 'user.php') ? 'active' : ''; ?>">
                 <i class="fas fa-users nav-icon"></i>
                 <p>Users</p>
               </a>
