@@ -72,36 +72,74 @@
     window.APP_LOG = function(){ if(window.APP_DEBUG && console && console.log){ console.log.apply(console, arguments); } };
   </script>
   <script>
-    // Quiet known noisy extension message in console which is outside our control.
-    // This filters console.error calls containing the specific runtime.lastError text
+    // Quiet known noisy extension messages outside our control across console.* APIs
     (function(){
-      try{
-        if(console && console.error){
-          var _origErr = console.error.bind(console);
-          console.error = function(){
-            try{
-              var msg = Array.prototype.slice.call(arguments).join(' ');
-              if(msg){
-                var lower = msg.toLowerCase();
-                var noisy = [
-                  'the message port closed before a response was received',
-                  'could not establish connection',
-                  'messagenotsenterror',
-                  'cookiemanager.injectclientscript',
-                  'registerclientlocalizationserror'
-                ];
-                for(var i=0;i<noisy.length;i++){
-                  if(lower.indexOf(noisy[i]) !== -1){
-                    // ignore this noisy extension error
-                    return;
-                  }
-                }
-              }
-            }catch(e){ }
-            _origErr.apply(console, arguments);
-          };
-        }
-      }catch(e){}
+      var PATTERNS = [
+        'the message port closed before a response was received',
+        'could not establish connection',
+        'messagenotsenterror',
+        'messageporterror',
+        'cookiemanager.injectclientscript',
+        'registerclientlocalizationserror',
+        'contentmanager.injectclientscript'
+      ];
+
+      function isNoisyMessage(args){
+        try{
+          var msg = Array.prototype.slice.call(args).join(' ');
+          if(!msg) return false;
+          var lower = msg.toLowerCase();
+          for(var i=0;i<PATTERNS.length;i++){
+            if(lower.indexOf(PATTERNS[i]) !== -1){
+              return true;
+            }
+          }
+        }catch(err){ /* ignore */ }
+        return false;
+      }
+
+      function wrapConsoleMethod(method){
+        if(!console || typeof console[method] !== 'function') return;
+        var original = console[method].bind(console);
+        console[method] = function(){
+          if(isNoisyMessage(arguments)){
+            return;
+          }
+          try{
+            original.apply(console, arguments);
+          }catch(err){ /* swallow */ }
+        };
+      }
+
+      wrapConsoleMethod('error');
+      wrapConsoleMethod('warn');
+      wrapConsoleMethod('info');
+
+      window.addEventListener('error', function(ev){
+        try{
+          var msg = (ev && ev.message ? ev.message : '').toLowerCase();
+          for(var i=0;i<PATTERNS.length;i++){
+            if(msg.indexOf(PATTERNS[i]) !== -1){
+              ev.preventDefault();
+              return;
+            }
+          }
+        }catch(err){ /* ignore */ }
+      }, true);
+
+      window.addEventListener('unhandledrejection', function(ev){
+        try{
+          var reason = ev && ev.reason;
+          var msg = reason ? (reason.message || reason.toString && reason.toString()) : '';
+          msg = (msg || '').toLowerCase();
+          for(var i=0;i<PATTERNS.length;i++){
+            if(msg.indexOf(PATTERNS[i]) !== -1){
+              ev.preventDefault();
+              return;
+            }
+          }
+        }catch(err){ /* ignore */ }
+      }, true);
     })();
   </script>
   <script>
