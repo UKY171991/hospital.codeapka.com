@@ -486,6 +486,41 @@ let entriesCurrentPage = 1;
 let entriesPerPageCount = 25;
 let doctorDirectory = {};
 
+// Utility to wait for Select2 availability before initializing
+function waitForSelect2(callback, attempt = 0) {
+    if (typeof jQuery !== 'undefined' && $.fn && typeof $.fn.select2 === 'function') {
+        callback();
+        return;
+    }
+    if (attempt >= 20) {
+        console.warn('Select2 plugin did not load in time');
+        return;
+    }
+    setTimeout(function() {
+        waitForSelect2(callback, attempt + 1);
+    }, 100);
+}
+
+function initializeEntrySelect2Fields() {
+    const $selects = $('.select2');
+    if (!$selects.length) {
+        return;
+    }
+
+    $selects.each(function() {
+        const $el = $(this);
+        if (typeof $el.data('select2') !== 'undefined') {
+            $el.select2('destroy');
+        }
+    });
+
+    $selects.select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        dropdownParent: $('#entryModal')
+    });
+}
+
 // Initialize page
 $(document).ready(function() {
     loadDropdownsForEntry();
@@ -555,12 +590,8 @@ function updateDoctorAddedByDisplay() {
 }
 
 function loadDropdownsForEntry() {
-    // Initialize Select2 for entry form
-    $('.select2').select2({
-        theme: 'bootstrap4',
-        width: '100%',
-        dropdownParent: $('#entryModal')
-    });
+    // Initialize Select2 for entry form once plugin is ready
+    waitForSelect2(initializeEntrySelect2Fields);
 
     // Load patients
     $.get('ajax/patient_api.php', { action: 'list', ajax: 1 })

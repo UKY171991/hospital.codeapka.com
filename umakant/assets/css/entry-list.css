@@ -1,0 +1,28 @@
+/* Entry List page specific styles */
+.entry-id-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.multiple-tests-display .badge {
+    font-size: 0.85rem;
+}
+
+.action-buttons .btn {
+    margin-right: 0.25rem;
+}
+
+/* Prevent layout shift when modals open */
+body.modal-open {
+    padding-right: 0 !important;
+}

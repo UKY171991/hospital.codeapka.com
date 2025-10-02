@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Sep 28, 2025 at 08:49 AM
+-- Generation Time: Oct 01, 2025 at 12:19 PM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -43,7 +43,8 @@ CREATE TABLE `categories` (
 INSERT INTO `categories` (`id`, `name`, `description`, `added_by`, `created_at`, `updated_at`) VALUES
 (3, 'asd', 'qw', 1, '2025-09-27 10:14:02', '2025-09-27 10:14:36'),
 (4, 'asdf hh', 'sdf', 1, '2025-09-27 10:14:09', '2025-09-27 10:14:40'),
-(5, 'erfg  hh', 'qws', 1, '2025-09-27 10:30:03', '2025-09-27 10:30:11');
+(5, 'erfg  hh', 'qws', 1, '2025-09-27 10:30:03', '2025-09-27 10:30:11'),
+(6, 'Sydnee Levine hh', 'Eos et in lorem non', 1, '2025-09-28 10:02:38', '2025-09-28 10:02:50');
 
 -- --------------------------------------------------------
 
@@ -163,9 +164,20 @@ CREATE TABLE `owners` (
   `whatsapp` varchar(50) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
   `address` text DEFAULT NULL,
+  `link` text NOT NULL,
+  `added_by` int(11) NOT NULL,
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+--
+-- Dumping data for table `owners`
+--
+
+INSERT INTO `owners` (`id`, `server_id`, `name`, `phone`, `whatsapp`, `email`, `address`, `link`, `added_by`, `created_at`, `updated_at`) VALUES
+(1, NULL, 'Veronica Conner', '+1 (943) 454-5052', 'Consequatur esse au', 'colabyfa@mailinator.com', 'Veniam voluptatem e', '', 0, NULL, NULL),
+(2, NULL, 'Odette Bolton', '+1 (299) 142-5748', 'Quaerat autem adipis', 'kysefaco@mailinator.com', 'Enim in commodo at e', 'https://hospital.codeapka.com/', 0, NULL, '2025-09-28 15:31:20'),
+(3, NULL, 'Velma Vasquez', '+1 (339) 777-1313', 'Rerum corporis adipi', 'dadixalex@mailinator.com', 'Et delectus error n', 'https://www.vih.us', 1, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -298,6 +310,13 @@ CREATE TABLE `tests` (
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
+--
+-- Dumping data for table `tests`
+--
+
+INSERT INTO `tests` (`id`, `name`, `category_id`, `price`, `unit`, `specimen`, `default_result`, `reference_range`, `min`, `max`, `description`, `min_male`, `max_male`, `min_female`, `max_female`, `sub_heading`, `test_code`, `method`, `print_new_page`, `shortcut`, `added_by`, `created_at`, `updated_at`) VALUES
+(1, 'Aubrey Reyes g', 3, 980.00, 'Veniam sunt ipsam v', NULL, '', '', 20.00, 24.00, 'Aliquid labore place', 30.00, 31.00, 72.00, 78.00, 1, '', '', 1, '', 1, NULL, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -325,7 +344,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-09-28 11:32:26', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-10-01 17:44:01', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
 (2, 'uma', '$2y$12$yBaDoENR.9MOXDLizW.UYunvNev1XOICwYC.WNCRmPEd1fQ5TS85q', 'Uma Yadav', 'umakant171991@gmail.com', 'user', 1, 0, '2025-09-26 10:13:58', NULL, '2025-10-11 10:13:00', '0000-00-00 00:00:00', '2025-09-26 04:43:58');
 
 -- --------------------------------------------------------
@@ -481,7 +500,7 @@ ALTER TABLE `zip_uploads`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `doctors`
@@ -511,7 +530,7 @@ ALTER TABLE `notices`
 -- AUTO_INCREMENT for table `owners`
 --
 ALTER TABLE `owners`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `password_resets`
@@ -541,7 +560,7 @@ ALTER TABLE `reports`
 -- AUTO_INCREMENT for table `tests`
 --
 ALTER TABLE `tests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -553,7 +572,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `zip_uploads`
 --
 ALTER TABLE `zip_uploads`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- Constraints for dumped tables
