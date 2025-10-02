@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // ajax/entry_api.php - CRUD for entries
 try {
     require_once __DIR__ . '/../inc/connection.php';
@@ -19,6 +19,139 @@ session_start();
 header('Content-Type: application/json; charset=utf-8');
 
 $action = $_REQUEST['action'] ?? 'list';
+
+function db_column_exists($pdo, $table, $column) {
+    static $cache = [];
+    $key = strtolower($table . '.' . $column);
+    if (array_key_exists($key, $cache)) {
+        return $cache[$key];
+    }
+    try {
+        $stmt = $pdo->prepare("SHOW COLUMNS FROM `{$table}` LIKE ?");
+        $stmt->execute([$column]);
+        $cache[$key] = $stmt->fetch(PDO::FETCH_ASSOC) ? true : false;
+    } catch (Exception $e) {
+        $cache[$key] = false;
+    }
+    return $cache[$key];
+}
+
+function get_entries_schema_capabilities($pdo) {
+    static $cache = null;
+    if ($cache !== null) {
+        return $cache;
+    }
+
+    $cache = [
+        'has_grouped' => db_column_exists($pdo, 'entries', 'grouped'),
+        'has_tests_count' => db_column_exists($pdo, 'entries', 'tests_count'),
+        'has_test_ids' => db_column_exists($pdo, 'entries', 'test_ids'),
+        'has_test_names' => db_column_exists($pdo, 'entries', 'test_names'),
+        'has_test_id' => db_column_exists($pdo, 'entries', 'test_id'),
+        'has_price' => db_column_exists($pdo, 'entries', 'price'),
+        'has_discount_amount' => db_column_exists($pdo, 'entries', 'discount_amount'),
+        'has_total_price' => db_column_exists($pdo, 'entries', 'total_price'),
+        'has_subtotal' => db_column_exists($pdo, 'entries', 'subtotal'),
+        'has_notes' => db_column_exists($pdo, 'entries', 'notes'),
+        'has_remarks' => db_column_exists($pdo, 'entries', 'remarks'),
+        'has_updated_at' => db_column_exists($pdo, 'entries', 'updated_at')
+    ];
+
+    return $cache;
+}
+
+function get_entry_tests_schema_capabilities($pdo) {
+    static $cache = null;
+    if ($cache !== null) {
+        return $cache;
+    }
+
+    $cache = [
+        'has_price' => db_column_exists($pdo, 'entry_tests', 'price'),
+        'has_discount_amount' => db_column_exists($pdo, 'entry_tests', 'discount_amount'),
+        'has_total_price' => db_column_exists($pdo, 'entry_tests', 'total_price')
+    ];
+
+    return $cache;
+}
+
+function build_entry_tests_aggregation_sql($pdo) {
+    static $cache = null;
+    if ($cache !== null) {
+        return $cache;
+    }
+
+    $caps = get_entry_tests_schema_capabilities($pdo);
+    $sumPrice = $caps['has_price'] ? 'SUM(et.price)' : 'SUM(0)';
+    $sumDiscount = $caps['has_discount_amount'] ? 'SUM(et.discount_amount)' : 'SUM(0)';
+
+    $cache = "SELECT et.entry_id,\n               COUNT(*) as tests_count,\n               GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,\n               GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,\n               {$sumPrice} as total_price,\n               {$sumDiscount} as total_discount\n        FROM entry_tests et\n        LEFT JOIN tests t ON et.test_id = t.id\n        GROUP BY et.entry_id";
+
+    return $cache;
+}
+
+function refresh_entry_aggregates($pdo, $entryId) {
+    $entriesCaps = get_entries_schema_capabilities($pdo);
+    $aggSql = build_entry_tests_aggregation_sql($pdo);
+
+    $stmt = $pdo->prepare("SELECT tests_count, test_ids, test_names, total_price, total_discount FROM (" . $aggSql . ") agg WHERE entry_id = ?");
+    $stmt->execute([$entryId]);
+    $aggRow = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    $testsCount = $aggRow ? (int)($aggRow['tests_count'] ?? 0) : 0;
+    $testIds = $aggRow ? ($aggRow['test_ids'] ?? '') : '';
+    $testNames = $aggRow ? ($aggRow['test_names'] ?? '') : '';
+    $totalPrice = $aggRow ? (float)($aggRow['total_price'] ?? 0) : 0;
+    $totalDiscount = $aggRow ? (float)($aggRow['total_discount'] ?? 0) : 0;
+    $netAmount = max($totalPrice - $totalDiscount, 0);
+
+    $fields = [];
+    $params = ['entry_id' => $entryId];
+
+    if ($entriesCaps['has_grouped']) {
+        $fields[] = 'grouped = :grouped';
+        $params['grouped'] = $testsCount > 1 ? 1 : 0;
+    }
+    if ($entriesCaps['has_tests_count']) {
+        $fields[] = 'tests_count = :tests_count';
+        $params['tests_count'] = $testsCount;
+    }
+    if ($entriesCaps['has_test_ids']) {
+        $fields[] = 'test_ids = :test_ids';
+        $params['test_ids'] = $testIds;
+    }
+    if ($entriesCaps['has_test_names']) {
+        $fields[] = 'test_names = :test_names';
+        $params['test_names'] = $testNames;
+    }
+    if ($entriesCaps['has_price']) {
+        $fields[] = 'price = :price';
+        $params['price'] = $totalPrice;
+    }
+    if ($entriesCaps['has_subtotal']) {
+        $fields[] = 'subtotal = :subtotal';
+        $params['subtotal'] = $totalPrice;
+    }
+    if ($entriesCaps['has_discount_amount']) {
+        $fields[] = 'discount_amount = :discount_amount';
+        $params['discount_amount'] = $totalDiscount;
+    }
+    if ($entriesCaps['has_total_price']) {
+        $fields[] = 'total_price = :total_price';
+        $params['total_price'] = $netAmount;
+    }
+    if ($entriesCaps['has_updated_at']) {
+        $fields[] = 'updated_at = NOW()';
+    }
+
+    if (!$fields) {
+        return;
+    }
+
+    $sql = "UPDATE entries SET " . implode(', ', $fields) . " WHERE id = :entry_id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+}
 
 try {
     if ($action === 'stats') {
@@ -71,6 +204,7 @@ try {
             $params = [$viewerId];
         }
 
+        $aggSql = build_entry_tests_aggregation_sql($pdo);
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
                    d.name AS doctor_name,
@@ -86,17 +220,7 @@ try {
             LEFT JOIN doctors d ON e.doctor_id = d.id 
             LEFT JOIN users du ON d.added_by = du.id
             LEFT JOIN users u ON e.added_by = u.id
-            LEFT JOIN (
-                SELECT et.entry_id,
-                       COUNT(*) as tests_count,
-                       GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,
-                       GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,
-                       SUM(et.price) as total_price,
-                       SUM(et.discount_amount) as total_discount
-                FROM entry_tests et
-                LEFT JOIN tests t ON et.test_id = t.id
-                GROUP BY et.entry_id
-            ) agg ON agg.entry_id = e.id" .
+            LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id" .
             $scopeWhere .
             " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
         
@@ -105,6 +229,7 @@ try {
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Format data for frontend compatibility
+        $entriesCaps = get_entries_schema_capabilities($pdo);
         foreach ($rows as &$row) {
             // Ensure entry_date is available for frontend
             if (empty($row['entry_date'])) {
@@ -117,9 +242,26 @@ try {
             $row['test_ids'] = $row['test_ids'] ?? '';
             
             // Format pricing
-            $row['total_price'] = (float)($row['total_price'] ?? 0);
-            $row['total_discount'] = (float)($row['total_discount'] ?? 0);
-            $row['final_amount'] = $row['total_price'] - $row['total_discount'];
+            $aggTotalPrice = (float)($row['total_price'] ?? 0);
+            $aggDiscount = (float)($row['total_discount'] ?? 0);
+            $row['aggregated_total_price'] = $aggTotalPrice;
+            $row['aggregated_total_discount'] = $aggDiscount;
+
+            if ($entriesCaps['has_total_price'] && isset($row['total_price'])) {
+                $finalAmount = (float)$row['total_price'];
+            } else if ($entriesCaps['has_subtotal'] && isset($row['subtotal'])) {
+                $finalAmount = (float)$row['subtotal'] - (float)($row['discount_amount'] ?? 0);
+            } else {
+                $finalAmount = $aggTotalPrice - $aggDiscount;
+            }
+
+            $row['total_price'] = $entriesCaps['has_total_price'] && isset($row['total_price'])
+                ? (float)$row['total_price']
+                : $aggTotalPrice;
+            $row['total_discount'] = $entriesCaps['has_discount_amount'] && isset($row['discount_amount'])
+                ? (float)$row['discount_amount']
+                : $aggDiscount;
+            $row['final_amount'] = $finalAmount;
             
             // Set grouped flag based on test count
             $row['grouped'] = $row['tests_count'] > 1 ? 1 : 0;
@@ -148,6 +290,7 @@ try {
             $params[] = $viewerId;
         }
 
+        $aggSql = build_entry_tests_aggregation_sql($pdo);
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
                    d.name AS doctor_name,
@@ -163,17 +306,7 @@ try {
             LEFT JOIN doctors d ON e.doctor_id = d.id 
             LEFT JOIN users du ON d.added_by = du.id
             LEFT JOIN users u ON e.added_by = u.id
-            LEFT JOIN (
-                SELECT et.entry_id,
-                       COUNT(*) AS tests_count,
-                       GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') AS test_names,
-                       GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) AS test_ids,
-                       SUM(et.price) AS total_price,
-                       SUM(et.discount_amount) AS total_discount
-                FROM entry_tests et
-                LEFT JOIN tests t ON et.test_id = t.id
-                GROUP BY et.entry_id
-            ) agg ON agg.entry_id = e.id
+            LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id
             WHERE e.id = ?" . $scopeWhere;
         
         $stmt = $pdo->prepare($sql);
@@ -187,6 +320,7 @@ try {
         }
         
         // Format data for frontend compatibility
+        $entriesCaps = get_entries_schema_capabilities($pdo);
         if (empty($row['entry_date'])) {
             $row['entry_date'] = $row['created_at'];
         }
@@ -197,9 +331,26 @@ try {
         $row['test_ids'] = $row['test_ids'] ?? '';
         
         // Format pricing
-        $row['total_price'] = (float)($row['total_price'] ?? 0);
-        $row['total_discount'] = (float)($row['total_discount'] ?? 0);
-        $row['final_amount'] = $row['total_price'] - $row['total_discount'];
+        $aggTotalPrice = (float)($row['total_price'] ?? 0);
+        $aggDiscount = (float)($row['total_discount'] ?? 0);
+        $row['aggregated_total_price'] = $aggTotalPrice;
+        $row['aggregated_total_discount'] = $aggDiscount;
+
+        if ($entriesCaps['has_total_price'] && isset($row['total_price'])) {
+            $finalAmount = (float)$row['total_price'];
+        } else if ($entriesCaps['has_subtotal'] && isset($row['subtotal'])) {
+            $finalAmount = (float)$row['subtotal'] - (float)($row['discount_amount'] ?? 0);
+        } else {
+            $finalAmount = $aggTotalPrice - $aggDiscount;
+        }
+
+        $row['total_price'] = $entriesCaps['has_total_price'] && isset($row['total_price'])
+            ? (float)$row['total_price']
+            : $aggTotalPrice;
+        $row['total_discount'] = $entriesCaps['has_discount_amount'] && isset($row['discount_amount'])
+            ? (float)$row['discount_amount']
+            : $aggDiscount;
+        $row['final_amount'] = $finalAmount;
         
         // Set grouped flag based on test count
         $row['grouped'] = $row['tests_count'] > 1 ? 1 : 0;
@@ -239,35 +390,53 @@ try {
                 try {
                     $pdo->beginTransaction();
                     
-                    // Create the main entry
+                    $entryCaps = get_entries_schema_capabilities($pdo);
+
+                    // Create the main entry with schema-awareness
                     $entryData = [
                         'patient_id' => $input['patient_id'],
                         'doctor_id' => $input['doctor_id'] ?? null,
                         'entry_date' => $input['entry_date'] ?? date('Y-m-d'),
                         'status' => $input['status'] ?? 'pending',
-                        'added_by' => $input['added_by'],
-                        'remarks' => $input['notes'] ?? null,
-                        'grouped' => 1, // This is a grouped entry
-                        'tests_count' => count($tests)
+                        'added_by' => $input['added_by']
                     ];
-                    
-                    // Calculate total price
+
+                    if ($entryCaps['has_remarks']) {
+                        $entryData['remarks'] = $input['notes'] ?? null;
+                    } elseif ($entryCaps['has_notes']) {
+                        $entryData['notes'] = $input['notes'] ?? null;
+                    }
+                    if ($entryCaps['has_grouped']) {
+                        $entryData['grouped'] = 1;
+                    }
+                    if ($entryCaps['has_tests_count']) {
+                        $entryData['tests_count'] = count($tests);
+                    }
+
+                    // Calculate totals based on test data and schema
                     $totalPrice = 0;
                     $totalDiscount = 0;
                     foreach ($tests as $test) {
-                        $price = floatval($test['price'] ?? 0);
-                        $discount = floatval($test['discount_amount'] ?? 0);
-                        $totalPrice += $price;
-                        $totalDiscount += $discount;
+                        $totalPrice += floatval($test['price'] ?? 0);
+                        $totalDiscount += floatval($test['discount_amount'] ?? 0);
                     }
-                    
-                    $entryData['price'] = $totalPrice;
-                    $entryData['discount_amount'] = $totalDiscount;
-                    $entryData['total_price'] = $totalPrice - $totalDiscount;
-                    
+
+                    if ($entryCaps['has_price']) {
+                        $entryData['price'] = $totalPrice;
+                    }
+                    if ($entryCaps['has_subtotal']) {
+                        $entryData['subtotal'] = $totalPrice;
+                    }
+                    if ($entryCaps['has_discount_amount']) {
+                        $entryData['discount_amount'] = $totalDiscount;
+                    }
+                    if ($entryCaps['has_total_price']) {
+                        $entryData['total_price'] = max($totalPrice - $totalDiscount, 0);
+                    }
+
                     // Set primary test to first test for backward compatibility
-                    if (!empty($tests)) {
-                        $entryData['test_id'] = $tests[0]['test_id']; // Use first test as primary
+                    if (!empty($tests) && $entryCaps['has_test_id']) {
+                        $entryData['test_id'] = $tests[0]['test_id'];
                     }
                     
                     // Insert entry
@@ -281,6 +450,7 @@ try {
                     // Insert individual tests
                     $testIds = [];
                     $testNames = [];
+                    $entryTestCaps = get_entry_tests_schema_capabilities($pdo);
                     foreach ($tests as $test) {
                         $testData = [
                             'entry_id' => $entryId,
@@ -288,11 +458,17 @@ try {
                             'result_value' => $test['result_value'] ?? null,
                             'unit' => $test['unit'] ?? null,
                             'remarks' => $test['remarks'] ?? null,
-                            'status' => 'pending',
-                            'price' => $test['price'] ?? 0,
-                            'discount_amount' => $test['discount_amount'] ?? 0,
-                            'total_price' => ($test['price'] ?? 0) - ($test['discount_amount'] ?? 0)
+                            'status' => 'pending'
                         ];
+                        if ($entryTestCaps['has_price']) {
+                            $testData['price'] = $test['price'] ?? 0;
+                        }
+                        if ($entryTestCaps['has_discount_amount']) {
+                            $testData['discount_amount'] = $test['discount_amount'] ?? 0;
+                        }
+                        if ($entryTestCaps['has_total_price']) {
+                            $testData['total_price'] = max(($test['price'] ?? 0) - ($test['discount_amount'] ?? 0), 0);
+                        }
                         
                         $testFields = implode(', ', array_keys($testData));
                         $testPlaceholders = ':' . implode(', :', array_keys($testData));
@@ -305,17 +481,27 @@ try {
                     }
                     
                     // Update entry with aggregated test data
-                    $updateSql = "UPDATE entries SET 
-                        test_ids = :test_ids,
-                        test_names = :test_names,
-                        updated_at = NOW()
-                        WHERE id = :entry_id";
-                    $updateStmt = $pdo->prepare($updateSql);
-                    $updateStmt->execute([
-                        'test_ids' => implode(',', $testIds),
-                        'test_names' => implode(', ', $testNames),
-                        'entry_id' => $entryId
-                    ]);
+                    $updateFields = [];
+                    $updateParams = ['entry_id' => $entryId];
+                    if ($entryCaps['has_test_ids']) {
+                        $updateFields[] = 'test_ids = :test_ids';
+                        $updateParams['test_ids'] = implode(',', $testIds);
+                    }
+                    if ($entryCaps['has_test_names']) {
+                        $updateFields[] = 'test_names = :test_names';
+                        $updateParams['test_names'] = implode(', ', $testNames);
+                    }
+                    if ($entryCaps['has_updated_at']) {
+                        $updateFields[] = 'updated_at = NOW()';
+                    }
+                    if ($updateFields) {
+                        $updateSql = "UPDATE entries SET " . implode(', ', $updateFields) . " WHERE id = :entry_id";
+                        $updateStmt = $pdo->prepare($updateSql);
+                        $updateStmt->execute($updateParams);
+                    }
+
+                    // Refresh aggregated totals based on actual test rows
+                    refresh_entry_aggregates($pdo, $entryId);
                     
                     $pdo->commit();
                     
