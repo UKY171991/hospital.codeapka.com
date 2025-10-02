@@ -84,18 +84,47 @@
         'contentmanager.injectclientscript'
       ];
 
-      function isNoisyMessage(args){
+      function getCandidateStrings(args){
+        var values = [];
         try{
-          var msg = Array.prototype.slice.call(args).join(' ');
-          if(!msg) return false;
-          var lower = msg.toLowerCase();
+          var arr = Array.prototype.slice.call(args);
+          for(var i=0;i<arr.length;i++){
+            var item = arr[i];
+            if(item == null){ continue; }
+            if(typeof item === 'string'){
+              values.push(item);
+            }else if(typeof item === 'object'){
+              if(typeof item.message === 'string') values.push(item.message);
+              if(typeof item.name === 'string') values.push(item.name);
+              if(typeof item.stack === 'string') values.push(item.stack);
+              try{
+                values.push(JSON.stringify(item));
+              }catch(jsonErr){ /* ignore */ }
+            }else{
+              values.push(String(item));
+            }
+          }
+        }catch(err){ /* ignore */ }
+        return values;
+      }
+
+      function containsNoise(strings){
+        for(var sIdx=0; sIdx<strings.length; sIdx++){
+          var str = strings[sIdx];
+          if(!str) continue;
+          var lower = String(str).toLowerCase();
           for(var i=0;i<PATTERNS.length;i++){
             if(lower.indexOf(PATTERNS[i]) !== -1){
               return true;
             }
           }
-        }catch(err){ /* ignore */ }
+        }
         return false;
+      }
+
+      function isNoisyMessage(args){
+        var strings = getCandidateStrings(args);
+        return containsNoise(strings);
       }
 
       function wrapConsoleMethod(method){
@@ -117,12 +146,14 @@
 
       window.addEventListener('error', function(ev){
         try{
-          var msg = (ev && ev.message ? ev.message : '').toLowerCase();
-          for(var i=0;i<PATTERNS.length;i++){
-            if(msg.indexOf(PATTERNS[i]) !== -1){
-              ev.preventDefault();
-              return;
-            }
+          var toCheck = [];
+          if(ev && typeof ev.message === 'string') toCheck.push(ev.message);
+          if(ev && ev.error){
+            toCheck = toCheck.concat(getCandidateStrings([ev.error]));
+          }
+          if(containsNoise(toCheck)){
+            ev.preventDefault();
+            return;
           }
         }catch(err){ /* ignore */ }
       }, true);
@@ -130,13 +161,10 @@
       window.addEventListener('unhandledrejection', function(ev){
         try{
           var reason = ev && ev.reason;
-          var msg = reason ? (reason.message || reason.toString && reason.toString()) : '';
-          msg = (msg || '').toLowerCase();
-          for(var i=0;i<PATTERNS.length;i++){
-            if(msg.indexOf(PATTERNS[i]) !== -1){
-              ev.preventDefault();
-              return;
-            }
+          var toCheck = getCandidateStrings([reason]);
+          if(containsNoise(toCheck)){
+            ev.preventDefault();
+            return;
           }
         }catch(err){ /* ignore */ }
       }, true);
