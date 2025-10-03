@@ -210,7 +210,6 @@ $currentUserDisplayName = $_SESSION['full_name']
             <form id="entryForm">
                 <div class="modal-body">
                     <input type="hidden" id="entryId" name="id">
-                    <input type="hidden" id="entryAddedBy" name="added_by" value="<?= htmlspecialchars((string)$currentUserId, ENT_QUOTES, 'UTF-8'); ?>">
                     
                     <div class="row">
                         <div class="col-md-6">
@@ -238,11 +237,13 @@ $currentUserDisplayName = $_SESSION['full_name']
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="entryAddedByDisplay">
+                                <label for="entryAddedBy">
                                     <i class="fas fa-user-check mr-1"></i>
-                                    Added By
+                                    Added By <span class="text-danger">*</span>
                                 </label>
-                                <input type="text" class="form-control" id="entryAddedByDisplay" value="<?= htmlspecialchars($currentUserDisplayName, ENT_QUOTES, 'UTF-8'); ?>" readonly>
+                                <select class="form-control select2" id="entryAddedBy" name="added_by" required>
+                                    <option value="">Select User</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -503,27 +504,51 @@ let doctorDirectory = {};
 const currentUserId = <?= json_encode($currentUserId, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
 const currentUserDisplayName = <?= json_encode($currentUserDisplayName, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
 
-function updateEntryAddedByField(id, displayName) {
-    let resolvedId = '';
-    if (id !== null && id !== undefined && id !== '') {
-        resolvedId = id;
-    } else if (currentUserId !== null && currentUserId !== undefined && currentUserId !== '') {
-        resolvedId = currentUserId;
+function populateAddedBySelect(defaultId) {
+    const select = $('#entryAddedBy');
+    const existingValue = typeof defaultId !== 'undefined' ? defaultId : select.val();
+    const shouldReload = !select.data('loaded') || select.data('forceReload');
+    if (!shouldReload) {
+        if (existingValue) {
+            select.val(String(existingValue)).trigger('change.select2');
+        }
+        return;
     }
 
-    let resolvedName = '';
-    if (typeof displayName === 'string' && displayName.trim() !== '') {
-        resolvedName = displayName.trim();
-    } else if (resolvedId && String(resolvedId) === String(currentUserId) && currentUserDisplayName) {
-        resolvedName = currentUserDisplayName;
-    } else if (resolvedId) {
-        resolvedName = `User #${resolvedId}`;
-    } else {
-        resolvedName = currentUserDisplayName || 'Unknown User';
-    }
+    select.prop('disabled', true);
+    select.html('<option value="">Loading users...</option>');
 
-    $('#entryAddedBy').val(resolvedId);
-    $('#entryAddedByDisplay').val(resolvedName);
+    $.get('patho_api/user.php', { action: 'list', ajax: 1 })
+        .done(function(response) {
+            if (!response.success || !Array.isArray(response.data)) {
+                throw new Error(response.message || 'Unexpected response');
+            }
+
+            let options = '<option value="">Select User</option>';
+            response.data.forEach(function(user) {
+                const id = user.id;
+                const label = user.full_name && user.full_name.trim() !== ''
+                    ? user.full_name
+                    : (user.username || ('User #' + id));
+                const selectedAttr = String(id) === String(existingValue || currentUserId) ? ' selected' : '';
+                options += `<option value="${id}"${selectedAttr}>${label}</option>`;
+            });
+
+            select.html(options);
+            if (!existingValue && currentUserId) {
+                select.val(String(currentUserId));
+            }
+            select.trigger('change.select2');
+            select.data('loaded', true);
+            select.removeData('forceReload');
+        })
+        .fail(function(xhr) {
+            const errorMsg = getErrorMessage(xhr);
+            select.html(`<option value="">Failed to load users (${errorMsg})</option>`);
+        })
+        .always(function() {
+            select.prop('disabled', false);
+        });
 }
 
 // Utility to wait for Select2 availability before initializing
@@ -599,6 +624,10 @@ function initializeEventListeners() {
     // Modal reset on hide
     $('#entryModal').on('hidden.bs.modal', function() {
         resetModalForm();
+    });
+
+    $('#entryModal').on('shown.bs.modal', function() {
+        populateAddedBySelect($('#entryAddedBy').data('prefill'));
     });
 
     // Filter changes
@@ -703,6 +732,10 @@ function loadDropdownsForEntry() {
                 console.error('Failed to load tests:', errorMsg);
             }
         });
+
+    // Load users for Added By select on page load so data is ready
+    $('#entryAddedBy').data('forceReload', true);
+    populateAddedBySelect(currentUserId);
 }
 
 function loadEntries() {
@@ -985,7 +1018,9 @@ function populateEntryForm(entry) {
     $('#entryId').val(entry.id);
     $('#entryPatient').val(entry.patient_id).trigger('change');
     $('#entryDoctor').val(entry.doctor_id).trigger('change');
-    updateEntryAddedByField(entry.added_by, entry.added_by_username);
+    $('#entryAddedBy').data('prefill', entry.added_by || currentUserId);
+    $('#entryAddedBy').data('forceReload', true);
+    populateAddedBySelect(entry.added_by || currentUserId);
     $('#entryStatus').val(entry.status || 'pending');
     $('#entryNotes').val(entry.remarks || '');
     updateDoctorAddedByDisplay();
@@ -1263,7 +1298,9 @@ function resetModalForm() {
     $('#modalTitle').text('Add New Test Entry');
     $('#saveEntryBtn').show();
     $('.select2').trigger('change');
-    updateEntryAddedByField(currentUserId, currentUserDisplayName);
+    $('#entryAddedBy').data('prefill', currentUserId);
+    $('#entryAddedBy').data('forceReload', true);
+    populateAddedBySelect(currentUserId);
     updateDoctorAddedByDisplay();
 }
 
@@ -1589,8 +1626,10 @@ function resetModalForm() {
     $('#entryAmount').val('');
     $('#entryDiscount').val('');
     $('#entryNotes').val('');
-    updateEntryAddedByField(currentUserId, currentUserDisplayName);
-    
+    $('#entryAddedBy').data('prefill', currentUserId);
+    $('#entryAddedBy').data('forceReload', true);
+    populateAddedBySelect(currentUserId);
+
     // Clear selected tests
     clearSelectedTests();
     
@@ -1599,7 +1638,6 @@ function resetModalForm() {
     
     // Reset modal title and buttons
     $('#modalTitle').text('Add New Test Entry');
-    $('#saveEntryBtn').show().text('Save Entry');
     $('#entryForm input, #entryForm textarea, #entryForm select').prop('disabled', false);
 }
 </script>
