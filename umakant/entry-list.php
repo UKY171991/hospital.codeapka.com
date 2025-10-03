@@ -214,13 +214,12 @@ $currentUserDisplayName = $_SESSION['full_name']
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="entryAddedBy">
+                                <label>
                                     <i class="fas fa-user-check mr-1"></i>
-                                    Added By <span class="text-danger">*</span>
+                                    Added By
                                 </label>
-                                <select class="form-control select2" id="entryAddedBy" name="added_by" required>
-                                    <option value="">Select User</option>
-                                </select>
+                                <input type="hidden" id="entryAddedBy" name="added_by" value="<?= htmlspecialchars((string)$currentUserId, ENT_QUOTES, 'UTF-8'); ?>">
+                                <input type="text" class="form-control" id="entryAddedByDisplay" value="<?= htmlspecialchars($currentUserDisplayName, ENT_QUOTES, 'UTF-8'); ?>" readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -516,9 +515,10 @@ function normalizeIdentifierValue(value) {
     return str.toLowerCase();
 }
 
-function getAddedByIdentifierSet(userId) {
+function getAddedByIdentifierSet(explicitUserId) {
     const identifiers = new Set();
-    const select = $('#entryAddedBy');
+    const hiddenField = $('#entryAddedBy');
+    const displayField = $('#entryAddedByDisplay');
 
     const addValue = (value) => {
         const normalized = normalizeIdentifierValue(value);
@@ -527,24 +527,17 @@ function getAddedByIdentifierSet(userId) {
         }
     };
 
-    if (userId !== undefined && userId !== null && userId !== '') {
-        addValue(userId);
+    if (explicitUserId !== undefined && explicitUserId !== null && explicitUserId !== '') {
+        addValue(explicitUserId);
     }
 
-    let option = (userId !== undefined && userId !== null && userId !== '')
-        ? select.find(`option[value="${userId}"]`)
-        : select.find('option:selected');
+    const hiddenValue = hiddenField.val();
+    addValue(hiddenValue);
 
-    if (!option.length) {
-        option = select.find('option:selected');
-    }
-
-    if (option.length) {
-        addValue(option.val());
-        addValue(option.data('username'));
-        addValue(option.data('full-name'));
-        addValue(option.text());
-    }
+    const formGroup = hiddenField.closest('.form-group');
+    addValue(displayField && displayField.length ? displayField.val() : null);
+    addValue(formGroup.data('username'));
+    addValue(formGroup.data('full-name'));
 
     return identifiers;
 }
@@ -639,66 +632,34 @@ function renderDoctorOptions(doctors, selectedId) {
 }
 
 
-function populateAddedBySelect(defaultId) {
-    const select = $('#entryAddedBy');
-    const existingValue = typeof defaultId !== 'undefined' ? defaultId : select.val();
-    const shouldReload = !select.data('loaded') || select.data('forceReload');
-    if (!shouldReload) {
-        if (existingValue) {
-            select.val(String(existingValue)).trigger('change.select2');
-        }
-        return;
-    }
+function populateAddedByDisplay(userId) {
+    const hiddenField = $('#entryAddedBy');
+    const displayField = $('#entryAddedByDisplay');
+    const formGroup = hiddenField.closest('.form-group');
 
-    select.prop('disabled', true);
-    select.html('<option value="">Loading users...</option>');
+    const targetId = userId !== undefined && userId !== null && userId !== '' ? userId : currentUserId;
+    hiddenField.val(targetId);
 
-    $.get('patho_api/user.php', { action: 'list', ajax: 1 })
+    $.get('patho_api/user.php', { action: 'get', id: targetId, ajax: 1 })
         .done(function(response) {
-            if (!response.success || !Array.isArray(response.data)) {
-                throw new Error(response.message || 'Unexpected response');
-            }
-
-            select.html('');
-            select.append($('<option>', { value: '', text: 'Select User' }));
-
-            response.data.forEach(function(user) {
-                const id = user.id;
-                const label = user.full_name && user.full_name.trim() !== ''
+            if (response.success && response.data) {
+                const user = response.data;
+                const displayName = user.full_name && user.full_name.trim() !== ''
                     ? user.full_name
-                    : (user.username || ('User #' + id));
-                const option = $('<option>', {
-                    value: id,
-                    text: label
-                });
-
-                if (user.username) {
-                    option.attr('data-username', user.username);
-                }
-                if (user.full_name) {
-                    option.attr('data-full-name', user.full_name);
-                }
-
-                if (String(id) === String(existingValue || currentUserId)) {
-                    option.prop('selected', true);
-                }
-
-                select.append(option);
-            });
-
-            if (!existingValue && currentUserId) {
-                select.val(String(currentUserId));
+                    : (user.username || ('User #' + user.id));
+                displayField.val(displayName);
+                formGroup.data('username', user.username || '');
+                formGroup.data('full-name', user.full_name || '');
+            } else {
+                displayField.val('Unknown User');
+                formGroup.removeData('username');
+                formGroup.removeData('full-name');
             }
-            select.trigger('change.select2');
-            select.data('loaded', true);
-            select.removeData('forceReload');
         })
-        .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
-            select.html(`<option value="">Failed to load users (${errorMsg})</option>`);
-        })
-        .always(function() {
-            select.prop('disabled', false);
+        .fail(function() {
+            displayField.val('Unknown User');
+            formGroup.removeData('username');
+            formGroup.removeData('full-name');
         });
 }
 
@@ -879,11 +840,6 @@ function initializeEventListeners() {
     });
 
     $('#entryDoctor').on('change', updateDoctorAddedByDisplay);
-    $('#entryAddedBy').on('change', function() {
-        const selectedUserId = $(this).val();
-        loadPatientsForUser(selectedUserId);
-        loadDoctorsForUser(selectedUserId);
-    });
     
     // Search functionality
     $('#entriesSearch').on('input', function() {
