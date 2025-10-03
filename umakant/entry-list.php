@@ -555,21 +555,25 @@ function populateAddedBySelect(defaultId) {
 
 function loadPatientsForUser(userId) {
     const select = $('#entryPatient');
-    const effectiveUserId = userId || currentUserId;
-    if (!effectiveUserId) {
-        select.html('<option value="">Select Patient</option>');
+    const filterUserId = currentUserId || userId || '';
+    const cacheKey = filterUserId || 'none';
+
+    if (!filterUserId) {
+        select.html('<option value="">No patients available</option>');
+        select.trigger('change.select2');
         return;
     }
 
-    if (cachedPatientsByUser[effectiveUserId]) {
-        select.html(cachedPatientsByUser[effectiveUserId]).trigger('change.select2');
+    if (cachedPatientsByUser[cacheKey]) {
+        select.html(cachedPatientsByUser[cacheKey]);
+        applyPatientPrefill();
         return;
     }
 
     select.prop('disabled', true);
     select.html('<option value="">Loading patients...</option>');
 
-    $.get('ajax/patient_api.php', { action: 'list', ajax: 1, added_by: effectiveUserId })
+    $.get('ajax/patient_api.php', { action: 'list', ajax: 1, added_by: filterUserId })
         .done(function(response) {
             if (!response.success || !Array.isArray(response.data)) {
                 throw new Error(response.message || 'Unexpected response');
@@ -577,34 +581,43 @@ function loadPatientsForUser(userId) {
             let options = '<option value="">Select Patient</option>';
             response.data.forEach(function(patient) {
                 const label = patient.name || patient.uhid || `Patient #${patient.id}`;
-                options += `<option value="${patient.id}">${label}</option>`;
+                if (!patient.added_by || String(patient.added_by) === String(filterUserId)) {
+                    options += `<option value="${patient.id}">${label}</option>`;
+                }
             });
-            cachedPatientsByUser[effectiveUserId] = options;
-            select.html(options).trigger('change.select2');
+            cachedPatientsByUser[cacheKey] = options;
+            select.html(options);
+            applyPatientPrefill();
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
             select.html(`<option value="">Failed to load patients (${errorMsg})</option>`);
+            select.trigger('change.select2');
         })
         .always(function() {
             select.prop('disabled', false);
+            select.trigger('change.select2');
         });
 }
 
 function loadDoctorsForUser(userId) {
     const select = $('#entryDoctor');
-    const effectiveUserId = userId || currentUserId;
-    if (!effectiveUserId) {
-        select.html('<option value="">Select Doctor</option>');
+    const filterUserId = currentUserId || userId || '';
+    const cacheKey = filterUserId || 'none';
+
+    if (!filterUserId) {
+        select.html('<option value="">No doctors available</option>');
         $('#doctorFilter').html('<option value="">All Doctors</option>');
+        select.trigger('change.select2');
         return;
     }
 
-    if (cachedDoctorsByUser[effectiveUserId]) {
-        const { entryOptions, filterOptions, directory } = cachedDoctorsByUser[effectiveUserId];
-        select.html(entryOptions).trigger('change.select2');
+    if (cachedDoctorsByUser[cacheKey]) {
+        const { entryOptions, filterOptions, directory } = cachedDoctorsByUser[cacheKey];
+        select.html(entryOptions);
         $('#doctorFilter').html(filterOptions);
         doctorDirectory = directory;
+        applyDoctorPrefill();
         updateDoctorAddedByDisplay();
         return;
     }
@@ -612,7 +625,7 @@ function loadDoctorsForUser(userId) {
     select.prop('disabled', true);
     select.html('<option value="">Loading doctors...</option>');
 
-    $.get('ajax/doctor_api.php', { action: 'list', ajax: 1, added_by: effectiveUserId })
+    $.get('ajax/doctor_api.php', { action: 'list', ajax: 1, added_by: filterUserId })
         .done(function(response) {
             if (!response.success || !Array.isArray(response.data)) {
                 throw new Error(response.message || 'Unexpected response');
@@ -622,27 +635,52 @@ function loadDoctorsForUser(userId) {
             const directory = {};
             response.data.forEach(function(doctor) {
                 const optionLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (Added by ' + doctor.added_by_username + ')' : ''}`;
-                entryOptions += `<option value="${doctor.id}" data-added-by="${doctor.added_by_username || ''}">${optionLabel}</option>`;
-                const filterLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (' + doctor.added_by_username + ')' : ''}`;
-                filterOptions += `<option value="${doctor.id}">${filterLabel}</option>`;
-                directory[doctor.id] = {
-                    name: doctor.name || 'Unknown',
-                    addedByUsername: doctor.added_by_username || ''
-                };
+                if (!doctor.added_by || String(doctor.added_by) === String(filterUserId)) {
+                    entryOptions += `<option value="${doctor.id}" data-added-by="${doctor.added_by_username || ''}">${optionLabel}</option>`;
+                    const filterLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (' + doctor.added_by_username + ')' : ''}`;
+                    filterOptions += `<option value="${doctor.id}">${filterLabel}</option>`;
+                    directory[doctor.id] = {
+                        name: doctor.name || 'Unknown',
+                        addedByUsername: doctor.added_by_username || ''
+                    };
+                }
             });
-            cachedDoctorsByUser[effectiveUserId] = { entryOptions, filterOptions, directory };
-            select.html(entryOptions).trigger('change.select2');
+            cachedDoctorsByUser[cacheKey] = { entryOptions, filterOptions, directory };
+            select.html(entryOptions);
             $('#doctorFilter').html(filterOptions);
             doctorDirectory = directory;
+            applyDoctorPrefill();
             updateDoctorAddedByDisplay();
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
             select.html(`<option value="">Failed to load doctors (${errorMsg})</option>`);
+            select.trigger('change.select2');
         })
         .always(function() {
             select.prop('disabled', false);
+            select.trigger('change.select2');
         });
+}
+
+function applyPatientPrefill() {
+    const select = $('#entryPatient');
+    const prefill = select.data('prefill');
+    if (prefill) {
+        select.val(String(prefill)).trigger('change.select2');
+    } else {
+        select.val('').trigger('change.select2');
+    }
+}
+
+function applyDoctorPrefill() {
+    const select = $('#entryDoctor');
+    const prefill = select.data('prefill');
+    if (prefill) {
+        select.val(String(prefill)).trigger('change.select2');
+    } else {
+        select.val('').trigger('change.select2');
+    }
 }
 
 // Utility to wait for Select2 availability before initializing
@@ -697,9 +735,12 @@ function initializeEventListeners() {
 
     $('#entryDoctor').on('change', updateDoctorAddedByDisplay);
     $('#entryAddedBy').on('change', function() {
-        const selectedUserId = $(this).val();
-        loadPatientsForUser(selectedUserId);
-        loadDoctorsForUser(selectedUserId);
+        if (String($(this).val()) !== String(currentUserId)) {
+            $('#entryPatient').data('prefill', '');
+            $('#entryDoctor').data('prefill', '');
+        }
+        loadPatientsForUser(currentUserId);
+        loadDoctorsForUser(currentUserId);
     });
     
     // Search functionality
@@ -784,6 +825,8 @@ function loadDropdownsForEntry() {
     // Load users for Added By select on page load so data is ready
     $('#entryAddedBy').data('forceReload', true);
     populateAddedBySelect(currentUserId);
+    $('#entryPatient').data('prefill', $('#entryPatient').data('prefill') || '');
+    $('#entryDoctor').data('prefill', $('#entryDoctor').data('prefill') || '');
     loadPatientsForUser(currentUserId);
     loadDoctorsForUser(currentUserId);
 }
@@ -1066,13 +1109,13 @@ function populateSelectedTestsFromFallback(entry) {
 
 function populateEntryForm(entry) {
     $('#entryId').val(entry.id);
-    $('#entryPatient').val(entry.patient_id).trigger('change');
-    $('#entryDoctor').val(entry.doctor_id).trigger('change');
+    $('#entryPatient').data('prefill', entry.patient_id || '');
+    $('#entryDoctor').data('prefill', entry.doctor_id || '');
     $('#entryAddedBy').data('prefill', entry.added_by || currentUserId);
     $('#entryAddedBy').data('forceReload', true);
     populateAddedBySelect(entry.added_by || currentUserId);
-    loadPatientsForUser(entry.added_by || currentUserId);
-    loadDoctorsForUser(entry.added_by || currentUserId);
+    loadPatientsForUser(currentUserId);
+    loadDoctorsForUser(currentUserId);
     $('#entryStatus').val(entry.status || 'pending');
     $('#entryNotes').val(entry.remarks || '');
     updateDoctorAddedByDisplay();
@@ -1353,6 +1396,8 @@ function resetModalForm() {
     $('#entryAddedBy').data('prefill', currentUserId);
     $('#entryAddedBy').data('forceReload', true);
     populateAddedBySelect(currentUserId);
+    $('#entryPatient').data('prefill', '');
+    $('#entryDoctor').data('prefill', '');
     loadPatientsForUser(currentUserId);
     loadDoctorsForUser(currentUserId);
     updateDoctorAddedByDisplay();
