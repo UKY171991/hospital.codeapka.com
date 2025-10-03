@@ -212,7 +212,7 @@ $currentUserDisplayName = $_SESSION['full_name']
                     <input type="hidden" id="entryId" name="id">
                     
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="entryAddedBy">
                                     <i class="fas fa-user-check mr-1"></i>
@@ -223,10 +223,7 @@ $currentUserDisplayName = $_SESSION['full_name']
                                 </select>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="entryPatient">
                                     <i class="fas fa-user mr-1"></i>
@@ -237,7 +234,7 @@ $currentUserDisplayName = $_SESSION['full_name']
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="entryDoctor">
                                     <i class="fas fa-user-md mr-1"></i>
