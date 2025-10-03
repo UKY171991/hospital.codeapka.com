@@ -4,6 +4,63 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 session_start();
 
+function resolveUserIdentifierValues($value, $pdo) {
+    $identifiers = [];
+
+    if ($value === null || $value === '') {
+        return $identifiers;
+    }
+
+    if (is_numeric($value)) {
+        $userId = (int)$value;
+        $identifiers[] = $userId;
+        try {
+            $stmt = $pdo->prepare('SELECT username, full_name FROM users WHERE id = ?');
+            $stmt->execute([$userId]);
+            $userRow = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($userRow) {
+                if (!empty($userRow['username'])) {
+                    $identifiers[] = $userRow['username'];
+                }
+                if (!empty($userRow['full_name'])) {
+                    $identifiers[] = $userRow['full_name'];
+                }
+            }
+        } catch (Throwable $e) {
+            // ignore lookup issues
+        }
+    } else {
+        $provided = trim((string)$value);
+        if ($provided !== '') {
+            $identifiers[] = $provided;
+            try {
+                $stmt = $pdo->prepare('SELECT id, username, full_name FROM users WHERE username = ? OR full_name = ?');
+                $stmt->execute([$provided, $provided]);
+                $userRow = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($userRow) {
+                    if (!empty($userRow['id'])) {
+                        $identifiers[] = (int)$userRow['id'];
+                    }
+                    if (!empty($userRow['username'])) {
+                        $identifiers[] = $userRow['username'];
+                    }
+                    if (!empty($userRow['full_name'])) {
+                        $identifiers[] = $userRow['full_name'];
+                    }
+                }
+            } catch (Throwable $e) {
+                // ignore
+            }
+        }
+    }
+
+    $identifiers = array_filter($identifiers, function($item) {
+        return $item !== null && $item !== '';
+    });
+
+    return array_values(array_unique($identifiers, SORT_REGULAR));
+}
+
 try {
     $action = $_REQUEST['action'] ?? ($_SERVER['REQUEST_METHOD'] === 'POST' ? 'save' : 'list');
 
@@ -32,14 +89,20 @@ try {
         }
 
         // Optional filter by added_by (from dropdown)
-        if (!empty($_REQUEST['added_by'])) {
-            $addedBy = intval($_REQUEST['added_by']);
-            if ($whereClause === "") {
-                $whereClause = " WHERE d.added_by = ?";
-                $params = [$addedBy];
+        if (isset($_REQUEST['added_by']) && $_REQUEST['added_by'] !== '') {
+            $identifierValues = resolveUserIdentifierValues($_REQUEST['added_by'], $pdo);
+            if (!empty($identifierValues)) {
+                $placeholders = implode(',', array_fill(0, count($identifierValues), '?'));
+                if ($whereClause === "") {
+                    $whereClause = " WHERE d.added_by IN ($placeholders)";
+                    $params = $identifierValues;
+                } else {
+                    $whereClause .= " AND d.added_by IN ($placeholders)";
+                    $params = array_merge($params, $identifierValues);
+                }
             } else {
-                $whereClause .= " AND d.added_by = ?";
-                $params[] = $addedBy;
+                $whereClause = " WHERE 1 = 0";
+                $params = [];
             }
         }
         

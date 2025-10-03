@@ -30,6 +30,70 @@ function patientHasColumn($col) {
     return in_array($col, $cols);
 }
 
+/**
+ * Given a user identifier (id or username), return all possible stored values for `added_by`.
+ */
+function resolveUserIdentifierValues($value) {
+    global $pdo;
+
+    $identifiers = [];
+
+    if ($value === null || $value === '') {
+        return $identifiers;
+    }
+
+    if (is_numeric($value)) {
+        $userId = (int)$value;
+        $identifiers[] = $userId;
+
+        try {
+            $stmt = $pdo->prepare('SELECT username, full_name FROM users WHERE id = ?');
+            $stmt->execute([$userId]);
+            $userRow = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($userRow) {
+                if (!empty($userRow['username'])) {
+                    $identifiers[] = $userRow['username'];
+                }
+                if (!empty($userRow['full_name'])) {
+                    $identifiers[] = $userRow['full_name'];
+                }
+            }
+        } catch (Throwable $e) {
+            // Ignore lookup failures and continue with available identifiers
+        }
+    } else {
+        $provided = trim((string)$value);
+        if ($provided !== '') {
+            $identifiers[] = $provided;
+            try {
+                $stmt = $pdo->prepare('SELECT id, username, full_name FROM users WHERE username = ? OR full_name = ?');
+                $stmt->execute([$provided, $provided]);
+                $userRow = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($userRow) {
+                    if (!empty($userRow['id'])) {
+                        $identifiers[] = (int)$userRow['id'];
+                    }
+                    if (!empty($userRow['username'])) {
+                        $identifiers[] = $userRow['username'];
+                    }
+                    if (!empty($userRow['full_name'])) {
+                        $identifiers[] = $userRow['full_name'];
+                    }
+                }
+            } catch (Throwable $e) {
+                // Ignore lookup failures
+            }
+        }
+    }
+
+    // Remove null/empty duplicates while preserving order
+    $identifiers = array_filter($identifiers, function($item) {
+        return $item !== null && $item !== '';
+    });
+
+    return array_values(array_unique($identifiers, SORT_REGULAR));
+}
+
 try {
     // Handle preflight OPTIONS request
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -204,9 +268,16 @@ function handleList() {
 
         // Optional filter by added_by (accept from POST or GET). Only apply if column exists.
         $addedByParam = $_POST['added_by'] ?? $_GET['added_by'] ?? null;
-        if ($addedByParam && in_array('added_by', $columns)) {
-            $whereConditions[] = 'patients.added_by = ?';
-            $params[] = intval($addedByParam);
+        if ($addedByParam !== null && $addedByParam !== '' && in_array('added_by', $columns)) {
+            $identifierValues = resolveUserIdentifierValues($addedByParam);
+            if (!empty($identifierValues)) {
+                $placeholders = implode(',', array_fill(0, count($identifierValues), '?'));
+                $whereConditions[] = "patients.added_by IN ($placeholders)";
+                $params = array_merge($params, $identifierValues);
+            } else {
+                // Force no results if we cannot resolve any identifier (e.g., unknown user)
+                $whereConditions[] = '1 = 0';
+            }
         }
         
         $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
