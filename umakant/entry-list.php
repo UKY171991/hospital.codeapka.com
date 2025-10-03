@@ -503,8 +503,8 @@ let entriesPerPageCount = 25;
 let doctorDirectory = {};
 const currentUserId = <?= json_encode($currentUserId, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
 const currentUserDisplayName = <?= json_encode($currentUserDisplayName, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
-let cachedPatientsByUser = {};
-let cachedDoctorsByUser = {};
+let cachedPatientsByIdentifiers = {};
+let cachedDoctorsByIdentifiers = {};
 
 function normalizeIdentifierValue(value) {
     if (value === null || value === undefined) return null;
@@ -547,6 +547,25 @@ function getAddedByIdentifierSet(userId) {
     }
 
     return identifiers;
+}
+
+function extractFieldValue(obj, path) {
+    if (!obj) return null;
+    if (!path) return null;
+    if (path.indexOf('.') === -1) {
+        return obj[path];
+    }
+    return path.split('.').reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : null), obj);
+}
+
+function recordMatchesAddedBy(record, identifiersSet, candidateFields = []) {
+    if (!record || !identifiersSet || identifiersSet.size === 0) {
+        return false;
+    }
+    return candidateFields.some(field => {
+        const value = extractFieldValue(record, field);
+        return identifiersSet.has(normalizeIdentifierValue(value));
+    });
 }
 
 function renderPatientOptions(patients, selectedId) {
@@ -683,34 +702,58 @@ function populateAddedBySelect(defaultId) {
         });
 }
 
-function loadPatientsForUser(userId) {
+function getIdentifiersCacheKey(identifiersSet) {
+    if (!identifiersSet || identifiersSet.size === 0) {
+        return '';
+    }
+    return Array.from(identifiersSet).sort().join('|');
+}
+
+function loadPatientsForUser(userId, selectedPatientId) {
     const select = $('#entryPatient');
-    const effectiveUserId = userId || currentUserId;
-    if (!effectiveUserId) {
+    const identifiersSet = getAddedByIdentifierSet(userId);
+    const cacheKey = getIdentifiersCacheKey(identifiersSet);
+
+    if (!cacheKey) {
         select.html('<option value="">Select Patient</option>');
+        select.trigger('change.select2');
         return;
     }
 
-    if (cachedPatientsByUser[effectiveUserId]) {
-        select.html(cachedPatientsByUser[effectiveUserId]).trigger('change.select2');
+    if (cachedPatientsByIdentifiers[cacheKey]) {
+        renderPatientOptions(cachedPatientsByIdentifiers[cacheKey], selectedPatientId);
         return;
     }
 
     select.prop('disabled', true);
     select.html('<option value="">Loading patients...</option>');
 
-    $.get('ajax/patient_api.php', { action: 'list', ajax: 1, added_by: effectiveUserId })
+    const requestIdentifier = Array.from(identifiersSet)[0];
+
+    $.get('ajax/patient_api.php', { action: 'list', ajax: 1, added_by: requestIdentifier })
         .done(function(response) {
             if (!response.success || !Array.isArray(response.data)) {
                 throw new Error(response.message || 'Unexpected response');
             }
-            let options = '<option value="">Select Patient</option>';
-            response.data.forEach(function(patient) {
-                const label = patient.name || patient.uhid || `Patient #${patient.id}`;
-                options += `<option value="${patient.id}">${label}</option>`;
+
+            const filteredPatients = response.data.filter(function(patient) {
+                return recordMatchesAddedBy(patient, identifiersSet, [
+                    'added_by',
+                    'added_by_name',
+                    'added_by_username',
+                    'addedBy',
+                    'addedByName'
+                ]);
+            }).map(function(patient) {
+                const label = patient.name || patient.full_name || patient.uhid || `Patient #${patient.id}`;
+                return {
+                    id: patient.id,
+                    label: label
+                };
             });
-            cachedPatientsByUser[effectiveUserId] = options;
-            select.html(options).trigger('change.select2');
+
+            cachedPatientsByIdentifiers[cacheKey] = filteredPatients;
+            renderPatientOptions(filteredPatients, selectedPatientId);
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
@@ -721,50 +764,60 @@ function loadPatientsForUser(userId) {
         });
 }
 
-function loadDoctorsForUser(userId) {
+function loadDoctorsForUser(userId, selectedDoctorId) {
     const select = $('#entryDoctor');
-    const effectiveUserId = userId || currentUserId;
-    if (!effectiveUserId) {
+    const identifiersSet = getAddedByIdentifierSet(userId);
+    const cacheKey = getIdentifiersCacheKey(identifiersSet);
+
+    if (!cacheKey) {
         select.html('<option value="">Select Doctor</option>');
         $('#doctorFilter').html('<option value="">All Doctors</option>');
         return;
     }
 
-    if (cachedDoctorsByUser[effectiveUserId]) {
-        const { entryOptions, filterOptions, directory } = cachedDoctorsByUser[effectiveUserId];
-        select.html(entryOptions).trigger('change.select2');
-        $('#doctorFilter').html(filterOptions);
+    if (cachedDoctorsByIdentifiers[cacheKey]) {
+        const { doctors, directory } = cachedDoctorsByIdentifiers[cacheKey];
         doctorDirectory = directory;
-        updateDoctorAddedByDisplay();
+        renderDoctorOptions(doctors, selectedDoctorId);
         return;
     }
 
     select.prop('disabled', true);
     select.html('<option value="">Loading doctors...</option>');
 
-    $.get('ajax/doctor_api.php', { action: 'list', ajax: 1, added_by: effectiveUserId })
+    const requestIdentifier = Array.from(identifiersSet)[0];
+
+    $.get('ajax/doctor_api.php', { action: 'list', ajax: 1, added_by: requestIdentifier })
         .done(function(response) {
             if (!response.success || !Array.isArray(response.data)) {
                 throw new Error(response.message || 'Unexpected response');
             }
-            let entryOptions = '<option value="">Select Doctor</option>';
-            let filterOptions = '<option value="">All Doctors</option>';
-            const directory = {};
-            response.data.forEach(function(doctor) {
-                const optionLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (Added by ' + doctor.added_by_username + ')' : ''}`;
-                entryOptions += `<option value="${doctor.id}" data-added-by="${doctor.added_by_username || ''}">${optionLabel}</option>`;
-                const filterLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (' + doctor.added_by_username + ')' : ''}`;
-                filterOptions += `<option value="${doctor.id}">${filterLabel}</option>`;
-                directory[doctor.id] = {
+            const filteredDoctors = response.data.filter(function(doctor) {
+                return recordMatchesAddedBy(doctor, identifiersSet, [
+                    'added_by',
+                    'added_by_username',
+                    'addedBy',
+                    'addedByUsername'
+                ]);
+            }).map(function(doctor) {
+                return {
+                    id: doctor.id,
                     name: doctor.name || 'Unknown',
-                    addedByUsername: doctor.added_by_username || ''
+                    addedByUsername: doctor.added_by_username || doctor.addedByUsername || ''
                 };
             });
-            cachedDoctorsByUser[effectiveUserId] = { entryOptions, filterOptions, directory };
-            select.html(entryOptions).trigger('change.select2');
-            $('#doctorFilter').html(filterOptions);
+
+            const directory = {};
+            filteredDoctors.forEach(function(doctor) {
+                directory[doctor.id] = {
+                    name: doctor.name,
+                    addedByUsername: doctor.addedByUsername || ''
+                };
+            });
+
+            cachedDoctorsByIdentifiers[cacheKey] = { doctors: filteredDoctors, directory };
             doctorDirectory = directory;
-            updateDoctorAddedByDisplay();
+            renderDoctorOptions(filteredDoctors, selectedDoctorId);
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
@@ -1201,8 +1254,8 @@ function populateEntryForm(entry) {
     $('#entryAddedBy').data('prefill', entry.added_by || currentUserId);
     $('#entryAddedBy').data('forceReload', true);
     populateAddedBySelect(entry.added_by || currentUserId);
-    loadPatientsForUser(entry.added_by || currentUserId);
-    loadDoctorsForUser(entry.added_by || currentUserId);
+    loadPatientsForUser(entry.added_by || currentUserId, entry.patient_id);
+    loadDoctorsForUser(entry.added_by || currentUserId, entry.doctor_id);
     $('#entryStatus').val(entry.status || 'pending');
     $('#entryNotes').val(entry.remarks || '');
     updateDoctorAddedByDisplay();
