@@ -506,21 +506,67 @@ const currentUserDisplayName = <?= json_encode($currentUserDisplayName, JSON_HEX
 let cachedPatientsByUser = {};
 let cachedDoctorsByUser = {};
 
+function normalizeIdentifierValue(value) {
+    if (value === null || value === undefined) return null;
+    const str = String(value).trim();
+    if (!str) return null;
+    if (/^-?\d+$/.test(str)) {
+        return String(parseInt(str, 10));
+    }
+    return str.toLowerCase();
+}
+
+function getAddedByIdentifierSet(userId) {
+    const identifiers = new Set();
+    const select = $('#entryAddedBy');
+
+    const addValue = (value) => {
+        const normalized = normalizeIdentifierValue(value);
+        if (normalized) {
+            identifiers.add(normalized);
+        }
+    };
+
+    if (userId !== undefined && userId !== null && userId !== '') {
+        addValue(userId);
+    }
+
+    let option = (userId !== undefined && userId !== null && userId !== '')
+        ? select.find(`option[value="${userId}"]`)
+        : select.find('option:selected');
+
+    if (!option.length) {
+        option = select.find('option:selected');
+    }
+
+    if (option.length) {
+        addValue(option.val());
+        addValue(option.data('username'));
+        addValue(option.data('full-name'));
+        addValue(option.text());
+    }
+
+    return identifiers;
+}
+
 function renderPatientOptions(patients, selectedId) {
     const select = $('#entryPatient');
-    let optionsHtml = '<option value="">Select Patient</option>';
+    select.empty();
+    select.append($('<option>', { value: '', text: 'Select Patient' }));
+
     patients.forEach(function(patient) {
-        const label = patient.label || (`Patient #${patient.id}`);
-        optionsHtml += `<option value="${patient.id}">${label}</option>`;
+        select.append(
+            $('<option>', {
+                value: patient.id,
+                text: patient.label
+            })
+        );
     });
-    select.html(optionsHtml);
 
-    const desiredValue = typeof selectedId !== 'undefined' && selectedId !== null && selectedId !== ''
-        ? String(selectedId)
-        : (typeof selectedId === 'undefined' ? select.val() : '');
-
-    if (typeof desiredValue !== 'undefined') {
-        select.val(desiredValue);
+    if (selectedId !== undefined && selectedId !== null && selectedId !== '') {
+        select.val(String(selectedId));
+    } else {
+        select.val('');
     }
 
     select.trigger('change.select2');
@@ -529,38 +575,50 @@ function renderPatientOptions(patients, selectedId) {
 function renderDoctorOptions(doctors, selectedId) {
     const entrySelect = $('#entryDoctor');
     const filterSelect = $('#doctorFilter');
-    let entryOptions = '<option value="">Select Doctor</option>';
-    let filterOptions = '<option value="">All Doctors</option>';
+
+    entrySelect.empty();
+    filterSelect.empty();
+
+    entrySelect.append($('<option>', { value: '', text: 'Select Doctor' }));
+    filterSelect.append($('<option>', { value: '', text: 'All Doctors' }));
+
     const directory = {};
 
     doctors.forEach(function(doctor) {
-        const optionLabel = `${doctor.name || 'Unknown'}${doctor.addedByUsername ? ' (Added by ' + doctor.addedByUsername + ')' : ''}`;
-        entryOptions += `<option value="${doctor.id}" data-added-by="${doctor.addedByUsername || ''}">${optionLabel}</option>`;
+        const optionLabel = `${doctor.name}${doctor.addedByUsername ? ' (Added by ' + doctor.addedByUsername + ')' : ''}`;
+        entrySelect.append(
+            $('<option>', {
+                value: doctor.id,
+                text: optionLabel
+            }).attr('data-added-by', doctor.addedByUsername || '')
+        );
 
-        const filterLabel = `${doctor.name || 'Unknown'}${doctor.addedByUsername ? ' (' + doctor.addedByUsername + ')' : ''}`;
-        filterOptions += `<option value="${doctor.id}">${filterLabel}</option>`;
+        const filterLabel = `${doctor.name}${doctor.addedByUsername ? ' (' + doctor.addedByUsername + ')' : ''}`;
+        filterSelect.append(
+            $('<option>', {
+                value: doctor.id,
+                text: filterLabel
+            })
+        );
 
         directory[doctor.id] = {
-            name: doctor.name || 'Unknown',
+            name: doctor.name,
             addedByUsername: doctor.addedByUsername || ''
         };
     });
 
     doctorDirectory = directory;
-    entrySelect.html(entryOptions);
-    filterSelect.html(filterOptions);
 
-    const desiredValue = typeof selectedId !== 'undefined' && selectedId !== null && selectedId !== ''
-        ? String(selectedId)
-        : (typeof selectedId === 'undefined' ? entrySelect.val() : '');
-
-    if (typeof desiredValue !== 'undefined') {
-        entrySelect.val(desiredValue);
+    if (selectedId !== undefined && selectedId !== null && selectedId !== '') {
+        entrySelect.val(String(selectedId));
+    } else {
+        entrySelect.val('');
     }
 
     entrySelect.trigger('change.select2');
     updateDoctorAddedByDisplay();
 }
+
 
 function populateAddedBySelect(defaultId) {
     const select = $('#entryAddedBy');
@@ -582,17 +640,33 @@ function populateAddedBySelect(defaultId) {
                 throw new Error(response.message || 'Unexpected response');
             }
 
-            let options = '<option value="">Select User</option>';
+            select.html('');
+            select.append($('<option>', { value: '', text: 'Select User' }));
+
             response.data.forEach(function(user) {
                 const id = user.id;
                 const label = user.full_name && user.full_name.trim() !== ''
                     ? user.full_name
                     : (user.username || ('User #' + id));
-                const selectedAttr = String(id) === String(existingValue || currentUserId) ? ' selected' : '';
-                options += `<option value="${id}"${selectedAttr}>${label}</option>`;
+                const option = $('<option>', {
+                    value: id,
+                    text: label
+                });
+
+                if (user.username) {
+                    option.attr('data-username', user.username);
+                }
+                if (user.full_name) {
+                    option.attr('data-full-name', user.full_name);
+                }
+
+                if (String(id) === String(existingValue || currentUserId)) {
+                    option.prop('selected', true);
+                }
+
+                select.append(option);
             });
 
-            select.html(options);
             if (!existingValue && currentUserId) {
                 select.val(String(currentUserId));
             }
