@@ -1,6 +1,11 @@
 <?php
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
+
+$currentUserId = $_SESSION['user_id'] ?? '';
+$currentUserDisplayName = $_SESSION['full_name']
+    ?? $_SESSION['username']
+    ?? 'Unknown User';
 ?>
 
 <!-- Content Wrapper. Contains page content -->
@@ -205,6 +210,7 @@ require_once 'inc/sidebar.php';
             <form id="entryForm">
                 <div class="modal-body">
                     <input type="hidden" id="entryId" name="id">
+                    <input type="hidden" id="entryAddedBy" name="added_by" value="<?= htmlspecialchars((string)$currentUserId, ENT_QUOTES, 'UTF-8'); ?>">
                     
                     <div class="row">
                         <div class="col-md-6">
@@ -228,6 +234,15 @@ require_once 'inc/sidebar.php';
                                     <option value="">Select Doctor</option>
                                 </select>
                                 <small id="doctorAddedByInfo" class="form-text text-muted" style="display: none;"></small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="entryAddedByDisplay">
+                                    <i class="fas fa-user-check mr-1"></i>
+                                    Added By
+                                </label>
+                                <input type="text" class="form-control" id="entryAddedByDisplay" value="<?= htmlspecialchars($currentUserDisplayName, ENT_QUOTES, 'UTF-8'); ?>" readonly>
                             </div>
                         </div>
                     </div>
@@ -485,6 +500,31 @@ let allEntries = [];
 let entriesCurrentPage = 1;
 let entriesPerPageCount = 25;
 let doctorDirectory = {};
+const currentUserId = <?= json_encode($currentUserId, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
+const currentUserDisplayName = <?= json_encode($currentUserDisplayName, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
+
+function updateEntryAddedByField(id, displayName) {
+    let resolvedId = '';
+    if (id !== null && id !== undefined && id !== '') {
+        resolvedId = id;
+    } else if (currentUserId !== null && currentUserId !== undefined && currentUserId !== '') {
+        resolvedId = currentUserId;
+    }
+
+    let resolvedName = '';
+    if (typeof displayName === 'string' && displayName.trim() !== '') {
+        resolvedName = displayName.trim();
+    } else if (resolvedId && String(resolvedId) === String(currentUserId) && currentUserDisplayName) {
+        resolvedName = currentUserDisplayName;
+    } else if (resolvedId) {
+        resolvedName = `User #${resolvedId}`;
+    } else {
+        resolvedName = currentUserDisplayName || 'Unknown User';
+    }
+
+    $('#entryAddedBy').val(resolvedId);
+    $('#entryAddedByDisplay').val(resolvedName);
+}
 
 // Utility to wait for Select2 availability before initializing
 function waitForSelect2(callback, attempt = 0) {
@@ -945,6 +985,7 @@ function populateEntryForm(entry) {
     $('#entryId').val(entry.id);
     $('#entryPatient').val(entry.patient_id).trigger('change');
     $('#entryDoctor').val(entry.doctor_id).trigger('change');
+    updateEntryAddedByField(entry.added_by, entry.added_by_username);
     $('#entryStatus').val(entry.status || 'pending');
     $('#entryNotes').val(entry.remarks || '');
     updateDoctorAddedByDisplay();
@@ -1222,6 +1263,7 @@ function resetModalForm() {
     $('#modalTitle').text('Add New Test Entry');
     $('#saveEntryBtn').show();
     $('.select2').trigger('change');
+    updateEntryAddedByField(currentUserId, currentUserDisplayName);
     updateDoctorAddedByDisplay();
 }
 
@@ -1547,6 +1589,7 @@ function resetModalForm() {
     $('#entryAmount').val('');
     $('#entryDiscount').val('');
     $('#entryNotes').val('');
+    updateEntryAddedByField(currentUserId, currentUserDisplayName);
     
     // Clear selected tests
     clearSelectedTests();

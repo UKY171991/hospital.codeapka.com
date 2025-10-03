@@ -20,6 +20,22 @@ header('Content-Type: application/json; charset=utf-8');
 
 $action = $_REQUEST['action'] ?? 'list';
 
+function db_table_exists($pdo, $table) {
+    static $cache = [];
+    $tableKey = strtolower($table);
+    if (array_key_exists($tableKey, $cache)) {
+        return $cache[$tableKey];
+    }
+    try {
+        $stmt = $pdo->prepare('SHOW TABLES LIKE ?');
+        $stmt->execute([$table]);
+        $cache[$tableKey] = $stmt->fetch(PDO::FETCH_NUM) ? true : false;
+    } catch (Exception $e) {
+        $cache[$tableKey] = false;
+    }
+    return $cache[$tableKey];
+}
+
 function db_column_exists($pdo, $table, $column) {
     static $cache = [];
     $key = strtolower($table . '.' . $column);
@@ -66,7 +82,19 @@ function get_entry_tests_schema_capabilities($pdo) {
         return $cache;
     }
 
+    $exists = db_table_exists($pdo, 'entry_tests');
+    if (!$exists) {
+        $cache = [
+            'table_exists' => false,
+            'has_price' => false,
+            'has_discount_amount' => false,
+            'has_total_price' => false
+        ];
+        return $cache;
+    }
+
     $cache = [
+        'table_exists' => true,
         'has_price' => db_column_exists($pdo, 'entry_tests', 'price'),
         'has_discount_amount' => db_column_exists($pdo, 'entry_tests', 'discount_amount'),
         'has_total_price' => db_column_exists($pdo, 'entry_tests', 'total_price')
@@ -82,6 +110,10 @@ function build_entry_tests_aggregation_sql($pdo) {
     }
 
     $caps = get_entry_tests_schema_capabilities($pdo);
+    if (!$caps['table_exists']) {
+        $cache = "SELECT NULL AS entry_id, 0 AS tests_count, '' AS test_names, '' AS test_ids, 0 AS total_price, 0 AS total_discount FROM dual WHERE 1 = 0";
+        return $cache;
+    }
     $sumPrice = $caps['has_price'] ? 'SUM(et.price)' : 'SUM(0)';
     $sumDiscount = $caps['has_discount_amount'] ? 'SUM(et.discount_amount)' : 'SUM(0)';
 
@@ -92,6 +124,11 @@ function build_entry_tests_aggregation_sql($pdo) {
 
 function refresh_entry_aggregates($pdo, $entryId) {
     $entriesCaps = get_entries_schema_capabilities($pdo);
+    $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
+    if (!$entryTestsCaps['table_exists']) {
+        return;
+    }
+
     $aggSql = build_entry_tests_aggregation_sql($pdo);
 
     $stmt = $pdo->prepare("SELECT tests_count, test_ids, test_names, total_price, total_discount FROM (" . $aggSql . ") agg WHERE entry_id = ?");
@@ -204,23 +241,28 @@ try {
             $params = [$viewerId];
         }
 
-        $aggSql = build_entry_tests_aggregation_sql($pdo);
+        $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
+        if ($entryTestsCaps['table_exists']) {
+            $aggSql = build_entry_tests_aggregation_sql($pdo);
+            $aggSelect = "COALESCE(agg.tests_count, 0) AS agg_tests_count,\n                   COALESCE(agg.test_names, '') AS agg_test_names,\n                   COALESCE(agg.test_ids, '') AS agg_test_ids,\n                   COALESCE(agg.total_price, 0) AS agg_total_price,\n                   COALESCE(agg.total_discount, 0) AS agg_total_discount";
+            $aggJoin = " LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id";
+        } else {
+            $aggSelect = "0 AS agg_tests_count, '' AS agg_test_names, '' AS agg_test_ids, 0 AS agg_total_price, 0 AS agg_total_discount";
+            $aggJoin = '';
+        }
+
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
                    d.name AS doctor_name,
                    du.username AS doctor_added_by_username,
                    u.username AS added_by_username,
-                   COALESCE(agg.tests_count, 0) as tests_count,
-                   COALESCE(agg.test_names, '') as test_names,
-                   COALESCE(agg.test_ids, '') as test_ids,
-                   COALESCE(agg.total_price, 0) as total_price,
-                   COALESCE(agg.total_discount, 0) as total_discount
+                   {$aggSelect}
             FROM entries e 
             LEFT JOIN patients p ON e.patient_id = p.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
             LEFT JOIN users du ON d.added_by = du.id
-            LEFT JOIN users u ON e.added_by = u.id
-            LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id" .
+            LEFT JOIN users u ON e.added_by = u.id" .
+            $aggJoin .
             $scopeWhere .
             " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
         
@@ -267,10 +309,10 @@ try {
             $row['grouped'] = $row['tests_count'] > 1 ? 1 : 0;
             
             // For backward compatibility, set test_name to first test or all tests
-            if ($row['tests_count'] == 1) {
-                $row['test_name'] = $row['test_names'];
-            } else if ($row['tests_count'] > 1) {
-                $row['test_name'] = $row['tests_count'] . ' tests: ' . $row['test_names'];
+            if ($testsCount == 1) {
+                $row['test_name'] = $testNames;
+            } else if ($testsCount > 1) {
+                $row['test_name'] = $testsCount . ' tests: ' . $testNames;
             } else {
                 $row['test_name'] = 'No tests';
             }
@@ -290,24 +332,29 @@ try {
             $params[] = $viewerId;
         }
 
-        $aggSql = build_entry_tests_aggregation_sql($pdo);
+        $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
+        if ($entryTestsCaps['table_exists']) {
+            $aggSql = build_entry_tests_aggregation_sql($pdo);
+            $aggSelect = "COALESCE(agg.tests_count, 0) AS agg_tests_count,\n                   COALESCE(agg.test_names, '') AS agg_test_names,\n                   COALESCE(agg.test_ids, '') AS agg_test_ids,\n                   COALESCE(agg.total_price, 0) AS agg_total_price,\n                   COALESCE(agg.total_discount, 0) AS agg_total_discount";
+            $aggJoin = " LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id";
+        } else {
+            $aggSelect = "0 AS agg_tests_count, '' AS agg_test_names, '' AS agg_test_ids, 0 AS agg_total_price, 0 AS agg_total_discount";
+            $aggJoin = '';
+        }
+
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
                    d.name AS doctor_name,
                    du.username AS doctor_added_by_username,
                    u.username AS added_by_username,
-                   COALESCE(agg.tests_count, 0) AS tests_count,
-                   COALESCE(agg.test_names, '') AS test_names,
-                   COALESCE(agg.test_ids, '') AS test_ids,
-                   COALESCE(agg.total_price, 0) AS total_price,
-                   COALESCE(agg.total_discount, 0) AS total_discount
+                   {$aggSelect}
             FROM entries e 
             LEFT JOIN patients p ON e.patient_id = p.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
             LEFT JOIN users du ON d.added_by = du.id
-            LEFT JOIN users u ON e.added_by = u.id
-            LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id
-            WHERE e.id = ?" . $scopeWhere;
+            LEFT JOIN users u ON e.added_by = u.id" .
+            $aggJoin .
+            " WHERE e.id = ?" . $scopeWhere;
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
@@ -326,13 +373,17 @@ try {
         }
         
         // Format test information
-        $row['tests_count'] = (int)($row['tests_count'] ?? 0);
-        $row['test_names'] = $row['test_names'] ?? '';
-        $row['test_ids'] = $row['test_ids'] ?? '';
+        $testsCount = isset($row['tests_count']) ? (int)$row['tests_count'] : (int)($row['agg_tests_count'] ?? 0);
+        $testNames = $row['test_names'] ?? ($row['agg_test_names'] ?? '');
+        $testIds = $row['test_ids'] ?? ($row['agg_test_ids'] ?? '');
+
+        $row['tests_count'] = $testsCount;
+        $row['test_names'] = $testNames;
+        $row['test_ids'] = $testIds;
         
         // Format pricing
-        $aggTotalPrice = (float)($row['total_price'] ?? 0);
-        $aggDiscount = (float)($row['total_discount'] ?? 0);
+        $aggTotalPrice = isset($row['agg_total_price']) ? (float)$row['agg_total_price'] : (float)($row['total_price'] ?? 0);
+        $aggDiscount = isset($row['agg_total_discount']) ? (float)$row['agg_total_discount'] : (float)($row['total_discount'] ?? 0);
         $row['aggregated_total_price'] = $aggTotalPrice;
         $row['aggregated_total_discount'] = $aggDiscount;
 
@@ -387,6 +438,11 @@ try {
             $tests = json_decode($input['tests'], true);
             
             if (is_array($tests) && count($tests) > 0) {
+                $entryTestCaps = get_entry_tests_schema_capabilities($pdo);
+                if (!$entryTestCaps['table_exists']) {
+                    json_response(['success' => false, 'message' => 'Multiple tests are not supported on this installation (missing entry_tests table).'], 400);
+                }
+
                 try {
                     $pdo->beginTransaction();
                     
@@ -450,7 +506,6 @@ try {
                     // Insert individual tests
                     $testIds = [];
                     $testNames = [];
-                    $entryTestCaps = get_entry_tests_schema_capabilities($pdo);
                     foreach ($tests as $test) {
                         $testData = [
                             'entry_id' => $entryId,
