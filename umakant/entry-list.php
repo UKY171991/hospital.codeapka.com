@@ -1066,13 +1066,78 @@ function populateSelectedTestsFromFallback(entry) {
 
 function populateEntryForm(entry) {
     $('#entryId').val(entry.id);
-    $('#entryPatient').val(entry.patient_id).trigger('change');
-    $('#entryDoctor').val(entry.doctor_id).trigger('change');
+    
+    // First load Added By and wait for patient/doctor lists to load
     $('#entryAddedBy').data('prefill', entry.added_by || currentUserId);
     $('#entryAddedBy').data('forceReload', true);
     populateAddedBySelect(entry.added_by || currentUserId);
-    loadPatientsForUser(entry.added_by || currentUserId);
-    loadDoctorsForUser(entry.added_by || currentUserId);
+    
+    // Load patients and doctors for the user, then set the selected values
+    const userId = entry.added_by || currentUserId;
+    
+    // Load patients
+    const patientSelect = $('#entryPatient');
+    if (cachedPatientsByUser[userId]) {
+        patientSelect.html(cachedPatientsByUser[userId]);
+        patientSelect.val(entry.patient_id).trigger('change');
+    } else {
+        patientSelect.prop('disabled', true).html('<option value="">Loading patients...</option>');
+        $.get('ajax/patient_api.php', { action: 'list', ajax: 1, added_by: userId })
+            .done(function(response) {
+                if (response.success && Array.isArray(response.data)) {
+                    let options = '<option value="">Select Patient</option>';
+                    response.data.forEach(function(patient) {
+                        const label = patient.name || patient.uhid || `Patient #${patient.id}`;
+                        options += `<option value="${patient.id}">${label}</option>`;
+                    });
+                    cachedPatientsByUser[userId] = options;
+                    patientSelect.html(options);
+                    patientSelect.val(entry.patient_id).trigger('change');
+                }
+            })
+            .always(function() {
+                patientSelect.prop('disabled', false);
+            });
+    }
+    
+    // Load doctors
+    const doctorSelect = $('#entryDoctor');
+    if (cachedDoctorsByUser[userId]) {
+        const { entryOptions, filterOptions, directory } = cachedDoctorsByUser[userId];
+        doctorSelect.html(entryOptions);
+        doctorSelect.val(entry.doctor_id).trigger('change');
+        $('#doctorFilter').html(filterOptions);
+        doctorDirectory = directory;
+    } else {
+        doctorSelect.prop('disabled', true).html('<option value="">Loading doctors...</option>');
+        $.get('ajax/doctor_api.php', { action: 'list', ajax: 1, added_by: userId })
+            .done(function(response) {
+                if (response.success && Array.isArray(response.data)) {
+                    let entryOptions = '<option value="">Select Doctor</option>';
+                    let filterOptions = '<option value="">All Doctors</option>';
+                    const directory = {};
+                    response.data.forEach(function(doctor) {
+                        const optionLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (Added by ' + doctor.added_by_username + ')' : ''}`;
+                        entryOptions += `<option value="${doctor.id}" data-added-by="${doctor.added_by_username || ''}">${optionLabel}</option>`;
+                        const filterLabel = `${doctor.name || 'Unknown'}${doctor.added_by_username ? ' (' + doctor.added_by_username + ')' : ''}`;
+                        filterOptions += `<option value="${doctor.id}">${filterLabel}</option>`;
+                        directory[doctor.id] = {
+                            name: doctor.name || 'Unknown',
+                            addedByUsername: doctor.added_by_username || ''
+                        };
+                    });
+                    cachedDoctorsByUser[userId] = { entryOptions, filterOptions, directory };
+                    doctorSelect.html(entryOptions);
+                    doctorSelect.val(entry.doctor_id).trigger('change');
+                    $('#doctorFilter').html(filterOptions);
+                    doctorDirectory = directory;
+                }
+            })
+            .always(function() {
+                doctorSelect.prop('disabled', false);
+            });
+    }
+    
     $('#entryStatus').val(entry.status || 'pending');
     $('#entryNotes').val(entry.remarks || '');
     updateDoctorAddedByDisplay();
