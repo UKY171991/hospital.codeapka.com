@@ -225,17 +225,6 @@ $currentUserDisplayName = $_SESSION['full_name']
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="entryPatient">
-                                    <i class="fas fa-user mr-1"></i>
-                                    Patient <span class="text-danger">*</span>
-                                </label>
-                                <select class="form-control select2" id="entryPatient" name="patient_id" required>
-                                    <option value="">Select Patient</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
                                 <label for="entryDoctor">
                                     <i class="fas fa-user-md mr-1"></i>
                                     Doctor <span class="text-danger">*</span>
@@ -244,6 +233,17 @@ $currentUserDisplayName = $_SESSION['full_name']
                                     <option value="">Select Doctor</option>
                                 </select>
                                 <small id="doctorAddedByInfo" class="form-text text-muted" style="display: none;"></small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="entryPatient">
+                                    <i class="fas fa-user mr-1"></i>
+                                    Patient <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-control select2" id="entryPatient" name="patient_id" required>
+                                    <option value="">Select Patient</option>
+                                </select>
                             </div>
                         </div>
                     </div>
