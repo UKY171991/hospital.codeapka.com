@@ -509,7 +509,7 @@ if (typeof window.showAlert !== 'function') {
             }
         } catch (e) {
             // Fallback to console if toastr fails
-            console.log(message);
+            //console.log(message);
         }
     };
 }
@@ -726,11 +726,11 @@ function formatAddedByOptionLabel(info) {
 function populateAddedBySelect(prefillUserId) {
     const select = $('#entryAddedBy');
     if (!select.length) {
-        console.log('User select element not found');
+        //console.log('User select element not found');
         return;
     }
 
-    console.log('populateAddedBySelect called with prefillUserId:', prefillUserId);
+    //console.log('populateAddedBySelect called with prefillUserId:', prefillUserId);
     
     const fallbackName = currentUserDisplayName || '';
     const requestedId = prefillUserId !== undefined && prefillUserId !== null && prefillUserId !== ''
@@ -1230,7 +1230,7 @@ function initializeEventListeners() {
     });
 
     $('#entryModal').on('shown.bs.modal', function() {
-        console.log('Modal shown, checking user select status');
+        //console.log('Modal shown, checking user select status');
         
         const userSelect = $('#entryAddedBy');
         if (userSelect.length) {
@@ -1358,7 +1358,7 @@ function loadRealUsers() {
     // Set a timeout to prevent infinite loading
     const loadingTimeout = setTimeout(function() {
         if (userSelect.find('option:contains("Loading")').length > 0) {
-            console.warn('Loading timeout - showing fallback options');
+            //console.warn('Loading timeout - showing fallback options');
             userSelect.empty();
             userSelect.append('<option value="">Select User</option>');
             userSelect.append('<option value="1">Uma Yadav (uma) - Pathology</option>');
@@ -1438,9 +1438,9 @@ function loadRealUsers() {
             // Clear the timeout since we got a response (even if failed)
             clearTimeout(loadingTimeout);
             
-            console.error('Failed to load real users:', { xhr, status, error });
-            console.error('XHR Response Text:', xhr.responseText);
-            console.error('Status:', status, 'Error:', error);
+            //console.error('Failed to load real users:', { xhr, status, error });
+            //console.error('XHR Response Text:', xhr.responseText);
+            //console.error('Status:', status, 'Error:', error);
             
             userSelect.empty();
             userSelect.append('<option value="">Error loading users</option>');
@@ -1477,7 +1477,7 @@ function loadRealUsers() {
                     }
                 })
                 .fail(function() {
-                    console.error('Fallback also failed');
+                    //console.error('Fallback also failed');
                 });
         });
 }
@@ -1940,7 +1940,7 @@ function loadStats() {
             }
         })
         .fail(function() {
-            console.error('Failed to load entry statistics');
+            //console.error('Failed to load entry statistics');
         });
 }
 
@@ -2081,7 +2081,7 @@ function getErrorMessage(xhr) {
 
 // Enhanced AJAX error handling
 function handleAjaxError(xhr, status, error) {
-    console.warn('AJAX Error:', { xhr, status, error });
+    //console.warn('AJAX Error:', { xhr, status, error });
     
     // Don't show alerts for browser extension related errors
     if (status === 'abort' || 
