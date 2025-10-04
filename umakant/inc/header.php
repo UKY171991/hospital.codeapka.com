@@ -72,60 +72,17 @@
     window.APP_LOG = function(){ if(window.APP_DEBUG && console && console.log){ console.log.apply(console, arguments); } };
   </script>
   <script>
-    // Quiet known noisy extension messages outside our control across console.* APIs
     (function(){
       var PATTERNS = [
         'the message port closed before a response was received',
         'could not establish connection',
         'messagenotsenterror',
-        'messageporterror',
+        'messageportsenderror',
+        'messagenotsenterror',
         'cookiemanager.injectclientscript',
         'registerclientlocalizationserror',
         'contentmanager.injectclientscript'
       ];
-
-      function getCandidateStrings(args){
-        var values = [];
-        try{
-          var arr = Array.prototype.slice.call(args);
-          for(var i=0;i<arr.length;i++){
-            var item = arr[i];
-            if(item == null){ continue; }
-            if(typeof item === 'string'){
-              values.push(item);
-            }else if(typeof item === 'object'){
-              if(typeof item.message === 'string') values.push(item.message);
-              if(typeof item.name === 'string') values.push(item.name);
-              if(typeof item.stack === 'string') values.push(item.stack);
-              try{
-                values.push(JSON.stringify(item));
-              }catch(jsonErr){ /* ignore */ }
-            }else{
-              values.push(String(item));
-            }
-          }
-        }catch(err){ /* ignore */ }
-        return values;
-      }
-
-      function containsNoise(strings){
-        for(var sIdx=0; sIdx<strings.length; sIdx++){
-          var str = strings[sIdx];
-          if(!str) continue;
-          var lower = String(str).toLowerCase();
-          for(var i=0;i<PATTERNS.length;i++){
-            if(lower.indexOf(PATTERNS[i]) !== -1){
-              return true;
-            }
-          }
-        }
-        return false;
-      }
-
-      function isNoisyMessage(args){
-        var strings = getCandidateStrings(args);
-        return containsNoise(strings);
-      }
 
       function wrapConsoleMethod(method){
         if(!console || typeof console[method] !== 'function') return;
@@ -153,7 +110,10 @@
           }
           if(containsNoise(toCheck)){
             ev.preventDefault();
-            return;
+            if(typeof ev.stopImmediatePropagation === 'function'){
+              ev.stopImmediatePropagation();
+            }
+            return false;
           }
         }catch(err){ /* ignore */ }
       }, true);
@@ -164,13 +124,6 @@
           var toCheck = getCandidateStrings([reason]);
           if(containsNoise(toCheck)){
             ev.preventDefault();
-            return;
-          }
-        }catch(err){ /* ignore */ }
-      }, true);
-    })();
-  </script>
-  <script>
     // Suppress noisy unhandled promise rejection messages originating from extensions
     window.addEventListener('unhandledrejection', function(ev){
       try{
@@ -179,10 +132,13 @@
         var msg = (reason && (reason.message || reason.toString && reason.toString())) || '';
         if(!msg) return;
         var m = msg.toLowerCase();
-        var noisy = ['the message port closed before a response was received', 'could not establish connection', 'messagenotsenterror', 'registerclientlocalizationserror', 'cookiemanager.injectclientscript'];
+        var noisy = ['the message port closed before a response was received', 'could not establish connection', 'messagenotsenterror', 'messageportsenderror', 'registerclientlocalizationserror', 'cookiemanager.injectclientscript'];
         for(var i=0;i<noisy.length;i++){
           if(m.indexOf(noisy[i]) !== -1){
             ev.preventDefault(); // stop default logging
+            if(typeof ev.stopImmediatePropagation === 'function'){
+              ev.stopImmediatePropagation();
+            }
             return;
           }
         }
@@ -205,6 +161,18 @@
         }
         if(typeof window.CLIENT_LOCALIZATIONS === 'undefined'){
           window.CLIENT_LOCALIZATIONS = { translations: {} };
+        }
+        if(typeof window.registerClientLocalizations !== 'function'){
+          window.registerClientLocalizations = function(){
+            return Promise.resolve(window.ClientLocalizations);
+          };
+        }
+        if(typeof window.ClientLocalizationManager === 'undefined'){
+          window.ClientLocalizationManager = {
+            injectClientScript: function(){ return Promise.resolve(); }
+          };
+        } else if(typeof window.ClientLocalizationManager.injectClientScript !== 'function'){
+          window.ClientLocalizationManager.injectClientScript = function(){ return Promise.resolve(); };
         }
       }catch(e){ /* noop */ }
     })();
