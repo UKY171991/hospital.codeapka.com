@@ -547,7 +547,7 @@ const currentUserId = <?= json_encode($currentUserId, JSON_HEX_TAG | JSON_HEX_AP
 const currentUserDisplayName = <?= json_encode($currentUserDisplayName, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
 let cachedPatientsByIdentifiers = {};
 let cachedDoctorsByIdentifiers = {};
-let entryAddedByInfo = { id: currentUserId || '', username: null, fullName: currentUserDisplayName || '' };
+let entryAddedByInfo = { id: currentUserId || '', username: null, fullName: currentUserDisplayName || '', userType: '' };
 let cachedAddedByUsers = {};
 
 function normalizeIdentifierValue(value) {
@@ -674,7 +674,7 @@ function renderDoctorOptions(doctors, selectedId) {
 
 
 function setEntryAddedBy(userInfo) {
-    entryAddedByInfo = Object.assign({ id: '', username: null, fullName: '' }, userInfo || {});
+    entryAddedByInfo = Object.assign({ id: '', username: null, fullName: '', userType: '' }, userInfo || {});
     $('#entryAddedByValue').val(entryAddedByInfo.id || '');
 
     const select = $('#entryAddedBy');
@@ -700,11 +700,20 @@ function formatAddedByOptionLabel(info) {
     const idLabel = info.id ? `User #${info.id}` : 'Unknown User';
     const fullName = (info.fullName || '').trim();
     const username = (info.username || '').trim();
+    const userType = (info.userType || '').trim();
 
+    let baseLabel = '';
     if (fullName && username && fullName !== username) {
-        return `${fullName} (${username})`;
+        baseLabel = `${fullName} (${username})`;
+    } else {
+        baseLabel = fullName || username || idLabel;
     }
-    return fullName || username || idLabel;
+
+    if (userType) {
+        return `${baseLabel} - ${userType}`;
+    }
+
+    return baseLabel;
 }
 
 function populateAddedBySelect(prefillUserId) {
@@ -746,7 +755,8 @@ function populateAddedBySelect(prefillUserId) {
                 const info = {
                     id: user.id,
                     username: user.username || null,
-                    fullName: user.full_name || user.username || ''
+                    fullName: user.full_name || user.username || '',
+                    userType: user.user_type || user.userType || ''
                 };
                 const label = formatAddedByOptionLabel(info);
                 const option = $('<option>', {
@@ -758,6 +768,9 @@ function populateAddedBySelect(prefillUserId) {
                 }
                 if (info.fullName) {
                     option.attr('data-full-name', info.fullName);
+                }
+                if (info.userType) {
+                    option.attr('data-user-type', info.userType);
                 }
                 select.append(option);
 
@@ -780,7 +793,8 @@ function populateAddedBySelect(prefillUserId) {
             selectedInfo = {
                 id: requestedId,
                 username: null,
-                fullName: fallbackName || `User #${requestedId}`
+                fullName: fallbackName || `User #${requestedId}`,
+                userType: ''
             };
             const normalizedId = normalizeIdentifierValue(selectedInfo.id);
             if (normalizedId) {
