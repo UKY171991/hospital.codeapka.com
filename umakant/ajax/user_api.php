@@ -122,6 +122,16 @@ if ($action === 'list') {
         $stmt->execute($params);
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Process user_type field to ensure it's a string
+        foreach ($users as &$user) {
+            if (isset($user['user_type'])) {
+                // Convert numeric user_type to string if needed
+                if ($user['user_type'] === '0' || $user['user_type'] === 0 || $user['user_type'] === null) {
+                    $user['user_type'] = 'Pathology'; // Default user type
+                }
+            }
+        }
+
         // Return simple format
         json_response([
             'success' => true,

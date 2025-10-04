@@ -764,14 +764,18 @@ function populateAddedBySelect(prefillUserId) {
         
         if (userData && Array.isArray(userData) && userData.length > 0) {
             console.log('Processing users:', userData.length);
+            console.log('User data:', userData);
+            
             userData.forEach(function(user) {
                 const info = {
                     id: user.id,
                     username: user.username || null,
                     fullName: user.full_name || user.username || '',
-                    userType: user.user_type || user.userType || ''
+                    userType: (user.user_type && user.user_type !== '0') ? user.user_type : (user.userType || '')
                 };
                 const label = formatAddedByOptionLabel(info);
+                console.log('Adding user option:', label, 'for user:', info);
+                
                 const option = $('<option>', {
                     value: String(info.id),
                     text: label
@@ -792,21 +796,50 @@ function populateAddedBySelect(prefillUserId) {
                     cachedAddedByUsers[normalizedId] = info;
                 }
             });
+            
+            console.log('Total options in select:', select.find('option').length);
+            console.log('Select HTML:', select.html());
+            
             select.data('loaded', true);
             
             // Refresh Select2 after adding options
+            if (select.hasClass('select2-hidden-accessible')) {
+                console.log('Destroying existing Select2');
+                select.select2('destroy');
+            }
+            
+            console.log('Initializing Select2 with options');
+            select.select2({
+                theme: 'bootstrap4',
+                width: '100%',
+                dropdownParent: $('#entryModal'),
+                placeholder: 'Select User',
+                allowClear: true
+            });
+            
+            // Force refresh the Select2 dropdown
+            setTimeout(function() {
+                select.trigger('change.select2');
+                console.log('Select2 change event triggered');
+            }, 100);
+            
+            console.log('Select2 initialized, options should be visible');
+        } else {
+            console.warn('No users found in response:', response);
+            select.append($('<option>', { value: '', text: 'No users found' }));
+            select.data('loaded', false);
+            
+            // Still initialize Select2 even with no users
             if (select.hasClass('select2-hidden-accessible')) {
                 select.select2('destroy');
             }
             select.select2({
                 theme: 'bootstrap4',
                 width: '100%',
-                dropdownParent: $('#entryModal')
+                dropdownParent: $('#entryModal'),
+                placeholder: 'Select User',
+                allowClear: true
             });
-        } else {
-            console.warn('No users found in response:', response);
-            select.append($('<option>', { value: '', text: 'No users found' }));
-            select.data('loaded', false);
         }
 
         let selectedInfo = null;
