@@ -743,7 +743,7 @@ function populateAddedBySelect(prefillUserId) {
     select.prop('disabled', true);
     select.html('<option value="">Loading users...</option>');
 
-    $.get('ajax/user_api.php', { action: 'list', ajax: 1 })
+    $.get('ajax/user_api.php', { action: 'list' })
     .done(function(response) {
         console.log('User API Response:', response);
         select.empty();
@@ -756,16 +756,13 @@ function populateAddedBySelect(prefillUserId) {
         console.log('Response data length:', response.data ? response.data.length : 'N/A');
         console.log('Full response structure:', JSON.stringify(response, null, 2));
 
-        // Handle both simple format and DataTables format
-        let userData = response.data;
-        if (response && response.success) {
-            if (Array.isArray(response.data)) {
-                userData = response.data;
-            } else if (response.data && Array.isArray(response.data.data)) {
-                // DataTables format
-                userData = response.data.data;
-                console.log('Using DataTables format data');
-            }
+        // Handle DataTables format (same as user.php page)
+        let userData = [];
+        if (response && response.success && Array.isArray(response.data)) {
+            userData = response.data;
+            console.log('Using DataTables format data from user page');
+        } else {
+            console.warn('Unexpected response format:', response);
         }
         
         if (userData && Array.isArray(userData) && userData.length > 0) {
@@ -843,20 +840,56 @@ function populateAddedBySelect(prefillUserId) {
             console.log('Select2 initialized, options should be visible');
         } else {
             console.warn('No users found in response:', response);
-            select.append($('<option>', { value: '', text: 'No users found' }));
-            select.data('loaded', false);
+            console.log('Attempting fallback: loading users using user page method...');
             
-            // Still initialize Select2 even with no users
-            if (select.hasClass('select2-hidden-accessible')) {
-                select.select2('destroy');
-            }
-            select.select2({
-                theme: 'bootstrap4',
-                width: '100%',
-                dropdownParent: $('#entryModal'),
-                placeholder: 'Select User',
-                allowClear: true
-            });
+            // Fallback: Try to load users the same way user.php does
+            $.get('ajax/user_api.php', { action: 'list' })
+                .done(function(fallbackResponse) {
+                    console.log('Fallback API Response:', fallbackResponse);
+                    if (fallbackResponse && fallbackResponse.success && Array.isArray(fallbackResponse.data)) {
+                        console.log('Fallback successful, processing', fallbackResponse.data.length, 'users');
+                        
+                        // Process users from fallback response
+                        fallbackResponse.data.forEach(function(user) {
+                            const info = {
+                                id: user.id,
+                                username: user.username || null,
+                                fullName: user.full_name || user.username || '',
+                                userType: (user.user_type && user.user_type !== '0') ? user.user_type : 'Pathology'
+                            };
+                            const label = formatAddedByOptionLabel(info);
+                            console.log('Adding fallback user option:', label);
+                            
+                            select.append($('<option>', {
+                                value: String(info.id),
+                                text: label
+                            }));
+                        });
+                        
+                        // Initialize Select2 with fallback data
+                        if (select.hasClass('select2-hidden-accessible')) {
+                            select.select2('destroy');
+                        }
+                        select.select2({
+                            theme: 'bootstrap4',
+                            width: '100%',
+                            dropdownParent: $('#entryModal'),
+                            placeholder: 'Select User',
+                            allowClear: true
+                        });
+                        
+                        console.log('Fallback users loaded successfully');
+                    } else {
+                        // If fallback also fails, show error
+                        select.append($('<option>', { value: '', text: 'Error loading users' }));
+                        select.data('loaded', false);
+                    }
+                })
+                .fail(function() {
+                    console.error('Fallback also failed');
+                    select.append($('<option>', { value: '', text: 'Error loading users' }));
+                    select.data('loaded', false);
+                });
         }
 
         let selectedInfo = null;
@@ -1330,9 +1363,11 @@ function openAddEntryModal() {
             userSelect.select2('destroy');
         }
         
-        // Set basic HTML options
+        // Set basic HTML options (these will be replaced by API data)
         userSelect.empty();
         userSelect.append('<option value="">Select User</option>');
+        
+        // Add some default options that match the expected format
         userSelect.append('<option value="1">Uma Yadav (uma) - Pathology</option>');
         userSelect.append('<option value="2">Admin User (admin) - Hospital</option>');
         userSelect.append('<option value="3">Test User (testuser) - School</option>');
