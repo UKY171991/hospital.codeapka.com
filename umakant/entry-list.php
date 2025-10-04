@@ -1045,7 +1045,13 @@ function updateDoctorAddedByDisplay() {
 
 function loadDropdownsForEntry() {
     // Initialize Select2 for entry form once plugin is ready
-    waitForSelect2(initializeEntrySelect2Fields);
+    waitForSelect2(function() {
+        initializeEntrySelect2Fields();
+        $('#entryAddedBy').data('forceReload', true);
+        populateAddedBySelect(currentUserId);
+        loadPatientsForUser(currentUserId);
+        loadDoctorsForUser(currentUserId);
+    });
 
     // Load tests for filter only
     $.get('ajax/test_api.php', { action: 'list', ajax: 1 })
@@ -1066,12 +1072,6 @@ function loadDropdownsForEntry() {
                 console.error('Failed to load tests:', errorMsg);
             }
         });
-
-    // Load users for Added By select on page load so data is ready
-    $('#entryAddedBy').data('forceReload', true);
-    populateAddedBySelect(currentUserId);
-    loadPatientsForUser(currentUserId);
-    loadDoctorsForUser(currentUserId);
 }
 
 function loadEntries() {
