@@ -719,9 +719,12 @@ function formatAddedByOptionLabel(info) {
 function populateAddedBySelect(prefillUserId) {
     const select = $('#entryAddedBy');
     if (!select.length) {
+        console.log('User select element not found');
         return;
     }
 
+    console.log('populateAddedBySelect called with prefillUserId:', prefillUserId);
+    
     const fallbackName = currentUserDisplayName || '';
     const requestedId = prefillUserId !== undefined && prefillUserId !== null && prefillUserId !== ''
         ? prefillUserId
@@ -729,8 +732,11 @@ function populateAddedBySelect(prefillUserId) {
     const cacheKey = normalizeIdentifierValue(requestedId) || '';
     const forceReload = !!select.data('forceReload');
 
-    // Always load users from API to ensure dropdown is populated
-    // Remove caching logic that prevents loading
+    // Destroy any existing Select2 instance first
+    if (select.hasClass('select2-hidden-accessible')) {
+        console.log('Destroying existing Select2 instance');
+        select.select2('destroy');
+    }
 
     select.data('forceReload', false);
     select.data('loading', true);
@@ -809,19 +815,30 @@ function populateAddedBySelect(prefillUserId) {
             }
             
             console.log('Initializing Select2 with options');
-            select.select2({
-                theme: 'bootstrap4',
-                width: '100%',
-                dropdownParent: $('#entryModal'),
-                placeholder: 'Select User',
-                allowClear: true
-            });
             
-            // Force refresh the Select2 dropdown
-            setTimeout(function() {
-                select.trigger('change.select2');
-                console.log('Select2 change event triggered');
-            }, 100);
+            // Try to initialize Select2
+            try {
+                select.select2({
+                    theme: 'bootstrap4',
+                    width: '100%',
+                    dropdownParent: $('#entryModal'),
+                    placeholder: 'Select User',
+                    allowClear: true
+                });
+                
+                // Force refresh the Select2 dropdown
+                setTimeout(function() {
+                    select.trigger('change.select2');
+                    console.log('Select2 change event triggered');
+                }, 100);
+                
+                console.log('Select2 initialized successfully');
+            } catch (error) {
+                console.error('Select2 initialization failed:', error);
+                // Fallback: use regular select without Select2
+                select.removeClass('select2-hidden-accessible');
+                console.log('Using fallback regular select');
+            }
             
             console.log('Select2 initialized, options should be visible');
         } else {
@@ -1173,23 +1190,38 @@ function initializeEventListeners() {
     });
 
     $('#entryModal').on('shown.bs.modal', function() {
+        console.log('Modal shown, initializing user select');
+        
         // Re-initialize Select2 for modal
         waitForSelect2(function() {
             initializeEntrySelect2Fields();
-            populateAddedBySelect($('#entryAddedBy').data('prefill'));
+            
+            // Force populate user select
+            const userSelect = $('#entryAddedBy');
+            if (userSelect.length) {
+                console.log('Found user select, populating...');
+                populateAddedBySelect($('#entryAddedBy').data('prefill'));
+            } else {
+                console.log('User select not found in modal');
+            }
             
             // Ensure user select is properly refreshed
             setTimeout(function() {
                 const userSelect = $('#entryAddedBy');
-                if (userSelect.length && userSelect.hasClass('select2-hidden-accessible')) {
-                    userSelect.select2('destroy');
+                if (userSelect.length) {
+                    console.log('Final refresh of user select');
+                    if (userSelect.hasClass('select2-hidden-accessible')) {
+                        userSelect.select2('destroy');
+                    }
                     userSelect.select2({
                         theme: 'bootstrap4',
                         width: '100%',
-                        dropdownParent: $('#entryModal')
+                        dropdownParent: $('#entryModal'),
+                        placeholder: 'Select User',
+                        allowClear: true
                     });
                 }
-            }, 100);
+            }, 500);
         });
     });
 
@@ -1276,6 +1308,20 @@ function openAddEntryModal() {
     resetModalForm();
     $('#selectedTestsCount').text('0 tests selected');
     $('#testsByCategoryContainer').html('<div class="alert alert-info"><i class="fas fa-info-circle mr-2"></i>No tests selected. Click "Add Test" to choose tests for this entry.</div>');
+    
+    console.log('Opening Add Entry Modal');
+    
+    // Pre-populate user select with a simple test
+    setTimeout(function() {
+        const userSelect = $('#entryAddedBy');
+        if (userSelect.length) {
+            console.log('Pre-populating user select for testing');
+            userSelect.html('<option value="">Select User</option>');
+            userSelect.append('<option value="1">Test User (testuser) - Pathology</option>');
+            userSelect.append('<option value="2">Uma Yadav (uma) - Pathology</option>');
+        }
+    }, 100);
+    
     $('#entryModal').modal('show');
 }
 
