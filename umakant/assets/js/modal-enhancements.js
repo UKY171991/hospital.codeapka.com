@@ -35,31 +35,39 @@ $(document).ready(function() {
     $('.modal').on('shown.bs.modal', function() {
         const $modal = $(this);
 
-        // Fix for Select2 in modals
         $modal.find('.select2').each(function() {
             const $el = $(this);
             if ($el.hasClass('select2-hidden-accessible')) {
                 return;
             }
-            $el.select2({
-                theme: 'bootstrap4',
-                width: '100%',
-                dropdownParent: $modal
-            });
+            if ($.fn.select2) {
+                try {
+                    $el.select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        dropdownParent: $modal
+                    });
+                } catch (err) {
+                    // Ignore initialization errors from third-party plugins
+                }
+            }
         });
-        
+
         // Focus on first input field
-        $(this).find('input:not([type=hidden]):first').focus();
-        
+        $modal.find('input:not([type=hidden]):first').focus();
+
         // Ensure modal stays on top
-        $(this).css('z-index', '1060');
+        $modal.css('z-index', '1060');
         $('.modal-backdrop').css('z-index', '1055');
-        
+
         // Prevent modal from closing on sidebar interactions
-        const modal = $(this);
-        modal.off('click.sidebar-fix').on('click.sidebar-fix', function(e) {
+        $modal.off('click.sidebar-fix').on('click.sidebar-fix', function(e) {
             if ($(e.target).closest('.main-sidebar').length > 0) {
                 e.stopPropagation();
+                return false;
+            }
+        });
+    });
 
     $('.modal').on('hidden.bs.modal', function() {
         const $modal = $(this);
@@ -68,20 +76,30 @@ $(document).ready(function() {
         $modal.find('.select2').each(function() {
             const $el = $(this);
             if ($el.hasClass('select2-hidden-accessible') && $.fn.select2 && $el.data('select2')) {
-                $el.select2('destroy');
+                try {
+                    $el.select2('destroy');
+                } catch (err) {
+                    // Ignore cleanup errors from third-party plugins
+                }
+            }
+        });
 
-        // Clear previous validation
-        $(form).find('.form-control').removeClass('is-invalid is-valid');
-        $(form).find('.invalid-feedback, .valid-feedback').remove();
+        // Clear form validation states
+        $modal.find('.form-control').removeClass('is-invalid is-valid');
+        $modal.find('.invalid-feedback, .valid-feedback').remove();
 
-        // Check required fields
-        $(form).find('[required]').each(function() {
+        // Reset form
+        const formElement = $modal.find('form')[0];
+        if (formElement && typeof formElement.reset === 'function') {
+            formElement.reset();
+        }
+    });
+.each(function() {
             const field = $(this);
             const value = field.val();
 
             if (!value || value === '') {
                 field.addClass('is-invalid');
-                field.after('<div class="invalid-feedback">This field is required.</div>');
                 isValid = false;
             } else {
                 field.addClass('is-valid');
