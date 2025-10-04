@@ -72,27 +72,65 @@
     window.APP_LOG = function(){ if(window.APP_DEBUG && console && console.log){ console.log.apply(console, arguments); } };
   </script>
   <script>
-    (function(){
       var PATTERNS = [
         'the message port closed before a response was received',
         'could not establish connection',
         'messagenotsenterror',
         'messageportsenderror',
-        'messagenotsenterror',
         'cookiemanager.injectclientscript',
         'registerclientlocalizationserror',
         'contentmanager.injectclientscript'
       ];
 
+      function collectStrings(args){
+        var values = [];
+        try{
+          var arr = Array.prototype.slice.call(args || []);
+          for(var i=0; i<arr.length; i++){
+            var item = arr[i];
+            if(item == null){ continue; }
+            if(typeof item === 'string'){
+              values.push(item);
+            } else if(typeof item === 'object'){
+              if(typeof item.message === 'string') values.push(item.message);
+              if(typeof item.name === 'string') values.push(item.name);
+              if(typeof item.stack === 'string') values.push(item.stack);
+              try{
+                values.push(JSON.stringify(item));
+              }catch(jsonErr){ /* ignore */ }
+            } else {
+              values.push(String(item));
+            }
+          }
+        }catch(collectErr){ /* ignore */ }
+        return values;
+      }
+
+      function containsNoise(strings){
+        for(var sIdx=0; sIdx<strings.length; sIdx++){
+          var str = strings[sIdx];
+          if(!str){ continue; }
+          var lower = String(str).toLowerCase();
+          for(var i=0; i<PATTERNS.length; i++){
+            if(lower.indexOf(PATTERNS[i]) !== -1){
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+
       function wrapConsoleMethod(method){
         if(!console || typeof console[method] !== 'function') return;
         var original = console[method].bind(console);
         console[method] = function(){
-          if(isNoisyMessage(arguments)){
+          var args = Array.prototype.slice.call(arguments);
+          var toCheck = collectStrings(args);
+          if(containsNoise(toCheck)){
             return;
           }
           try{
-            original.apply(console, arguments);
+            original.apply(console, args);
           }catch(err){ /* swallow */ }
         };
       }
@@ -104,9 +142,11 @@
       window.addEventListener('error', function(ev){
         try{
           var toCheck = [];
-          if(ev && typeof ev.message === 'string') toCheck.push(ev.message);
+          if(ev && typeof ev.message === 'string') {
+            toCheck.push(ev.message);
+          }
           if(ev && ev.error){
-            toCheck = toCheck.concat(getCandidateStrings([ev.error]));
+            toCheck = toCheck.concat(collectStrings([ev.error]));
           }
           if(containsNoise(toCheck)){
             ev.preventDefault();
@@ -115,25 +155,15 @@
             }
             return false;
           }
-        }catch(err){ /* ignore */ }
+        }catch(handlerErr){ /* ignore */ }
       }, true);
 
       window.addEventListener('unhandledrejection', function(ev){
         try{
           var reason = ev && ev.reason;
-          var toCheck = getCandidateStrings([reason]);
+          var toCheck = collectStrings([reason]);
           if(containsNoise(toCheck)){
             ev.preventDefault();
-    // Suppress noisy unhandled promise rejection messages originating from extensions
-    window.addEventListener('unhandledrejection', function(ev){
-      try{
-        var reason = ev && ev.reason;
-        if(!reason) return;
-        var msg = (reason && (reason.message || reason.toString && reason.toString())) || '';
-        if(!msg) return;
-        var m = msg.toLowerCase();
-        var noisy = ['the message port closed before a response was received', 'could not establish connection', 'messagenotsenterror', 'messageportsenderror', 'registerclientlocalizationserror', 'cookiemanager.injectclientscript'];
-        for(var i=0;i<noisy.length;i++){
           if(m.indexOf(noisy[i]) !== -1){
             ev.preventDefault(); // stop default logging
             if(typeof ev.stopImmediatePropagation === 'function'){
