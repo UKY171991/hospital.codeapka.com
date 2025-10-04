@@ -720,16 +720,8 @@ function populateAddedBySelect(prefillUserId) {
     const cacheKey = normalizeIdentifierValue(requestedId) || '';
     const forceReload = !!select.data('forceReload');
 
-    if (!forceReload && select.data('loaded') && !select.data('loading')) {
-        if (cacheKey && cachedAddedByUsers[cacheKey]) {
-            setEntryAddedBy(cachedAddedByUsers[cacheKey]);
-        } else if (requestedId) {
-            setEntryAddedBy({ id: requestedId, username: null, fullName: fallbackName });
-        } else {
-            setEntryAddedBy({ id: '', username: null, fullName: '' });
-        }
-        return;
-    }
+    // Always load users from API to ensure dropdown is populated
+    // Remove caching logic that prevents loading
 
     select.data('forceReload', false);
     select.data('loading', true);
@@ -741,6 +733,12 @@ function populateAddedBySelect(prefillUserId) {
         console.log('User API Response:', response);
         select.empty();
         select.append($('<option>', { value: '', text: 'Select User' }));
+        
+        // Debug logging
+        console.log('Response success:', response && response.success);
+        console.log('Response data type:', typeof response.data);
+        console.log('Response data is array:', Array.isArray(response.data));
+        console.log('Response data length:', response.data ? response.data.length : 'N/A');
 
         if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
             console.log('Processing users:', response.data.length);
@@ -800,6 +798,7 @@ function populateAddedBySelect(prefillUserId) {
         setEntryAddedBy(selectedInfo || { id: '', username: null, fullName: '' });
     }).fail(function(xhr, status, error) {
         console.error('Failed to load user list for User select:', { xhr, status, error });
+        console.error('XHR Response Text:', xhr.responseText);
         select.html('<option value="">Error loading users</option>');
         if (requestedId) {
             setEntryAddedBy({ id: requestedId, username: null, fullName: fallbackName || `User #${requestedId}` });
