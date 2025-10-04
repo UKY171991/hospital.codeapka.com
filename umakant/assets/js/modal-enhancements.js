@@ -33,11 +33,19 @@ $(document).ready(function() {
     
     // Global modal event handlers
     $('.modal').on('shown.bs.modal', function() {
+        const $modal = $(this);
+
         // Fix for Select2 in modals
-        $(this).find('.select2').select2({
-            theme: 'bootstrap4',
-            width: '100%',
-            dropdownParent: $(this)
+        $modal.find('.select2').each(function() {
+            const $el = $(this);
+            if ($el.hasClass('select2-hidden-accessible')) {
+                return;
+            }
+            $el.select2({
+                theme: 'bootstrap4',
+                width: '100%',
+                dropdownParent: $modal
+            });
         });
         
         // Focus on first input field
@@ -52,27 +60,15 @@ $(document).ready(function() {
         modal.off('click.sidebar-fix').on('click.sidebar-fix', function(e) {
             if ($(e.target).closest('.main-sidebar').length > 0) {
                 e.stopPropagation();
-                return false;
-            }
-        });
-    });
 
     $('.modal').on('hidden.bs.modal', function() {
-        // Clean up Select2 instances
-        $(this).find('.select2').select2('destroy');
-        
-        // Clear form validation states
-        $(this).find('.form-control').removeClass('is-invalid is-valid');
-        $(this).find('.invalid-feedback, .valid-feedback').remove();
-        
-        // Reset form
-        $(this).find('form')[0]?.reset();
-    });
+        const $modal = $(this);
 
-    // Form validation helper
-    window.validateModalForm = function(formId) {
-        const form = document.getElementById(formId);
-        let isValid = true;
+        // Clean up Select2 instances
+        $modal.find('.select2').each(function() {
+            const $el = $(this);
+            if ($el.hasClass('select2-hidden-accessible') && $.fn.select2 && $el.data('select2')) {
+                $el.select2('destroy');
 
         // Clear previous validation
         $(form).find('.form-control').removeClass('is-invalid is-valid');
