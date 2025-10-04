@@ -793,6 +793,16 @@ function populateAddedBySelect(prefillUserId) {
                 }
             });
             select.data('loaded', true);
+            
+            // Refresh Select2 after adding options
+            if (select.hasClass('select2-hidden-accessible')) {
+                select.select2('destroy');
+            }
+            select.select2({
+                theme: 'bootstrap4',
+                width: '100%',
+                dropdownParent: $('#entryModal')
+            });
         } else {
             console.warn('No users found in response:', response);
             select.append($('<option>', { value: '', text: 'No users found' }));
@@ -820,6 +830,16 @@ function populateAddedBySelect(prefillUserId) {
                 value: String(selectedInfo.id),
                 text: formatAddedByOptionLabel(selectedInfo)
             }));
+            
+            // Refresh Select2 if we added a fallback option
+            if (select.hasClass('select2-hidden-accessible')) {
+                select.select2('destroy');
+            }
+            select.select2({
+                theme: 'bootstrap4',
+                width: '100%',
+                dropdownParent: $('#entryModal')
+            });
         }
 
         setEntryAddedBy(selectedInfo || { id: '', username: null, fullName: '' });
@@ -827,6 +847,17 @@ function populateAddedBySelect(prefillUserId) {
         console.error('Failed to load user list for User select:', { xhr, status, error });
         console.error('XHR Response Text:', xhr.responseText);
         select.html('<option value="">Error loading users</option>');
+        
+        // Refresh Select2 even in error case
+        if (select.hasClass('select2-hidden-accessible')) {
+            select.select2('destroy');
+        }
+        select.select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            dropdownParent: $('#entryModal')
+        });
+        
         if (requestedId) {
             setEntryAddedBy({ id: requestedId, username: null, fullName: fallbackName || `User #${requestedId}` });
         }
@@ -1113,6 +1144,19 @@ function initializeEventListeners() {
         waitForSelect2(function() {
             initializeEntrySelect2Fields();
             populateAddedBySelect($('#entryAddedBy').data('prefill'));
+            
+            // Ensure user select is properly refreshed
+            setTimeout(function() {
+                const userSelect = $('#entryAddedBy');
+                if (userSelect.length && userSelect.hasClass('select2-hidden-accessible')) {
+                    userSelect.select2('destroy');
+                    userSelect.select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        dropdownParent: $('#entryModal')
+                    });
+                }
+            }, 100);
         });
     });
 
