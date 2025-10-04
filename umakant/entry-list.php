@@ -1323,7 +1323,7 @@ function loadEntryTests(entryId, fallbackEntry = null) {
     $.get('patho_api/entry.php', { action: 'get_tests', entry_id: entryId })
         .done(function(response) {
             if (response.success && response.data.length > 0) {
-                selectedTests = response.data.map(test => ({
+                window.selectedTests = response.data.map(test => ({
                     category_id: test.category_id,
                     category_name: test.category_name || 'Unknown Category',
                     test_id: test.test_id,
@@ -1355,7 +1355,7 @@ function populateSelectedTestsFromFallback(entry) {
         return false;
     }
 
-    selectedTests = [{
+    window.selectedTests = [{
         category_id: entry.category_id || null,
         category_name: entry.category_name || 'Unknown Category',
         test_id: entry.test_id,
@@ -1648,7 +1648,7 @@ function validateModalForm(formId) {
     });
     
     // Check if at least one test is selected
-    if (typeof selectedTests !== 'undefined' && selectedTests.length === 0) {
+    if (typeof window.selectedTests !== 'undefined' && window.selectedTests.length === 0) {
         showAlert('Please add at least one test to this entry', 'error');
         isValid = false;
     }
@@ -1698,11 +1698,11 @@ $(document).on('click', '#editFromViewBtn', function() {
     }
 });
 
-// Multiple Tests Management
-let selectedTests = [];
+// Multiple Tests Management - using global scope
+window.selectedTests = window.selectedTests || [];
 
 function updateSelectedTestsCount() {
-    const count = selectedTests.length;
+    const count = window.selectedTests.length;
     const label = count === 0 ? '0 tests selected' : `${count} test${count === 1 ? '' : 's'} selected`;
     $('#selectedTestsCount').text(label);
 }
@@ -1774,7 +1774,7 @@ function populateTestSelect(tests) {
     
     let options = '<option value="">Select a test...</option>';
     tests.forEach(test => {
-        const isSelected = selectedTests.some(t => t.test_id == test.id);
+        const isSelected = window.selectedTests.some(t => t.test_id == test.id);
         const disabledAttr = isSelected ? ' disabled' : '';
         const selectedText = isSelected ? ' (Already Added)' : '';
         
@@ -1797,14 +1797,14 @@ function addSelectedTest() {
     const testData = JSON.parse(selectedOption.data('test'));
     
     // Check if test is already selected
-    const isAlreadyAdded = selectedTests.some(t => t.test_id == testId);
+    const isAlreadyAdded = window.selectedTests.some(t => t.test_id == testId);
     if (isAlreadyAdded) {
         showAlert('This test is already added to the entry', 'warning');
         return;
     }
     
     // Add the test
-    selectedTests.push({
+    window.selectedTests.push({
         category_id: testData.category_id,
         category_name: testData.category_name,
         test_id: testData.id,
@@ -1838,7 +1838,7 @@ function calculateEntryTotals() {
     let totalDiscount = 0;
     
     // Calculate from selected tests
-    selectedTests.forEach(test => {
+    window.selectedTests.forEach(test => {
         totalAmount += parseFloat(test.price) || 0;
         totalDiscount += parseFloat(test.discount_amount) || 0;
     });
@@ -1855,17 +1855,17 @@ function calculateEntryTotals() {
 
 function updateSelectedTestsDisplay() {
     const container = $('#testsByCategoryContainer');
-    console.log('updateSelectedTestsDisplay called, selectedTests:', selectedTests.length);
+    console.log('updateSelectedTestsDisplay called, selectedTests:', window.selectedTests.length);
     updateSelectedTestsCount();
     
-    if (selectedTests.length === 0) {
+    if (window.selectedTests.length === 0) {
         container.html('<div class="alert alert-info"><i class="fas fa-info-circle mr-2"></i>No tests selected. Click "Add Test" to choose tests for this entry.</div>');
         calculateEntryTotals(); // Update totals even when no tests
         return;
     }
     
     let html = '';
-    selectedTests.forEach((test, index) => {
+    window.selectedTests.forEach((test, index) => {
         // Format test range if available
         const testRange = test.min && test.max ? `${test.min}-${test.max}` : 'N/A';
         const testValue = test.result_value || 'Pending';
@@ -1913,12 +1913,12 @@ function updateSelectedTestsDisplay() {
 }
 
 function clearSelectedTests() {
-    selectedTests = [];
+    window.selectedTests = [];
     updateSelectedTestsDisplay();
 }
 
 function editTestDetails(testId) {
-    const test = selectedTests.find(t => t.test_id == testId);
+    const test = window.selectedTests.find(t => t.test_id == testId);
     if (!test) return;
     
     const newResultValue = prompt(`Enter result value for ${test.test_name}:`, test.result_value || '');
@@ -1931,7 +1931,7 @@ function editTestDetails(testId) {
 
 function removeTestFromEntry(testId) {
     if (confirm('Are you sure you want to remove this test from the entry?')) {
-        selectedTests = selectedTests.filter(test => test.test_id != testId);
+        window.selectedTests = window.selectedTests.filter(test => test.test_id != testId);
         updateSelectedTestsDisplay();
         showAlert('Test removed successfully', 'success');
     }
@@ -1945,7 +1945,7 @@ function saveEntryData() {
     }
     
     // Check if at least one test is selected
-    if (selectedTests.length === 0) {
+    if (window.selectedTests.length === 0) {
         showAlert('Please add at least one test to this entry', 'error');
         return;
     }
@@ -1953,7 +1953,7 @@ function saveEntryData() {
     const formData = new FormData($('#entryForm')[0]);
     
     // Add selected tests to form data
-    formData.append('tests', JSON.stringify(selectedTests));
+    formData.append('tests', JSON.stringify(window.selectedTests));
     formData.append('action', 'save');
     formData.append('ajax', 1);
     
@@ -2025,23 +2025,20 @@ function getScopedUserIds(pdo, userData) {
 
 // Fix the missing test count variable issue
 function updateSelectedTestsCount() {
-    const count = selectedTests.length;
+    const count = window.selectedTests.length;
     const label = count === 0 ? '0 tests selected' : `${count} test${count === 1 ? '' : 's'} selected`;
     $('#selectedTestsCount').text(label);
 }
 
-// Ensure the selectedTests array is properly initialized
-if (typeof selectedTests === 'undefined') {
-    var selectedTests = [];
-}
+// Global scope initialization is handled above
 
 // Fix the missing testsCount variable in the list function
 function fixTestsCountVariable() {
     // This fixes the undefined testsCount variable issue
-    if (typeof testsCount === 'undefined') {
-        var testsCount = 0;
+    if (typeof window.testsCount === 'undefined') {
+        window.testsCount = 0;
     }
-    return testsCount;
+    return window.testsCount;
 }
 </script>
 
