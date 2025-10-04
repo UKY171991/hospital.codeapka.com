@@ -216,10 +216,10 @@ $currentUserDisplayName = $_SESSION['full_name']
                             <div class="form-group">
                                 <label>
                                     <i class="fas fa-user-check mr-1"></i>
-                                    Added By
+                                    Added By <span class="text-danger">*</span>
                                 </label>
-                                <input type="hidden" id="entryAddedBy" name="added_by" value="<?= htmlspecialchars((string)$currentUserId, ENT_QUOTES, 'UTF-8'); ?>">
-                                <input type="text" class="form-control" id="entryAddedByDisplay" value="<?= htmlspecialchars($currentUserDisplayName, ENT_QUOTES, 'UTF-8'); ?>" readonly>
+                                <input type="hidden" id="entryAddedByValue" name="added_by" value="">
+                                <div id="entryAddedByDisplay" class="form-control-plaintext font-weight-bold"></div>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -504,6 +504,8 @@ const currentUserId = <?= json_encode($currentUserId, JSON_HEX_TAG | JSON_HEX_AP
 const currentUserDisplayName = <?= json_encode($currentUserDisplayName, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
 let cachedPatientsByIdentifiers = {};
 let cachedDoctorsByIdentifiers = {};
+let entryAddedByInfo = { id: currentUserId || '', username: null, fullName: currentUserDisplayName || '' };
+let cachedAddedByUsers = {};
 
 function normalizeIdentifierValue(value) {
     if (value === null || value === undefined) return null;
@@ -517,8 +519,6 @@ function normalizeIdentifierValue(value) {
 
 function getAddedByIdentifierSet(explicitUserId) {
     const identifiers = new Set();
-    const hiddenField = $('#entryAddedBy');
-    const displayField = $('#entryAddedByDisplay');
 
     const addValue = (value) => {
         const normalized = normalizeIdentifierValue(value);
@@ -531,13 +531,11 @@ function getAddedByIdentifierSet(explicitUserId) {
         addValue(explicitUserId);
     }
 
-    const hiddenValue = hiddenField.val();
-    addValue(hiddenValue);
-
-    const formGroup = hiddenField.closest('.form-group');
-    addValue(displayField && displayField.length ? displayField.val() : null);
-    addValue(formGroup.data('username'));
-    addValue(formGroup.data('full-name'));
+    if (entryAddedByInfo) {
+        addValue(entryAddedByInfo.id);
+        addValue(entryAddedByInfo.username);
+        addValue(entryAddedByInfo.fullName);
+    }
 
     return identifiers;
 }
@@ -632,34 +630,87 @@ function renderDoctorOptions(doctors, selectedId) {
 }
 
 
-function populateAddedByDisplay(userId) {
-    const hiddenField = $('#entryAddedBy');
-    const displayField = $('#entryAddedByDisplay');
-    const formGroup = hiddenField.closest('.form-group');
+function setEntryAddedBy(userInfo) {
+    entryAddedByInfo = Object.assign({ id: '', username: null, fullName: '' }, userInfo || {});
+    const displayName = entryAddedByInfo.fullName || entryAddedByInfo.username || `User #${entryAddedByInfo.id}` || 'Unknown User';
+    $('#entryAddedByValue').val(entryAddedByInfo.id || '');
+    $('#entryAddedByDisplay').text(displayName);
+}
 
-    const targetId = userId !== undefined && userId !== null && userId !== '' ? userId : currentUserId;
-    hiddenField.val(targetId);
+function populateAddedBySelect(prefillUserId) {
+    const fallbackName = currentUserDisplayName || '';
+    const requestedId = prefillUserId !== undefined && prefillUserId !== null && prefillUserId !== ''
+        ? prefillUserId
+        : currentUserId || '';
+    const cacheKey = normalizeIdentifierValue(requestedId) || '';
 
-    $.get('patho_api/user.php', { action: 'get', id: targetId, ajax: 1 })
+    const applyUserInfo = (info) => {
+        const normalizedInfo = Object.assign(
+            { id: '', username: null, fullName: '' },
+            info || {}
+        );
+        if (!normalizedInfo.fullName && normalizedInfo.username && normalizedInfo.username !== normalizedInfo.fullName) {
+            normalizedInfo.fullName = normalizedInfo.username;
+        }
+        if (!normalizedInfo.fullName) {
+            normalizedInfo.fullName = fallbackName || (normalizedInfo.id ? `User #${normalizedInfo.id}` : 'Unknown User');
+        }
+        setEntryAddedBy(normalizedInfo);
+    };
+
+    if (!requestedId) {
+        applyUserInfo({ id: '', fullName: fallbackName });
+        return;
+    }
+
+    if (cacheKey && cachedAddedByUsers[cacheKey]) {
+        applyUserInfo(cachedAddedByUsers[cacheKey]);
+        return;
+    }
+
+    const matchesCurrentUser = normalizeIdentifierValue(currentUserId) === cacheKey;
+    if (matchesCurrentUser) {
+        const currentInfo = { id: currentUserId || '', fullName: fallbackName, username: null };
+        cachedAddedByUsers[cacheKey] = currentInfo;
+        applyUserInfo(currentInfo);
+        return;
+    }
+
+    $.get('ajax/user_api.php', { action: 'get', id: requestedId, ajax: 1 })
         .done(function(response) {
-            if (response.success && response.data) {
-                const user = response.data;
-                const displayName = user.full_name && user.full_name.trim() !== ''
-                    ? user.full_name
-                    : (user.username || ('User #' + user.id));
-                displayField.val(displayName);
-                formGroup.data('username', user.username || '');
-                formGroup.data('full-name', user.full_name || '');
+            if (response && response.success && response.data) {
+                const userData = {
+                    id: response.data.id,
+                    username: response.data.username || null,
+                    fullName: response.data.full_name || response.data.username || fallbackName
+                };
+                if (cacheKey) {
+                    cachedAddedByUsers[cacheKey] = userData;
+                }
+                applyUserInfo(userData);
             } else {
-                displayField.val('Unknown User');
-                formGroup.removeData('username');
-                formGroup.removeData('full-name');
+                const fallbackInfo = {
+                    id: requestedId,
+                    username: null,
+                    fullName: fallbackName || (response && response.message ? response.message : `User #${requestedId}`)
+                };
+                if (cacheKey) {
+                    cachedAddedByUsers[cacheKey] = fallbackInfo;
+                }
+                applyUserInfo(fallbackInfo);
             }
         })
-        .fail(function() {
-            displayField.val('Unknown User');
-            formGroup.removeData('username');
-            formGroup.removeData('full-name');
+        .fail(function(xhr) {
+            console.error('Failed to fetch Added By user info:', xhr);
+            const errorInfo = {
+                id: requestedId,
+                username: null,
+                fullName: fallbackName || `User #${requestedId}`
+            };
+            if (cacheKey) {
+                cachedAddedByUsers[cacheKey] = errorInfo;
+            }
+            applyUserInfo(errorInfo);
         });
 }
 
@@ -700,13 +751,10 @@ function loadPatientsForUser(userId, selectedPatientId) {
             const filteredPatients = response.data.filter(function(patient) {
                 return recordMatchesAddedBy(patient, identifiersSet, [
                     'added_by',
-                    'added_by_name',
-                    'added_by_username',
-                    'addedBy',
-                    'addedByName'
+                    'added_by_name'
                 ]);
             }).map(function(patient) {
-                const label = patient.name || patient.full_name || patient.uhid || `Patient #${patient.id}`;
+                const label = patient.name || patient.uhid || `Patient #${patient.id}`;
                 return {
                     id: patient.id,
                     label: label
@@ -840,6 +888,11 @@ function initializeEventListeners() {
     });
 
     $('#entryDoctor').on('change', updateDoctorAddedByDisplay);
+    $('#entryAddedBy').on('change', function() {
+        const selectedUserId = $(this).val();
+        loadPatientsForUser(selectedUserId);
+        loadDoctorsForUser(selectedUserId);
+    });
     
     // Search functionality
     $('#entriesSearch').on('input', function() {
