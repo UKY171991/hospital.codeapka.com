@@ -742,10 +742,12 @@ function populateAddedBySelect(prefillUserId) {
             length: 500
         }
     }).done(function(response) {
+        console.log('User API Response:', response);
         select.empty();
         select.append($('<option>', { value: '', text: 'Select User' }));
 
         if (response && response.success && Array.isArray(response.data)) {
+            console.log('Processing users:', response.data.length);
             response.data.forEach(function(user) {
                 const info = {
                     id: user.id,
@@ -772,6 +774,7 @@ function populateAddedBySelect(prefillUserId) {
             });
             select.data('loaded', true);
         } else {
+            console.warn('No users found in response:', response);
             select.append($('<option>', { value: '', text: 'No users found' }));
             select.data('loaded', false);
         }
@@ -799,9 +802,12 @@ function populateAddedBySelect(prefillUserId) {
         }
 
         setEntryAddedBy(selectedInfo || { id: '', username: null, fullName: '' });
-    }).fail(function(xhr) {
-        console.error('Failed to load user list for Added By select:', xhr);
-        setEntryAddedBy({ id: requestedId, username: null, fullName: fallbackName || `User #${requestedId}` });
+    }).fail(function(xhr, status, error) {
+        console.error('Failed to load user list for Added By select:', { xhr, status, error });
+        select.html('<option value="">Error loading users</option>');
+        if (requestedId) {
+            setEntryAddedBy({ id: requestedId, username: null, fullName: fallbackName || `User #${requestedId}` });
+        }
     }).always(function() {
         select.prop('disabled', false);
         select.data('loading', false);
@@ -821,6 +827,8 @@ function loadPatientsForUser(userId, selectedPatientId) {
         return;
     }
 
+    console.log('Loading patients for user:', userId);
+    
     const normalizedUserId = normalizeIdentifierValue(userId);
     const identifiersSet = getAddedByIdentifierSet(userId);
     const cacheKey = getIdentifiersCacheKey(identifiersSet);
@@ -851,6 +859,8 @@ function loadPatientsForUser(userId, selectedPatientId) {
             if (select.data('pendingRequestKey') !== requestKey) {
                 return;
             }
+
+            console.log('Patient API Response for user', requestIdentifier, ':', response);
 
             if (!response.success || !Array.isArray(response.data)) {
                 throw new Error(response.message || 'Unexpected response');
@@ -893,6 +903,8 @@ function loadPatientsForUser(userId, selectedPatientId) {
 
 function loadDoctorsForUser(userId, selectedDoctorId) {
     const select = $('#entryDoctor');
+    console.log('Loading doctors for user:', userId);
+    
     const identifiersSet = getAddedByIdentifierSet(userId);
     const cacheKey = getIdentifiersCacheKey(identifiersSet);
 
@@ -916,6 +928,8 @@ function loadDoctorsForUser(userId, selectedDoctorId) {
 
     $.get('ajax/doctor_api.php', { action: 'list', ajax: 1, added_by: requestIdentifier })
         .done(function(response) {
+            console.log('Doctor API Response for user', requestIdentifier, ':', response);
+            
             if (!response.success || !Array.isArray(response.data)) {
                 throw new Error(response.message || 'Unexpected response');
             }
@@ -1027,6 +1041,8 @@ function initializeEventListeners() {
     $('#entryDoctor').on('change', updateDoctorAddedByDisplay);
     $('#entryAddedBy').on('change', function() {
         const selectedUserId = $(this).val();
+        console.log('Added By changed to:', selectedUserId);
+        
         if (selectedUserId) {
             const cacheKey = normalizeIdentifierValue(selectedUserId);
             if (cacheKey && cachedAddedByUsers[cacheKey]) {
@@ -1034,12 +1050,17 @@ function initializeEventListeners() {
             } else {
                 setEntryAddedBy({ id: selectedUserId, username: null, fullName: $(this).find('option:selected').text() });
             }
+            
+            // Load patients and doctors for the selected user
+            loadPatientsForUser(selectedUserId);
+            loadDoctorsForUser(selectedUserId);
         } else {
             setEntryAddedBy({ id: '', username: null, fullName: '' });
+            
+            // Clear patient and doctor lists when no user is selected
+            $('#entryPatient').html('<option value="">Select Added By first</option>').prop('disabled', true);
+            $('#entryDoctor').html('<option value="">Select Added By first</option>').prop('disabled', true);
         }
-
-        loadPatientsForUser(selectedUserId);
-        loadDoctorsForUser(selectedUserId);
     });
     
     // Search functionality

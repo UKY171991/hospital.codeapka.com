@@ -7,6 +7,10 @@ session_start();
 $action = $_REQUEST['action'] ?? 'list';
 
 try {
+    // Check authentication
+    if (!isset($_SESSION['user_id'])) {
+        json_response(['success' => false, 'message' => 'Authentication required'], 401);
+    }
 
 if ($action === 'list') {
     // Support DataTables server-side processing
@@ -71,7 +75,12 @@ if ($action === 'list') {
     
     $dataStmt = $pdo->prepare($dataQuery);
     $dataStmt->execute($params);
-    $data = $dataStmt->fetchAll();
+    $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Debug logging
+    error_log("User API Debug - Total records: " . $totalRecords);
+    error_log("User API Debug - Data count: " . count($data));
+    error_log("User API Debug - First user: " . json_encode($data[0] ?? 'No data'));
     
     // Return DataTables format
     json_response([
