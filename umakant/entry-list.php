@@ -739,7 +739,8 @@ function populateAddedBySelect(prefillUserId) {
             ajax: 1,
             draw: 1,
             start: 0,
-            length: 500
+            length: 500,
+            search: { value: '' }
         }
     }).done(function(response) {
         console.log('User API Response:', response);
