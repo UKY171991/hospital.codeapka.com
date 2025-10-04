@@ -269,9 +269,28 @@ body.modal-open {
     100% { transform: scale(1); }
 }
 
-/* Owner/Lab Field Styling */
-#ownerSelect, #addedBySelect {
+/* Owner/Added By Field Styling */
+#ownerAddedBySelect {
     background-color: #f8f9fa;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+#ownerAddedBySelect:focus {
+    background-color: #fff;
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Enhanced dropdown styling for combined field */
+.select2-container--default .select2-selection--single {
+    height: calc(2.25rem + 4px) !important;
+    line-height: calc(2.25rem + 2px) !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: calc(2.25rem + 2px) !important;
+    padding-left: 12px !important;
 }
 
 /* Contact and Address Fields */
