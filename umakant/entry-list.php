@@ -172,12 +172,14 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                         <tr>
                                             <th width="5%">ID</th>
                                             <th width="15%">Patient</th>
-                                            <th width="15%">Doctor</th>
-                                            <th width="20%">Tests</th>
-                                            <th width="10%">Status</th>
+                                            <th width="12%">Doctor</th>
+                                            <th width="8%">Owner</th>
+                                            <th width="15%">Tests</th>
+                                            <th width="8%">Status</th>
+                                            <th width="8%">Priority</th>
                                             <th width="10%">Amount</th>
                                             <th width="10%">Date</th>
-                                            <th width="15%">Actions</th>
+                                            <th width="9%">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -246,6 +248,25 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label for="ownerSelect">Owner/Lab</label>
+                                <select class="form-control select2" id="ownerSelect" name="owner_id">
+                                    <option value="">Select Owner/Lab</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="addedBySelect">Added By</label>
+                                <select class="form-control select2" id="addedBySelect" name="added_by">
+                                    <option value="">Select User</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
                                 <label for="entryDate">Entry Date <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control" id="entryDate" name="entry_date" 
                                        value="<?php echo date('Y-m-d'); ?>" required>
@@ -291,6 +312,50 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <button type="button" class="btn btn-success btn-sm" onclick="addTestRow()">
                             <i class="fas fa-plus"></i> Add Test
                         </button>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="patientContact">Patient Contact</label>
+                                <input type="text" class="form-control" id="patientContact" name="patient_contact" 
+                                       placeholder="Phone number or email...">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="patientAddress">Patient Address</label>
+                                <textarea class="form-control" id="patientAddress" name="patient_address" rows="2" 
+                                          placeholder="Patient address..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="referralSource">Referral Source</label>
+                                <select class="form-control" id="referralSource" name="referral_source">
+                                    <option value="">Select Source</option>
+                                    <option value="doctor">Doctor Referral</option>
+                                    <option value="hospital">Hospital</option>
+                                    <option value="walk_in">Walk-in</option>
+                                    <option value="online">Online Booking</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="priority">Priority</label>
+                                <select class="form-control" id="priority" name="priority">
+                                    <option value="normal">Normal</option>
+                                    <option value="urgent">Urgent</option>
+                                    <option value="emergency">Emergency</option>
+                                    <option value="routine">Routine</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -385,6 +450,8 @@ function initializePage() {
     initializeDataTable();
     loadPatients();
     loadDoctors();
+    loadOwners();
+    loadUsers();
     loadTests();
     setupEventHandlers();
 }
@@ -450,6 +517,12 @@ function initializeDataTable() {
                 }
             },
             { 
+                data: 'owner_name',
+                render: function(data, type, row) {
+                    return data || '<span class="text-muted">Not assigned</span>';
+                }
+            },
+            { 
                 data: 'test_name',
                 render: function(data, type, row) {
                     if (row.tests_count > 1) {
@@ -470,6 +543,19 @@ function initializeDataTable() {
                         'cancelled': 'danger'
                     }[data] || 'secondary';
                     return `<span class="badge badge-${statusClass}">${data}</span>`;
+                }
+            },
+            { 
+                data: 'priority',
+                render: function(data, type, row) {
+                    const priority = data || 'normal';
+                    const priorityClass = {
+                        'urgent': 'danger',
+                        'emergency': 'warning',
+                        'routine': 'info',
+                        'normal': 'secondary'
+                    }[priority] || 'secondary';
+                    return `<span class="badge badge-${priorityClass}">${priority}</span>`;
                 }
             },
             { 
@@ -565,6 +651,58 @@ function loadDoctors() {
     });
 }
 
+// Load owners for dropdown
+function loadOwners() {
+    $.ajax({
+        url: 'ajax/owner_api.php',
+        method: 'GET',
+        data: { action: 'list' },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                const ownerSelect = $('#ownerSelect');
+                ownerSelect.empty().append('<option value="">Select Owner/Lab</option>');
+                response.data.forEach(function(owner) {
+                    ownerSelect.append(`<option value="${owner.id}">${owner.name}</option>`);
+                });
+                ownerSelect.select2({
+                    placeholder: 'Select Owner/Lab',
+                    allowClear: true
+                });
+            }
+        }
+    });
+}
+
+// Load users for dropdown
+function loadUsers() {
+    $.ajax({
+        url: 'ajax/user_api.php',
+        method: 'GET',
+        data: { action: 'list' },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                const userSelect = $('#addedBySelect');
+                userSelect.empty().append('<option value="">Select User</option>');
+                response.data.forEach(function(user) {
+                    const displayName = user.full_name || user.username || user.email;
+                    userSelect.append(`<option value="${user.id}">${displayName} (${user.role || 'user'})</option>`);
+                });
+                userSelect.select2({
+                    placeholder: 'Select User',
+                    allowClear: true
+                });
+                
+                // Set current user as default if not editing
+                if (!currentEntryId && <?php echo json_encode($currentUserId); ?>) {
+                    userSelect.val(<?php echo json_encode($currentUserId); ?>).trigger('change');
+                }
+            }
+        }
+    });
+}
+
 // Load tests for dropdown
 function loadTests() {
     $.ajax({
@@ -618,6 +756,20 @@ function openAddEntryModal() {
     $('#entryForm')[0].reset();
     $('#entryId').val('');
     $('#entryDate').val(new Date().toISOString().split('T')[0]);
+    $('#entryStatus').val('pending');
+    $('#priority').val('normal');
+    
+    // Reset all select2 dropdowns
+    $('#patientSelect').val('').trigger('change');
+    $('#doctorSelect').val('').trigger('change');
+    $('#ownerSelect').val('').trigger('change');
+    $('#addedBySelect').val('').trigger('change');
+    
+    // Reset additional fields
+    $('#patientContact').val('');
+    $('#patientAddress').val('');
+    $('#referralSource').val('');
+    $('#entryNotes').val('');
     
     // Reset tests container
     $('#testsContainer').html(`
@@ -642,7 +794,19 @@ function openAddEntryModal() {
     `);
     testRowCount = 1;
     
+    // Load dropdowns
     loadTests();
+    loadOwners();
+    loadUsers();
+    
+    // Set current user as default
+    setTimeout(function() {
+        const currentUserId = <?php echo json_encode($currentUserId); ?>;
+        if (currentUserId) {
+            $('#addedBySelect').val(currentUserId).trigger('change');
+        }
+    }, 500);
+    
     $('#entryModal').modal('show');
 }
 
@@ -750,22 +914,32 @@ function displayEntryDetails(entry) {
                 <p><strong>ID:</strong> #${entry.id}</p>
                 <p><strong>Date:</strong> ${new Date(entry.entry_date).toLocaleDateString('en-IN')}</p>
                 <p><strong>Status:</strong> <span class="badge badge-${entry.status === 'completed' ? 'success' : entry.status === 'pending' ? 'warning' : 'danger'}">${entry.status}</span></p>
+                <p><strong>Priority:</strong> <span class="badge badge-${entry.priority === 'urgent' ? 'danger' : entry.priority === 'emergency' ? 'warning' : 'info'}">${entry.priority || 'normal'}</span></p>
                 <p><strong>Tests Count:</strong> ${entry.tests_count || 0}</p>
+                <p><strong>Added By:</strong> ${entry.added_by_username || 'N/A'}</p>
             </div>
             <div class="col-md-6">
                 <h6><strong>Patient Information</strong></h6>
                 <p><strong>Name:</strong> ${entry.patient_name || 'N/A'}</p>
                 <p><strong>UHID:</strong> ${entry.uhid || 'N/A'}</p>
                 <p><strong>Age/Gender:</strong> ${entry.age ? entry.age + ' ' + (entry.gender || '') : 'N/A'}</p>
+                ${entry.patient_contact ? `<p><strong>Contact:</strong> ${entry.patient_contact}</p>` : ''}
+                ${entry.patient_address ? `<p><strong>Address:</strong> ${entry.patient_address}</p>` : ''}
                 <p><strong>Doctor:</strong> ${entry.doctor_name || 'Not assigned'}</p>
+                ${entry.owner_name ? `<p><strong>Owner/Lab:</strong> ${entry.owner_name}</p>` : ''}
             </div>
         </div>
         <div class="row mt-3">
-            <div class="col-12">
+            <div class="col-md-6">
                 <h6><strong>Tests & Pricing</strong></h6>
                 <p><strong>Tests:</strong> ${entry.test_names || 'No tests'}</p>
                 <p><strong>Total Amount:</strong> ₹${parseFloat(entry.final_amount || 0).toFixed(2)}</p>
+            </div>
+            <div class="col-md-6">
+                <h6><strong>Additional Information</strong></h6>
+                ${entry.referral_source ? `<p><strong>Referral Source:</strong> ${entry.referral_source}</p>` : ''}
                 ${entry.notes ? `<p><strong>Notes:</strong> ${entry.notes}</p>` : ''}
+                <p><strong>Created:</strong> ${new Date(entry.created_at).toLocaleString('en-IN')}</p>
             </div>
         </div>
     `;
@@ -798,9 +972,22 @@ function populateEditForm(entry) {
     $('#entryId').val(entry.id);
     $('#patientSelect').val(entry.patient_id).trigger('change');
     $('#doctorSelect').val(entry.doctor_id).trigger('change');
+    $('#ownerSelect').val(entry.owner_id || '').trigger('change');
+    $('#addedBySelect').val(entry.added_by || '').trigger('change');
     $('#entryDate').val(entry.entry_date);
     $('#entryStatus').val(entry.status);
     $('#entryNotes').val(entry.notes || '');
+    
+    // Populate additional fields
+    $('#patientContact').val(entry.patient_contact || '');
+    $('#patientAddress').val(entry.patient_address || '');
+    $('#referralSource').val(entry.referral_source || '');
+    $('#priority').val(entry.priority || 'normal');
+    
+    // Load dropdowns
+    loadTests();
+    loadOwners();
+    loadUsers();
     
     // For now, we'll show a simple edit form
     // In a full implementation, you'd populate the tests section

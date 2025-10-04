@@ -273,14 +273,16 @@ try {
         }
 
         $sql = "SELECT e.*, 
-                   p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
+                   p.name AS patient_name, p.uhid, p.age, p.sex AS gender, p.contact AS patient_contact, p.address AS patient_address,
                    d.name AS doctor_name,
+                   o.name AS owner_name,
                    du.username AS doctor_added_by_username,
-                   u.username AS added_by_username,
+                   u.username AS added_by_username, u.full_name AS added_by_full_name,
                    {$aggSelect}
             FROM entries e 
             LEFT JOIN patients p ON e.patient_id = p.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
+            LEFT JOIN owners o ON e.owner_id = o.id
             LEFT JOIN users du ON d.added_by = du.id
             LEFT JOIN users u ON e.added_by = u.id" .
             $aggJoin .
@@ -369,14 +371,16 @@ try {
         }
 
         $sql = "SELECT e.*, 
-                   p.name AS patient_name, p.uhid, p.age, p.sex AS gender,
+                   p.name AS patient_name, p.uhid, p.age, p.sex AS gender, p.contact AS patient_contact, p.address AS patient_address,
                    d.name AS doctor_name,
+                   o.name AS owner_name,
                    du.username AS doctor_added_by_username,
-                   u.username AS added_by_username,
+                   u.username AS added_by_username, u.full_name AS added_by_full_name,
                    {$aggSelect}
             FROM entries e 
             LEFT JOIN patients p ON e.patient_id = p.id 
             LEFT JOIN doctors d ON e.doctor_id = d.id 
+            LEFT JOIN owners o ON e.owner_id = o.id
             LEFT JOIN users du ON d.added_by = du.id
             LEFT JOIN users u ON e.added_by = u.id" .
             $aggJoin .
@@ -483,8 +487,11 @@ try {
                     $entryData = [
                         'patient_id' => $input['patient_id'],
                         'doctor_id' => $input['doctor_id'] ?? null,
+                        'owner_id' => $input['owner_id'] ?? null,
                         'entry_date' => $input['entry_date'] ?? date('Y-m-d'),
                         'status' => $input['status'] ?? 'pending',
+                        'priority' => $input['priority'] ?? 'normal',
+                        'referral_source' => $input['referral_source'] ?? null,
                         'added_by' => $input['added_by']
                     ];
 
@@ -721,13 +728,17 @@ try {
             $aggJoin = '';
         }
         
-        $sql = "SELECT e.id, e.entry_date, e.status, e.created_at,
-                       p.name AS patient_name, p.uhid, p.age, p.sex,
+        $sql = "SELECT e.id, e.entry_date, e.status, e.priority, e.referral_source, e.created_at,
+                       p.name AS patient_name, p.uhid, p.age, p.sex, p.contact AS patient_contact, p.address AS patient_address,
                        d.name AS doctor_name,
+                       o.name AS owner_name,
+                       u.username AS added_by_username, u.full_name AS added_by_full_name,
                        {$aggSelect}
                 FROM entries e 
                 LEFT JOIN patients p ON e.patient_id = p.id 
-                LEFT JOIN doctors d ON e.doctor_id = d.id" .
+                LEFT JOIN doctors d ON e.doctor_id = d.id 
+                LEFT JOIN owners o ON e.owner_id = o.id
+                LEFT JOIN users u ON e.added_by = u.id" .
                 $aggJoin .
                 $scopeWhere .
                 " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
@@ -746,11 +757,17 @@ try {
                 'Patient Name' => $row['patient_name'] ?? '',
                 'UHID' => $row['uhid'] ?? '',
                 'Age/Gender' => ($row['age'] ? $row['age'] : '') . ($row['sex'] ? ' ' . $row['sex'] : ''),
+                'Patient Contact' => $row['patient_contact'] ?? '',
+                'Patient Address' => $row['patient_address'] ?? '',
                 'Doctor' => $row['doctor_name'] ?? '',
+                'Owner/Lab' => $row['owner_name'] ?? '',
                 'Tests' => $row['test_names'] ?? '',
                 'Tests Count' => $row['tests_count'] ?? 0,
                 'Status' => ucfirst($row['status'] ?? ''),
+                'Priority' => ucfirst($row['priority'] ?? 'Normal'),
+                'Referral Source' => ucfirst($row['referral_source'] ?? ''),
                 'Amount' => number_format($finalAmount, 2),
+                'Added By' => $row['added_by_full_name'] ?? $row['added_by_username'] ?? '',
                 'Created' => date('d/m/Y H:i', strtotime($row['created_at']))
             ];
         }

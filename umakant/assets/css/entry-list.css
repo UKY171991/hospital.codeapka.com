@@ -231,6 +231,99 @@ body.modal-open {
     border-color: #667eea;
 }
 
+/* User Fields Styles */
+.form-group label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.form-group label .text-danger {
+    margin-left: 0.25rem;
+}
+
+/* Priority Badge Styles */
+.badge-priority-urgent {
+    background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+    animation: pulse 2s infinite;
+}
+
+.badge-priority-emergency {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    animation: pulse 1s infinite;
+}
+
+.badge-priority-routine {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.badge-priority-normal {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Owner/Lab Field Styling */
+#ownerSelect, #addedBySelect {
+    background-color: #f8f9fa;
+}
+
+/* Contact and Address Fields */
+#patientContact, #patientAddress {
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+#patientContact:focus, #patientAddress:focus {
+    background-color: #fff;
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Referral Source and Priority Styling */
+#referralSource, #priority {
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+#referralSource:focus, #priority:focus {
+    background-color: #fff;
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Enhanced Modal Form Layout */
+.modal-body .row {
+    margin-bottom: 1rem;
+}
+
+.modal-body .form-group {
+    margin-bottom: 1.5rem;
+}
+
+/* User Information Section */
+.user-info-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #dee2e6;
+}
+
+.user-info-section h6 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 0.5rem;
+}
+
 /* Filter Section */
 .card-body .row.mb-3 {
     background-color: #f8f9fa;
