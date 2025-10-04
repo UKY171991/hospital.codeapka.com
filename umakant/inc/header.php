@@ -74,12 +74,15 @@
   <script>
       var PATTERNS = [
         'the message port closed before a response was received',
+        'unchecked runtime.lasterror',
+        'message port closed',
         'could not establish connection',
         'messagenotsenterror',
         'messageportsenderror',
         'cookiemanager.injectclientscript',
         'registerclientlocalizationserror',
-        'contentmanager.injectclientscript'
+        'contentmanager.injectclientscript',
+        'extension context invalidated'
       ];
 
       function collectStrings(args){

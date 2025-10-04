@@ -513,9 +513,12 @@ window.addEventListener('error', function(e) {
     if (e.message && (
         e.message.includes('message port closed') ||
         e.message.includes('Extension context invalidated') ||
-        e.message.includes('Could not establish connection')
+        e.message.includes('Could not establish connection') ||
+        e.message.includes('runtime.lastError') ||
+        e.message.includes('Unchecked runtime.lastError')
     )) {
         e.preventDefault();
+        e.stopImmediatePropagation();
         return false;
     }
 });
@@ -524,9 +527,12 @@ window.addEventListener('error', function(e) {
 window.addEventListener('unhandledrejection', function(e) {
     if (e.reason && (
         e.reason.message && e.reason.message.includes('message port closed') ||
-        e.reason.message && e.reason.message.includes('Extension context invalidated')
+        e.reason.message && e.reason.message.includes('Extension context invalidated') ||
+        e.reason.message && e.reason.message.includes('runtime.lastError') ||
+        e.reason.message && e.reason.message.includes('Unchecked runtime.lastError')
     )) {
         e.preventDefault();
+        e.stopImmediatePropagation();
         return false;
     }
 });
