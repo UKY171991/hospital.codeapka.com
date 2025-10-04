@@ -218,10 +218,8 @@ $currentUserDisplayName = $_SESSION['full_name']
                                     <i class="fas fa-user-check mr-1"></i>
                                     Added By <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-control select2" id="entryAddedBy" name="added_by" required data-placeholder="Select User">
-                                    <option value="">Select User</option>
-                                </select>
-                                <small id="entryAddedByInfo" class="form-text text-muted"></small>
+                                <input type="hidden" id="entryAddedByValue" name="added_by" value="">
+                                <div id="entryAddedByDisplay" class="form-control-plaintext font-weight-bold"></div>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -508,7 +506,6 @@ let cachedPatientsByIdentifiers = {};
 let cachedDoctorsByIdentifiers = {};
 let entryAddedByInfo = { id: currentUserId || '', username: null, fullName: currentUserDisplayName || '' };
 let cachedAddedByUsers = {};
-let addedByOptionsCache = [];
 
 function normalizeIdentifierValue(value) {
     if (value === null || value === undefined) return null;
@@ -636,8 +633,8 @@ function renderDoctorOptions(doctors, selectedId) {
 function setEntryAddedBy(userInfo) {
     entryAddedByInfo = Object.assign({ id: '', username: null, fullName: '' }, userInfo || {});
     const displayName = entryAddedByInfo.fullName || entryAddedByInfo.username || `User #${entryAddedByInfo.id}` || 'Unknown User';
-    $('#entryAddedBy').val(entryAddedByInfo.id || '').trigger('change.select2');
-    $('#entryAddedByInfo').text(displayName ? `Selected: ${displayName}` : '');
+    $('#entryAddedByValue').val(entryAddedByInfo.id || '');
+    $('#entryAddedByDisplay').text(displayName);
 }
 
 function populateAddedBySelect(prefillUserId) {
@@ -647,46 +644,6 @@ function populateAddedBySelect(prefillUserId) {
         : currentUserId || '';
     const cacheKey = normalizeIdentifierValue(requestedId) || '';
 
-    const ensureOptionsLoaded = () => {
-        const select = $('#entryAddedBy');
-        if (addedByOptionsCache.length > 0) {
-            if (!select.children('option:not([value=""])').length) {
-                const optionsHtml = addedByOptionsCache.map(option => `<option value="${option.id}">${option.label}</option>`).join('');
-                select.append(optionsHtml);
-            }
-            select.trigger('change.select2');
-            return Promise.resolve();
-        }
-
-        select.prop('disabled', true);
-        select.html('<option value="">Loading users...</option>');
-
-        return $.get('ajax/user_api.php', { action: 'list', ajax: 1, length: 1000 })
-            .done(function(response) {
-                if (response && response.success && Array.isArray(response.data)) {
-                    addedByOptionsCache = response.data.map(user => ({
-                        id: user.id,
-                        label: user.full_name || user.username || `User #${user.id}`,
-                        username: user.username || null,
-                        fullName: user.full_name || null
-                    }));
-                    const optionsHtml = addedByOptionsCache.map(option => `<option value="${option.id}">${option.label}</option>`).join('');
-                    select.html('<option value="">Select User</option>' + optionsHtml);
-                } else {
-                    select.html('<option value="">No users found</option>');
-                }
-            })
-            .fail(function(xhr) {
-                const errorMsg = getErrorMessage(xhr);
-                select.html(`<option value="">Failed to load users (${errorMsg})</option>`);
-            })
-            .always(function() {
-                select.prop('disabled', false);
-                select.trigger('change.select2');
-            });
-    };
-
-    ensureOptionsLoaded().then(() => {
     const applyUserInfo = (info) => {
         const normalizedInfo = Object.assign(
             { id: '', username: null, fullName: '' },
@@ -755,7 +712,6 @@ function populateAddedBySelect(prefillUserId) {
             }
             applyUserInfo(errorInfo);
         });
-    });
 }
 
 function getIdentifiersCacheKey(identifiersSet) {
@@ -932,11 +888,6 @@ function initializeEventListeners() {
     });
 
     $('#entryDoctor').on('change', updateDoctorAddedByDisplay);
-    $('#entryAddedBy').on('change', function() {
-        const selectedUserId = $(this).val();
-        loadPatientsForUser(selectedUserId);
-        loadDoctorsForUser(selectedUserId);
-    });
     
     // Search functionality
     $('#entriesSearch').on('input', function() {
@@ -962,7 +913,7 @@ function initializeEventListeners() {
     });
 
     $('#entryModal').on('shown.bs.modal', function() {
-        populateAddedBySelect($('#entryAddedBy').data('prefill'));
+        populateAddedBySelect($('#entryAddedByValue').data('prefill'));
     });
 
     // Filter changes
@@ -1018,7 +969,7 @@ function loadDropdownsForEntry() {
         });
 
     // Load users for Added By select on page load so data is ready
-    $('#entryAddedBy').data('forceReload', true);
+    $('#entryAddedByValue').data('forceReload', true);
     populateAddedBySelect(currentUserId);
     loadPatientsForUser(currentUserId);
     loadDoctorsForUser(currentUserId);
@@ -1304,8 +1255,8 @@ function populateEntryForm(entry) {
     $('#entryId').val(entry.id);
     $('#entryPatient').val(entry.patient_id).trigger('change');
     $('#entryDoctor').val(entry.doctor_id).trigger('change');
-    $('#entryAddedBy').data('prefill', entry.added_by || currentUserId);
-    $('#entryAddedBy').data('forceReload', true);
+    $('#entryAddedByValue').data('prefill', entry.added_by || currentUserId);
+    $('#entryAddedByValue').data('forceReload', true);
     populateAddedBySelect(entry.added_by || currentUserId);
     loadPatientsForUser(entry.added_by || currentUserId, entry.patient_id);
     loadDoctorsForUser(entry.added_by || currentUserId, entry.doctor_id);
@@ -1586,8 +1537,8 @@ function resetModalForm() {
     $('#modalTitle').text('Add New Test Entry');
     $('#saveEntryBtn').show();
     $('.select2').trigger('change');
-    $('#entryAddedBy').data('prefill', currentUserId);
-    $('#entryAddedBy').data('forceReload', true);
+    $('#entryAddedByValue').data('prefill', currentUserId);
+    $('#entryAddedByValue').data('forceReload', true);
     populateAddedBySelect(currentUserId);
     loadPatientsForUser(currentUserId);
     loadDoctorsForUser(currentUserId);
