@@ -164,16 +164,13 @@
           var toCheck = collectStrings([reason]);
           if(containsNoise(toCheck)){
             ev.preventDefault();
-          if(m.indexOf(noisy[i]) !== -1){
-            ev.preventDefault(); // stop default logging
             if(typeof ev.stopImmediatePropagation === 'function'){
               ev.stopImmediatePropagation();
             }
             return;
           }
-        }
-      }catch(e){ }
-    }, true);
+        }catch(e){ /* ignore */ }
+      }, true);
   </script>
   <script>
     // Defensive stubs: some browser extensions or injected scripts expect global

@@ -492,15 +492,44 @@ $currentUserDisplayName = $_SESSION['full_name']
 // Ensure showAlert exists for uniform messaging
 if (typeof window.showAlert !== 'function') {
     window.showAlert = function(message, type) {
-        if (window.toastr && typeof window.toastr[type] === 'function') {
-            window.toastr[type](message);
-        } else if (window.toastr && typeof window.toastr.error === 'function') {
-            window.toastr.error(message);
-        } else {
-            console[(type === 'error' ? 'error' : 'log')](message);
+        try {
+            if (window.toastr && typeof window.toastr[type] === 'function') {
+                window.toastr[type](message);
+            } else if (window.toastr && typeof window.toastr.error === 'function') {
+                window.toastr.error(message);
+            } else {
+                console[(type === 'error' ? 'error' : 'log')](message);
+            }
+        } catch (e) {
+            // Fallback to console if toastr fails
+            console.log(message);
         }
     };
 }
+
+// Add error handling for common issues
+window.addEventListener('error', function(e) {
+    // Suppress browser extension errors
+    if (e.message && (
+        e.message.includes('message port closed') ||
+        e.message.includes('Extension context invalidated') ||
+        e.message.includes('Could not establish connection')
+    )) {
+        e.preventDefault();
+        return false;
+    }
+});
+
+// Suppress unhandled promise rejections from extensions
+window.addEventListener('unhandledrejection', function(e) {
+    if (e.reason && (
+        e.reason.message && e.reason.message.includes('message port closed') ||
+        e.reason.message && e.reason.message.includes('Extension context invalidated')
+    )) {
+        e.preventDefault();
+        return false;
+    }
+});
 
 // Global variables
 let entriesTable;
@@ -967,6 +996,17 @@ function initializeEntrySelect2Fields() {
 
 // Initialize page
 $(document).ready(function() {
+    // Add global jQuery error handler
+    $(document).ajaxError(function(event, xhr, settings, error) {
+        // Only handle errors from our own AJAX calls
+        if (settings.url && (
+            settings.url.includes('ajax/') || 
+            settings.url.includes('patho_api/')
+        )) {
+            handleAjaxError(xhr, settings.status, error);
+        }
+    });
+    
     // Initialize Select2 first
     waitForSelect2(function() {
         initializeEntrySelect2Fields();
@@ -1105,9 +1145,8 @@ function loadEntries() {
                 applyEntriesFilters();
             }
         })
-        .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
-            showAlert('Failed to load entry data: ' + errorMsg, 'error');
+        .fail(function(xhr, status, error) {
+            handleAjaxError(xhr, status, error);
             allEntries = [];
             applyEntriesFilters();
         });
@@ -1677,11 +1716,29 @@ function resetModalForm() {
 
 function getErrorMessage(xhr) {
     try {
+        if (!xhr || !xhr.responseText) {
+            return 'Network error or empty response';
+        }
         const response = JSON.parse(xhr.responseText);
-        return response.message || response.error || xhr.statusText;
+        return response.message || response.error || xhr.statusText || 'Unknown error';
     } catch (e) {
         return xhr.statusText || 'Unknown error';
     }
+}
+
+// Enhanced AJAX error handling
+function handleAjaxError(xhr, status, error) {
+    console.warn('AJAX Error:', { xhr, status, error });
+    
+    // Don't show alerts for browser extension related errors
+    if (status === 'abort' || 
+        (xhr && xhr.status === 0) || 
+        error === 'abort') {
+        return;
+    }
+    
+    const errorMsg = getErrorMessage(xhr);
+    showAlert('Request failed: ' + errorMsg, 'error');
 }
 
 // Event handlers using delegation
