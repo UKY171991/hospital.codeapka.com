@@ -39,86 +39,95 @@ try {
     }
 
 if ($action === 'list') {
-    // Support DataTables server-side processing
-    $draw = $_POST['draw'] ?? $_GET['draw'] ?? 1;
-    $start = $_POST['start'] ?? $_GET['start'] ?? 0;
-    $length = $_POST['length'] ?? $_GET['length'] ?? 25;
-    $search = $_POST['search']['value'] ?? $_GET['search'] ?? '';
+    // Check if this is a DataTables request or a simple list request
+    $isDataTableRequest = isset($_POST['draw']) || isset($_GET['draw']);
     
-    // Role-based visibility
-    $viewerRole = $_SESSION['role'] ?? 'user';
-    $viewerId = $_SESSION['user_id'] ?? null;
-
-    // Base query
-    $baseQuery = "FROM users";
-    $whereClause = "";
-    $params = [];
-    
-    // Role-based filtering
-    // Temporarily disable role-based filtering for testing
-    $whereClause = ""; // Allow all users to be listed
-    $params = [];
-
-    // if ($viewerRole === 'master') {
-    //     // master sees everything
-    //     $whereClause = "";
-    // } elseif ($viewerRole === 'admin') {
-    //     // admin sees users they added and themselves
-    //     $whereClause = " WHERE added_by = ? OR id = ?";
-    //     $params = [$viewerId, $viewerId];
-    // } else {
-    //     // regular user sees users they added and themselves
-    //     $whereClause = " WHERE added_by = ? OR id = ?";
-    //     $params = [$viewerId, $viewerId];
-    // }
-    
-    // Add search conditions
-    if (!empty($search)) {
-        $searchClause = " (username LIKE ? OR email LIKE ? OR full_name LIKE ?)";
-        $searchTerm = "%$search%";
-        $searchParams = [$searchTerm, $searchTerm, $searchTerm];
+    if ($isDataTableRequest) {
+        // Support DataTables server-side processing
+        $draw = $_POST['draw'] ?? $_GET['draw'] ?? 1;
+        $start = $_POST['start'] ?? $_GET['start'] ?? 0;
+        $length = $_POST['length'] ?? $_GET['length'] ?? 25;
+        $search = $_POST['search']['value'] ?? $_GET['search'] ?? '';
         
-        if (empty($whereClause)) {
-            $whereClause = " WHERE " . $searchClause;
-            $params = $searchParams;
-        } else {
-            $whereClause .= " AND " . $searchClause;
-            $params = array_merge($params, $searchParams);
+        // Role-based visibility
+        $viewerRole = $_SESSION['role'] ?? 'user';
+        $viewerId = $_SESSION['user_id'] ?? null;
+
+        // Base query
+        $baseQuery = "FROM users";
+        $whereClause = "";
+        $params = [];
+        
+        // Role-based filtering
+        // Temporarily disable role-based filtering for testing
+        $whereClause = ""; // Allow all users to be listed
+        $params = [];
+
+        // Add search conditions
+        if (!empty($search)) {
+            $searchClause = " (username LIKE ? OR email LIKE ? OR full_name LIKE ?)";
+            $searchTerm = "%$search%";
+            $searchParams = [$searchTerm, $searchTerm, $searchTerm];
+            
+            if (empty($whereClause)) {
+                $whereClause = " WHERE " . $searchClause;
+                $params = $searchParams;
+            } else {
+                $whereClause .= " AND " . $searchClause;
+                $params = array_merge($params, $searchParams);
+            }
         }
+        
+        // Get total records
+        $totalStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereClause);
+        $totalStmt->execute($params);
+        
+        // Get filtered records
+        $orderBy = " ORDER BY id DESC";
+        $limit = " LIMIT $start, $length";
+        
+        $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'role', 'added_by']);
+        $dataQuery = "SELECT " . implode(', ', $selectColumns) . ' ' .
+                     $baseQuery . $whereClause . $orderBy . $limit;
+        
+        $dataStmt = $pdo->prepare($dataQuery);
+        $dataStmt->execute($params);
+        $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Get total records count
+        $totalRecords = $totalStmt->fetchColumn();
+        
+        // Return DataTables format
+        json_response([
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalRecords,
+            'success' => true,
+            'data' => $data
+        ]);
+    } else {
+        // Simple list request (for dropdowns, etc.)
+        $viewerRole = $_SESSION['role'] ?? 'user';
+        $viewerId = $_SESSION['user_id'] ?? null;
+
+        // Base query - allow all users for now
+        $whereClause = "";
+        $params = [];
+
+        $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'role', 'added_by']);
+        $query = "SELECT " . implode(', ', $selectColumns) .
+                 " FROM users" . $whereClause . " ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
+
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($params);
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Return simple format
+        json_response([
+            'success' => true,
+            'data' => $users
+        ]);
     }
-    
-    // Get total records
-    $totalStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereClause);
-    $totalStmt->execute($params);
-    
-    // Get filtered records
-    $orderBy = " ORDER BY id DESC";
-    $limit = " LIMIT $start, $length";
-    
-    $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'role', 'added_by']);
-    $dataQuery = "SELECT " . implode(', ', $selectColumns) . ' ' .
-                 $baseQuery . $whereClause . $orderBy . $limit;
-    
-    $dataStmt = $pdo->prepare($dataQuery);
-    $dataStmt->execute($params);
-    $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Get total records count
-    $totalRecords = $totalStmt->fetchColumn();
-    
-    // Handle optional user table columns when selecting user list
-    error_log("User API Debug - Total records: " . $totalRecords);
-    error_log("User API Debug - Data count: " . count($data));
-    error_log("User API Debug - First user: " . json_encode($data[0] ?? 'No data'));
-    
-    // Return DataTables format
-    json_response([
-        'draw' => intval($draw),
-        'recordsTotal' => $totalRecords,
-        'recordsFiltered' => $totalRecords,
-        'success' => true,
-        'data' => $data
-    ]);
 }
 
 if ($action === 'list_simple') {

@@ -748,10 +748,23 @@ function populateAddedBySelect(prefillUserId) {
         console.log('Response data type:', typeof response.data);
         console.log('Response data is array:', Array.isArray(response.data));
         console.log('Response data length:', response.data ? response.data.length : 'N/A');
+        console.log('Full response structure:', JSON.stringify(response, null, 2));
 
-        if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
-            console.log('Processing users:', response.data.length);
-            response.data.forEach(function(user) {
+        // Handle both simple format and DataTables format
+        let userData = response.data;
+        if (response && response.success) {
+            if (Array.isArray(response.data)) {
+                userData = response.data;
+            } else if (response.data && Array.isArray(response.data.data)) {
+                // DataTables format
+                userData = response.data.data;
+                console.log('Using DataTables format data');
+            }
+        }
+        
+        if (userData && Array.isArray(userData) && userData.length > 0) {
+            console.log('Processing users:', userData.length);
+            userData.forEach(function(user) {
                 const info = {
                     id: user.id,
                     username: user.username || null,
