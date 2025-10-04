@@ -782,17 +782,27 @@ function getIdentifiersCacheKey(identifiersSet) {
 
 function loadPatientsForUser(userId, selectedPatientId) {
     const select = $('#entryPatient');
+    if (!select.length) {
+        return;
+    }
+
+    const normalizedUserId = normalizeIdentifierValue(userId);
     const identifiersSet = getAddedByIdentifierSet(userId);
     const cacheKey = getIdentifiersCacheKey(identifiersSet);
 
     if (!cacheKey) {
-        select.html('<option value="">Select Patient</option>');
+        select.prop('disabled', true);
+        select.html('<option value="">Select Added By first</option>');
         select.trigger('change.select2');
         return;
     }
 
+    const requestKey = `${cacheKey}|${Date.now()}`;
+    select.data('pendingRequestKey', requestKey);
+
     if (cachedPatientsByIdentifiers[cacheKey]) {
         renderPatientOptions(cachedPatientsByIdentifiers[cacheKey], selectedPatientId);
+        select.prop('disabled', cachedPatientsByIdentifiers[cacheKey].length === 0);
         return;
     }
 
@@ -803,6 +813,10 @@ function loadPatientsForUser(userId, selectedPatientId) {
 
     $.get('ajax/patient_api.php', { action: 'list', ajax: 1, added_by: requestIdentifier })
         .done(function(response) {
+            if (select.data('pendingRequestKey') !== requestKey) {
+                return;
+            }
+
             if (!response.success || !Array.isArray(response.data)) {
                 throw new Error(response.message || 'Unexpected response');
             }
@@ -824,11 +838,21 @@ function loadPatientsForUser(userId, selectedPatientId) {
             renderPatientOptions(filteredPatients, selectedPatientId);
         })
         .fail(function(xhr) {
+            if (select.data('pendingRequestKey') !== requestKey) {
+                return;
+            }
             const errorMsg = getErrorMessage(xhr);
             select.html(`<option value="">Failed to load patients (${errorMsg})</option>`);
         })
         .always(function() {
-            select.prop('disabled', false);
+            if (select.data('pendingRequestKey') === requestKey) {
+                select.removeData('pendingRequestKey');
+                const cachedList = cachedPatientsByIdentifiers[cacheKey] || [];
+                if (cachedList.length === 0) {
+                    select.html('<option value="">No patients found for selected user</option>');
+                }
+                select.prop('disabled', cachedList.length === 0);
+            }
         });
 }
 
