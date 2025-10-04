@@ -741,7 +741,7 @@ function populateAddedBySelect(prefillUserId) {
 
     // Destroy any existing Select2 instance first
     if (select.hasClass('select2-hidden-accessible')) {
-        console.log('Destroying existing Select2 instance');
+        //console.log('Destroying existing Select2 instance');
         select.select2('destroy');
     }
 
@@ -752,29 +752,29 @@ function populateAddedBySelect(prefillUserId) {
 
     $.get('ajax/user_api.php', { action: 'list' })
     .done(function(response) {
-        console.log('User API Response:', response);
+        //console.log('User API Response:', response);
         select.empty();
         select.append($('<option>', { value: '', text: 'Select User' }));
         
         // Debug logging
-        console.log('Response success:', response && response.success);
-        console.log('Response data type:', typeof response.data);
-        console.log('Response data is array:', Array.isArray(response.data));
-        console.log('Response data length:', response.data ? response.data.length : 'N/A');
-        console.log('Full response structure:', JSON.stringify(response, null, 2));
+        // console.log('Response success:', response && response.success);
+        // console.log('Response data type:', typeof response.data);
+        // console.log('Response data is array:', Array.isArray(response.data));
+        // console.log('Response data length:', response.data ? response.data.length : 'N/A');
+        // console.log('Full response structure:', JSON.stringify(response, null, 2));
 
         // Handle DataTables format (same as user.php page)
         let userData = [];
         if (response && response.success && Array.isArray(response.data)) {
             userData = response.data;
-            console.log('Using DataTables format data from user page');
+            //console.log('Using DataTables format data from user page');
         } else {
-            console.warn('Unexpected response format:', response);
+            //console.warn('Unexpected response format:', response);
         }
         
         if (userData && Array.isArray(userData) && userData.length > 0) {
-            console.log('Processing users:', userData.length);
-            console.log('User data:', userData);
+            //console.log('Processing users:', userData.length);
+            //console.log('User data:', userData);
             
             userData.forEach(function(user) {
                 const info = {
@@ -784,7 +784,7 @@ function populateAddedBySelect(prefillUserId) {
                     userType: (user.user_type && user.user_type !== '0') ? user.user_type : (user.userType || '')
                 };
                 const label = formatAddedByOptionLabel(info);
-                console.log('Adding user option:', label, 'for user:', info);
+                //console.log('Adding user option:', label, 'for user:', info);
                 
                 const option = $('<option>', {
                     value: String(info.id),
@@ -807,18 +807,18 @@ function populateAddedBySelect(prefillUserId) {
                 }
             });
             
-            console.log('Total options in select:', select.find('option').length);
-            console.log('Select HTML:', select.html());
+            // console.log('Total options in select:', select.find('option').length);
+            // console.log('Select HTML:', select.html());
             
             select.data('loaded', true);
             
             // Refresh Select2 after adding options
             if (select.hasClass('select2-hidden-accessible')) {
-                console.log('Destroying existing Select2');
+                //console.log('Destroying existing Select2');
                 select.select2('destroy');
             }
             
-            console.log('Initializing Select2 with options');
+            //console.log('Initializing Select2 with options');
             
             // Try to initialize Select2
             try {
@@ -833,28 +833,28 @@ function populateAddedBySelect(prefillUserId) {
                 // Force refresh the Select2 dropdown
                 setTimeout(function() {
                     select.trigger('change.select2');
-                    console.log('Select2 change event triggered');
+                    //console.log('Select2 change event triggered');
                 }, 100);
                 
-                console.log('Select2 initialized successfully');
+                //console.log('Select2 initialized successfully');
             } catch (error) {
-                console.error('Select2 initialization failed:', error);
+                //console.error('Select2 initialization failed:', error);
                 // Fallback: use regular select without Select2
                 select.removeClass('select2-hidden-accessible');
-                console.log('Using fallback regular select');
+                //console.log('Using fallback regular select');
             }
             
-            console.log('Select2 initialized, options should be visible');
+            //console.log('Select2 initialized, options should be visible');
         } else {
-            console.warn('No users found in response:', response);
-            console.log('Attempting fallback: loading users using user page method...');
+            //console.warn('No users found in response:', response);
+            //console.log('Attempting fallback: loading users using user page method...');
             
             // Fallback: Try to load users the same way user.php does
             $.get('ajax/user_api.php', { action: 'list' })
                 .done(function(fallbackResponse) {
-                    console.log('Fallback API Response:', fallbackResponse);
+                    //console.log('Fallback API Response:', fallbackResponse);
                     if (fallbackResponse && fallbackResponse.success && Array.isArray(fallbackResponse.data)) {
-                        console.log('Fallback successful, processing', fallbackResponse.data.length, 'users');
+                        //console.log('Fallback successful, processing', fallbackResponse.data.length, 'users');
                         
                         // Process users from fallback response
                         fallbackResponse.data.forEach(function(user) {
@@ -865,7 +865,7 @@ function populateAddedBySelect(prefillUserId) {
                                 userType: (user.user_type && user.user_type !== '0') ? user.user_type : 'Pathology'
                             };
                             const label = formatAddedByOptionLabel(info);
-                            console.log('Adding fallback user option:', label);
+                            //console.log('Adding fallback user option:', label);
                             
                             select.append($('<option>', {
                                 value: String(info.id),
@@ -885,7 +885,7 @@ function populateAddedBySelect(prefillUserId) {
                             allowClear: true
                         });
                         
-                        console.log('Fallback users loaded successfully');
+                        //console.log('Fallback users loaded successfully');
                     } else {
                         // If fallback also fails, show error
                         select.append($('<option>', { value: '', text: 'Error loading users' }));
@@ -893,7 +893,7 @@ function populateAddedBySelect(prefillUserId) {
                     }
                 })
                 .fail(function() {
-                    console.error('Fallback also failed');
+                    //console.error('Fallback also failed');
                     select.append($('<option>', { value: '', text: 'Error loading users' }));
                     select.data('loaded', false);
                 });
@@ -934,8 +934,8 @@ function populateAddedBySelect(prefillUserId) {
 
         setEntryAddedBy(selectedInfo || { id: '', username: null, fullName: '' });
     }).fail(function(xhr, status, error) {
-        console.error('Failed to load user list for User select:', { xhr, status, error });
-        console.error('XHR Response Text:', xhr.responseText);
+        //console.error('Failed to load user list for User select:', { xhr, status, error });
+        //console.error('XHR Response Text:', xhr.responseText);
         select.html('<option value="">Error loading users</option>');
         
         // Refresh Select2 even in error case
@@ -970,7 +970,7 @@ function loadPatientsForUser(userId, selectedPatientId) {
         return;
     }
 
-    console.log('Loading patients for user:', userId);
+    //console.log('Loading patients for user:', userId);
     
     const normalizedUserId = normalizeIdentifierValue(userId);
     const identifiersSet = getAddedByIdentifierSet(userId);
@@ -1003,7 +1003,7 @@ function loadPatientsForUser(userId, selectedPatientId) {
                 return;
             }
 
-            console.log('Patient API Response for user', requestIdentifier, ':', response);
+            //console.log('Patient API Response for user', requestIdentifier, ':', response);
 
             if (!response.success || !Array.isArray(response.data)) {
                 throw new Error(response.message || 'Unexpected response');
@@ -1046,7 +1046,7 @@ function loadPatientsForUser(userId, selectedPatientId) {
 
 function loadDoctorsForUser(userId, selectedDoctorId) {
     const select = $('#entryDoctor');
-    console.log('Loading doctors for user:', userId);
+    //console.log('Loading doctors for user:', userId);
     
     const identifiersSet = getAddedByIdentifierSet(userId);
     const cacheKey = getIdentifiersCacheKey(identifiersSet);
@@ -1071,7 +1071,7 @@ function loadDoctorsForUser(userId, selectedDoctorId) {
 
     $.get('ajax/doctor_api.php', { action: 'list', ajax: 1, added_by: requestIdentifier })
         .done(function(response) {
-            console.log('Doctor API Response for user', requestIdentifier, ':', response);
+            //console.log('Doctor API Response for user', requestIdentifier, ':', response);
             
             if (!response.success || !Array.isArray(response.data)) {
                 throw new Error(response.message || 'Unexpected response');
@@ -1119,7 +1119,7 @@ function waitForSelect2(callback, attempt = 0) {
         return;
     }
     if (attempt >= 20) {
-        console.warn('Select2 plugin did not load in time');
+        //console.warn('Select2 plugin did not load in time');
         return;
     }
     setTimeout(function() {
@@ -1184,7 +1184,7 @@ function initializeEventListeners() {
     $('#entryDoctor').on('change', updateDoctorAddedByDisplay);
     $('#entryAddedBy').on('change', function() {
         const selectedUserId = $(this).val();
-        console.log('User changed to:', selectedUserId);
+        //console.log('User changed to:', selectedUserId);
         
         if (selectedUserId) {
             const cacheKey = normalizeIdentifierValue(selectedUserId);
@@ -1235,14 +1235,14 @@ function initializeEventListeners() {
         const userSelect = $('#entryAddedBy');
         if (userSelect.length) {
             const optionCount = userSelect.find('option').length;
-            console.log('User select has', optionCount, 'options');
+            //console.log('User select has', optionCount, 'options');
             
             // If only has loading message, no real options, or not loaded yet, load real users
             if (optionCount <= 1 || userSelect.find('option:contains("Loading")').length > 0 || !userSelect.data('usersLoaded')) {
-                console.log('Loading real users for modal...');
+                //console.log('Loading real users for modal...');
                 loadRealUsers();
             } else {
-                console.log('User select already has real data');
+                //console.log('User select already has real data');
                 // Just ensure Select2 is initialized
                 setTimeout(function() {
                     if (!userSelect.hasClass('select2-hidden-accessible')) {
@@ -1254,15 +1254,15 @@ function initializeEventListeners() {
                                 placeholder: 'Select User',
                                 allowClear: true
                             });
-                            console.log('Select2 initialized for existing data');
+                            //console.log('Select2 initialized for existing data');
                         } catch (error) {
-                            console.log('Select2 failed:', error);
+                            //console.log('Select2 failed:', error);
                         }
                     }
                 }, 100);
             }
         } else {
-            console.log('User select not found in modal');
+            //console.log('User select not found in modal');
         }
     });
 
@@ -1320,7 +1320,7 @@ function loadDropdownsForEntry() {
             if (typeof showAlert === 'function') {
                 showAlert('Failed to load tests: ' + errorMsg, 'error');
             } else {
-                console.error('Failed to load tests:', errorMsg);
+                //console.error('Failed to load tests:', errorMsg);
             }
         });
 }
@@ -1349,11 +1349,11 @@ function loadEntries() {
 function loadRealUsers() {
     const userSelect = $('#entryAddedBy');
     if (!userSelect.length) {
-        console.log('User select not found');
+        //console.log('User select not found');
         return;
     }
     
-    console.log('Loading real users from database...');
+    //console.log('Loading real users from database...');
     
     // Set a timeout to prevent infinite loading
     const loadingTimeout = setTimeout(function() {
@@ -1373,15 +1373,15 @@ function loadRealUsers() {
             // Clear the timeout since we got a response
             clearTimeout(loadingTimeout);
             
-            console.log('Real users API response:', response);
-            console.log('Response success:', response && response.success);
-            console.log('Response data type:', typeof response.data);
-            console.log('Response data is array:', Array.isArray(response.data));
-            console.log('Response data length:', response.data ? response.data.length : 'N/A');
-            console.log('Full response structure:', JSON.stringify(response, null, 2));
+            //console.log('Real users API response:', response);
+            //console.log('Response success:', response && response.success);
+            //console.log('Response data type:', typeof response.data);
+            //console.log('Response data is array:', Array.isArray(response.data));
+            //console.log('Response data length:', response.data ? response.data.length : 'N/A');
+            //console.log('Full response structure:', JSON.stringify(response, null, 2));
             
             if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
-                console.log('Successfully loaded', response.data.length, 'real users from database');
+                //console.log('Successfully loaded', response.data.length, 'real users from database');
                 
                 // Clear loading message
                 userSelect.empty();
@@ -1397,7 +1397,7 @@ function loadRealUsers() {
                     };
                     
                     const label = formatAddedByOptionLabel(info);
-                    console.log('Adding real user:', label);
+                    //console.log('Adding real user:', label);
                     
                     userSelect.append($('<option>', {
                         value: String(info.id),
@@ -1417,18 +1417,18 @@ function loadRealUsers() {
                         placeholder: 'Select User',
                         allowClear: true
                     });
-                    console.log('Select2 initialized with real user data');
+                    //console.log('Select2 initialized with real user data');
                 } catch (error) {
-                    console.log('Select2 initialization failed, using regular select:', error);
+                    //console.log('Select2 initialization failed, using regular select:', error);
                 }
                 
-                console.log('Real users loaded successfully:', userSelect.find('option').length - 1, 'users available');
+                //console.log('Real users loaded successfully:', userSelect.find('option').length - 1, 'users available');
                 
                 // Store the loaded state
                 userSelect.data('usersLoaded', true);
                 
             } else {
-                console.warn('No real users found in response:', response);
+                //console.warn('No real users found in response:', response);
                 userSelect.empty();
                 userSelect.append('<option value="">No users found</option>');
                 userSelect.prop('disabled', true);
@@ -1447,12 +1447,12 @@ function loadRealUsers() {
             userSelect.prop('disabled', true);
             
             // Try fallback with different API parameters
-            console.log('Attempting fallback API call...');
+            //console.log('Attempting fallback API call...');
             $.get('ajax/user_api.php', { action: 'list_simple' })
                 .done(function(fallbackResponse) {
-                    console.log('Fallback API response:', fallbackResponse);
+                    //console.log('Fallback API response:', fallbackResponse);
                     if (fallbackResponse && fallbackResponse.success && Array.isArray(fallbackResponse.data)) {
-                        console.log('Fallback successful, processing', fallbackResponse.data.length, 'users');
+                        //console.log('Fallback successful, processing', fallbackResponse.data.length, 'users');
                         
                         userSelect.empty();
                         userSelect.append('<option value="">Select User</option>');
@@ -1473,7 +1473,7 @@ function loadRealUsers() {
                         });
                         
                         userSelect.prop('disabled', false);
-                        console.log('Fallback users loaded successfully');
+                        //console.log('Fallback users loaded successfully');
                     }
                 })
                 .fail(function() {
@@ -1487,12 +1487,12 @@ function openAddEntryModal() {
     $('#selectedTestsCount').text('0 tests selected');
     $('#testsByCategoryContainer').html('<div class="alert alert-info"><i class="fas fa-info-circle mr-2"></i>No tests selected. Click "Add Test" to choose tests for this entry.</div>');
     
-    console.log('Opening Add Entry Modal');
+    //console.log('Opening Add Entry Modal');
     
     // Initialize user select for dynamic loading
     const userSelect = $('#entryAddedBy');
     if (userSelect.length) {
-        console.log('Initializing user select for dynamic loading');
+        //console.log('Initializing user select for dynamic loading');
         
         // Clear any existing Select2
         if (userSelect.hasClass('select2-hidden-accessible')) {
@@ -1730,12 +1730,12 @@ function loadEntryTests(entryId, fallbackEntry = null) {
                 }));
                 updateSelectedTestsDisplay();
             } else if (!populateSelectedTestsFromFallback(fallbackEntry)) {
-                console.log('No detailed tests found for entry:', entryId);
+                //console.log('No detailed tests found for entry:', entryId);
                 clearSelectedTests();
             }
         })
         .fail(function(xhr) {
-            console.log('Failed to load tests for entry:', entryId);
+            //console.log('Failed to load tests for entry:', entryId);
             if (!populateSelectedTestsFromFallback(fallbackEntry)) {
                 clearSelectedTests();
             }
@@ -1859,7 +1859,7 @@ function loadEntryTestsForView(entryId) {
             }
         })
         .fail(function(xhr) {
-            console.log('Failed to load tests for view:', xhr);
+            //console.log('Failed to load tests for view:', xhr);
         });
 }
 
@@ -2260,12 +2260,12 @@ function calculateEntryTotals() {
     const discountPercentage = totalAmount > 0 ? (totalDiscount / totalAmount) * 100 : 0;
     $('#entryDiscount').val(discountPercentage.toFixed(2));
     
-    console.log('Calculated totals:', { totalAmount, totalDiscount, discountPercentage });
+    //console.log('Calculated totals:', { totalAmount, totalDiscount, discountPercentage });
 }
 
 function updateSelectedTestsDisplay() {
     const container = $('#testsByCategoryContainer');
-    console.log('updateSelectedTestsDisplay called, selectedTests:', window.selectedTests.length);
+    //console.log('updateSelectedTestsDisplay called, selectedTests:', window.selectedTests.length);
     updateSelectedTestsCount();
     
     if (window.selectedTests.length === 0) {
