@@ -219,7 +219,9 @@ $currentUserDisplayName = $_SESSION['full_name']
                                     Added By <span class="text-danger">*</span>
                                 </label>
                                 <input type="hidden" id="entryAddedByValue" name="added_by" value="">
-                                <div id="entryAddedByDisplay" class="form-control-plaintext font-weight-bold"></div>
+                                <select class="form-control select2" id="entryAddedBy" required>
+                                    <option value="">Select User</option>
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -632,86 +634,143 @@ function renderDoctorOptions(doctors, selectedId) {
 
 function setEntryAddedBy(userInfo) {
     entryAddedByInfo = Object.assign({ id: '', username: null, fullName: '' }, userInfo || {});
-    const displayName = entryAddedByInfo.fullName || entryAddedByInfo.username || `User #${entryAddedByInfo.id}` || 'Unknown User';
     $('#entryAddedByValue').val(entryAddedByInfo.id || '');
-    $('#entryAddedByDisplay').text(displayName);
+
+    const select = $('#entryAddedBy');
+    if (select.length) {
+        const value = entryAddedByInfo.id ? String(entryAddedByInfo.id) : '';
+        if (select.val() !== value) {
+            select.data('suppressChange', true);
+            select.val(value);
+            if (select.data('select2')) {
+                select.trigger('change.select2');
+            } else {
+                select.trigger('change');
+            }
+            select.removeData('suppressChange');
+        }
+    }
+}
+
+function formatAddedByOptionLabel(info) {
+    if (!info) {
+        return 'Unknown User';
+    }
+    const idLabel = info.id ? `User #${info.id}` : 'Unknown User';
+    const fullName = (info.fullName || '').trim();
+    const username = (info.username || '').trim();
+
+    if (fullName && username && fullName !== username) {
+        return `${fullName} (${username})`;
+    }
+    return fullName || username || idLabel;
 }
 
 function populateAddedBySelect(prefillUserId) {
+    const select = $('#entryAddedBy');
+    if (!select.length) {
+        return;
+    }
+
     const fallbackName = currentUserDisplayName || '';
     const requestedId = prefillUserId !== undefined && prefillUserId !== null && prefillUserId !== ''
         ? prefillUserId
         : currentUserId || '';
     const cacheKey = normalizeIdentifierValue(requestedId) || '';
+    const forceReload = !!select.data('forceReload');
 
-    const applyUserInfo = (info) => {
-        const normalizedInfo = Object.assign(
-            { id: '', username: null, fullName: '' },
-            info || {}
-        );
-        if (!normalizedInfo.fullName && normalizedInfo.username && normalizedInfo.username !== normalizedInfo.fullName) {
-            normalizedInfo.fullName = normalizedInfo.username;
+    if (!forceReload && select.data('loaded') && !select.data('loading')) {
+        if (cacheKey && cachedAddedByUsers[cacheKey]) {
+            setEntryAddedBy(cachedAddedByUsers[cacheKey]);
+        } else if (requestedId) {
+            setEntryAddedBy({ id: requestedId, username: null, fullName: fallbackName });
+        } else {
+            setEntryAddedBy({ id: '', username: null, fullName: '' });
         }
-        if (!normalizedInfo.fullName) {
-            normalizedInfo.fullName = fallbackName || (normalizedInfo.id ? `User #${normalizedInfo.id}` : 'Unknown User');
+        return;
+    }
+
+    select.data('forceReload', false);
+    select.data('loading', true);
+    select.prop('disabled', true);
+    select.html('<option value="">Loading users...</option>');
+
+    $.ajax({
+        url: 'ajax/user_api.php',
+        method: 'POST',
+        dataType: 'json',
+        data: {
+            action: 'list',
+            ajax: 1,
+            draw: 1,
+            start: 0,
+            length: 500
         }
-        setEntryAddedBy(normalizedInfo);
-    };
+    }).done(function(response) {
+        select.empty();
+        select.append($('<option>', { value: '', text: 'Select User' }));
 
-    if (!requestedId) {
-        applyUserInfo({ id: '', fullName: fallbackName });
-        return;
-    }
-
-    if (cacheKey && cachedAddedByUsers[cacheKey]) {
-        applyUserInfo(cachedAddedByUsers[cacheKey]);
-        return;
-    }
-
-    const matchesCurrentUser = normalizeIdentifierValue(currentUserId) === cacheKey;
-    if (matchesCurrentUser) {
-        const currentInfo = { id: currentUserId || '', fullName: fallbackName, username: null };
-        cachedAddedByUsers[cacheKey] = currentInfo;
-        applyUserInfo(currentInfo);
-        return;
-    }
-
-    $.get('ajax/user_api.php', { action: 'get', id: requestedId, ajax: 1 })
-        .done(function(response) {
-            if (response && response.success && response.data) {
-                const userData = {
-                    id: response.data.id,
-                    username: response.data.username || null,
-                    fullName: response.data.full_name || response.data.username || fallbackName
+        if (response && response.success && Array.isArray(response.data)) {
+            response.data.forEach(function(user) {
+                const info = {
+                    id: user.id,
+                    username: user.username || null,
+                    fullName: user.full_name || user.username || ''
                 };
-                if (cacheKey) {
-                    cachedAddedByUsers[cacheKey] = userData;
+                const label = formatAddedByOptionLabel(info);
+                const option = $('<option>', {
+                    value: String(info.id),
+                    text: label
+                });
+                if (info.username) {
+                    option.attr('data-username', info.username);
                 }
-                applyUserInfo(userData);
-            } else {
-                const fallbackInfo = {
-                    id: requestedId,
-                    username: null,
-                    fullName: fallbackName || (response && response.message ? response.message : `User #${requestedId}`)
-                };
-                if (cacheKey) {
-                    cachedAddedByUsers[cacheKey] = fallbackInfo;
+                if (info.fullName) {
+                    option.attr('data-full-name', info.fullName);
                 }
-                applyUserInfo(fallbackInfo);
-            }
-        })
-        .fail(function(xhr) {
-            console.error('Failed to fetch Added By user info:', xhr);
-            const errorInfo = {
+                select.append(option);
+
+                const normalizedId = normalizeIdentifierValue(info.id);
+                if (normalizedId) {
+                    cachedAddedByUsers[normalizedId] = info;
+                }
+            });
+            select.data('loaded', true);
+        } else {
+            select.append($('<option>', { value: '', text: 'No users found' }));
+            select.data('loaded', false);
+        }
+
+        let selectedInfo = null;
+        if (cacheKey && cachedAddedByUsers[cacheKey]) {
+            selectedInfo = cachedAddedByUsers[cacheKey];
+        } else if (requestedId) {
+            selectedInfo = {
                 id: requestedId,
                 username: null,
                 fullName: fallbackName || `User #${requestedId}`
             };
-            if (cacheKey) {
-                cachedAddedByUsers[cacheKey] = errorInfo;
+            const normalizedId = normalizeIdentifierValue(selectedInfo.id);
+            if (normalizedId) {
+                cachedAddedByUsers[normalizedId] = selectedInfo;
             }
-            applyUserInfo(errorInfo);
-        });
+        }
+
+        if (selectedInfo && !select.find(`option[value="${selectedInfo.id}"]`).length) {
+            select.append($('<option>', {
+                value: String(selectedInfo.id),
+                text: formatAddedByOptionLabel(selectedInfo)
+            }));
+        }
+
+        setEntryAddedBy(selectedInfo || { id: '', username: null, fullName: '' });
+    }).fail(function(xhr) {
+        console.error('Failed to load user list for Added By select:', xhr);
+        setEntryAddedBy({ id: requestedId, username: null, fullName: fallbackName || `User #${requestedId}` });
+    }).always(function() {
+        select.prop('disabled', false);
+        select.data('loading', false);
+    });
 }
 
 function getIdentifiersCacheKey(identifiersSet) {
@@ -888,6 +947,22 @@ function initializeEventListeners() {
     });
 
     $('#entryDoctor').on('change', updateDoctorAddedByDisplay);
+    $('#entryAddedBy').on('change', function() {
+        const selectedUserId = $(this).val();
+        if (selectedUserId) {
+            const cacheKey = normalizeIdentifierValue(selectedUserId);
+            if (cacheKey && cachedAddedByUsers[cacheKey]) {
+                setEntryAddedBy(cachedAddedByUsers[cacheKey]);
+            } else {
+                setEntryAddedBy({ id: selectedUserId, username: null, fullName: $(this).find('option:selected').text() });
+            }
+        } else {
+            setEntryAddedBy({ id: '', username: null, fullName: '' });
+        }
+
+        loadPatientsForUser(selectedUserId);
+        loadDoctorsForUser(selectedUserId);
+    });
     
     // Search functionality
     $('#entriesSearch').on('input', function() {
@@ -913,7 +988,7 @@ function initializeEventListeners() {
     });
 
     $('#entryModal').on('shown.bs.modal', function() {
-        populateAddedBySelect($('#entryAddedByValue').data('prefill'));
+        populateAddedBySelect($('#entryAddedBy').data('prefill'));
     });
 
     // Filter changes
@@ -969,7 +1044,7 @@ function loadDropdownsForEntry() {
         });
 
     // Load users for Added By select on page load so data is ready
-    $('#entryAddedByValue').data('forceReload', true);
+    $('#entryAddedBy').data('forceReload', true);
     populateAddedBySelect(currentUserId);
     loadPatientsForUser(currentUserId);
     loadDoctorsForUser(currentUserId);
@@ -1255,8 +1330,8 @@ function populateEntryForm(entry) {
     $('#entryId').val(entry.id);
     $('#entryPatient').val(entry.patient_id).trigger('change');
     $('#entryDoctor').val(entry.doctor_id).trigger('change');
-    $('#entryAddedByValue').data('prefill', entry.added_by || currentUserId);
-    $('#entryAddedByValue').data('forceReload', true);
+    $('#entryAddedBy').data('prefill', entry.added_by || currentUserId);
+    $('#entryAddedBy').data('forceReload', true);
     populateAddedBySelect(entry.added_by || currentUserId);
     loadPatientsForUser(entry.added_by || currentUserId, entry.patient_id);
     loadDoctorsForUser(entry.added_by || currentUserId, entry.doctor_id);
@@ -1537,8 +1612,8 @@ function resetModalForm() {
     $('#modalTitle').text('Add New Test Entry');
     $('#saveEntryBtn').show();
     $('.select2').trigger('change');
-    $('#entryAddedByValue').data('prefill', currentUserId);
-    $('#entryAddedByValue').data('forceReload', true);
+    $('#entryAddedBy').data('prefill', currentUserId);
+    $('#entryAddedBy').data('forceReload', true);
     populateAddedBySelect(currentUserId);
     loadPatientsForUser(currentUserId);
     loadDoctorsForUser(currentUserId);
@@ -1869,6 +1944,7 @@ function resetModalForm() {
     $('#entryNotes').val('');
     $('#entryAddedBy').data('prefill', currentUserId);
     $('#entryAddedBy').data('forceReload', true);
+    $('#entryAddedBy').data('loaded', false);
     populateAddedBySelect(currentUserId);
 
     // Clear selected tests
