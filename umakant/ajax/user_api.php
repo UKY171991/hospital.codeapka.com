@@ -103,6 +103,9 @@ if ($action === 'list') {
     $dataStmt->execute($params);
     $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
     
+    // Get total records count
+    $totalRecords = $totalStmt->fetchColumn();
+    
     // Handle optional user table columns when selecting user list
     error_log("User API Debug - Total records: " . $totalRecords);
     error_log("User API Debug - Data count: " . count($data));
