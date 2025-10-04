@@ -936,22 +936,26 @@ function waitForSelect2(callback, attempt = 0) {
 }
 
 function initializeEntrySelect2Fields() {
-    const $selects = $('.select2');
+    if (!$.fn || typeof $.fn.select2 !== 'function') {
+        return;
+    }
+
+    const $selects = $('#entryModal').find('.select2');
     if (!$selects.length) {
         return;
     }
 
     $selects.each(function() {
         const $el = $(this);
-        if (typeof $el.data('select2') !== 'undefined') {
-            $el.select2('destroy');
+        if ($el.hasClass('select2-hidden-accessible')) {
+            return;
         }
-    });
 
-    $selects.select2({
-        theme: 'bootstrap4',
-        width: '100%',
-        dropdownParent: $('#entryModal')
+        $el.select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            dropdownParent: $('#entryModal')
+        });
     });
 }
 
