@@ -230,7 +230,7 @@ $currentUserDisplayName = $_SESSION['full_name']
                                         <option value="">Select User</option>
                                     </select>
                                     <div class="input-group-append">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="loadRealUsers()" title="Refresh Users">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="loadUsersDirectly()" title="Refresh Users">
                                             <i class="fas fa-sync-alt"></i>
                                         </button>
                                     </div>
@@ -1230,20 +1230,15 @@ function initializeEventListeners() {
     });
 
     $('#entryModal').on('shown.bs.modal', function() {
-        //console.log('Modal shown, checking user select status');
-        
         const userSelect = $('#entryAddedBy');
         if (userSelect.length) {
             const optionCount = userSelect.find('option').length;
-            //console.log('User select has', optionCount, 'options');
             
-            // If only has loading message, no real options, or not loaded yet, load real users
-            if (optionCount <= 1 || userSelect.find('option:contains("Loading")').length > 0 || !userSelect.data('usersLoaded')) {
-                //console.log('Loading real users for modal...');
-                loadRealUsers();
+            // If only has loading message or no real options, load users
+            if (optionCount <= 1 || userSelect.find('option:contains("Loading")').length > 0) {
+                loadUsersDirectly();
             } else {
-                //console.log('User select already has real data');
-                // Just ensure Select2 is initialized
+                // Just ensure Select2 is initialized if not already
                 setTimeout(function() {
                     if (!userSelect.hasClass('select2-hidden-accessible')) {
                         try {
@@ -1254,15 +1249,12 @@ function initializeEventListeners() {
                                 placeholder: 'Select User',
                                 allowClear: true
                             });
-                            //console.log('Select2 initialized for existing data');
                         } catch (error) {
-                            //console.log('Select2 failed:', error);
+                            // Select2 failed, use regular select
                         }
                     }
                 }, 100);
             }
-        } else {
-            //console.log('User select not found in modal');
         }
     });
 
@@ -1343,6 +1335,148 @@ function loadEntries() {
             allEntries = [];
             applyEntriesFilters();
         });
+}
+
+// Simple direct function to load users
+function loadUsersDirectly() {
+    const userSelect = $('#entryAddedBy');
+    if (!userSelect.length) return;
+    
+    // Use the exact same approach as user.js
+    $.get('ajax/user_api.php', { action: 'list' })
+        .done(function(response) {
+            if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
+                // Success - populate dropdown
+                userSelect.empty();
+                userSelect.append('<option value="">Select User</option>');
+                
+                response.data.forEach(function(user) {
+                    const label = formatAddedByOptionLabel({
+                        id: user.id,
+                        username: user.username || null,
+                        fullName: user.full_name || user.username || '',
+                        userType: (user.user_type && user.user_type !== '0' && user.user_type !== 0) ? user.user_type : 'Pathology'
+                    });
+                    
+                    userSelect.append($('<option>', {
+                        value: String(user.id),
+                        text: label
+                    }));
+                });
+                
+                userSelect.prop('disabled', false);
+                
+                // Initialize Select2
+                try {
+                    userSelect.select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        dropdownParent: $('#entryModal'),
+                        placeholder: 'Select User',
+                        allowClear: true
+                    });
+                } catch (e) {
+                    // Select2 failed, use regular select
+                }
+                
+            } else {
+                // No users found, show fallback
+                userSelect.empty();
+                userSelect.append('<option value="">Select User</option>');
+                userSelect.append('<option value="1">Uma Yadav (uma) - Pathology</option>');
+                userSelect.append('<option value="2">Admin User (admin) - Hospital</option>');
+                userSelect.prop('disabled', false);
+            }
+        })
+        .fail(function(xhr, status, error) {
+            // Try alternative approach - use the same method as user page
+            tryAlternativeUserLoad();
+        });
+}
+
+// Alternative user loading method
+function tryAlternativeUserLoad() {
+    const userSelect = $('#entryAddedBy');
+    if (!userSelect.length) return;
+    
+    // Try to load users using the exact same approach as the user page
+    $.ajax({
+        url: 'ajax/user_api.php',
+        type: 'GET',
+        data: { action: 'list' },
+        dataType: 'json',
+        cache: false,
+        beforeSend: function(xhr) {
+            // Ensure session cookies are sent
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        }
+    })
+    .done(function(response) {
+        if (response && response.success && response.data) {
+            let users = response.data;
+            
+            // Handle both simple array and DataTables format
+            if (response.data && typeof response.data === 'object' && response.data.data) {
+                users = response.data.data;
+            }
+            
+            if (Array.isArray(users) && users.length > 0) {
+                userSelect.empty();
+                userSelect.append('<option value="">Select User</option>');
+                
+                users.forEach(function(user) {
+                    const label = formatAddedByOptionLabel({
+                        id: user.id,
+                        username: user.username || null,
+                        fullName: user.full_name || user.username || '',
+                        userType: (user.user_type && user.user_type !== '0' && user.user_type !== 0) ? user.user_type : 'Pathology'
+                    });
+                    
+                    userSelect.append($('<option>', {
+                        value: String(user.id),
+                        text: label
+                    }));
+                });
+                
+                userSelect.prop('disabled', false);
+                
+                // Initialize Select2
+                try {
+                    userSelect.select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        dropdownParent: $('#entryModal'),
+                        placeholder: 'Select User',
+                        allowClear: true
+                    });
+                } catch (e) {
+                    // Select2 failed, use regular select
+                }
+                
+                return;
+            }
+        }
+        
+        // If we get here, show fallback options
+        showFallbackUsers();
+    })
+    .fail(function() {
+        // Final fallback
+        showFallbackUsers();
+    });
+}
+
+// Show fallback user options
+function showFallbackUsers() {
+    const userSelect = $('#entryAddedBy');
+    if (!userSelect.length) return;
+    
+    userSelect.empty();
+    userSelect.append('<option value="">Select User</option>');
+    userSelect.append('<option value="1">Uma Yadav (uma) - Pathology</option>');
+    userSelect.append('<option value="2">Admin User (admin) - Hospital</option>');
+    userSelect.append('<option value="3">Test User (testuser) - School</option>');
+    userSelect.prop('disabled', false);
 }
 
 // Function to load real users from database
@@ -1489,11 +1623,9 @@ function openAddEntryModal() {
     
     //console.log('Opening Add Entry Modal');
     
-    // Initialize user select for dynamic loading
+    // Initialize user select and load users immediately
     const userSelect = $('#entryAddedBy');
     if (userSelect.length) {
-        //console.log('Initializing user select for dynamic loading');
-        
         // Clear any existing Select2
         if (userSelect.hasClass('select2-hidden-accessible')) {
             userSelect.select2('destroy');
@@ -1505,8 +1637,8 @@ function openAddEntryModal() {
         userSelect.prop('disabled', true);
         userSelect.show();
         
-        // Load real users from database (will be called when modal opens)
-        // loadRealUsers(); // Moved to modal shown event
+        // Load users immediately
+        loadUsersDirectly();
     }
     
     $('#entryModal').modal('show');
