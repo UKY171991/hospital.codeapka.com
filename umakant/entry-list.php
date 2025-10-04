@@ -736,7 +736,7 @@ function populateAddedBySelect(prefillUserId) {
     select.prop('disabled', true);
     select.html('<option value="">Loading users...</option>');
 
-    $.get('ajax/user_api.php', { action: 'list_simple', ajax: 1 })
+    $.get('ajax/user_api.php', { action: 'list', ajax: 1 })
     .done(function(response) {
         console.log('User API Response:', response);
         select.empty();

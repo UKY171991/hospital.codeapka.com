@@ -14,10 +14,10 @@ try {
 
 if ($action === 'list') {
     // Support DataTables server-side processing
-    $draw = $_POST['draw'] ?? 1;
-    $start = $_POST['start'] ?? 0;
-    $length = $_POST['length'] ?? 25;
-    $search = $_POST['search']['value'] ?? '';
+    $draw = $_POST['draw'] ?? $_GET['draw'] ?? 1;
+    $start = $_POST['start'] ?? $_GET['start'] ?? 0;
+    $length = $_POST['length'] ?? $_GET['length'] ?? 25;
+    $search = $_POST['search']['value'] ?? $_GET['search'] ?? '';
     
     // Role-based visibility
     $viewerRole = $_SESSION['role'] ?? 'user';
