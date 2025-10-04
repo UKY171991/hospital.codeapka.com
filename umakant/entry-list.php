@@ -172,11 +172,11 @@ $currentUserDisplayName = $_SESSION['full_name']
                                             <th>Sr No.</th>
                                             <th>Entry ID</th>
                                             <th>Patient Name</th>
-                                            <th>Doctor / Added By</th>
+                                            <th>Doctor / User</th>
                                             <th>Tests</th>
                                             <th>Status</th>
                                             <th>Test Date</th>
-                                            <th>Added By</th>
+                                            <th>User</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -222,7 +222,7 @@ $currentUserDisplayName = $_SESSION['full_name']
                             <div class="form-group">
                                 <label>
                                     <i class="fas fa-user-check mr-1"></i>
-                                    Added By <span class="text-danger">*</span>
+                                    User <span class="text-danger">*</span>
                                 </label>
                                 <input type="hidden" id="entryAddedByValue" name="added_by" value="">
                                 <select class="form-control select2" id="entryAddedBy" required>
@@ -751,7 +751,7 @@ function populateAddedBySelect(prefillUserId) {
     }).done(function(response) {
         console.log('User API Response:', response);
         select.empty();
-        select.append($('<option>', { value: '', text: 'Select User' }));
+            select.append($('<option>', { value: '', text: 'Select User' }));
 
         if (response && response.success && Array.isArray(response.data)) {
             console.log('Processing users:', response.data.length);
@@ -810,7 +810,7 @@ function populateAddedBySelect(prefillUserId) {
 
         setEntryAddedBy(selectedInfo || { id: '', username: null, fullName: '' });
     }).fail(function(xhr, status, error) {
-        console.error('Failed to load user list for Added By select:', { xhr, status, error });
+        console.error('Failed to load user list for User select:', { xhr, status, error });
         select.html('<option value="">Error loading users</option>');
         if (requestedId) {
             setEntryAddedBy({ id: requestedId, username: null, fullName: fallbackName || `User #${requestedId}` });
@@ -842,7 +842,7 @@ function loadPatientsForUser(userId, selectedPatientId) {
 
     if (!cacheKey) {
         select.prop('disabled', true);
-        select.html('<option value="">Select Added By first</option>');
+        select.html('<option value="">Select User first</option>');
         select.trigger('change.select2');
         return;
     }
@@ -1048,7 +1048,7 @@ function initializeEventListeners() {
     $('#entryDoctor').on('change', updateDoctorAddedByDisplay);
     $('#entryAddedBy').on('change', function() {
         const selectedUserId = $(this).val();
-        console.log('Added By changed to:', selectedUserId);
+        console.log('User changed to:', selectedUserId);
         
         if (selectedUserId) {
             const cacheKey = normalizeIdentifierValue(selectedUserId);
@@ -1065,8 +1065,8 @@ function initializeEventListeners() {
             setEntryAddedBy({ id: '', username: null, fullName: '' });
             
             // Clear patient and doctor lists when no user is selected
-            $('#entryPatient').html('<option value="">Select Added By first</option>').prop('disabled', true);
-            $('#entryDoctor').html('<option value="">Select Added By first</option>').prop('disabled', true);
+            $('#entryPatient').html('<option value="">Select User first</option>').prop('disabled', true);
+            $('#entryDoctor').html('<option value="">Select User first</option>').prop('disabled', true);
         }
     });
     
@@ -1669,7 +1669,7 @@ function exportEntries() {
     }
     
     // Create CSV content
-    const headers = ['ID', 'Patient Name', 'Doctor Name', 'Test Name', 'Status', 'Entry Date', 'Added By'];
+    const headers = ['ID', 'Patient Name', 'Doctor Name', 'Test Name', 'Status', 'Entry Date', 'User'];
     let csvContent = headers.join(',') + '\n';
     
     filteredEntries.forEach(entry => {
