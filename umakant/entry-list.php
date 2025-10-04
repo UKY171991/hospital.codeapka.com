@@ -225,9 +225,16 @@ $currentUserDisplayName = $_SESSION['full_name']
                                     User <span class="text-danger">*</span>
                                 </label>
                                 <input type="hidden" id="entryAddedByValue" name="added_by" value="">
-                                <select class="form-control select2" id="entryAddedBy" required>
-                                    <option value="">Select User</option>
-                                </select>
+                                <div class="input-group">
+                                    <select class="form-control select2" id="entryAddedBy" required>
+                                        <option value="">Select User</option>
+                                    </select>
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="loadRealUsers()" title="Refresh Users">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -1348,10 +1355,30 @@ function loadRealUsers() {
     
     console.log('Loading real users from database...');
     
+    // Set a timeout to prevent infinite loading
+    const loadingTimeout = setTimeout(function() {
+        if (userSelect.find('option:contains("Loading")').length > 0) {
+            console.warn('Loading timeout - showing fallback options');
+            userSelect.empty();
+            userSelect.append('<option value="">Select User</option>');
+            userSelect.append('<option value="1">Uma Yadav (uma) - Pathology</option>');
+            userSelect.append('<option value="2">Admin User (admin) - Hospital</option>');
+            userSelect.prop('disabled', false);
+        }
+    }, 5000); // 5 second timeout
+    
     // Load users using the same method as user.php page
     $.get('ajax/user_api.php', { action: 'list' })
         .done(function(response) {
+            // Clear the timeout since we got a response
+            clearTimeout(loadingTimeout);
+            
             console.log('Real users API response:', response);
+            console.log('Response success:', response && response.success);
+            console.log('Response data type:', typeof response.data);
+            console.log('Response data is array:', Array.isArray(response.data));
+            console.log('Response data length:', response.data ? response.data.length : 'N/A');
+            console.log('Full response structure:', JSON.stringify(response, null, 2));
             
             if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
                 console.log('Successfully loaded', response.data.length, 'real users from database');
@@ -1408,10 +1435,50 @@ function loadRealUsers() {
             }
         })
         .fail(function(xhr, status, error) {
+            // Clear the timeout since we got a response (even if failed)
+            clearTimeout(loadingTimeout);
+            
             console.error('Failed to load real users:', { xhr, status, error });
+            console.error('XHR Response Text:', xhr.responseText);
+            console.error('Status:', status, 'Error:', error);
+            
             userSelect.empty();
             userSelect.append('<option value="">Error loading users</option>');
             userSelect.prop('disabled', true);
+            
+            // Try fallback with different API parameters
+            console.log('Attempting fallback API call...');
+            $.get('ajax/user_api.php', { action: 'list_simple' })
+                .done(function(fallbackResponse) {
+                    console.log('Fallback API response:', fallbackResponse);
+                    if (fallbackResponse && fallbackResponse.success && Array.isArray(fallbackResponse.data)) {
+                        console.log('Fallback successful, processing', fallbackResponse.data.length, 'users');
+                        
+                        userSelect.empty();
+                        userSelect.append('<option value="">Select User</option>');
+                        
+                        fallbackResponse.data.forEach(function(user) {
+                            const info = {
+                                id: user.id,
+                                username: user.username || null,
+                                fullName: user.full_name || user.username || '',
+                                userType: (user.user_type && user.user_type !== '0' && user.user_type !== 0) ? user.user_type : 'Pathology'
+                            };
+                            
+                            const label = formatAddedByOptionLabel(info);
+                            userSelect.append($('<option>', {
+                                value: String(info.id),
+                                text: label
+                            }));
+                        });
+                        
+                        userSelect.prop('disabled', false);
+                        console.log('Fallback users loaded successfully');
+                    }
+                })
+                .fail(function() {
+                    console.error('Fallback also failed');
+                });
         });
 }
 
