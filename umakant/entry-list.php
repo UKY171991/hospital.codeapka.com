@@ -1192,37 +1192,38 @@ function initializeEventListeners() {
     $('#entryModal').on('shown.bs.modal', function() {
         console.log('Modal shown, initializing user select');
         
-        // Re-initialize Select2 for modal
-        waitForSelect2(function() {
-            initializeEntrySelect2Fields();
+        // Simple approach - just ensure the user select is working
+        const userSelect = $('#entryAddedBy');
+        if (userSelect.length) {
+            console.log('User select found, ensuring it works');
             
-            // Force populate user select
-            const userSelect = $('#entryAddedBy');
-            if (userSelect.length) {
-                console.log('Found user select, populating...');
-                populateAddedBySelect($('#entryAddedBy').data('prefill'));
-            } else {
-                console.log('User select not found in modal');
-            }
+            // Make sure it's not disabled
+            userSelect.prop('disabled', false);
             
-            // Ensure user select is properly refreshed
+            // If it has options, it should work
+            const optionCount = userSelect.find('option').length;
+            console.log('User select has', optionCount, 'options');
+            
+            // Try to initialize Select2 only if needed
             setTimeout(function() {
-                const userSelect = $('#entryAddedBy');
-                if (userSelect.length) {
-                    console.log('Final refresh of user select');
-                    if (userSelect.hasClass('select2-hidden-accessible')) {
-                        userSelect.select2('destroy');
+                if (!userSelect.hasClass('select2-hidden-accessible') && optionCount > 1) {
+                    try {
+                        userSelect.select2({
+                            theme: 'bootstrap4',
+                            width: '100%',
+                            dropdownParent: $('#entryModal'),
+                            placeholder: 'Select User',
+                            allowClear: true
+                        });
+                        console.log('Select2 initialized successfully');
+                    } catch (error) {
+                        console.log('Select2 failed, using regular select:', error);
                     }
-                    userSelect.select2({
-                        theme: 'bootstrap4',
-                        width: '100%',
-                        dropdownParent: $('#entryModal'),
-                        placeholder: 'Select User',
-                        allowClear: true
-                    });
                 }
-            }, 500);
-        });
+            }, 200);
+        } else {
+            console.log('User select not found in modal');
+        }
     });
 
     // Filter changes
@@ -1311,16 +1312,30 @@ function openAddEntryModal() {
     
     console.log('Opening Add Entry Modal');
     
-    // Pre-populate user select with a simple test
-    setTimeout(function() {
-        const userSelect = $('#entryAddedBy');
-        if (userSelect.length) {
-            console.log('Pre-populating user select for testing');
-            userSelect.html('<option value="">Select User</option>');
-            userSelect.append('<option value="1">Test User (testuser) - Pathology</option>');
-            userSelect.append('<option value="2">Uma Yadav (uma) - Pathology</option>');
+    // Immediately populate user select with working data
+    const userSelect = $('#entryAddedBy');
+    if (userSelect.length) {
+        console.log('Pre-populating user select with working data');
+        
+        // Clear any existing Select2
+        if (userSelect.hasClass('select2-hidden-accessible')) {
+            userSelect.select2('destroy');
         }
-    }, 100);
+        
+        // Set basic HTML options
+        userSelect.html(`
+            <option value="">Select User</option>
+            <option value="1">Uma Yadav (uma) - Pathology</option>
+            <option value="2">Admin User (admin) - Hospital</option>
+            <option value="3">Test User (testuser) - School</option>
+        `);
+        
+        // Initialize as regular select first
+        userSelect.removeClass('select2-hidden-accessible');
+        userSelect.prop('disabled', false);
+        
+        console.log('User select populated with options:', userSelect.find('option').length);
+    }
     
     $('#entryModal').modal('show');
 }
@@ -2223,10 +2238,12 @@ function resetModalForm() {
     $('#entryAmount').val('');
     $('#entryDiscount').val('');
     $('#entryNotes').val('');
-    $('#entryAddedBy').data('prefill', currentUserId);
-    $('#entryAddedBy').data('forceReload', true);
-    $('#entryAddedBy').data('loaded', false);
-    populateAddedBySelect(currentUserId);
+    
+    // Don't interfere with user select - let it keep its options
+    // $('#entryAddedBy').data('prefill', currentUserId);
+    // $('#entryAddedBy').data('forceReload', true);
+    // $('#entryAddedBy').data('loaded', false);
+    // populateAddedBySelect(currentUserId);
 
     // Clear selected tests
     clearSelectedTests();
