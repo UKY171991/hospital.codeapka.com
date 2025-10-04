@@ -218,8 +218,10 @@ $currentUserDisplayName = $_SESSION['full_name']
                                     <i class="fas fa-user-check mr-1"></i>
                                     Added By <span class="text-danger">*</span>
                                 </label>
-                                <input type="hidden" id="entryAddedByValue" name="added_by" value="">
-                                <div id="entryAddedByDisplay" class="form-control-plaintext font-weight-bold"></div>
+                                <select class="form-control select2" id="entryAddedBy" name="added_by" required data-placeholder="Select User">
+                                    <option value="">Select User</option>
+                                </select>
+                                <small id="entryAddedByInfo" class="form-text text-muted"></small>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -506,6 +508,7 @@ let cachedPatientsByIdentifiers = {};
 let cachedDoctorsByIdentifiers = {};
 let entryAddedByInfo = { id: currentUserId || '', username: null, fullName: currentUserDisplayName || '' };
 let cachedAddedByUsers = {};
+let addedByOptionsCache = [];
 
 function normalizeIdentifierValue(value) {
     if (value === null || value === undefined) return null;
@@ -633,8 +636,8 @@ function renderDoctorOptions(doctors, selectedId) {
 function setEntryAddedBy(userInfo) {
     entryAddedByInfo = Object.assign({ id: '', username: null, fullName: '' }, userInfo || {});
     const displayName = entryAddedByInfo.fullName || entryAddedByInfo.username || `User #${entryAddedByInfo.id}` || 'Unknown User';
-    $('#entryAddedByValue').val(entryAddedByInfo.id || '');
-    $('#entryAddedByDisplay').text(displayName);
+    $('#entryAddedBy').val(entryAddedByInfo.id || '').trigger('change.select2');
+    $('#entryAddedByInfo').text(displayName ? `Selected: ${displayName}` : '');
 }
 
 function populateAddedBySelect(prefillUserId) {
@@ -644,6 +647,46 @@ function populateAddedBySelect(prefillUserId) {
         : currentUserId || '';
     const cacheKey = normalizeIdentifierValue(requestedId) || '';
 
+    const ensureOptionsLoaded = () => {
+        const select = $('#entryAddedBy');
+        if (addedByOptionsCache.length > 0) {
+            if (!select.children('option:not([value=""])').length) {
+                const optionsHtml = addedByOptionsCache.map(option => `<option value="${option.id}">${option.label}</option>`).join('');
+                select.append(optionsHtml);
+            }
+            select.trigger('change.select2');
+            return Promise.resolve();
+        }
+
+        select.prop('disabled', true);
+        select.html('<option value="">Loading users...</option>');
+
+        return $.get('ajax/user_api.php', { action: 'list', ajax: 1, length: 1000 })
+            .done(function(response) {
+                if (response && response.success && Array.isArray(response.data)) {
+                    addedByOptionsCache = response.data.map(user => ({
+                        id: user.id,
+                        label: user.full_name || user.username || `User #${user.id}`,
+                        username: user.username || null,
+                        fullName: user.full_name || null
+                    }));
+                    const optionsHtml = addedByOptionsCache.map(option => `<option value="${option.id}">${option.label}</option>`).join('');
+                    select.html('<option value="">Select User</option>' + optionsHtml);
+                } else {
+                    select.html('<option value="">No users found</option>');
+                }
+            })
+            .fail(function(xhr) {
+                const errorMsg = getErrorMessage(xhr);
+                select.html(`<option value="">Failed to load users (${errorMsg})</option>`);
+            })
+            .always(function() {
+                select.prop('disabled', false);
+                select.trigger('change.select2');
+            });
+    };
+
+    ensureOptionsLoaded().then(() => {
     const applyUserInfo = (info) => {
         const normalizedInfo = Object.assign(
             { id: '', username: null, fullName: '' },
@@ -712,6 +755,7 @@ function populateAddedBySelect(prefillUserId) {
             }
             applyUserInfo(errorInfo);
         });
+    });
 }
 
 function getIdentifiersCacheKey(identifiersSet) {
