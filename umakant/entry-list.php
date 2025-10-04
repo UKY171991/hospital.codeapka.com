@@ -9,9 +9,8 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
 }
 
 $currentUserId = $_SESSION['user_id'] ?? '';
-$currentUserDisplayName = $_SESSION['full_name']
-    ?? $_SESSION['username']
-    ?? 'Unknown User';
+$currentUserDisplayName = $_SESSION['full_name'] ?? $_SESSION['username'] ?? 'Unknown User';
+$currentUserRole = $_SESSION['role'] ?? 'user';
 ?>
 
 <!-- Content Wrapper. Contains page content -->
@@ -21,69 +20,86 @@ $currentUserDisplayName = $_SESSION['full_name']
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1><i class="fas fa-clipboard-list mr-2"></i>Test Entries</h1>
+                    <h1><i class="fas fa-clipboard-list mr-2"></i>Test Entries Management</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="index.php">Home</a></li>
+                        <li class="breadcrumb-item"><a href="index.php"><i class="fas fa-home"></i> Home</a></li>
                         <li class="breadcrumb-item active">Test Entries</li>
                     </ol>
                 </div>
             </div>
-        </div><!-- /.container-fluid -->
+        </div>
     </section>
 
     <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
-            <!-- Stats Row -->
+            
+            <!-- Statistics Cards -->
             <div class="row mb-4">
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
                     <div class="small-box bg-info">
                         <div class="inner">
-                            <h3 id="totalEntries">0</h3>
+                            <h3 id="totalEntries">-</h3>
                             <p>Total Entries</p>
                         </div>
                         <div class="icon">
                             <i class="fas fa-clipboard-list"></i>
                         </div>
+                        <a href="#" class="small-box-footer" onclick="filterByStatus('all')">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
                     </div>
                 </div>
-                <div class="col-lg-3 col-6">
+                
+                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
                     <div class="small-box bg-warning">
                         <div class="inner">
-                            <h3 id="pendingEntries">0</h3>
+                            <h3 id="pendingEntries">-</h3>
                             <p>Pending</p>
                         </div>
                         <div class="icon">
                             <i class="fas fa-clock"></i>
                         </div>
+                        <a href="#" class="small-box-footer" onclick="filterByStatus('pending')">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
                     </div>
                 </div>
-                <div class="col-lg-3 col-6">
+                
+                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
                     <div class="small-box bg-success">
                         <div class="inner">
-                            <h3 id="completedEntries">0</h3>
+                            <h3 id="completedEntries">-</h3>
                             <p>Completed</p>
                         </div>
                         <div class="icon">
                             <i class="fas fa-check-circle"></i>
                         </div>
+                        <a href="#" class="small-box-footer" onclick="filterByStatus('completed')">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
                     </div>
                 </div>
-                <div class="col-lg-3 col-6">
+                
+                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
                     <div class="small-box bg-danger">
                         <div class="inner">
-                            <h3 id="todayEntries">0</h3>
+                            <h3 id="todayEntries">-</h3>
                             <p>Today's Entries</p>
                         </div>
                         <div class="icon">
                             <i class="fas fa-calendar-day"></i>
                         </div>
+                        <a href="#" class="small-box-footer" onclick="filterByDate('today')">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
                     </div>
                 </div>
             </div>
 
+            <!-- Main Card -->
             <div class="row">
                 <div class="col-12">
                     <div class="card card-primary card-outline">
@@ -92,124 +108,115 @@ $currentUserDisplayName = $_SESSION['full_name']
                                 <i class="fas fa-list-alt mr-1"></i>
                                 Test Entry Management
                             </h3>
-                            <div class="card-tools d-flex align-items-center">
-                                <button type="button" class="btn btn-primary btn-sm mr-2" onclick="openAddEntryModal()">
-                                    <i class="fas fa-plus"></i> Add Entry
-                                </button>
-                                <button type="button" class="btn btn-success btn-sm mr-2" onclick="exportEntries()">
-                                    <i class="fas fa-download"></i> Export
-                                </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="maximize">
-                                    <i class="fas fa-expand"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <!-- /.card-header -->
-                        <div class="card-body">
-                            <!-- Search and Filter Row -->
-                            <div class="row mb-3 align-items-center">
-                                <div class="col-md-6">
-                                    <div class="input-group">
-                                        <input id="entriesSearch" class="form-control" placeholder="Search entries by patient, doctor, test, etc...">
-                                        <div class="input-group-append">
-                                            <button id="entriesSearchClear" class="btn btn-outline-secondary">Clear</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 ml-auto text-right">
-                                    <div class="form-inline float-right">
-                                        <label class="mr-2">Per page</label>
-                                        <select id="entriesPerPage" class="form-control">
-                                            <option value="10">10</option>
-                                            <option value="25" selected>25</option>
-                                            <option value="50">50</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Advanced Filters -->
-                            <div class="row mb-3">
-                                <div class="col-md-2">
-                                    <select id="statusFilter" class="form-control">
-                                        <option value="">All Status</option>
-                                        <option value="pending">Pending</option>
-                                        <option value="completed">Completed</option>
-                                        <option value="cancelled">Cancelled</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <select id="doctorFilter" class="form-control">
-                                        <option value="">All Doctors</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <select id="testFilter" class="form-control">
-                                        <option value="">All Tests</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="date" id="dateFromFilter" class="form-control" title="From Date">
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="date" id="dateToFilter" class="form-control" title="To Date">
-                                </div>
-                                <div class="col-md-2">
-                                    <button class="btn btn-outline-secondary btn-block" onclick="clearFilters()">
-                                        <i class="fas fa-times"></i> Clear
+                            <div class="card-tools">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="openAddEntryModal()">
+                                        <i class="fas fa-plus"></i> Add Entry
+                                    </button>
+                                    <button type="button" class="btn btn-success btn-sm" onclick="exportEntries()">
+                                        <i class="fas fa-download"></i> Export
+                                    </button>
+                                    <button type="button" class="btn btn-info btn-sm" onclick="refreshTable()">
+                                        <i class="fas fa-sync-alt"></i> Refresh
                                     </button>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <!-- Filters Row -->
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="statusFilter">Status Filter:</label>
+                                        <select class="form-control form-control-sm" id="statusFilter" onchange="applyFilters()">
+                                            <option value="">All Status</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="completed">Completed</option>
+                                            <option value="cancelled">Cancelled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="dateFilter">Date Range:</label>
+                                        <select class="form-control form-control-sm" id="dateFilter" onchange="applyFilters()">
+                                            <option value="">All Dates</option>
+                                            <option value="today">Today</option>
+                                            <option value="yesterday">Yesterday</option>
+                                            <option value="this_week">This Week</option>
+                                            <option value="this_month">This Month</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="patientFilter">Patient:</label>
+                                        <input type="text" class="form-control form-control-sm" id="patientFilter" 
+                                               placeholder="Search by patient name..." onkeyup="applyFilters()">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="doctorFilter">Doctor:</label>
+                                        <input type="text" class="form-control form-control-sm" id="doctorFilter" 
+                                               placeholder="Search by doctor name..." onkeyup="applyFilters()">
+                                    </div>
+                                </div>
+                            </div>
 
-                            <!-- Entries DataTable -->
+                            <!-- Data Table -->
                             <div class="table-responsive">
-                                <table id="entriesTable" class="table table-bordered table-striped table-hover entries-table">
+                                <table id="entriesTable" class="table table-bordered table-striped table-hover">
                                     <thead class="thead-dark">
                                         <tr>
-                                            <th>Sr No.</th>
-                                            <th>Entry ID</th>
-                                            <th>Patient Name</th>
-                                            <th>Doctor / User</th>
-                                            <th>Tests</th>
-                                            <th>Status</th>
-                                            <th>Test Date</th>
-                                            <th>User</th>
-                                            <th>Actions</th>
+                                            <th width="5%">ID</th>
+                                            <th width="15%">Patient</th>
+                                            <th width="15%">Doctor</th>
+                                            <th width="20%">Tests</th>
+                                            <th width="10%">Status</th>
+                                            <th width="10%">Amount</th>
+                                            <th width="10%">Date</th>
+                                            <th width="15%">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Data will be populated by JavaScript -->
+                                        <!-- Data will be loaded via AJAX -->
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                        <!-- /.card-body -->
+                        
+                        <div class="card-footer">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="dataTables_info" id="entriesTable_info" role="status" aria-live="polite">
+                                        Showing entries
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="dataTables_paginate paging_simple_numbers" id="entriesTable_paginate">
+                                        <!-- Pagination will be added by DataTables -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <!-- /.card -->
                 </div>
-                <!-- /.col -->
             </div>
-            <!-- /.row -->
         </div>
-        <!-- /.container-fluid -->
     </section>
-    <!-- /.content -->
 </div>
-<!-- /.content-wrapper -->
 
-<!-- Entry Modal -->
+<!-- Add/Edit Entry Modal -->
 <div class="modal fade" id="entryModal" tabindex="-1" role="dialog" aria-labelledby="entryModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header bg-primary">
                 <h5 class="modal-title" id="entryModalLabel">
-                    <i class="fas fa-clipboard-list mr-2"></i>
-                    <span id="modalTitle">Add New Test Entry</span>
+                    <i class="fas fa-plus mr-1"></i>Add New Entry
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -218,137 +225,35 @@ $currentUserDisplayName = $_SESSION['full_name']
                     <input type="hidden" id="entryId" name="id">
                     
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label>
-                                    <i class="fas fa-user-check mr-1"></i>
-                                    User <span class="text-danger">*</span>
-                                </label>
-                                <input type="hidden" id="entryAddedByValue" name="added_by" value="">
-                                <div class="input-group">
-                                    <select class="form-control select2" id="entryAddedBy" required>
-                                        <option value="">Select User</option>
-                                    </select>
-                                    <div class="input-group-append">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="loadUsersDirectly()" title="Refresh Users">
-                                            <i class="fas fa-sync-alt"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="entryPatient">
-                                    <i class="fas fa-user mr-1"></i>
-                                    Patient <span class="text-danger">*</span>
-                                </label>
-                                <select class="form-control select2" id="entryPatient" name="patient_id" required>
+                                <label for="patientSelect">Patient <span class="text-danger">*</span></label>
+                                <select class="form-control select2" id="patientSelect" name="patient_id" required>
                                     <option value="">Select Patient</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="entryDoctor">
-                                    <i class="fas fa-user-md mr-1"></i>
-                                    Doctor <span class="text-danger">*</span>
-                                </label>
-                                <select class="form-control select2" id="entryDoctor" name="doctor_id" required>
+                                <label for="doctorSelect">Doctor</label>
+                                <select class="form-control select2" id="doctorSelect" name="doctor_id">
                                     <option value="">Select Doctor</option>
                                 </select>
-                                <small id="doctorAddedByInfo" class="form-text text-muted" style="display: none;"></small>
                             </div>
                         </div>
                     </div>
-
-
-                    <!-- Inline Test Management Section -->
-                    <div class="form-group">
-                        <label>
-                            <i class="fas fa-list mr-1"></i>
-                            Tests <span class="text-danger">*</span>
-                        </label>
-                        
-                        <!-- Test Selection Controls -->
-                        <div class="row mb-3">
-                            <div class="col-md-8">
-                                <button type="button" class="btn btn-outline-success btn-sm" onclick="showAddTestInterface()">
-                                    <i class="fas fa-plus mr-1"></i>
-                                    Add Test
-                                </button>
-                            </div>
-                            <div class="col-md-4 text-right">
-                                <span class="badge badge-info" id="selectedTestsCount">0 tests selected</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Add Test Interface -->
-                        <div id="addTestInterface" class="card mb-3" style="display: none;">
-                            <div class="card-header">
-                                <div class="row">
-                                    <div class="col-md-8">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-plus mr-1"></i>
-                                            Add Test to Entry
-                                        </h6>
-                                    </div>
-                                    <div class="col-md-4 text-right">
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="hideAddTestInterface()">
-                                            <i class="fas fa-times"></i>
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <!-- Single Line Test Selection -->
-                                <div class="row">
-                                    <div class="col-md-5">
-                                        <label class="form-label">
-                                            <i class="fas fa-folder mr-1"></i>
-                                            Category
-                                        </label>
-                                        <select class="form-control" id="testCategorySelect" onchange="loadTestsForCategory()">
-                                            <option value="">Choose category...</option>
-                                        </select>
-                                </div>
-                                    <div class="col-md-5">
-                                        <label class="form-label">
-                                            <i class="fas fa-vial mr-1"></i>
-                                            Test
-                                        </label>
-                                        <select class="form-control" id="testSelect">
-                                            <option value="">Choose category first...</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">&nbsp;</label>
-                                        <button type="button" class="btn btn-success btn-block" onclick="addSelectedTest()">
-                                            <i class="fas fa-plus"></i>
-                                            Add
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Selected Tests Display -->
-                        <div id="testsByCategoryContainer">
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle mr-2"></i>
-                                No tests selected. Click "Add Test" to choose tests for this entry.
-                            </div>
-                        </div>
-                    </div>
-
+                    
                     <div class="row">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="entryStatus">
-                                    <i class="fas fa-flag mr-1"></i>
-                                    Status
-                                </label>
+                                <label for="entryDate">Entry Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="entryDate" name="entry_date" 
+                                       value="<?php echo date('Y-m-d'); ?>" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="entryStatus">Status</label>
                                 <select class="form-control" id="entryStatus" name="status">
                                     <option value="pending">Pending</option>
                                     <option value="completed">Completed</option>
@@ -357,41 +262,49 @@ $currentUserDisplayName = $_SESSION['full_name']
                             </div>
                         </div>
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="entryAmount">
-                                    <i class="fas fa-rupee-sign mr-1"></i>
-                                    Total Amount (Auto-calculated)
-                                </label>
-                                <input type="number" class="form-control" id="entryAmount" name="amount" step="0.01" readonly>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="entryDiscount">
-                                    <i class="fas fa-percentage mr-1"></i>
-                                    Discount % (Auto-calculated)
-                                </label>
-                                <input type="number" class="form-control" id="entryDiscount" name="discount" min="0" max="100" step="0.01" readonly>
-                            </div>
-                        </div>
-                    </div>
-
+                    
+                    <!-- Tests Section -->
                     <div class="form-group">
-                        <label for="entryNotes">
-                            <i class="fas fa-sticky-note mr-1"></i>
-                            Notes
-                        </label>
-                        <textarea class="form-control" id="entryNotes" name="notes" rows="3"></textarea>
+                        <label>Tests <span class="text-danger">*</span></label>
+                        <div id="testsContainer">
+                            <div class="test-row row mb-2">
+                                <div class="col-md-5">
+                                    <select class="form-control test-select" name="tests[0][test_id]" required>
+                                        <option value="">Select Test</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" name="tests[0][price]" 
+                                           placeholder="Price" step="0.01" min="0" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" name="tests[0][discount_amount]" 
+                                           placeholder="Discount" step="0.01" min="0" value="0">
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-success btn-sm" onclick="addTestRow()">
+                            <i class="fas fa-plus"></i> Add Test
+                        </button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="entryNotes">Notes</label>
+                        <textarea class="form-control" id="entryNotes" name="notes" rows="3" 
+                                  placeholder="Additional notes or remarks..."></textarea>
                     </div>
                 </div>
+                
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
                         <i class="fas fa-times"></i> Cancel
                     </button>
-                    <button type="submit" class="btn btn-primary" id="saveEntryBtn">
+                    <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Save Entry
                     </button>
                 </div>
@@ -400,2190 +313,728 @@ $currentUserDisplayName = $_SESSION['full_name']
     </div>
 </div>
 
-
 <!-- View Entry Modal -->
 <div class="modal fade" id="viewEntryModal" tabindex="-1" role="dialog" aria-labelledby="viewEntryModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-info text-white">
+            <div class="modal-header bg-info">
                 <h5 class="modal-title" id="viewEntryModalLabel">
-                    <i class="fas fa-eye mr-2"></i>
-                    View Entry Details
+                    <i class="fas fa-eye mr-1"></i>Entry Details
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="entryDetails">
+                <!-- Entry details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>Confirm Delete
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                <div class="form-group">
-                            <label><strong>Patient:</strong></label>
-                            <p id="viewPatientName" class="form-control-plaintext"></p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label><strong>Doctor:</strong></label>
-                            <p id="viewDoctorName" class="form-control-plaintext"></p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                <div class="form-group">
-                            <label><strong>Entry Date:</strong></label>
-                            <p id="viewEntryDate" class="form-control-plaintext"></p>
-                        </div>
-                        </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label><strong>Status:</strong></label>
-                            <p id="viewEntryStatus" class="form-control-plaintext"></p>
-                    </div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label><strong>Tests:</strong></label>
-                    <div id="viewSelectedTests">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle mr-2"></i>
-                            No tests found for this entry.
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label><strong>Notes:</strong></label>
-                    <p id="viewEntryNotes" class="form-control-plaintext"></p>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label><strong>Total Price:</strong></label>
-                            <p id="viewTotalPrice" class="form-control-plaintext"></p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label><strong>Discount:</strong></label>
-                            <p id="viewDiscount" class="form-control-plaintext"></p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label><strong>Final Amount:</strong></label>
-                            <p id="viewFinalAmount" class="form-control-plaintext"></p>
-                        </div>
-                    </div>
-                </div>
+                <p>Are you sure you want to delete this entry?</p>
+                <p class="text-muted"><strong>Note:</strong> This action cannot be undone.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <i class="fas fa-times mr-1"></i>
-                    Close
-                </button>
-                <button type="button" class="btn btn-primary" id="editFromViewBtn">
-                    <i class="fas fa-edit mr-1"></i>
-                    Edit Entry
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">
+                    <i class="fas fa-trash"></i> Delete Entry
                 </button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Include footer -->
+<?php include 'inc/footer.php'; ?>
+
+<!-- Page-specific CSS -->
+<link rel="stylesheet" href="assets/css/entry-list.css">
+
+<!-- Page-specific JavaScript -->
 <script>
-// Ensure showAlert exists for uniform messaging
-if (typeof window.showAlert !== 'function') {
-    window.showAlert = function(message, type) {
-        try {
-            if (window.toastr && typeof window.toastr[type] === 'function') {
-                window.toastr[type](message);
-            } else if (window.toastr && typeof window.toastr.error === 'function') {
-                window.toastr.error(message);
-            } else {
-                console[(type === 'error' ? 'error' : 'log')](message);
-            }
-        } catch (e) {
-            // Fallback to console if toastr fails
-            //console.log(message);
-        }
-    };
-}
-
-// Add error handling for common issues
-window.addEventListener('error', function(e) {
-    // Suppress browser extension errors
-    if (e.message && (
-        e.message.includes('message port closed') ||
-        e.message.includes('Extension context invalidated') ||
-        e.message.includes('Could not establish connection') ||
-        e.message.includes('runtime.lastError') ||
-        e.message.includes('Unchecked runtime.lastError')
-    )) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        return false;
-    }
-});
-
-// Suppress unhandled promise rejections from extensions
-window.addEventListener('unhandledrejection', function(e) {
-    if (e.reason && (
-        e.reason.message && e.reason.message.includes('message port closed') ||
-        e.reason.message && e.reason.message.includes('Extension context invalidated') ||
-        e.reason.message && e.reason.message.includes('runtime.lastError') ||
-        e.reason.message && e.reason.message.includes('Unchecked runtime.lastError')
-    )) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        return false;
-    }
-});
-
 // Global variables
 let entriesTable;
-let allEntries = [];
-let entriesCurrentPage = 1;
-let entriesPerPageCount = 25;
-let doctorDirectory = {};
-const currentUserId = <?= json_encode($currentUserId, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
-const currentUserDisplayName = <?= json_encode($currentUserDisplayName, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
-let cachedPatientsByIdentifiers = {};
-let cachedDoctorsByIdentifiers = {};
-let entryAddedByInfo = { id: currentUserId || '', username: null, fullName: currentUserDisplayName || '', userType: '' };
-let cachedAddedByUsers = {};
+let currentEntryId = null;
+let testRowCount = 1;
 
-function normalizeIdentifierValue(value) {
-    if (value === null || value === undefined) return null;
-    const str = String(value).trim();
-    if (!str) return null;
-    if (/^-?\d+$/.test(str)) {
-        return String(parseInt(str, 10));
-    }
-    return str.toLowerCase();
-}
-
-function getAddedByIdentifierSet(explicitUserId) {
-    const identifiers = new Set();
-
-    const addValue = (value) => {
-        const normalized = normalizeIdentifierValue(value);
-        if (normalized) {
-            identifiers.add(normalized);
-        }
-    };
-
-    if (explicitUserId !== undefined && explicitUserId !== null && explicitUserId !== '') {
-        addValue(explicitUserId);
-    }
-
-    if (entryAddedByInfo) {
-        addValue(entryAddedByInfo.id);
-        addValue(entryAddedByInfo.username);
-        addValue(entryAddedByInfo.fullName);
-    }
-
-    return identifiers;
-}
-
-function extractFieldValue(obj, path) {
-    if (!obj) return null;
-    if (!path) return null;
-    if (path.indexOf('.') === -1) {
-        return obj[path];
-    }
-    return path.split('.').reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : null), obj);
-}
-
-function recordMatchesAddedBy(record, identifiersSet, candidateFields = []) {
-    if (!record || !identifiersSet || identifiersSet.size === 0) {
-        return false;
-    }
-    return candidateFields.some(field => {
-        const value = extractFieldValue(record, field);
-        return identifiersSet.has(normalizeIdentifierValue(value));
-    });
-}
-
-function renderPatientOptions(patients, selectedId) {
-    const select = $('#entryPatient');
-    select.empty();
-    select.append($('<option>', { value: '', text: 'Select Patient' }));
-
-    patients.forEach(function(patient) {
-        select.append(
-            $('<option>', {
-                value: patient.id,
-                text: patient.label
-            })
-        );
-    });
-
-    if (selectedId !== undefined && selectedId !== null && selectedId !== '') {
-        select.val(String(selectedId));
-    } else {
-        select.val('');
-    }
-
-    select.trigger('change.select2');
-}
-
-function renderDoctorOptions(doctors, selectedId) {
-    const entrySelect = $('#entryDoctor');
-    const filterSelect = $('#doctorFilter');
-
-    entrySelect.empty();
-    filterSelect.empty();
-
-    entrySelect.append($('<option>', { value: '', text: 'Select Doctor' }));
-    filterSelect.append($('<option>', { value: '', text: 'All Doctors' }));
-
-    const directory = {};
-
-    doctors.forEach(function(doctor) {
-        const optionLabel = `${doctor.name}${doctor.addedByUsername ? ' (Added by ' + doctor.addedByUsername + ')' : ''}`;
-        entrySelect.append(
-            $('<option>', {
-                value: doctor.id,
-                text: optionLabel
-            }).attr('data-added-by', doctor.addedByUsername || '')
-        );
-
-        const filterLabel = `${doctor.name}${doctor.addedByUsername ? ' (' + doctor.addedByUsername + ')' : ''}`;
-        filterSelect.append(
-            $('<option>', {
-                value: doctor.id,
-                text: filterLabel
-            })
-        );
-
-        directory[doctor.id] = {
-            name: doctor.name,
-            addedByUsername: doctor.addedByUsername || ''
-        };
-    });
-
-    doctorDirectory = directory;
-
-    if (selectedId !== undefined && selectedId !== null && selectedId !== '') {
-        entrySelect.val(String(selectedId));
-    } else {
-        entrySelect.val('');
-    }
-
-    entrySelect.trigger('change.select2');
-    updateDoctorAddedByDisplay();
-}
-
-
-function setEntryAddedBy(userInfo) {
-    entryAddedByInfo = Object.assign({ id: '', username: null, fullName: '', userType: '' }, userInfo || {});
-    $('#entryAddedByValue').val(entryAddedByInfo.id || '');
-
-    const select = $('#entryAddedBy');
-    if (select.length) {
-        const value = entryAddedByInfo.id ? String(entryAddedByInfo.id) : '';
-        if (select.val() !== value) {
-            select.data('suppressChange', true);
-            select.val(value);
-            if (select.data('select2')) {
-                select.trigger('change.select2');
-            } else {
-                select.trigger('change');
-            }
-            select.removeData('suppressChange');
-        }
-    }
-}
-
-function formatAddedByOptionLabel(info) {
-    if (!info) {
-        return 'Unknown User';
-    }
-    const idLabel = info.id ? `User #${info.id}` : 'Unknown User';
-    const fullName = (info.fullName || '').trim();
-    const username = (info.username || '').trim();
-    const userType = (info.userType || '').trim();
-
-    let baseLabel = '';
-    if (fullName && username && fullName !== username) {
-        baseLabel = `${fullName} (${username})`;
-    } else {
-        baseLabel = fullName || username || idLabel;
-    }
-
-    if (userType) {
-        return `${baseLabel} - ${userType}`;
-    }
-
-    return baseLabel;
-}
-
-function populateAddedBySelect(prefillUserId) {
-    const select = $('#entryAddedBy');
-    if (!select.length) {
-        //console.log('User select element not found');
-        return;
-    }
-
-    //console.log('populateAddedBySelect called with prefillUserId:', prefillUserId);
-    
-    const fallbackName = currentUserDisplayName || '';
-    const requestedId = prefillUserId !== undefined && prefillUserId !== null && prefillUserId !== ''
-        ? prefillUserId
-        : currentUserId || '';
-    const cacheKey = normalizeIdentifierValue(requestedId) || '';
-    const forceReload = !!select.data('forceReload');
-
-    // Destroy any existing Select2 instance first
-    if (select.hasClass('select2-hidden-accessible')) {
-        //console.log('Destroying existing Select2 instance');
-        select.select2('destroy');
-    }
-
-    select.data('forceReload', false);
-    select.data('loading', true);
-    select.prop('disabled', true);
-    select.html('<option value="">Loading users...</option>');
-
-    $.get('ajax/user_api.php', { action: 'list' })
-    .done(function(response) {
-        //console.log('User API Response:', response);
-        select.empty();
-        select.append($('<option>', { value: '', text: 'Select User' }));
-        
-        // Debug logging
-        // console.log('Response success:', response && response.success);
-        // console.log('Response data type:', typeof response.data);
-        // console.log('Response data is array:', Array.isArray(response.data));
-        // console.log('Response data length:', response.data ? response.data.length : 'N/A');
-        // console.log('Full response structure:', JSON.stringify(response, null, 2));
-
-        // Handle DataTables format (same as user.php page)
-        let userData = [];
-        if (response && response.success && Array.isArray(response.data)) {
-            userData = response.data;
-            //console.log('Using DataTables format data from user page');
-        } else {
-            //console.warn('Unexpected response format:', response);
-        }
-        
-        if (userData && Array.isArray(userData) && userData.length > 0) {
-            //console.log('Processing users:', userData.length);
-            //console.log('User data:', userData);
-            
-            userData.forEach(function(user) {
-                const info = {
-                    id: user.id,
-                    username: user.username || null,
-                    fullName: user.full_name || user.username || '',
-                    userType: (user.user_type && user.user_type !== '0') ? user.user_type : (user.userType || '')
-                };
-                const label = formatAddedByOptionLabel(info);
-                //console.log('Adding user option:', label, 'for user:', info);
-                
-                const option = $('<option>', {
-                    value: String(info.id),
-                    text: label
-                });
-                if (info.username) {
-                    option.attr('data-username', info.username);
-                }
-                if (info.fullName) {
-                    option.attr('data-full-name', info.fullName);
-                }
-                if (info.userType) {
-                    option.attr('data-user-type', info.userType);
-                }
-                select.append(option);
-
-                const normalizedId = normalizeIdentifierValue(info.id);
-                if (normalizedId) {
-                    cachedAddedByUsers[normalizedId] = info;
-                }
-            });
-            
-            // console.log('Total options in select:', select.find('option').length);
-            // console.log('Select HTML:', select.html());
-            
-            select.data('loaded', true);
-            
-            // Refresh Select2 after adding options
-            if (select.hasClass('select2-hidden-accessible')) {
-                //console.log('Destroying existing Select2');
-                select.select2('destroy');
-            }
-            
-            //console.log('Initializing Select2 with options');
-            
-            // Try to initialize Select2
-            try {
-                select.select2({
-                    theme: 'bootstrap4',
-                    width: '100%',
-                    dropdownParent: $('#entryModal'),
-                    placeholder: 'Select User',
-                    allowClear: true
-                });
-                
-                // Force refresh the Select2 dropdown
-                setTimeout(function() {
-                    select.trigger('change.select2');
-                    //console.log('Select2 change event triggered');
-                }, 100);
-                
-                //console.log('Select2 initialized successfully');
-            } catch (error) {
-                //console.error('Select2 initialization failed:', error);
-                // Fallback: use regular select without Select2
-                select.removeClass('select2-hidden-accessible');
-                //console.log('Using fallback regular select');
-            }
-            
-            //console.log('Select2 initialized, options should be visible');
-        } else {
-            //console.warn('No users found in response:', response);
-            //console.log('Attempting fallback: loading users using user page method...');
-            
-            // Fallback: Try to load users the same way user.php does
-            $.get('ajax/user_api.php', { action: 'list' })
-                .done(function(fallbackResponse) {
-                    //console.log('Fallback API Response:', fallbackResponse);
-                    if (fallbackResponse && fallbackResponse.success && Array.isArray(fallbackResponse.data)) {
-                        //console.log('Fallback successful, processing', fallbackResponse.data.length, 'users');
-                        
-                        // Process users from fallback response
-                        fallbackResponse.data.forEach(function(user) {
-                            const info = {
-                                id: user.id,
-                                username: user.username || null,
-                                fullName: user.full_name || user.username || '',
-                                userType: (user.user_type && user.user_type !== '0') ? user.user_type : 'Pathology'
-                            };
-                            const label = formatAddedByOptionLabel(info);
-                            //console.log('Adding fallback user option:', label);
-                            
-                            select.append($('<option>', {
-                                value: String(info.id),
-                                text: label
-                            }));
-                        });
-                        
-                        // Initialize Select2 with fallback data
-                        if (select.hasClass('select2-hidden-accessible')) {
-                            select.select2('destroy');
-                        }
-                        select.select2({
-                            theme: 'bootstrap4',
-                            width: '100%',
-                            dropdownParent: $('#entryModal'),
-                            placeholder: 'Select User',
-                            allowClear: true
-                        });
-                        
-                        //console.log('Fallback users loaded successfully');
-                    } else {
-                        // If fallback also fails, show error
-                        select.append($('<option>', { value: '', text: 'Error loading users' }));
-                        select.data('loaded', false);
-                    }
-                })
-                .fail(function() {
-                    //console.error('Fallback also failed');
-                    select.append($('<option>', { value: '', text: 'Error loading users' }));
-                    select.data('loaded', false);
-                });
-        }
-
-        let selectedInfo = null;
-        if (cacheKey && cachedAddedByUsers[cacheKey]) {
-            selectedInfo = cachedAddedByUsers[cacheKey];
-        } else if (requestedId) {
-            selectedInfo = {
-                id: requestedId,
-                username: null,
-                fullName: fallbackName || `User #${requestedId}`,
-                userType: ''
-            };
-            const normalizedId = normalizeIdentifierValue(selectedInfo.id);
-            if (normalizedId) {
-                cachedAddedByUsers[normalizedId] = selectedInfo;
-            }
-        }
-
-        if (selectedInfo && !select.find(`option[value="${selectedInfo.id}"]`).length) {
-            select.append($('<option>', {
-                value: String(selectedInfo.id),
-                text: formatAddedByOptionLabel(selectedInfo)
-            }));
-            
-            // Refresh Select2 if we added a fallback option
-            if (select.hasClass('select2-hidden-accessible')) {
-                select.select2('destroy');
-            }
-            select.select2({
-                theme: 'bootstrap4',
-                width: '100%',
-                dropdownParent: $('#entryModal')
-            });
-        }
-
-        setEntryAddedBy(selectedInfo || { id: '', username: null, fullName: '' });
-    }).fail(function(xhr, status, error) {
-        //console.error('Failed to load user list for User select:', { xhr, status, error });
-        //console.error('XHR Response Text:', xhr.responseText);
-        select.html('<option value="">Error loading users</option>');
-        
-        // Refresh Select2 even in error case
-        if (select.hasClass('select2-hidden-accessible')) {
-            select.select2('destroy');
-        }
-        select.select2({
-            theme: 'bootstrap4',
-            width: '100%',
-            dropdownParent: $('#entryModal')
-        });
-        
-        if (requestedId) {
-            setEntryAddedBy({ id: requestedId, username: null, fullName: fallbackName || `User #${requestedId}` });
-        }
-    }).always(function() {
-        select.prop('disabled', false);
-        select.data('loading', false);
-    });
-}
-
-function getIdentifiersCacheKey(identifiersSet) {
-    if (!identifiersSet || identifiersSet.size === 0) {
-        return '';
-    }
-    return Array.from(identifiersSet).sort().join('|');
-}
-
-function loadPatientsForUser(userId, selectedPatientId) {
-    const select = $('#entryPatient');
-    if (!select.length) {
-        return;
-    }
-
-    //console.log('Loading patients for user:', userId);
-    
-    const normalizedUserId = normalizeIdentifierValue(userId);
-    const identifiersSet = getAddedByIdentifierSet(userId);
-    const cacheKey = getIdentifiersCacheKey(identifiersSet);
-
-    if (!cacheKey) {
-        select.prop('disabled', true);
-        select.html('<option value="">Select User first</option>');
-        select.trigger('change.select2');
-        return;
-    }
-
-    const requestKey = `${cacheKey}|${Date.now()}`;
-    select.data('pendingRequestKey', requestKey);
-
-    if (cachedPatientsByIdentifiers[cacheKey]) {
-        renderPatientOptions(cachedPatientsByIdentifiers[cacheKey], selectedPatientId);
-        select.prop('disabled', cachedPatientsByIdentifiers[cacheKey].length === 0);
-        return;
-    }
-
-    select.prop('disabled', true);
-    select.html('<option value="">Loading patients...</option>');
-
-    const requestIdentifier = Array.from(identifiersSet)[0];
-
-    $.get('ajax/patient_api.php', { action: 'list', ajax: 1, added_by: requestIdentifier })
-        .done(function(response) {
-            if (select.data('pendingRequestKey') !== requestKey) {
-                return;
-            }
-
-            //console.log('Patient API Response for user', requestIdentifier, ':', response);
-
-            if (!response.success || !Array.isArray(response.data)) {
-                throw new Error(response.message || 'Unexpected response');
-            }
-
-            const filteredPatients = response.data.filter(function(patient) {
-                return recordMatchesAddedBy(patient, identifiersSet, [
-                    'added_by',
-                    'added_by_name'
-                ]);
-            }).map(function(patient) {
-                const label = patient.name || patient.uhid || `Patient #${patient.id}`;
-                return {
-                    id: patient.id,
-                    label: label
-                };
-            });
-
-            cachedPatientsByIdentifiers[cacheKey] = filteredPatients;
-            renderPatientOptions(filteredPatients, selectedPatientId);
-        })
-        .fail(function(xhr) {
-            if (select.data('pendingRequestKey') !== requestKey) {
-                return;
-            }
-            const errorMsg = getErrorMessage(xhr);
-            select.html(`<option value="">Failed to load patients (${errorMsg})</option>`);
-        })
-        .always(function() {
-            if (select.data('pendingRequestKey') === requestKey) {
-                select.removeData('pendingRequestKey');
-                const cachedList = cachedPatientsByIdentifiers[cacheKey] || [];
-                if (cachedList.length === 0) {
-                    select.html('<option value="">No patients found for selected user</option>');
-                }
-                select.prop('disabled', cachedList.length === 0);
-            }
-        });
-}
-
-function loadDoctorsForUser(userId, selectedDoctorId) {
-    const select = $('#entryDoctor');
-    //console.log('Loading doctors for user:', userId);
-    
-    const identifiersSet = getAddedByIdentifierSet(userId);
-    const cacheKey = getIdentifiersCacheKey(identifiersSet);
-
-    if (!cacheKey) {
-        select.html('<option value="">Select Doctor</option>');
-        $('#doctorFilter').html('<option value="">All Doctors</option>');
-        return;
-    }
-
-    if (cachedDoctorsByIdentifiers[cacheKey]) {
-        const { doctors, directory } = cachedDoctorsByIdentifiers[cacheKey];
-        doctorDirectory = directory;
-        renderDoctorOptions(doctors, selectedDoctorId);
-        return;
-    }
-
-    select.prop('disabled', true);
-    select.html('<option value="">Loading doctors...</option>');
-
-    const requestIdentifier = Array.from(identifiersSet)[0];
-
-    $.get('ajax/doctor_api.php', { action: 'list', ajax: 1, added_by: requestIdentifier })
-        .done(function(response) {
-            //console.log('Doctor API Response for user', requestIdentifier, ':', response);
-            
-            if (!response.success || !Array.isArray(response.data)) {
-                throw new Error(response.message || 'Unexpected response');
-            }
-            const filteredDoctors = response.data.filter(function(doctor) {
-                return recordMatchesAddedBy(doctor, identifiersSet, [
-                    'added_by',
-                    'added_by_username',
-                    'addedBy',
-                    'addedByUsername'
-                ]);
-            }).map(function(doctor) {
-                return {
-                    id: doctor.id,
-                    name: doctor.name || 'Unknown',
-                    addedByUsername: doctor.added_by_username || doctor.addedByUsername || ''
-                };
-            });
-
-            const directory = {};
-            filteredDoctors.forEach(function(doctor) {
-                directory[doctor.id] = {
-                    name: doctor.name,
-                    addedByUsername: doctor.addedByUsername || ''
-                };
-            });
-
-            cachedDoctorsByIdentifiers[cacheKey] = { doctors: filteredDoctors, directory };
-            doctorDirectory = directory;
-            renderDoctorOptions(filteredDoctors, selectedDoctorId);
-        })
-        .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
-            select.html(`<option value="">Failed to load doctors (${errorMsg})</option>`);
-        })
-        .always(function() {
-            select.prop('disabled', false);
-        });
-}
-
-// Utility to wait for Select2 availability before initializing
-function waitForSelect2(callback, attempt = 0) {
-    if (typeof jQuery !== 'undefined' && $.fn && typeof $.fn.select2 === 'function') {
-        callback();
-        return;
-    }
-    if (attempt >= 20) {
-        //console.warn('Select2 plugin did not load in time');
-        return;
-    }
-    setTimeout(function() {
-        waitForSelect2(callback, attempt + 1);
-    }, 100);
-}
-
-function initializeEntrySelect2Fields() {
-    if (!$.fn || typeof $.fn.select2 !== 'function') {
-        return;
-    }
-
-    const $selects = $('#entryModal').find('.select2');
-    if (!$selects.length) {
-        return;
-    }
-
-    $selects.each(function() {
-        const $el = $(this);
-        if ($el.hasClass('select2-hidden-accessible')) {
-            return;
-        }
-
-        $el.select2({
-            theme: 'bootstrap4',
-            width: '100%',
-            dropdownParent: $('#entryModal')
-        });
-    });
-}
-
-// Initialize page
+// Initialize page when document is ready
 $(document).ready(function() {
-    // Add global jQuery error handler
-    $(document).ajaxError(function(event, xhr, settings, error) {
-        // Only handle errors from our own AJAX calls
-        if (settings.url && (
-            settings.url.includes('ajax/') || 
-            settings.url.includes('patho_api/')
-        )) {
-            handleAjaxError(xhr, settings.status, error);
-        }
-    });
-    
-    // Initialize Select2 first
-    waitForSelect2(function() {
-        initializeEntrySelect2Fields();
-        loadDropdownsForEntry();
-        loadEntries();
-        initializeEventListeners();
-        loadStats();
-    });
+    initializePage();
 });
 
-function initializeEventListeners() {
+// Initialize page components
+function initializePage() {
+    loadStatistics();
+    initializeDataTable();
+    loadPatients();
+    loadDoctors();
+    loadTests();
+    setupEventHandlers();
+}
+
+// Load statistics
+function loadStatistics() {
+    $.ajax({
+        url: 'ajax/entry_api.php',
+        method: 'GET',
+        data: { action: 'stats' },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                $('#totalEntries').text(response.data.total || 0);
+                $('#pendingEntries').text(response.data.pending || 0);
+                $('#completedEntries').text(response.data.completed || 0);
+                $('#todayEntries').text(response.data.today || 0);
+            }
+        },
+        error: function() {
+            console.error('Failed to load statistics');
+        }
+    });
+}
+
+// Initialize DataTable
+function initializeDataTable() {
+    entriesTable = $('#entriesTable').DataTable({
+        processing: true,
+        serverSide: false,
+        ajax: {
+            url: 'ajax/entry_api.php',
+            type: 'GET',
+            data: { action: 'list' },
+            dataSrc: function(response) {
+                if (response.success) {
+                    return response.data;
+                }
+                return [];
+            }
+        },
+        columns: [
+            { 
+                data: 'id',
+                render: function(data, type, row) {
+                    return `<span class="badge badge-primary">#${data}</span>`;
+                }
+            },
+            { 
+                data: 'patient_name',
+                render: function(data, type, row) {
+                    return `<div>
+                        <strong>${data || 'N/A'}</strong>
+                        ${row.uhid ? `<br><small class="text-muted">UHID: ${row.uhid}</small>` : ''}
+                        ${row.age ? `<br><small class="text-muted">Age: ${row.age} ${row.gender || ''}</small>` : ''}
+                    </div>`;
+                }
+            },
+            { 
+                data: 'doctor_name',
+                render: function(data, type, row) {
+                    return data || '<span class="text-muted">Not assigned</span>';
+                }
+            },
+            { 
+                data: 'test_name',
+                render: function(data, type, row) {
+                    if (row.tests_count > 1) {
+                        return `<div>
+                            <span class="badge badge-info">${row.tests_count} tests</span>
+                            <br><small>${row.test_names}</small>
+                        </div>`;
+                    }
+                    return data || '<span class="text-muted">No tests</span>';
+                }
+            },
+            { 
+                data: 'status',
+                render: function(data, type, row) {
+                    const statusClass = {
+                        'pending': 'warning',
+                        'completed': 'success',
+                        'cancelled': 'danger'
+                    }[data] || 'secondary';
+                    return `<span class="badge badge-${statusClass}">${data}</span>`;
+                }
+            },
+            { 
+                data: 'final_amount',
+                render: function(data, type, row) {
+                    const amount = parseFloat(data || 0);
+                    return `₹${amount.toFixed(2)}`;
+                }
+            },
+            { 
+                data: 'entry_date',
+                render: function(data, type, row) {
+                    if (data) {
+                        const date = new Date(data);
+                        return date.toLocaleDateString('en-IN');
+                    }
+                    return '<span class="text-muted">N/A</span>';
+                }
+            },
+            { 
+                data: null,
+                orderable: false,
+                render: function(data, type, row) {
+                    return `<div class="btn-group" role="group">
+                        <button class="btn btn-info btn-sm" onclick="viewEntry(${row.id})" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="editEntry(${row.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteEntry(${row.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>`;
+                }
+            }
+        ],
+        order: [[6, 'desc']], // Sort by date descending
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        responsive: true,
+        language: {
+            processing: "Loading entries...",
+            emptyTable: "No entries found",
+            zeroRecords: "No matching entries found"
+        }
+    });
+}
+
+// Load patients for dropdown
+function loadPatients() {
+    $.ajax({
+        url: 'ajax/patient_api.php',
+        method: 'GET',
+        data: { action: 'list' },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                const patientSelect = $('#patientSelect');
+                patientSelect.empty().append('<option value="">Select Patient</option>');
+                response.data.forEach(function(patient) {
+                    patientSelect.append(`<option value="${patient.id}">${patient.name} (${patient.uhid || 'No UHID'})</option>`);
+                });
+                patientSelect.select2({
+                    placeholder: 'Select Patient',
+                    allowClear: true
+                });
+            }
+        }
+    });
+}
+
+// Load doctors for dropdown
+function loadDoctors() {
+    $.ajax({
+        url: 'ajax/doctor_api.php',
+        method: 'GET',
+        data: { action: 'list' },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                const doctorSelect = $('#doctorSelect');
+                doctorSelect.empty().append('<option value="">Select Doctor</option>');
+                response.data.forEach(function(doctor) {
+                    doctorSelect.append(`<option value="${doctor.id}">Dr. ${doctor.name}</option>`);
+                });
+                doctorSelect.select2({
+                    placeholder: 'Select Doctor',
+                    allowClear: true
+                });
+            }
+        }
+    });
+}
+
+// Load tests for dropdown
+function loadTests() {
+    $.ajax({
+        url: 'ajax/test_api.php',
+        method: 'GET',
+        data: { action: 'list' },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                const testSelects = $('.test-select');
+                testSelects.each(function() {
+                    const $this = $(this);
+                    $this.empty().append('<option value="">Select Test</option>');
+                    response.data.forEach(function(test) {
+                        $this.append(`<option value="${test.id}" data-price="${test.price || 0}">${test.name} - ₹${test.price || 0}</option>`);
+                    });
+                });
+            }
+        }
+    });
+}
+
+// Setup event handlers
+function setupEventHandlers() {
     // Form submission
     $('#entryForm').on('submit', function(e) {
         e.preventDefault();
-        saveEntryData();
+        saveEntry();
     });
-
-    $('#entryDoctor').on('change', updateDoctorAddedByDisplay);
-    $('#entryAddedBy').on('change', function() {
-        const selectedUserId = $(this).val();
-        //console.log('User changed to:', selectedUserId);
-        
-        if (selectedUserId) {
-            const cacheKey = normalizeIdentifierValue(selectedUserId);
-            if (cacheKey && cachedAddedByUsers[cacheKey]) {
-                setEntryAddedBy(cachedAddedByUsers[cacheKey]);
-            } else {
-                setEntryAddedBy({ id: selectedUserId, username: null, fullName: $(this).find('option:selected').text() });
-            }
-            
-            // Load patients and doctors for the selected user
-            loadPatientsForUser(selectedUserId);
-            loadDoctorsForUser(selectedUserId);
-        } else {
-            setEntryAddedBy({ id: '', username: null, fullName: '' });
-            
-            // Clear patient and doctor lists when no user is selected
-            $('#entryPatient').html('<option value="">Select User first</option>').prop('disabled', true);
-            $('#entryDoctor').html('<option value="">Select User first</option>').prop('disabled', true);
+    
+    // Delete confirmation
+    $('#confirmDelete').on('click', function() {
+        if (currentEntryId) {
+            performDelete(currentEntryId);
         }
     });
     
-    // Search functionality
-    $('#entriesSearch').on('input', function() {
-        applyEntriesFilters();
-    });
-
-    // Clear search button
-    $('#entriesSearchClear').click(function(e) {
-        $('#entriesSearch').val('');
-        applyEntriesFilters();
-    });
-
-    // Per page change
-    $('#entriesPerPage').change(function() {
-        entriesPerPageCount = parseInt($(this).val());
-        entriesCurrentPage = 1;
-        applyEntriesFilters();
-    });
-
-    // Modal reset on hide
-    $('#entryModal').on('hidden.bs.modal', function() {
-        resetModalForm();
-    });
-
-    $('#entryModal').on('shown.bs.modal', function() {
-        const userSelect = $('#entryAddedBy');
-        if (userSelect.length) {
-            const optionCount = userSelect.find('option').length;
-            
-            // If only has loading message or no real options, load users
-            if (optionCount <= 1 || userSelect.find('option:contains("Loading")').length > 0) {
-                loadUsersDirectly();
-            } else {
-                // Just ensure Select2 is initialized if not already
-                setTimeout(function() {
-                    if (!userSelect.hasClass('select2-hidden-accessible')) {
-                        try {
-                            userSelect.select2({
-                                theme: 'bootstrap4',
-                                width: '100%',
-                                dropdownParent: $('#entryModal'),
-                                placeholder: 'Select User',
-                                allowClear: true
-                            });
-                        } catch (error) {
-                            // Select2 failed, use regular select
-                        }
-                    }
-                }, 100);
-            }
+    // Test price auto-fill
+    $(document).on('change', '.test-select', function() {
+        const price = $(this).find('option:selected').data('price');
+        if (price) {
+            $(this).closest('.test-row').find('input[name*="[price]"]').val(price);
         }
     });
-
-    // Filter changes
-    $('#statusFilter, #doctorFilter, #testFilter, #dateFromFilter, #dateToFilter').on('change', function() {
-        entriesCurrentPage = 1;
-        applyEntriesFilters();
-    });
 }
 
-function updateDoctorAddedByDisplay() {
-    const selected = $('#entryDoctor option:selected');
-    const info = $('#doctorAddedByInfo');
-    if (!selected || !selected.val()) {
-        info.text('').hide();
-        return;
-    }
-    const addedBy = selected.data('added-by');
-    if (addedBy) {
-        info.text(`Doctor added by: ${addedBy}`).show();
-    } else {
-        const doctorId = selected.val();
-        const fallback = doctorDirectory[doctorId] && doctorDirectory[doctorId].addedByUsername;
-        if (fallback) {
-            info.text(`Doctor added by: ${fallback}`).show();
-        } else {
-            info.text('').hide();
-        }
-    }
-}
-
-function loadDropdownsForEntry() {
-    // Initialize Select2 for entry form once plugin is ready
-    waitForSelect2(function() {
-        initializeEntrySelect2Fields();
-        $('#entryAddedBy').data('forceReload', true);
-        populateAddedBySelect(currentUserId);
-        loadPatientsForUser(currentUserId);
-        loadDoctorsForUser(currentUserId);
-    });
-
-    // Load tests for filter only
-    $.get('ajax/test_api.php', { action: 'list', ajax: 1 })
-        .done(function(response) {
-            if (response.success) {
-                let filterOptions = '<option value="">All Tests</option>';
-                response.data.forEach(test => {
-                    filterOptions += `<option value="${test.id}">${test.name}</option>`;
-                });
-                $('#testFilter').html(filterOptions);
-            }
-        })
-        .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
-            if (typeof showAlert === 'function') {
-                showAlert('Failed to load tests: ' + errorMsg, 'error');
-            } else {
-                //console.error('Failed to load tests:', errorMsg);
-            }
-        });
-}
-
-function loadEntries() {
-    $.get('ajax/entry_api.php', { action: 'list', ajax: 1 })
-        .done(function(response) {
-            if (response && response.success && response.data) {
-                allEntries = response.data;
-                applyEntriesFilters();
-            } else {
-                const errorMsg = response && response.message ? response.message : 'Unknown error';
-                showAlert('Error loading entries: ' + errorMsg, 'error');
-                allEntries = [];
-                applyEntriesFilters();
-            }
-        })
-        .fail(function(xhr, status, error) {
-            handleAjaxError(xhr, status, error);
-            allEntries = [];
-            applyEntriesFilters();
-        });
-}
-
-// Simple direct function to load users
-function loadUsersDirectly() {
-    const userSelect = $('#entryAddedBy');
-    if (!userSelect.length) return;
-    
-    // Use the exact same approach as user.js
-    $.get('ajax/user_api.php', { action: 'list' })
-        .done(function(response) {
-            if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
-                // Success - populate dropdown
-                userSelect.empty();
-                userSelect.append('<option value="">Select User</option>');
-                
-                response.data.forEach(function(user) {
-                    const label = formatAddedByOptionLabel({
-                        id: user.id,
-                        username: user.username || null,
-                        fullName: user.full_name || user.username || '',
-                        userType: (user.user_type && user.user_type !== '0' && user.user_type !== 0) ? user.user_type : 'Pathology'
-                    });
-                    
-                    userSelect.append($('<option>', {
-                        value: String(user.id),
-                        text: label
-                    }));
-                });
-                
-                userSelect.prop('disabled', false);
-                
-                // Initialize Select2
-                try {
-                    userSelect.select2({
-                        theme: 'bootstrap4',
-                        width: '100%',
-                        dropdownParent: $('#entryModal'),
-                        placeholder: 'Select User',
-                        allowClear: true
-                    });
-                } catch (e) {
-                    // Select2 failed, use regular select
-                }
-                
-            } else {
-                // No users found, show fallback
-                userSelect.empty();
-                userSelect.append('<option value="">Select User</option>');
-                userSelect.append('<option value="1">Uma Yadav (uma) - Pathology</option>');
-                userSelect.append('<option value="2">Admin User (admin) - Hospital</option>');
-                userSelect.prop('disabled', false);
-            }
-        })
-        .fail(function(xhr, status, error) {
-            // Try alternative approach - use the same method as user page
-            tryAlternativeUserLoad();
-        });
-}
-
-// Alternative user loading method
-function tryAlternativeUserLoad() {
-    const userSelect = $('#entryAddedBy');
-    if (!userSelect.length) return;
-    
-    // Try to load users using the exact same approach as the user page
-    $.ajax({
-        url: 'ajax/user_api.php',
-        type: 'GET',
-        data: { action: 'list' },
-        dataType: 'json',
-        cache: false,
-        beforeSend: function(xhr) {
-            // Ensure session cookies are sent
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        }
-    })
-    .done(function(response) {
-        if (response && response.success && response.data) {
-            let users = response.data;
-            
-            // Handle both simple array and DataTables format
-            if (response.data && typeof response.data === 'object' && response.data.data) {
-                users = response.data.data;
-            }
-            
-            if (Array.isArray(users) && users.length > 0) {
-                userSelect.empty();
-                userSelect.append('<option value="">Select User</option>');
-                
-                users.forEach(function(user) {
-                    const label = formatAddedByOptionLabel({
-                        id: user.id,
-                        username: user.username || null,
-                        fullName: user.full_name || user.username || '',
-                        userType: (user.user_type && user.user_type !== '0' && user.user_type !== 0) ? user.user_type : 'Pathology'
-                    });
-                    
-                    userSelect.append($('<option>', {
-                        value: String(user.id),
-                        text: label
-                    }));
-                });
-                
-                userSelect.prop('disabled', false);
-                
-                // Initialize Select2
-                try {
-                    userSelect.select2({
-                        theme: 'bootstrap4',
-                        width: '100%',
-                        dropdownParent: $('#entryModal'),
-                        placeholder: 'Select User',
-                        allowClear: true
-                    });
-                } catch (e) {
-                    // Select2 failed, use regular select
-                }
-                
-                return;
-            }
-        }
-        
-        // If we get here, show fallback options
-        showFallbackUsers();
-    })
-    .fail(function() {
-        // Final fallback
-        showFallbackUsers();
-    });
-}
-
-// Show fallback user options
-function showFallbackUsers() {
-    const userSelect = $('#entryAddedBy');
-    if (!userSelect.length) return;
-    
-    userSelect.empty();
-    userSelect.append('<option value="">Select User</option>');
-    userSelect.append('<option value="1">Uma Yadav (uma) - Pathology</option>');
-    userSelect.append('<option value="2">Admin User (admin) - Hospital</option>');
-    userSelect.append('<option value="3">Test User (testuser) - School</option>');
-    userSelect.prop('disabled', false);
-}
-
-// Function to load real users from database
-function loadRealUsers() {
-    const userSelect = $('#entryAddedBy');
-    if (!userSelect.length) {
-        //console.log('User select not found');
-        return;
-    }
-    
-    //console.log('Loading real users from database...');
-    
-    // Set a timeout to prevent infinite loading
-    const loadingTimeout = setTimeout(function() {
-        if (userSelect.find('option:contains("Loading")').length > 0) {
-            //console.warn('Loading timeout - showing fallback options');
-            userSelect.empty();
-            userSelect.append('<option value="">Select User</option>');
-            userSelect.append('<option value="1">Uma Yadav (uma) - Pathology</option>');
-            userSelect.append('<option value="2">Admin User (admin) - Hospital</option>');
-            userSelect.prop('disabled', false);
-        }
-    }, 5000); // 5 second timeout
-    
-    // Load users using the same method as user.php page
-    $.get('ajax/user_api.php', { action: 'list' })
-        .done(function(response) {
-            // Clear the timeout since we got a response
-            clearTimeout(loadingTimeout);
-            
-            //console.log('Real users API response:', response);
-            //console.log('Response success:', response && response.success);
-            //console.log('Response data type:', typeof response.data);
-            //console.log('Response data is array:', Array.isArray(response.data));
-            //console.log('Response data length:', response.data ? response.data.length : 'N/A');
-            //console.log('Full response structure:', JSON.stringify(response, null, 2));
-            
-            if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
-                //console.log('Successfully loaded', response.data.length, 'real users from database');
-                
-                // Clear loading message
-                userSelect.empty();
-                userSelect.append('<option value="">Select User</option>');
-                
-                // Add real users from database
-                response.data.forEach(function(user) {
-                    const info = {
-                        id: user.id,
-                        username: user.username || null,
-                        fullName: user.full_name || user.username || '',
-                        userType: (user.user_type && user.user_type !== '0' && user.user_type !== 0) ? user.user_type : 'Pathology'
-                    };
-                    
-                    const label = formatAddedByOptionLabel(info);
-                    //console.log('Adding real user:', label);
-                    
-                    userSelect.append($('<option>', {
-                        value: String(info.id),
-                        text: label
-                    }));
-                });
-                
-                // Enable the select and initialize Select2
-                userSelect.prop('disabled', false);
-                
-                // Initialize Select2 with real data
-                try {
-                    userSelect.select2({
-                        theme: 'bootstrap4',
-                        width: '100%',
-                        dropdownParent: $('#entryModal'),
-                        placeholder: 'Select User',
-                        allowClear: true
-                    });
-                    //console.log('Select2 initialized with real user data');
-                } catch (error) {
-                    //console.log('Select2 initialization failed, using regular select:', error);
-                }
-                
-                //console.log('Real users loaded successfully:', userSelect.find('option').length - 1, 'users available');
-                
-                // Store the loaded state
-                userSelect.data('usersLoaded', true);
-                
-            } else {
-                //console.warn('No real users found in response:', response);
-                userSelect.empty();
-                userSelect.append('<option value="">No users found</option>');
-                userSelect.prop('disabled', true);
-            }
-        })
-        .fail(function(xhr, status, error) {
-            // Clear the timeout since we got a response (even if failed)
-            clearTimeout(loadingTimeout);
-            
-            //console.error('Failed to load real users:', { xhr, status, error });
-            //console.error('XHR Response Text:', xhr.responseText);
-            //console.error('Status:', status, 'Error:', error);
-            
-            userSelect.empty();
-            userSelect.append('<option value="">Error loading users</option>');
-            userSelect.prop('disabled', true);
-            
-            // Try fallback with different API parameters
-            //console.log('Attempting fallback API call...');
-            $.get('ajax/user_api.php', { action: 'list_simple' })
-                .done(function(fallbackResponse) {
-                    //console.log('Fallback API response:', fallbackResponse);
-                    if (fallbackResponse && fallbackResponse.success && Array.isArray(fallbackResponse.data)) {
-                        //console.log('Fallback successful, processing', fallbackResponse.data.length, 'users');
-                        
-                        userSelect.empty();
-                        userSelect.append('<option value="">Select User</option>');
-                        
-                        fallbackResponse.data.forEach(function(user) {
-                            const info = {
-                                id: user.id,
-                                username: user.username || null,
-                                fullName: user.full_name || user.username || '',
-                                userType: (user.user_type && user.user_type !== '0' && user.user_type !== 0) ? user.user_type : 'Pathology'
-                            };
-                            
-                            const label = formatAddedByOptionLabel(info);
-                            userSelect.append($('<option>', {
-                                value: String(info.id),
-                                text: label
-                            }));
-                        });
-                        
-                        userSelect.prop('disabled', false);
-                        //console.log('Fallback users loaded successfully');
-                    }
-                })
-                .fail(function() {
-                    //console.error('Fallback also failed');
-                });
-        });
-}
-
+// Open add entry modal
 function openAddEntryModal() {
-    resetModalForm();
-    $('#selectedTestsCount').text('0 tests selected');
-    $('#testsByCategoryContainer').html('<div class="alert alert-info"><i class="fas fa-info-circle mr-2"></i>No tests selected. Click "Add Test" to choose tests for this entry.</div>');
+    currentEntryId = null;
+    $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
+    $('#entryForm')[0].reset();
+    $('#entryId').val('');
+    $('#entryDate').val(new Date().toISOString().split('T')[0]);
     
-    //console.log('Opening Add Entry Modal');
+    // Reset tests container
+    $('#testsContainer').html(`
+        <div class="test-row row mb-2">
+            <div class="col-md-5">
+                <select class="form-control test-select" name="tests[0][test_id]" required>
+                    <option value="">Select Test</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="number" class="form-control" name="tests[0][price]" placeholder="Price" step="0.01" min="0" required>
+            </div>
+            <div class="col-md-3">
+                <input type="number" class="form-control" name="tests[0][discount_amount]" placeholder="Discount" step="0.01" min="0" value="0">
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `);
+    testRowCount = 1;
     
-    // Initialize user select and load users immediately
-    const userSelect = $('#entryAddedBy');
-    if (userSelect.length) {
-        // Clear any existing Select2
-        if (userSelect.hasClass('select2-hidden-accessible')) {
-            userSelect.select2('destroy');
-        }
-        
-        // Set up for dynamic loading
-        userSelect.empty();
-        userSelect.append('<option value="">Loading users...</option>');
-        userSelect.prop('disabled', true);
-        userSelect.show();
-        
-        // Load users immediately
-        loadUsersDirectly();
-    }
-    
+    loadTests();
     $('#entryModal').modal('show');
 }
 
-function applyEntriesFilters() {
-    const searchTerm = $('#entriesSearch').val().toLowerCase();
-    const statusFilter = $('#statusFilter').val();
-    const doctorFilter = $('#doctorFilter').val();
-    const testFilter = $('#testFilter').val();
-    const dateFrom = $('#dateFromFilter').val();
-    const dateTo = $('#dateToFilter').val();
-    
-    let filteredEntries = allEntries.filter(entry => {
-        // Search term filter
-        if (searchTerm && 
-            !((entry.patient_name || '').toLowerCase().includes(searchTerm)) &&
-            !((entry.doctor_name || '').toLowerCase().includes(searchTerm)) &&
-            !((entry.test_name || '').toLowerCase().includes(searchTerm)) &&
-            !(entry.id.toString().includes(searchTerm))) {
-            return false;
-        }
-        
-        // Status filter
-        if (statusFilter && entry.status !== statusFilter) {
-            return false;
-        }
-        
-        // Doctor filter
-        if (doctorFilter && entry.doctor_id != doctorFilter) {
-            return false;
-        }
-        
-        // Test filter
-        if (testFilter && entry.test_id != testFilter) {
-            return false;
-        }
-        
-        // Date range filter
-        if (dateFrom || dateTo) {
-            const entryDate = new Date(entry.entry_date || entry.created_at);
-            if (dateFrom && entryDate < new Date(dateFrom)) {
-                return false;
-            }
-            if (dateTo && entryDate > new Date(dateTo + 'T23:59:59')) {
-                return false;
-            }
-        }
-        
-        return true;
-    });
-    
-    renderEntriesTable(filteredEntries);
-}
-
-function renderEntriesTable(entries) {
-    const tbody = $('#entriesTable tbody');
-    tbody.empty();
-    
-    if (entries.length === 0) {
-        tbody.append('<tr><td colspan="9" class="text-center">No entries found</td></tr>');
-        return;
-    }
-    
-    // Calculate pagination
-    const startIndex = (entriesCurrentPage - 1) * entriesPerPageCount;
-    const endIndex = Math.min(startIndex + entriesPerPageCount, entries.length);
-    const pageEntries = entries.slice(startIndex, endIndex);
-    
-    // Render entries
-    pageEntries.forEach((entry, index) => {
-        const serialNo = startIndex + index + 1;
-        const statusClass = getStatusBadgeClass(entry.status);
-        const statusText = formatStatus(entry.status);
-        const testDate = formatDate(entry.entry_date || entry.created_at);
-        const addedBy = entry.added_by_username || 'Unknown';
-        const doctorMeta = entry.doctor_name
-            ? `${entry.doctor_name}${entry.doctor_added_by_username ? `<br><small class="text-muted">Added by: ${entry.doctor_added_by_username}</small>` : ''}`
-            : 'N/A';
-        
-        // Handle multiple tests display
-        let testDisplay = '';
-        if (entry.grouped && entry.tests_count > 1) {
-            // Multiple tests entry
-            testDisplay = `
-                <div class="multiple-tests-display">
-                    <span class="badge badge-info">${entry.tests_count} Tests</span>
-                    <small class="text-muted d-block">${entry.test_names || 'Multiple Tests'}</small>
-                </div>
-            `;
-        } else {
-            // Single test entry
-            testDisplay = `<span class="single-test-display">${entry.test_name || 'N/A'}</span>`;
-        }
-        
-        const row = `
-            <tr>
-                <td class="sr-no-cell">${serialNo}</td>
-                <td><span class="entry-id-badge">${entry.id}</span></td>
-                <td><span class="patient-name-container">${entry.patient_name || 'N/A'}</span></td>
-                <td class="doctor-cell">${doctorMeta}</td>
-                <td class="test-name-cell">${testDisplay}</td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                <td class="test-date-cell">${testDate}</td>
-                <td class="added-by-cell">${addedBy}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-info btn-sm" onclick="viewEntry(${entry.id})" title="View Details">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-warning btn-sm" onclick="editEntry(${entry.id})" title="Edit Entry">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-danger btn-sm delete-entry" data-id="${entry.id}" title="Delete Entry">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-        tbody.append(row);
-    });
-    
-    // Bind delete button events
-    $('.delete-entry').on('click', function() {
-        const id = $(this).data('id');
-        deleteEntry(id);
-    });
-}
-
-function getStatusBadgeClass(status) {
-    switch (status) {
-        case 'completed': return 'badge-success';
-        case 'pending': return 'badge-warning';
-        case 'cancelled': return 'badge-danger';
-        default: return 'badge-secondary';
-    }
-}
-
-function formatStatus(status) {
-    switch (status) {
-        case 'completed': return 'Completed';
-        case 'pending': return 'Pending';
-        case 'cancelled': return 'Cancelled';
-        default: return status.charAt(0).toUpperCase() + status.slice(1);
-    }
-}
-
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
-}
-
-function viewEntry(id) {
-    $.get('ajax/entry_api.php', { action: 'get', id: id, ajax: 1 })
-        .done(function(response) {
-            if (response.success) {
-                const entry = response.data;
-                populateViewModal(entry);
-                
-                // Load multiple tests if this is a grouped entry
-                if (entry.grouped && entry.tests_count > 1) {
-                    loadEntryTestsForView(id);
-                }
-                
-                $('#viewEntryModal').modal('show');
-            } else {
-                showAlert('Error loading entry data: ' + (response.message || 'Entry not found'), 'error');
-            }
-        })
-        .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
-            showAlert('Failed to load entry data: ' + errorMsg, 'error');
-        });
-}
-
-function editEntry(id) {
-    $.get('ajax/entry_api.php', { action: 'get', id: id, ajax: 1 })
-        .done(function(response) {
-            if (response.success) {
-                const entry = response.data;
-                populateEntryForm(entry);
-                $('#saveEntryBtn').text('Update Entry');
-                $('#testsByCategoryContainer').html('<div class="text-center py-3 text-muted"><i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...</div>');
-                $('#selectedTestsCount').text('Loading tests...');
-
-                // Load tests for editing, fallback to entry data if needed
-                loadEntryTests(id, entry);
-                
-                $('#modalTitle').text('Edit Test Entry');
-                $('#entryForm input, #entryForm textarea, #entryForm select').prop('disabled', false);
-                $('#saveEntryBtn').show();
-                $('#entryModal').modal('show');
-            } else {
-                showAlert('Error loading entry data: ' + (response.message || 'Entry not found'), 'error');
-            }
-        })
-        .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
-            showAlert('Failed to load entry data: ' + errorMsg, 'error');
-        });
-}
-
-function loadEntryTests(entryId, fallbackEntry = null) {
-    $.get('patho_api/entry.php', { action: 'get_tests', entry_id: entryId })
-        .done(function(response) {
-            if (response.success && response.data.length > 0) {
-                window.selectedTests = response.data.map(test => ({
-                    category_id: test.category_id,
-                    category_name: test.category_name || 'Unknown Category',
-                    test_id: test.test_id,
-                    test_name: test.test_name,
-                    result_value: test.result_value,
-                    unit: test.unit || test.test_unit,
-                    price: test.price,
-                    discount_amount: test.discount_amount,
-                    remarks: test.remarks,
-                    min: test.min || test.min_range_male || test.min_range_female || null,
-                    max: test.max || test.max_range_male || test.max_range_female || null
-                }));
-                updateSelectedTestsDisplay();
-            } else if (!populateSelectedTestsFromFallback(fallbackEntry)) {
-                //console.log('No detailed tests found for entry:', entryId);
-                clearSelectedTests();
-            }
-        })
-        .fail(function(xhr) {
-            //console.log('Failed to load tests for entry:', entryId);
-            if (!populateSelectedTestsFromFallback(fallbackEntry)) {
-                clearSelectedTests();
-            }
-        });
-}
-
-function populateSelectedTestsFromFallback(entry) {
-    if (!entry || !entry.test_id) {
-        return false;
-    }
-
-    window.selectedTests = [{
-        category_id: entry.category_id || null,
-        category_name: entry.category_name || 'Unknown Category',
-        test_id: entry.test_id,
-        test_name: entry.test_name || 'Selected Test',
-        result_value: entry.result_value || '',
-        unit: entry.unit || '',
-        price: parseFloat(entry.price || entry.total_price || 0),
-        discount_amount: parseFloat(entry.discount_amount || 0),
-        remarks: entry.remarks || '',
-        min: entry.min || null,
-        max: entry.max || null
-    }];
-
-    updateSelectedTestsDisplay();
-    return true;
-}
-
-function populateEntryForm(entry) {
-    $('#entryId').val(entry.id);
-    $('#entryPatient').val(entry.patient_id).trigger('change');
-    $('#entryDoctor').val(entry.doctor_id).trigger('change');
-    $('#entryAddedBy').data('prefill', entry.added_by || currentUserId);
-    $('#entryAddedBy').data('forceReload', true);
-    populateAddedBySelect(entry.added_by || currentUserId);
-    loadPatientsForUser(entry.added_by || currentUserId, entry.patient_id);
-    loadDoctorsForUser(entry.added_by || currentUserId, entry.doctor_id);
-    $('#entryStatus').val(entry.status || 'pending');
-    $('#entryNotes').val(entry.remarks || '');
-    updateDoctorAddedByDisplay();
-    
-    // Calculate and set auto-calculated fields
-    calculateEntryTotals();
-    
-    // Update selected tests display
-    updateSelectedTestsDisplay();
-}
-
-function populateViewModal(entry) {
-    $('#viewPatientName').text(entry.patient_name || 'N/A');
-    if (entry.doctor_name) {
-        const doctorInfo = `${entry.doctor_name}${entry.doctor_added_by_username ? ' (Added by ' + entry.doctor_added_by_username + ')' : ''}`;
-        $('#viewDoctorName').text(doctorInfo);
-    } else {
-        $('#viewDoctorName').text('N/A');
-    }
-    $('#viewEntryDate').text(formatDate(entry.entry_date || entry.created_at));
-    $('#viewEntryStatus').text(entry.status || 'pending');
-    $('#viewEntryNotes').text(entry.remarks || 'N/A');
-    
-    // Format currency values
-    const totalPrice = parseFloat(entry.price || 0);
-    const discount = parseFloat(entry.discount_amount || 0);
-    const finalAmount = totalPrice - discount;
-    
-    $('#viewTotalPrice').text('₹' + totalPrice.toFixed(2));
-    $('#viewDiscount').text('₹' + discount.toFixed(2));
-    $('#viewFinalAmount').text('₹' + finalAmount.toFixed(2));
-    
-    // Show primary test if available
-    if (entry.test_name) {
-        $('#viewSelectedTests').html(`
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">${entry.test_name}</h6>
-                    <p class="card-text">Primary Test</p>
-                </div>
+// Add test row
+function addTestRow() {
+    const newRow = `
+        <div class="test-row row mb-2">
+            <div class="col-md-5">
+                <select class="form-control test-select" name="tests[${testRowCount}][test_id]" required>
+                    <option value="">Select Test</option>
+                </select>
             </div>
-        `);
-    } else {
-        $('#viewSelectedTests').html(`
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle mr-2"></i>
-                No primary test found for this entry.
+            <div class="col-md-3">
+                <input type="number" class="form-control" name="tests[${testRowCount}][price]" placeholder="Price" step="0.01" min="0" required>
             </div>
-        `);
-    }
-    
-    // Store entry ID for edit functionality
-    $('#editFromViewBtn').data('entry-id', entry.id);
-}
-
-function loadEntryTestsForView(entryId) {
-    $.get('patho_api/entry.php', { action: 'get_tests', entry_id: entryId })
-        .done(function(response) {
-            if (response.success && response.data.length > 0) {
-                let testsHtml = '<div class="row">';
-                response.data.forEach(test => {
-                    testsHtml += `
-                        <div class="col-md-6 mb-3">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h6 class="card-title">${test.test_name}</h6>
-                                    <p class="card-text">
-                                        <small class="text-muted">
-                                            Category: ${test.category_name || 'N/A'}<br>
-                                            Result: ${test.result_value || 'Pending'}<br>
-                                            Unit: ${test.unit || 'N/A'}<br>
-                                            Price: ₹${parseFloat(test.price || 0).toFixed(2)}
-                                        </small>
-                                    </p>
-                                    ${test.remarks ? `<p class="card-text"><small><strong>Remarks:</strong> ${test.remarks}</small></p>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                testsHtml += '</div>';
-                $('#viewSelectedTests').html(testsHtml);
-            }
-        })
-        .fail(function(xhr) {
-            //console.log('Failed to load tests for view:', xhr);
-        });
-}
-
-function saveEntryData() {
-    // Validate form first
-    if (!validateModalForm('entryForm')) {
-        return false;
-    }
-    
-    const data = $('#entryForm').serialize() + '&action=save&ajax=1';
-    const isEdit = $('#entryId').val();
-    
-    const submitBtn = $('#entryForm button[type="submit"]');
-    const originalText = submitBtn.html();
-    submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
-
-    $.post('ajax/entry_api.php', data)
-        .done(function(response) {
-            if (response.success) {
-                toastr.success(isEdit ? 'Entry updated successfully!' : 'Entry added successfully!');
-                $('#entryModal').modal('hide');
-                loadEntries();
-                loadStats();
-            } else {
-                toastr.error('Error: ' + (response.message || 'Save failed'));
-            }
-        })
-        .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
-            toastr.error('Failed to save entry: ' + errorMsg);
-        })
-        .always(function() {
-            submitBtn.html(originalText).prop('disabled', false);
-        });
-}
-
-function deleteEntry(id) {
-    if (!confirm('Are you sure you want to delete this entry?')) {
-        return;
-    }
-
-    $.post('ajax/entry_api.php', { action: 'delete', id: id, ajax: 1 })
-        .done(function(response) {
-            if (response.success) {
-                toastr.success('Entry deleted successfully!');
-                loadEntries();
-                loadStats();
-            } else {
-                toastr.error('Error deleting entry: ' + (response.message || 'Delete failed'));
-            }
-        })
-        .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
-            toastr.error('Failed to delete entry: ' + errorMsg);
-        });
-}
-
-function clearFilters() {
-    $('#statusFilter').val('');
-    $('#doctorFilter').val('');
-    $('#testFilter').val('');
-    $('#dateFromFilter').val('');
-    $('#dateToFilter').val('');
-    $('#entriesSearch').val('');
-    entriesCurrentPage = 1;
-    applyEntriesFilters();
-}
-
-function loadStats() {
-    $.get('ajax/entry_api.php', { action: 'stats', ajax: 1 })
-        .done(function(response) {
-            if (response.success) {
-                const stats = response.data;
-                $('#totalEntries').text(stats.total || 0);
-                $('#pendingEntries').text(stats.pending || 0);
-                $('#completedEntries').text(stats.completed || 0);
-                $('#todayEntries').text(stats.today || 0);
-            }
-        })
-        .fail(function() {
-            //console.error('Failed to load entry statistics');
-        });
-}
-
-function exportEntries() {
-    // Simple CSV export of current filtered data
-    const searchTerm = $('#entriesSearch').val().toLowerCase();
-    const statusFilter = $('#statusFilter').val();
-    const doctorFilter = $('#doctorFilter').val();
-    const testFilter = $('#testFilter').val();
-    const dateFrom = $('#dateFromFilter').val();
-    const dateTo = $('#dateToFilter').val();
-    
-    let filteredEntries = allEntries.filter(entry => {
-        // Apply same filters as in applyEntriesFilters
-        if (searchTerm && 
-            !((entry.patient_name || '').toLowerCase().includes(searchTerm)) &&
-            !((entry.doctor_name || '').toLowerCase().includes(searchTerm)) &&
-            !((entry.test_name || '').toLowerCase().includes(searchTerm)) &&
-            !(entry.id.toString().includes(searchTerm))) {
-            return false;
-        }
-        
-        if (statusFilter && entry.status !== statusFilter) {
-            return false;
-        }
-        
-        if (doctorFilter && entry.doctor_id != doctorFilter) {
-            return false;
-        }
-        
-        if (testFilter && entry.test_id != testFilter) {
-            return false;
-        }
-        
-        if (dateFrom || dateTo) {
-            const entryDate = new Date(entry.entry_date || entry.created_at);
-            if (dateFrom && entryDate < new Date(dateFrom)) {
-                return false;
-            }
-            if (dateTo && entryDate > new Date(dateTo + 'T23:59:59')) {
-                return false;
-            }
-        }
-        
-        return true;
-    });
-    
-    if (filteredEntries.length === 0) {
-        toastr.warning('No entries to export');
-        return;
-    }
-    
-    // Create CSV content
-    const headers = ['ID', 'Patient Name', 'Doctor Name', 'Test Name', 'Status', 'Entry Date', 'User'];
-    let csvContent = headers.join(',') + '\n';
-    
-    filteredEntries.forEach(entry => {
-        const row = [
-            entry.id,
-            `"${(entry.patient_name || 'N/A').replace(/"/g, '""')}"`,
-            `"${(entry.doctor_name || 'N/A').replace(/"/g, '""')}"`,
-            `"${(entry.test_name || 'N/A').replace(/"/g, '""')}"`,
-            entry.status,
-            entry.entry_date || entry.created_at || 'N/A',
-            entry.added_by_username || 'N/A'
-        ];
-        csvContent += row.join(',') + '\n';
-    });
-    
-    // Download CSV
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `test_entries_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function validateModalForm(formId) {
-    let isValid = true;
-    const form = $('#' + formId);
-    
-    // Reset validation states
-    form.find('.is-invalid').removeClass('is-invalid');
-    
-    // Check required fields
-    form.find('[required]').each(function() {
-        const field = $(this);
-        const value = field.val();
-        if (!value || value.trim() === '') {
-            field.addClass('is-invalid');
-            isValid = false;
-        }
-    });
-    
-    // Check if at least one test is selected
-    if (typeof window.selectedTests !== 'undefined' && window.selectedTests.length === 0) {
-        showAlert('Please add at least one test to this entry', 'error');
-        isValid = false;
-    }
-    
-    if (!isValid) {
-        showAlert('Please fill in all required fields and add at least one test', 'error');
-    }
-    
-    return isValid;
-}
-
-function resetModalForm() {
-    $('#entryForm')[0].reset();
-    $('#entryForm input, #entryForm textarea, #entryForm select').prop('disabled', false);
-    $('#entryForm .is-invalid').removeClass('is-invalid');
-    $('#modalTitle').text('Add New Test Entry');
-    $('#saveEntryBtn').show();
-    $('.select2').trigger('change');
-    $('#entryAddedBy').data('prefill', currentUserId);
-    $('#entryAddedBy').data('forceReload', true);
-    populateAddedBySelect(currentUserId);
-    loadPatientsForUser(currentUserId);
-    loadDoctorsForUser(currentUserId);
-    updateDoctorAddedByDisplay();
-}
-
-function getErrorMessage(xhr) {
-    try {
-        if (!xhr || !xhr.responseText) {
-            return 'Network error or empty response';
-        }
-        const response = JSON.parse(xhr.responseText);
-        return response.message || response.error || xhr.statusText || 'Unknown error';
-    } catch (e) {
-        return xhr.statusText || 'Unknown error';
-    }
-}
-
-// Enhanced AJAX error handling
-function handleAjaxError(xhr, status, error) {
-    //console.warn('AJAX Error:', { xhr, status, error });
-    
-    // Don't show alerts for browser extension related errors
-    if (status === 'abort' || 
-        (xhr && xhr.status === 0) || 
-        error === 'abort') {
-        return;
-    }
-    
-    const errorMsg = getErrorMessage(xhr);
-    showAlert('Request failed: ' + errorMsg, 'error');
-}
-
-// Event handlers using delegation
-$(document).on('click', '.edit-entry', function() {
-    const id = $(this).data('id');
-    editEntry(id);
-});
-
-$(document).on('click', '#editFromViewBtn', function() {
-    const entryId = $(this).data('entry-id');
-    if (entryId) {
-        $('#viewEntryModal').modal('hide');
-        editEntry(entryId);
-    }
-});
-
-// Multiple Tests Management - using global scope
-window.selectedTests = window.selectedTests || [];
-
-function updateSelectedTestsCount() {
-    const count = window.selectedTests.length;
-    const label = count === 0 ? '0 tests selected' : `${count} test${count === 1 ? '' : 's'} selected`;
-    $('#selectedTestsCount').text(label);
-}
-
-// Add Test Functions
-function showAddTestInterface() {
-    $('#addTestInterface').show();
-    loadCategories();
-    // Reset the interface
-    $('#testCategorySelect').val('');
-    $('#testSelect').val('').html('<option value="">Choose category first...</option>');
-}
-
-function hideAddTestInterface() {
-    $('#addTestInterface').hide();
-    // Clear the interface
-    $('#testCategorySelect').val('');
-    $('#testSelect').val('').html('<option value="">Choose category first...</option>');
-}
-
-function loadCategories() {
-    $.get('ajax/test_category_api.php', { action: 'list', ajax: 1 })
-        .done(function(response) {
-            if (response && response.success && response.data) {
-                let options = '<option value="">Choose a category...</option>';
-                response.data.forEach(category => {
-                    options += `<option value="${category.id}">${category.name || 'Unknown'}</option>`;
-                });
-                $('#testCategorySelect').html(options);
-            } else {
-                $('#testCategorySelect').html('<option value="">No categories available</option>');
-            }
-        })
-        .fail(function(xhr) {
-            const errorMsg = getErrorMessage(xhr);
-            showAlert('Failed to load categories: ' + errorMsg, 'error');
-            $('#testCategorySelect').html('<option value="">Error loading categories</option>');
-        });
-}
-
-function loadTestsForCategory() {
-    const categoryId = $('#testCategorySelect').val();
-    
-    if (!categoryId) {
-        $('#testSelect').val('').html('<option value="">Choose category first...</option>');
-        return;
-    }
-    
-    $('#testSelect').html('<option value="">Loading tests...</option>');
-    
-    $.get('ajax/test_api.php', { action: 'list', category_id: categoryId, ajax: 1 })
-        .done(function(response) {
-            if (response.success) {
-                populateTestSelect(response.data);
-                } else {
-                $('#testSelect').html('<option value="">Error loading tests</option>');
-                }
-            })
-            .fail(function(xhr) {
-            $('#testSelect').html('<option value="">Error loading tests</option>');
-        });
-}
-
-function populateTestSelect(tests) {
-    if (tests.length === 0) {
-        $('#testSelect').html('<option value="">No tests in this category</option>');
-        return;
-    }
-    
-    let options = '<option value="">Select a test...</option>';
-    tests.forEach(test => {
-        const isSelected = window.selectedTests.some(t => t.test_id == test.id);
-        const disabledAttr = isSelected ? ' disabled' : '';
-        const selectedText = isSelected ? ' (Already Added)' : '';
-        
-        options += `<option value="${test.id}" data-test='${JSON.stringify(test)}'${disabledAttr}>${test.name} - ₹${parseFloat(test.price || 0).toFixed(2)}${selectedText}</option>`;
-    });
-    
-    $('#testSelect').html(options);
-}
-
-
-function addSelectedTest() {
-    const testId = $('#testSelect').val();
-    const selectedOption = $('#testSelect option:selected');
-    
-    if (!testId) {
-        showAlert('Please select a test', 'error');
-        return;
-    }
-    
-    const testData = JSON.parse(selectedOption.data('test'));
-    
-    // Check if test is already selected
-    const isAlreadyAdded = window.selectedTests.some(t => t.test_id == testId);
-    if (isAlreadyAdded) {
-        showAlert('This test is already added to the entry', 'warning');
-        return;
-    }
-    
-    // Add the test
-    window.selectedTests.push({
-        category_id: testData.category_id,
-        category_name: testData.category_name,
-        test_id: testData.id,
-        test_name: testData.name,
-        result_value: '',
-        unit: testData.unit,
-        price: testData.price,
-        discount_amount: 0,
-        remarks: '',
-        min: testData.min || null,
-        max: testData.max || null
-    });
-    
-    updateSelectedTestsDisplay();
-    showAlert('Test added successfully', 'success');
-    
-    // Refresh the test dropdown to show updated status
-    loadTestsForCategory();
-    
-    // Clear the selection
-    $('#testSelect').val('');
-}
-
-
-
-
-
-
-function calculateEntryTotals() {
-    let totalAmount = 0;
-    let totalDiscount = 0;
-    
-    // Calculate from selected tests
-    window.selectedTests.forEach(test => {
-        totalAmount += parseFloat(test.price) || 0;
-        totalDiscount += parseFloat(test.discount_amount) || 0;
-    });
-    
-    // Set the calculated values
-    $('#entryAmount').val(totalAmount.toFixed(2));
-    
-    // Calculate discount percentage
-    const discountPercentage = totalAmount > 0 ? (totalDiscount / totalAmount) * 100 : 0;
-    $('#entryDiscount').val(discountPercentage.toFixed(2));
-    
-    //console.log('Calculated totals:', { totalAmount, totalDiscount, discountPercentage });
-}
-
-function updateSelectedTestsDisplay() {
-    const container = $('#testsByCategoryContainer');
-    //console.log('updateSelectedTestsDisplay called, selectedTests:', window.selectedTests.length);
-    updateSelectedTestsCount();
-    
-    if (window.selectedTests.length === 0) {
-        container.html('<div class="alert alert-info"><i class="fas fa-info-circle mr-2"></i>No tests selected. Click "Add Test" to choose tests for this entry.</div>');
-        calculateEntryTotals(); // Update totals even when no tests
-        return;
-    }
-    
-    let html = '';
-    window.selectedTests.forEach((test, index) => {
-        // Format test range if available
-        const testRange = test.min && test.max ? `${test.min}-${test.max}` : 'N/A';
-        const testValue = test.result_value || 'Pending';
-        const testUnit = test.unit || 'N/A';
-        
-        // Single line format: Value | Range | Unit
-        const valueRangeUnit = `${testValue} | ${testRange} | ${testUnit}`;
-        
-        html += `
-            <div class="card mb-2">
-                <div class="card-body py-2">
-                    <div class="row align-items-center">
-                        <div class="col-md-4">
-                            <strong>${test.test_name}</strong>
-                            <br><small class="text-info">${test.category_name}</small>
-                        </div>
-                        <div class="col-md-4">
-                            <small class="text-primary">
-                                <strong>Value:</strong> ${testValue} | 
-                                <strong>Range:</strong> ${testRange} | 
-                                <strong>Unit:</strong> ${testUnit}
-                            </small>
-                        </div>
-                        <div class="col-md-2">
-                            <small class="text-muted">Price: ₹${parseFloat(test.price || 0).toFixed(2)}</small>
-                        </div>
-                        <div class="col-md-2 text-right">
-                            <button type="button" class="btn btn-sm btn-outline-primary mr-1" onclick="editTestDetails(${test.test_id})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger" onclick="removeTestFromEntry(${test.test_id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            <div class="col-md-3">
+                <input type="number" class="form-control" name="tests[${testRowCount}][discount_amount]" placeholder="Discount" step="0.01" min="0" value="0">
             </div>
-        `;
-    });
-    
-    container.html(html);
-    
-    // Update calculated totals
-    calculateEntryTotals();
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    $('#testsContainer').append(newRow);
+    testRowCount++;
+    loadTests();
 }
 
-function clearSelectedTests() {
-    window.selectedTests = [];
-    updateSelectedTestsDisplay();
+// Remove test row
+function removeTestRow(button) {
+    $(button).closest('.test-row').remove();
 }
 
-function editTestDetails(testId) {
-    const test = window.selectedTests.find(t => t.test_id == testId);
-    if (!test) return;
-    
-    const newResultValue = prompt(`Enter result value for ${test.test_name}:`, test.result_value || '');
-    if (newResultValue !== null) {
-        test.result_value = newResultValue;
-        updateSelectedTestsDisplay();
-        showAlert('Test details updated', 'success');
-    }
-}
-
-function removeTestFromEntry(testId) {
-    if (confirm('Are you sure you want to remove this test from the entry?')) {
-        window.selectedTests = window.selectedTests.filter(test => test.test_id != testId);
-        updateSelectedTestsDisplay();
-        showAlert('Test removed successfully', 'success');
-    }
-}
-
-
-// Override the saveEntryData function to handle multiple tests
-function saveEntryData() {
-    if (!validateModalForm('entryForm')) {
-        return;
-    }
-    
-    // Check if at least one test is selected
-    if (window.selectedTests.length === 0) {
-        showAlert('Please add at least one test to this entry', 'error');
-        return;
-    }
-    
+// Save entry
+function saveEntry() {
     const formData = new FormData($('#entryForm')[0]);
     
-    // Add selected tests to form data
-    formData.append('tests', JSON.stringify(window.selectedTests));
-    formData.append('action', 'save');
-    formData.append('ajax', 1);
+    // Convert tests data to JSON
+    const tests = [];
+    $('.test-row').each(function() {
+        const testId = $(this).find('.test-select').val();
+        const price = $(this).find('input[name*="[price]"]').val();
+        const discount = $(this).find('input[name*="[discount_amount]"]').val();
+        
+        if (testId && price) {
+            tests.push({
+                test_id: testId,
+                price: parseFloat(price),
+                discount_amount: parseFloat(discount || 0)
+            });
+        }
+    });
     
-    const entryId = $('#entryId').val();
-    const isEdit = entryId && entryId !== '';
-    const submitBtn = $('#saveEntryBtn');
-    const originalText = submitBtn.html();
-    submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+    formData.set('tests', JSON.stringify(tests));
     
     $.ajax({
         url: 'ajax/entry_api.php',
-        type: 'POST',
+        method: 'POST',
         data: formData,
         processData: false,
         contentType: false,
-        dataType: 'json'
-    })
-    .done(function(response) {
-        if (response.success) {
-            showAlert(response.message || 'Entry saved successfully', 'success');
-            $('#entryModal').modal('hide');
-            loadEntries();
-            loadStats();
-        } else {
-            showAlert('Error saving entry: ' + (response.message || 'Unknown error'), 'error');
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                toastr.success(response.message || 'Entry saved successfully');
+                $('#entryModal').modal('hide');
+                refreshTable();
+                loadStatistics();
+            } else {
+                toastr.error(response.message || 'Failed to save entry');
+            }
+        },
+        error: function() {
+            toastr.error('An error occurred while saving the entry');
         }
-    })
-    .fail(function(xhr) {
-        const errorMsg = getErrorMessage(xhr);
-        showAlert('Failed to save entry: ' + errorMsg, 'error');
-    })
-    .always(function() {
-        submitBtn.prop('disabled', false).html(originalText);
     });
 }
 
-// Override the resetModalForm function to clear selected tests
-function resetModalForm() {
-    $('#entryForm')[0].reset();
-    $('#entryId').val('');
-    $('#entryPatient').val('').trigger('change');
-    $('#entryDoctor').val('').trigger('change');
-    $('#entryStatus').val('pending');
-    $('#entryAmount').val('');
-    $('#entryDiscount').val('');
-    $('#entryNotes').val('');
-    
-    // Don't interfere with user select - let it keep its options
-    // $('#entryAddedBy').data('prefill', currentUserId);
-    // $('#entryAddedBy').data('forceReload', true);
-    // $('#entryAddedBy').data('loaded', false);
-    // populateAddedBySelect(currentUserId);
-
-    // Clear selected tests
-    clearSelectedTests();
-    
-    // Clear add test interface
-    hideAddTestInterface();
-    
-    // Reset modal title and buttons
-    $('#modalTitle').text('Add New Test Entry');
-    $('#entryForm input, #entryForm textarea, #entryForm select').prop('disabled', false);
+// View entry
+function viewEntry(id) {
+    $.ajax({
+        url: 'ajax/entry_api.php',
+        method: 'GET',
+        data: { action: 'get', id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                displayEntryDetails(response.data);
+                $('#viewEntryModal').modal('show');
+            } else {
+                toastr.error(response.message || 'Failed to load entry details');
+            }
+        }
+    });
 }
 
-// Add missing utility functions
-function getScopedUserIds(pdo, userData) {
-    // This function should be implemented based on your permission system
-    // For now, return null to allow all users to see their own data
-    return null;
+// Display entry details
+function displayEntryDetails(entry) {
+    const details = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6><strong>Entry Information</strong></h6>
+                <p><strong>ID:</strong> #${entry.id}</p>
+                <p><strong>Date:</strong> ${new Date(entry.entry_date).toLocaleDateString('en-IN')}</p>
+                <p><strong>Status:</strong> <span class="badge badge-${entry.status === 'completed' ? 'success' : entry.status === 'pending' ? 'warning' : 'danger'}">${entry.status}</span></p>
+                <p><strong>Tests Count:</strong> ${entry.tests_count || 0}</p>
+            </div>
+            <div class="col-md-6">
+                <h6><strong>Patient Information</strong></h6>
+                <p><strong>Name:</strong> ${entry.patient_name || 'N/A'}</p>
+                <p><strong>UHID:</strong> ${entry.uhid || 'N/A'}</p>
+                <p><strong>Age/Gender:</strong> ${entry.age ? entry.age + ' ' + (entry.gender || '') : 'N/A'}</p>
+                <p><strong>Doctor:</strong> ${entry.doctor_name || 'Not assigned'}</p>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6><strong>Tests & Pricing</strong></h6>
+                <p><strong>Tests:</strong> ${entry.test_names || 'No tests'}</p>
+                <p><strong>Total Amount:</strong> ₹${parseFloat(entry.final_amount || 0).toFixed(2)}</p>
+                ${entry.notes ? `<p><strong>Notes:</strong> ${entry.notes}</p>` : ''}
+            </div>
+        </div>
+    `;
+    $('#entryDetails').html(details);
 }
 
-// Fix the missing test count variable issue
-function updateSelectedTestsCount() {
-    const count = window.selectedTests.length;
-    const label = count === 0 ? '0 tests selected' : `${count} test${count === 1 ? '' : 's'} selected`;
-    $('#selectedTestsCount').text(label);
+// Edit entry
+function editEntry(id) {
+    // Similar to view but populate form for editing
+    $.ajax({
+        url: 'ajax/entry_api.php',
+        method: 'GET',
+        data: { action: 'get', id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                populateEditForm(response.data);
+                $('#entryModal').modal('show');
+            } else {
+                toastr.error(response.message || 'Failed to load entry for editing');
+            }
+        }
+    });
 }
 
-// Global scope initialization is handled above
+// Populate edit form
+function populateEditForm(entry) {
+    currentEntryId = entry.id;
+    $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
+    $('#entryId').val(entry.id);
+    $('#patientSelect').val(entry.patient_id).trigger('change');
+    $('#doctorSelect').val(entry.doctor_id).trigger('change');
+    $('#entryDate').val(entry.entry_date);
+    $('#entryStatus').val(entry.status);
+    $('#entryNotes').val(entry.notes || '');
+    
+    // For now, we'll show a simple edit form
+    // In a full implementation, you'd populate the tests section
+}
 
-// Fix the missing testsCount variable in the list function
-function fixTestsCountVariable() {
-    // This fixes the undefined testsCount variable issue
-    if (typeof window.testsCount === 'undefined') {
-        window.testsCount = 0;
+// Delete entry
+function deleteEntry(id) {
+    currentEntryId = id;
+    $('#deleteModal').modal('show');
+}
+
+// Perform delete
+function performDelete(id) {
+    $.ajax({
+        url: 'ajax/entry_api.php',
+        method: 'POST',
+        data: { action: 'delete', id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                toastr.success(response.message || 'Entry deleted successfully');
+                $('#deleteModal').modal('hide');
+                refreshTable();
+                loadStatistics();
+            } else {
+                toastr.error(response.message || 'Failed to delete entry');
+            }
+        },
+        error: function() {
+            toastr.error('An error occurred while deleting the entry');
+        }
+    });
+}
+
+// Apply filters
+function applyFilters() {
+    const status = $('#statusFilter').val();
+    const dateFilter = $('#dateFilter').val();
+    const patient = $('#patientFilter').val();
+    const doctor = $('#doctorFilter').val();
+    
+    // Add custom filtering logic here
+    // For now, we'll use DataTables built-in search
+    let searchTerm = '';
+    if (patient) searchTerm += patient + ' ';
+    if (doctor) searchTerm += doctor + ' ';
+    
+    entriesTable.search(searchTerm).draw();
+}
+
+// Filter by status
+function filterByStatus(status) {
+    $('#statusFilter').val(status).trigger('change');
+    applyFilters();
+}
+
+// Filter by date
+function filterByDate(dateFilter) {
+    $('#dateFilter').val(dateFilter).trigger('change');
+    applyFilters();
+}
+
+// Export entries
+function exportEntries() {
+    // Show export options modal
+    const status = $('#statusFilter').val();
+    const dateFilter = $('#dateFilter').val();
+    
+    const exportModal = `
+        <div class="modal fade" id="exportModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-success">
+                        <h5 class="modal-title"><i class="fas fa-download mr-1"></i>Export Entries</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Export Format:</label>
+                            <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
+                                <label class="btn btn-outline-primary active">
+                                    <input type="radio" name="exportFormat" value="csv" checked> CSV
+                                </label>
+                                <label class="btn btn-outline-success">
+                                    <input type="radio" name="exportFormat" value="json"> JSON
+                                </label>
+                                <label class="btn btn-outline-info">
+                                    <input type="radio" name="exportFormat" value="excel"> Excel
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Export Options:</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="includeFilters" checked>
+                                <label class="form-check-label" for="includeFilters">
+                                    Include current filters
+                                </label>
+                            </div>
+                        </div>
+                        ${status || dateFilter ? `
+                        <div class="alert alert-info">
+                            <strong>Current Filters:</strong><br>
+                            ${status ? `Status: ${status}<br>` : ''}
+                            ${dateFilter ? `Date: ${dateFilter}<br>` : ''}
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success" onclick="performExport('${status}', '${dateFilter}')">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    $('#exportModal').remove();
+    
+    // Add modal to body
+    $('body').append(exportModal);
+    
+    // Show modal
+    $('#exportModal').modal('show');
+}
+
+// Perform export
+function performExport(status, dateFilter) {
+    const format = $('input[name="exportFormat"]:checked').val();
+    const includeFilters = $('#includeFilters').is(':checked');
+    
+    let exportUrl = `ajax/entry_api.php?action=export&format=${format}`;
+    
+    if (includeFilters) {
+        if (status) exportUrl += `&status=${status}`;
+        if (dateFilter) exportUrl += `&date=${dateFilter}`;
     }
-    return window.testsCount;
+    
+    // Close modal
+    $('#exportModal').modal('hide');
+    
+    // Show loading
+    toastr.info('Preparing export...', 'Export', {timeOut: 2000});
+    
+    if (format === 'csv') {
+        // Direct download for CSV
+        window.open(exportUrl, '_blank');
+    } else {
+        // Handle other formats
+        $.ajax({
+            url: exportUrl,
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    if (format === 'json') {
+                        // Download JSON file
+                        const blob = new Blob([JSON.stringify(response.data, null, 2)], {type: 'application/json'});
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `entries_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    } else if (format === 'excel') {
+                        // Convert to Excel format (simplified - would need a proper Excel library for full functionality)
+                        exportToExcel(response.data);
+                    }
+                    toastr.success(`Export completed successfully! ${response.total} entries exported.`);
+                } else {
+                    toastr.error(response.message || 'Export failed');
+                }
+            },
+            error: function() {
+                toastr.error('Export failed. Please try again.');
+            }
+        });
+    }
 }
+
+// Export to Excel (simplified version)
+function exportToExcel(data) {
+    // Create HTML table for Excel
+    let html = '<table border="1"><tr>';
+    
+    // Headers
+    if (data.length > 0) {
+        Object.keys(data[0]).forEach(key => {
+            html += `<th>${key}</th>`;
+        });
+        html += '</tr>';
+        
+        // Data rows
+        data.forEach(row => {
+            html += '<tr>';
+            Object.values(row).forEach(value => {
+                html += `<td>${value}</td>`;
+            });
+            html += '</tr>';
+        });
+    }
+    
+    html += '</table>';
+    
+    // Create and download file
+    const blob = new Blob([html], {type: 'application/vnd.ms-excel'});
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `entries_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+// Refresh table
+function refreshTable() {
+    entriesTable.ajax.reload();
+}
+
+// Initialize Select2 for modals
+$(document).ready(function() {
+    $('.select2').select2({
+        dropdownParent: $('#entryModal')
+    });
+});
 </script>
 
-<?php require_once 'inc/footer.php'; ?>
+<?php include 'inc/footer.php'; ?>

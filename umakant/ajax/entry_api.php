@@ -648,6 +648,142 @@ try {
         json_response(['success' => true, 'message' => 'Entry deleted']);
     }
 
+    if ($action === 'export') {
+        // Check permission
+        if (!simpleCheckPermission($user_data, 'list')) {
+            json_response(['success' => false, 'message' => 'Permission denied to export entries'], 403);
+        }
+        
+        // Get export parameters
+        $format = $_GET['format'] ?? 'csv';
+        $status = $_GET['status'] ?? '';
+        $dateFilter = $_GET['date'] ?? '';
+        
+        // Build query with filters
+        $viewerRole = $user_data['role'] ?? 'user';
+        $viewerId = (int)($user_data['user_id'] ?? 0);
+        $scopeWhere = '';
+        $params = [];
+        
+        if ($viewerRole !== 'master') {
+            $scopeWhere = ' WHERE e.added_by = ?';
+            $params[] = $viewerId;
+        }
+        
+        // Add status filter
+        if ($status) {
+            if ($scopeWhere) {
+                $scopeWhere .= ' AND e.status = ?';
+            } else {
+                $scopeWhere = ' WHERE e.status = ?';
+            }
+            $params[] = $status;
+        }
+        
+        // Add date filter
+        if ($dateFilter) {
+            $dateCondition = '';
+            switch ($dateFilter) {
+                case 'today':
+                    $dateCondition = 'DATE(COALESCE(e.entry_date, e.created_at)) = CURDATE()';
+                    break;
+                case 'yesterday':
+                    $dateCondition = 'DATE(COALESCE(e.entry_date, e.created_at)) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)';
+                    break;
+                case 'this_week':
+                    $dateCondition = 'DATE(COALESCE(e.entry_date, e.created_at)) >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)';
+                    break;
+                case 'this_month':
+                    $dateCondition = 'MONTH(COALESCE(e.entry_date, e.created_at)) = MONTH(CURDATE()) AND YEAR(COALESCE(e.entry_date, e.created_at)) = YEAR(CURDATE())';
+                    break;
+            }
+            
+            if ($dateCondition) {
+                if ($scopeWhere) {
+                    $scopeWhere .= ' AND ' . $dateCondition;
+                } else {
+                    $scopeWhere = ' WHERE ' . $dateCondition;
+                }
+            }
+        }
+        
+        // Get entry tests aggregation
+        $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
+        if ($entryTestsCaps['table_exists']) {
+            $aggSql = build_entry_tests_aggregation_sql($pdo);
+            $aggSelect = "COALESCE(agg.tests_count, 0) AS tests_count,
+                   COALESCE(agg.test_names, '') AS test_names,
+                   COALESCE(agg.total_price, 0) AS total_price,
+                   COALESCE(agg.total_discount, 0) AS total_discount";
+            $aggJoin = " LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id";
+        } else {
+            $aggSelect = "0 AS tests_count, '' AS test_names, 0 AS total_price, 0 AS total_discount";
+            $aggJoin = '';
+        }
+        
+        $sql = "SELECT e.id, e.entry_date, e.status, e.created_at,
+                       p.name AS patient_name, p.uhid, p.age, p.sex,
+                       d.name AS doctor_name,
+                       {$aggSelect}
+                FROM entries e 
+                LEFT JOIN patients p ON e.patient_id = p.id 
+                LEFT JOIN doctors d ON e.doctor_id = d.id" .
+                $aggJoin .
+                $scopeWhere .
+                " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Format data for export
+        $exportData = [];
+        foreach ($rows as $row) {
+            $finalAmount = max((float)($row['total_price'] ?? 0) - (float)($row['total_discount'] ?? 0), 0);
+            $exportData[] = [
+                'ID' => $row['id'],
+                'Date' => $row['entry_date'] ? date('d/m/Y', strtotime($row['entry_date'])) : '',
+                'Patient Name' => $row['patient_name'] ?? '',
+                'UHID' => $row['uhid'] ?? '',
+                'Age/Gender' => ($row['age'] ? $row['age'] : '') . ($row['sex'] ? ' ' . $row['sex'] : ''),
+                'Doctor' => $row['doctor_name'] ?? '',
+                'Tests' => $row['test_names'] ?? '',
+                'Tests Count' => $row['tests_count'] ?? 0,
+                'Status' => ucfirst($row['status'] ?? ''),
+                'Amount' => number_format($finalAmount, 2),
+                'Created' => date('d/m/Y H:i', strtotime($row['created_at']))
+            ];
+        }
+        
+        if ($format === 'csv') {
+            // Set headers for CSV download
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="entries_' . date('Y-m-d_H-i-s') . '.csv"');
+            
+            // Create CSV output
+            $output = fopen('php://output', 'w');
+            
+            // Add BOM for UTF-8
+            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // Add headers
+            if (!empty($exportData)) {
+                fputcsv($output, array_keys($exportData[0]));
+                
+                // Add data
+                foreach ($exportData as $row) {
+                    fputcsv($output, $row);
+                }
+            }
+            
+            fclose($output);
+            exit;
+        } else {
+            // Return JSON for other formats
+            json_response(['success' => true, 'data' => $exportData, 'total' => count($exportData)]);
+        }
+    }
+
     json_response(['success'=>false,'message'=>'Invalid action'],400);
 
 } catch (PDOException $e) {
