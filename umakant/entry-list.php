@@ -736,24 +736,13 @@ function populateAddedBySelect(prefillUserId) {
     select.prop('disabled', true);
     select.html('<option value="">Loading users...</option>');
 
-    $.ajax({
-        url: 'ajax/user_api.php',
-        method: 'POST',
-        dataType: 'json',
-        data: {
-            action: 'list',
-            ajax: 1,
-            draw: 1,
-            start: 0,
-            length: 500,
-            search: { value: '' }
-        }
-    }).done(function(response) {
+    $.get('ajax/user_api.php', { action: 'list_simple', ajax: 1 })
+    .done(function(response) {
         console.log('User API Response:', response);
         select.empty();
-            select.append($('<option>', { value: '', text: 'Select User' }));
+        select.append($('<option>', { value: '', text: 'Select User' }));
 
-        if (response && response.success && Array.isArray(response.data)) {
+        if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
             console.log('Processing users:', response.data.length);
             response.data.forEach(function(user) {
                 const info = {

@@ -92,6 +92,32 @@ if ($action === 'list') {
     ]);
 }
 
+if ($action === 'list_simple') {
+    $viewerRole = $_SESSION['role'] ?? 'user';
+    $viewerId = $_SESSION['user_id'] ?? null;
+
+    $whereClause = '';
+    $params = [];
+
+    if ($viewerRole !== 'master') {
+        $whereClause = " WHERE (added_by = ? OR id = ?)";
+        $params = [$viewerId, $viewerId];
+    }
+
+    $query = "SELECT id, username, full_name, email, role, user_type, is_active " .
+             "FROM users" . $whereClause . " ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
+
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
+    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    json_response([
+        'success' => true,
+        'recordsTotal' => count($users),
+        'data' => $users
+    ]);
+}
+
 if ($action === 'get' && isset($_GET['id'])) {
     $viewerRole = $_SESSION['role'] ?? 'user';
     $viewerId = $_SESSION['user_id'] ?? null;
