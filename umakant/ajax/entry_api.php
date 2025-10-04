@@ -14,11 +14,22 @@ try {
 }
 
 require_once __DIR__ . '/../inc/ajax_helpers.php';
+require_once __DIR__ . '/../inc/simple_auth.php';
 session_start();
 
 header('Content-Type: application/json; charset=utf-8');
 
 $action = $_REQUEST['action'] ?? 'list';
+
+// Authenticate user
+$user_data = simpleAuthenticate($pdo);
+if (!$user_data) {
+    json_response([
+        'success' => false, 
+        'message' => 'Authentication required',
+        'debug_info' => getAuthDebugInfo()
+    ], 401);
+}
 
 function db_table_exists($pdo, $table) {
     static $cache = [];
@@ -192,10 +203,15 @@ function refresh_entry_aggregates($pdo, $entryId) {
 
 try {
     if ($action === 'stats') {
+        // Check permission
+        if (!simpleCheckPermission($user_data, 'list')) {
+            json_response(['success' => false, 'message' => 'Permission denied to view statistics'], 403);
+        }
+        
         // Get statistics for dashboard
         $stats = [];
-        $viewerRole = $_SESSION['role'] ?? 'user';
-        $viewerId = (int)($_SESSION['user_id'] ?? 0);
+        $viewerRole = $user_data['role'] ?? 'user';
+        $viewerId = (int)($user_data['user_id'] ?? 0);
         $scopeWhere = '';
         $params = [];
         if ($viewerRole !== 'master') {
@@ -231,9 +247,14 @@ try {
         
         json_response(['success' => true, 'status' => 'success', 'data' => $stats]);
     } else if ($action === 'list') {
+        // Check permission
+        if (!simpleCheckPermission($user_data, 'list')) {
+            json_response(['success' => false, 'message' => 'Permission denied to list entries'], 403);
+        }
+        
         // Updated to match new schema with comprehensive data
-        $viewerRole = $_SESSION['role'] ?? 'user';
-        $viewerId = (int)($_SESSION['user_id'] ?? 0);
+        $viewerRole = $user_data['role'] ?? 'user';
+        $viewerId = (int)($user_data['user_id'] ?? 0);
         $scopeWhere = '';
         $params = [];
         if ($viewerRole !== 'master') {
@@ -309,10 +330,10 @@ try {
             $row['grouped'] = $row['tests_count'] > 1 ? 1 : 0;
             
             // For backward compatibility, set test_name to first test or all tests
-            if ($testsCount == 1) {
-                $row['test_name'] = $testNames;
-            } else if ($testsCount > 1) {
-                $row['test_name'] = $testsCount . ' tests: ' . $testNames;
+            if ($row['tests_count'] == 1) {
+                $row['test_name'] = $row['test_names'];
+            } else if ($row['tests_count'] > 1) {
+                $row['test_name'] = $row['tests_count'] . ' tests: ' . $row['test_names'];
             } else {
                 $row['test_name'] = 'No tests';
             }
@@ -322,9 +343,14 @@ try {
     }
 
     if ($action === 'get' && isset($_GET['id'])) {
+        // Check permission
+        if (!simpleCheckPermission($user_data, 'get', $_GET['id'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to view entry'], 403);
+        }
+        
         // Return comprehensive entry data
-        $viewerRole = $_SESSION['role'] ?? 'user';
-        $viewerId = (int)($_SESSION['user_id'] ?? 0);
+        $viewerRole = $user_data['role'] ?? 'user';
+        $viewerId = (int)($user_data['user_id'] ?? 0);
         $scopeWhere = '';
         $params = [$_GET['id']];
         if ($viewerRole !== 'master') {
@@ -419,6 +445,11 @@ try {
     }
 
     if ($action === 'save') {
+        // Check permission
+        if (!simpleCheckPermission($user_data, 'save')) {
+            json_response(['success' => false, 'message' => 'Permission denied to save entry'], 403);
+        }
+        
         // Handle multiple tests per entry
         $input = [];
         $content_type = $_SERVER['CONTENT_TYPE'] ?? '';
@@ -429,8 +460,8 @@ try {
         }
 
         // Add user/session info if needed
-        if (!isset($input['added_by']) && isset($_SESSION['user_id'])) {
-            $input['added_by'] = $_SESSION['user_id'];
+        if (!isset($input['added_by']) && isset($user_data['user_id'])) {
+            $input['added_by'] = $user_data['user_id'];
         }
 
         // Check if this is a multiple tests entry
@@ -607,9 +638,11 @@ try {
             exit;
         }
     } else if ($action === 'delete' && isset($_POST['id'])) {
-        if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) {
-            json_response(['success' => false, 'message' => 'Unauthorized'], 401);
+        // Check permission
+        if (!simpleCheckPermission($user_data, 'delete', $_POST['id'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to delete entry'], 403);
         }
+        
         $stmt = $pdo->prepare('DELETE FROM entries WHERE id = ?');
         $stmt->execute([$_POST['id']]);
         json_response(['success' => true, 'message' => 'Entry deleted']);

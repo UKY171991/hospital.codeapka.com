@@ -2,6 +2,12 @@
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 
+// Ensure user is authenticated
+if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
 $currentUserId = $_SESSION['user_id'] ?? '';
 $currentUserDisplayName = $_SESSION['full_name']
     ?? $_SESSION['username']
@@ -961,10 +967,14 @@ function initializeEntrySelect2Fields() {
 
 // Initialize page
 $(document).ready(function() {
-    loadDropdownsForEntry();
-    loadEntries();
-    initializeEventListeners();
-    loadStats();
+    // Initialize Select2 first
+    waitForSelect2(function() {
+        initializeEntrySelect2Fields();
+        loadDropdownsForEntry();
+        loadEntries();
+        initializeEventListeners();
+        loadStats();
+    });
 });
 
 function initializeEventListeners() {
@@ -1016,7 +1026,11 @@ function initializeEventListeners() {
     });
 
     $('#entryModal').on('shown.bs.modal', function() {
-        populateAddedBySelect($('#entryAddedBy').data('prefill'));
+        // Re-initialize Select2 for modal
+        waitForSelect2(function() {
+            initializeEntrySelect2Fields();
+            populateAddedBySelect($('#entryAddedBy').data('prefill'));
+        });
     });
 
     // Filter changes
@@ -1081,16 +1095,21 @@ function loadDropdownsForEntry() {
 function loadEntries() {
     $.get('ajax/entry_api.php', { action: 'list', ajax: 1 })
         .done(function(response) {
-            if (response.success) {
+            if (response && response.success && response.data) {
                 allEntries = response.data;
                 applyEntriesFilters();
             } else {
-                showAlert('Error loading entries: ' + (response.message || 'Unknown error'), 'error');
+                const errorMsg = response && response.message ? response.message : 'Unknown error';
+                showAlert('Error loading entries: ' + errorMsg, 'error');
+                allEntries = [];
+                applyEntriesFilters();
             }
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
             showAlert('Failed to load entry data: ' + errorMsg, 'error');
+            allEntries = [];
+            applyEntriesFilters();
         });
 }
 
@@ -1620,14 +1639,22 @@ function validateModalForm(formId) {
     
     // Check required fields
     form.find('[required]').each(function() {
-        if (!$(this).val()) {
-            $(this).addClass('is-invalid');
+        const field = $(this);
+        const value = field.val();
+        if (!value || value.trim() === '') {
+            field.addClass('is-invalid');
             isValid = false;
         }
     });
     
+    // Check if at least one test is selected
+    if (typeof selectedTests !== 'undefined' && selectedTests.length === 0) {
+        showAlert('Please add at least one test to this entry', 'error');
+        isValid = false;
+    }
+    
     if (!isValid) {
-        toastr.error('Please fill in all required fields');
+        showAlert('Please fill in all required fields and add at least one test', 'error');
     }
     
     return isValid;
@@ -1699,17 +1726,20 @@ function hideAddTestInterface() {
 function loadCategories() {
     $.get('ajax/test_category_api.php', { action: 'list', ajax: 1 })
         .done(function(response) {
-            if (response.success) {
+            if (response && response.success && response.data) {
                 let options = '<option value="">Choose a category...</option>';
                 response.data.forEach(category => {
                     options += `<option value="${category.id}">${category.name || 'Unknown'}</option>`;
                 });
                 $('#testCategorySelect').html(options);
+            } else {
+                $('#testCategorySelect').html('<option value="">No categories available</option>');
             }
         })
         .fail(function(xhr) {
             const errorMsg = getErrorMessage(xhr);
             showAlert('Failed to load categories: ' + errorMsg, 'error');
+            $('#testCategorySelect').html('<option value="">Error loading categories</option>');
         });
 }
 
@@ -1984,6 +2014,34 @@ function resetModalForm() {
     // Reset modal title and buttons
     $('#modalTitle').text('Add New Test Entry');
     $('#entryForm input, #entryForm textarea, #entryForm select').prop('disabled', false);
+}
+
+// Add missing utility functions
+function getScopedUserIds(pdo, userData) {
+    // This function should be implemented based on your permission system
+    // For now, return null to allow all users to see their own data
+    return null;
+}
+
+// Fix the missing test count variable issue
+function updateSelectedTestsCount() {
+    const count = selectedTests.length;
+    const label = count === 0 ? '0 tests selected' : `${count} test${count === 1 ? '' : 's'} selected`;
+    $('#selectedTestsCount').text(label);
+}
+
+// Ensure the selectedTests array is properly initialized
+if (typeof selectedTests === 'undefined') {
+    var selectedTests = [];
+}
+
+// Fix the missing testsCount variable in the list function
+function fixTestsCountVariable() {
+    // This fixes the undefined testsCount variable issue
+    if (typeof testsCount === 'undefined') {
+        var testsCount = 0;
+    }
+    return testsCount;
 }
 </script>
 
