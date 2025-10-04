@@ -1223,45 +1223,37 @@ function initializeEventListeners() {
     });
 
     $('#entryModal').on('shown.bs.modal', function() {
-        console.log('Modal shown, initializing user select');
+        console.log('Modal shown, checking user select status');
         
-        // Simple approach - just ensure the user select is working
         const userSelect = $('#entryAddedBy');
         if (userSelect.length) {
-            console.log('User select found, ensuring it works');
-            
-            // Make sure it's not disabled
-            userSelect.prop('disabled', false);
-            
-            // If it has options, it should work
             const optionCount = userSelect.find('option').length;
             console.log('User select has', optionCount, 'options');
             
-            // Initialize Select2 with options
-            setTimeout(function() {
-                try {
+            // If only has loading message, no real options, or not loaded yet, load real users
+            if (optionCount <= 1 || userSelect.find('option:contains("Loading")').length > 0 || !userSelect.data('usersLoaded')) {
+                console.log('Loading real users for modal...');
+                loadRealUsers();
+            } else {
+                console.log('User select already has real data');
+                // Just ensure Select2 is initialized
+                setTimeout(function() {
                     if (!userSelect.hasClass('select2-hidden-accessible')) {
-                        userSelect.select2({
-                            theme: 'bootstrap4',
-                            width: '100%',
-                            dropdownParent: $('#entryModal'),
-                            placeholder: 'Select User',
-                            allowClear: true
-                        });
-                        console.log('Select2 initialized successfully with', userSelect.find('option').length, 'options');
-                    } else {
-                        console.log('Select2 already initialized');
+                        try {
+                            userSelect.select2({
+                                theme: 'bootstrap4',
+                                width: '100%',
+                                dropdownParent: $('#entryModal'),
+                                placeholder: 'Select User',
+                                allowClear: true
+                            });
+                            console.log('Select2 initialized for existing data');
+                        } catch (error) {
+                            console.log('Select2 failed:', error);
+                        }
                     }
-                    
-                    // Force update to show options
-                    userSelect.trigger('change.select2');
-                } catch (error) {
-                    console.log('Select2 failed, using regular select:', error);
-                    // Fallback: ensure regular select works
-                    userSelect.removeClass('select2-hidden-accessible');
-                    userSelect.show();
-                }
-            }, 300);
+                }, 100);
+            }
         } else {
             console.log('User select not found in modal');
         }
@@ -1346,6 +1338,83 @@ function loadEntries() {
         });
 }
 
+// Function to load real users from database
+function loadRealUsers() {
+    const userSelect = $('#entryAddedBy');
+    if (!userSelect.length) {
+        console.log('User select not found');
+        return;
+    }
+    
+    console.log('Loading real users from database...');
+    
+    // Load users using the same method as user.php page
+    $.get('ajax/user_api.php', { action: 'list' })
+        .done(function(response) {
+            console.log('Real users API response:', response);
+            
+            if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
+                console.log('Successfully loaded', response.data.length, 'real users from database');
+                
+                // Clear loading message
+                userSelect.empty();
+                userSelect.append('<option value="">Select User</option>');
+                
+                // Add real users from database
+                response.data.forEach(function(user) {
+                    const info = {
+                        id: user.id,
+                        username: user.username || null,
+                        fullName: user.full_name || user.username || '',
+                        userType: (user.user_type && user.user_type !== '0' && user.user_type !== 0) ? user.user_type : 'Pathology'
+                    };
+                    
+                    const label = formatAddedByOptionLabel(info);
+                    console.log('Adding real user:', label);
+                    
+                    userSelect.append($('<option>', {
+                        value: String(info.id),
+                        text: label
+                    }));
+                });
+                
+                // Enable the select and initialize Select2
+                userSelect.prop('disabled', false);
+                
+                // Initialize Select2 with real data
+                try {
+                    userSelect.select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        dropdownParent: $('#entryModal'),
+                        placeholder: 'Select User',
+                        allowClear: true
+                    });
+                    console.log('Select2 initialized with real user data');
+                } catch (error) {
+                    console.log('Select2 initialization failed, using regular select:', error);
+                }
+                
+                console.log('Real users loaded successfully:', userSelect.find('option').length - 1, 'users available');
+                
+                // Store the loaded state
+                userSelect.data('usersLoaded', true);
+                
+            } else {
+                console.warn('No real users found in response:', response);
+                userSelect.empty();
+                userSelect.append('<option value="">No users found</option>');
+                userSelect.prop('disabled', true);
+            }
+        })
+        .fail(function(xhr, status, error) {
+            console.error('Failed to load real users:', { xhr, status, error });
+            userSelect.empty();
+            userSelect.append('<option value="">Error loading users</option>');
+            userSelect.prop('disabled', true);
+        });
+}
+
 function openAddEntryModal() {
     resetModalForm();
     $('#selectedTestsCount').text('0 tests selected');
@@ -1353,40 +1422,24 @@ function openAddEntryModal() {
     
     console.log('Opening Add Entry Modal');
     
-    // Immediately populate user select with working data
+    // Initialize user select for dynamic loading
     const userSelect = $('#entryAddedBy');
     if (userSelect.length) {
-        console.log('Pre-populating user select with working data');
+        console.log('Initializing user select for dynamic loading');
         
         // Clear any existing Select2
         if (userSelect.hasClass('select2-hidden-accessible')) {
             userSelect.select2('destroy');
         }
         
-        // Set basic HTML options (these will be replaced by API data)
+        // Set up for dynamic loading
         userSelect.empty();
-        userSelect.append('<option value="">Select User</option>');
+        userSelect.append('<option value="">Loading users...</option>');
+        userSelect.prop('disabled', true);
+        userSelect.show();
         
-        // Add some default options that match the expected format
-        userSelect.append('<option value="1">Uma Yadav (uma) - Pathology</option>');
-        userSelect.append('<option value="2">Admin User (admin) - Hospital</option>');
-        userSelect.append('<option value="3">Test User (testuser) - School</option>');
-        
-        // Initialize as regular select first
-        userSelect.removeClass('select2-hidden-accessible');
-        userSelect.prop('disabled', false);
-        userSelect.show(); // Ensure it's visible
-        
-        console.log('User select populated with options:', userSelect.find('option').length);
-        console.log('User select HTML:', userSelect.html());
-        
-        // Force a refresh to ensure options are visible
-        userSelect.trigger('change');
-        
-        // Add click handler to test dropdown functionality
-        userSelect.on('click', function() {
-            console.log('User dropdown clicked, options available:', $(this).find('option').length);
-        });
+        // Load real users from database (will be called when modal opens)
+        // loadRealUsers(); // Moved to modal shown event
     }
     
     $('#entryModal').modal('show');
