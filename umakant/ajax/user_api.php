@@ -4,6 +4,32 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 session_start();
 
+$userTableColumns = null;
+
+function userTableHasColumn($column) {
+    global $pdo, $userTableColumns;
+    if ($userTableColumns === null) {
+        try {
+            $stmt = $pdo->query('SHOW COLUMNS FROM users');
+            $userTableColumns = $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+        } catch (Throwable $e) {
+            $userTableColumns = [];
+        }
+    }
+    return in_array($column, $userTableColumns, true);
+}
+
+function buildUserSelectColumns(array $baseColumns) {
+    $columns = $baseColumns;
+
+    $columns[] = userTableHasColumn('user_type') ? 'user_type' : 'NULL AS user_type';
+    $columns[] = userTableHasColumn('is_active') ? 'is_active' : 'NULL AS is_active';
+    $columns[] = userTableHasColumn('last_login') ? 'last_login' : 'NULL AS last_login';
+    $columns[] = userTableHasColumn('expire_date') ? 'expire_date' : 'NULL AS expire_date';
+
+    return $columns;
+}
+
 $action = $_REQUEST['action'] ?? 'list';
 
 try {
@@ -64,20 +90,20 @@ if ($action === 'list') {
     // Get total records
     $totalStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereClause);
     $totalStmt->execute($params);
-    $totalRecords = $totalStmt->fetchColumn();
     
     // Get filtered records
     $orderBy = " ORDER BY id DESC";
     $limit = " LIMIT $start, $length";
     
-    $dataQuery = "SELECT id, username, email, full_name, role, user_type, added_by, is_active, last_login, expire_date " . 
-                  $baseQuery . $whereClause . $orderBy . $limit;
+    $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'role', 'added_by']);
+    $dataQuery = "SELECT " . implode(', ', $selectColumns) . ' ' .
+                 $baseQuery . $whereClause . $orderBy . $limit;
     
     $dataStmt = $pdo->prepare($dataQuery);
     $dataStmt->execute($params);
     $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Debug logging
+    // Handle optional user table columns when selecting user list
     error_log("User API Debug - Total records: " . $totalRecords);
     error_log("User API Debug - Data count: " . count($data));
     error_log("User API Debug - First user: " . json_encode($data[0] ?? 'No data'));
@@ -104,8 +130,9 @@ if ($action === 'list_simple') {
         $params = [$viewerId, $viewerId];
     }
 
-    $query = "SELECT id, username, full_name, email, role, user_type, is_active " .
-             "FROM users" . $whereClause . " ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
+    $selectColumns = buildUserSelectColumns(['id', 'username', 'full_name', 'email', 'role']);
+    $query = "SELECT " . implode(', ', $selectColumns) .
+             " FROM users" . $whereClause . " ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
 
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
@@ -121,7 +148,8 @@ if ($action === 'list_simple') {
 if ($action === 'get' && isset($_GET['id'])) {
     $viewerRole = $_SESSION['role'] ?? 'user';
     $viewerId = $_SESSION['user_id'] ?? null;
-    $stmt = $pdo->prepare('SELECT id, username, email, full_name, role, user_type, added_by, is_active, last_login, expire_date FROM users WHERE id = ?');
+    $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'role', 'added_by']);
+    $stmt = $pdo->prepare('SELECT ' . implode(', ', $selectColumns) . ' FROM users WHERE id = ?');
     $stmt->execute([$_GET['id']]);
     $row = $stmt->fetch();
     if (!$row) json_response(['success' => false, 'message' => 'User not found'],404);
