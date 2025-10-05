@@ -270,7 +270,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="entryStatus">Status</label>
-                                <select class="form-control" id="entryStatus" name="status">
+                                <select class="form-control select2" id="entryStatus" name="status">
                                     <option value="pending">Pending</option>
                                     <option value="completed">Completed</option>
                                     <option value="cancelled">Cancelled</option>
@@ -282,6 +282,20 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     <!-- Tests Section -->
                     <div class="form-group">
                         <label>Tests <span class="text-danger">*</span></label>
+                        <div class="row mb-2">
+                            <div class="col-md-5">
+                                <small class="text-muted">Test Name</small>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Price (₹)</small>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Discount (₹)</small>
+                            </div>
+                            <div class="col-md-1">
+                                <small class="text-muted">Action</small>
+                            </div>
+                        </div>
                         <div id="testsContainer">
                             <div class="test-row row mb-2">
                                 <div class="col-md-5">
@@ -291,14 +305,14 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 </div>
                                 <div class="col-md-3">
                                     <input type="number" class="form-control" name="tests[0][price]" 
-                                           placeholder="Price" step="0.01" min="0" required>
+                                           placeholder="0.00" step="0.01" min="0" required>
                                 </div>
                                 <div class="col-md-3">
                                     <input type="number" class="form-control" name="tests[0][discount_amount]" 
-                                           placeholder="Discount" step="0.01" min="0" value="0">
+                                           placeholder="0.00" step="0.01" min="0" value="0">
                                 </div>
                                 <div class="col-md-1">
-                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)">
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -645,6 +659,9 @@ function loadDoctors() {
 
 // Load combined owners and users for dropdown
 function loadOwnerUsers() {
+    const ownerUserSelect = $('#ownerAddedBySelect');
+    ownerUserSelect.empty().append('<option value="">Select Owner/User</option>');
+    
     // Load owners
     $.ajax({
         url: 'ajax/owner_api.php',
@@ -652,6 +669,18 @@ function loadOwnerUsers() {
         data: { action: 'list' },
         dataType: 'json',
         success: function(ownerResponse) {
+            console.log('Owner response:', ownerResponse);
+            
+            // Add owners first
+            if (ownerResponse.success && ownerResponse.data && ownerResponse.data.length > 0) {
+                ownerResponse.data.forEach(function(owner) {
+                    ownerUserSelect.append(`<option value="owner_${owner.id}" data-type="owner" data-owner-id="${owner.id}">🏢 ${owner.name} (Owner)</option>`);
+                });
+            } else {
+                // If no owners, add a placeholder
+                ownerUserSelect.append(`<option value="" disabled>No owners available</option>`);
+            }
+            
             // Load users
             $.ajax({
                 url: 'ajax/user_api.php',
@@ -659,35 +688,41 @@ function loadOwnerUsers() {
                 data: { action: 'list' },
                 dataType: 'json',
                 success: function(userResponse) {
-                    const ownerUserSelect = $('#ownerAddedBySelect');
-                    ownerUserSelect.empty().append('<option value="">Select Owner/User</option>');
-                    
-                    // Add owners first
-                    if (ownerResponse.success && ownerResponse.data) {
-                        ownerResponse.data.forEach(function(owner) {
-                            ownerUserSelect.append(`<option value="owner_${owner.id}" data-type="owner" data-owner-id="${owner.id}">🏢 ${owner.name} (Owner)</option>`);
-                        });
-                    }
+                    console.log('User response:', userResponse);
                     
                     // Add users
-                    if (userResponse.success && userResponse.data) {
+                    if (userResponse.success && userResponse.data && userResponse.data.length > 0) {
                         userResponse.data.forEach(function(user) {
-                            const displayName = user.full_name || user.username || user.email;
+                            const displayName = user.full_name || user.username || user.email || `User ${user.id}`;
                             ownerUserSelect.append(`<option value="user_${user.id}" data-type="user" data-user-id="${user.id}">👤 ${displayName} (${user.role || 'user'})</option>`);
                         });
+                    } else {
+                        // If no users, add a placeholder
+                        ownerUserSelect.append(`<option value="" disabled>No users available</option>`);
                     }
                     
                     ownerUserSelect.select2({
                         placeholder: 'Select Owner/User',
-                        allowClear: true
+                        allowClear: true,
+                        dropdownParent: $('#entryModal')
                     });
                     
                     // Set current user as default if not editing
                     if (!currentEntryId && <?php echo json_encode($currentUserId); ?>) {
-                        ownerUserSelect.val(`user_<?php echo $currentUserId; ?>`).trigger('change');
+                        setTimeout(function() {
+                            ownerUserSelect.val(`user_<?php echo $currentUserId; ?>`).trigger('change');
+                        }, 100);
                     }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading users:', error);
+                    ownerUserSelect.append(`<option value="" disabled>Error loading users</option>`);
                 }
             });
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading owners:', error);
+            ownerUserSelect.append(`<option value="" disabled>Error loading owners</option>`);
         }
     });
 }
@@ -853,13 +888,13 @@ function openAddEntryModal() {
     $('#entryForm')[0].reset();
     $('#entryId').val('');
     $('#entryDate').val(new Date().toISOString().split('T')[0]);
-    $('#entryStatus').val('pending');
     $('#priority').val('normal');
     
     // Reset all select2 dropdowns
     $('#patientSelect').val('').trigger('change');
     $('#doctorSelect').val('').trigger('change');
     $('#ownerAddedBySelect').val('').trigger('change');
+    $('#entryStatus').val('pending').trigger('change');
     
     // Reset additional fields
     $('#patientContact').val('');
@@ -876,13 +911,13 @@ function openAddEntryModal() {
                 </select>
             </div>
             <div class="col-md-3">
-                <input type="number" class="form-control" name="tests[0][price]" placeholder="Price" step="0.01" min="0" required>
+                <input type="number" class="form-control" name="tests[0][price]" placeholder="0.00" step="0.01" min="0" required>
             </div>
             <div class="col-md-3">
-                <input type="number" class="form-control" name="tests[0][discount_amount]" placeholder="Discount" step="0.01" min="0" value="0">
+                <input type="number" class="form-control" name="tests[0][discount_amount]" placeholder="0.00" step="0.01" min="0" value="0">
             </div>
             <div class="col-md-1">
-                <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)">
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -894,13 +929,19 @@ function openAddEntryModal() {
     loadTests();
     loadOwnerUsers();
     
+    // Initialize Select2 for status dropdown
+    $('#entryStatus').select2({
+        placeholder: 'Select Status',
+        dropdownParent: $('#entryModal')
+    });
+    
     // Set current user as default
     setTimeout(function() {
         const currentUserId = <?php echo json_encode($currentUserId); ?>;
         if (currentUserId) {
             $('#ownerAddedBySelect').val(`user_${currentUserId}`).trigger('change');
         }
-    }, 500);
+    }, 800);
     
     $('#entryModal').modal('show');
 }
@@ -915,13 +956,13 @@ function addTestRow() {
                 </select>
             </div>
             <div class="col-md-3">
-                <input type="number" class="form-control" name="tests[${testRowCount}][price]" placeholder="Price" step="0.01" min="0" required>
+                <input type="number" class="form-control" name="tests[${testRowCount}][price]" placeholder="0.00" step="0.01" min="0" required>
             </div>
             <div class="col-md-3">
-                <input type="number" class="form-control" name="tests[${testRowCount}][discount_amount]" placeholder="Discount" step="0.01" min="0" value="0">
+                <input type="number" class="form-control" name="tests[${testRowCount}][discount_amount]" placeholder="0.00" step="0.01" min="0" value="0">
             </div>
             <div class="col-md-1">
-                <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)">
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -1343,11 +1384,27 @@ function refreshTable() {
     entriesTable.ajax.reload();
 }
 
-// Initialize Select2 for modals
+// Initialize Select2 for modals and handle form initialization
 $(document).ready(function() {
+    // Initialize Select2 for all select2 elements
     $('.select2').select2({
-        dropdownParent: $('#entryModal')
+        dropdownParent: $('#entryModal'),
+        width: '100%'
     });
+    
+    // Add fallback for owner/users if API fails
+    setTimeout(function() {
+        const ownerSelect = $('#ownerAddedBySelect');
+        if (ownerSelect.find('option').length <= 1) {
+            // If no options loaded, add current user as fallback
+            const currentUserId = <?php echo json_encode($currentUserId); ?>;
+            const currentUserName = <?php echo json_encode($currentUserDisplayName); ?>;
+            if (currentUserId) {
+                ownerSelect.append(`<option value="user_${currentUserId}" data-type="user" data-user-id="${currentUserId}">👤 ${currentUserName} (Current User)</option>`);
+                ownerSelect.val(`user_${currentUserId}`).trigger('change');
+            }
+        }
+    }, 2000);
 });
 </script>
 

@@ -293,6 +293,76 @@ body.modal-open {
     padding-left: 12px !important;
 }
 
+/* Fix Select2 dropdown display issues in modals */
+.modal .select2-container {
+    z-index: 9999 !important;
+}
+
+.modal .select2-dropdown {
+    z-index: 9999 !important;
+}
+
+/* Test section styling */
+.test-row {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.test-row:hover {
+    background-color: #e9ecef;
+    border-color: #667eea;
+}
+
+/* Test field labels */
+.test-row .col-md-5 small,
+.test-row .col-md-3 small,
+.test-row .col-md-1 small {
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+/* Form field improvements */
+.form-control:disabled {
+    background-color: #e9ecef;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.form-control:disabled::placeholder {
+    color: #6c757d;
+}
+
+/* Help text styling */
+.form-text.text-muted {
+    font-size: 0.875rem;
+    font-style: italic;
+    margin-top: 0.25rem;
+}
+
+/* Status dropdown fix */
+#entryStatus {
+    min-width: 120px;
+}
+
+/* Priority and referral source styling */
+#priority, #referralSource {
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+#priority:focus, #referralSource:focus {
+    background-color: #fff;
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
 /* Contact and Address Fields */
 #patientContact, #patientAddress {
     background-color: #f8f9fa;
