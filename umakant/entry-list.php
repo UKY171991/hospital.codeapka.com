@@ -1545,4 +1545,7 @@ $(document).ready(function() {
 });
 </script>
 
+<!-- Page specific script -->
+<script src="assets/js/entry-list.js"></script>
+
 <?php include 'inc/footer.php'; ?>
