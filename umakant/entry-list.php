@@ -1,5 +1,10 @@
+    <!-- DataTables -->
+    <link rel="stylesheet" href="assets/plugins/datatables/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="assets/plugins/datatables/dataTables.bootstrap4.min.css">
+    <!-- Select2 -->
     <link rel="stylesheet" href="assets/plugins/select2/css/select2.min.css">
     <link rel="stylesheet" href="assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/entry-list.css">
 <?php
 require_once 'inc/header.php';
@@ -322,8 +327,13 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
     </div>
 </div>
 
-<!-- Add this before </body> -->
+<!-- Add required JavaScript files -->
+<!-- DataTables -->
+<script src="assets/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="assets/plugins/datatables/dataTables.bootstrap4.min.js"></script>
+<!-- Select2 -->
 <script src="assets/plugins/select2/js/select2.full.min.js"></script>
+<!-- Custom JavaScript -->
 <script src="assets/js/entry-form.js"></script>
                                         <!-- Pagination will be added by DataTables -->
                                     </div>

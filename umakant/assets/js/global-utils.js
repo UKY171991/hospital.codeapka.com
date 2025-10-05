@@ -1,7 +1,12 @@
 // Global Utility Functions for Hospital Management System
 
-// Common variables
-const baseApiUrl = 'ajax/';
+// Common variables - Using a namespace to avoid conflicts
+window.HMS = window.HMS || {};
+HMS.config = {
+    baseApiUrl: 'ajax/',
+    currentPage: 1,
+    recordsPerPage: 10
+};
 
 // Utility Functions
 const utils = {

@@ -7,14 +7,15 @@ $(document).ready(function() {
     initializePatientPage();
 });
 
-// Global Variables
-let currentPage = 1;
-let totalPages = 1;
-let recordsPerPage = 10;
-let currentFilters = {};
-let searchTimeout;
-let isLoading = false;
-let currentViewPatientId = null;
+// Global Variables - Using HMS namespace
+window.HMS = window.HMS || {};
+HMS.patient = {
+    totalPages: 1,
+    currentFilters: {},
+    searchTimeout: null,
+    isLoading: false,
+    currentViewPatientId: null
+};
 
 /**
  * Initialize Patient Page
