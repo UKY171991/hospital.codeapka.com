@@ -416,7 +416,10 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                             <div class="col-md-2">
                                 <small class="text-muted">Category</small>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
+                                <small class="text-muted">Result</small>
+                            </div>
+                            <div class="col-md-1">
                                 <small class="text-muted">Unit</small>
                             </div>
                             <div class="col-md-2">
@@ -440,7 +443,10 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                     <input type="text" class="form-control test-category" name="tests[0][category_name]" placeholder="Category" readonly>
                                     <input type="hidden" name="tests[0][category_id]" class="test-category-id">
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-1">
+                                    <input type="text" class="form-control test-result" name="tests[0][result_value]" placeholder="Result">
+                                </div>
+                                <div class="col-md-1">
                                     <input type="text" class="form-control test-unit" name="tests[0][unit]" placeholder="Unit" readonly>
                                 </div>
                                 <div class="col-md-2">
@@ -450,9 +456,6 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 <div class="col-md-1">
                                     <input type="number" class="form-control" name="tests[0][discount_amount]" 
                                            placeholder="0.00" step="0.01" min="0" value="0">
-                                </div>
-                                <div class="col-md-1">
-                                    <input type="text" class="form-control test-result" name="tests[0][result_value]" placeholder="Result">
                                 </div>
                                 <div class="col-md-1">
                                     <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
@@ -1153,7 +1156,10 @@ function addTestRow() {
                 <input type="text" class="form-control test-category" name="tests[${testRowCount}][category_name]" placeholder="Category" readonly>
                 <input type="hidden" name="tests[${testRowCount}][category_id]" class="test-category-id">
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
+                <input type="text" class="form-control test-result" name="tests[${testRowCount}][result_value]" placeholder="Result">
+            </div>
+            <div class="col-md-1">
                 <input type="text" class="form-control test-unit" name="tests[${testRowCount}][unit]" placeholder="Unit" readonly>
             </div>
             <div class="col-md-2">
@@ -1161,9 +1167,6 @@ function addTestRow() {
             </div>
             <div class="col-md-1">
                 <input type="number" class="form-control" name="tests[${testRowCount}][discount_amount]" placeholder="0.00" step="0.01" min="0" value="0">
-            </div>
-            <div class="col-md-1">
-                <input type="text" class="form-control test-result" name="tests[${testRowCount}][result_value]" placeholder="Result">
             </div>
             <div class="col-md-1">
                 <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
