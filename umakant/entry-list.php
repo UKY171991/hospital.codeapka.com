@@ -452,6 +452,9 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                            placeholder="0.00" step="0.01" min="0" value="0">
                                 </div>
                                 <div class="col-md-1">
+                                    <input type="text" class="form-control test-result" name="tests[0][result_value]" placeholder="Result">
+                                </div>
+                                <div class="col-md-1">
                                     <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -1160,6 +1163,9 @@ function addTestRow() {
                 <input type="number" class="form-control" name="tests[${testRowCount}][discount_amount]" placeholder="0.00" step="0.01" min="0" value="0">
             </div>
             <div class="col-md-1">
+                <input type="text" class="form-control test-result" name="tests[${testRowCount}][result_value]" placeholder="Result">
+            </div>
+            <div class="col-md-1">
                 <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -1205,12 +1211,22 @@ function saveEntry() {
         const testId = $(this).find('.test-select').val();
         const price = $(this).find('input[name*="[price]"]').val();
         const discount = $(this).find('input[name*="[discount_amount]"]').val();
-        
+        const resultVal = $(this).find('.test-result').val();
+        const unitVal = $(this).find('.test-unit').val() || '';
+        const categoryName = $(this).find('.test-category').val() || '';
+        const categoryId = $(this).find('.test-category-id').val() || '';
+        const testName = $(this).find('.test-select option:selected').text() || '';
+
         if (testId && price) {
             tests.push({
                 test_id: testId,
+                test_name: testName,
                 price: parseFloat(price),
-                discount_amount: parseFloat(discount || 0)
+                discount_amount: parseFloat(discount || 0),
+                result_value: resultVal || null,
+                unit: unitVal,
+                category_id: categoryId,
+                category_name: categoryName
             });
         }
     });
