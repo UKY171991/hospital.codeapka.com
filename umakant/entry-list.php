@@ -1152,12 +1152,13 @@ function openAddEntryModal() {
     $('#entryModal').modal('show');
 }
 
-// Ensure result inputs are enabled when modal is shown (handles initial and reopened modals)
-$(document).on('shown.bs.modal', '#entryModal', function() {
+// Ensure result inputs are enabled when Add/Edit Entry modals are shown (handles initial and reopened modals)
+$(document).on('shown.bs.modal', '#entryModal, #addEntryModal', function() {
     $('#testsContainer').find('.test-result').each(function() {
         $(this).prop('disabled', false).prop('readonly', false);
+        $(this).removeClass('disabled');
     });
-    // ensure units are readonly
+    // ensure units are readonly and not editable
     $('#testsContainer').find('.test-unit').each(function() {
         $(this).prop('readonly', true);
     });
