@@ -1,3 +1,6 @@
+    <link rel="stylesheet" href="assets/plugins/select2/css/select2.min.css">
+    <link rel="stylesheet" href="assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+    <link rel="stylesheet" href="assets/css/entry-list.css">
 <?php
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
@@ -198,6 +201,130 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 </div>
                                 <div class="col-md-6">
                                     <div class="dataTables_paginate paging_simple_numbers" id="entriesTable_paginate">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Add/Edit Entry Modal -->
+<div class="modal fade" id="addEntryModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Entry</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="formMessages"></div>
+                <form id="entryForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group required">
+                                <label for="patient">Patient</label>
+                                <select class="form-control select2" id="patient" name="patient_id" required>
+                                    <option value="">Select Patient</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group required">
+                                <label for="doctor">Doctor</label>
+                                <select class="form-control select2" id="doctor" name="doctor_id" required>
+                                    <option value="">Select Doctor</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group required">
+                                <label for="entryDate">Entry Date</label>
+                                <input type="date" class="form-control" id="entryDate" name="entry_date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group required">
+                                <label for="status">Status</label>
+                                <select class="form-control" id="status" name="status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Tests</h3>
+                                    <div class="card-tools">
+                                        <button type="button" class="btn btn-tool" onclick="addTest()">
+                                            <i class="fas fa-plus"></i> Add Test
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive tests-table">
+                                        <table class="table" id="testsTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Test Name</th>
+                                                    <th width="15%">Price (₹)</th>
+                                                    <th width="15%">Discount (%)</th>
+                                                    <th width="15%">Final Amount</th>
+                                                    <th width="10%">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="row">
+                                        <div class="col-md-6 offset-md-6">
+                                            <table class="table table-sm">
+                                                <tr>
+                                                    <th>Total Amount:</th>
+                                                    <td class="text-right">₹<span id="totalAmount">0.00</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Total Discount:</th>
+                                                    <td class="text-right">₹<span id="totalDiscount">0.00</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Final Amount:</th>
+                                                    <td class="text-right">₹<span id="finalAmount">0.00</span></td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="$('#entryForm').submit()">Save Entry</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this before </body> -->
+<script src="assets/plugins/select2/js/select2.full.min.js"></script>
+<script src="assets/js/entry-form.js"></script>
                                         <!-- Pagination will be added by DataTables -->
                                     </div>
                                 </div>
