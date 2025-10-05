@@ -357,7 +357,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     <input type="hidden" id="entryId" name="id">
                     
                     <div class="row">
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label for="ownerAddedBySelect">Owner/Added By <span class="text-danger">*</span></label>
                                 <select class="form-control select2" id="ownerAddedBySelect" name="owner_added_by" required>
@@ -367,7 +367,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                             </div>
                         </div>
 
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label for="patientSelect">Patient <span class="text-danger">*</span></label>
                                 <select class="form-control select2" id="patientSelect" name="patient_id" required disabled>
