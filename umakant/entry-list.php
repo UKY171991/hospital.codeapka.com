@@ -990,12 +990,21 @@ function setupEventHandlers() {
         const categoryId = $opt.data('category-id') || '';
 
         const $row = $(this).closest('.test-row');
-        if (typeof price !== 'undefined' && price !== null) {
-            $row.find('input[name*="[price]"]').val(price);
+        // sanitize incoming values
+        const safePrice = (typeof price !== 'undefined' && price !== null) ? price : '';
+        const safeUnit = unit || '';
+        const safeCategoryName = categoryName || '';
+        const safeCategoryId = categoryId || '';
+
+        // set fields in explicit order matching layout
+        if (safePrice !== '') {
+            $row.find('input[name*="[price]"]').val(safePrice);
         }
-        $row.find('.test-unit').val(unit);
-        $row.find('.test-category').val(categoryName);
-        $row.find('.test-category-id').val(categoryId);
+        // Clear result when a new test is selected (user can enter new result)
+        $row.find('.test-result').val('');
+        $row.find('.test-unit').val(safeUnit);
+        $row.find('.test-category').val(safeCategoryName);
+        $row.find('.test-category-id').val(safeCategoryId);
     });
     
     // Owner/User selection change - filter patients and doctors
