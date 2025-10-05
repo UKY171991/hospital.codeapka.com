@@ -487,6 +487,8 @@ try {
                     $entryData = [
                         'patient_id' => $input['patient_id'],
                         'doctor_id' => $input['doctor_id'] ?? null,
+                        // include gender if provided (and DB supports it will be handled below)
+                        'gender' => $input['gender'] ?? null,
                         'owner_id' => $input['owner_id'] ?? null,
                         'entry_date' => $input['entry_date'] ?? date('Y-m-d'),
                         'status' => $input['status'] ?? 'pending',
@@ -623,7 +625,12 @@ try {
             curl_setopt($ch, CURLOPT_URL, $apiEndpoint);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($input));
+            // Ensure gender (if present) is forwarded
+            $forwardPayload = $input;
+            if (isset($input['gender'])) {
+                $forwardPayload['gender'] = $input['gender'];
+            }
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($forwardPayload));
             // Forward session cookie if needed
             if (isset($_COOKIE[session_name()])) {
                 curl_setopt($ch, CURLOPT_COOKIE, session_name() . '=' . $_COOKIE[session_name()]);

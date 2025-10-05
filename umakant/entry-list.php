@@ -464,11 +464,22 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     </div>
                     
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="patientContact">Patient Contact</label>
                                 <input type="text" class="form-control" id="patientContact" name="patient_contact" 
                                        placeholder="Phone number or email...">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label for="patientGender">Gender</label>
+                                <select class="form-control select2" id="patientGender" name="gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -763,7 +774,9 @@ function loadPatients() {
                 const patientSelect = $('#patientSelect');
                 patientSelect.empty().append('<option value="">Select Patient</option>');
                 response.data.forEach(function(patient) {
-                    patientSelect.append(`<option value="${patient.id}">${patient.name} (${patient.uhid || 'No UHID'})</option>`);
+                    // include gender data attribute so we can auto-populate gender on selection/edit
+                    const genderVal = patient.gender || patient.sex || '';
+                    patientSelect.append(`<option value="${patient.id}" data-gender="${genderVal}">${patient.name} (${patient.uhid || 'No UHID'})</option>`);
                 });
                 // modal-enhancements will initialize Select2 on modal show
                 patientSelect.addClass('select2');
@@ -874,9 +887,10 @@ function loadPatientsByOwner(ownerId) {
             const patientSelect = $('#patientSelect');
             patientSelect.empty().append('<option value="">Select Patient</option>');
             
-            if (response.success && response.data) {
+                if (response.success && response.data) {
                 response.data.forEach(function(patient) {
-                    patientSelect.append(`<option value="${patient.id}">${patient.name} (${patient.uhid || 'No UHID'})</option>`);
+                    const genderVal = patient.gender || patient.sex || '';
+                    patientSelect.append(`<option value="${patient.id}" data-gender="${genderVal}">${patient.name} (${patient.uhid || 'No UHID'})</option>`);
                 });
                 $('#patientHelpText').text(`${response.data.length} patients available`);
             } else {
@@ -1023,6 +1037,15 @@ function setupEventHandlers() {
             $('#doctorHelpText').text('Select an owner/user above to load doctors');
         }
     });
+
+    // When patient selection changes, auto-fill gender if available
+    $(document).on('change', '#patientSelect', function() {
+        const selected = $(this).find('option:selected');
+        const gender = selected.data('gender') || '';
+        if (gender) {
+            try { $('#patientGender').val(gender).trigger('change'); } catch(e) { $('#patientGender').val(gender); }
+        }
+    });
 }
 
 // Open add entry modal
@@ -1033,6 +1056,8 @@ function openAddEntryModal() {
     $('#entryId').val('');
     $('#entryDate').val(new Date().toISOString().split('T')[0]);
     $('#priority').val('normal');
+    // Reset gender
+    try { $('#patientGender').val('').trigger('change'); } catch(e) { $('#patientGender').val(''); }
     
     // Reset select2 dropdowns; keep owner selection if already present so
     // patients/doctors can be loaded based on owner. Set default owner to
@@ -1329,6 +1354,12 @@ function populateEditForm(entry) {
         $('#patientSelect').val(entry.patient_id).trigger('change');
         $('#doctorSelect').val(entry.doctor_id).trigger('change');
     }, 1000);
+    // Populate gender field from entry if present
+    setTimeout(function() {
+        if (entry.gender) {
+            try { $('#patientGender').val(entry.gender).trigger('change'); } catch(e) { $('#patientGender').val(entry.gender); }
+        }
+    }, 1100);
     
     // For now, we'll show a simple edit form
     // In a full implementation, you'd populate the tests section
