@@ -410,13 +410,19 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     <div class="form-group">
                         <label>Tests <span class="text-danger">*</span></label>
                         <div class="row mb-2">
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                                 <small class="text-muted">Test Name</small>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
+                                <small class="text-muted">Category</small>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">Unit</small>
+                            </div>
+                            <div class="col-md-2">
                                 <small class="text-muted">Price (₹)</small>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-1">
                                 <small class="text-muted">Discount (₹)</small>
                             </div>
                             <div class="col-md-1">
@@ -425,16 +431,23 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         </div>
                         <div id="testsContainer">
                             <div class="test-row row mb-2">
-                                <div class="col-md-5">
+                                <div class="col-md-4">
                                     <select class="form-control test-select" name="tests[0][test_id]" required>
                                         <option value="">Select Test</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control test-category" name="tests[0][category_name]" placeholder="Category" readonly>
+                                    <input type="hidden" name="tests[0][category_id]" class="test-category-id">
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control test-unit" name="tests[0][unit]" placeholder="Unit" readonly>
+                                </div>
+                                <div class="col-md-2">
                                     <input type="number" class="form-control" name="tests[0][price]" 
                                            placeholder="0.00" step="0.01" min="0" required>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-1">
                                     <input type="number" class="form-control" name="tests[0][discount_amount]" 
                                            placeholder="0.00" step="0.01" min="0" value="0">
                                 </div>
@@ -918,10 +931,15 @@ function loadTests() {
                 const testSelects = $('.test-select');
                 testSelects.each(function() {
                     const $this = $(this);
+                    const currentVal = $this.val();
                     $this.empty().append('<option value="">Select Test</option>');
                     response.data.forEach(function(test) {
-                        $this.append(`<option value="${test.id}" data-price="${test.price || 0}">${test.name} - ₹${test.price || 0}</option>`);
+                        // include category and unit as data attributes for easy population
+                        const opt = $(`<option value="${test.id}" data-price="${test.price || 0}" data-unit="${(test.unit||'')}" data-category-id="${test.category_id||''}" data-category-name="${(test.category_name||'')}">${test.name} - ₹${test.price || 0}</option>`);
+                        $this.append(opt);
                     });
+                    // restore previously selected value if still present
+                    if (currentVal) { $this.val(currentVal).trigger('change'); }
                 });
             }
         }
@@ -945,10 +963,19 @@ function setupEventHandlers() {
     
     // Test price auto-fill
     $(document).on('change', '.test-select', function() {
-        const price = $(this).find('option:selected').data('price');
-        if (price) {
-            $(this).closest('.test-row').find('input[name*="[price]"]').val(price);
+        const $opt = $(this).find('option:selected');
+        const price = $opt.data('price');
+        const unit = $opt.data('unit') || '';
+        const categoryName = $opt.data('category-name') || '';
+        const categoryId = $opt.data('category-id') || '';
+
+        const $row = $(this).closest('.test-row');
+        if (typeof price !== 'undefined' && price !== null) {
+            $row.find('input[name*="[price]"]').val(price);
         }
+        $row.find('.test-unit').val(unit);
+        $row.find('.test-category').val(categoryName);
+        $row.find('.test-category-id').val(categoryId);
     });
     
     // Owner/User selection change - filter patients and doctors
@@ -1023,15 +1050,22 @@ function openAddEntryModal() {
     // Reset tests container
     $('#testsContainer').html(`
         <div class="test-row row mb-2">
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <select class="form-control test-select" name="tests[0][test_id]" required>
                     <option value="">Select Test</option>
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+                <input type="text" class="form-control test-category" name="tests[0][category_name]" placeholder="Category" readonly>
+                <input type="hidden" name="tests[0][category_id]" class="test-category-id">
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control test-unit" name="tests[0][unit]" placeholder="Unit" readonly>
+            </div>
+            <div class="col-md-2">
                 <input type="number" class="form-control" name="tests[0][price]" placeholder="0.00" step="0.01" min="0" required>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-1">
                 <input type="number" class="form-control" name="tests[0][discount_amount]" placeholder="0.00" step="0.01" min="0" value="0">
             </div>
             <div class="col-md-1">
@@ -1082,15 +1116,22 @@ function openAddEntryModal() {
 function addTestRow() {
     const newRow = `
         <div class="test-row row mb-2">
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <select class="form-control test-select" name="tests[${testRowCount}][test_id]" required>
                     <option value="">Select Test</option>
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+                <input type="text" class="form-control test-category" name="tests[${testRowCount}][category_name]" placeholder="Category" readonly>
+                <input type="hidden" name="tests[${testRowCount}][category_id]" class="test-category-id">
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control test-unit" name="tests[${testRowCount}][unit]" placeholder="Unit" readonly>
+            </div>
+            <div class="col-md-2">
                 <input type="number" class="form-control" name="tests[${testRowCount}][price]" placeholder="0.00" step="0.01" min="0" required>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-1">
                 <input type="number" class="form-control" name="tests[${testRowCount}][discount_amount]" placeholder="0.00" step="0.01" min="0" value="0">
             </div>
             <div class="col-md-1">
