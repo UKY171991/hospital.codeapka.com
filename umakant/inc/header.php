@@ -46,7 +46,16 @@
   
   <!-- Toastr JavaScript -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-  <!-- Global Improvements CSS -->
+  
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- Global Utils -->
+  <script src="/umakant/assets/js/global-utils.js"></script>
+  
+  <!-- Page-specific CSS -->
+  <?php if (isset($pageSpecificCSS)) { echo $pageSpecificCSS; } ?>
+  
   
   <!-- Enhanced Tables CSS -->
   

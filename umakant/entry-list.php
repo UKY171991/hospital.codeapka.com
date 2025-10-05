@@ -1,10 +1,8 @@
-    <!-- Page specific CSS -->
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/css/entry-list.css">
-    
-    <!-- Global Initialization -->
-    <script src="assets/js/init.js"></script>
 <?php
+// Define page-specific CSS
+$pageSpecificCSS = '<link rel="stylesheet" href="assets/css/entry-list.css">';
+
+// Include header
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 
@@ -1540,6 +1538,15 @@ $(document).ready(function() {
             }
         }
     }, 2000);
+});
+</script>
+
+<!-- Initialize DataTables and Select2 -->
+<script>
+// Initialize when document is ready
+$(document).ready(function() {
+    // Initialize page
+    HMS.entryList.init();
 });
 </script>
 
