@@ -357,7 +357,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     <input type="hidden" id="entryId" name="id">
                     
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label for="ownerAddedBySelect">Owner/Added By <span class="text-danger">*</span></label>
                                 <select class="form-control select2" id="ownerAddedBySelect" name="owner_added_by" required>
@@ -367,7 +367,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label for="patientSelect">Patient <span class="text-danger">*</span></label>
                                 <select class="form-control select2" id="patientSelect" name="patient_id" required disabled>
@@ -377,7 +377,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label for="doctorSelect">Doctor</label>
                                 <select class="form-control select2" id="doctorSelect" name="doctor_id" disabled>
@@ -386,17 +386,15 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 <small class="form-text text-muted" id="doctorHelpText">Select an owner/user above to load doctors</small>
                             </div>
                         </div>
-                    </div>
                     
-                    <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label for="entryDate">Entry Date <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control" id="entryDate" name="entry_date" 
                                        value="<?php echo date('Y-m-d'); ?>" required>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label for="entryStatus">Status</label>
                                 <select class="form-control select2" id="entryStatus" name="status">
