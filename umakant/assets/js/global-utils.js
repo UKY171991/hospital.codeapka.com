@@ -241,6 +241,17 @@ HMS.utils = {
         return currency + parseFloat(amount).toFixed(2);
     },
 
+    // Escape HTML - safe helper used across modules
+    escapeHtml: function(unsafe) {
+        if (unsafe == null) return '';
+        return String(unsafe)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    },
+
     // Debounce function for search inputs
     debounce: function(func, wait) {
         let timeout;
@@ -377,4 +388,10 @@ HMS.utils.showViewModal = function(title, htmlContent){
 // Notify other modules that HMS is ready
 $(function(){
     try{ $(document).trigger('HMS:ready'); }catch(e){ /* ignore */ }
+});
+
+// Backwards compatibility: expose isLoading global proxy
+Object.defineProperty(window, 'isLoading', {
+    get: function(){ return HMS && HMS.state ? !!HMS.state.isLoading : false; },
+    set: function(v){ if(HMS && HMS.state) HMS.state.isLoading = !!v; }
 });

@@ -34,6 +34,17 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+
+  <!-- Compatibility: ensure early globals used by older scripts are present -->
+  <script>
+    // Basic global guard so old scripts don't throw before global-utils loads
+    window.isLoading = window.isLoading || false;
+    window.HMS = window.HMS || {};
+    window.HMS.utils = window.HMS.utils || {};
+    if (typeof window.HMS.utils.escapeHtml !== 'function') {
+      window.HMS.utils.escapeHtml = function(s){ if (s == null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); };
+    }
+  </script>
   
   <!-- DataTables JavaScript -->
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
