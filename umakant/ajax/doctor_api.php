@@ -105,6 +105,31 @@ try {
                 $params = [];
             }
         }
+
+        // Optional filter by owner_id (accept from request). If doctors table has
+        // an owner_id column, use it. Otherwise, allow 'added_by' identifier filtering
+        // (e.g., user id, username) via the existing resolveUserIdentifierValues helper.
+        if (isset($_REQUEST['owner_id']) && $_REQUEST['owner_id'] !== '') {
+            $ownerIdParam = $_REQUEST['owner_id'];
+            // Check schema for owner_id column
+            $colsStmt = $pdo->query('SHOW COLUMNS FROM doctors');
+            $docCols = $colsStmt->fetchAll(PDO::FETCH_COLUMN);
+            if (in_array('owner_id', $docCols)) {
+                $place = (strpos($whereClause, 'WHERE') === false) ? ' WHERE ' : ' AND ';
+                $whereClause .= $place . 'd.owner_id = ?';
+                $params[] = (int)$ownerIdParam;
+            } else {
+                $identifierValues = resolveUserIdentifierValues($ownerIdParam, $pdo);
+                if (!empty($identifierValues)) {
+                    $place = (strpos($whereClause, 'WHERE') === false) ? ' WHERE ' : ' AND ';
+                    $placeholders = implode(',', array_fill(0, count($identifierValues), '?'));
+                    $whereClause .= $place . "d.added_by IN ($placeholders)";
+                    $params = array_merge($params, $identifierValues);
+                } else {
+                    $whereClause = (strpos($whereClause, 'WHERE') === false) ? ' WHERE 1 = 0' : $whereClause . ' AND 1 = 0';
+                }
+            }
+        }
         
     // Get total records (no filters)
     $totalStmt = $pdo->query("SELECT COUNT(*) " . $baseQuery);

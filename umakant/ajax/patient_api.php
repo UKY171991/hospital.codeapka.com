@@ -266,6 +266,29 @@ function handleList() {
             $params[] = $genderParam;
         }
 
+        // Optional filter by owner_id (accept from POST or GET). Try to apply using
+        // the patients.owner_id column if present; otherwise fall back to filtering
+        // by patients.added_by (resolving identifiers) for schemas that store owner
+        // association differently.
+        $ownerIdParam = $_POST['owner_id'] ?? $_GET['owner_id'] ?? null;
+        if ($ownerIdParam !== null && $ownerIdParam !== '') {
+            if (in_array('owner_id', $columns)) {
+                // cast to int to be safe
+                $whereConditions[] = 'patients.owner_id = ?';
+                $params[] = (int)$ownerIdParam;
+            } elseif (in_array('added_by', $columns)) {
+                // Use added_by resolution helper to accept id/username/fullname etc.
+                $identifierValues = resolveUserIdentifierValues($ownerIdParam);
+                if (!empty($identifierValues)) {
+                    $placeholders = implode(',', array_fill(0, count($identifierValues), '?'));
+                    $whereConditions[] = "patients.added_by IN ($placeholders)";
+                    $params = array_merge($params, $identifierValues);
+                } else {
+                    $whereConditions[] = '1 = 0';
+                }
+            }
+        }
+
         // Optional filter by added_by (accept from POST or GET). Only apply if column exists.
         $addedByParam = $_POST['added_by'] ?? $_GET['added_by'] ?? null;
         if ($addedByParam !== null && $addedByParam !== '' && in_array('added_by', $columns)) {
