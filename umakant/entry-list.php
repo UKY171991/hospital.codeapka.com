@@ -1152,6 +1152,17 @@ function openAddEntryModal() {
     $('#entryModal').modal('show');
 }
 
+// Ensure result inputs are enabled when modal is shown (handles initial and reopened modals)
+$(document).on('shown.bs.modal', '#entryModal', function() {
+    $('#testsContainer').find('.test-result').each(function() {
+        $(this).prop('disabled', false).prop('readonly', false);
+    });
+    // ensure units are readonly
+    $('#testsContainer').find('.test-unit').each(function() {
+        $(this).prop('readonly', true);
+    });
+});
+
 // Add test row
 function addTestRow() {
     const newRow = `
@@ -1187,6 +1198,12 @@ function addTestRow() {
     $('#testsContainer').append(newRow);
     testRowCount++;
     loadTests();
+    // Enable the result input for the newly added row
+    setTimeout(function() {
+        const $newRow = $('#testsContainer').find('.test-row').last();
+        $newRow.find('.test-result').prop('readonly', false).prop('disabled', false);
+        $newRow.find('.test-unit').prop('readonly', true);
+    }, 50);
 }
 
 // Remove test row
