@@ -357,6 +357,18 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     <input type="hidden" id="entryId" name="id">
                     
                     <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="ownerAddedBySelect">Owner/Added By <span class="text-danger">*</span></label>
+                                <select class="form-control select2" id="ownerAddedBySelect" name="owner_added_by" required>
+                                    <option value="">Select Owner/User</option>
+                                </select>
+                                <small class="form-text text-muted">Select the owner/user to filter patients and doctors</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="patientSelect">Patient <span class="text-danger">*</span></label>
@@ -373,18 +385,6 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                     <option value="">Select Owner/User first to load doctors</option>
                                 </select>
                                 <small class="form-text text-muted" id="doctorHelpText">Select an owner/user above to load doctors</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="ownerAddedBySelect">Owner/Added By <span class="text-danger">*</span></label>
-                                <select class="form-control select2" id="ownerAddedBySelect" name="owner_added_by" required>
-                                    <option value="">Select Owner/User</option>
-                                </select>
-                                <small class="form-text text-muted">Select the owner/user to filter patients and doctors</small>
                             </div>
                         </div>
                     </div>
