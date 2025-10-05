@@ -35,8 +35,15 @@ $(document).ready(function() {
         if ($.fn.select2) {
             $modal.find('.select2').each(function() {
                 const $el = $(this);
-                if ($el.hasClass('select2-hidden-accessible')) {
-                    return;
+
+                // If a previous Select2 instance exists, destroy it first to avoid
+                // duplicate UI fragments when the modal is reopened.
+                try {
+                    if ($el.hasClass('select2-hidden-accessible') && $el.data('select2')) {
+                        $el.select2('destroy');
+                    }
+                } catch (destroyErr) {
+                    // ignore
                 }
 
                 try {

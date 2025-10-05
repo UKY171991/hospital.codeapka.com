@@ -302,6 +302,16 @@ body.modal-open {
     z-index: 9999 !important;
 }
 
+/* Ensure Select2 control containers inside modals fill the available width */
+.modal .select2-container {
+    width: 100% !important;
+    display: block !important;
+}
+
+.modal .select2-container .select2-selection--single {
+    height: auto !important;
+}
+
 /* Test section styling */
 .test-row {
     background-color: #f8f9fa;
