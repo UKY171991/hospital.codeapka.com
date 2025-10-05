@@ -9,7 +9,7 @@ HMS.config = {
 };
 
 // Utility Functions
-const utils = {
+HMS.utils = HMS.utils || {
     // Show loading spinner
     showLoading: function(selector = '.loading') {
         $(selector).html('<i class="fas fa-spinner fa-spin"></i> Loading...');

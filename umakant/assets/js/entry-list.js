@@ -1,11 +1,25 @@
 // entry-list.js - Handles test entry list functionality
-$(document).ready(function() {
-    initializeEntryList();
-});
+window.HMS = window.HMS || {};
+HMS.entryList = {
+    isLoading: false,
+    table: null,
+    init: function() {
+        this.initializeDataTable();
+        this.initializeSelect2();
+        this.loadDropdowns();
+        this.initializeFormValidation();
+    },
+    
+    initializeDataTable: function() {
+        // Ensure the table element exists
+        const tableElement = $('#entriesTable');
+        if (!tableElement.length) {
+            console.error('Entries table element not found');
+            return;
+        }
 
-function initializeEntryList() {
-    // Initialize DataTable
-    const entriesTable = $('#entriesTable').DataTable({
+        // Initialize DataTable with Bootstrap 4 styling
+        this.table = tableElement.DataTable({
         processing: true,
         serverSide: false,
         responsive: true,

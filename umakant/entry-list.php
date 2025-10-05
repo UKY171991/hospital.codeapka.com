@@ -1,10 +1,4 @@
-    <!-- DataTables -->
-    <link rel="stylesheet" href="assets/plugins/datatables/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="assets/plugins/datatables/dataTables.bootstrap4.min.css">
-    <!-- Select2 -->
-    <link rel="stylesheet" href="assets/plugins/select2/css/select2.min.css">
-    <link rel="stylesheet" href="assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
-    <!-- Custom CSS -->
+    <!-- Page specific CSS -->
     <link rel="stylesheet" href="assets/css/entry-list.css">
 <?php
 require_once 'inc/header.php';
