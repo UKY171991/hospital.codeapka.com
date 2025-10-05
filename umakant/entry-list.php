@@ -215,7 +215,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
 
 <!-- Add/Edit Entry Modal -->
 <div class="modal fade" id="addEntryModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Add New Entry</h5>
@@ -342,7 +342,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
 
 <!-- Add/Edit Entry Modal -->
 <div class="modal fade" id="entryModal" tabindex="-1" role="dialog" aria-labelledby="entryModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document" style="max-width:95%; margin:20px auto;">
         <div class="modal-content">
             <div class="modal-header bg-primary">
                 <h5 class="modal-title" id="entryModalLabel">
@@ -357,7 +357,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     <input type="hidden" id="entryId" name="id">
                     
                     <div class="row">
-                        <div class="col-md-12">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="ownerAddedBySelect">Owner/Added By <span class="text-danger">*</span></label>
                                 <select class="form-control select2" id="ownerAddedBySelect" name="owner_added_by" required>
@@ -366,10 +366,8 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 <small class="form-text text-muted">Select the owner/user to filter patients and doctors</small>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="patientSelect">Patient <span class="text-danger">*</span></label>
                                 <select class="form-control select2" id="patientSelect" name="patient_id" required disabled>
@@ -378,7 +376,8 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 <small class="form-text text-muted" id="patientHelpText">Select an owner/user above to load patients</small>
                             </div>
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="doctorSelect">Doctor</label>
                                 <select class="form-control select2" id="doctorSelect" name="doctor_id" disabled>
