@@ -826,6 +826,9 @@ function loadOwnerUsers() {
                     
                     // modal-enhancements will initialize Select2 on modal show
                     ownerUserSelect.addClass('select2');
+
+                    // Notify listeners that owner/user options are loaded
+                    try { ownerUserSelect.trigger('ownerUsers:loaded'); } catch(e) { /* ignore */ }
                     
                     // Set current user as default if not editing
                     if (!currentEntryId && <?php echo json_encode($currentUserId); ?>) {
@@ -1004,10 +1007,11 @@ function openAddEntryModal() {
     $('#entryDate').val(new Date().toISOString().split('T')[0]);
     $('#priority').val('normal');
     
-    // Reset all select2 dropdowns
+    // Reset select2 dropdowns; keep owner selection if already present so
+    // patients/doctors can be loaded based on owner. Set default owner to
+    // the current user if none is selected.
     $('#patientSelect').val('').trigger('change');
     $('#doctorSelect').val('').trigger('change');
-    $('#ownerAddedBySelect').val('').trigger('change');
     $('#entryStatus').val('pending').trigger('change');
     
     // Reset additional fields
@@ -1054,6 +1058,23 @@ function openAddEntryModal() {
         }
     }, 800);
     
+    // If no owner is selected, try to set current user as owner.
+    const currentOwnerVal = $('#ownerAddedBySelect').val();
+    const currentUserId = <?php echo json_encode($currentUserId); ?>;
+    if (!currentOwnerVal && currentUserId) {
+        $('#ownerAddedBySelect').val(`user_${currentUserId}`);
+    }
+
+    // If owner options are not yet loaded, wait for the event, otherwise trigger immediately
+    const ownerSelect = $('#ownerAddedBySelect');
+    if (ownerSelect.find('option').length <= 1) {
+        ownerSelect.one('ownerUsers:loaded', function() {
+            ownerSelect.trigger('change');
+        });
+    } else {
+        ownerSelect.trigger('change');
+    }
+
     $('#entryModal').modal('show');
 }
 
