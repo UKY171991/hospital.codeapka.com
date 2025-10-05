@@ -1,5 +1,9 @@
     <!-- Page specific CSS -->
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/entry-list.css">
+    
+    <!-- Global Initialization -->
+    <script src="assets/js/init.js"></script>
 <?php
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';

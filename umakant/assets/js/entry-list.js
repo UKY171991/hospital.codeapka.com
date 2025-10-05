@@ -1,26 +1,31 @@
 // entry-list.js - Handles test entry list functionality
 (function($) {
     'use strict';
-
+    
     // Ensure HMS namespace exists
     window.HMS = window.HMS || {};
     
     // EntryList module
     HMS.entryList = {
         // Module state
-        state: {
-            isLoading: false,
-            table: null,
-            filters: {}
-        },
-
-        // Initialize module
+        table: null,
+        filters: {},
+        
+        // Initialize the module
         init: function() {
-        this.initializeDataTable();
-        this.initializeSelect2();
-        this.loadDropdowns();
-        this.initializeFormValidation();
-    },
+            this.initializeDataTable();
+            this.initializeSelect2();
+            this.loadDropdowns();
+            this.initializeFormValidation();
+            this.setupEventListeners();
+        },
+        
+        initializeSelect2: function() {
+            $('.select2').select2({
+                theme: 'bootstrap4',
+                width: '100%'
+            });
+        },
     
     initializeDataTable: function() {
         // Ensure the table element exists
@@ -32,20 +37,20 @@
 
         // Initialize DataTable with Bootstrap 4 styling
         this.table = tableElement.DataTable({
-        processing: true,
-        serverSide: false,
-        responsive: true,
-        dom: 'Bfrtip',
-        buttons: ['copy', 'excel', 'pdf', 'print'],
-        order: [[8, 'desc']], // Sort by date column descending
-        language: {
-            processing: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only">Loading...</span>'
-        },
-        ajax: {
-            url: 'ajax/entry_api.php',
-            type: 'GET',
-            data: function(d) {
-                d.action = 'list';
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            dom: 'Bfrtip',
+            buttons: ['copy', 'excel', 'pdf', 'print'],
+            order: [[8, 'desc']], // Sort by date column descending
+            language: {
+                processing: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only">Loading...</span>'
+            },
+            ajax: {
+                url: 'ajax/entry_api.php',
+                type: 'POST',
+                data: function(d) {
+                    d.action = 'list';
                 // Add any additional filters
                 return d;
             }
@@ -94,65 +99,69 @@
     initializeFormValidation();
 }
 
-function loadDropdowns() {
-    // Load patients
-    $.get('ajax/patient_api.php', { action: 'list' })
-        .done(function(response) {
-            if (response.success && response.data) {
-                populateSelect('#patient', response.data, 'Select Patient');
-            }
-        })
-        .fail(function() {
-            toastr.error('Failed to load patients list');
-        });
+        loadDropdowns: function() {
+            var self = this;
+            
+            // Load patients
+            $.get('ajax/patient_api.php', { action: 'list' })
+                .done(function(response) {
+                    if (response.success && response.data) {
+                        self.populateSelect('#patient', response.data, 'Select Patient');
+                    }
+                })
+                .fail(function() {
+                    HMS.utils.showError('Failed to load patients list');
+                });
 
-    // Load doctors
-    $.get('ajax/doctor_api.php', { action: 'list' })
-        .done(function(response) {
-            if (response.success && response.data) {
-                populateSelect('#doctor', response.data, 'Select Doctor');
-            }
-        })
-        .fail(function() {
-            toastr.error('Failed to load doctors list');
-        });
+            // Load doctors
+            $.get('ajax/doctor_api.php', { action: 'list' })
+                .done(function(response) {
+                    if (response.success && response.data) {
+                        self.populateSelect('#doctor', response.data, 'Select Doctor');
+                    }
+                })
+                .fail(function() {
+                    HMS.utils.showError('Failed to load doctors list');
+                });
 }
 
-function populateSelect(selector, data, placeholder) {
-    const $select = $(selector);
-    $select.empty().append(`<option value="">${placeholder}</option>`);
-    data.forEach(item => {
-        $select.append(`<option value="${item.id}">${escapeHtml(item.name)}</option>`);
-    });
-    $select.trigger('change');
+        populateSelect: function(selector, data, placeholder) {
+            const $select = $(selector);
+            $select.empty().append(`<option value="">${placeholder}</option>`);
+            data.forEach(item => {
+                $select.append(`<option value="${item.id}">${HMS.utils.escapeHtml(item.name)}</option>`);
+            });
+            $select.trigger('change');
+        },
+
+        initializeFormValidation: function() {
+            var self = this;
+            $('#entryForm').on('submit', function(e) {
+                e.preventDefault();
+                if (this.checkValidity()) {
+                    self.submitEntryForm();
+                }
+                $(this).addClass('was-validated');
+            });
 }
 
-function initializeFormValidation() {
-    $('#entryForm').on('submit', function(e) {
-        e.preventDefault();
-        if (this.checkValidity()) {
-            submitEntryForm();
-        }
-        $(this).addClass('was-validated');
-    });
-}
-
-function submitEntryForm() {
-    const formData = new FormData($('#entryForm')[0]);
-    
-    $.ajax({
-        url: 'ajax/entry_api.php',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-            if (response.success) {
-                toastr.success('Entry saved successfully');
-                $('#addEntryModal').modal('hide');
-                $('#entriesTable').DataTable().ajax.reload();
-            } else {
-                toastr.error(response.message || 'Failed to save entry');
+        submitEntryForm: function() {
+            var self = this;
+            const formData = new FormData($('#entryForm')[0]);
+            
+            $.ajax({
+                url: 'ajax/entry_api.php',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        HMS.utils.showSuccess('Entry saved successfully');
+                        $('#addEntryModal').modal('hide');
+                        self.table.ajax.reload();
+                    } else {
+                        HMS.utils.showError(response.message || 'Failed to save entry');
             }
         },
         error: function() {
@@ -171,40 +180,66 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-// CRUD Operations
-function viewEntry(id) {
-    // Implement view functionality
-}
+        // CRUD Operations
+        viewEntry: function(id) {
+            // Implement view functionality
+            // TODO: Add view implementation
+        },
 
-function editEntry(id) {
-    // Implement edit functionality
-}
+        editEntry: function(id) {
+            // Implement edit functionality
+            // TODO: Add edit implementation
+        },
 
-function deleteEntry(id) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.post('ajax/entry_api.php', {
-                action: 'delete',
-                id: id
-            })
-            .done(function(response) {
-                if (response.success) {
-                    toastr.success('Entry deleted successfully');
-                    $('#entriesTable').DataTable().ajax.reload();
-                } else {
-                    toastr.error(response.message || 'Failed to delete entry');
+        deleteEntry: function(id) {
+            var self = this;
+            
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('ajax/entry_api.php', {
+                        action: 'delete',
+                        id: id
+                    })
+                    .done(function(response) {
+                        if (response.success) {
+                            HMS.utils.showSuccess('Entry deleted successfully');
+                            self.table.ajax.reload();
+                        } else {
+                            HMS.utils.showError(response.message || 'Failed to delete entry');
+                        }
+                    })
+                    .fail(function() {
+                        HMS.utils.showError('Failed to delete entry');
+                    });
                 }
-            })
-            .fail(function() {
-                toastr.error('Failed to delete entry');
+            });
+        },
+        
+        setupEventListeners: function() {
+            var self = this;
+            
+            // Filter change handlers
+            $('#testCategoryFilter').on('change', function() {
+                self.filters.category_id = $(this).val();
+                self.table.ajax.reload();
+            });
+        }
+    }; // End of HMS.entryList object
+
+    // Initialize when document is ready
+    $(document).ready(function() {
+        HMS.entryList.init();
+    });
+
+})(jQuery);
             });
         }
     });
