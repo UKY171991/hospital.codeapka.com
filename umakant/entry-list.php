@@ -755,10 +755,8 @@ function loadPatients() {
                 response.data.forEach(function(patient) {
                     patientSelect.append(`<option value="${patient.id}">${patient.name} (${patient.uhid || 'No UHID'})</option>`);
                 });
-                patientSelect.select2({
-                    placeholder: 'Select Patient',
-                    allowClear: true
-                });
+                // modal-enhancements will initialize Select2 on modal show
+                patientSelect.addClass('select2');
             }
         }
     });
@@ -778,10 +776,8 @@ function loadDoctors() {
                 response.data.forEach(function(doctor) {
                     doctorSelect.append(`<option value="${doctor.id}">Dr. ${doctor.name}</option>`);
                 });
-                doctorSelect.select2({
-                    placeholder: 'Select Doctor',
-                    allowClear: true
-                });
+                // modal-enhancements will initialize Select2 on modal show
+                doctorSelect.addClass('select2');
             }
         }
     });
@@ -831,11 +827,8 @@ function loadOwnerUsers() {
                         ownerUserSelect.append(`<option value="" disabled>No users available</option>`);
                     }
                     
-                    ownerUserSelect.select2({
-                        placeholder: 'Select Owner/User',
-                        allowClear: true,
-                        dropdownParent: $('#entryModal')
-                    });
+                    // modal-enhancements will initialize Select2 on modal show
+                    ownerUserSelect.addClass('select2');
                     
                     // Set current user as default if not editing
                     if (!currentEntryId && <?php echo json_encode($currentUserId); ?>) {
@@ -877,10 +870,7 @@ function loadPatientsByOwner(ownerId) {
                 $('#patientHelpText').text('No patients found for this owner/user');
             }
             
-            patientSelect.select2({
-                placeholder: 'Select Patient',
-                allowClear: true
-            });
+            patientSelect.addClass('select2');
         },
         error: function() {
             $('#patientHelpText').text('Error loading patients');
@@ -908,10 +898,7 @@ function loadDoctorsByOwner(ownerId) {
                 $('#doctorHelpText').text('No doctors found for this owner/user');
             }
             
-            doctorSelect.select2({
-                placeholder: 'Select Doctor',
-                allowClear: true
-            });
+            doctorSelect.addClass('select2');
         },
         error: function() {
             $('#doctorHelpText').text('Error loading doctors');
@@ -1059,11 +1046,8 @@ function openAddEntryModal() {
     loadTests();
     loadOwnerUsers();
     
-    // Initialize Select2 for status dropdown
-    $('#entryStatus').select2({
-        placeholder: 'Select Status',
-        dropdownParent: $('#entryModal')
-    });
+    // Select2 initialization for modal-contained selects is handled by modal-enhancements.js
+    // on modal show. Avoid initializing here to prevent double-init and wrong dropdownParent.
     
     // Set current user as default
     setTimeout(function() {
@@ -1514,28 +1498,19 @@ function refreshTable() {
     entriesTable.ajax.reload();
 }
 
-// Initialize Select2 for modals and handle form initialization
-$(document).ready(function() {
-    // Initialize Select2 for all select2 elements
-    $('.select2').select2({
-        dropdownParent: $('#entryModal'),
-        width: '100%'
-    });
-    
-    // Add fallback for owner/users if API fails
-    setTimeout(function() {
-        const ownerSelect = $('#ownerAddedBySelect');
-        if (ownerSelect.find('option').length <= 1) {
-            // If no options loaded, add current user as fallback
-            const currentUserId = <?php echo json_encode($currentUserId); ?>;
-            const currentUserName = <?php echo json_encode($currentUserDisplayName); ?>;
-            if (currentUserId) {
-                ownerSelect.append(`<option value="user_${currentUserId}" data-type="user" data-user-id="${currentUserId}">👤 ${currentUserName} (Current User)</option>`);
-                ownerSelect.val(`user_${currentUserId}`).trigger('change');
-            }
+// Add fallback for owner/users if API fails (kept separate from Select2 init)
+setTimeout(function() {
+    const ownerSelect = $('#ownerAddedBySelect');
+    if (ownerSelect.find('option').length <= 1) {
+        // If no options loaded, add current user as fallback
+        const currentUserId = <?php echo json_encode($currentUserId); ?>;
+        const currentUserName = <?php echo json_encode($currentUserDisplayName); ?>;
+        if (currentUserId) {
+            ownerSelect.append(`<option value="user_${currentUserId}" data-type="user" data-user-id="${currentUserId}">👤 ${currentUserName} (Current User)</option>`);
+            ownerSelect.val(`user_${currentUserId}`).trigger('change');
         }
-    }, 2000);
-});
+    }
+}, 2000);
 </script>
 
 <!-- Initialize DataTables and Select2 -->

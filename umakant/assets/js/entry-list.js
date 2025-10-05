@@ -23,7 +23,10 @@
         }
 
         function initSelect2(){
-            $('.select2').select2({ theme: 'bootstrap4', width: '100%' });
+            // Initialize Select2 only for selects that are NOT inside a modal
+            $('.select2').filter(function(){
+                return $(this).closest('.modal').length === 0;
+            }).select2({ theme: 'bootstrap4', width: '100%' });
         }
 
         function initDataTable(){
