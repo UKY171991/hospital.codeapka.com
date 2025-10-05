@@ -1,15 +1,24 @@
-// Global Utility Functions for Hospital Management System
-
-// Common variables - Using a namespace to avoid conflicts
+// Initialize global namespace for Hospital Management System
 window.HMS = window.HMS || {};
+
+// Configuration
 HMS.config = {
     baseApiUrl: 'ajax/',
     currentPage: 1,
-    recordsPerPage: 10
+    recordsPerPage: 10,
+    dateFormat: 'YYYY-MM-DD',
+    currency: '₹'
 };
 
-// Utility Functions
-HMS.utils = HMS.utils || {
+// Global state
+HMS.state = {
+    isLoading: false,
+    currentUser: null,
+    permissions: {}
+};
+
+// Global utility functions
+HMS.utils = {
     // Show loading spinner
     showLoading: function(selector = '.loading') {
         $(selector).html('<i class="fas fa-spinner fa-spin"></i> Loading...');

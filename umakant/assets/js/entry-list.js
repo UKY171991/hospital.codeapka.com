@@ -1,9 +1,21 @@
 // entry-list.js - Handles test entry list functionality
-window.HMS = window.HMS || {};
-HMS.entryList = {
-    isLoading: false,
-    table: null,
-    init: function() {
+(function($) {
+    'use strict';
+
+    // Ensure HMS namespace exists
+    window.HMS = window.HMS || {};
+    
+    // EntryList module
+    HMS.entryList = {
+        // Module state
+        state: {
+            isLoading: false,
+            table: null,
+            filters: {}
+        },
+
+        // Initialize module
+        init: function() {
         this.initializeDataTable();
         this.initializeSelect2();
         this.loadDropdowns();
