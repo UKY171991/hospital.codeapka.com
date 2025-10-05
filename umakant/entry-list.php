@@ -325,10 +325,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
 
 <!-- Add required JavaScript files -->
 <!-- DataTables -->
-<script src="assets/plugins/datatables/jquery.dataTables.min.js"></script>
-<script src="assets/plugins/datatables/dataTables.bootstrap4.min.js"></script>
-<!-- Select2 -->
-<script src="assets/plugins/select2/js/select2.full.min.js"></script>
+<!-- DataTables/Select2 are loaded from CDN in header; do not load local plugin files here -->
 <!-- Custom JavaScript -->
 <script src="assets/js/entry-form.js"></script>
                                         <!-- Pagination will be added by DataTables -->
@@ -1542,14 +1539,6 @@ $(document).ready(function() {
 </script>
 
 <!-- Initialize DataTables and Select2 -->
-<script>
-// Initialize when document is ready
-$(document).ready(function() {
-    // Initialize page
-    HMS.entryList.init();
-});
-</script>
-
 <!-- Page specific script -->
 <script src="assets/js/entry-list.js"></script>
 

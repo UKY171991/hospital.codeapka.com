@@ -13,7 +13,7 @@
   <link rel="shortcut icon" href="/umakant/favicon.ico" type="image/x-icon">
   
   <!-- Core CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.6.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
   
   <!-- Font Awesome -->
@@ -33,7 +33,7 @@
   <!-- Core JavaScript -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.6.2/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
   
   <!-- DataTables JavaScript -->
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -42,7 +42,7 @@
   <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap4.min.js"></script>
   
   <!-- Select2 JavaScript -->
-  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
   
   <!-- Toastr JavaScript -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
@@ -96,7 +96,7 @@
   </nav>
   <!-- /.navbar -->
   <!-- Ensure jQuery is available early for inline scripts that run before footer -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- (jQuery is included above; do not include twice) -->
   <script>
     // Global debug flag - set to true to enable verbose logging
     window.APP_DEBUG = false;

@@ -328,8 +328,8 @@ $(document).ready(function() {
     }
     
     // Initialize tooltips and popovers
-    utils.initTooltips();
-    utils.initPopovers();
+    HMS.utils.initTooltips();
+    HMS.utils.initPopovers();
     
     // Add smooth scrolling to anchor links
     $('a[href^="#"]').on('click', function(e) {
@@ -360,17 +360,21 @@ $(document).ready(function() {
             return;
         }
 
-        var msg = utils.parseAjaxError(jqxhr);
-        utils.showError(msg, 7000);
+        var msg = HMS.utils.parseAjaxError(jqxhr);
+        HMS.utils.showError(msg, 7000);
     });
 });
-
-// Make utils globally available
-window.utils = utils;
+// Make HMS.utils available under window.utils for backward compatibility
+window.utils = HMS.utils;
 
 // Show content in the global view modal
-utils.showViewModal = function(title, htmlContent){
+HMS.utils.showViewModal = function(title, htmlContent){
     $('#globalViewModalLabel').text(title || 'Details');
     $('#globalViewModalBody').html(htmlContent || '<div class="text-muted">No details available</div>');
     $('#globalViewModal').modal('show');
 };
+
+// Notify other modules that HMS is ready
+$(function(){
+    try{ $(document).trigger('HMS:ready'); }catch(e){ /* ignore */ }
+});
