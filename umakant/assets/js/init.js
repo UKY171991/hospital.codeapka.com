@@ -116,10 +116,15 @@ HMS.utils = {
             placeholder: 'Select an option'
         };
 
-        return $(selector).select2({
-            ...defaultOptions,
-            ...options
+        // By default avoid initializing selects that live inside modals because
+        // modal-enhancements.js will do that on modal show with proper dropdownParent.
+        const mergedOpts = Object.assign({}, defaultOptions, options || {});
+        const $targets = $(selector).filter(function() {
+            if (mergedOpts.forceModalInit) return true;
+            return $(this).closest('.modal').length === 0;
         });
+
+        return $targets.select2(mergedOpts);
     }
 };
 
