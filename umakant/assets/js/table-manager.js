@@ -24,29 +24,36 @@ function initializeAllTables() {
     APP_LOG('Initializing all tables...');
     
     // Check each table type and initialize only once
+    var tryInit = function(name, fn){
+        try{
+            fn();
+        }catch(err){
+            console.error('Table init failed for', name, err);
+        }
+    };
+
     if ($('#patientsTable').length > 0 && !window.initializedTables.has('patientsTable')) {
         if ($.fn.DataTable.isDataTable('#patientsTable')) {
-            // Patient table already initialized elsewhere (e.g., patient.js). Preserve existing instance.
             markTableAsInitialized('patientsTable');
         } else {
-            initializePatientTable();
+            tryInit('patientsTable', initializePatientTable);
         }
     }
-    
+
     if ($('#doctorsTable').length > 0 && !window.initializedTables.has('doctorsTable')) {
-        initializeDoctorTable();
+        tryInit('doctorsTable', initializeDoctorTable);
     }
-    
+
     if ($('#testsTable').length > 0 && !window.initializedTables.has('testsTable')) {
-        initializeTestTable();
+        tryInit('testsTable', initializeTestTable);
     }
-    
+
     if ($('#usersTable').length > 0 && !window.initializedTables.has('usersTable')) {
-        initializeUserTable();
+        tryInit('usersTable', initializeUserTable);
     }
-    
+
     if ($('#testCategoriesTable').length > 0 && !window.initializedTables.has('testCategoriesTable')) {
-        initializeTestCategoryTable();
+        tryInit('testCategoriesTable', initializeTestCategoryTable);
     }
     
     // Initialize any other table with specific class
@@ -373,10 +380,16 @@ function initializeTestTable() {
     destroyTableIfExists('testsTable');
     
     try {
-        // Guard: ensure testsTable element exists and is a table
+        // Guard: ensure testsTable element exists and is a table with headers
         var $testsEl = $('#testsTable');
         if (!$testsEl.length || !$testsEl.is('table')) {
             APP_LOG('No #testsTable element found, skipping test table initialization');
+            return;
+        }
+        // Ensure there's a thead with at least one th (DataTables requires headers)
+        var $ths = $testsEl.find('thead tr').first().find('th');
+        if (!$ths.length) {
+            APP_LOG('Skipping testsTable init: no <th> found in thead for #testsTable');
             return;
         }
         const config = $.extend(true, {}, getCommonTableConfig(), {
@@ -479,9 +492,14 @@ function initializeTestTable() {
             ]
         });
         
-        $('#testsTable').DataTable(config);
-        markTableAsInitialized('testsTable');
-        showToast('success', 'Test table loaded successfully');
+        try {
+            $('#testsTable').DataTable(config);
+            markTableAsInitialized('testsTable');
+            showToast('success', 'Test table loaded successfully');
+        } catch (dtError) {
+            console.error('DataTable initialization failed for #testsTable:', dtError);
+            APP_LOG('Failed to initialize #testsTable, skipping.');
+        }
         
     } catch (error) {
         console.error('Error initializing test table:', error);
