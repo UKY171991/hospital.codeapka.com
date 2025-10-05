@@ -44,8 +44,21 @@ function initializeAllTables() {
         tryInit('doctorsTable', initializeDoctorTable);
     }
 
-    if ($('#testsTable').length > 0 && !window.initializedTables.has('testsTable')) {
-        tryInit('testsTable', initializeTestTable);
+    // Only initialize testsTable on the test.php page to avoid false positives on other pages
+    try {
+        var path = window.location && window.location.pathname ? window.location.pathname : '';
+        if (/\/test\.php$/i.test(path)) {
+            if ($('#testsTable').length > 0 && !window.initializedTables.has('testsTable')) {
+                tryInit('testsTable', initializeTestTable);
+            }
+        } else {
+            APP_LOG('Skipping testsTable init because current page is not test.php (path='+path+')');
+        }
+    } catch(e) {
+        // fallback: attempt initialization if detection fails
+        if ($('#testsTable').length > 0 && !window.initializedTables.has('testsTable')) {
+            tryInit('testsTable', initializeTestTable);
+        }
     }
 
     if ($('#usersTable').length > 0 && !window.initializedTables.has('usersTable')) {
@@ -382,6 +395,16 @@ function initializeTestTable() {
     try {
         // Guard: ensure testsTable element exists and is a table with headers
         var $testsEl = $('#testsTable');
+        // Diagnostic logging to help trace stray table initializations
+        try {
+            console.debug('[table-manager] initializeTestTable called. #testsTable length:', $testsEl.length, 'isTable:', $testsEl.is('table'));
+            if ($testsEl.length) {
+                console.debug('[table-manager] #testsTable thead th count:', $testsEl.find('thead tr').first().find('th').length);
+                var outer = $testsEl.prop('outerHTML');
+                if (outer && outer.length > 1000) outer = outer.substr(0,1000) + '...';
+                console.debug('[table-manager] #testsTable snippet:', outer);
+            }
+        } catch(diagErr) { console.warn('[table-manager] diagnostic logging failed', diagErr); }
         if (!$testsEl.length || !$testsEl.is('table')) {
             APP_LOG('No #testsTable element found, skipping test table initialization');
             return;
