@@ -44,6 +44,9 @@
     if (typeof window.HMS.utils.escapeHtml !== 'function') {
       window.HMS.utils.escapeHtml = function(s){ if (s == null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); };
     }
+    // Backwards-compatible pagination globals used by older scripts
+    window.currentPage = window.currentPage || 1;
+    window.recordsPerPage = window.recordsPerPage || 25;
   </script>
   
   <!-- DataTables JavaScript -->

@@ -373,6 +373,12 @@ function initializeTestTable() {
     destroyTableIfExists('testsTable');
     
     try {
+        // Guard: ensure testsTable element exists and is a table
+        var $testsEl = $('#testsTable');
+        if (!$testsEl.length || !$testsEl.is('table')) {
+            APP_LOG('No #testsTable element found, skipping test table initialization');
+            return;
+        }
         const config = $.extend(true, {}, getCommonTableConfig(), {
             serverSide: true,
             ajax: {
