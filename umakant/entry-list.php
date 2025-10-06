@@ -772,9 +772,11 @@ function loadPatients() {
                 const patientSelect = $('#patientSelect');
                 patientSelect.empty().append('<option value="">Select Patient</option>');
                 response.data.forEach(function(patient) {
-                    // include gender data attribute so we can auto-populate gender on selection/edit
+                    // include gender, contact and address data attributes so we can auto-populate fields on selection/edit
                     const genderVal = patient.gender || patient.sex || '';
-                    patientSelect.append(`<option value="${patient.id}" data-gender="${genderVal}">${patient.name} (${patient.uhid || 'No UHID'})</option>`);
+                    const contactVal = (patient.contact || patient.phone || patient.mobile || '');
+                    const addressVal = (patient.address || patient.address_line || '');
+                    patientSelect.append(`<option value="${patient.id}" data-gender="${genderVal}" data-contact="${contactVal}" data-address="${addressVal}">${patient.name} (${patient.uhid || 'No UHID'})</option>`);
                 });
                 // modal-enhancements will initialize Select2 on modal show
                 patientSelect.addClass('select2');
@@ -888,7 +890,9 @@ function loadPatientsByOwner(ownerId) {
                 if (response.success && response.data) {
                 response.data.forEach(function(patient) {
                     const genderVal = patient.gender || patient.sex || '';
-                    patientSelect.append(`<option value="${patient.id}" data-gender="${genderVal}">${patient.name} (${patient.uhid || 'No UHID'})</option>`);
+                    const contactVal = (patient.contact || patient.phone || patient.mobile || '');
+                    const addressVal = (patient.address || patient.address_line || '');
+                    patientSelect.append(`<option value="${patient.id}" data-gender="${genderVal}" data-contact="${contactVal}" data-address="${addressVal}">${patient.name} (${patient.uhid || 'No UHID'})</option>`);
                 });
                 $('#patientHelpText').text(`${response.data.length} patients available`);
             } else {
@@ -1045,13 +1049,17 @@ function setupEventHandlers() {
         }
     });
 
-    // When patient selection changes, auto-fill gender if available
+    // When patient selection changes, auto-fill gender, contact and address if available
     $(document).on('change', '#patientSelect', function() {
         const selected = $(this).find('option:selected');
         const gender = selected.data('gender') || '';
-        if (gender) {
-            try { $('#patientGender').val(gender).trigger('change'); } catch(e) { $('#patientGender').val(gender); }
-        }
+        const contact = selected.data('contact') || '';
+        const address = selected.data('address') || '';
+        try {
+            if (gender) { $('#patientGender').val(gender).trigger('change'); } else { $('#patientGender').val(''); }
+        } catch(e) { $('#patientGender').val(gender); }
+        try { $('#patientContact').val(contact); } catch(e) { /* ignore */ }
+        try { $('#patientAddress').val(address); } catch(e) { /* ignore */ }
     });
 }
 
