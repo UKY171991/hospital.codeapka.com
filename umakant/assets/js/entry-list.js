@@ -33,6 +33,13 @@
             var $table = $('#entriesTable');
             if(!$table.length) return;
 
+            // Avoid re-initializing if another script already created the DataTable
+            if (window._entriesTableInitialized || (typeof $.fn.dataTable !== 'undefined' && $.fn.dataTable.isDataTable && $.fn.dataTable.isDataTable('#entriesTable'))) {
+                try { table = $table.DataTable(); window.entriesTable = table; } catch(e) { /* fallback */ }
+                window._entriesTableInitialized = true;
+                return;
+            }
+
             table = $table.DataTable({
                 processing: true,
                 serverSide: true,
@@ -59,6 +66,8 @@
                     }}
                 ]
             });
+            // Expose to global so inline scripts can access and reload
+            try { window.entriesTable = table; } catch(e) {}
         }
 
         function loadDropdowns(){

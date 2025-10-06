@@ -662,6 +662,11 @@ function initializeDataTable() {
                 }
             },
             error: function(xhr, textStatus, errorThrown) {
+                // Ignore aborted requests (status 0) which commonly happen on navigation or duplicate inits
+                if (textStatus === 'abort' || xhr.status === 0) {
+                    console.info('Entries list AJAX aborted (likely duplicate init or navigation)');
+                    return;
+                }
                 console.error('Entries list AJAX error:', textStatus, errorThrown, 'HTTP status:', xhr.status, 'response:', xhr.responseText);
                 try { toastr.error('Failed to load entries: ' + (xhr.status || textStatus)); } catch(e) {}
             },
