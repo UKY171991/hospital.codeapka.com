@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 06, 2025 at 02:07 AM
+-- Generation Time: Oct 06, 2025 at 05:57 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -117,19 +117,18 @@ CREATE TABLE `entries` (
 --
 
 CREATE TABLE `entry_tests` (
-  `id` int(11) NOT NULL,
-  `server_id` int(11) DEFAULT NULL,
-  `entry_id` int(11) NOT NULL,
-  `test_id` int(11) NOT NULL,
-  `result_value` text DEFAULT NULL,
-  `unit` varchar(50) DEFAULT NULL,
+  `id` int(10) UNSIGNED NOT NULL,
+  `entry_id` int(10) UNSIGNED NOT NULL,
+  `test_id` int(10) UNSIGNED NOT NULL,
+  `result_value` varchar(255) DEFAULT NULL,
+  `unit` varchar(64) DEFAULT NULL,
   `remarks` text DEFAULT NULL,
-  `status` varchar(50) NOT NULL DEFAULT 'pending',
+  `status` varchar(32) NOT NULL DEFAULT 'pending',
   `price` decimal(10,2) DEFAULT 0.00,
-  `added_by` int(11) DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+  `discount_amount` decimal(10,2) DEFAULT 0.00,
+  `total_price` decimal(10,2) DEFAULT 0.00,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -346,7 +345,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-10-06 06:30:06', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-10-06 09:46:13', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
 (2, 'uma', '$2y$12$yBaDoENR.9MOXDLizW.UYunvNev1XOICwYC.WNCRmPEd1fQ5TS85q', 'Uma Yadav', 'umakant171991@gmail.com', 'user', 1, 0, '2025-09-26 10:13:58', NULL, '2025-10-11 10:13:00', '0000-00-00 00:00:00', '2025-09-26 04:43:58');
 
 -- --------------------------------------------------------
@@ -415,10 +414,8 @@ ALTER TABLE `entries`
 --
 ALTER TABLE `entry_tests`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_entry_tests_entry` (`entry_id`),
-  ADD KEY `idx_entry_tests_test` (`test_id`),
-  ADD KEY `idx_entry_tests_added_by` (`added_by`),
-  ADD KEY `idx_entry_tests_status` (`status`);
+  ADD KEY `idx_entry_id` (`entry_id`),
+  ADD KEY `idx_test_id` (`test_id`);
 
 --
 -- Indexes for table `notices`
@@ -520,7 +517,7 @@ ALTER TABLE `entries`
 -- AUTO_INCREMENT for table `entry_tests`
 --
 ALTER TABLE `entry_tests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `notices`
@@ -599,14 +596,6 @@ ALTER TABLE `entries`
   ADD CONSTRAINT `fk_entries_doctor` FOREIGN KEY (`doctor_id`) REFERENCES `doctors` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `fk_entries_patient` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `fk_entries_user` FOREIGN KEY (`added_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
-
---
--- Constraints for table `entry_tests`
---
-ALTER TABLE `entry_tests`
-  ADD CONSTRAINT `fk_entry_tests_entry` FOREIGN KEY (`entry_id`) REFERENCES `entries` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_entry_tests_test` FOREIGN KEY (`test_id`) REFERENCES `tests` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_entry_tests_user` FOREIGN KEY (`added_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `notices`

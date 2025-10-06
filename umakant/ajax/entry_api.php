@@ -32,44 +32,27 @@ if (!$user_data) {
 }
 
 function db_table_exists($pdo, $table) {
-    static $cache = [];
-    $tableKey = strtolower($table);
-    if (array_key_exists($tableKey, $cache)) {
-        return $cache[$tableKey];
-    }
     try {
         $stmt = $pdo->prepare('SHOW TABLES LIKE ?');
         $stmt->execute([$table]);
-        $cache[$tableKey] = $stmt->fetch(PDO::FETCH_NUM) ? true : false;
+        return $stmt->fetch(PDO::FETCH_NUM) ? true : false;
     } catch (Exception $e) {
-        $cache[$tableKey] = false;
+        return false;
     }
-    return $cache[$tableKey];
 }
 
 function db_column_exists($pdo, $table, $column) {
-    static $cache = [];
-    $key = strtolower($table . '.' . $column);
-    if (array_key_exists($key, $cache)) {
-        return $cache[$key];
-    }
     try {
         $stmt = $pdo->prepare("SHOW COLUMNS FROM `{$table}` LIKE ?");
         $stmt->execute([$column]);
-        $cache[$key] = $stmt->fetch(PDO::FETCH_ASSOC) ? true : false;
+        return $stmt->fetch(PDO::FETCH_ASSOC) ? true : false;
     } catch (Exception $e) {
-        $cache[$key] = false;
+        return false;
     }
-    return $cache[$key];
 }
 
 function get_entries_schema_capabilities($pdo) {
-    static $cache = null;
-    if ($cache !== null) {
-        return $cache;
-    }
-
-    $cache = [
+    return [
         'has_grouped' => db_column_exists($pdo, 'entries', 'grouped'),
         'has_tests_count' => db_column_exists($pdo, 'entries', 'tests_count'),
         'has_test_ids' => db_column_exists($pdo, 'entries', 'test_ids'),
@@ -85,54 +68,36 @@ function get_entries_schema_capabilities($pdo) {
         'has_remarks' => db_column_exists($pdo, 'entries', 'remarks'),
         'has_updated_at' => db_column_exists($pdo, 'entries', 'updated_at')
     ];
-
-    return $cache;
 }
 
 function get_entry_tests_schema_capabilities($pdo) {
-    static $cache = null;
-    if ($cache !== null) {
-        return $cache;
-    }
-
     $exists = db_table_exists($pdo, 'entry_tests');
     if (!$exists) {
-        $cache = [
+        return [
             'table_exists' => false,
             'has_price' => false,
             'has_discount_amount' => false,
             'has_total_price' => false
         ];
-        return $cache;
     }
 
-    $cache = [
+    return [
         'table_exists' => true,
         'has_price' => db_column_exists($pdo, 'entry_tests', 'price'),
         'has_discount_amount' => db_column_exists($pdo, 'entry_tests', 'discount_amount'),
         'has_total_price' => db_column_exists($pdo, 'entry_tests', 'total_price')
     ];
-
-    return $cache;
 }
 
 function build_entry_tests_aggregation_sql($pdo) {
-    static $cache = null;
-    if ($cache !== null) {
-        return $cache;
-    }
-
     $caps = get_entry_tests_schema_capabilities($pdo);
     if (!$caps['table_exists']) {
-        $cache = "SELECT NULL AS entry_id, 0 AS tests_count, '' AS test_names, '' AS test_ids, 0 AS total_price, 0 AS total_discount FROM dual WHERE 1 = 0";
-        return $cache;
+        return "SELECT NULL AS entry_id, 0 AS tests_count, '' AS test_names, '' AS test_ids, 0 AS total_price, 0 AS total_discount FROM dual WHERE 1 = 0";
     }
     $sumPrice = $caps['has_price'] ? 'SUM(et.price)' : 'SUM(0)';
     $sumDiscount = $caps['has_discount_amount'] ? 'SUM(et.discount_amount)' : 'SUM(0)';
 
-    $cache = "SELECT et.entry_id,\n               COUNT(*) as tests_count,\n               GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,\n               GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,\n               {$sumPrice} as total_price,\n               {$sumDiscount} as total_discount\n        FROM entry_tests et\n        LEFT JOIN tests t ON et.test_id = t.id\n        GROUP BY et.entry_id";
-
-    return $cache;
+    return "SELECT et.entry_id,\n               COUNT(*) as tests_count,\n               GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,\n               GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,\n               {$sumPrice} as total_price,\n               {$sumDiscount} as total_discount\n        FROM entry_tests et\n        LEFT JOIN tests t ON et.test_id = t.id\n        GROUP BY et.entry_id";
 }
 
 function refresh_entry_aggregates($pdo, $entryId) {
