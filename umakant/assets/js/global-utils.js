@@ -51,16 +51,32 @@ HMS.utils = {
 
     // Generic alert function
     showAlert: function(message, type = 'info', duration = 3000) {
-        // dedupe identical alerts within a short window
+        // normalize message: collapse whitespace and trim
+        function normalizeMsg(s) {
+            try { return String(s).replace(/\s+/g, ' ').trim(); } catch(e) { return String(s); }
+        }
+        var norm = normalizeMsg(message);
+
+        // dedupe identical alerts within a short window and by existing DOM alerts
         window._recentAlerts = window._recentAlerts || [];
         const now = Date.now();
         window._recentAlerts = window._recentAlerts.filter(a => now - a.ts < 5000);
-        if (window._recentAlerts.find(a => a.msg === message && a.type === type)) return;
-        window._recentAlerts.push({ msg: message, type: type, ts: now });
+        if (window._recentAlerts.find(a => a.msg === norm && a.type === type)) return;
+
+        // If a DOM alert with same normalized message exists, refresh its timeout and don't add a new one
+        var existing = $(`.alert[data-alert-msg='${norm.replace(/'/g,"\\'") }']`);
+        if (existing && existing.length) {
+            // bring to front and extend visibility
+            existing.stop(true,true).show();
+            window._recentAlerts.push({ msg: norm, type: type, ts: now });
+            return;
+        }
+
+        window._recentAlerts.push({ msg: norm, type: type, ts: now });
 
         const alertId = 'alert-' + Date.now();
         const alertHtml = `
-            <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert" style="position: fixed; top: 80px; right: 20px; z-index: 9999; min-width: 300px;">
+            <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert" data-alert-msg="${norm.replace(/"/g,'&quot;')}" style="position: fixed; top: 80px; right: 20px; z-index: 9999; min-width: 300px;">
                 <strong>${type.charAt(0).toUpperCase() + type.slice(1)}!</strong> ${message}
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -399,13 +415,23 @@ $(document).ready(function() {
         try {
             var respText = jqxhr && jqxhr.responseText ? jqxhr.responseText.trim() : '';
             if (respText) {
-                var maybeJson = JSON.parse(respText);
-                if (maybeJson && (maybeJson.message || maybeJson.msg || maybeJson.error) ) {
+                // If responseText contains JSON-like error markers, let page code handle it to avoid duplicates
+                var lower = respText.toLowerCase();
+                if (lower.indexOf('"message"') !== -1 || lower.indexOf('"success"') !== -1 || lower.indexOf('"error"') !== -1) {
                     return; // let caller handle showing the message
+                }
+                // Try a best-effort JSON parse
+                try {
+                    var maybeJson = JSON.parse(respText);
+                    if (maybeJson && (maybeJson.message || maybeJson.msg || maybeJson.error) ) {
+                        return; // let caller handle showing the message
+                    }
+                } catch (e) {
+                    // not JSON - continue
                 }
             }
         } catch (e) {
-            // not JSON - continue
+            // ignore
         }
 
         var msg = HMS.utils && HMS.utils.parseAjaxError ? HMS.utils.parseAjaxError(jqxhr) : '';
