@@ -875,9 +875,8 @@ function populateEditForm(entry) {
 
     // Set patient and doctor after a delay to ensure owner selection is processed
     // Wait for the owner change to propagate and load patients/doctors
-    $(document).one('patients:loaded doctors:loaded', function() {
+    $(document).one('patients:loaded', function() {
         $('#patientSelect').val(entry.patient_id).trigger('change');
-        $('#doctorSelect').val(entry.doctor_id).trigger('change');
         
         // Populate gender field from entry if present
         if (entry.gender) {
@@ -887,6 +886,10 @@ function populateEditForm(entry) {
                 $('#patientGender').val(entry.gender);
             }
         }
+    });
+
+    $(document).one('doctors:loaded', function() {
+        $('#doctorSelect').val(entry.doctor_id).trigger('change');
     });
 
     // Populate tests section
