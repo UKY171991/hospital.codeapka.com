@@ -431,7 +431,7 @@ try {
             $testsSql = "SELECT et.*, t.name as test_name, t.unit, tc.name as category_name 
                          FROM entry_tests et 
                          LEFT JOIN tests t ON et.test_id = t.id
-                         LEFT JOIN test_categories tc ON t.category_id = tc.id
+                         LEFT JOIN categories tc ON t.category_id = tc.id
                          WHERE et.entry_id = ?";
             $testsStmt = $pdo->prepare($testsSql);
             $testsStmt->execute([$_GET['id']]);
