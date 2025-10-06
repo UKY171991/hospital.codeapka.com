@@ -33,9 +33,9 @@ if (!$user_data) {
 
 function db_table_exists($pdo, $table) {
     try {
-        $stmt = $pdo->prepare('SHOW TABLES LIKE ?');
+        $stmt = $pdo->prepare("SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?");
         $stmt->execute([$table]);
-        return $stmt->fetch(PDO::FETCH_NUM) ? true : false;
+        return $stmt->fetchColumn() !== false;
     } catch (Exception $e) {
         return false;
     }
@@ -455,18 +455,7 @@ try {
             if (is_array($tests) && count($tests) > 0) {
                 $entryTestCaps = get_entry_tests_schema_capabilities($pdo);
                 if (!$entryTestCaps['table_exists']) {
-                    $stmt = $pdo->query('SELECT DATABASE()');
-        $dbName = $stmt->fetchColumn();
-        $stmt = $pdo->query('SHOW TABLES');
-        $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        json_response([
-            'success' => false,
-            'message' => 'Multiple tests are not supported on this installation (missing entry_tests table).',
-            'debug_info' => [
-                'db_name' => $dbName,
-                'tables' => $tables
-            ]
-        ], 400);
+                    json_response(['success' => false, 'message' => 'Multiple tests are not supported on this installation (missing entry_tests table).'], 400);
                 }
 
                 try {
