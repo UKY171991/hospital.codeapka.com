@@ -78,6 +78,8 @@ function get_entries_schema_capabilities($pdo) {
         'has_price' => db_column_exists($pdo, 'entries', 'price'),
         'has_discount_amount' => db_column_exists($pdo, 'entries', 'discount_amount'),
         'has_total_price' => db_column_exists($pdo, 'entries', 'total_price'),
+        // optionally present column linking an entry to an owner/clinic
+        'has_owner_id' => db_column_exists($pdo, 'entries', 'owner_id'),
         'has_subtotal' => db_column_exists($pdo, 'entries', 'subtotal'),
         'has_notes' => db_column_exists($pdo, 'entries', 'notes'),
         'has_remarks' => db_column_exists($pdo, 'entries', 'remarks'),
@@ -272,18 +274,27 @@ try {
             $aggJoin = '';
         }
 
+        // Build SELECT and JOINs conditionally based on schema capabilities
+        $entriesCaps = get_entries_schema_capabilities($pdo);
+        $ownerSelect = '';
+        $ownerJoin = '';
+        if (!empty($entriesCaps['has_owner_id'])) {
+            $ownerSelect = "o.name AS owner_name,";
+            $ownerJoin = " LEFT JOIN owners o ON e.owner_id = o.id";
+        }
+
         $sql = "SELECT e.*, 
                    p.name AS patient_name, p.uhid, p.age, p.sex AS gender, p.contact AS patient_contact, p.address AS patient_address,
                    d.name AS doctor_name,
-                   o.name AS owner_name,
+                   {$ownerSelect}
                    du.username AS doctor_added_by_username,
                    u.username AS added_by_username, u.full_name AS added_by_full_name,
                    {$aggSelect}
             FROM entries e 
             LEFT JOIN patients p ON e.patient_id = p.id 
-            LEFT JOIN doctors d ON e.doctor_id = d.id 
-            LEFT JOIN owners o ON e.owner_id = o.id
-            LEFT JOIN users du ON d.added_by = du.id
+            LEFT JOIN doctors d ON e.doctor_id = d.id " .
+            $ownerJoin .
+            " LEFT JOIN users du ON d.added_by = du.id
             LEFT JOIN users u ON e.added_by = u.id" .
             $aggJoin .
             $scopeWhere .
