@@ -225,7 +225,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
             </div>
             <div class="modal-body">
                 <div id="formMessages"></div>
-                <form id="entryForm">
+                <form id="addEntryForm">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group required">
@@ -316,7 +316,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="$('#entryForm').submit()">Save Entry</button>
+                <button type="button" class="btn btn-primary" onclick="$('#addEntryForm').submit()">Save Entry</button>
             </div>
         </div>
     </div>
@@ -964,10 +964,10 @@ function loadTests() {
 
 // Setup event handlers
 function setupEventHandlers() {
-    // Form submission
-    $('#entryForm').on('submit', function(e) {
+    // Form submission - handle both add and edit forms
+    $(document).on('submit', '#entryForm, #addEntryForm', function(e) {
         e.preventDefault();
-        saveEntry();
+        saveEntry(this);
     });
     
     // Delete confirmation
@@ -1067,7 +1067,9 @@ function setupEventHandlers() {
 function openAddEntryModal() {
     currentEntryId = null;
     $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
-    $('#entryForm')[0].reset();
+    // Reset both forms to be safe
+    try { if ($('#entryForm').length) { $('#entryForm')[0].reset(); } } catch(e) {}
+    try { if ($('#addEntryForm').length) { $('#addEntryForm')[0].reset(); } } catch(e) {}
     $('#entryId').val('');
     $('#entryDate').val(new Date().toISOString().split('T')[0]);
     $('#priority').val('normal');
@@ -1222,31 +1224,36 @@ function removeTestRow(button) {
 }
 
 // Save entry
-function saveEntry() {
-    const formData = new FormData($('#entryForm')[0]);
+function saveEntry(formElement) {
+    // Accept either a form element reference or default to #entryForm
+    const $form = formElement ? $(formElement) : $('#entryForm');
+    const formData = new FormData($form[0]);
     
-    // Process owner/added by field
-    const ownerAddedByValue = $('#ownerAddedBySelect').val();
+    // Process owner/added by field - prefer form-local field, fallback to global selector
+    let ownerAddedByValue = $form.find('[name="owner_added_by"]').val();
+    if (!ownerAddedByValue) { ownerAddedByValue = $('#ownerAddedBySelect').val(); }
     if (ownerAddedByValue) {
-        const selectedOption = $('#ownerAddedBySelect').find('option:selected');
-        const type = selectedOption.data('type');
-        
+        // Try to read the selected option from the form if present
+        let $selectedOption = $form.find('[name="owner_added_by"]').find('option:selected');
+        if (!$selectedOption || $selectedOption.length === 0) { $selectedOption = $('#ownerAddedBySelect').find('option:selected'); }
+        const type = $selectedOption.data('type');
         if (type === 'owner') {
-            const ownerId = selectedOption.data('owner-id');
+            const ownerId = $selectedOption.data('owner-id');
             formData.set('owner_id', ownerId);
-            formData.set('added_by', ownerId); // Set owner as added by as well
+            formData.set('added_by', ownerId);
         } else if (type === 'user') {
-            const userId = selectedOption.data('user-id');
+            const userId = $selectedOption.data('user-id');
             formData.set('added_by', userId);
-            // You might want to set owner_id based on user's association
-            // For now, we'll leave it empty or set it to user_id
             formData.set('owner_id', userId);
         }
     }
     
-    // Convert tests data to JSON
+    // Convert tests data to JSON (only rows within this form)
     const tests = [];
-    $('.test-row').each(function() {
+    // gather test rows: prefer rows inside submitted form; fallback to global testsContainer
+    let $testRows = $form.find('.test-row');
+    if (!$testRows || $testRows.length === 0) { $testRows = $('#testsContainer').find('.test-row'); }
+    $testRows.each(function() {
         const testId = $(this).find('.test-select').val();
     const price = $(this).find('input[name*="[price]"]').val();
     // discount column removed from UI; set to 0 by default
@@ -1272,7 +1279,10 @@ function saveEntry() {
     });
     
     formData.set('tests', JSON.stringify(tests));
-    
+
+    // Debug: log the outgoing tests payload
+    try { console.debug('Saving entry tests payload:', tests); } catch(e) {}
+
     $.ajax({
         url: 'ajax/entry_api.php',
         method: 'POST',
@@ -1290,8 +1300,11 @@ function saveEntry() {
                 toastr.error(response.message || 'Failed to save entry');
             }
         },
-        error: function() {
-            toastr.error('An error occurred while saving the entry');
+        error: function(xhr) {
+            var msg = 'An error occurred while saving the entry';
+            try { if (xhr && xhr.responseText) msg += ': ' + xhr.responseText; } catch(e) {}
+            toastr.error(msg);
+            try { console.error('Save entry error', xhr); } catch(e) {}
         }
     });
 }
