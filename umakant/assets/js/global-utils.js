@@ -253,8 +253,8 @@ HMS.utils = {
     // status === 0 can mean either offline or an aborted/blocked request. Return empty
     // so the global ajaxError handler decides what to show (it knows navigator.onLine).
     if (jqxhr.status === 0) return '';
-        if (jqxhr.status >= 500) return 'Server error (' + jqxhr.status + '): ' + (jqxhr.statusText || 'Internal Server Error');
-        if (jqxhr.status >= 400) return 'Request error (' + jqxhr.status + '): ' + (jqxhr.statusText || 'Bad request');
+    if (jqxhr.status >= 500) return 'Server error (' + jqxhr.status + '). Please try again later or contact support.';
+    if (jqxhr.status >= 400) return 'Request error (' + jqxhr.status + '). Please check your input and try again.';
 
         // Last resort: include a short portion of responseText
         return (jqxhr.status ? ('Error ' + jqxhr.status + ': ') : '') + (jqxhr.statusText || '') + (respText ? ' - ' + respText.substring(0, 400) : '');
@@ -434,14 +434,17 @@ $(document).ready(function() {
             // ignore
         }
 
-        var msg = HMS.utils && HMS.utils.parseAjaxError ? HMS.utils.parseAjaxError(jqxhr) : '';
-        if (msg) {
-            // dedupe identical messages within short window
+        // Build a friendly message for the user, but keep detailed info in console for debugging
+        var detailed = jqxhr && jqxhr.responseText ? jqxhr.responseText : (thrown || 'No additional details');
+        console.error('AJAX error:', settings && settings.url ? settings.url : '', 'status:', jqxhr.status, 'response:', detailed);
+
+        var friendly = HMS.utils && HMS.utils.parseAjaxError ? HMS.utils.parseAjaxError(jqxhr) : 'An error occurred';
+        if (friendly) {
             const now = Date.now();
             window._recentAjaxErrors = window._recentAjaxErrors.filter(i => now - i.ts < 7000);
-            if (!window._recentAjaxErrors.find(i => i.msg === msg)) {
-                window._recentAjaxErrors.push({ msg: msg, ts: now });
-                if (window.HMS && HMS.utils) HMS.utils.showError(msg, 7000);
+            if (!window._recentAjaxErrors.find(i => i.msg === friendly)) {
+                window._recentAjaxErrors.push({ msg: friendly, ts: now });
+                if (window.HMS && HMS.utils) HMS.utils.showError(friendly, 7000);
             }
         }
     });
