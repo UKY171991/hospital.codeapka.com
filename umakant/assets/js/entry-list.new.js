@@ -845,8 +845,6 @@ function populateEditForm(entry) {
     });
 
     $(document).one('doctors:loaded', function() {
-        alert('doctors loaded. entry.doctor_id: ' + entry.doctor_id);
-        alert('doctor select options: ' + $('#doctorSelect').html());
         $('#doctorSelect').val(entry.doctor_id).trigger('change');
     });
 
