@@ -12,7 +12,6 @@ $(document).ready(function() {
 function initializePage() {
     loadStatistics();
     initializeDataTable();
-    loadUsersDropdown();
     loadTests();
     setupEventHandlers();
 }
@@ -874,24 +873,7 @@ function populateEditForm(entry) {
     $('#referralSource').val(entry.referral_source || '');
     $('#priority').val(entry.priority || 'normal');
 
-    // Set patient and doctor after a delay to ensure owner selection is processed
-    // Wait for the owner change to propagate and load patients/doctors
-    $(document).one('patients:loaded', function() {
-        $('#patientSelect').val(entry.patient_id).trigger('change');
-        
-        // Populate gender field from entry if present
-        if (entry.gender) {
-            try {
-                $('#patientGender').val(entry.gender).trigger('change');
-            } catch (e) {
-                $('#patientGender').val(entry.gender);
-            }
-        }
-    });
-
-    $(document).one('doctors:loaded', function() {
-        $('#doctorSelect').val(entry.doctor_id).trigger('change');
-    });
+    
 
     // Populate tests section
     const testsContainer = $('#testsContainer');
