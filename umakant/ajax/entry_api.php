@@ -494,6 +494,20 @@ try {
                 }
 
                 try {
+                    error_log('Entry API save: received ' . count($tests) . ' tests');
+                    error_log('Entry API save payload keys: ' . implode(',', array_keys($input ?? [])));
+                    // Also write a lightweight debug file for easier inspection on the server
+                    try {
+                        $debugDir = __DIR__ . '/../tmp';
+                        if (!is_dir($debugDir)) {
+                            @mkdir($debugDir, 0755, true);
+                        }
+                        $debugFile = $debugDir . '/entry_api_debug.log';
+                        $debugLine = date('[Y-m-d H:i:s]') . " SAVE_RECEIVED tests=" . count($tests) . " keys=" . implode(',', array_keys($input ?? [])) . "\n";
+                        @file_put_contents($debugFile, $debugLine, FILE_APPEND | LOCK_EX);
+                    } catch (Exception $ee) {
+                        // ignore file write errors
+                    }
                     $pdo->beginTransaction();
                     
                     $entryCaps = get_entries_schema_capabilities($pdo);
@@ -557,6 +571,8 @@ try {
                     $stmt = $pdo->prepare($sql);
                     $stmt->execute($entryData);
                     $entryId = $pdo->lastInsertId();
+                    error_log('Entry API save: created entry id ' . $entryId);
+                    @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " CREATED_ENTRY id=" . $entryId . "\n", FILE_APPEND | LOCK_EX);
                     
                     // Insert individual tests
                     $testIds = [];
@@ -585,6 +601,8 @@ try {
                         $testSql = "INSERT INTO entry_tests ($testFields) VALUES ($testPlaceholders)";
                         $testStmt = $pdo->prepare($testSql);
                         $testStmt->execute($testData);
+                        error_log('Entry API save: inserted entry_test for entry ' . $entryId . ' test_id ' . ($test['test_id'] ?? '')); 
+                        @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " INSERT_TEST entry=" . $entryId . " test_id=" . ($test['test_id'] ?? '') . "\n", FILE_APPEND | LOCK_EX);
                         
                         $testIds[] = $test['test_id'];
                         $testNames[] = $test['test_name'];
@@ -614,6 +632,8 @@ try {
                     refresh_entry_aggregates($pdo, $entryId);
                     
                     $pdo->commit();
+                    error_log('Entry API save: commit successful for entry ' . $entryId);
+                    @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " COMMIT entry=" . $entryId . "\n", FILE_APPEND | LOCK_EX);
                     
                     json_response([
                         'success' => true,
@@ -624,6 +644,7 @@ try {
                 } catch (Exception $e) {
                     $pdo->rollBack();
                     error_log("Multiple tests entry save error: " . $e->getMessage());
+                    @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " SAVE_ERROR " . $e->getMessage() . "\n", FILE_APPEND | LOCK_EX);
                     json_response(['success' => false, 'message' => 'Failed to save entry with multiple tests'], 500);
                 }
             } else {
@@ -656,6 +677,13 @@ try {
             $apiResponse = curl_exec($ch);
             $curlErr = curl_error($ch);
             curl_close($ch);
+
+            error_log('Entry API proxy response: ' . substr($apiResponse ?? '', 0, 1000));
+            @file_put_contents(__DIR__ . '/../tmp/entry_api_debug.log', date('[Y-m-d H:i:s]') . " PROXY_RESPONSE " . substr($apiResponse ?? '', 0, 1000) . "\n", FILE_APPEND | LOCK_EX);
+            if ($curlErr) {
+                error_log('Entry API proxy curl error: ' . $curlErr);
+                @file_put_contents(__DIR__ . '/../tmp/entry_api_debug.log', date('[Y-m-d H:i:s]') . " PROXY_CURL_ERR " . $curlErr . "\n", FILE_APPEND | LOCK_EX);
+            }
 
             if ($apiResponse === false) {
                 json_response(['success' => false, 'message' => 'API request failed', 'error' => $curlErr], 500);
