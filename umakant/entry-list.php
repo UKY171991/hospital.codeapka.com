@@ -280,9 +280,8 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                             <thead>
                                                 <tr>
                                                     <th>Test Name</th>
-                                                    <th width="15%">Price (₹)</th>
-                                                    <th width="15%">Discount (%)</th>
-                                                    <th width="15%">Final Amount</th>
+                                                    <th width="25%">Price (₹)</th>
+                                                    <th width="25%">Final Amount</th>
                                                     <th width="10%">Actions</th>
                                                 </tr>
                                             </thead>
@@ -1083,7 +1082,7 @@ function openAddEntryModal() {
     // Reset tests container
     $('#testsContainer').html(`
         <div class="test-row row mb-2">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <select class="form-control test-select" name="tests[0][test_id]" required>
                     <option value="">Select Test</option>
                 </select>
@@ -1093,13 +1092,13 @@ function openAddEntryModal() {
                 <input type="hidden" name="tests[0][category_id]" class="test-category-id">
             </div>
             <div class="col-md-2">
-                <input type="text" class="form-control test-unit" name="tests[0][unit]" placeholder="Unit" readonly>
-            </div>
-            <div class="col-md-2">
-                <input type="number" class="form-control" name="tests[0][price]" placeholder="0.00" step="0.01" min="0" required>
+                <input type="text" class="form-control test-result" name="tests[0][result_value]" placeholder="Result">
             </div>
             <div class="col-md-1">
-                <input type="number" class="form-control" name="tests[0][discount_amount]" placeholder="0.00" step="0.01" min="0" value="0">
+                <input type="text" class="form-control test-unit" name="tests[0][unit]" placeholder="Unit" readonly>
+            </div>
+            <div class="col-md-3">
+                <input type="number" class="form-control" name="tests[0][price]" placeholder="0.00" step="0.01" min="0" required>
             </div>
             <div class="col-md-1">
                 <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
