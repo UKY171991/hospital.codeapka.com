@@ -497,17 +497,13 @@ try {
                     error_log('Entry API save: received ' . count($tests) . ' tests');
                     error_log('Entry API save payload keys: ' . implode(',', array_keys($input ?? [])));
                     // Also write a lightweight debug file for easier inspection on the server
-                    try {
-                        $debugDir = __DIR__ . '/../tmp';
-                        if (!is_dir($debugDir)) {
-                            @mkdir($debugDir, 0755, true);
-                        }
-                        $debugFile = $debugDir . '/entry_api_debug.log';
-                        $debugLine = date('[Y-m-d H:i:s]') . " SAVE_RECEIVED tests=" . count($tests) . " keys=" . implode(',', array_keys($input ?? [])) . "\n";
-                        @file_put_contents($debugFile, $debugLine, FILE_APPEND | LOCK_EX);
-                    } catch (Exception $ee) {
-                        // ignore file write errors
+                    $debugDir = __DIR__ . '/../tmp';
+                    if (!is_dir($debugDir)) {
+                        @mkdir($debugDir, 0755, true);
                     }
+                    $debugFile = $debugDir . '/entry_api_debug.log';
+                    $debugLine = date('[Y-m-d H:i:s]') . " SAVE_RECEIVED tests=" . count($tests) . " keys=" . implode(',', array_keys($input ?? [])) . "\n";
+                    @file_put_contents($debugFile, $debugLine, FILE_APPEND | LOCK_EX);
                     $pdo->beginTransaction();
                     
                     $entryCaps = get_entries_schema_capabilities($pdo);
@@ -642,10 +638,17 @@ try {
                     ]);
                     
                 } catch (Exception $e) {
-                    $pdo->rollBack();
+                    // Rollback and provide a detailed debug entry for troubleshooting
+                    try {
+                        $pdo->rollBack();
+                    } catch (Exception $__) {
+                        // ignore rollback errors
+                    }
                     error_log("Multiple tests entry save error: " . $e->getMessage());
-                    @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " SAVE_ERROR " . $e->getMessage() . "\n", FILE_APPEND | LOCK_EX);
-                    json_response(['success' => false, 'message' => 'Failed to save entry with multiple tests'], 500);
+                    $errLine = date('[Y-m-d H:i:s]') . " SAVE_ERROR message=" . $e->getMessage() . " file=" . $e->getFile() . " line=" . $e->getLine() . " trace=" . str_replace("\n", " | ", $e->getTraceAsString()) . "\n";
+                    @file_put_contents($debugFile, $errLine, FILE_APPEND | LOCK_EX);
+                    // Return sanitized error to client but include a debug hint
+                    json_response(['success' => false, 'message' => 'Failed to save entry with multiple tests', 'debug_hint' => 'see umakant/tmp/entry_api_debug.log on server for details'], 500);
                 }
             } else {
                 json_response(['success' => false, 'message' => 'No valid tests provided'], 400);
