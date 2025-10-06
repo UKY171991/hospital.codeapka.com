@@ -919,7 +919,6 @@ function populateEditForm(entry) {
     }
 
     // Load dropdowns
-    loadUsersDropdown();
     loadTests(function() {
         if (entry.tests && entry.tests.length > 0) {
             entry.tests.forEach(function(test, index) {
