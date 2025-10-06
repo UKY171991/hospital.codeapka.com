@@ -464,11 +464,11 @@ try {
                     // Also write a lightweight debug file for easier inspection on the server
                     $debugDir = __DIR__ . '/../tmp';
                     if (!is_dir($debugDir)) {
-                        @mkdir($debugDir, 0755, true);
+                        mkdir($debugDir, 0755, true);
                     }
                     $debugFile = $debugDir . '/entry_api_debug.log';
                     $debugLine = date('[Y-m-d H:i:s]') . " SAVE_RECEIVED tests=" . count($tests) . " keys=" . implode(',', array_keys($input ?? [])) . "\n";
-                    @file_put_contents($debugFile, $debugLine, FILE_APPEND | LOCK_EX);
+                    file_put_contents($debugFile, $debugLine, FILE_APPEND | LOCK_EX);
                     $pdo->beginTransaction();
                     
                     $entryCaps = get_entries_schema_capabilities($pdo);
@@ -476,16 +476,88 @@ try {
                     // Create the main entry with schema-awareness
                     $entryData = [
                         'patient_id' => $input['patient_id'],
-                        'doctor_id' => $input['doctor_id'] ?? null,
-                        // include gender if provided (and DB supports it will be handled below)
-                        'gender' => $input['gender'] ?? null,
+                        'doctor_id' => $input['doctor'] ?? null,
                         'owner_id' => $input['owner_id'] ?? null,
                         'entry_date' => $input['entry_date'] ?? date('Y-m-d'),
                         'status' => $input['status'] ?? 'pending',
-                        'priority' => $input['priority'] ?? 'normal',
-                        'referral_source' => $input['referral_source'] ?? null,
                         'added_by' => $input['added_by']
                     ];
+
+                    if ($entryCaps['has_remarks']) {
+                        $entryData['remarks'] = $input['notes'] ?? null;
+                    } elseif ($entryCaps['has_notes']) {
+                        $entryData['notes'] = $input['notes'] ?? null;
+                    }
+                    if ($entryCaps['has_grouped']) {
+                        $entryData['grouped'] = 1;
+                    }
+                    if ($entryCaps['has_tests_count']) {
+                        $entryData['tests_count'] = count($tests);
+                    }
+
+                    // Calculate totals based on test data and schema
+                    $totalPrice = 0;
+                    $totalDiscount = 0;
+                    foreach ($tests as $test) {
+                        $totalPrice += floatval($test['price'] ?? 0);
+                        $totalDiscount += floatval($test['discount_amount'] ?? 0);
+                    }
+
+                    if ($entryCaps['has_price']) {
+                        $entryData['price'] = $totalPrice;
+                    }
+                    if ($entryCaps['has_subtotal']) {
+                        $entryData['subtotal'] = $totalPrice;
+                    }
+                    if ($entryCaps['has_discount_amount']) {
+                        $entryData['discount_amount'] = $totalDiscount;
+                    }
+                    if ($entryCaps['has_total_price']) {
+                        $entryData['total_price'] = max($totalPrice - $totalDiscount, 0);
+                    }
+
+                    // Set primary test to first test for backward compatibility
+                    if (!empty($tests) && $entryCaps['has_test_id']) {
+                        $entryData['test_id'] = $tests[0]['test_id'];
+                    }
+
+                    if ($entryCaps['has_remarks']) {
+                        $entryData['remarks'] = $input['notes'] ?? null;
+                    } elseif ($entryCaps['has_notes']) {
+                        $entryData['notes'] = $input['notes'] ?? null;
+                    }
+                    if ($entryCaps['has_grouped']) {
+                        $entryData['grouped'] = 1;
+                    }
+                    if ($entryCaps['has_tests_count']) {
+                        $entryData['tests_count'] = count($tests);
+                    }
+
+                    // Calculate totals based on test data and schema
+                    $totalPrice = 0;
+                    $totalDiscount = 0;
+                    foreach ($tests as $test) {
+                        $totalPrice += floatval($test['price'] ?? 0);
+                        $totalDiscount += floatval($test['discount_amount'] ?? 0);
+                    }
+
+                    if ($entryCaps['has_price']) {
+                        $entryData['price'] = $totalPrice;
+                    }
+                    if ($entryCaps['has_subtotal']) {
+                        $entryData['subtotal'] = $totalPrice;
+                    }
+                    if ($entryCaps['has_discount_amount']) {
+                        $entryData['discount_amount'] = $totalDiscount;
+                    }
+                    if ($entryCaps['has_total_price']) {
+                        $entryData['total_price'] = max($totalPrice - $totalDiscount, 0);
+                    }
+
+                    // Set primary test to first test for backward compatibility
+                    if (!empty($tests) && $entryCaps['has_test_id']) {
+                        $entryData['test_id'] = $tests[0]['test_id'];
+                    }
 
                     if ($entryCaps['has_remarks']) {
                         $entryData['remarks'] = $input['notes'] ?? null;
@@ -609,11 +681,16 @@ try {
                     } catch (Exception $__) {
                         // ignore rollback errors
                     }
-                    error_log("Multiple tests entry save error: " . $e->getMessage());
-                    $errLine = date('[Y-m-d H:i:s]') . " SAVE_ERROR message=" . $e->getMessage() . " file=" . $e->getFile() . " line=" . $e->getLine() . " trace=" . str_replace("\n", " | ", $e->getTraceAsString()) . "\n";
-                    @file_put_contents($debugFile, $errLine, FILE_APPEND | LOCK_EX);
-                    // Return sanitized error to client but include a debug hint
-                    json_response(['success' => false, 'message' => 'Failed to save entry with multiple tests', 'debug_hint' => 'see umakant/tmp/entry_api_debug.log on server for details'], 500);
+                    json_response([
+                        'success' => false,
+                        'message' => 'Failed to save entry with multiple tests',
+                        'error' => [
+                            'message' => $e->getMessage(),
+                            'file' => $e->getFile(),
+                            'line' => $e->getLine(),
+                            'trace' => $e->getTraceAsString()
+                        ]
+                    ], 500);
                 }
             } else {
                 json_response(['success' => false, 'message' => 'No valid tests provided'], 400);
