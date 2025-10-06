@@ -18,7 +18,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
 ?>
 
 <!-- Content Wrapper. Contains page content -->
-<div class="content-wrapper">
+<div class="content-wrapper entry-page-modal-override">
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">

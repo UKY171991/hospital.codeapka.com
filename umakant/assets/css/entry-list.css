@@ -27,6 +27,35 @@ body.modal-open {
     padding-right: 0 !important;
 }
 
+/* Ensure modals on this page can scroll internally even if global styles set overflow:hidden */
+.entry-page-modal-override .modal-dialog.modal-xl.modal-dialog-scrollable,
+.entry-page-modal-override .modal-dialog.modal-dialog-scrollable {
+    max-width: 1140px; /* keep modal-xl sizing */
+}
+
+/* Force the modal body to allow vertical scrolling and smooth scrolling on touch devices.
+   Use high specificity and !important so this page's modal can scroll even if other CSS
+   has overflow:hidden rules. This targets Bootstrap modal-scrollable dialogs used
+   by entry-list modals. */
+.entry-page-modal-override .modal-dialog.modal-xl .modal-body,
+.entry-page-modal-override .modal-dialog .modal-body {
+    max-height: calc(100vh - 160px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+/* If body.modal-open elsewhere sets overflow:hidden, make sure our modal still receives
+   pointer events and can be scrolled. */
+.entry-page-modal-override body.modal-open,
+.entry-page-modal-override .modal-open {
+    overflow: visible !important;
+}
+
+/* Ensure Select2 dropdowns inside our modals render above other overlays */
+.entry-page-modal-override .select2-container--open .select2-dropdown {
+    z-index: 2100 !important; /* above Bootstrap modal (1050) and other UI */
+}
+
 /* Enhanced Entry List Styles */
 .card-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
