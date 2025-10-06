@@ -863,7 +863,11 @@ function populateEditForm(entry) {
     });
 
     // Set other fields
-    $('#entryDate').val(entry.entry_date);
+    if (entry.entry_date) {
+        const date = new Date(entry.entry_date);
+        const formattedDate = date.toISOString().split('T')[0];
+        $('#entryDate').val(formattedDate);
+    }
     $('#entryStatus').val(entry.status);
     $('#entryNotes').val(entry.notes || '');
 
