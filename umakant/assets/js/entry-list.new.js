@@ -333,6 +333,7 @@ function loadPatientsByOwner(ownerId) {
             }
             
             patientSelect.addClass('select2');
+            $(document).trigger('patients:loaded');
         },
         error: function() {
             $('#patientHelpText').text('Error loading patients');
@@ -361,6 +362,7 @@ function loadDoctorsByOwner(ownerId) {
             }
             
             doctorSelect.addClass('select2');
+            $(document).trigger('doctors:loaded');
         },
         error: function() {
             $('#doctorHelpText').text('Error loading doctors');
@@ -866,12 +868,12 @@ function populateEditForm(entry) {
     $('#priority').val(entry.priority || 'normal');
 
     // Set patient and doctor after a delay to ensure owner selection is processed
-    setTimeout(function() {
+    // Wait for the owner change to propagate and load patients/doctors
+    $(document).one('patients:loaded doctors:loaded', function() {
         $('#patientSelect').val(entry.patient_id).trigger('change');
         $('#doctorSelect').val(entry.doctor_id).trigger('change');
-    }, 1000);
-    // Populate gender field from entry if present
-    setTimeout(function() {
+        
+        // Populate gender field from entry if present
         if (entry.gender) {
             try {
                 $('#patientGender').val(entry.gender).trigger('change');
@@ -879,7 +881,7 @@ function populateEditForm(entry) {
                 $('#patientGender').val(entry.gender);
             }
         }
-    }, 1100);
+    });
 
     // Populate tests section
     const testsContainer = $('#testsContainer');
