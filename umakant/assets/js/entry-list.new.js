@@ -850,6 +850,24 @@ function populateEditForm(entry) {
     $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
     $('#entryId').val(entry.id);
 
+    // Set up event handlers to catch when dropdowns are loaded
+    $(document).one('patients:loaded', function() {
+        $('#patientSelect').val(entry.patient_id).trigger('change');
+        
+        // Populate gender field from entry if present
+        if (entry.gender) {
+            try {
+                $('#patientGender').val(entry.gender).trigger('change');
+            } catch (e) {
+                $('#patientGender').val(entry.gender);
+            }
+        }
+    });
+
+    $(document).one('doctors:loaded', function() {
+        $('#doctorSelect').val(entry.doctor_id).trigger('change');
+    });
+
     loadOwnerUsers(function() {
         // Set owner/added by first, then load patients and doctors
         let ownerAddedByValue = '';
