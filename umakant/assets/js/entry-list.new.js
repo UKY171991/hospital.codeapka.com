@@ -401,6 +401,11 @@ function setupEventHandlers() {
     // umakant/assets/js/entry-form.js which performs validation then calls
     // the page-level saveEntry(form) function. Avoid double-binding here.
     
+    $('#entryForm').on('submit', function(e) {
+        e.preventDefault();
+        saveEntry(this);
+    });
+
     // Delete confirmation
     $('#confirmDelete').on('click', function() {
         if (currentEntryId) {
