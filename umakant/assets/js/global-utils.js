@@ -419,6 +419,31 @@ $(document).ready(function() {
             }
         }
     });
+    
+    // Wrap toastr functions to dedupe identical messages across the page
+    try {
+        if (window.toastr) {
+            window._recentToastr = window._recentToastr || [];
+            ['error','warning','info','success'].forEach(function(t) {
+                var original = window.toastr[t];
+                if (!original || original._deduped) return;
+                var wrapped = function(msg, title, opts) {
+                    try {
+                        var now = Date.now();
+                        window._recentToastr = window._recentToastr.filter(i => now - i.ts < 5000);
+                        var key = t + '::' + (typeof msg === 'string' ? msg : JSON.stringify(msg));
+                        if (window._recentToastr.find(i => i.key === key)) return;
+                        window._recentToastr.push({ key: key, ts: now });
+                    } catch (e) {
+                        // ignore dedupe errors
+                    }
+                    return original.call(window.toastr, msg, title, opts);
+                };
+                wrapped._deduped = true;
+                window.toastr[t] = wrapped;
+            });
+        }
+    } catch (e) { /* ignore */ }
 });
 // Make HMS.utils available under window.utils for backward compatibility
 window.utils = HMS.utils;
