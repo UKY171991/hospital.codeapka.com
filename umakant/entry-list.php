@@ -1164,6 +1164,18 @@ $(document).on('shown.bs.modal', '#entryModal, #addEntryModal', function() {
     });
 });
 
+// Fallback: on page ready ensure any test-result inputs are visible and enabled
+$(function() {
+    $('#testsContainer').find('.test-result').each(function() {
+        $(this).show().css({ 'display': 'block', 'visibility': 'visible' });
+        $(this).prop('disabled', false).prop('readonly', false);
+    });
+    // ensure units and categories keep readonly but visible
+    $('#testsContainer').find('.test-unit, .test-category').each(function() {
+        $(this).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
+    });
+});
+
 // Add test row
 function addTestRow() {
     const newRow = `
