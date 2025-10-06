@@ -356,6 +356,23 @@ body.modal-open {
     margin-top: 0.25rem;
 }
 
+/* Make test-result inputs clearly editable inside test rows */
+.test-row .test-result {
+    background-color: #ffffff !important;
+    opacity: 1 !important;
+    cursor: text !important;
+    border: 1px solid #ced4da !important;
+    width: 100%;
+}
+
+/* Ensure readonly but non-disabled fields like .test-unit and .test-category look neutral */
+.test-row .test-unit[readonly],
+.test-row .test-category[readonly] {
+    background-color: #f8f9fa;
+    opacity: 1;
+    cursor: default;
+}
+
 /* Status dropdown fix */
 #entryStatus {
     min-width: 120px;

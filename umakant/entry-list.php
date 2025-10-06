@@ -410,13 +410,13 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     <div class="form-group">
                         <label>Tests <span class="text-danger">*</span></label>
                         <div class="row mb-2">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <small class="text-muted">Test Name</small>
                             </div>
                             <div class="col-md-2">
                                 <small class="text-muted">Category</small>
                             </div>
-                            <div class="col-md-1">
+                            <div class="col-md-2">
                                 <small class="text-muted">Result</small>
                             </div>
                             <div class="col-md-1">
@@ -434,7 +434,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         </div>
                         <div id="testsContainer">
                             <div class="test-row row mb-2">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <select class="form-control test-select" name="tests[0][test_id]" required>
                                         <option value="">Select Test</option>
                                     </select>
@@ -443,7 +443,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                     <input type="text" class="form-control test-category" name="tests[0][category_name]" placeholder="Category" readonly>
                                     <input type="hidden" name="tests[0][category_id]" class="test-category-id">
                                 </div>
-                                <div class="col-md-1">
+                                <div class="col-md-2">
                                     <input type="text" class="form-control test-result" name="tests[0][result_value]" placeholder="Result">
                                 </div>
                                 <div class="col-md-1">
@@ -1168,7 +1168,7 @@ $(document).on('shown.bs.modal', '#entryModal, #addEntryModal', function() {
 function addTestRow() {
     const newRow = `
         <div class="test-row row mb-2">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <select class="form-control test-select" name="tests[${testRowCount}][test_id]" required>
                     <option value="">Select Test</option>
                 </select>
@@ -1177,7 +1177,7 @@ function addTestRow() {
                 <input type="text" class="form-control test-category" name="tests[${testRowCount}][category_name]" placeholder="Category" readonly>
                 <input type="hidden" name="tests[${testRowCount}][category_id]" class="test-category-id">
             </div>
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <input type="text" class="form-control test-result" name="tests[${testRowCount}][result_value]" placeholder="Result">
             </div>
             <div class="col-md-1">
