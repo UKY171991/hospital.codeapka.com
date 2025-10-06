@@ -141,9 +141,18 @@
 
     // Expose init to global and initialize on DOM ready if utils already present
     $(function(){
-        if(window.HMS && HMS.utils){ HMS.entryList.init(); }
-        else { // wait for global-utils to initialize
-            $(document).on('HMS:ready', function(){ HMS.entryList.init(); });
+        // Prevent double-initialization if this script or the inline page script already initialized the page
+        if (window._entriesPageInitialized) return;
+
+        if(window.HMS && HMS.utils){
+            window._entriesPageInitialized = true;
+            HMS.entryList.init();
+        } else { // wait for global-utils to initialize
+            $(document).on('HMS:ready', function(){
+                if (window._entriesPageInitialized) return;
+                window._entriesPageInitialized = true;
+                HMS.entryList.init();
+            });
         }
     });
 
