@@ -300,9 +300,13 @@ try {
             $scopeWhere .
             " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
         
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            json_response(['success' => false, 'message' => 'Database error while listing entries', 'error' => $e->getMessage()], 500);
+        }
         
         // Format data for frontend compatibility
         $entriesCaps = get_entries_schema_capabilities($pdo);
