@@ -369,7 +369,7 @@ function loadDoctorsByOwner(ownerId) {
 }
 
 // Load tests for dropdown
-function loadTests() {
+function loadTests(callback) {
     $.ajax({
         url: 'ajax/test_api.php',
         method: 'GET',
@@ -390,6 +390,9 @@ function loadTests() {
                     // restore previously selected value if still present
                     if (currentVal) { $this.val(currentVal).trigger('change'); }
                 });
+            }
+            if (typeof callback === 'function') {
+                callback();
             }
         }
     });
@@ -840,7 +843,7 @@ function populateEditForm(entry) {
     currentEntryId = entry.id;
     $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
     $('#entryId').val(entry.id);
-    
+
     // Set owner/added by first, then load patients and doctors
     let ownerAddedByValue = '';
     if (entry.owner_id) {
@@ -848,24 +851,20 @@ function populateEditForm(entry) {
     } else if (entry.added_by) {
         ownerAddedByValue = `user_${entry.added_by}`;
     }
-    
+
     $('#ownerAddedBySelect').val(ownerAddedByValue).trigger('change');
-    
+
     // Set other fields
     $('#entryDate').val(entry.entry_date);
     $('#entryStatus').val(entry.status);
     $('#entryNotes').val(entry.notes || '');
-    
+
     // Populate additional fields
     $('#patientContact').val(entry.patient_contact || '');
     $('#patientAddress').val(entry.patient_address || '');
     $('#referralSource').val(entry.referral_source || '');
     $('#priority').val(entry.priority || 'normal');
-    
-    // Load dropdowns
-    loadTests();
-    loadOwnerUsers();
-    
+
     // Set patient and doctor after a delay to ensure owner selection is processed
     setTimeout(function() {
         $('#patientSelect').val(entry.patient_id).trigger('change');
@@ -874,12 +873,68 @@ function populateEditForm(entry) {
     // Populate gender field from entry if present
     setTimeout(function() {
         if (entry.gender) {
-            try { $('#patientGender').val(entry.gender).trigger('change'); } catch(e) { $('#patientGender').val(entry.gender); }
+            try {
+                $('#patientGender').val(entry.gender).trigger('change');
+            } catch (e) {
+                $('#patientGender').val(entry.gender);
+            }
         }
     }, 1100);
-    
-    // For now, we'll show a simple edit form
-    // In a full implementation, you'd populate the tests section
+
+    // Populate tests section
+    const testsContainer = $('#testsContainer');
+    testsContainer.empty();
+    testRowCount = 0;
+
+    if (entry.tests && entry.tests.length > 0) {
+        entry.tests.forEach(function(test, index) {
+            const newRowHTML = `
+                <div class="test-row row mb-2">
+                    <div class="col-md-3">
+                        <select class="form-control test-select select2" name="tests[${index}][test_id]" required>
+                            <option value="">Select Test</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control test-category" name="tests[${index}][category_name]" placeholder="Category" readonly value="${test.category_name || ''}">
+                        <input type="hidden" name="tests[${index}][category_id]" class="test-category-id" value="${test.category_id || ''}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control test-result" name="tests[${index}][result_value]" placeholder="Result" value="${test.result_value || ''}">
+                    </div>
+                    <div class="col-md-1">
+                        <input type="text" class="form-control test-unit" name="tests[${index}][unit]" placeholder="Unit" readonly value="${test.unit || ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" class="form-control" name="tests[${index}][price]" placeholder="0.00" step="0.01" min="0" required value="${test.price || ''}">
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            testsContainer.append(newRowHTML);
+        });
+        testRowCount = entry.tests.length;
+    } else {
+        addTestRow(); // Add a blank row if no tests
+    }
+
+    // Load dropdowns
+    loadOwnerUsers();
+    loadTests(function() {
+        if (entry.tests && entry.tests.length > 0) {
+            entry.tests.forEach(function(test, index) {
+                const testRow = testsContainer.find('.test-row').eq(index);
+                const testSelect = testRow.find('.test-select');
+                if (test.test_id) {
+                    testSelect.val(test.test_id).trigger('change');
+                }
+            });
+        }
+    });
 }
 
 // Delete entry
