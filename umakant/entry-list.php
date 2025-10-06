@@ -422,11 +422,8 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                             <div class="col-md-1">
                                 <small class="text-muted">Unit</small>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <small class="text-muted">Price (₹)</small>
-                            </div>
-                            <div class="col-md-1">
-                                <small class="text-muted">Discount (₹)</small>
                             </div>
                             <div class="col-md-1">
                                 <small class="text-muted">Action</small>
@@ -449,13 +446,9 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 <div class="col-md-1">
                                     <input type="text" class="form-control test-unit" name="tests[0][unit]" placeholder="Unit" readonly>
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-3">
                                     <input type="number" class="form-control" name="tests[0][price]" 
                                            placeholder="0.00" step="0.01" min="0" required>
-                                </div>
-                                <div class="col-md-1">
-                                    <input type="number" class="form-control" name="tests[0][discount_amount]" 
-                                           placeholder="0.00" step="0.01" min="0" value="0">
                                 </div>
                                 <div class="col-md-1">
                                     <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
@@ -1195,11 +1188,8 @@ function addTestRow() {
             <div class="col-md-1">
                 <input type="text" class="form-control test-unit" name="tests[${testRowCount}][unit]" placeholder="Unit" readonly>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <input type="number" class="form-control" name="tests[${testRowCount}][price]" placeholder="0.00" step="0.01" min="0" required>
-            </div>
-            <div class="col-md-1">
-                <input type="number" class="form-control" name="tests[${testRowCount}][discount_amount]" placeholder="0.00" step="0.01" min="0" value="0">
             </div>
             <div class="col-md-1">
                 <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
@@ -1251,8 +1241,9 @@ function saveEntry() {
     const tests = [];
     $('.test-row').each(function() {
         const testId = $(this).find('.test-select').val();
-        const price = $(this).find('input[name*="[price]"]').val();
-        const discount = $(this).find('input[name*="[discount_amount]"]').val();
+    const price = $(this).find('input[name*="[price]"]').val();
+    // discount column removed from UI; set to 0 by default
+    const discount = 0;
         const resultVal = $(this).find('.test-result').val();
         const unitVal = $(this).find('.test-unit').val() || '';
         const categoryName = $(this).find('.test-category').val() || '';
