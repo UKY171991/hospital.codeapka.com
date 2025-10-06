@@ -647,12 +647,26 @@ function initializeDataTable() {
         ajax: {
             url: 'ajax/entry_api.php',
             type: 'GET',
+            dataType: 'json',
             data: { action: 'list' },
             dataSrc: function(response) {
-                if (response.success) {
-                    return response.data;
+                try {
+                    if (response && response.success) {
+                        return response.data || [];
+                    }
+                    console.error('Entries list returned an error payload:', response);
+                    return [];
+                } catch (e) {
+                    console.error('Failed to parse entries list response', e, response);
+                    return [];
                 }
-                return [];
+            },
+            error: function(xhr, textStatus, errorThrown) {
+                console.error('Entries list AJAX error:', textStatus, errorThrown, 'HTTP status:', xhr.status, 'response:', xhr.responseText);
+                try { toastr.error('Failed to load entries: ' + (xhr.status || textStatus)); } catch(e) {}
+            },
+            complete: function() {
+                // You can add any UI cleanup here if needed
             }
         },
         columns: [
