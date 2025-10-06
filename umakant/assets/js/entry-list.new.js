@@ -251,7 +251,7 @@ function loadOwnerUsers(callback) {
         data: { action: 'list' },
         dataType: 'json',
         success: function(ownerResponse) {
-            console.log('Owner response:', ownerResponse);
+            alert('Owner response: ' + JSON.stringify(ownerResponse));
             
             // Add owners first
             if (ownerResponse.success && ownerResponse.data && ownerResponse.data.length > 0) {
@@ -307,7 +307,7 @@ function loadOwnerUsers(callback) {
             });
         },
         error: function(xhr, status, error) {
-            console.error('Error loading owners:', error);
+            alert('Error loading owners: ' + error);
             ownerUserSelect.append(`<option value="" disabled>Error loading owners</option>`);
         }
     });
