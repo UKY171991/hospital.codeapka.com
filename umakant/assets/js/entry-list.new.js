@@ -240,7 +240,7 @@ function loadDoctors() {
 }
 
 // Load combined owners and users for dropdown
-function loadOwnerUsers() {
+function loadOwnerUsers(callback) {
     const ownerUserSelect = $('#ownerAddedBySelect');
     ownerUserSelect.empty().append('<option value="">Select Owner/User</option>');
     
@@ -294,6 +294,10 @@ function loadOwnerUsers() {
                         setTimeout(function() {
                             ownerUserSelect.val(`user_${currentUserId}`).trigger('change');
                         }, 100);
+                    }
+
+                    if (typeof callback === 'function') {
+                        callback();
                     }
                 },
                 error: function(xhr, status, error) {
@@ -846,15 +850,17 @@ function populateEditForm(entry) {
     $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
     $('#entryId').val(entry.id);
 
-    // Set owner/added by first, then load patients and doctors
-    let ownerAddedByValue = '';
-    if (entry.owner_id) {
-        ownerAddedByValue = `owner_${entry.owner_id}`;
-    } else if (entry.added_by) {
-        ownerAddedByValue = `user_${entry.added_by}`;
-    }
+    loadOwnerUsers(function() {
+        // Set owner/added by first, then load patients and doctors
+        let ownerAddedByValue = '';
+        if (entry.owner_id) {
+            ownerAddedByValue = `owner_${entry.owner_id}`;
+        } else if (entry.added_by) {
+            ownerAddedByValue = `user_${entry.added_by}`;
+        }
 
-    $('#ownerAddedBySelect').val(ownerAddedByValue).trigger('change');
+        $('#ownerAddedBySelect').val(ownerAddedByValue).trigger('change');
+    });
 
     // Set other fields
     $('#entryDate').val(entry.entry_date);
