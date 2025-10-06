@@ -1310,7 +1310,7 @@ function saveEntry(formElement) {
             try { if (xhr && xhr.responseText) msg += ': ' + xhr.responseText; } catch(e) {}
             toastr.error(msg);
             try { console.error('Save entry error', xhr); } catch(e) {}
-        }
+        },
         complete: function() {
             window.entrySaving = false;
             $('.btn-save-entry').prop('disabled', false).removeClass('disabled');
