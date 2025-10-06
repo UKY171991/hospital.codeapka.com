@@ -881,6 +881,7 @@ function populateEditForm(entry) {
     testRowCount = 0;
 
     if (entry.tests && entry.tests.length > 0) {
+        alert('entry.tests: ' + JSON.stringify(entry.tests));
         entry.tests.forEach(function(test, index) {
             const newRowHTML = `
                 <div class="test-row row mb-2">
