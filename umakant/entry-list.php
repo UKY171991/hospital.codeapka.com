@@ -634,6 +634,13 @@ function loadStatistics() {
 
 // Initialize DataTable
 function initializeDataTable() {
+    // Avoid re-initializing DataTable if another script already initialized it.
+    if (window._entriesTableInitialized || (typeof $.fn.dataTable !== 'undefined' && $.fn.dataTable.isDataTable && $.fn.dataTable.isDataTable('#entriesTable'))) {
+        try { entriesTable = $('#entriesTable').DataTable(); } catch(e) { /* fallback */ }
+        window._entriesTableInitialized = true;
+        return;
+    }
+
     entriesTable = $('#entriesTable').DataTable({
         processing: true,
         serverSide: false,
@@ -758,6 +765,7 @@ function initializeDataTable() {
             zeroRecords: "No matching entries found"
         }
     });
+    window._entriesTableInitialized = true;
 }
 
 // Load patients for dropdown
