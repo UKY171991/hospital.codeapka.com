@@ -226,8 +226,10 @@ HMS.utils = {
             // not JSON
         }
 
-        // Fallback messages based on status
-        if (jqxhr.status === 0) return 'Network error: Could not reach the server.';
+    // Fallback messages based on status
+    // status === 0 can mean either offline or an aborted/blocked request. Return empty
+    // so the global ajaxError handler decides what to show (it knows navigator.onLine).
+    if (jqxhr.status === 0) return '';
         if (jqxhr.status >= 500) return 'Server error (' + jqxhr.status + '): ' + (jqxhr.statusText || 'Internal Server Error');
         if (jqxhr.status >= 400) return 'Request error (' + jqxhr.status + '): ' + (jqxhr.statusText || 'Bad request');
 
@@ -366,13 +368,19 @@ $(document).ready(function() {
     // Global jQuery AJAX error handler to show parsed server messages
     $(document).ajaxError(function(event, jqxhr, settings, thrown) {
         // Ignore OPTIONS preflight messages
-        if (jqxhr && jqxhr.status === 0 && !navigator.onLine) {
-            utils.showError('Network offline. Please check your internet connection.');
+        // If the browser is offline, show offline message
+        if (jqxhr && jqxhr.status === 0) {
+            if (!navigator.onLine) {
+                if (window.HMS && HMS.utils) HMS.utils.showError('Network offline. Please check your internet connection.', 7000);
+            }
+            // If we're online and status===0, treat as aborted/temporary and ignore the error
             return;
         }
 
-        var msg = HMS.utils.parseAjaxError(jqxhr);
-        HMS.utils.showError(msg, 7000);
+        var msg = HMS.utils && HMS.utils.parseAjaxError ? HMS.utils.parseAjaxError(jqxhr) : '';
+        if (msg) {
+            if (window.HMS && HMS.utils) HMS.utils.showError(msg, 7000);
+        }
     });
 });
 // Make HMS.utils available under window.utils for backward compatibility
