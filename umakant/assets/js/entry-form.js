@@ -72,45 +72,78 @@ function populateDoctorDropdown(doctors) {
 
 function setupValidation() {
     // Add client-side validation
-    $('#entryForm').on('submit', function(e) {
+    // Bind validation to both add and edit forms. We call the page's saveEntry() when valid
+    // to ensure a single unified submission path (entry-list.php also binds submit handlers).
+    $(document).on('submit', '#entryForm, #addEntryForm', function(e) {
         e.preventDefault();
-        
+
         // Reset previous errors
         clearErrors();
-        
-        // Validate required fields
+
+        // Validate required fields (use fallbacks for different id/name variants)
         let isValid = true;
-        
-        if (!$('#patient').val()) {
-            showFieldError('patient', 'Please select a patient');
+
+        const patientVal = $('#patient').val() || $('#patientSelect').val() || $('[name="patient_id"]').val();
+        if (!patientVal) {
+            // try to mark a visible field if present
+            if ($('#patient').length) showFieldError('patient', 'Please select a patient');
             isValid = false;
         }
-        
-        if (!$('#doctor').val()) {
-            showFieldError('doctor', 'Please select a doctor');
+
+        const doctorVal = $('#doctor').val() || $('#doctorSelect').val() || $('[name="doctor_id"]').val();
+        if (!doctorVal) {
+            if ($('#doctor').length) showFieldError('doctor', 'Please select a doctor');
             isValid = false;
         }
-        
-        if (!$('#entryDate').val()) {
-            showFieldError('entryDate', 'Please select an entry date');
+
+        const entryDateVal = $('#entryDate').val() || $('[name="entry_date"]').val();
+        if (!entryDateVal) {
+            if ($('#entryDate').length) showFieldError('entryDate', 'Please select an entry date');
             isValid = false;
         }
-        
-        if (!$('#status').val()) {
-            showFieldError('status', 'Please select a status');
+
+        const statusVal = $('#status').val() || $('#entryStatus').val() || $('[name="status"]').val();
+        if (!statusVal) {
+            if ($('#status').length) showFieldError('status', 'Please select a status');
             isValid = false;
         }
-        
-        // Validate tests section
-        const $testsTable = $('#testsTable tbody');
-        if ($testsTable.find('tr').length === 0) {
-            showError('Please add at least one test');
-            isValid = false;
+
+        // Validate tests section: prefer #testsContainer .test-row
+        const testsRows = $('#testsContainer .test-row');
+        if (testsRows.length === 0) {
+            const $testsTable = $('#testsTable tbody');
+            if ($testsTable.length === 0 || $testsTable.find('tr').length === 0) {
+                showError('Please add at least one test');
+                isValid = false;
+            }
+        } else {
+            let hasSelected = false;
+            testsRows.each(function() {
+                const sel = $(this).find('.test-select').val();
+                if (sel && sel !== '') { hasSelected = true; return false; }
+            });
+            if (!hasSelected) {
+                showError('Please select at least one test');
+                isValid = false;
+            }
         }
-        
-        if (isValid) {
-            submitForm();
+
+        if (!isValid) {
+            return false;
         }
+
+        // If a page-level saveEntry function exists (entry-list.php), call it and stop propagation
+        if (typeof window.saveEntry === 'function') {
+            try {
+                saveEntry(this);
+            } catch (err) {
+                showError('Unable to submit form.');
+            }
+            return false;
+        }
+
+        // Fallback to submitForm (older handler)
+        submitForm();
     });
 }
 
