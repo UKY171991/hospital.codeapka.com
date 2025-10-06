@@ -12,7 +12,7 @@ $(document).ready(function() {
 function initializePage() {
     loadStatistics();
     initializeDataTable();
-    loadOwnerUsers();
+    loadUsersDropdown();
     loadTests();
     setupEventHandlers();
 }
@@ -240,75 +240,50 @@ function loadDoctors() {
 }
 
 // Load combined owners and users for dropdown
-function loadOwnerUsers(callback) {
+function loadUsersDropdown(callback) {
     const ownerUserSelect = $('#ownerAddedBySelect');
-    ownerUserSelect.empty().append('<option value="">Select Owner/User</option>');
-    
-    // Load owners
+    ownerUserSelect.empty().append('<option value="">Select User</option>');
+
+    // Load users
     $.ajax({
-        url: 'ajax/owner_api.php',
+        url: 'ajax/user_api.php',
         method: 'GET',
         data: { action: 'list' },
         dataType: 'json',
-        success: function(ownerResponse) {
-            alert('Owner response: ' + JSON.stringify(ownerResponse));
-            
-            // Add owners first
-            if (ownerResponse.success && ownerResponse.data && ownerResponse.data.length > 0) {
-                ownerResponse.data.forEach(function(owner) {
-                    ownerUserSelect.append(`<option value="owner_${owner.id}" data-type="owner" data-owner-id="${owner.id}">🏢 ${owner.name} (Owner)</option>`);
+        success: function(userResponse) {
+            console.log('User response:', userResponse);
+
+            // Add users
+            if (userResponse.success && userResponse.data && userResponse.data.length > 0) {
+                userResponse.data.forEach(function(user) {
+                    const displayName = user.full_name || user.username || user.email || `User ${user.id}`;
+                    ownerUserSelect.append(`<option value="user_${user.id}" data-type="user" data-user-id="${user.id}">👤 ${displayName} (${user.role || 'user'})</option>`);
                 });
             } else {
-                // If no owners, add a placeholder
-                ownerUserSelect.append(`<option value="" disabled>No owners available</option>`);
+                // If no users, add a placeholder
+                ownerUserSelect.append('<option value="" disabled>No users available</option>');
             }
-            
-            // Load users
-            $.ajax({
-                url: 'ajax/user_api.php',
-                method: 'GET',
-                data: { action: 'list' },
-                dataType: 'json',
-                success: function(userResponse) {
-                    console.log('User response:', userResponse);
-                    
-                    // Add users
-                    if (userResponse.success && userResponse.data && userResponse.data.length > 0) {
-                        userResponse.data.forEach(function(user) {
-                            const displayName = user.full_name || user.username || user.email || `User ${user.id}`;
-                            ownerUserSelect.append(`<option value="user_${user.id}" data-type="user" data-user-id="${user.id}">👤 ${displayName} (${user.role || 'user'})</option>`);
-                        });
-                    } else {
-                        // If no users, add a placeholder
-                        ownerUserSelect.append(`<option value="" disabled>No users available</option>`);
-                    }
-                    
-                    // modal-enhancements will initialize Select2 on modal show
-                    ownerUserSelect.addClass('select2');
 
-                    // Notify listeners that owner/user options are loaded
-                    try { ownerUserSelect.trigger('ownerUsers:loaded'); } catch(e) { /* ignore */ }
-                    
-                    // Set current user as default if not editing
-                    if (!currentEntryId && currentUserId) {
-                        setTimeout(function() {
-                            ownerUserSelect.val(`user_${currentUserId}`).trigger('change');
-                        }, 100);
-                    }
+            // modal-enhancements will initialize Select2 on modal show
+            ownerUserSelect.addClass('select2');
 
-                    if (typeof callback === 'function') {
-                        callback();
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error loading users:', error);
-                    ownerUserSelect.append(`<option value="" disabled>Error loading users</option>`);
-                }
-            });
+            // Notify listeners that owner/user options are loaded
+            try { ownerUserSelect.trigger('ownerUsers:loaded'); } catch(e) { /* ignore */ }
+
+            // Set current user as default if not editing
+            if (!currentEntryId && currentUserId) {
+                setTimeout(function() {
+                    ownerUserSelect.val(`user_${currentUserId}`).trigger('change');
+                }, 100);
+            }
+
+            if (typeof callback === 'function') {
+                callback();
+            }
         },
         error: function(xhr, status, error) {
-            alert('Error loading owners: ' + error);
-            ownerUserSelect.append(`<option value="" disabled>Error loading owners</option>`);
+            console.error('Error loading users:', error);
+            ownerUserSelect.append('<option value="" disabled>Error loading users</option>');
         }
     });
 }
@@ -469,16 +444,8 @@ function setupEventHandlers() {
         const selectedText = selectedOption.text();
         
         if (selectedValue) {
-            const type = selectedOption.data('type');
-            let id = null;
-            
-            if (type === 'owner') {
-                id = selectedOption.data('owner-id');
-            } else if (type === 'user') {
-                // For users, we might want to get their associated owner
-                // For now, we'll use the user ID as owner ID
-                id = selectedOption.data('user-id');
-            }
+            const id = selectedOption.data('user-id');
+            const type = 'user';
             
             if (id) {
                 // Enable dropdowns and show loading
@@ -580,7 +547,7 @@ function openAddEntryModal() {
     
     // Load dropdowns
     loadTests();
-    loadOwnerUsers();
+    loadUsersDropdown();
     
     // Select2 initialization for modal-contained selects is handled by modal-enhancements.js
     // on modal show. Avoid initializing here to prevent double-init and wrong dropdownParent.
@@ -882,12 +849,10 @@ function populateEditForm(entry) {
         $('#doctorSelect').val(entry.doctor_id).trigger('change');
     });
 
-    loadOwnerUsers(function() {
+    loadUsersDropdown(function() {
         // Set owner/added by first, then load patients and doctors
         let ownerAddedByValue = '';
-        if (entry.owner_id) {
-            ownerAddedByValue = `owner_${entry.owner_id}`;
-        } else if (entry.added_by) {
+        if (entry.added_by) {
             ownerAddedByValue = `user_${entry.added_by}`;
         }
 
@@ -970,7 +935,7 @@ function populateEditForm(entry) {
     }
 
     // Load dropdowns
-    loadOwnerUsers();
+    loadUsersDropdown();
     loadTests(function() {
         if (entry.tests && entry.tests.length > 0) {
             entry.tests.forEach(function(test, index) {
