@@ -149,6 +149,8 @@ function setupValidation() {
 
 function submitForm() {
     const formData = new FormData($('#entryForm')[0]);
+    // Make sure API receives action=save
+    formData.set('action', 'save');
     
     $.ajax({
         url: 'ajax/entry_api.php',

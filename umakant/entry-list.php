@@ -1305,6 +1305,9 @@ function saveEntry(formElement) {
     
     formData.set('tests', JSON.stringify(tests));
 
+    // Ensure server executes save branch
+    formData.set('action', 'save');
+
     // Debug: log the outgoing tests payload
     try { console.debug('Saving entry tests payload:', tests); } catch(e) {}
     // Prevent duplicate submissions

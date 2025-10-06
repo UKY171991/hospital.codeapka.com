@@ -104,6 +104,8 @@
 
         function submitEntryForm(){
             var fd = new FormData($('#entryForm')[0]);
+            // Ensure server executes save branch
+            fd.set('action', 'save');
             $.ajax({
                 url:'ajax/entry_api.php',
                 type:'POST',
