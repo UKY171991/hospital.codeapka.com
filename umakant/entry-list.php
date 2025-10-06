@@ -431,7 +431,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div id="testsContainer">
                             <div class="test-row row mb-2">
                                 <div class="col-md-3">
-                                    <select class="form-control test-select" name="tests[0][test_id]" required>
+                                    <select class="form-control test-select select2" name="tests[0][test_id]" required>
                                         <option value="">Select Test</option>
                                     </select>
                                 </div>
@@ -1082,8 +1082,8 @@ function openAddEntryModal() {
     // Reset tests container
     $('#testsContainer').html(`
         <div class="test-row row mb-2">
-            <div class="col-md-3">
-                <select class="form-control test-select" name="tests[0][test_id]" required>
+                <div class="col-md-3">
+                <select class="form-control test-select select2" name="tests[0][test_id]" required>
                     <option value="">Select Test</option>
                 </select>
             </div>
@@ -1173,7 +1173,7 @@ function addTestRow() {
     const newRow = `
         <div class="test-row row mb-2">
             <div class="col-md-3">
-                <select class="form-control test-select" name="tests[${testRowCount}][test_id]" required>
+                <select class="form-control test-select select2" name="tests[${testRowCount}][test_id]" required>
                     <option value="">Select Test</option>
                 </select>
             </div>

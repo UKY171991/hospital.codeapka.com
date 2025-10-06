@@ -373,6 +373,16 @@ body.modal-open {
     cursor: default;
 }
 
+/* Ensure Select2 inside test rows fills the column width */
+.test-row .select2-container {
+    width: 100% !important;
+    display: block !important;
+}
+.test-row .select2-container .select2-selection--single {
+    height: calc(2.25rem + 4px) !important;
+    line-height: calc(2.25rem + 2px) !important;
+}
+
 /* Status dropdown fix */
 #entryStatus {
     min-width: 120px;
