@@ -316,7 +316,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="$('#addEntryForm').submit()">Save Entry</button>
+                <button type="button" class="btn btn-primary btn-save-entry" onclick="$('#addEntryForm').submit()">Save Entry</button>
             </div>
         </div>
     </div>
@@ -964,11 +964,9 @@ function loadTests() {
 
 // Setup event handlers
 function setupEventHandlers() {
-    // Form submission - handle both add and edit forms
-    $(document).on('submit', '#entryForm, #addEntryForm', function(e) {
-        e.preventDefault();
-        saveEntry(this);
-    });
+    // Note: form submit handling and validation is handled centrally in
+    // umakant/assets/js/entry-form.js which performs validation then calls
+    // the page-level saveEntry(form) function. Avoid double-binding here.
     
     // Delete confirmation
     $('#confirmDelete').on('click', function() {
@@ -1282,6 +1280,13 @@ function saveEntry(formElement) {
 
     // Debug: log the outgoing tests payload
     try { console.debug('Saving entry tests payload:', tests); } catch(e) {}
+    // Prevent duplicate submissions
+    if (window.entrySaving) {
+        toastr.info('Save in progress, please wait...');
+        return;
+    }
+    window.entrySaving = true;
+    $('.btn-save-entry').prop('disabled', true).addClass('disabled');
 
     $.ajax({
         url: 'ajax/entry_api.php',
@@ -1305,6 +1310,10 @@ function saveEntry(formElement) {
             try { if (xhr && xhr.responseText) msg += ': ' + xhr.responseText; } catch(e) {}
             toastr.error(msg);
             try { console.error('Save entry error', xhr); } catch(e) {}
+        }
+        complete: function() {
+            window.entrySaving = false;
+            $('.btn-save-entry').prop('disabled', false).removeClass('disabled');
         }
     });
 }
