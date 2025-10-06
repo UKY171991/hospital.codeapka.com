@@ -365,21 +365,51 @@ $(document).ready(function() {
         }
     });
 
+    // Maintain a short-lived cache of recent AJAX error messages to avoid duplicate toasts
+    window._recentAjaxErrors = window._recentAjaxErrors || [];
+
     // Global jQuery AJAX error handler to show parsed server messages
     $(document).ajaxError(function(event, jqxhr, settings, thrown) {
         // Ignore OPTIONS preflight messages
-        // If the browser is offline, show offline message
+        // If the browser is offline, show offline message (deduped)
         if (jqxhr && jqxhr.status === 0) {
             if (!navigator.onLine) {
-                if (window.HMS && HMS.utils) HMS.utils.showError('Network offline. Please check your internet connection.', 7000);
+                const offlineMsg = 'Network offline. Please check your internet connection.';
+                // dedupe
+                const now = Date.now();
+                window._recentAjaxErrors = window._recentAjaxErrors.filter(i => now - i.ts < 7000);
+                if (!window._recentAjaxErrors.find(i => i.msg === offlineMsg)) {
+                    window._recentAjaxErrors.push({ msg: offlineMsg, ts: now });
+                    if (window.HMS && HMS.utils) HMS.utils.showError(offlineMsg, 7000);
+                }
             }
             // If we're online and status===0, treat as aborted/temporary and ignore the error
             return;
         }
 
+        // If server returned a JSON error payload with a message, don't show a global toast
+        // because the calling code usually displays the message (avoid duplicates).
+        try {
+            var respText = jqxhr && jqxhr.responseText ? jqxhr.responseText.trim() : '';
+            if (respText) {
+                var maybeJson = JSON.parse(respText);
+                if (maybeJson && (maybeJson.message || maybeJson.msg || maybeJson.error) ) {
+                    return; // let caller handle showing the message
+                }
+            }
+        } catch (e) {
+            // not JSON - continue
+        }
+
         var msg = HMS.utils && HMS.utils.parseAjaxError ? HMS.utils.parseAjaxError(jqxhr) : '';
         if (msg) {
-            if (window.HMS && HMS.utils) HMS.utils.showError(msg, 7000);
+            // dedupe identical messages within short window
+            const now = Date.now();
+            window._recentAjaxErrors = window._recentAjaxErrors.filter(i => now - i.ts < 7000);
+            if (!window._recentAjaxErrors.find(i => i.msg === msg)) {
+                window._recentAjaxErrors.push({ msg: msg, ts: now });
+                if (window.HMS && HMS.utils) HMS.utils.showError(msg, 7000);
+            }
         }
     });
 });
