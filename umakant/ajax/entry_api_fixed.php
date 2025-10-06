@@ -455,7 +455,18 @@ try {
             if (is_array($tests) && count($tests) > 0) {
                 $entryTestCaps = get_entry_tests_schema_capabilities($pdo);
                 if (!$entryTestCaps['table_exists']) {
-                    json_response(['success' => false, 'message' => 'Multiple tests are not supported on this installation (missing entry_tests table).'], 400);
+                    $stmt = $pdo->query('SELECT DATABASE()');
+        $dbName = $stmt->fetchColumn();
+        $stmt = $pdo->query('SHOW TABLES');
+        $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        json_response([
+            'success' => false,
+            'message' => 'Multiple tests are not supported on this installation (missing entry_tests table).',
+            'debug_info' => [
+                'db_name' => $dbName,
+                'tables' => $tables
+            ]
+        ], 400);
                 }
 
                 try {
