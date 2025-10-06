@@ -51,6 +51,13 @@ HMS.utils = {
 
     // Generic alert function
     showAlert: function(message, type = 'info', duration = 3000) {
+        // dedupe identical alerts within a short window
+        window._recentAlerts = window._recentAlerts || [];
+        const now = Date.now();
+        window._recentAlerts = window._recentAlerts.filter(a => now - a.ts < 5000);
+        if (window._recentAlerts.find(a => a.msg === message && a.type === type)) return;
+        window._recentAlerts.push({ msg: message, type: type, ts: now });
+
         const alertId = 'alert-' + Date.now();
         const alertHtml = `
             <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert" style="position: fixed; top: 80px; right: 20px; z-index: 9999; min-width: 300px;">

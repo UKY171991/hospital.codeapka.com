@@ -83,10 +83,35 @@ function setupValidation() {
         // Validate required fields (use fallbacks for different id/name variants)
         let isValid = true;
 
+        const ownerVal = $('#ownerAddedBySelect').val() || $('[name="owner_added_by"]').val();
+        if (!ownerVal) {
+            if ($('#ownerAddedBySelect').length) showFieldError('ownerAddedBySelect', 'Please select an owner/user');
+            isValid = false;
+        }
+
         const patientVal = $('#patient').val() || $('#patientSelect').val() || $('[name="patient_id"]').val();
         if (!patientVal) {
             // try to mark a visible field if present
             if ($('#patient').length) showFieldError('patient', 'Please select a patient');
+            isValid = false;
+        }
+
+        // Patient contact, gender, address should be present (except notes)
+        const patientContactVal = $('#patientContact').val() || $('[name="patient_contact"]').val();
+        if (!patientContactVal) {
+            if ($('#patientContact').length) showFieldError('patientContact', 'Please enter patient contact');
+            isValid = false;
+        }
+
+        const patientGenderVal = $('#patientGender').val() || $('[name="gender"]').val();
+        if (!patientGenderVal) {
+            if ($('#patientGender').length) showFieldError('patientGender', 'Please select patient gender');
+            isValid = false;
+        }
+
+        const patientAddressVal = $('#patientAddress').val() || $('[name="patient_address"]').val();
+        if (!patientAddressVal) {
+            if ($('#patientAddress').length) showFieldError('patientAddress', 'Please enter patient address');
             isValid = false;
         }
 
