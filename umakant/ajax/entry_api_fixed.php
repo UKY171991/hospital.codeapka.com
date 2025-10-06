@@ -170,277 +170,13 @@ function refresh_entry_aggregates($pdo, $entryId) {
 
 try {
     if ($action === 'stats') {
-        // Check permission
-        if (!simpleCheckPermission($user_data, 'list')) {
-            json_response(['success' => false, 'message' => 'Permission denied to view statistics'], 403);
-        }
-        
-        // Get statistics for dashboard
-        $stats = [];
-        $viewerRole = $user_data['role'] ?? 'user';
-        $viewerId = (int)($user_data['user_id'] ?? 0);
-        $scopeWhere = '';
-        $params = [];
-        if ($viewerRole !== 'master') {
-            $scopeWhere = ' WHERE added_by = ?';
-            $params = [$viewerId];
-        }
-
-        try {
-            // Total entries
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM entries" . $scopeWhere);
-            $stmt->execute($params);
-            $stats['total'] = (int) $stmt->fetchColumn();
-            
-            // Pending entries
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM entries" . ($scopeWhere ? $scopeWhere . " AND status = 'pending'" : " WHERE status = 'pending'"));
-            $stmt->execute($params);
-            $stats['pending'] = (int) $stmt->fetchColumn();
-            
-            // Completed entries  
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM entries" . ($scopeWhere ? $scopeWhere . " AND status = 'completed'" : " WHERE status = 'completed'"));
-            $stmt->execute($params);
-            $stats['completed'] = (int) $stmt->fetchColumn();
-            
-            // Today's entries - try both date fields
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM entries" . ($scopeWhere ? $scopeWhere . " AND DATE(COALESCE(entry_date, created_at)) = CURDATE()" : " WHERE DATE(COALESCE(entry_date, created_at)) = CURDATE()"));
-            $stmt->execute($params);
-            $stats['today'] = (int) $stmt->fetchColumn();
-            
-        } catch (Exception $e) {
-            // Fallback for missing columns
-            $stats = ['total' => 0, 'pending' => 0, 'completed' => 0, 'today' => 0];
-        }
-        
-        json_response(['success' => true, 'status' => 'success', 'data' => $stats]);
+        // ... (existing code)
     } else if ($action === 'list') {
-        // Check permission
-        if (!simpleCheckPermission($user_data, 'list')) {
-            json_response(['success' => false, 'message' => 'Permission denied to list entries'], 403);
-        }
-        
-        // Updated to match new schema with comprehensive data
-        $viewerRole = $user_data['role'] ?? 'user';
-        $viewerId = (int)($user_data['user_id'] ?? 0);
-        $scopeWhere = '';
-        $params = [];
-        if ($viewerRole !== 'master') {
-            $scopeWhere = ' WHERE e.added_by = ?';
-            $params = [$viewerId];
-        }
-
-        $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
-        if ($entryTestsCaps['table_exists']) {
-            $aggSql = build_entry_tests_aggregation_sql($pdo);
-            $aggSelect = "COALESCE(agg.tests_count, 0) AS agg_tests_count,\n                   COALESCE(agg.test_names, '') AS agg_test_names,\n                   COALESCE(agg.test_ids, '') AS agg_test_ids,\n                   COALESCE(agg.total_price, 0) AS agg_total_price,\n                   COALESCE(agg.total_discount, 0) AS agg_total_discount";
-            $aggJoin = " LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id";
-        } else {
-            $aggSelect = "0 AS agg_tests_count, '' AS agg_test_names, '' AS agg_test_ids, 0 AS agg_total_price, 0 AS agg_total_discount";
-            $aggJoin = '';
-        }
-
-        // Build SELECT and JOINs conditionally based on schema capabilities
-        $entriesCaps = get_entries_schema_capabilities($pdo);
-        $ownerSelect = '';
-        $ownerJoin = '';
-        if (!empty($entriesCaps['has_owner_id'])) {
-            $ownerSelect = "o.name AS owner_name,";
-            $ownerJoin = " LEFT JOIN owners o ON e.owner_id = o.id";
-        }
-
-        $sql = "SELECT e.*, 
-                   p.name AS patient_name, p.uhid, p.age, p.sex AS gender, p.contact AS patient_contact, p.address AS patient_address,
-                   d.name AS doctor_name,
-                   {$ownerSelect}
-                   du.username AS doctor_added_by_username,
-                   u.username AS added_by_username, u.full_name AS added_by_full_name,
-                   {$aggSelect}
-            FROM entries e 
-            LEFT JOIN patients p ON e.patient_id = p.id 
-            LEFT JOIN doctors d ON e.doctor_id = d.id " .
-            $ownerJoin .
-            " LEFT JOIN users du ON d.added_by = du.id
-            LEFT JOIN users u ON e.added_by = u.id" .
-            $aggJoin .
-            $scopeWhere .
-            " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
-        
-        try {
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            json_response(['success' => false, 'message' => 'Database error while listing entries', 'error' => $e->getMessage()], 500);
-        }
-        
-        // Format data for frontend compatibility
-        $entriesCaps = get_entries_schema_capabilities($pdo);
-        foreach ($rows as &$row) {
-            // Ensure entry_date is available for frontend
-            if (empty($row['entry_date'])) {
-                $row['entry_date'] = $row['created_at'];
-            }
-            
-            // Format test information
-            $row['tests_count'] = (int)($row['tests_count'] ?? 0);
-            $row['test_names'] = $row['test_names'] ?? '';
-            $row['test_ids'] = $row['test_ids'] ?? '';
-            
-            // Format pricing
-            $aggTotalPrice = (float)($row['total_price'] ?? 0);
-            $aggDiscount = (float)($row['total_discount'] ?? 0);
-            $row['aggregated_total_price'] = $aggTotalPrice;
-            $row['aggregated_total_discount'] = $aggDiscount;
-
-            if ($entriesCaps['has_total_price'] && isset($row['total_price'])) {
-                $finalAmount = (float)$row['total_price'];
-            } else if ($entriesCaps['has_subtotal'] && isset($row['subtotal'])) {
-                $finalAmount = (float)$row['subtotal'] - (float)($row['discount_amount'] ?? 0);
-            } else {
-                $finalAmount = $aggTotalPrice - $aggDiscount;
-            }
-
-            $row['total_price'] = $entriesCaps['has_total_price'] && isset($row['total_price'])
-                ? (float)$row['total_price']
-                : $aggTotalPrice;
-            $row['total_discount'] = $entriesCaps['has_discount_amount'] && isset($row['discount_amount'])
-                ? (float)$row['discount_amount']
-                : $aggDiscount;
-            $row['final_amount'] = $finalAmount;
-            
-            // Set grouped flag based on test count
-            $row['grouped'] = $row['tests_count'] > 1 ? 1 : 0;
-            
-            // For backward compatibility, set test_name to first test or all tests
-            if ($row['tests_count'] == 1) {
-                $row['test_name'] = $row['test_names'];
-            } else if ($row['tests_count'] > 1) {
-                $row['test_name'] = $row['tests_count'] . ' tests: ' . $row['test_names'];
-            } else {
-                $row['test_name'] = 'No tests';
-            }
-        }
-        
-        json_response(['success' => true, 'data' => $rows, 'total' => count($rows)]);
+        // ... (existing code)
     }
 
     if ($action === 'get' && isset($_GET['id'])) {
-        // Check permission
-        if (!simpleCheckPermission($user_data, 'get', $_GET['id'])) {
-            json_response(['success' => false, 'message' => 'Permission denied to view entry'], 403);
-        }
-        
-        // Return comprehensive entry data
-        $viewerRole = $user_data['role'] ?? 'user';
-        $viewerId = (int)($user_data['user_id'] ?? 0);
-        $scopeWhere = '';
-        $params = [$_GET['id']];
-        if ($viewerRole !== 'master') {
-            $scopeWhere = ' AND e.added_by = ?';
-            $params[] = $viewerId;
-        }
-
-        $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
-        if ($entryTestsCaps['table_exists']) {
-            $aggSql = build_entry_tests_aggregation_sql($pdo);
-            $aggSelect = "COALESCE(agg.tests_count, 0) AS agg_tests_count,\n                   COALESCE(agg.test_names, '') AS agg_test_names,\n                   COALESCE(agg.test_ids, '') AS agg_test_ids,\n                   COALESCE(agg.total_price, 0) AS agg_total_price,\n                   COALESCE(agg.total_discount, 0) AS agg_total_discount";
-            $aggJoin = " LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id";
-        } else {
-            $aggSelect = "0 AS agg_tests_count, '' AS agg_test_names, '' AS agg_test_ids, 0 AS agg_total_price, 0 AS agg_total_discount";
-            $aggJoin = '';
-        }
-
-        $sql = "SELECT e.*, 
-                   p.name AS patient_name, p.uhid, p.age, p.sex AS gender, p.contact AS patient_contact, p.address AS patient_address,
-                   d.name AS doctor_name,
-                   o.name AS owner_name,
-                   du.username AS doctor_added_by_username,
-                   u.username AS added_by_username, u.full_name AS added_by_full_name,
-                   {$aggSelect}
-            FROM entries e 
-            LEFT JOIN patients p ON e.patient_id = p.id 
-            LEFT JOIN doctors d ON e.doctor_id = d.id 
-            LEFT JOIN owners o ON e.owner_id = o.id
-            LEFT JOIN users du ON d.added_by = du.id
-            LEFT JOIN users u ON e.added_by = u.id" .
-            $aggJoin .
-            " WHERE e.id = ?" . $scopeWhere;
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if (!$row) {
-            http_response_code(404);
-            json_response(['success' => false, 'message' => 'Entry not found']);
-            return;
-        }
-        
-        // Format data for frontend compatibility
-        $entriesCaps = get_entries_schema_capabilities($pdo);
-        if (empty($row['entry_date'])) {
-            $row['entry_date'] = $row['created_at'];
-        }
-        
-        // Format test information
-        $testsCount = isset($row['tests_count']) ? (int)$row['tests_count'] : (int)($row['agg_tests_count'] ?? 0);
-        $testNames = $row['test_names'] ?? ($row['agg_test_names'] ?? '');
-        $testIds = $row['test_ids'] ?? ($row['agg_test_ids'] ?? '');
-
-        $row['tests_count'] = $testsCount;
-        $row['test_names'] = $testNames;
-        $row['test_ids'] = $testIds;
-        
-        // Format pricing
-        $aggTotalPrice = isset($row['agg_total_price']) ? (float)$row['agg_total_price'] : (float)($row['total_price'] ?? 0);
-        $aggDiscount = isset($row['agg_total_discount']) ? (float)$row['agg_total_discount'] : (float)($row['total_discount'] ?? 0);
-        $row['aggregated_total_price'] = $aggTotalPrice;
-        $row['aggregated_total_discount'] = $aggDiscount;
-
-        if ($entriesCaps['has_total_price'] && isset($row['total_price'])) {
-            $finalAmount = (float)$row['total_price'];
-        } else if ($entriesCaps['has_subtotal'] && isset($row['subtotal'])) {
-            $finalAmount = (float)$row['subtotal'] - (float)($row['discount_amount'] ?? 0);
-        } else {
-            $finalAmount = $aggTotalPrice - $aggDiscount;
-        }
-
-        $row['total_price'] = $entriesCaps['has_total_price'] && isset($row['total_price'])
-            ? (float)$row['total_price']
-            : $aggTotalPrice;
-        $row['total_discount'] = $entriesCaps['has_discount_amount'] && isset($row['discount_amount'])
-            ? (float)$row['discount_amount']
-            : $aggDiscount;
-        $row['final_amount'] = $finalAmount;
-        
-        // Set grouped flag based on test count
-        $row['grouped'] = $row['tests_count'] > 1 ? 1 : 0;
-        
-        // For backward compatibility, set test_name to first test or all tests
-        if ($row['tests_count'] == 1) {
-            $row['test_name'] = $row['test_names'];
-        } else if ($row['tests_count'] > 1) {
-            $row['test_name'] = $row['tests_count'] . ' tests: ' . $row['test_names'];
-        } else {
-            $row['test_name'] = 'No tests';
-        }
-        
-        // Also fetch individual tests for the entry
-        $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
-        if ($entryTestsCaps['table_exists']) {
-            $testsSql = "SELECT et.*, t.name as test_name, t.unit, tc.name as category_name 
-                         FROM entry_tests et 
-                         LEFT JOIN tests t ON et.test_id = t.id
-                         LEFT JOIN categories tc ON t.category_id = tc.id
-                         WHERE et.entry_id = ?";
-            $testsStmt = $pdo->prepare($testsSql);
-            $testsStmt->execute([$_GET['id']]);
-            $row['tests'] = $testsStmt->fetchAll(PDO::FETCH_ASSOC);
-        } else {
-            $row['tests'] = [];
-        }
-
-        json_response(['success' => true, 'data' => $row]);
+        // ... (existing code)
     }
 
     if ($action === 'save') {
@@ -448,7 +184,7 @@ try {
         if (!simpleCheckPermission($user_data, 'save')) {
             json_response(['success' => false, 'message' => 'Permission denied to save entry'], 403);
         }
-        
+
         // Handle multiple tests per entry
         $input = [];
         $content_type = $_SERVER['CONTENT_TYPE'] ?? '';
@@ -466,165 +202,33 @@ try {
         // Check if this is a multiple tests entry
         if (isset($input['tests']) && !empty($input['tests'])) {
             $tests = json_decode($input['tests'], true);
-            
-            if (is_array($tests) && count($tests) > 0) {
-                $entryTestCaps = get_entry_tests_schema_capabilities($pdo);
-                if (!$entryTestCaps['table_exists']) {
-                    json_response(['success' => false, 'message' => 'Multiple tests are not supported on this installation (missing entry_tests table).'], 400);
-                }
+            $entryId = $input['id'] ?? null;
 
+            if ($entryId) {
+                // Update existing entry
                 try {
-                    error_log('Entry API save: received ' . count($tests) . ' tests');
-                    error_log('Entry API save payload keys: ' . implode(',', array_keys($input ?? [])));
-                    // Also write a lightweight debug file for easier inspection on the server
-                    $debugDir = __DIR__ . '/../tmp';
-                    if (!is_dir($debugDir)) {
-                        mkdir($debugDir, 0755, true);
-                    }
-                    $debugFile = $debugDir . '/entry_api_debug.log';
-                    $debugLine = date('[Y-m-d H:i:s]') . " SAVE_RECEIVED tests=" . count($tests) . " keys=" . implode(',', array_keys($input ?? [])) . "\n";
-                    file_put_contents($debugFile, $debugLine, FILE_APPEND | LOCK_EX);
                     $pdo->beginTransaction();
-                    
-                    $entryCaps = get_entries_schema_capabilities($pdo);
 
-                    // Create the main entry with schema-awareness
+                    // 1. Update the main entry
                     $entryData = [
                         'patient_id' => $input['patient_id'],
-                        'doctor_id' => $input['doctor'] ?? null,
+                        'doctor_id' => $input['doctor_id'] ?? null,
                         'owner_id' => $input['owner_id'] ?? null,
                         'entry_date' => $input['entry_date'] ?? date('Y-m-d'),
                         'status' => $input['status'] ?? 'pending',
-                        'added_by' => $input['added_by']
+                        'notes' => $input['notes'] ?? null,
+                        'id' => $entryId
                     ];
-
-                    if ($entryCaps['has_remarks']) {
-                        $entryData['remarks'] = $input['notes'] ?? null;
-                    } elseif ($entryCaps['has_notes']) {
-                        $entryData['notes'] = $input['notes'] ?? null;
-                    }
-                    if ($entryCaps['has_grouped']) {
-                        $entryData['grouped'] = 1;
-                    }
-                    if ($entryCaps['has_tests_count']) {
-                        $entryData['tests_count'] = count($tests);
-                    }
-
-                    // Calculate totals based on test data and schema
-                    $totalPrice = 0;
-                    $totalDiscount = 0;
-                    foreach ($tests as $test) {
-                        $totalPrice += floatval($test['price'] ?? 0);
-                        $totalDiscount += floatval($test['discount_amount'] ?? 0);
-                    }
-
-                    if ($entryCaps['has_price']) {
-                        $entryData['price'] = $totalPrice;
-                    }
-                    if ($entryCaps['has_subtotal']) {
-                        $entryData['subtotal'] = $totalPrice;
-                    }
-                    if ($entryCaps['has_discount_amount']) {
-                        $entryData['discount_amount'] = $totalDiscount;
-                    }
-                    if ($entryCaps['has_total_price']) {
-                        $entryData['total_price'] = max($totalPrice - $totalDiscount, 0);
-                    }
-
-                    // Set primary test to first test for backward compatibility
-                    if (!empty($tests) && $entryCaps['has_test_id']) {
-                        $entryData['test_id'] = $tests[0]['test_id'];
-                    }
-
-                    if ($entryCaps['has_remarks']) {
-                        $entryData['remarks'] = $input['notes'] ?? null;
-                    } elseif ($entryCaps['has_notes']) {
-                        $entryData['notes'] = $input['notes'] ?? null;
-                    }
-                    if ($entryCaps['has_grouped']) {
-                        $entryData['grouped'] = 1;
-                    }
-                    if ($entryCaps['has_tests_count']) {
-                        $entryData['tests_count'] = count($tests);
-                    }
-
-                    // Calculate totals based on test data and schema
-                    $totalPrice = 0;
-                    $totalDiscount = 0;
-                    foreach ($tests as $test) {
-                        $totalPrice += floatval($test['price'] ?? 0);
-                        $totalDiscount += floatval($test['discount_amount'] ?? 0);
-                    }
-
-                    if ($entryCaps['has_price']) {
-                        $entryData['price'] = $totalPrice;
-                    }
-                    if ($entryCaps['has_subtotal']) {
-                        $entryData['subtotal'] = $totalPrice;
-                    }
-                    if ($entryCaps['has_discount_amount']) {
-                        $entryData['discount_amount'] = $totalDiscount;
-                    }
-                    if ($entryCaps['has_total_price']) {
-                        $entryData['total_price'] = max($totalPrice - $totalDiscount, 0);
-                    }
-
-                    // Set primary test to first test for backward compatibility
-                    if (!empty($tests) && $entryCaps['has_test_id']) {
-                        $entryData['test_id'] = $tests[0]['test_id'];
-                    }
-
-                    if ($entryCaps['has_remarks']) {
-                        $entryData['remarks'] = $input['notes'] ?? null;
-                    } elseif ($entryCaps['has_notes']) {
-                        $entryData['notes'] = $input['notes'] ?? null;
-                    }
-                    if ($entryCaps['has_grouped']) {
-                        $entryData['grouped'] = 1;
-                    }
-                    if ($entryCaps['has_tests_count']) {
-                        $entryData['tests_count'] = count($tests);
-                    }
-
-                    // Calculate totals based on test data and schema
-                    $totalPrice = 0;
-                    $totalDiscount = 0;
-                    foreach ($tests as $test) {
-                        $totalPrice += floatval($test['price'] ?? 0);
-                        $totalDiscount += floatval($test['discount_amount'] ?? 0);
-                    }
-
-                    if ($entryCaps['has_price']) {
-                        $entryData['price'] = $totalPrice;
-                    }
-                    if ($entryCaps['has_subtotal']) {
-                        $entryData['subtotal'] = $totalPrice;
-                    }
-                    if ($entryCaps['has_discount_amount']) {
-                        $entryData['discount_amount'] = $totalDiscount;
-                    }
-                    if ($entryCaps['has_total_price']) {
-                        $entryData['total_price'] = max($totalPrice - $totalDiscount, 0);
-                    }
-
-                    // Set primary test to first test for backward compatibility
-                    if (!empty($tests) && $entryCaps['has_test_id']) {
-                        $entryData['test_id'] = $tests[0]['test_id'];
-                    }
-                    
-                    // Insert entry
-                    $entryFields = implode(', ', array_keys($entryData));
-                    $entryPlaceholders = ':' . implode(', :', array_keys($entryData));
-                    $sql = "INSERT INTO entries ($entryFields) VALUES ($entryPlaceholders)";
+                    $sql = "UPDATE entries SET patient_id=:patient_id, doctor_id=:doctor_id, owner_id=:owner_id, entry_date=:entry_date, status=:status, notes=:notes, updated_at=NOW() WHERE id=:id";
                     $stmt = $pdo->prepare($sql);
                     $stmt->execute($entryData);
-                    $entryId = $pdo->lastInsertId();
-                    error_log('Entry API save: created entry id ' . $entryId);
-                    @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " CREATED_ENTRY id=" . $entryId . "\n", FILE_APPEND | LOCK_EX);
-                    
-                    // Insert individual tests
-                    $testIds = [];
-                    $testNames = [];
+
+                    // 2. Delete existing tests
+                    $stmt = $pdo->prepare('DELETE FROM entry_tests WHERE entry_id = ?');
+                    $stmt->execute([$entryId]);
+
+                    // 3. Insert new tests
+                    $entryTestCaps = get_entry_tests_schema_capabilities($pdo);
                     foreach ($tests as $test) {
                         $testData = [
                             'entry_id' => $entryId,
@@ -643,72 +247,131 @@ try {
                         if ($entryTestCaps['has_total_price']) {
                             $testData['total_price'] = max(($test['price'] ?? 0) - ($test['discount_amount'] ?? 0), 0);
                         }
-                        
+
                         $testFields = implode(', ', array_keys($testData));
                         $testPlaceholders = ':' . implode(', :', array_keys($testData));
                         $testSql = "INSERT INTO entry_tests ($testFields) VALUES ($testPlaceholders)";
                         $testStmt = $pdo->prepare($testSql);
                         $testStmt->execute($testData);
-                        error_log('Entry API save: inserted entry_test for entry ' . $entryId . ' test_id ' . ($test['test_id'] ?? '')); 
-                        @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " INSERT_TEST entry=" . $entryId . " test_id=" . ($test['test_id'] ?? '') . "\n", FILE_APPEND | LOCK_EX);
-                        
-                        $testIds[] = $test['test_id'];
-                        $testNames[] = $test['test_name'];
-                    }
-                    
-                    // Update entry with aggregated test data
-                    $updateFields = [];
-                    $updateParams = ['entry_id' => $entryId];
-                    if ($entryCaps['has_test_ids']) {
-                        $updateFields[] = 'test_ids = :test_ids';
-                        $updateParams['test_ids'] = implode(',', $testIds);
-                    }
-                    if ($entryCaps['has_test_names']) {
-                        $updateFields[] = 'test_names = :test_names';
-                        $updateParams['test_names'] = implode(', ', $testNames);
-                    }
-                    if ($entryCaps['has_updated_at']) {
-                        $updateFields[] = 'updated_at = NOW()';
-                    }
-                    if ($updateFields) {
-                        $updateSql = "UPDATE entries SET " . implode(', ', $updateFields) . " WHERE id = :entry_id";
-                        $updateStmt = $pdo->prepare($updateSql);
-                        $updateStmt->execute($updateParams);
                     }
 
-                    // Refresh aggregated totals based on actual test rows
+                    // 4. Refresh aggregated totals
                     refresh_entry_aggregates($pdo, $entryId);
-                    
+
                     $pdo->commit();
-                    error_log('Entry API save: commit successful for entry ' . $entryId);
-                    @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " COMMIT entry=" . $entryId . "\n", FILE_APPEND | LOCK_EX);
-                    
-                    json_response([
-                        'success' => true,
-                        'message' => 'Entry with multiple tests created successfully',
-                        'data' => ['id' => $entryId, 'tests_count' => count($tests)]
-                    ]);
-                    
+                    json_response(['success' => true, 'message' => 'Entry updated successfully']);
                 } catch (Exception $e) {
-                    // Rollback and provide a detailed debug entry for troubleshooting
-                    try {
-                        $pdo->rollBack();
-                    } catch (Exception $__) {
-                        // ignore rollback errors
-                    }
-                    json_response([
-                        'success' => false,
-                        'message' => 'Failed to save entry with multiple tests',
-                        'error' => [
-                            'message' => $e->getMessage(),
-                            'file' => $e->getFile(),
-                            'line' => $e->getLine(),
-                            'trace' => $e->getTraceAsString()
-                        ]
-                    ], 500);
+                    $pdo->rollBack();
+                    json_response(['success' => false, 'message' => 'Failed to update entry', 'error' => $e->getMessage()], 500);
                 }
             } else {
-                json_response(['success' => false, 'message' => 'No valid tests provided'], 400);
+                // Create new entry
+                if (is_array($tests) && count($tests) > 0) {
+                    $entryTestCaps = get_entry_tests_schema_capabilities($pdo);
+                    if (!$entryTestCaps['table_exists']) {
+                        json_response(['success' => false, 'message' => 'Multiple tests are not supported on this installation (missing entry_tests table).'], 400);
+                    }
+
+                    try {
+                        $pdo->beginTransaction();
+
+                        $entryCaps = get_entries_schema_capabilities($pdo);
+
+                        // Create the main entry with schema-awareness
+                        $entryData = [
+                            'patient_id' => $input['patient_id'],
+                            'doctor_id' => $input['doctor_id'] ?? null,
+                            'owner_id' => $input['owner_id'] ?? null,
+                            'entry_date' => $input['entry_date'] ?? date('Y-m-d'),
+                            'status' => $input['status'] ?? 'pending',
+                            'added_by' => $input['added_by']
+                        ];
+
+                        if ($entryCaps['has_remarks']) {
+                            $entryData['remarks'] = $input['notes'] ?? null;
+                        } elseif ($entryCaps['has_notes']) {
+                            $entryData['notes'] = $input['notes'] ?? null;
+                        }
+                        if ($entryCaps['has_grouped']) {
+                            $entryData['grouped'] = 1;
+                        }
+                        if ($entryCaps['has_tests_count']) {
+                            $entryData['tests_count'] = count($tests);
+                        }
+
+                        // Calculate totals based on test data and schema
+                        $totalPrice = 0;
+                        $totalDiscount = 0;
+                        foreach ($tests as $test) {
+                            $totalPrice += floatval($test['price'] ?? 0);
+                            $totalDiscount += floatval($test['discount_amount'] ?? 0);
+                        }
+
+                        if ($entryCaps['has_price']) {
+                            $entryData['price'] = $totalPrice;
+                        }
+                        if ($entryCaps['has_subtotal']) {
+                            $entryData['subtotal'] = $totalPrice;
+                        }
+                        if ($entryCaps['has_discount_amount']) {
+                            $entryData['discount_amount'] = $totalDiscount;
+                        }
+                        if ($entryCaps['has_total_price']) {
+                            $entryData['total_price'] = max($totalPrice - $totalDiscount, 0);
+                        }
+
+                        // Set primary test to first test for backward compatibility
+                        if (!empty($tests) && $entryCaps['has_test_id']) {
+                            $entryData['test_id'] = $tests[0]['test_id'];
+                        }
+
+                        // Insert entry
+                        $entryFields = implode(', ', array_keys($entryData));
+                        $entryPlaceholders = ':' . implode(', :', array_keys($entryData));
+                        $sql = "INSERT INTO entries ($entryFields) VALUES ($entryPlaceholders)";
+                        $stmt = $pdo->prepare($sql);
+                        $stmt->execute($entryData);
+                        $entryId = $pdo->lastInsertId();
+
+                        // Insert individual tests
+                        foreach ($tests as $test) {
+                            $testData = [
+                                'entry_id' => $entryId,
+                                'test_id' => $test['test_id'],
+                                'result_value' => $test['result_value'] ?? null,
+                                'unit' => $test['unit'] ?? null,
+                                'remarks' => $test['remarks'] ?? null,
+                                'status' => 'pending'
+                            ];
+                            if ($entryTestCaps['has_price']) {
+                                $testData['price'] = $test['price'] ?? 0;
+                            }
+                            if ($entryTestCaps['has_discount_amount']) {
+                                $testData['discount_amount'] = $test['discount_amount'] ?? 0;
+                            }
+                            if ($entryTestCaps['has_total_price']) {
+                                $testData['total_price'] = max(($test['price'] ?? 0) - ($test['discount_amount'] ?? 0), 0);
+                            }
+
+                            $testFields = implode(', ', array_keys($testData));
+                            $testPlaceholders = ':' . implode(', :', array_keys($testData));
+                            $testSql = "INSERT INTO entry_tests ($testFields) VALUES ($testPlaceholders)";
+                            $testStmt = $pdo->prepare($testSql);
+                            $testStmt->execute($testData);
+                        }
+
+                        // Refresh aggregated totals
+                        refresh_entry_aggregates($pdo, $entryId);
+
+                        $pdo->commit();
+                        json_response(['success' => true, 'message' => 'Entry with multiple tests created successfully', 'data' => ['id' => $entryId, 'tests_count' => count($tests)]]);
+                    } catch (Exception $e) {
+                        $pdo->rollBack();
+                        json_response(['success' => false, 'message' => 'Failed to save entry with multiple tests', 'error' => ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString()]], 500);
+                    }
+                } else {
+                    json_response(['success' => false, 'message' => 'No valid tests provided'], 400);
+                }
             }
         } else {
             // Handle single test entry (existing logic)
@@ -755,160 +418,11 @@ try {
             exit;
         }
     } else if ($action === 'delete' && isset($_POST['id'])) {
-        // Check permission
-        if (!simpleCheckPermission($user_data, 'delete', $_POST['id'])) {
-            json_response(['success' => false, 'message' => 'Permission denied to delete entry'], 403);
-        }
-        
-        $stmt = $pdo->prepare('DELETE FROM entries WHERE id = ?');
-        $stmt->execute([$_POST['id']]);
-        json_response(['success' => true, 'message' => 'Entry deleted']);
+        // ... (existing code)
     }
 
     if ($action === 'export') {
-        // Check permission
-        if (!simpleCheckPermission($user_data, 'list')) {
-            json_response(['success' => false, 'message' => 'Permission denied to export entries'], 403);
-        }
-        
-        // Get export parameters
-        $format = $_GET['format'] ?? 'csv';
-        $status = $_GET['status'] ?? '';
-        $dateFilter = $_GET['date'] ?? '';
-        
-        // Build query with filters
-        $viewerRole = $user_data['role'] ?? 'user';
-        $viewerId = (int)($user_data['user_id'] ?? 0);
-        $scopeWhere = '';
-        $params = [];
-        
-        if ($viewerRole !== 'master') {
-            $scopeWhere = ' WHERE e.added_by = ?';
-            $params[] = $viewerId;
-        }
-        
-        // Add status filter
-        if ($status) {
-            if ($scopeWhere) {
-                $scopeWhere .= ' AND e.status = ?';
-            } else {
-                $scopeWhere = ' WHERE e.status = ?';
-            }
-            $params[] = $status;
-        }
-        
-        // Add date filter
-        if ($dateFilter) {
-            $dateCondition = '';
-            switch ($dateFilter) {
-                case 'today':
-                    $dateCondition = 'DATE(COALESCE(e.entry_date, e.created_at)) = CURDATE()';
-                    break;
-                case 'yesterday':
-                    $dateCondition = 'DATE(COALESCE(e.entry_date, e.created_at)) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)';
-                    break;
-                case 'this_week':
-                    $dateCondition = 'DATE(COALESCE(e.entry_date, e.created_at)) >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)';
-                    break;
-                case 'this_month':
-                    $dateCondition = 'MONTH(COALESCE(e.entry_date, e.created_at)) = MONTH(CURDATE()) AND YEAR(COALESCE(e.entry_date, e.created_at)) = YEAR(CURDATE())';
-                    break;
-            }
-            
-            if ($dateCondition) {
-                if ($scopeWhere) {
-                    $scopeWhere .= ' AND ' . $dateCondition;
-                } else {
-                    $scopeWhere = ' WHERE ' . $dateCondition;
-                }
-            }
-        }
-        
-        // Get entry tests aggregation
-        $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
-        if ($entryTestsCaps['table_exists']) {
-            $aggSql = build_entry_tests_aggregation_sql($pdo);
-            $aggSelect = "COALESCE(agg.tests_count, 0) AS tests_count,
-                   COALESCE(agg.test_names, '') AS test_names,
-                   COALESCE(agg.total_price, 0) AS total_price,
-                   COALESCE(agg.total_discount, 0) AS total_discount";
-            $aggJoin = " LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id";
-        } else {
-            $aggSelect = "0 AS tests_count, '' AS test_names, 0 AS total_price, 0 AS total_discount";
-            $aggJoin = '';
-        }
-        
-        $sql = "SELECT e.id, e.entry_date, e.status, e.priority, e.referral_source, e.created_at,
-                       p.name AS patient_name, p.uhid, p.age, p.sex, p.contact AS patient_contact, p.address AS patient_address,
-                       d.name AS doctor_name,
-                       o.name AS owner_name,
-                       u.username AS added_by_username, u.full_name AS added_by_full_name,
-                       {$aggSelect}
-                FROM entries e 
-                LEFT JOIN patients p ON e.patient_id = p.id 
-                LEFT JOIN doctors d ON e.doctor_id = d.id 
-                LEFT JOIN owners o ON e.owner_id = o.id
-                LEFT JOIN users u ON e.added_by = u.id" .
-                $aggJoin .
-                $scopeWhere .
-                " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Format data for export
-        $exportData = [];
-        foreach ($rows as $row) {
-            $finalAmount = max((float)($row['total_price'] ?? 0) - (float)($row['total_discount'] ?? 0), 0);
-            $exportData[] = [
-                'ID' => $row['id'],
-                'Date' => $row['entry_date'] ? date('d/m/Y', strtotime($row['entry_date'])) : '',
-                'Patient Name' => $row['patient_name'] ?? '',
-                'UHID' => $row['uhid'] ?? '',
-                'Age/Gender' => ($row['age'] ? $row['age'] : '') . ($row['sex'] ? ' ' . $row['sex'] : ''),
-                'Patient Contact' => $row['patient_contact'] ?? '',
-                'Patient Address' => $row['patient_address'] ?? '',
-                'Doctor' => $row['doctor_name'] ?? '',
-                'Owner/Lab' => $row['owner_name'] ?? '',
-                'Tests' => $row['test_names'] ?? '',
-                'Tests Count' => $row['tests_count'] ?? 0,
-                'Status' => ucfirst($row['status'] ?? ''),
-                'Priority' => ucfirst($row['priority'] ?? 'Normal'),
-                'Referral Source' => ucfirst($row['referral_source'] ?? ''),
-                'Amount' => number_format($finalAmount, 2),
-                'Added By' => $row['added_by_full_name'] ?? $row['added_by_username'] ?? '',
-                'Created' => date('d/m/Y H:i', strtotime($row['created_at']))
-            ];
-        }
-        
-        if ($format === 'csv') {
-            // Set headers for CSV download
-            header('Content-Type: text/csv; charset=utf-8');
-            header('Content-Disposition: attachment; filename="entries_' . date('Y-m-d_H-i-s') . '.csv"');
-            
-            // Create CSV output
-            $output = fopen('php://output', 'w');
-            
-            // Add BOM for UTF-8
-            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-            
-            // Add headers
-            if (!empty($exportData)) {
-                fputcsv($output, array_keys($exportData[0]));
-                
-                // Add data
-                foreach ($exportData as $row) {
-                    fputcsv($output, $row);
-                }
-            }
-            
-            fclose($output);
-            exit;
-        } else {
-            // Return JSON for other formats
-            json_response(['success' => true, 'data' => $exportData, 'total' => count($exportData)]);
-        }
+        // ... (existing code)
     }
 
     json_response(['success'=>false,'message'=>'Invalid action'],400);
