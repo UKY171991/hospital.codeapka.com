@@ -383,6 +383,12 @@ body.modal-open {
     line-height: calc(2.25rem + 2px) !important;
 }
 
+/* Limit height of modal body for extra-large modal so content scrolls inside modal */
+.modal-dialog.modal-xl .modal-body {
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+}
+
 /* Status dropdown fix */
 #entryStatus {
     min-width: 120px;

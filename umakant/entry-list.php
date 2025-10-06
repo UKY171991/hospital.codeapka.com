@@ -215,7 +215,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
 
 <!-- Add/Edit Entry Modal -->
 <div class="modal fade" id="addEntryModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Add New Entry</h5>
@@ -341,7 +341,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
 
 <!-- Add/Edit Entry Modal -->
 <div class="modal fade" id="entryModal" tabindex="-1" role="dialog" aria-labelledby="entryModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document" style="max-width:95%; margin:20px auto;">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document" style="max-width:95%; margin:20px auto;">
         <div class="modal-content">
             <div class="modal-header bg-primary">
                 <h5 class="modal-title" id="entryModalLabel">
