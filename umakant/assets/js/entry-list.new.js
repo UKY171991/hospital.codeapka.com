@@ -314,11 +314,18 @@ function loadOwnerUsers(callback) {
 }
 
 // Load patients based on selected owner
-function loadPatientsByOwner(ownerId) {
+function loadPatientsBy(id, type) {
+    let data = { action: 'list' };
+    if (type === 'owner') {
+        data.owner_id = id;
+    } else {
+        data.added_by = id;
+    }
+
     $.ajax({
         url: 'ajax/patient_api.php',
         method: 'GET',
-        data: { action: 'list', owner_id: ownerId },
+        data: data,
         dataType: 'json',
         success: function(response) {
             const patientSelect = $('#patientSelect');
@@ -346,11 +353,18 @@ function loadPatientsByOwner(ownerId) {
 }
 
 // Load doctors based on selected owner
-function loadDoctorsByOwner(ownerId) {
+function loadDoctorsBy(id, type) {
+    let data = { action: 'list' };
+    if (type === 'owner') {
+        data.owner_id = id;
+    } else {
+        data.added_by = id;
+    }
+
     $.ajax({
         url: 'ajax/doctor_api.php',
         method: 'GET',
-        data: { action: 'list', owner_id: ownerId },
+        data: data,
         dataType: 'json',
         success: function(response) {
             const doctorSelect = $('#doctorSelect');
@@ -456,17 +470,17 @@ function setupEventHandlers() {
         
         if (selectedValue) {
             const type = selectedOption.data('type');
-            let ownerId = null;
+            let id = null;
             
             if (type === 'owner') {
-                ownerId = selectedOption.data('owner-id');
+                id = selectedOption.data('owner-id');
             } else if (type === 'user') {
                 // For users, we might want to get their associated owner
                 // For now, we'll use the user ID as owner ID
-                ownerId = selectedOption.data('user-id');
+                id = selectedOption.data('user-id');
             }
             
-            if (ownerId) {
+            if (id) {
                 // Enable dropdowns and show loading
                 $('#patientSelect, #doctorSelect').prop('disabled', false);
                 $('#patientHelpText').text(`Loading patients for: ${selectedText}`);
@@ -481,8 +495,8 @@ function setupEventHandlers() {
                 $('#doctorSelect').empty().append('<option value="" disabled>Loading doctors...</option>');
                 
                 // Load filtered data
-                loadPatientsByOwner(ownerId);
-                loadDoctorsByOwner(ownerId);
+                loadPatientsBy(id, type);
+                loadDoctorsBy(id, type);
             }
         } else {
             // Disable dropdowns when no owner is selected
