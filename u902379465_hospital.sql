@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 01, 2025 at 12:19 PM
+-- Generation Time: Oct 06, 2025 at 02:07 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -220,6 +220,7 @@ CREATE TABLE `patients` (
   `address` text DEFAULT NULL,
   `sex` varchar(10) DEFAULT NULL,
   `age` int(11) DEFAULT NULL,
+  `contact` varchar(100) NOT NULL,
   `age_unit` varchar(10) DEFAULT 'Years',
   `uhid` varchar(100) DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
@@ -231,10 +232,10 @@ CREATE TABLE `patients` (
 -- Dumping data for table `patients`
 --
 
-INSERT INTO `patients` (`id`, `server_id`, `name`, `email`, `mobile`, `father_husband`, `address`, `sex`, `age`, `age_unit`, `uhid`, `created_at`, `updated_at`, `added_by`) VALUES
-(1, NULL, 'Naida Marquez', 'jejasiduw@mailinator.com', '5454455454', 'Indigo Holman', 'Voluptate quibusdam', 'Male', 45, 'Months', 'P033679005', '2025-09-28 12:02:58', '2025-09-28 13:52:46', 2),
-(2, NULL, 'James Sears', 'ciwi@mailinator.com', '5656565656', 'Arthur Oneal', 'Vel nobis error corr', 'Female', 10, 'Years', 'P642622065', '2025-09-28 12:27:50', '2025-09-28 13:52:29', 2),
-(3, NULL, 'Indigo Cortez', 'feloz@mailinator.com', '5454545454', 'Odette Villarreal', 'Et quaerat voluptati', 'Female', 86, 'Days', 'P483791824', '2025-09-28 13:31:49', '2025-09-28 13:55:01', 1);
+INSERT INTO `patients` (`id`, `server_id`, `name`, `email`, `mobile`, `father_husband`, `address`, `sex`, `age`, `contact`, `age_unit`, `uhid`, `created_at`, `updated_at`, `added_by`) VALUES
+(1, NULL, 'Naida Marquez', 'jejasiduw@mailinator.com', '5454455454', 'Indigo Holman', 'Voluptate quibusdam', 'Male', 45, '', 'Months', 'P033679005', '2025-09-28 12:02:58', '2025-09-28 13:52:46', 2),
+(2, NULL, 'James Sears', 'ciwi@mailinator.com', '5656565656', 'Arthur Oneal', 'Vel nobis error corr', 'Female', 10, '', 'Years', 'P642622065', '2025-09-28 12:27:50', '2025-09-28 13:52:29', 2),
+(3, NULL, 'Indigo Cortez', 'feloz@mailinator.com', '5454545454', 'Odette Villarreal', 'Et quaerat voluptati', 'Female', 86, '', 'Days', 'P483791824', '2025-09-28 13:31:49', '2025-09-28 13:55:01', 1);
 
 -- --------------------------------------------------------
 
@@ -315,7 +316,8 @@ CREATE TABLE `tests` (
 --
 
 INSERT INTO `tests` (`id`, `name`, `category_id`, `price`, `unit`, `specimen`, `default_result`, `reference_range`, `min`, `max`, `description`, `min_male`, `max_male`, `min_female`, `max_female`, `sub_heading`, `test_code`, `method`, `print_new_page`, `shortcut`, `added_by`, `created_at`, `updated_at`) VALUES
-(1, 'Aubrey Reyes g', 3, 980.00, 'Veniam sunt ipsam v', NULL, '', '', 20.00, 24.00, 'Aliquid labore place', 30.00, 31.00, 72.00, 78.00, 1, '', '', 1, '', 1, NULL, NULL);
+(1, 'Aubrey Reyes g', 3, 980.00, 'abc', NULL, '', '', 20.00, 24.00, 'Aliquid labore place', 30.00, 31.00, 72.00, 78.00, 1, '', '', 1, '', 1, NULL, NULL),
+(2, 'New test', 6, 100.00, 'etc', NULL, '', '', 10.00, 20.00, '', 11.00, 21.00, 12.00, 22.00, 0, '', 'none', 0, '', 1, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -344,7 +346,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-10-01 17:44:01', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-10-06 06:30:06', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
 (2, 'uma', '$2y$12$yBaDoENR.9MOXDLizW.UYunvNev1XOICwYC.WNCRmPEd1fQ5TS85q', 'Uma Yadav', 'umakant171991@gmail.com', 'user', 1, 0, '2025-09-26 10:13:58', NULL, '2025-10-11 10:13:00', '0000-00-00 00:00:00', '2025-09-26 04:43:58');
 
 -- --------------------------------------------------------
@@ -560,7 +562,7 @@ ALTER TABLE `reports`
 -- AUTO_INCREMENT for table `tests`
 --
 ALTER TABLE `tests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `users`
