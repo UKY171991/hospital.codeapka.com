@@ -389,6 +389,18 @@ body.modal-open {
     overflow-y: auto;
 }
 
+/* Make Select2 in form groups fill the column and align with inputs */
+.form-group .select2-container,
+.row .select2-container {
+    width: 100% !important;
+    display: block !important;
+}
+.form-group .select2-container .select2-selection--single,
+.row .select2-container .select2-selection--single {
+    height: calc(2.25rem + 4px) !important;
+    line-height: calc(2.25rem + 2px) !important;
+}
+
 /* Status dropdown fix */
 #entryStatus {
     min-width: 120px;

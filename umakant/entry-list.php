@@ -493,7 +493,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="referralSource">Referral Source</label>
-                                <select class="form-control" id="referralSource" name="referral_source">
+                                <select class="form-control select2" id="referralSource" name="referral_source">
                                     <option value="">Select Source</option>
                                     <option value="doctor">Doctor Referral</option>
                                     <option value="hospital">Hospital</option>
@@ -506,7 +506,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="priority">Priority</label>
-                                <select class="form-control" id="priority" name="priority">
+                                <select class="form-control select2" id="priority" name="priority">
                                     <option value="normal">Normal</option>
                                     <option value="urgent">Urgent</option>
                                     <option value="emergency">Emergency</option>
