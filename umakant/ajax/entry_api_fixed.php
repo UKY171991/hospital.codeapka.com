@@ -215,54 +215,6 @@ try {
             json_response(['success' => false, 'message' => 'Database error while listing entries', 'error' => $e->getMessage()], 500);
         }
         
-        // Format data for frontend compatibility
-        $entriesCaps = get_entries_schema_capabilities($pdo);
-        foreach ($rows as &$row) {
-            // Ensure entry_date is available for frontend
-            if (empty($row['entry_date'])) {
-                $row['entry_date'] = $row['created_at'];
-            }
-            
-            // Format test information
-            $row['tests_count'] = (int)($row['tests_count'] ?? 0);
-            $row['test_names'] = $row['test_names'] ?? '';
-            $row['test_ids'] = $row['test_ids'] ?? '';
-            
-            // Format pricing
-            $aggTotalPrice = (float)($row['total_price'] ?? 0);
-            $aggDiscount = (float)($row['total_discount'] ?? 0);
-            $row['aggregated_total_price'] = $aggTotalPrice;
-            $row['aggregated_total_discount'] = $aggDiscount;
-
-            if ($entriesCaps['has_total_price'] && isset($row['total_price'])) {
-                $finalAmount = (float)$row['total_price'];
-            } else if ($entriesCaps['has_subtotal'] && isset($row['subtotal'])) {
-                $finalAmount = (float)$row['subtotal'] - (float)($row['discount_amount'] ?? 0);
-            } else {
-                $finalAmount = $aggTotalPrice - $aggDiscount;
-            }
-
-            $row['total_price'] = $entriesCaps['has_total_price'] && isset($row['total_price'])
-                ? (float)$row['total_price']
-                : $aggTotalPrice;
-            $row['total_discount'] = $entriesCaps['has_discount_amount'] && isset($row['discount_amount'])
-                ? (float)$row['discount_amount']
-                : $aggDiscount;
-            $row['final_amount'] = $finalAmount;
-            
-            // Set grouped flag based on test count
-            $row['grouped'] = $row['tests_count'] > 1 ? 1 : 0;
-            
-            // For backward compatibility, set test_name to first test or all tests
-            if ($row['tests_count'] == 1) {
-                $row['test_name'] = $row['test_names'];
-            } else if ($row['tests_count'] > 1) {
-                $row['test_name'] = $row['tests_count'] . ' tests: ' . $row['test_names'];
-            } else {
-                $row['test_name'] = 'No tests';
-            }
-        }
-        
         json_response(['success' => true, 'data' => $rows, 'total' => count($rows)]);
     } else if ($action === 'get' && isset($_GET['id'])) {
         // ... (existing code)
