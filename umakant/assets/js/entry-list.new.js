@@ -12,6 +12,7 @@ $(document).ready(function() {
 function initializePage() {
     loadStatistics();
     initializeDataTable();
+    loadOwnerUsers();
     loadTests();
     setupEventHandlers();
 }
@@ -239,67 +240,81 @@ function loadDoctors() {
 }
 
 // Load combined owners and users for dropdown
-function loadUsersDropdown(callback) {
+function loadOwnerUsers() {
     const ownerUserSelect = $('#ownerAddedBySelect');
-    ownerUserSelect.empty().append('<option value="">Select User</option>');
-
-    // Load users
+    ownerUserSelect.empty().append('<option value="">Select Owner/User</option>');
+    
+    // Load owners
     $.ajax({
-        url: 'ajax/user_api.php',
+        url: 'ajax/owner_api.php',
         method: 'GET',
         data: { action: 'list' },
         dataType: 'json',
-        success: function(userResponse) {
-            console.log('User response:', userResponse);
-
-            // Add users
-            if (userResponse.success && userResponse.data && userResponse.data.length > 0) {
-                userResponse.data.forEach(function(user) {
-                    const displayName = user.full_name || user.username || user.email || `User ${user.id}`;
-                    ownerUserSelect.append(`<option value="user_${user.id}" data-type="user" data-user-id="${user.id}">👤 ${displayName} (${user.role || 'user'})</option>`);
+        success: function(ownerResponse) {
+            console.log('Owner response:', ownerResponse);
+            
+            // Add owners first
+            if (ownerResponse.success && ownerResponse.data && ownerResponse.data.length > 0) {
+                ownerResponse.data.forEach(function(owner) {
+                    ownerUserSelect.append(`<option value="owner_${owner.id}" data-type="owner" data-owner-id="${owner.id}">🏢 ${owner.name} (Owner)</option>`);
                 });
             } else {
-                // If no users, add a placeholder
-                ownerUserSelect.append('<option value="" disabled>No users available</option>');
+                // If no owners, add a placeholder
+                ownerUserSelect.append(`<option value="" disabled>No owners available</option>`);
             }
+            
+            // Load users
+            $.ajax({
+                url: 'ajax/user_api.php',
+                method: 'GET',
+                data: { action: 'list' },
+                dataType: 'json',
+                success: function(userResponse) {
+                    console.log('User response:', userResponse);
+                    
+                    // Add users
+                    if (userResponse.success && userResponse.data && userResponse.data.length > 0) {
+                        userResponse.data.forEach(function(user) {
+                            const displayName = user.full_name || user.username || user.email || `User ${user.id}`;
+                            ownerUserSelect.append(`<option value="user_${user.id}" data-type="user" data-user-id="${user.id}">👤 ${displayName} (${user.role || 'user'})</option>`);
+                        });
+                    } else {
+                        // If no users, add a placeholder
+                        ownerUserSelect.append(`<option value="" disabled>No users available</option>`);
+                    }
+                    
+                    // modal-enhancements will initialize Select2 on modal show
+                    ownerUserSelect.addClass('select2');
 
-            // modal-enhancements will initialize Select2 on modal show
-            ownerUserSelect.addClass('select2');
-
-            // Notify listeners that owner/user options are loaded
-            try { ownerUserSelect.trigger('ownerUsers:loaded'); } catch(e) { /* ignore */ }
-
-            // Set current user as default if not editing
-            if (!currentEntryId && currentUserId) {
-                setTimeout(function() {
-                    ownerUserSelect.val(`user_${currentUserId}`).trigger('change');
-                }, 100);
-            }
-
-            if (typeof callback === 'function') {
-                callback();
-            }
+                    // Notify listeners that owner/user options are loaded
+                    try { ownerUserSelect.trigger('ownerUsers:loaded'); } catch(e) { /* ignore */ }
+                    
+                    // Set current user as default if not editing
+                    if (!currentEntryId && currentUserId) {
+                        setTimeout(function() {
+                            ownerUserSelect.val(`user_${currentUserId}`).trigger('change');
+                        }, 100);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading users:', error);
+                    ownerUserSelect.append(`<option value="" disabled>Error loading users</option>`);
+                }
+            });
         },
         error: function(xhr, status, error) {
-            console.error('Error loading users:', error);
-            ownerUserSelect.append('<option value="" disabled>Error loading users</option>');
+            console.error('Error loading owners:', error);
+            ownerUserSelect.append(`<option value="" disabled>Error loading owners</option>`);
         }
     });
 }
 
 // Load patients based on selected owner
-function loadPatientsBy(id, type) {
-    let data = { action: 'list' };
-    if (type === 'owner') {
-        data.owner_id = id;
-    } else {
-        data.added_by = id;
-    }
-
+function loadPatientsByOwner(ownerId) {
     $.ajax({
         url: 'ajax/patient_api.php',
         method: 'GET',
-        data: data,
+        data: { action: 'list', owner_id: ownerId },
         dataType: 'json',
         success: function(response) {
             const patientSelect = $('#patientSelect');
@@ -318,7 +333,6 @@ function loadPatientsBy(id, type) {
             }
             
             patientSelect.addClass('select2');
-            $(document).trigger('patients:loaded');
         },
         error: function() {
             $('#patientHelpText').text('Error loading patients');
@@ -327,18 +341,11 @@ function loadPatientsBy(id, type) {
 }
 
 // Load doctors based on selected owner
-function loadDoctorsBy(id, type) {
-    let data = { action: 'list' };
-    if (type === 'owner') {
-        data.owner_id = id;
-    } else {
-        data.added_by = id;
-    }
-
+function loadDoctorsByOwner(ownerId) {
     $.ajax({
         url: 'ajax/doctor_api.php',
         method: 'GET',
-        data: data,
+        data: { action: 'list', owner_id: ownerId },
         dataType: 'json',
         success: function(response) {
             const doctorSelect = $('#doctorSelect');
@@ -354,7 +361,6 @@ function loadDoctorsBy(id, type) {
             }
             
             doctorSelect.addClass('select2');
-            $(document).trigger('doctors:loaded');
         },
         error: function() {
             $('#doctorHelpText').text('Error loading doctors');
@@ -443,10 +449,18 @@ function setupEventHandlers() {
         const selectedText = selectedOption.text();
         
         if (selectedValue) {
-            const id = selectedOption.data('user-id');
-            const type = 'user';
+            const type = selectedOption.data('type');
+            let ownerId = null;
             
-            if (id) {
+            if (type === 'owner') {
+                ownerId = selectedOption.data('owner-id');
+            } else if (type === 'user') {
+                // For users, we might want to get their associated owner
+                // For now, we'll use the user ID as owner ID
+                ownerId = selectedOption.data('user-id');
+            }
+            
+            if (ownerId) {
                 // Enable dropdowns and show loading
                 $('#patientSelect, #doctorSelect').prop('disabled', false);
                 $('#patientHelpText').text(`Loading patients for: ${selectedText}`);
@@ -461,8 +475,8 @@ function setupEventHandlers() {
                 $('#doctorSelect').empty().append('<option value="" disabled>Loading doctors...</option>');
                 
                 // Load filtered data
-                loadPatientsBy(id, type);
-                loadDoctorsBy(id, type);
+                loadPatientsByOwner(ownerId);
+                loadDoctorsByOwner(ownerId);
             }
         } else {
             // Disable dropdowns when no owner is selected
@@ -546,7 +560,7 @@ function openAddEntryModal() {
     
     // Load dropdowns
     loadTests();
-    loadUsersDropdown();
+    loadOwnerUsers();
     
     // Select2 initialization for modal-contained selects is handled by modal-enhancements.js
     // on modal show. Avoid initializing here to prevent double-init and wrong dropdownParent.
@@ -830,40 +844,18 @@ function populateEditForm(entry) {
     $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
     $('#entryId').val(entry.id);
 
-    // Set up event handlers to catch when dropdowns are loaded
-    $(document).one('patients:loaded', function() {
-        $('#patientSelect').val(entry.patient_id).trigger('change');
-        
-        // Populate gender field from entry if present
-        if (entry.gender) {
-            try {
-                $('#patientGender').val(entry.gender).trigger('change');
-            } catch (e) {
-                $('#patientGender').val(entry.gender);
-            }
-        }
-    });
+    // Set owner/added by first, then load patients and doctors
+    let ownerAddedByValue = '';
+    if (entry.owner_id) {
+        ownerAddedByValue = `owner_${entry.owner_id}`;
+    } else if (entry.added_by) {
+        ownerAddedByValue = `user_${entry.added_by}`;
+    }
 
-    $(document).one('doctors:loaded', function() {
-        $('#doctorSelect').val(entry.doctor_id).trigger('change');
-    });
-
-    loadUsersDropdown(function() {
-        // Set owner/added by first, then load patients and doctors
-        let ownerAddedByValue = '';
-        if (entry.added_by) {
-            ownerAddedByValue = `user_${entry.added_by}`;
-        }
-
-        $('#ownerAddedBySelect').val(ownerAddedByValue).trigger('change');
-    });
+    $('#ownerAddedBySelect').val(ownerAddedByValue).trigger('change');
 
     // Set other fields
-    if (entry.entry_date) {
-        const date = new Date(entry.entry_date);
-        const formattedDate = date.toISOString().split('T')[0];
-        $('#entryDate').val(formattedDate);
-    }
+    $('#entryDate').val(entry.entry_date);
     $('#entryStatus').val(entry.status);
     $('#entryNotes').val(entry.notes || '');
 
@@ -873,7 +865,21 @@ function populateEditForm(entry) {
     $('#referralSource').val(entry.referral_source || '');
     $('#priority').val(entry.priority || 'normal');
 
-    
+    // Set patient and doctor after a delay to ensure owner selection is processed
+    setTimeout(function() {
+        $('#patientSelect').val(entry.patient_id).trigger('change');
+        $('#doctorSelect').val(entry.doctor_id).trigger('change');
+    }, 1000);
+    // Populate gender field from entry if present
+    setTimeout(function() {
+        if (entry.gender) {
+            try {
+                $('#patientGender').val(entry.gender).trigger('change');
+            } catch (e) {
+                $('#patientGender').val(entry.gender);
+            }
+        }
+    }, 1100);
 
     // Populate tests section
     const testsContainer = $('#testsContainer');
@@ -881,7 +887,6 @@ function populateEditForm(entry) {
     testRowCount = 0;
 
     if (entry.tests && entry.tests.length > 0) {
-        alert('entry.tests: ' + JSON.stringify(entry.tests));
         entry.tests.forEach(function(test, index) {
             const newRowHTML = `
                 <div class="test-row row mb-2">
