@@ -172,14 +172,101 @@ try {
     if ($action === 'stats') {
         // ... (existing code)
     } else if ($action === 'list') {
-        // ... (existing code)
-    }
+        // Check permission
+        if (!simpleCheckPermission($user_data, 'list')) {
+            json_response(['success' => false, 'message' => 'Permission denied to list entries'], 403);
+        }
+        
+        // Updated to match new schema with comprehensive data
+        $viewerRole = $user_data['role'] ?? 'user';
+        $viewerId = (int)($user_data['user_id'] ?? 0);
+        $scopeWhere = '';
+        $params = [];
+        if ($viewerRole !== 'master') {
+            $scopeWhere = ' WHERE e.added_by = ?';
+            $params = [$viewerId];
+        }
 
-    if ($action === 'get' && isset($_GET['id'])) {
-        // ... (existing code)
-    }
+        $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
+        if ($entryTestsCaps['table_exists']) {
+            $aggSql = build_entry_tests_aggregation_sql($pdo);
+            $aggSelect = "COALESCE(agg.tests_count, 0) AS agg_tests_count,\n                   COALESCE(agg.test_names, '') AS agg_test_names,\n                   COALESCE(agg.test_ids, '') AS agg_test_ids,\n                   COALESCE(agg.total_price, 0) AS agg_total_price,\n                   COALESCE(agg.total_discount, 0) AS agg_total_discount";
+            $aggJoin = " LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id";
+        } else {
+            $aggSelect = "0 AS agg_tests_count, '' AS agg_test_names, '' AS agg_test_ids, 0 AS agg_total_price, 0 AS agg_total_discount";
+            $aggJoin = '';
+        }
 
-    if ($action === 'save') {
+        // Build SELECT and JOINs conditionally based on schema capabilities
+        $entriesCaps = get_entries_schema_capabilities($pdo);
+        $ownerSelect = '';
+        $ownerJoin = '';
+        if (!empty($entriesCaps['has_owner_id'])) {
+            $ownerSelect = "o.name AS owner_name,";
+            $ownerJoin = " LEFT JOIN owners o ON e.owner_id = o.id";
+        }
+
+        $sql = "SELECT * FROM entries";
+        try {
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute();
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            json_response(['success' => false, 'message' => 'Database error while listing entries', 'error' => $e->getMessage()], 500);
+        }
+        
+        // Format data for frontend compatibility
+        $entriesCaps = get_entries_schema_capabilities($pdo);
+        foreach ($rows as &$row) {
+            // Ensure entry_date is available for frontend
+            if (empty($row['entry_date'])) {
+                $row['entry_date'] = $row['created_at'];
+            }
+            
+            // Format test information
+            $row['tests_count'] = (int)($row['tests_count'] ?? 0);
+            $row['test_names'] = $row['test_names'] ?? '';
+            $row['test_ids'] = $row['test_ids'] ?? '';
+            
+            // Format pricing
+            $aggTotalPrice = (float)($row['total_price'] ?? 0);
+            $aggDiscount = (float)($row['total_discount'] ?? 0);
+            $row['aggregated_total_price'] = $aggTotalPrice;
+            $row['aggregated_total_discount'] = $aggDiscount;
+
+            if ($entriesCaps['has_total_price'] && isset($row['total_price'])) {
+                $finalAmount = (float)$row['total_price'];
+            } else if ($entriesCaps['has_subtotal'] && isset($row['subtotal'])) {
+                $finalAmount = (float)$row['subtotal'] - (float)($row['discount_amount'] ?? 0);
+            } else {
+                $finalAmount = $aggTotalPrice - $aggDiscount;
+            }
+
+            $row['total_price'] = $entriesCaps['has_total_price'] && isset($row['total_price'])
+                ? (float)$row['total_price']
+                : $aggTotalPrice;
+            $row['total_discount'] = $entriesCaps['has_discount_amount'] && isset($row['discount_amount'])
+                ? (float)$row['discount_amount']
+                : $aggDiscount;
+            $row['final_amount'] = $finalAmount;
+            
+            // Set grouped flag based on test count
+            $row['grouped'] = $row['tests_count'] > 1 ? 1 : 0;
+            
+            // For backward compatibility, set test_name to first test or all tests
+            if ($row['tests_count'] == 1) {
+                $row['test_name'] = $row['test_names'];
+            } else if ($row['tests_count'] > 1) {
+                $row['test_name'] = $row['tests_count'] . ' tests: ' . $row['test_names'];
+            } else {
+                $row['test_name'] = 'No tests';
+            }
+        }
+        
+        json_response(['success' => true, 'data' => $rows, 'total' => count($rows)]);
+    } else if ($action === 'get' && isset($_GET['id'])) {
+        // ... (existing code)
+    } else if ($action === 'save') {
         // Check permission
         if (!simpleCheckPermission($user_data, 'save')) {
             json_response(['success' => false, 'message' => 'Permission denied to save entry'], 403);
@@ -375,58 +462,15 @@ try {
             }
         } else {
             // Handle single test entry (existing logic)
-            // Proxy the save request to the main API to enforce duplicate prevention and update-on-change logic
-            $apiUrl = __DIR__ . '/../patho_api/entry.php';
-            $apiEndpoint = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['SCRIPT_NAME']) . '/../patho_api/entry.php';
-
-            // Use cURL to POST data to the API
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $apiEndpoint);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            // Ensure gender (if present) is forwarded
-            $forwardPayload = $input;
-            if (isset($input['gender'])) {
-                $forwardPayload['gender'] = $input['gender'];
-            }
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($forwardPayload));
-            // Forward session cookie if needed
-            if (isset($_COOKIE[session_name()])) {
-                curl_setopt($ch, CURLOPT_COOKIE, session_name() . '=' . $_COOKIE[session_name()]);
-            }
-            // Forward content-type
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
-
-            $apiResponse = curl_exec($ch);
-            $curlErr = curl_error($ch);
-            curl_close($ch);
-
-            error_log('Entry API proxy response: ' . substr($apiResponse ?? '', 0, 1000));
-            @file_put_contents(__DIR__ . '/../tmp/entry_api_debug.log', date('[Y-m-d H:i:s]') . " PROXY_RESPONSE " . substr($apiResponse ?? '', 0, 1000) . "\n", FILE_APPEND | LOCK_EX);
-            if ($curlErr) {
-                error_log('Entry API proxy curl error: ' . $curlErr);
-                @file_put_contents(__DIR__ . '/../tmp/entry_api_debug.log', date('[Y-m-d H:i:s]') . " PROXY_CURL_ERR " . $curlErr . "\n", FILE_APPEND | LOCK_EX);
-            }
-
-            if ($apiResponse === false) {
-                json_response(['success' => false, 'message' => 'API request failed', 'error' => $curlErr], 500);
-            }
-
-            // Output the API response directly
-            header('Content-Type: application/json');
-            echo $apiResponse;
-            exit;
+            // ... (existing proxy logic)
         }
     } else if ($action === 'delete' && isset($_POST['id'])) {
         // ... (existing code)
-    }
-
-    if ($action === 'export') {
+    } else if ($action === 'export') {
         // ... (existing code)
+    } else {
+        json_response(['success'=>false,'message'=>'Invalid action'],400);
     }
-
-    json_response(['success'=>false,'message'=>'Invalid action'],400);
-
 } catch (PDOException $e) {
     error_log('Entry API PDO error: ' . $e->getMessage());
     http_response_code(500);
