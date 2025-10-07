@@ -206,13 +206,67 @@ try {
             $ownerJoin = " LEFT JOIN owners o ON e.owner_id = o.id";
         }
 
-        $sql = "SELECT * FROM entries";
+        $sql = "SELECT e.*, \n                   p.name AS patient_name, p.uhid, p.age, p.sex AS gender, p.contact AS patient_contact, p.address AS patient_address,\n                   d.name AS doctor_name,\n                   {$ownerSelect}\n                   du.username AS doctor_added_by_username,\n                   u.username AS added_by_username, u.full_name AS added_by_full_name,\n                   {$aggSelect}\n            FROM entries e \n            LEFT JOIN patients p ON e.patient_id = p.id \n            LEFT JOIN doctors d ON e.doctor_id = d.id " .
+            $ownerJoin .
+            " LEFT JOIN users du ON d.added_by = du.id\n            LEFT JOIN users u ON e.added_by = u.id" .
+            $aggJoin .
+            $scopeWhere .
+            " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
+        
         try {
             $stmt = $pdo->prepare($sql);
-            $stmt->execute();
+            $stmt->execute($params);
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             json_response(['success' => false, 'message' => 'Database error while listing entries', 'error' => $e->getMessage()], 500);
+        }
+        
+        // Format data for frontend compatibility
+        $entriesCaps = get_entries_schema_capabilities($pdo);
+        foreach ($rows as &$row) {
+            // Ensure entry_date is available for frontend
+            if (empty($row['entry_date'])) {
+                $row['entry_date'] = $row['created_at'];
+            }
+            
+            // Format test information
+            $row['tests_count'] = (int)($row['tests_count'] ?? 0);
+            $row['test_names'] = $row['test_names'] ?? '';
+            $row['test_ids'] = $row['test_ids'] ?? '';
+            
+            // Format pricing
+            $aggTotalPrice = (float)($row['total_price'] ?? 0);
+            $aggDiscount = (float)($row['total_discount'] ?? 0);
+            $row['aggregated_total_price'] = $aggTotalPrice;
+            $row['aggregated_total_discount'] = $aggDiscount;
+
+            if ($entriesCaps['has_total_price'] && isset($row['total_price'])) {
+                $finalAmount = (float)$row['total_price'];
+            } else if ($entriesCaps['has_subtotal'] && isset($row['subtotal'])) {
+                $finalAmount = (float)$row['subtotal'] - (float)($row['discount_amount'] ?? 0);
+            } else {
+                $finalAmount = $aggTotalPrice - $aggDiscount;
+            }
+
+            $row['total_price'] = $entriesCaps['has_total_price'] && isset($row['total_price'])
+                ? (float)$row['total_price']
+                : $aggTotalPrice;
+            $row['total_discount'] = $entriesCaps['has_discount_amount'] && isset($row['discount_amount'])
+                ? (float)$row['discount_amount']
+                : $aggDiscount;
+            $row['final_amount'] = $finalAmount;
+            
+            // Set grouped flag based on test count
+            $row['grouped'] = $row['tests_count'] > 1 ? 1 : 0;
+            
+            // For backward compatibility, set test_name to first test or all tests
+            if ($row['tests_count'] == 1) {
+                $row['test_name'] = $row['test_names'];
+            } else if ($row['tests_count'] > 1) {
+                $row['test_name'] = $row['tests_count'] . ' tests: ' . $row['test_names'];
+            } else {
+                $row['test_name'] = 'No tests';
+            }
         }
         
         json_response(['success' => true, 'data' => $rows, 'total' => count($rows)]);
@@ -414,7 +468,47 @@ try {
             }
         } else {
             // Handle single test entry (existing logic)
-            // ... (existing proxy logic)
+            // Proxy the save request to the main API to enforce duplicate prevention and update-on-change logic
+            $apiUrl = __DIR__ . '/../patho_api/entry.php';
+            $apiEndpoint = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['SCRIPT_NAME']) . '/../patho_api/entry.php';
+
+            // Use cURL to POST data to the API
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $apiEndpoint);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            // Ensure gender (if present) is forwarded
+            $forwardPayload = $input;
+            if (isset($input['gender'])) {
+                $forwardPayload['gender'] = $input['gender'];
+            }
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($forwardPayload));
+            // Forward session cookie if needed
+            if (isset($_COOKIE[session_name()])) {
+                curl_setopt($ch, CURLOPT_COOKIE, session_name() . '=' . $_COOKIE[session_name()]);
+            }
+            // Forward content-type
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+
+            $apiResponse = curl_exec($ch);
+            $curlErr = curl_error($ch);
+            curl_close($ch);
+
+            error_log('Entry API proxy response: ' . substr($apiResponse ?? '', 0, 1000));
+            @file_put_contents(__DIR__ . '/../tmp/entry_api_debug.log', date('[Y-m-d H:i:s]') . " PROXY_RESPONSE " . substr($apiResponse ?? '', 0, 1000) . "\n", FILE_APPEND | LOCK_EX);
+            if ($curlErr) {
+                error_log('Entry API proxy curl error: ' . $curlErr);
+                @file_put_contents(__DIR__ . '/../tmp/entry_api_debug.log', date('[Y-m-d H:i:s]') . " PROXY_CURL_ERR " . $curlErr . "\n", FILE_APPEND | LOCK_EX);
+            }
+
+            if ($apiResponse === false) {
+                json_response(['success' => false, 'message' => 'API request failed', 'error' => $curlErr], 500);
+            }
+
+            // Output the API response directly
+            header('Content-Type: application/json');
+            echo $apiResponse;
+            exit;
         }
     } else if ($action === 'delete' && isset($_POST['id'])) {
         // ... (existing code)
