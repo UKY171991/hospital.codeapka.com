@@ -412,21 +412,30 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
 
 <!-- View Entry Modal -->
 <div class="modal fade" id="viewEntryModal" tabindex="-1" role="dialog" aria-labelledby="viewEntryModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document" style="max-width: 90%;">
         <div class="modal-content">
-            <div class="modal-header bg-info">
+            <div class="modal-header bg-info text-white">
                 <h5 class="modal-title" id="viewEntryModalLabel">
-                    <i class="fas fa-eye mr-1"></i>Entry Details
+                    <i class="fas fa-eye mr-2"></i>Entry Details - Complete Information
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body" id="entryDetails">
+            <div class="modal-body" id="entryDetails" style="max-height: 70vh; overflow-y: auto;">
                 <!-- Entry details will be loaded here -->
+                <div class="text-center p-5">
+                    <i class="fas fa-spinner fa-spin fa-3x text-muted"></i>
+                    <p class="mt-3 text-muted">Loading entry details...</p>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" onclick="printEntryDetails()">
+                    <i class="fas fa-print mr-1"></i> Print
+                </button>
             </div>
         </div>
     </div>

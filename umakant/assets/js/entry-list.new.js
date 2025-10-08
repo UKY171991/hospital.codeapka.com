@@ -819,7 +819,11 @@ function displayEntryDetails(entry) {
     let entryDate = 'N/A';
     try {
         if (entry.entry_date) {
-            entryDate = new Date(entry.entry_date).toLocaleDateString('en-IN');
+            entryDate = new Date(entry.entry_date).toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
         }
     } catch (e) {
         console.error('Error formatting entry date:', e);
@@ -829,45 +833,212 @@ function displayEntryDetails(entry) {
     let createdDate = 'N/A';
     try {
         if (entry.created_at) {
-            createdDate = new Date(entry.created_at).toLocaleString('en-IN');
+            createdDate = new Date(entry.created_at).toLocaleString('en-IN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
         }
     } catch (e) {
         console.error('Error formatting created date:', e);
     }
     
+    // Format updated date if available
+    let updatedDate = '';
+    try {
+        if (entry.updated_at && entry.updated_at !== entry.created_at) {
+            updatedDate = new Date(entry.updated_at).toLocaleString('en-IN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    } catch (e) {
+        console.error('Error formatting updated date:', e);
+    }
+    
+    // Build individual tests table if available
+    let testsTable = '';
+    if (entry.tests && Array.isArray(entry.tests) && entry.tests.length > 0) {
+        testsTable = `
+            <div class="col-12 mt-3">
+                <h6><strong><i class="fas fa-flask mr-2"></i>Test Details</strong></h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Test Name</th>
+                                <th>Category</th>
+                                <th>Result</th>
+                                <th>Unit</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+        
+        entry.tests.forEach(function(test) {
+            const testStatus = test.status || 'pending';
+            const statusBadge = testStatus === 'completed' ? 'success' : (testStatus === 'pending' ? 'warning' : 'secondary');
+            testsTable += `
+                <tr>
+                    <td>${test.test_name || 'N/A'}</td>
+                    <td>${test.category_name || 'N/A'}</td>
+                    <td>${test.result_value || '-'}</td>
+                    <td>${test.unit || '-'}</td>
+                    <td>₹${parseFloat(test.price || 0).toFixed(2)}</td>
+                    <td><span class="badge badge-${statusBadge}">${testStatus}</span></td>
+                </tr>
+            `;
+        });
+        
+        testsTable += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    } else {
+        // Fallback to showing test names as a list
+        testsTable = `
+            <div class="col-12 mt-3">
+                <h6><strong><i class="fas fa-flask mr-2"></i>Tests</strong></h6>
+                <p class="text-muted">${entry.test_names || 'No tests available'}</p>
+            </div>
+        `;
+    }
+    
     const details = `
         <div class="row">
             <div class="col-md-6">
-                <h6><strong>Entry Information</strong></h6>
-                <p><strong>ID:</strong> #${entry.id || 'N/A'}</p>
-                <p><strong>Date:</strong> ${entryDate}</p>
-                <p><strong>Status:</strong> <span class="badge badge-${entry.status === 'completed' ? 'success' : entry.status === 'pending' ? 'warning' : 'danger'}">${entry.status || 'N/A'}</span></p>
-                <p><strong>Priority:</strong> <span class="badge badge-${entry.priority === 'urgent' ? 'danger' : entry.priority === 'emergency' ? 'warning' : 'info'}">${entry.priority || 'normal'}</span></p>
-                <p><strong>Tests Count:</strong> ${entry.tests_count || 0}</p>
-                <p><strong>Added By:</strong> ${entry.added_by_full_name || entry.added_by_username || 'N/A'}</p>
+                <h6 class="text-primary"><strong><i class="fas fa-info-circle mr-2"></i>Entry Information</strong></h6>
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td width="40%"><strong>Entry ID:</strong></td>
+                        <td><span class="badge badge-primary">#${entry.id || 'N/A'}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Entry Date:</strong></td>
+                        <td>${entryDate}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status:</strong></td>
+                        <td><span class="badge badge-${entry.status === 'completed' ? 'success' : entry.status === 'pending' ? 'warning' : 'danger'}">${(entry.status || 'N/A').toUpperCase()}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Priority:</strong></td>
+                        <td><span class="badge badge-${entry.priority === 'urgent' ? 'danger' : entry.priority === 'emergency' ? 'warning' : 'info'}">${(entry.priority || 'normal').toUpperCase()}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Tests Count:</strong></td>
+                        <td><span class="badge badge-info">${entry.tests_count || 0} Test(s)</span></td>
+                    </tr>
+                    ${entry.referral_source ? `
+                    <tr>
+                        <td><strong>Referral Source:</strong></td>
+                        <td>${entry.referral_source}</td>
+                    </tr>
+                    ` : ''}
+                </table>
             </div>
             <div class="col-md-6">
-                <h6><strong>Patient Information</strong></h6>
-                <p><strong>Name:</strong> ${entry.patient_name || 'N/A'}</p>
-                <p><strong>UHID:</strong> ${entry.uhid || 'N/A'}</p>
-                <p><strong>Age/Gender:</strong> ${entry.age ? entry.age + ' ' + (entry.gender || entry.sex || '') : 'N/A'}</p>
-                ${entry.patient_contact ? `<p><strong>Contact:</strong> ${entry.patient_contact}</p>` : ''}
-                ${entry.patient_address ? `<p><strong>Address:</strong> ${entry.patient_address}</p>` : ''}
-                <p><strong>Doctor:</strong> ${entry.doctor_name || 'Not assigned'}</p>
-                ${entry.owner_name ? `<p><strong>Owner/Lab:</strong> ${entry.owner_name}</p>` : ''}
+                <h6 class="text-success"><strong><i class="fas fa-user-injured mr-2"></i>Patient Information</strong></h6>
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td width="40%"><strong>Patient Name:</strong></td>
+                        <td>${entry.patient_name || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>UHID:</strong></td>
+                        <td><span class="badge badge-secondary">${entry.uhid || 'N/A'}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Age/Gender:</strong></td>
+                        <td>${entry.age ? entry.age + ' years' : 'N/A'} ${entry.gender || entry.sex ? '/ ' + (entry.gender || entry.sex) : ''}</td>
+                    </tr>
+                    ${entry.patient_contact ? `
+                    <tr>
+                        <td><strong>Contact:</strong></td>
+                        <td><i class="fas fa-phone mr-1"></i>${entry.patient_contact}</td>
+                    </tr>
+                    ` : ''}
+                    ${entry.patient_address ? `
+                    <tr>
+                        <td><strong>Address:</strong></td>
+                        <td><i class="fas fa-map-marker-alt mr-1"></i>${entry.patient_address}</td>
+                    </tr>
+                    ` : ''}
+                    <tr>
+                        <td><strong>Doctor:</strong></td>
+                        <td>${entry.doctor_name ? '<i class="fas fa-user-md mr-1"></i>Dr. ' + entry.doctor_name : '<span class="text-muted">Not assigned</span>'}</td>
+                    </tr>
+                    ${entry.owner_name ? `
+                    <tr>
+                        <td><strong>Owner/Lab:</strong></td>
+                        <td><i class="fas fa-hospital mr-1"></i>${entry.owner_name}</td>
+                    </tr>
+                    ` : ''}
+                </table>
             </div>
         </div>
-        <div class="row mt-3">
+        
+        <hr class="my-3">
+        
+        <div class="row">
+            ${testsTable}
+        </div>
+        
+        <hr class="my-3">
+        
+        <div class="row">
             <div class="col-md-6">
-                <h6><strong>Tests & Pricing</strong></h6>
-                <p><strong>Tests:</strong> ${entry.test_names || 'No tests'}</p>
-                <p><strong>Total Amount:</strong> ₹${parseFloat(entry.final_amount || entry.total_price || 0).toFixed(2)}</p>
+                <h6 class="text-info"><strong><i class="fas fa-money-bill-wave mr-2"></i>Pricing Information</strong></h6>
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td width="40%"><strong>Subtotal:</strong></td>
+                        <td>₹${parseFloat(entry.subtotal || entry.aggregated_total_price || 0).toFixed(2)}</td>
+                    </tr>
+                    ${entry.discount_amount || entry.aggregated_total_discount ? `
+                    <tr>
+                        <td><strong>Discount:</strong></td>
+                        <td class="text-danger">- ₹${parseFloat(entry.discount_amount || entry.aggregated_total_discount || 0).toFixed(2)}</td>
+                    </tr>
+                    ` : ''}
+                    <tr class="font-weight-bold">
+                        <td><strong>Total Amount:</strong></td>
+                        <td class="text-success"><strong>₹${parseFloat(entry.final_amount || entry.total_price || 0).toFixed(2)}</strong></td>
+                    </tr>
+                </table>
             </div>
             <div class="col-md-6">
-                <h6><strong>Additional Information</strong></h6>
-                ${entry.referral_source ? `<p><strong>Referral Source:</strong> ${entry.referral_source}</p>` : ''}
-                ${entry.notes || entry.remarks ? `<p><strong>Notes:</strong> ${entry.notes || entry.remarks}</p>` : ''}
-                <p><strong>Created:</strong> ${createdDate}</p>
+                <h6 class="text-secondary"><strong><i class="fas fa-clipboard mr-2"></i>Additional Information</strong></h6>
+                ${entry.notes || entry.remarks ? `
+                <div class="alert alert-light" role="alert">
+                    <strong>Notes:</strong><br>
+                    ${entry.notes || entry.remarks}
+                </div>
+                ` : '<p class="text-muted">No additional notes</p>'}
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td width="40%"><strong>Added By:</strong></td>
+                        <td>${entry.added_by_full_name || entry.added_by_username || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Created:</strong></td>
+                        <td><small>${createdDate}</small></td>
+                    </tr>
+                    ${updatedDate ? `
+                    <tr>
+                        <td><strong>Last Updated:</strong></td>
+                        <td><small>${updatedDate}</small></td>
+                    </tr>
+                    ` : ''}
+                </table>
             </div>
         </div>
     `;
@@ -1219,6 +1390,50 @@ function exportToExcel(data) {
 // Refresh table
 function refreshTable() {
     entriesTable.ajax.reload();
+}
+
+// Print entry details
+function printEntryDetails() {
+    const printContent = document.getElementById('entryDetails').innerHTML;
+    const originalContent = document.body.innerHTML;
+    
+    // Create print-friendly version
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Entry Details - Print</title>
+            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+            <style>
+                body { padding: 20px; }
+                @media print {
+                    .no-print { display: none; }
+                    body { padding: 0; }
+                }
+                .badge { padding: 5px 10px; }
+                .table { page-break-inside: avoid; }
+            </style>
+        </head>
+        <body>
+            <div class="container-fluid">
+                <div class="text-center mb-4">
+                    <h3>Pathology Lab Management - Entry Details</h3>
+                    <p class="text-muted">Printed on: ${new Date().toLocaleString('en-IN')}</p>
+                </div>
+                ${printContent}
+            </div>
+            <script>
+                window.onload = function() {
+                    window.print();
+                    setTimeout(function() { window.close(); }, 100);
+                }
+            </script>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
 }
 
 // Add fallback for owner/users if API fails (kept separate from Select2 init)
