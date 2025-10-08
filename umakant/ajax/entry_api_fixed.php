@@ -457,14 +457,18 @@ try {
                     // Also write a lightweight debug file for easier inspection on the server
                     $debugDir = __DIR__ . '/../tmp';
                     if (!is_dir($debugDir)) {
-                        mkdir($debugDir, 0755, true);
+                        @mkdir($debugDir, 0755, true);
                     }
                     $debugFile = $debugDir . '/entry_api_debug.log';
                     $debugLine = date('[Y-m-d H:i:s]') . " SAVE_RECEIVED tests=" . count($tests) . " keys=" . implode(',', array_keys($input ?? [])) . "\n";
-                    file_put_contents($debugFile, $debugLine, FILE_APPEND | LOCK_EX);
+                    @file_put_contents($debugFile, $debugLine, FILE_APPEND | LOCK_EX);
                     $pdo->beginTransaction();
                     
                     $entryCaps = get_entries_schema_capabilities($pdo);
+                    
+                    // Check if this is an update (has id) or create (no id)
+                    $isUpdate = !empty($input['id']);
+                    $entryId = $isUpdate ? (int)$input['id'] : null;
 
                     // Create the main entry with schema-awareness
                     $entryData = [
@@ -531,15 +535,41 @@ try {
                         $entryData['test_id'] = $tests[0]['test_id'];
                     }
                     
-                    // Insert entry
-                    $entryFields = implode(', ', array_keys($entryData));
-                    $entryPlaceholders = ':' . implode(', :', array_keys($entryData));
-                    $sql = "INSERT INTO entries ($entryFields) VALUES ($entryPlaceholders)";
-                    $stmt = $pdo->prepare($sql);
-                    $stmt->execute($entryData);
-                    $entryId = $pdo->lastInsertId();
-                    error_log('Entry API save: created entry id ' . $entryId);
-                    @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " CREATED_ENTRY id=" . $entryId . "\n", FILE_APPEND | LOCK_EX);
+                    // Insert or Update entry
+                    if ($isUpdate) {
+                        // UPDATE existing entry
+                        $updateFields = [];
+                        $updateParams = [];
+                        foreach ($entryData as $key => $value) {
+                            $updateFields[] = "$key = :$key";
+                            $updateParams[$key] = $value;
+                        }
+                        if ($entryCaps['has_updated_at']) {
+                            $updateFields[] = 'updated_at = NOW()';
+                        }
+                        $updateParams['entry_id'] = $entryId;
+                        
+                        $sql = "UPDATE entries SET " . implode(', ', $updateFields) . " WHERE id = :entry_id";
+                        $stmt = $pdo->prepare($sql);
+                        $stmt->execute($updateParams);
+                        
+                        // Delete existing tests for this entry
+                        $deleteStmt = $pdo->prepare("DELETE FROM entry_tests WHERE entry_id = ?");
+                        $deleteStmt->execute([$entryId]);
+                        
+                        error_log('Entry API save: updated entry id ' . $entryId);
+                        @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " UPDATED_ENTRY id=" . $entryId . "\n", FILE_APPEND | LOCK_EX);
+                    } else {
+                        // INSERT new entry
+                        $entryFields = implode(', ', array_keys($entryData));
+                        $entryPlaceholders = ':' . implode(', :', array_keys($entryData));
+                        $sql = "INSERT INTO entries ($entryFields) VALUES ($entryPlaceholders)";
+                        $stmt = $pdo->prepare($sql);
+                        $stmt->execute($entryData);
+                        $entryId = $pdo->lastInsertId();
+                        error_log('Entry API save: created entry id ' . $entryId);
+                        @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " CREATED_ENTRY id=" . $entryId . "\n", FILE_APPEND | LOCK_EX);
+                    }
                     
                     // Insert individual tests
                     $testIds = [];
@@ -602,11 +632,15 @@ try {
                     error_log('Entry API save: commit successful for entry ' . $entryId);
                     @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " COMMIT entry=" . $entryId . "\n", FILE_APPEND | LOCK_EX);
                     
+                    $successMessage = $isUpdate 
+                        ? 'Entry with multiple tests updated successfully' 
+                        : 'Entry with multiple tests created successfully';
+                    
                     json_response(
                         [
                             'success' => true,
-                            'message' => 'Entry with multiple tests created successfully',
-                            'data' => ['id' => $entryId, 'tests_count' => count($tests)]
+                            'message' => $successMessage,
+                            'data' => ['id' => $entryId, 'tests_count' => count($tests), 'action' => $isUpdate ? 'updated' : 'created']
                         ]
                     );
                     
@@ -684,9 +718,30 @@ try {
             json_response(['success' => false, 'message' => 'Permission denied to delete entry'], 403);
         }
         
-        $stmt = $pdo->prepare('DELETE FROM entries WHERE id = ?');
-        $stmt->execute([$_POST['id']]);
-        json_response(['success' => true, 'message' => 'Entry deleted']);
+        try {
+            $pdo->beginTransaction();
+            
+            // Delete related entry_tests first (if table exists)
+            $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
+            if ($entryTestsCaps['table_exists']) {
+                $stmtTests = $pdo->prepare('DELETE FROM entry_tests WHERE entry_id = ?');
+                $stmtTests->execute([$_POST['id']]);
+            }
+            
+            // Delete the entry
+            $stmt = $pdo->prepare('DELETE FROM entries WHERE id = ?');
+            $stmt->execute([$_POST['id']]);
+            
+            $pdo->commit();
+            json_response(['success' => true, 'message' => 'Entry deleted successfully']);
+        } catch (Exception $e) {
+            try {
+                $pdo->rollBack();
+            } catch (Exception $__) {
+                // ignore rollback errors
+            }
+            json_response(['success' => false, 'message' => 'Failed to delete entry', 'error' => $e->getMessage()], 500);
+        }
     }
 
     if ($action === 'export') {
