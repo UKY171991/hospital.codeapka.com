@@ -560,16 +560,16 @@ try {
                     
                     error_log("Calculated subtotal from tests: $calculatedSubtotal");
                     
-                    // PRIORITY: Use form values if provided AND non-zero
+                    // PRIORITY: Use form values if provided (including 0.00)
                     // Accept string values like "0.00" or numeric 0
-                    $formSubtotal = isset($input['subtotal']) ? floatval($input['subtotal']) : null;
-                    $formDiscount = isset($input['discount_amount']) ? floatval($input['discount_amount']) : null;
-                    $formTotal = isset($input['total_price']) ? floatval($input['total_price']) : null;
+                    $formSubtotal = isset($input['subtotal']) && $input['subtotal'] !== '' ? floatval($input['subtotal']) : null;
+                    $formDiscount = isset($input['discount_amount']) && $input['discount_amount'] !== '' ? floatval($input['discount_amount']) : null;
+                    $formTotal = isset($input['total_price']) && $input['total_price'] !== '' ? floatval($input['total_price']) : null;
                     
                     error_log("Form pricing values: subtotal={$formSubtotal}, discount={$formDiscount}, total={$formTotal}");
                     
-                    // Use form values if they're set and greater than 0, otherwise use calculated
-                    $finalSubtotal = ($formSubtotal !== null && $formSubtotal > 0) 
+                    // Use form values if they're set (including 0.00), otherwise use calculated
+                    $finalSubtotal = ($formSubtotal !== null) 
                         ? $formSubtotal 
                         : $calculatedSubtotal;
                     
