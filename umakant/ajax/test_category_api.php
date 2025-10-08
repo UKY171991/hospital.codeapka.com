@@ -20,14 +20,14 @@ $action = $_REQUEST['action'] ?? 'list';
 // Determine which categories table exists - Default to 'categories' based on schema
 $categories_table = 'categories';
 try{
-    $stmt = $pdo->query("SHOW TABLES LIKE 'test_categories'");
+    $stmt = $pdo->query("SHOW TABLES LIKE 'categories'");
     if($stmt->fetch()){
-        $categories_table = 'test_categories';
+        $categories_table = 'categories';
     } else {
-        // Verify categories table exists
-        $stmt2 = $pdo->query("SHOW TABLES LIKE 'categories'");
-        if(!$stmt2->fetch()) {
-            $categories_table = 'test_categories'; // fallback
+        // Fallback to test_categories if categories doesn't exist
+        $stmt2 = $pdo->query("SHOW TABLES LIKE 'test_categories'");
+        if($stmt2->fetch()) {
+            $categories_table = 'test_categories';
         }
     }
 }catch(Throwable $e){
