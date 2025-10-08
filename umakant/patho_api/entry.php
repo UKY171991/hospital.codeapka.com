@@ -184,6 +184,27 @@ function handleList($pdo, $config) {
             $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
+        // Enrich each entry with its tests from entry_tests table
+        foreach ($entries as &$entry) {
+            try {
+                $testsStmt = $pdo->prepare("
+                    SELECT et.*, t.name as test_name, t.rate as test_rate, t.unit as test_unit
+                    FROM entry_tests et
+                    LEFT JOIN tests t ON et.test_id = t.id
+                    WHERE et.entry_id = ?
+                    ORDER BY et.id ASC
+                ");
+                $testsStmt->execute([$entry['id']]);
+                $tests = $testsStmt->fetchAll(PDO::FETCH_ASSOC);
+                $entry['tests'] = $tests;
+                $entry['tests_count'] = count($tests);
+            } catch (Throwable $ignore) {
+                $entry['tests'] = [];
+                $entry['tests_count'] = 0;
+            }
+        }
+        unset($entry); // Break reference
+
         json_response(['success' => true, 'data' => $entries, 'total' => count($entries)]);
     } catch (Exception $e) {
         error_log("List entries error: " . $e->getMessage());
@@ -229,6 +250,24 @@ function handleGet($pdo, $config) {
             if (!in_array((int)$entry['added_by'], $scopeIds, true)) {
                 json_response(['success' => false, 'message' => 'Permission denied to view this entry'], 403);
             }
+        }
+
+        // Include tests from entry_tests table
+        try {
+            $testsStmt = $pdo->prepare("
+                SELECT et.*, t.name as test_name, t.rate as test_rate, t.unit as test_unit
+                FROM entry_tests et
+                LEFT JOIN tests t ON et.test_id = t.id
+                WHERE et.entry_id = ?
+                ORDER BY et.id ASC
+            ");
+            $testsStmt->execute([$id]);
+            $tests = $testsStmt->fetchAll(PDO::FETCH_ASSOC);
+            $entry['tests'] = $tests;
+            $entry['tests_count'] = count($tests);
+        } catch (Throwable $ignore) {
+            $entry['tests'] = [];
+            $entry['tests_count'] = 0;
         }
 
         json_response(['success' => true, 'data' => $entry]);
