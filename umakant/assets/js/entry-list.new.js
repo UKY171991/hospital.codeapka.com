@@ -1170,10 +1170,13 @@ function populateEditForm(entry) {
                         <input type="text" class="form-control test-result" name="tests[${index}][result_value]" placeholder="Result" value="${test.result_value || ''}">
                     </div>
                     <div class="col-md-1">
-                        <input type="text" class="form-control test-unit" name="tests[${index}][unit]" placeholder="Unit" readonly value="${test.unit || ''}">
+                        <input type="text" class="form-control test-min" name="tests[${index}][min]" placeholder="Min" readonly value="${test.min || ''}">
                     </div>
-                    <div class="col-md-3">
-                        <input type="number" class="form-control" name="tests[${index}][price]" placeholder="0.00" step="0.01" min="0" required value="${test.price || ''}">
+                    <div class="col-md-1">
+                        <input type="text" class="form-control test-max" name="tests[${index}][max]" placeholder="Max" readonly value="${test.max || ''}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control test-unit" name="tests[${index}][unit]" placeholder="Unit" readonly value="${test.unit || ''}">
                     </div>
                     <div class="col-md-1">
                         <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
