@@ -643,6 +643,13 @@ $(document).on('shown.bs.modal', '#entryModal, #addEntryModal', function() {
     $('#testsContainer').find('.test-unit, .test-category, .test-min, .test-max').each(function() {
         $(this).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
     });
+    
+    // Debug: Check if pricing fields exist
+    console.log('Modal shown - pricing fields check:', {
+        subtotal: $('#subtotal').length,
+        discountAmount: $('#discountAmount').length,
+        totalPrice: $('#totalPrice').length
+    });
 });
 
 // Fallback: on page ready ensure any test-result inputs are visible and enabled
@@ -1169,10 +1176,36 @@ function populateEditForm(entry) {
     $('#referralSource').val(entry.referral_source || '');
     $('#priority').val(entry.priority || 'normal');
     
-    // Populate pricing fields
-    $('#subtotal').val(entry.subtotal || '');
-    $('#discountAmount').val(entry.discount_amount || '');
-    $('#totalPrice').val(entry.total_price || '');
+    // Populate pricing fields with a delay to ensure modal is ready
+    setTimeout(function() {
+        console.log('Complete entry object:', entry);
+        console.log('Entry pricing data:', {
+            subtotal: entry.subtotal,
+            discount_amount: entry.discount_amount,
+            total_price: entry.total_price
+        });
+        
+        // Format pricing values properly
+        const subtotal = entry.subtotal ? parseFloat(entry.subtotal).toFixed(2) : '';
+        const discountAmount = entry.discount_amount ? parseFloat(entry.discount_amount).toFixed(2) : '';
+        const totalPrice = entry.total_price ? parseFloat(entry.total_price).toFixed(2) : '';
+        
+        console.log('Formatted pricing values:', {
+            subtotal: subtotal,
+            discountAmount: discountAmount,
+            totalPrice: totalPrice
+        });
+        
+        $('#subtotal').val(subtotal);
+        $('#discountAmount').val(discountAmount);
+        $('#totalPrice').val(totalPrice);
+        
+        console.log('Pricing fields populated:', {
+            subtotal: $('#subtotal').val(),
+            discountAmount: $('#discountAmount').val(),
+            totalPrice: $('#totalPrice').val()
+        });
+    }, 100);
 
     // Set patient and doctor after a delay to ensure owner selection is processed
     setTimeout(function() {
