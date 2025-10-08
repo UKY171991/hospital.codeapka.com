@@ -377,6 +377,11 @@ function loadTests(callback) {
         dataType: 'json',
         success: function(response) {
             if (response.success) {
+                console.log('Tests loaded successfully:', response.data.length, 'tests');
+                if (response.data.length > 0) {
+                    console.log('First test sample:', response.data[0]);
+                }
+                
                 const testSelects = $('.test-select');
                 testSelects.each(function() {
                     const $this = $(this);
@@ -384,7 +389,13 @@ function loadTests(callback) {
                     $this.empty().append('<option value="">Select Test</option>');
                     response.data.forEach(function(test) {
                         // include category, unit, and reference range as data attributes for easy population
-                        const opt = $(`<option value="${test.id}" data-price="${test.price || 0}" data-unit="${(test.unit||'')}" data-reference-range="${(test.reference_range||'')}" data-category-id="${test.category_id||''}" data-category-name="${(test.category_name||'')}">${test.name} - ₹${test.price || 0}</option>`);
+                        // Properly escape HTML attributes to handle special characters
+                        const escapedUnit = (test.unit || '').replace(/"/g, '&quot;');
+                        const escapedRefRange = (test.reference_range || '').replace(/"/g, '&quot;');
+                        const escapedCategoryName = (test.category_name || '').replace(/"/g, '&quot;');
+                        const escapedTestName = (test.name || '').replace(/"/g, '&quot;');
+                        
+                        const opt = $(`<option value="${test.id}" data-price="${test.price || 0}" data-unit="${escapedUnit}" data-reference-range="${escapedRefRange}" data-category-id="${test.category_id||''}" data-category-name="${escapedCategoryName}">${escapedTestName} - ₹${test.price || 0}</option>`);
                         $this.append(opt);
                     });
                     // restore previously selected value if still present

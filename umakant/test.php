@@ -359,6 +359,15 @@ require_once 'inc/sidebar.php';
                         </label>
                         <textarea class="form-control" id="testDescription" name="description" rows="3"></textarea>
                     </div>
+
+                    <div class="form-group mt-3">
+                        <label for="testReferenceRange">
+                            <i class="fas fa-clipboard-list mr-1"></i>
+                            Reference Range Note
+                        </label>
+                        <textarea class="form-control" id="testReferenceRange" name="reference_range" rows="2" placeholder="e.g., Normal range: 70-100 mg/dL, Critical values: <50 or >200 mg/dL"></textarea>
+                        <small class="form-text text-muted">Additional notes or description about the reference ranges</small>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
@@ -1033,6 +1042,7 @@ function editTest(id) {
                 $('#testSubHeading').val(test.sub_heading);
                 $('#testPrintNewPage').val(test.print_new_page);
                 $('#testDescription').val(test.description);
+                $('#testReferenceRange').val(test.reference_range);
                 
                 $('#modalTitle').text('Edit Test');
                 $('#testModal').modal('show');
