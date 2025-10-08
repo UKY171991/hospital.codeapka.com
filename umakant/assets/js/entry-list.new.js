@@ -758,6 +758,18 @@ $(document).on('input', '#discountAmount', function() {
 function saveEntry(formElement) {
     // Accept either a form element reference or default to #entryForm
     const $form = formElement ? $(formElement) : $('#entryForm');
+    
+    // IMPORTANT: Calculate pricing FIRST before creating FormData
+    // This ensures the fields have values before we serialize the form
+    updatePricingFields();
+    
+    // Give the DOM a moment to update the field values
+    setTimeout(function() {
+        continueWithSave($form);
+    }, 50);
+}
+
+function continueWithSave($form) {
     const formData = new FormData($form[0]);
     
     // Process owner/added by field - prefer form-local field, fallback to global selector
@@ -810,19 +822,19 @@ function saveEntry(formElement) {
     
     formData.set('tests', JSON.stringify(tests));
     
-    // Get pricing field values
-    const subtotalVal = $('#subtotal').val() || '0';
-    const discountVal = $('#discountAmount').val() || '0';
-    const totalVal = $('#totalPrice').val() || '0';
+    // FORCE read pricing field values directly from DOM to ensure we have the latest values
+    const subtotalVal = parseFloat($('#subtotal').val() || 0).toFixed(2);
+    const discountVal = parseFloat($('#discountAmount').val() || 0).toFixed(2);
+    const totalVal = parseFloat($('#totalPrice').val() || 0).toFixed(2);
     
     console.log('=== SAVING ENTRY - PRICING DEBUG ===');
-    console.log('Pricing field values:', {
+    console.log('Pricing field values from DOM:', {
         subtotal: subtotalVal,
         discount: discountVal,
         total: totalVal
     });
     
-    // Ensure pricing fields are explicitly included
+    // Ensure pricing fields are explicitly included with correct values
     formData.set('subtotal', subtotalVal);
     formData.set('discount_amount', discountVal);
     formData.set('total_price', totalVal);
@@ -832,12 +844,11 @@ function saveEntry(formElement) {
 
     // Debug: log the outgoing payload
     console.log('Saving entry - tests count:', tests.length);
-    console.log('FormData contents:');
-    for (let pair of formData.entries()) {
-        if (pair[0] !== 'tests') { // Don't log the entire tests JSON
-            console.log(pair[0] + ':', pair[1]);
-        }
-    }
+    console.log('FormData pricing being sent:');
+    console.log('  subtotal:', formData.get('subtotal'));
+    console.log('  discount_amount:', formData.get('discount_amount'));
+    console.log('  total_price:', formData.get('total_price'));
+    
     // Prevent duplicate submissions
     if (window.entrySaving) {
         toastr.info('Save in progress, please wait...');
@@ -861,6 +872,7 @@ function saveEntry(formElement) {
                 loadStatistics();
             } else {
                 toastr.error(response.message || 'Failed to save entry');
+                console.error('Save failed:', response);
             }
         },
         error: function(xhr) {

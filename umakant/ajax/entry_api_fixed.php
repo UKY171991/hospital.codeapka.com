@@ -525,29 +525,41 @@ try {
 
                     // Calculate totals based on test data and form input
                     $calculatedSubtotal = 0;
-                    $calculatedDiscount = 0;
                     
                     // Calculate subtotal from test prices
                     foreach ($tests as $test) {
-                        $calculatedSubtotal += floatval($test['price'] ?? 0);
+                        $testPrice = floatval($test['price'] ?? 0);
+                        $calculatedSubtotal += $testPrice;
+                        error_log("  Test ID {$test['test_id']} price: $testPrice");
                     }
                     
-                    // PRIORITY: Use form values if provided (user may have edited them)
-                    // Otherwise use calculated values from tests
-                    $finalSubtotal = (isset($input['subtotal']) && $input['subtotal'] !== '') 
-                        ? floatval($input['subtotal']) 
+                    error_log("Calculated subtotal from tests: $calculatedSubtotal");
+                    
+                    // PRIORITY: Use form values if provided AND non-zero
+                    // Accept string values like "0.00" or numeric 0
+                    $formSubtotal = isset($input['subtotal']) ? floatval($input['subtotal']) : null;
+                    $formDiscount = isset($input['discount_amount']) ? floatval($input['discount_amount']) : null;
+                    $formTotal = isset($input['total_price']) ? floatval($input['total_price']) : null;
+                    
+                    error_log("Form pricing values: subtotal={$formSubtotal}, discount={$formDiscount}, total={$formTotal}");
+                    
+                    // Use form values if they're set and greater than 0, otherwise use calculated
+                    $finalSubtotal = ($formSubtotal !== null && $formSubtotal > 0) 
+                        ? $formSubtotal 
                         : $calculatedSubtotal;
                     
-                    $finalDiscount = (isset($input['discount_amount']) && $input['discount_amount'] !== '') 
-                        ? floatval($input['discount_amount']) 
+                    // Discount can be 0, so just check if it's set
+                    $finalDiscount = ($formDiscount !== null) 
+                        ? $formDiscount 
                         : 0;
                     
-                    $finalTotal = (isset($input['total_price']) && $input['total_price'] !== '')
-                        ? floatval($input['total_price'])
+                    // Total: use form value if set, otherwise calculate
+                    $finalTotal = ($formTotal !== null) 
+                        ? $formTotal 
                         : max($finalSubtotal - $finalDiscount, 0);
                     
-                    // Log for debugging
-                    error_log("Entry save pricing: subtotal=$finalSubtotal, discount=$finalDiscount, total=$finalTotal");
+                    // Log final values that will be saved
+                    error_log("FINAL pricing to save: subtotal=$finalSubtotal, discount=$finalDiscount, total=$finalTotal");
 
                     // Store pricing in entry record
                     if ($entryCaps['has_price']) {
