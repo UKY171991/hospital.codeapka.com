@@ -450,6 +450,7 @@ function setupEventHandlers() {
         console.log('Test selection change:', {
             testId: $opt.val(),
             testName: $opt.text(),
+            price: safePrice,
             unit: safeUnit,
             min: safeMin,
             max: safeMax,
@@ -722,6 +723,9 @@ function updatePricingFields() {
     $('.test-select').each(function() {
         const $opt = $(this).find('option:selected');
         const price = parseFloat($opt.data('price') || 0);
+        if (price > 0) {
+            console.log('Test selected:', $opt.text(), 'Price:', price);
+        }
         subtotal += price;
     });
     
@@ -731,9 +735,18 @@ function updatePricingFields() {
     // Calculate total
     const total = Math.max(subtotal - discount, 0);
     
+    console.log('Pricing calculated:', {
+        subtotal: subtotal.toFixed(2),
+        discount: discount.toFixed(2),
+        total: total.toFixed(2)
+    });
+    
     // Update fields
     $('#subtotal').val(subtotal.toFixed(2));
     $('#totalPrice').val(total.toFixed(2));
+    
+    // Force trigger change event so any listeners know the values changed
+    $('#subtotal, #totalPrice').trigger('change');
 }
 
 // Handle discount amount change
@@ -797,16 +810,34 @@ function saveEntry(formElement) {
     
     formData.set('tests', JSON.stringify(tests));
     
+    // Get pricing field values
+    const subtotalVal = $('#subtotal').val() || '0';
+    const discountVal = $('#discountAmount').val() || '0';
+    const totalVal = $('#totalPrice').val() || '0';
+    
+    console.log('=== SAVING ENTRY - PRICING DEBUG ===');
+    console.log('Pricing field values:', {
+        subtotal: subtotalVal,
+        discount: discountVal,
+        total: totalVal
+    });
+    
     // Ensure pricing fields are explicitly included
-    formData.set('subtotal', $('#subtotal').val() || '0');
-    formData.set('discount_amount', $('#discountAmount').val() || '0');
-    formData.set('total_price', $('#totalPrice').val() || '0');
+    formData.set('subtotal', subtotalVal);
+    formData.set('discount_amount', discountVal);
+    formData.set('total_price', totalVal);
 
     // Ensure server executes save branch
     formData.set('action', 'save');
 
-    // Debug: log the outgoing tests payload
-    try { console.debug('Saving entry tests payload:', tests); } catch(e) {}
+    // Debug: log the outgoing payload
+    console.log('Saving entry - tests count:', tests.length);
+    console.log('FormData contents:');
+    for (let pair of formData.entries()) {
+        if (pair[0] !== 'tests') { // Don't log the entire tests JSON
+            console.log(pair[0] + ':', pair[1]);
+        }
+    }
     // Prevent duplicate submissions
     if (window.entrySaving) {
         toastr.info('Save in progress, please wait...');
