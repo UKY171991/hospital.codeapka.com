@@ -522,6 +522,16 @@ try {
                         $totalPrice += floatval($test['price'] ?? 0);
                         $totalDiscount += floatval($test['discount_amount'] ?? 0);
                     }
+                    
+                    // If a global discount amount is provided in the form, use it instead of per-test discounts
+                    if (isset($input['discount_amount']) && $input['discount_amount'] !== '') {
+                        $totalDiscount = floatval($input['discount_amount']);
+                    }
+                    
+                    // If subtotal is provided in the form, use it (for manual overrides)
+                    if (isset($input['subtotal']) && $input['subtotal'] !== '') {
+                        $totalPrice = floatval($input['subtotal']);
+                    }
 
                     if ($entryCaps['has_price']) {
                         $entryData['price'] = $totalPrice;

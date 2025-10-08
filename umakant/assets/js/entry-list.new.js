@@ -777,7 +777,9 @@ function saveEntry(formElement) {
         const unitVal = $(this).find('.test-unit').val() || '';
         const categoryName = $(this).find('.test-category').val() || '';
         const categoryId = $(this).find('.test-category-id').val() || '';
-        const testName = $(this).find('.test-select option:selected').text() || '';
+        const $selectedTest = $(this).find('.test-select option:selected');
+        const testName = $selectedTest.text() || '';
+        const testPrice = parseFloat($selectedTest.data('price') || 0);
 
         if (testId) {
             tests.push({
@@ -786,12 +788,19 @@ function saveEntry(formElement) {
                 result_value: resultVal || null,
                 unit: unitVal,
                 category_id: categoryId,
-                category_name: categoryName
+                category_name: categoryName,
+                price: testPrice,
+                discount_amount: 0 // Individual test discount is 0, we use global discount
             });
         }
     });
     
     formData.set('tests', JSON.stringify(tests));
+    
+    // Ensure pricing fields are explicitly included
+    formData.set('subtotal', $('#subtotal').val() || '0');
+    formData.set('discount_amount', $('#discountAmount').val() || '0');
+    formData.set('total_price', $('#totalPrice').val() || '0');
 
     // Ensure server executes save branch
     formData.set('action', 'save');
@@ -1165,10 +1174,15 @@ function populateEditForm(entry) {
 
     $('#ownerAddedBySelect').val(ownerAddedByValue).trigger('change');
 
-    // Set other fields
-    $('#entryDate').val(entry.entry_date);
+    // Set other fields - Format entry_date properly for date input (YYYY-MM-DD)
+    let entryDateValue = '';
+    if (entry.entry_date) {
+        // Handle both date and datetime formats
+        entryDateValue = entry.entry_date.split(' ')[0]; // Get just the date part if it's a datetime
+    }
+    $('#entryDate').val(entryDateValue);
     $('#entryStatus').val(entry.status);
-    $('#entryNotes').val(entry.notes || '');
+    $('#entryNotes').val(entry.notes || entry.remarks || '');
 
     // Populate additional fields
     $('#patientContact').val(entry.patient_contact || '');
@@ -1176,36 +1190,41 @@ function populateEditForm(entry) {
     $('#referralSource').val(entry.referral_source || '');
     $('#priority').val(entry.priority || 'normal');
     
-    // Populate pricing fields with a delay to ensure modal is ready
-    setTimeout(function() {
-        console.log('Complete entry object:', entry);
-        console.log('Entry pricing data:', {
-            subtotal: entry.subtotal,
-            discount_amount: entry.discount_amount,
-            total_price: entry.total_price
-        });
-        
-        // Format pricing values properly
-        const subtotal = entry.subtotal ? parseFloat(entry.subtotal).toFixed(2) : '';
-        const discountAmount = entry.discount_amount ? parseFloat(entry.discount_amount).toFixed(2) : '';
-        const totalPrice = entry.total_price ? parseFloat(entry.total_price).toFixed(2) : '';
-        
-        console.log('Formatted pricing values:', {
-            subtotal: subtotal,
-            discountAmount: discountAmount,
-            totalPrice: totalPrice
-        });
-        
-        $('#subtotal').val(subtotal);
-        $('#discountAmount').val(discountAmount);
-        $('#totalPrice').val(totalPrice);
-        
-        console.log('Pricing fields populated:', {
-            subtotal: $('#subtotal').val(),
-            discountAmount: $('#discountAmount').val(),
-            totalPrice: $('#totalPrice').val()
-        });
-    }, 100);
+    // Populate pricing fields - handle both direct fields and aggregated fields
+    console.log('Complete entry object:', entry);
+    console.log('Entry pricing data:', {
+        subtotal: entry.subtotal,
+        discount_amount: entry.discount_amount,
+        total_price: entry.total_price,
+        aggregated_total_price: entry.aggregated_total_price,
+        aggregated_total_discount: entry.aggregated_total_discount
+    });
+    
+    // Use direct fields if available, otherwise use aggregated fields
+    const subtotalValue = entry.subtotal || entry.aggregated_total_price || 0;
+    const discountValue = entry.discount_amount || entry.aggregated_total_discount || 0;
+    const totalValue = entry.total_price || entry.final_amount || (subtotalValue - discountValue) || 0;
+    
+    // Format pricing values properly - always show 2 decimal places
+    const subtotal = parseFloat(subtotalValue).toFixed(2);
+    const discountAmount = parseFloat(discountValue).toFixed(2);
+    const totalPrice = parseFloat(totalValue).toFixed(2);
+    
+    console.log('Formatted pricing values:', {
+        subtotal: subtotal,
+        discountAmount: discountAmount,
+        totalPrice: totalPrice
+    });
+    
+    $('#subtotal').val(subtotal);
+    $('#discountAmount').val(discountAmount);
+    $('#totalPrice').val(totalPrice);
+    
+    console.log('Pricing fields populated:', {
+        subtotal: $('#subtotal').val(),
+        discountAmount: $('#discountAmount').val(),
+        totalPrice: $('#totalPrice').val()
+    });
 
     // Set patient and doctor after a delay to ensure owner selection is processed
     setTimeout(function() {
