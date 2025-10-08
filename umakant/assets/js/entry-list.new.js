@@ -1200,10 +1200,25 @@ function populateEditForm(entry) {
         aggregated_total_discount: entry.aggregated_total_discount
     });
     
-    // Use direct fields if available, otherwise use aggregated fields
-    const subtotalValue = entry.subtotal || entry.aggregated_total_price || 0;
-    const discountValue = entry.discount_amount || entry.aggregated_total_discount || 0;
-    const totalValue = entry.total_price || entry.final_amount || (subtotalValue - discountValue) || 0;
+    // Use direct fields if available (check for null/undefined, not falsy), otherwise use aggregated fields
+    // Use ?? (nullish coalescing) to handle 0 values correctly
+    const subtotalValue = (entry.subtotal !== null && entry.subtotal !== undefined) 
+        ? entry.subtotal 
+        : (entry.aggregated_total_price !== null && entry.aggregated_total_price !== undefined)
+            ? entry.aggregated_total_price
+            : 0;
+    
+    const discountValue = (entry.discount_amount !== null && entry.discount_amount !== undefined)
+        ? entry.discount_amount
+        : (entry.aggregated_total_discount !== null && entry.aggregated_total_discount !== undefined)
+            ? entry.aggregated_total_discount
+            : 0;
+    
+    const totalValue = (entry.total_price !== null && entry.total_price !== undefined)
+        ? entry.total_price
+        : (entry.final_amount !== null && entry.final_amount !== undefined)
+            ? entry.final_amount
+            : Math.max(subtotalValue - discountValue, 0);
     
     // Format pricing values properly - always show 2 decimal places
     const subtotal = parseFloat(subtotalValue).toFixed(2);
@@ -1317,6 +1332,39 @@ function populateEditForm(entry) {
                 }
             });
         }
+        
+        // After tests are loaded, re-populate pricing fields to ensure they're visible
+        // This handles cases where the fields might have been cleared or reset
+        setTimeout(function() {
+            // Recalculate subtotal from entry data (not from test selections)
+            const finalSubtotal = (entry.subtotal !== null && entry.subtotal !== undefined) 
+                ? entry.subtotal 
+                : (entry.aggregated_total_price !== null && entry.aggregated_total_price !== undefined)
+                    ? entry.aggregated_total_price
+                    : 0;
+            
+            const finalDiscount = (entry.discount_amount !== null && entry.discount_amount !== undefined)
+                ? entry.discount_amount
+                : (entry.aggregated_total_discount !== null && entry.aggregated_total_discount !== undefined)
+                    ? entry.aggregated_total_discount
+                    : 0;
+            
+            const finalTotal = (entry.total_price !== null && entry.total_price !== undefined)
+                ? entry.total_price
+                : (entry.final_amount !== null && entry.final_amount !== undefined)
+                    ? entry.final_amount
+                    : Math.max(finalSubtotal - finalDiscount, 0);
+            
+            $('#subtotal').val(parseFloat(finalSubtotal).toFixed(2));
+            $('#discountAmount').val(parseFloat(finalDiscount).toFixed(2));
+            $('#totalPrice').val(parseFloat(finalTotal).toFixed(2));
+            
+            console.log('Pricing fields re-populated after tests loaded:', {
+                subtotal: $('#subtotal').val(),
+                discountAmount: $('#discountAmount').val(),
+                totalPrice: $('#totalPrice').val()
+            });
+        }, 200);
     });
 }
 
