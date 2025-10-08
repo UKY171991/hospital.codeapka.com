@@ -380,6 +380,15 @@ function loadTests(callback) {
                 console.log('Tests loaded successfully:', response.data.length, 'tests');
                 if (response.data.length > 0) {
                     console.log('First test sample:', response.data[0]);
+                    console.log('First test price:', response.data[0].price);
+                    
+                    // Check if ANY tests have prices
+                    const testsWithPrices = response.data.filter(t => t.price && t.price > 0);
+                    console.log('Tests with prices > 0:', testsWithPrices.length);
+                    if (testsWithPrices.length === 0) {
+                        console.error('⚠️ WARNING: NO TESTS HAVE PRICES! All tests have price = 0 or null');
+                        alert('WARNING: Tests do not have prices set in the database. Please add prices to tests first.');
+                    }
                 }
                 
                 const testSelects = $('.test-select');
@@ -833,6 +842,24 @@ function continueWithSave($form) {
         discount: discountVal,
         total: totalVal
     });
+    
+    // WARNING if pricing is 0
+    if (parseFloat(subtotalVal) === 0 && tests.length > 0) {
+        console.error('⚠️ WARNING: Saving entry with ZERO subtotal despite having tests!');
+        console.error('Tests selected:', tests.length);
+        console.error('Test prices:', tests.map(t => ({ id: t.test_id, name: t.test_name, price: t.price })));
+        
+        // Check if tests actually have prices
+        const totalTestPrices = tests.reduce((sum, t) => sum + (parseFloat(t.price) || 0), 0);
+        console.error('Sum of test prices:', totalTestPrices);
+        
+        if (totalTestPrices === 0) {
+            alert('⚠️ ERROR: Tests do not have prices!\n\nThe tests you selected have price = 0 in the database.\nPlease set prices for tests before creating entries.');
+            window.entrySaving = false;
+            $('.btn-save-entry').prop('disabled', false).removeClass('disabled');
+            return;
+        }
+    }
     
     // Ensure pricing fields are explicitly included with correct values
     formData.set('subtotal', subtotalVal);
