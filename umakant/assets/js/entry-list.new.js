@@ -471,6 +471,9 @@ function setupEventHandlers() {
         
         // Enable result input
         $row.find('.test-result').prop('readonly', false).prop('disabled', false);
+        
+        // Update pricing fields
+        updatePricingFields();
     });
     
     // Owner/User selection change - filter patients and doctors
@@ -558,6 +561,11 @@ function openAddEntryModal() {
     $('#patientAddress').val('');
     $('#referralSource').val('');
     $('#entryNotes').val('');
+    
+    // Reset pricing fields
+    $('#subtotal').val('');
+    $('#discountAmount').val('');
+    $('#totalPrice').val('');
     
     // Reset tests container
     $('#testsContainer').html(`
@@ -695,7 +703,36 @@ function addTestRow() {
 // Remove test row
 function removeTestRow(button) {
     $(button).closest('.test-row').remove();
+    updatePricingFields();
 }
+
+// Update pricing fields based on selected tests
+function updatePricingFields() {
+    let subtotal = 0;
+    let discount = 0;
+    
+    // Calculate subtotal from test prices
+    $('.test-select').each(function() {
+        const $opt = $(this).find('option:selected');
+        const price = parseFloat($opt.data('price') || 0);
+        subtotal += price;
+    });
+    
+    // Get discount amount
+    discount = parseFloat($('#discountAmount').val() || 0);
+    
+    // Calculate total
+    const total = Math.max(subtotal - discount, 0);
+    
+    // Update fields
+    $('#subtotal').val(subtotal.toFixed(2));
+    $('#totalPrice').val(total.toFixed(2));
+}
+
+// Handle discount amount change
+$(document).on('input', '#discountAmount', function() {
+    updatePricingFields();
+});
 
 // Save entry
 function saveEntry(formElement) {
@@ -1131,6 +1168,11 @@ function populateEditForm(entry) {
     $('#patientAddress').val(entry.patient_address || '');
     $('#referralSource').val(entry.referral_source || '');
     $('#priority').val(entry.priority || 'normal');
+    
+    // Populate pricing fields
+    $('#subtotal').val(entry.subtotal || '');
+    $('#discountAmount').val(entry.discount_amount || '');
+    $('#totalPrice').val(entry.total_price || '');
 
     // Set patient and doctor after a delay to ensure owner selection is processed
     setTimeout(function() {

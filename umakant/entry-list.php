@@ -395,6 +395,41 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         </div>
                     </div>
                     
+                    <!-- Pricing Information Section -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-money-bill-wave mr-1"></i>
+                                Pricing Information
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="subtotal">Subtotal (₹)</label>
+                                        <input type="number" class="form-control" id="subtotal" name="subtotal" 
+                                               placeholder="0.00" step="0.01" min="0" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="discountAmount">Discount Amount (₹)</label>
+                                        <input type="number" class="form-control" id="discountAmount" name="discount_amount" 
+                                               placeholder="0.00" step="0.01" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="totalPrice">Total Amount (₹)</label>
+                                        <input type="number" class="form-control" id="totalPrice" name="total_price" 
+                                               placeholder="0.00" step="0.01" min="0" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
                         <label for="entryNotes">Notes</label>
                         <textarea class="form-control" id="entryNotes" name="notes" rows="3" 
