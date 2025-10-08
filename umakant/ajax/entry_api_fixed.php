@@ -458,15 +458,23 @@ try {
                 }
 
                 try {
+                    // Debug logging
                     error_log('Entry API save: received ' . count($tests) . ' tests');
                     error_log('Entry API save payload keys: ' . implode(',', array_keys($input ?? [])));
+                    error_log('Entry API pricing data received: subtotal=' . ($input['subtotal'] ?? 'NOT SET') . 
+                              ', discount=' . ($input['discount_amount'] ?? 'NOT SET') . 
+                              ', total=' . ($input['total_price'] ?? 'NOT SET'));
+                    
                     // Also write a lightweight debug file for easier inspection on the server
                     $debugDir = __DIR__ . '/../tmp';
                     if (!is_dir($debugDir)) {
                         @mkdir($debugDir, 0755, true);
                     }
                     $debugFile = $debugDir . '/entry_api_debug.log';
-                    $debugLine = date('[Y-m-d H:i:s]') . " SAVE_RECEIVED tests=" . count($tests) . " keys=" . implode(',', array_keys($input ?? [])) . "\n";
+                    $debugLine = date('[Y-m-d H:i:s]') . " SAVE_RECEIVED tests=" . count($tests) . 
+                                 " subtotal=" . ($input['subtotal'] ?? 'NONE') . 
+                                 " discount=" . ($input['discount_amount'] ?? 'NONE') . 
+                                 " total=" . ($input['total_price'] ?? 'NONE') . "\n";
                     @file_put_contents($debugFile, $debugLine, FILE_APPEND | LOCK_EX);
                     $pdo->beginTransaction();
                     
@@ -515,35 +523,44 @@ try {
                         $entryData['tests_count'] = count($tests);
                     }
 
-                    // Calculate totals based on test data and schema
-                    $totalPrice = 0;
-                    $totalDiscount = 0;
+                    // Calculate totals based on test data and form input
+                    $calculatedSubtotal = 0;
+                    $calculatedDiscount = 0;
+                    
+                    // Calculate subtotal from test prices
                     foreach ($tests as $test) {
-                        $totalPrice += floatval($test['price'] ?? 0);
-                        $totalDiscount += floatval($test['discount_amount'] ?? 0);
+                        $calculatedSubtotal += floatval($test['price'] ?? 0);
                     }
                     
-                    // If a global discount amount is provided in the form, use it instead of per-test discounts
-                    if (isset($input['discount_amount']) && $input['discount_amount'] !== '') {
-                        $totalDiscount = floatval($input['discount_amount']);
-                    }
+                    // PRIORITY: Use form values if provided (user may have edited them)
+                    // Otherwise use calculated values from tests
+                    $finalSubtotal = (isset($input['subtotal']) && $input['subtotal'] !== '') 
+                        ? floatval($input['subtotal']) 
+                        : $calculatedSubtotal;
                     
-                    // If subtotal is provided in the form, use it (for manual overrides)
-                    if (isset($input['subtotal']) && $input['subtotal'] !== '') {
-                        $totalPrice = floatval($input['subtotal']);
-                    }
+                    $finalDiscount = (isset($input['discount_amount']) && $input['discount_amount'] !== '') 
+                        ? floatval($input['discount_amount']) 
+                        : 0;
+                    
+                    $finalTotal = (isset($input['total_price']) && $input['total_price'] !== '')
+                        ? floatval($input['total_price'])
+                        : max($finalSubtotal - $finalDiscount, 0);
+                    
+                    // Log for debugging
+                    error_log("Entry save pricing: subtotal=$finalSubtotal, discount=$finalDiscount, total=$finalTotal");
 
+                    // Store pricing in entry record
                     if ($entryCaps['has_price']) {
-                        $entryData['price'] = $totalPrice;
+                        $entryData['price'] = $finalSubtotal;
                     }
                     if ($entryCaps['has_subtotal']) {
-                        $entryData['subtotal'] = $totalPrice;
+                        $entryData['subtotal'] = $finalSubtotal;
                     }
                     if ($entryCaps['has_discount_amount']) {
-                        $entryData['discount_amount'] = $totalDiscount;
+                        $entryData['discount_amount'] = $finalDiscount;
                     }
                     if ($entryCaps['has_total_price']) {
-                        $entryData['total_price'] = max($totalPrice - $totalDiscount, 0);
+                        $entryData['total_price'] = $finalTotal;
                     }
 
                     // Set primary test to first test for backward compatibility
@@ -591,6 +608,10 @@ try {
                     $testIds = [];
                     $testNames = [];
                     foreach ($tests as $test) {
+                        // Ensure test price is set (from test data)
+                        $testPrice = floatval($test['price'] ?? 0);
+                        $testDiscount = floatval($test['discount_amount'] ?? 0);
+                        
                         $testData = [
                             'entry_id' => $entryId,
                             'test_id' => $test['test_id'],
@@ -599,14 +620,16 @@ try {
                             'remarks' => $test['remarks'] ?? null,
                             'status' => 'pending'
                         ];
+                        
+                        // Add pricing fields if columns exist
                         if ($entryTestCaps['has_price']) {
-                            $testData['price'] = $test['price'] ?? 0;
+                            $testData['price'] = $testPrice;
                         }
                         if ($entryTestCaps['has_discount_amount']) {
-                            $testData['discount_amount'] = $test['discount_amount'] ?? 0;
+                            $testData['discount_amount'] = $testDiscount;
                         }
                         if ($entryTestCaps['has_total_price']) {
-                            $testData['total_price'] = max(($test['price'] ?? 0) - ($test['discount_amount'] ?? 0), 0);
+                            $testData['total_price'] = max($testPrice - $testDiscount, 0);
                         }
                         
                         $testFields = implode(', ', array_keys($testData));
@@ -614,11 +637,12 @@ try {
                         $testSql = "INSERT INTO entry_tests ($testFields) VALUES ($testPlaceholders)";
                         $testStmt = $pdo->prepare($testSql);
                         $testStmt->execute($testData);
-                        error_log('Entry API save: inserted entry_test for entry ' . $entryId . ' test_id ' . ($test['test_id'] ?? '')); 
-                        @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " INSERT_TEST entry=" . $entryId . " test_id=" . ($test['test_id'] ?? '') . "\n", FILE_APPEND | LOCK_EX);
+                        
+                        error_log("Entry API: saved test $test[test_id] with price=$testPrice, discount=$testDiscount");
+                        @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " INSERT_TEST entry=$entryId test_id={$test['test_id']} price=$testPrice\n", FILE_APPEND | LOCK_EX);
                         
                         $testIds[] = $test['test_id'];
-                        $testNames[] = $test['test_name'];
+                        $testNames[] = $test['test_name'] ?? '';
                     }
                     
                     // Update entry with aggregated test data

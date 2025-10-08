@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 06, 2025 at 05:57 AM
+-- Generation Time: Oct 08, 2025 at 11:48 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -95,6 +95,7 @@ INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specializati
 
 CREATE TABLE `entries` (
   `id` int(11) NOT NULL,
+  `owner_id` int(11) DEFAULT NULL,
   `server_id` int(11) DEFAULT NULL,
   `patient_id` int(11) DEFAULT NULL,
   `doctor_id` int(11) DEFAULT NULL,
@@ -109,6 +110,19 @@ CREATE TABLE `entries` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+--
+-- Dumping data for table `entries`
+--
+
+INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`, `entry_date`, `status`, `subtotal`, `discount_amount`, `total_price`, `payment_status`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
+(1, 1, NULL, 3, NULL, '2025-10-06 00:00:00', 'pending', 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-06 14:13:29', NULL),
+(2, 2, NULL, 2, 15, '2025-10-08 00:00:00', 'pending', 0.00, 0.00, 0.00, 'pending', NULL, 2, '2025-10-06 15:53:42', NULL),
+(5, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-06 16:21:47', NULL),
+(6, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-06 16:40:50', NULL),
+(7, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-06 17:12:12', NULL),
+(9, 2, NULL, 2, 14, '2025-10-08 00:00:00', 'pending', 0.00, 0.00, 0.00, 'pending', NULL, 2, '2025-10-08 11:21:38', NULL),
+(10, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-08 17:09:55', NULL);
 
 -- --------------------------------------------------------
 
@@ -129,6 +143,27 @@ CREATE TABLE `entry_tests` (
   `total_price` decimal(10,2) DEFAULT 0.00,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `entry_tests`
+--
+
+INSERT INTO `entry_tests` (`id`, `entry_id`, `test_id`, `result_value`, `unit`, `remarks`, `status`, `price`, `discount_amount`, `total_price`, `created_at`) VALUES
+(1, 1, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 14:13:29'),
+(8, 5, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 16:21:47'),
+(9, 5, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 16:21:47'),
+(10, 6, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 16:40:50'),
+(11, 6, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 16:40:50'),
+(12, 7, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 17:12:12'),
+(13, 7, 1, '50', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 17:12:12'),
+(14, 8, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-07 07:20:16'),
+(15, 8, 1, '50', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-07 07:20:16'),
+(18, 2, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 11:09:43'),
+(19, 2, 1, '50', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 11:09:43'),
+(20, 9, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 11:21:38'),
+(21, 9, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 11:21:38'),
+(22, 10, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 17:09:55'),
+(23, 10, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 17:09:55');
 
 -- --------------------------------------------------------
 
@@ -345,7 +380,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-10-06 09:46:13', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-10-08 16:57:45', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
 (2, 'uma', '$2y$12$yBaDoENR.9MOXDLizW.UYunvNev1XOICwYC.WNCRmPEd1fQ5TS85q', 'Uma Yadav', 'umakant171991@gmail.com', 'user', 1, 0, '2025-09-26 10:13:58', NULL, '2025-10-11 10:13:00', '0000-00-00 00:00:00', '2025-09-26 04:43:58');
 
 -- --------------------------------------------------------
@@ -407,7 +442,10 @@ ALTER TABLE `entries`
   ADD KEY `idx_entries_doctor` (`doctor_id`),
   ADD KEY `idx_entries_added_by` (`added_by`),
   ADD KEY `idx_entries_entry_date` (`entry_date`),
-  ADD KEY `idx_entries_status` (`status`);
+  ADD KEY `idx_entries_status` (`status`),
+  ADD KEY `idx_entries_owner_id` (`owner_id`),
+  ADD KEY `idx_entries_patient_id` (`patient_id`),
+  ADD KEY `idx_entries_doctor_id` (`doctor_id`);
 
 --
 -- Indexes for table `entry_tests`
@@ -511,13 +549,13 @@ ALTER TABLE `doctors`
 -- AUTO_INCREMENT for table `entries`
 --
 ALTER TABLE `entries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `entry_tests`
 --
 ALTER TABLE `entry_tests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `notices`
