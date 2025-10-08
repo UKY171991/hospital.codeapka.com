@@ -15,7 +15,11 @@ try {
 
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/simple_auth.php';
-session_start();
+
+// Start session only if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -448,7 +452,7 @@ try {
                 }
 
                 try {
-                    error_log('Entry API save: received ' . count($tests) . ' tests);
+                    error_log('Entry API save: received ' . count($tests) . ' tests');
                     error_log('Entry API save payload keys: ' . implode(',', array_keys($input ?? [])));
                     // Also write a lightweight debug file for easier inspection on the server
                     $debugDir = __DIR__ . '/../tmp';
@@ -465,49 +469,28 @@ try {
                     // Create the main entry with schema-awareness
                     $entryData = [
                         'patient_id' => $input['patient_id'],
-                        'doctor_id' => $input['doctor'] ?? null,
+                        'doctor_id' => $input['doctor_id'] ?? null,
                         'owner_id' => $input['owner_id'] ?? null,
                         'entry_date' => $input['entry_date'] ?? date('Y-m-d'),
                         'status' => $input['status'] ?? 'pending',
                         'added_by' => $input['added_by']
                     ];
 
-                    if ($entryCaps['has_remarks']) {
-                        $entryData['remarks'] = $input['notes'] ?? null;
-                    } elseif ($entryCaps['has_notes']) {
-                        $entryData['notes'] = $input['notes'] ?? null;
+                    // Add additional optional fields if they exist in the input
+                    if (isset($input['priority'])) {
+                        $entryData['priority'] = $input['priority'];
                     }
-                    if ($entryCaps['has_grouped']) {
-                        $entryData['grouped'] = 1;
+                    if (isset($input['referral_source'])) {
+                        $entryData['referral_source'] = $input['referral_source'];
                     }
-                    if ($entryCaps['has_tests_count']) {
-                        $entryData['tests_count'] = count($tests);
+                    if (isset($input['patient_contact'])) {
+                        $entryData['patient_contact'] = $input['patient_contact'];
                     }
-
-                    // Calculate totals based on test data and schema
-                    $totalPrice = 0;
-                    $totalDiscount = 0;
-                    foreach ($tests as $test) {
-                        $totalPrice += floatval($test['price'] ?? 0);
-                        $totalDiscount += floatval($test['discount_amount'] ?? 0);
+                    if (isset($input['patient_address'])) {
+                        $entryData['patient_address'] = $input['patient_address'];
                     }
-
-                    if ($entryCaps['has_price']) {
-                        $entryData['price'] = $totalPrice;
-                    }
-                    if ($entryCaps['has_subtotal']) {
-                        $entryData['subtotal'] = $totalPrice;
-                    }
-                    if ($entryCaps['has_discount_amount']) {
-                        $entryData['discount_amount'] = $totalDiscount;
-                    }
-                    if ($entryCaps['has_total_price']) {
-                        $entryData['total_price'] = max($totalPrice - $totalDiscount, 0);
-                    }
-
-                    // Set primary test to first test for backward compatibility
-                    if (!empty($tests) && $entryCaps['has_test_id']) {
-                        $entryData['test_id'] = $tests[0]['test_id'];
+                    if (isset($input['gender'])) {
+                        $entryData['gender'] = $input['gender'];
                     }
 
                     if ($entryCaps['has_remarks']) {
@@ -546,39 +529,6 @@ try {
                     // Set primary test to first test for backward compatibility
                     if (!empty($tests) && $entryCaps['has_test_id']) {
                         $entryData['test_id'] = $tests[0]['test_id'];
-                    }
-
-                    if ($entryCaps['has_remarks']) {
-                        $entryData['remarks'] = $input['notes'] ?? null;
-                    } elseif ($entryCaps['has_notes']) {
-                        $entryData['notes'] = $input['notes'] ?? null;
-                    }
-                    if ($entryCaps['has_grouped']) {
-                        $entryData['grouped'] = 1;
-                    }
-                    if ($entryCaps['has_tests_count']) {
-                        $entryData['tests_count'] = count($tests);
-                    }
-
-                    // Calculate totals based on test data and schema
-                    $totalPrice = 0;
-                    $totalDiscount = 0;
-                    foreach ($tests as $test) {
-                        $totalPrice += floatval($test['price'] ?? 0);
-                        $totalDiscount += floatval($test['discount_amount'] ?? 0);
-                    }
-
-                    if ($entryCaps['has_price']) {
-                        $entryData['price'] = $totalPrice;
-                    }
-                    if ($entryCaps['has_subtotal']) {
-                        $entryData['subtotal'] = $totalPrice;
-                    }
-                    if ($entryCaps['has_discount_amount']) {
-                        $entryData['discount_amount'] = $totalDiscount;
-                    }
-                    if ($entryCaps['has_total_price']) {
-                        $entryData['total_price'] = max($totalPrice - $totalDiscount, 0);
                     }
                     
                     // Insert entry

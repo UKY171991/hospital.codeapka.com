@@ -180,7 +180,7 @@ function initializeDataTable() {
                 }
             }
         ],
-        order: [[6, 'desc']], // Sort by date descending
+        order: [[8, 'desc']], // Sort by date descending (column 8 is Date)
         pageLength: 25,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         responsive: true,
