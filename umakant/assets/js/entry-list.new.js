@@ -658,8 +658,23 @@ $(document).on('shown.bs.modal', '#entryModal, #addEntryModal', function() {
     console.log('Modal shown - pricing fields check:', {
         subtotal: $('#subtotal').length,
         discountAmount: $('#discountAmount').length,
-        totalPrice: $('#totalPrice').length
+        totalPrice: $('#totalPrice').length,
+        currentValues: {
+            subtotal: $('#subtotal').val(),
+            discount: $('#discountAmount').val(),
+            total: $('#totalPrice').val()
+        }
     });
+    
+    // Force calculate pricing when modal is shown
+    setTimeout(function() {
+        updatePricingFields();
+        console.log('Pricing fields after modal shown:', {
+            subtotal: $('#subtotal').val(),
+            discount: $('#discountAmount').val(),
+            total: $('#totalPrice').val()
+        });
+    }, 100);
 });
 
 // Fallback: on page ready ensure any test-result inputs are visible and enabled
