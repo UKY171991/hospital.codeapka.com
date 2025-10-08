@@ -283,7 +283,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     <div class="form-group">
                         <label>Tests <span class="text-danger">*</span></label>
                         <div class="row mb-2">
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <small class="text-muted">Test Name</small>
                             </div>
                             <div class="col-md-2">
@@ -299,9 +299,6 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 <small class="text-muted">Max</small>
                             </div>
                             <div class="col-md-2">
-                                <small class="text-muted">Reference Ranges</small>
-                            </div>
-                            <div class="col-md-1">
                                 <small class="text-muted">Unit</small>
                             </div>
                             <div class="col-md-1">
@@ -310,7 +307,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         </div>
                         <div id="testsContainer">
                             <div class="test-row row mb-2">
-                                <div class="col-md-2">
+                                <div class="col-md-3">
                                     <select class="form-control test-select select2" name="tests[0][test_id]" required>
                                         <option value="">Select Test</option>
                                     </select>
@@ -329,9 +326,6 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                     <input type="text" class="form-control test-max" name="tests[0][max]" placeholder="Max" readonly>
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="text" class="form-control test-reference-range" name="tests[0][reference_range]" placeholder="Reference Range" readonly>
-                                </div>
-                                <div class="col-md-1">
                                     <input type="text" class="form-control test-unit" name="tests[0][unit]" placeholder="Unit" readonly>
                                 </div>
                                 <div class="col-md-1">
