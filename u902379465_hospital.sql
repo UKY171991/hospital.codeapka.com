@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 08, 2025 at 11:48 AM
+-- Generation Time: Oct 08, 2025 at 10:24 PM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -101,6 +101,11 @@ CREATE TABLE `entries` (
   `doctor_id` int(11) DEFAULT NULL,
   `entry_date` datetime DEFAULT NULL,
   `status` varchar(50) NOT NULL DEFAULT 'pending',
+  `priority` varchar(50) DEFAULT 'normal',
+  `referral_source` varchar(100) DEFAULT NULL,
+  `patient_contact` varchar(100) DEFAULT NULL,
+  `patient_address` text DEFAULT NULL,
+  `gender` varchar(10) DEFAULT NULL,
   `subtotal` decimal(10,2) DEFAULT 0.00,
   `discount_amount` decimal(10,2) DEFAULT 0.00,
   `total_price` decimal(10,2) DEFAULT 0.00,
@@ -115,14 +120,16 @@ CREATE TABLE `entries` (
 -- Dumping data for table `entries`
 --
 
-INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`, `entry_date`, `status`, `subtotal`, `discount_amount`, `total_price`, `payment_status`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
-(1, 1, NULL, 3, NULL, '2025-10-06 00:00:00', 'pending', 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-06 14:13:29', NULL),
-(2, 2, NULL, 2, 15, '2025-10-08 00:00:00', 'pending', 0.00, 0.00, 0.00, 'pending', NULL, 2, '2025-10-06 15:53:42', NULL),
-(5, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-06 16:21:47', NULL),
-(6, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-06 16:40:50', NULL),
-(7, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-06 17:12:12', NULL),
-(9, 2, NULL, 2, 14, '2025-10-08 00:00:00', 'pending', 0.00, 0.00, 0.00, 'pending', NULL, 2, '2025-10-08 11:21:38', NULL),
-(10, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-08 17:09:55', NULL);
+INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`, `entry_date`, `status`, `priority`, `referral_source`, `patient_contact`, `patient_address`, `gender`, `subtotal`, `discount_amount`, `total_price`, `payment_status`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
+(1, 1, NULL, 3, NULL, '2025-10-06 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, 100.00, 20.00, 100.00, 'pending', NULL, 1, '2025-10-06 14:13:29', NULL),
+(2, 2, NULL, 2, 15, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, 100.00, 0.00, 60.00, 'pending', NULL, 2, '2025-10-06 15:53:42', NULL),
+(5, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, 200.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 16:21:47', NULL),
+(6, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, 300.00, 0.00, 400.00, 'pending', NULL, 1, '2025-10-06 16:40:50', NULL),
+(7, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, 400.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 17:12:12', NULL),
+(9, 2, NULL, 2, 14, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, 500.00, 0.00, 300.00, 'pending', NULL, 2, '2025-10-08 11:21:38', NULL),
+(10, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, 600.00, 0.00, 340.00, 'pending', NULL, 1, '2025-10-08 17:09:55', NULL),
+(11, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, 300.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-08 17:51:17', NULL),
+(12, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-08 18:00:34', NULL);
 
 -- --------------------------------------------------------
 
@@ -162,8 +169,12 @@ INSERT INTO `entry_tests` (`id`, `entry_id`, `test_id`, `result_value`, `unit`, 
 (19, 2, 1, '50', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 11:09:43'),
 (20, 9, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 11:21:38'),
 (21, 9, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 11:21:38'),
-(22, 10, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 17:09:55'),
-(23, 10, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 17:09:55');
+(34, 10, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 17:50:21'),
+(35, 10, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 17:50:21'),
+(42, 11, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 18:03:51'),
+(43, 11, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 18:03:51'),
+(48, 12, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 03:51:43'),
+(49, 12, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 03:51:43');
 
 -- --------------------------------------------------------
 
@@ -380,7 +391,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-10-08 16:57:45', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-10-09 03:39:58', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
 (2, 'uma', '$2y$12$yBaDoENR.9MOXDLizW.UYunvNev1XOICwYC.WNCRmPEd1fQ5TS85q', 'Uma Yadav', 'umakant171991@gmail.com', 'user', 1, 0, '2025-09-26 10:13:58', NULL, '2025-10-11 10:13:00', '0000-00-00 00:00:00', '2025-09-26 04:43:58');
 
 -- --------------------------------------------------------
@@ -445,7 +456,9 @@ ALTER TABLE `entries`
   ADD KEY `idx_entries_status` (`status`),
   ADD KEY `idx_entries_owner_id` (`owner_id`),
   ADD KEY `idx_entries_patient_id` (`patient_id`),
-  ADD KEY `idx_entries_doctor_id` (`doctor_id`);
+  ADD KEY `idx_entries_doctor_id` (`doctor_id`),
+  ADD KEY `idx_entries_priority` (`priority`),
+  ADD KEY `idx_entries_referral_source` (`referral_source`);
 
 --
 -- Indexes for table `entry_tests`
@@ -549,13 +562,13 @@ ALTER TABLE `doctors`
 -- AUTO_INCREMENT for table `entries`
 --
 ALTER TABLE `entries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `entry_tests`
 --
 ALTER TABLE `entry_tests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
 -- AUTO_INCREMENT for table `notices`
