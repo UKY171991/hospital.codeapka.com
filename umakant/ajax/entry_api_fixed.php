@@ -580,7 +580,6 @@ try {
                             'test_id' => $test['test_id'],
                             'result_value' => $test['result_value'] ?? null,
                             'unit' => $test['unit'] ?? null,
-                            'reference_range' => $test['reference_range'] ?? null,
                             'remarks' => $test['remarks'] ?? null,
                             'status' => 'pending'
                         ];

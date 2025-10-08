@@ -433,8 +433,11 @@ function setupEventHandlers() {
         const safeCategoryName = categoryName || '';
         const safeCategoryId = categoryId || '';
 
-        // Clear result when a new test is selected (user can enter new result)
-        $row.find('.test-result').val('');
+        // Only clear result if it's not already populated (avoid clearing during edit mode)
+        const currentResult = $row.find('.test-result').val();
+        if (!currentResult) {
+            $row.find('.test-result').val('');
+        }
         $row.find('.test-unit').val(safeUnit);
         $row.find('.test-reference-range').val(safeReferenceRange);
         $row.find('.test-category').val(safeCategoryName);
@@ -693,7 +696,6 @@ function saveEntry(formElement) {
         const testId = $(this).find('.test-select').val();
         const resultVal = $(this).find('.test-result').val();
         const unitVal = $(this).find('.test-unit').val() || '';
-        const referenceRangeVal = $(this).find('.test-reference-range').val() || '';
         const categoryName = $(this).find('.test-category').val() || '';
         const categoryId = $(this).find('.test-category-id').val() || '';
         const testName = $(this).find('.test-select option:selected').text() || '';
@@ -704,7 +706,6 @@ function saveEntry(formElement) {
                 test_name: testName,
                 result_value: resultVal || null,
                 unit: unitVal,
-                reference_range: referenceRangeVal,
                 category_id: categoryId,
                 category_name: categoryName
             });
@@ -1158,12 +1159,25 @@ function populateEditForm(entry) {
                 const testRow = testsContainer.find('.test-row').eq(index);
                 const testSelect = testRow.find('.test-select');
                 if (test.test_id) {
-                    testSelect.val(test.test_id).trigger('change');
-                    // Populate result value and reference range after test selection
-                    setTimeout(function() {
-                        testRow.find('.test-result').val(test.result_value || '');
-                        testRow.find('.test-reference-range').val(test.reference_range || '');
-                    }, 100);
+                    // Set the test selection without triggering change to avoid clearing fields
+                    testSelect.val(test.test_id);
+                    
+                    // Manually populate all fields from the test data
+                    const $opt = testSelect.find('option:selected');
+                    const unit = $opt.data('unit') || '';
+                    const referenceRange = $opt.data('reference-range') || '';
+                    const categoryName = $opt.data('category-name') || '';
+                    const categoryId = $opt.data('category-id') || '';
+                    
+                    // Populate fields directly
+                    testRow.find('.test-unit').val(unit);
+                    testRow.find('.test-reference-range').val(referenceRange);
+                    testRow.find('.test-category').val(categoryName);
+                    testRow.find('.test-category-id').val(categoryId);
+                    testRow.find('.test-result').val(test.result_value || '');
+                    
+                    // Enable result input
+                    testRow.find('.test-result').prop('readonly', false).prop('disabled', false);
                 }
             });
         }
