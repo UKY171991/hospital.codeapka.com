@@ -605,6 +605,14 @@ try {
                         $entryData['test_id'] = $tests[0]['test_id'];
                     }
                     
+                    // Log what we're about to save
+                    error_log("Entry data being saved: " . json_encode($entryData));
+                    if (isset($entryData['subtotal'])) {
+                        error_log("✓ Pricing fields included in save: subtotal={$entryData['subtotal']}, discount={$entryData['discount_amount']}, total={$entryData['total_price']}");
+                    } else {
+                        error_log("✗ WARNING: Pricing fields NOT in entryData!");
+                    }
+                    
                     // Insert or Update entry
                     if ($isUpdate) {
                         // UPDATE existing entry
@@ -618,6 +626,8 @@ try {
                             $updateFields[] = 'updated_at = NOW()';
                         }
                         $updateParams['entry_id'] = $entryId;
+                        
+                        error_log("UPDATE SQL fields: " . implode(', ', $updateFields));
                         
                         $sql = "UPDATE entries SET " . implode(', ', $updateFields) . " WHERE id = :entry_id";
                         $stmt = $pdo->prepare($sql);
@@ -633,6 +643,10 @@ try {
                         // INSERT new entry
                         $entryFields = implode(', ', array_keys($entryData));
                         $entryPlaceholders = ':' . implode(', :', array_keys($entryData));
+                        
+                        error_log("INSERT SQL fields: $entryFields");
+                        error_log("INSERT SQL: INSERT INTO entries ($entryFields) VALUES ($entryPlaceholders)");
+                        
                         $sql = "INSERT INTO entries ($entryFields) VALUES ($entryPlaceholders)";
                         $stmt = $pdo->prepare($sql);
                         $stmt->execute($entryData);
@@ -709,6 +723,16 @@ try {
                     error_log('Entry API save: commit successful for entry ' . $entryId);
                     @file_put_contents($debugFile, date('[Y-m-d H:i:s]') . " COMMIT entry=" . $entryId . "\n", FILE_APPEND | LOCK_EX);
                     
+                    // VERIFY: Read back the saved entry to confirm pricing was saved
+                    $verifyStmt = $pdo->prepare("SELECT subtotal, discount_amount, total_price FROM entries WHERE id = ?");
+                    $verifyStmt->execute([$entryId]);
+                    $savedEntry = $verifyStmt->fetch(PDO::FETCH_ASSOC);
+                    error_log("VERIFICATION: Entry $entryId saved pricing - subtotal={$savedEntry['subtotal']}, discount={$savedEntry['discount_amount']}, total={$savedEntry['total_price']}");
+                    
+                    if ($savedEntry['subtotal'] == 0 && $savedEntry['total_price'] == 0) {
+                        error_log("⚠️ WARNING: Entry saved but pricing is ZERO in database!");
+                    }
+                    
                     $successMessage = $isUpdate 
                         ? 'Entry with multiple tests updated successfully' 
                         : 'Entry with multiple tests created successfully';
@@ -717,7 +741,12 @@ try {
                         [
                             'success' => true,
                             'message' => $successMessage,
-                            'data' => ['id' => $entryId, 'tests_count' => count($tests), 'action' => $isUpdate ? 'updated' : 'created']
+                            'data' => [
+                                'id' => $entryId, 
+                                'tests_count' => count($tests), 
+                                'action' => $isUpdate ? 'updated' : 'created',
+                                'saved_pricing' => $savedEntry // Include saved pricing in response for debugging
+                            ]
                         ]
                     );
                     

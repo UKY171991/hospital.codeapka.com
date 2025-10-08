@@ -893,6 +893,26 @@ function continueWithSave($form) {
         dataType: 'json',
         success: function(response) {
             if (response.success) {
+                console.log('✅ Entry saved successfully!');
+                console.log('Server response:', response);
+                
+                // Check if pricing was actually saved
+                if (response.data && response.data.saved_pricing) {
+                    const saved = response.data.saved_pricing;
+                    console.log('💰 PRICING SAVED TO DATABASE:', {
+                        subtotal: saved.subtotal,
+                        discount: saved.discount_amount,
+                        total: saved.total_price
+                    });
+                    
+                    if (saved.subtotal == 0 && saved.total_price == 0) {
+                        console.error('⚠️ WARNING: Database shows ZERO pricing despite saving!');
+                        console.error('This means the data reached the server but was not saved correctly.');
+                    } else {
+                        console.log('✅ Pricing verified in database!');
+                    }
+                }
+                
                 toastr.success(response.message || 'Entry saved successfully');
                 $('#entryModal').modal('hide');
                 refreshTable();
