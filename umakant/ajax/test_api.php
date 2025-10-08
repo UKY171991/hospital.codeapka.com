@@ -404,6 +404,7 @@ try {
         // Simple list action for dropdowns
         try {
             $stmt = $pdo->query("SELECT t.id, t.name, t.unit, t.reference_range, t.price, 
+                                       t.min, t.max, t.min_male, t.max_male, t.min_female, t.max_female,
                                        tc.name as category_name, t.category_id
                                 FROM tests t 
                                 LEFT JOIN categories tc ON t.category_id = tc.id 

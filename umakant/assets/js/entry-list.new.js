@@ -388,14 +388,14 @@ function loadTests(callback) {
                     const currentVal = $this.val();
                     $this.empty().append('<option value="">Select Test</option>');
                     response.data.forEach(function(test) {
-                        // include category, unit, and reference range as data attributes for easy population
+                        // include category, unit, reference range, and min/max as data attributes for easy population
                         // Properly escape HTML attributes to handle special characters
                         const escapedUnit = (test.unit || '').replace(/"/g, '&quot;');
                         const escapedRefRange = (test.reference_range || '').replace(/"/g, '&quot;');
                         const escapedCategoryName = (test.category_name || '').replace(/"/g, '&quot;');
                         const escapedTestName = (test.name || '').replace(/"/g, '&quot;');
                         
-                        const opt = $(`<option value="${test.id}" data-price="${test.price || 0}" data-unit="${escapedUnit}" data-reference-range="${escapedRefRange}" data-category-id="${test.category_id||''}" data-category-name="${escapedCategoryName}">${escapedTestName} - ₹${test.price || 0}</option>`);
+                        const opt = $(`<option value="${test.id}" data-price="${test.price || 0}" data-unit="${escapedUnit}" data-reference-range="${escapedRefRange}" data-min="${test.min || ''}" data-max="${test.max || ''}" data-category-id="${test.category_id||''}" data-category-name="${escapedCategoryName}">${escapedTestName} - ₹${test.price || 0}</option>`);
                         $this.append(opt);
                     });
                     // restore previously selected value if still present
@@ -433,6 +433,8 @@ function setupEventHandlers() {
         const price = $opt.data('price');
         const unit = $opt.data('unit') || '';
         const referenceRange = $opt.data('reference-range') || '';
+        const min = $opt.data('min') || '';
+        const max = $opt.data('max') || '';
         const categoryName = $opt.data('category-name') || '';
         const categoryId = $opt.data('category-id') || '';
 
@@ -441,6 +443,8 @@ function setupEventHandlers() {
         const safePrice = (typeof price !== 'undefined' && price !== null) ? price : '';
         const safeUnit = unit || '';
         const safeReferenceRange = referenceRange || '';
+        const safeMin = min || '';
+        const safeMax = max || '';
         const safeCategoryName = categoryName || '';
         const safeCategoryId = categoryId || '';
 
@@ -450,6 +454,8 @@ function setupEventHandlers() {
             testName: $opt.text(),
             unit: safeUnit,
             referenceRange: safeReferenceRange,
+            min: safeMin,
+            max: safeMax,
             categoryName: safeCategoryName
         });
 
@@ -462,6 +468,8 @@ function setupEventHandlers() {
         // Populate fields and ensure they're visible
         $row.find('.test-unit').val(safeUnit).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
         $row.find('.test-reference-range').val(safeReferenceRange).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
+        $row.find('.test-min').val(safeMin).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
+        $row.find('.test-max').val(safeMax).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
         $row.find('.test-category').val(safeCategoryName).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
         $row.find('.test-category-id').val(safeCategoryId);
         
@@ -558,7 +566,7 @@ function openAddEntryModal() {
     // Reset tests container
     $('#testsContainer').html(`
         <div class="test-row row mb-2">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select class="form-control test-select select2" name="tests[0][test_id]" required>
                     <option value="">Select Test</option>
                 </select>
@@ -570,10 +578,16 @@ function openAddEntryModal() {
             <div class="col-md-2">
                 <input type="text" class="form-control test-result" name="tests[0][result_value]" placeholder="Result">
             </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control test-min" name="tests[0][min]" placeholder="Min" readonly>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control test-max" name="tests[0][max]" placeholder="Max" readonly>
+            </div>
             <div class="col-md-2">
                 <input type="text" class="form-control test-reference-range" name="tests[0][reference_range]" placeholder="Reference Range" readonly>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <input type="text" class="form-control test-unit" name="tests[0][unit]" placeholder="Unit" readonly>
             </div>
             <div class="col-md-1">
@@ -624,8 +638,8 @@ $(document).on('shown.bs.modal', '#entryModal, #addEntryModal', function() {
         $(this).prop('disabled', false).prop('readonly', false);
         $(this).removeClass('disabled');
     });
-    // ensure units, categories, and reference ranges are readonly and not editable
-    $('#testsContainer').find('.test-unit, .test-category, .test-reference-range').each(function() {
+    // ensure units, categories, reference ranges, and min/max are readonly and not editable
+    $('#testsContainer').find('.test-unit, .test-category, .test-reference-range, .test-min, .test-max').each(function() {
         $(this).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
     });
 });
@@ -636,8 +650,8 @@ $(function() {
         $(this).show().css({ 'display': 'block', 'visibility': 'visible' });
         $(this).prop('disabled', false).prop('readonly', false);
     });
-    // ensure units, categories, and reference ranges keep readonly but visible
-    $('#testsContainer').find('.test-unit, .test-category, .test-reference-range').each(function() {
+    // ensure units, categories, reference ranges, and min/max keep readonly but visible
+    $('#testsContainer').find('.test-unit, .test-category, .test-reference-range, .test-min, .test-max').each(function() {
         $(this).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
     });
 });
@@ -646,7 +660,7 @@ $(function() {
 function addTestRow() {
     const newRow = `
         <div class="test-row row mb-2">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select class="form-control test-select select2" name="tests[${testRowCount}][test_id]" required>
                     <option value="">Select Test</option>
                 </select>
@@ -658,10 +672,16 @@ function addTestRow() {
             <div class="col-md-2">
                 <input type="text" class="form-control test-result" name="tests[${testRowCount}][result_value]" placeholder="Result">
             </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control test-min" name="tests[${testRowCount}][min]" placeholder="Min" readonly>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control test-max" name="tests[${testRowCount}][max]" placeholder="Max" readonly>
+            </div>
             <div class="col-md-2">
                 <input type="text" class="form-control test-reference-range" name="tests[${testRowCount}][reference_range]" placeholder="Reference Range" readonly>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <input type="text" class="form-control test-unit" name="tests[${testRowCount}][unit]" placeholder="Unit" readonly>
             </div>
             <div class="col-md-1">
@@ -678,7 +698,7 @@ function addTestRow() {
     setTimeout(function() {
         const $newRow = $('#testsContainer').find('.test-row').last();
         $newRow.find('.test-result').prop('readonly', false).prop('disabled', false);
-        $newRow.find('.test-unit, .test-category, .test-reference-range').prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
+        $newRow.find('.test-unit, .test-category, .test-reference-range, .test-min, .test-max').prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
     }, 50);
 }
 
@@ -896,6 +916,8 @@ function displayEntryDetails(entry) {
                                     <th>Test Name</th>
                                     <th>Category</th>
                                     <th>Result</th>
+                                    <th>Min</th>
+                                    <th>Max</th>
                                     <th>Reference Range</th>
                                     <th>Unit</th>
                                     <th>Status</th>
@@ -912,6 +934,8 @@ function displayEntryDetails(entry) {
                         <td>${test.test_name || 'N/A'}</td>
                         <td>${test.category_name || 'N/A'}</td>
                         <td>${test.result_value || '-'}</td>
+                        <td>${test.min || '-'}</td>
+                        <td>${test.max || '-'}</td>
                         <td>${test.reference_range || '-'}</td>
                         <td>${test.unit || '-'}</td>
                         <td><span class="badge badge-${statusBadge}">${testStatus}</span></td>
@@ -1191,12 +1215,16 @@ function populateEditForm(entry) {
                     const $opt = testSelect.find('option:selected');
                     const unit = $opt.data('unit') || '';
                     const referenceRange = $opt.data('reference-range') || '';
+                    const min = $opt.data('min') || '';
+                    const max = $opt.data('max') || '';
                     const categoryName = $opt.data('category-name') || '';
                     const categoryId = $opt.data('category-id') || '';
                     
                     // Populate fields directly
                     testRow.find('.test-unit').val(unit);
                     testRow.find('.test-reference-range').val(referenceRange);
+                    testRow.find('.test-min').val(min);
+                    testRow.find('.test-max').val(max);
                     testRow.find('.test-category').val(categoryName);
                     testRow.find('.test-category-id').val(categoryId);
                     testRow.find('.test-result').val(test.result_value || '');
