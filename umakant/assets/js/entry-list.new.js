@@ -373,7 +373,7 @@ function loadTests(callback) {
     $.ajax({
         url: 'ajax/test_api.php',
         method: 'GET',
-        data: { action: 'list' },
+        data: { action: 'simple_list' },
         dataType: 'json',
         success: function(response) {
             if (response.success) {
@@ -433,15 +433,29 @@ function setupEventHandlers() {
         const safeCategoryName = categoryName || '';
         const safeCategoryId = categoryId || '';
 
+        // Debug logging
+        console.log('Test selection change:', {
+            testId: $opt.val(),
+            testName: $opt.text(),
+            unit: safeUnit,
+            referenceRange: safeReferenceRange,
+            categoryName: safeCategoryName
+        });
+
         // Only clear result if it's not already populated (avoid clearing during edit mode)
         const currentResult = $row.find('.test-result').val();
         if (!currentResult) {
             $row.find('.test-result').val('');
         }
-        $row.find('.test-unit').val(safeUnit);
-        $row.find('.test-reference-range').val(safeReferenceRange);
-        $row.find('.test-category').val(safeCategoryName);
+        
+        // Populate fields and ensure they're visible
+        $row.find('.test-unit').val(safeUnit).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
+        $row.find('.test-reference-range').val(safeReferenceRange).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
+        $row.find('.test-category').val(safeCategoryName).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
         $row.find('.test-category-id').val(safeCategoryId);
+        
+        // Enable result input
+        $row.find('.test-result').prop('readonly', false).prop('disabled', false);
     });
     
     // Owner/User selection change - filter patients and doctors
@@ -599,9 +613,9 @@ $(document).on('shown.bs.modal', '#entryModal, #addEntryModal', function() {
         $(this).prop('disabled', false).prop('readonly', false);
         $(this).removeClass('disabled');
     });
-    // ensure units are readonly and not editable
-    $('#testsContainer').find('.test-unit').each(function() {
-        $(this).prop('readonly', true);
+    // ensure units, categories, and reference ranges are readonly and not editable
+    $('#testsContainer').find('.test-unit, .test-category, .test-reference-range').each(function() {
+        $(this).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
     });
 });
 
@@ -611,8 +625,8 @@ $(function() {
         $(this).show().css({ 'display': 'block', 'visibility': 'visible' });
         $(this).prop('disabled', false).prop('readonly', false);
     });
-    // ensure units and categories keep readonly but visible
-    $('#testsContainer').find('.test-unit, .test-category').each(function() {
+    // ensure units, categories, and reference ranges keep readonly but visible
+    $('#testsContainer').find('.test-unit, .test-category, .test-reference-range').each(function() {
         $(this).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
     });
 });
@@ -653,7 +667,7 @@ function addTestRow() {
     setTimeout(function() {
         const $newRow = $('#testsContainer').find('.test-row').last();
         $newRow.find('.test-result').prop('readonly', false).prop('disabled', false);
-        $newRow.find('.test-unit, .test-reference-range').prop('readonly', true);
+        $newRow.find('.test-unit, .test-category, .test-reference-range').prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
     }, 50);
 }
 

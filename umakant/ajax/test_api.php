@@ -400,6 +400,23 @@ try {
                 'entries' => $entries
             ]
         ]);
+    } else if ($action === 'simple_list') {
+        // Simple list action for dropdowns
+        try {
+            $stmt = $pdo->query("SELECT t.id, t.name, t.unit, t.reference_range, t.price, 
+                                       tc.name as category_name, t.category_id
+                                FROM tests t 
+                                LEFT JOIN categories tc ON t.category_id = tc.id 
+                                ORDER BY t.name ASC");
+            $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            json_response([
+                'success' => true,
+                'data' => $tests
+            ]);
+        } catch (Exception $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     json_response(['success'=>false,'message'=>'Invalid action'],400);
