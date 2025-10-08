@@ -485,14 +485,39 @@ try {
                     $entryId = $isUpdate ? (int)$input['id'] : null;
 
                     // Create the main entry with schema-awareness
+                    // Validate and clean patient_id (required)
+                    if (empty($input['patient_id'])) {
+                        throw new Exception('Patient ID is required');
+                    }
+                    $patientId = (int)$input['patient_id'];
+                    
+                    // Clean up doctor_id: convert empty string to NULL
+                    $doctorId = isset($input['doctor_id']) && $input['doctor_id'] !== '' && $input['doctor_id'] !== '0' 
+                        ? (int)$input['doctor_id'] 
+                        : null;
+                    
+                    // Clean up owner_id: convert empty string to NULL
+                    $ownerId = isset($input['owner_id']) && $input['owner_id'] !== '' && $input['owner_id'] !== '0'
+                        ? (int)$input['owner_id']
+                        : null;
+                    
+                    // Clean up added_by (required)
+                    if (empty($input['added_by'])) {
+                        throw new Exception('Added by user ID is required');
+                    }
+                    $addedBy = (int)$input['added_by'];
+                    
                     $entryData = [
-                        'patient_id' => $input['patient_id'],
-                        'doctor_id' => $input['doctor_id'] ?? null,
-                        'owner_id' => $input['owner_id'] ?? null,
+                        'patient_id' => $patientId,
+                        'doctor_id' => $doctorId,
+                        'owner_id' => $ownerId,
                         'entry_date' => $input['entry_date'] ?? date('Y-m-d'),
                         'status' => $input['status'] ?? 'pending',
-                        'added_by' => $input['added_by']
+                        'added_by' => $addedBy
                     ];
+                    
+                    // Log the cleaned IDs
+                    error_log("Entry data IDs: patient_id=$patientId, doctor_id=" . ($doctorId ?? 'NULL') . ", owner_id=" . ($ownerId ?? 'NULL') . ", added_by=$addedBy");
 
                     // Add additional optional fields if they exist in the input AND in the database
                     if (isset($input['priority']) && $entryCaps['has_priority']) {

@@ -2,6 +2,18 @@
 
 ## What Was Fixed
 
+### Critical Foreign Key Fix (`umakant/ajax/entry_api_fixed.php`)
+
+**Fixed Error:** `Integrity constraint violation: Cannot add or update a child row: a foreign key constraint fails`
+
+**The Problem:** Empty string `""` being sent for `doctor_id` instead of `NULL`
+
+**The Solution:**
+- Converts empty strings, `"0"`, and invalid values to `NULL`
+- Validates required fields (patient_id, added_by)
+- Properly casts all IDs to integers
+- Logs all ID values for debugging
+
 ### JavaScript Changes (`umakant/assets/js/entry-list.new.js`)
 
 1. **Force pricing calculation before save**
@@ -113,6 +125,32 @@ LIMIT 1;
 3. Fields should show correct values
 4. Modify and save
 5. Values should persist
+
+---
+
+## Common Errors & Solutions
+
+### Error: "Integrity constraint violation" (Foreign Key Error)
+
+**Full Error:**
+```
+SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: 
+a foreign key constraint fails (`u902379465_hospital`.`entries`, 
+CONSTRAINT `fk_entries_doctor` FOREIGN KEY (`doctor_id`) REFERENCES `doctors` (`id`))
+```
+
+**Cause:** Invalid or non-existent ID being saved for `doctor_id`, `owner_id`, or `patient_id`
+
+**Solution:** ✅ FIXED - The code now:
+1. Converts empty strings to NULL for optional fields (doctor_id, owner_id)
+2. Validates required fields exist (patient_id, added_by)
+3. Casts all IDs to integers
+4. Logs all ID values before saving
+
+**How to Verify Fix Works:**
+- Check server log shows: `Entry data IDs: patient_id=3, doctor_id=NULL, owner_id=1, added_by=1`
+- Doctor can be NULL (optional field)
+- Patient and added_by must be valid IDs
 
 ---
 
