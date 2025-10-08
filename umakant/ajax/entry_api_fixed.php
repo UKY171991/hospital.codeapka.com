@@ -70,7 +70,13 @@ function get_entries_schema_capabilities($pdo) {
         'has_subtotal' => db_column_exists($pdo, 'entries', 'subtotal'),
         'has_notes' => db_column_exists($pdo, 'entries', 'notes'),
         'has_remarks' => db_column_exists($pdo, 'entries', 'remarks'),
-        'has_updated_at' => db_column_exists($pdo, 'entries', 'updated_at')
+        'has_updated_at' => db_column_exists($pdo, 'entries', 'updated_at'),
+        // Additional fields that may or may not exist
+        'has_priority' => db_column_exists($pdo, 'entries', 'priority'),
+        'has_referral_source' => db_column_exists($pdo, 'entries', 'referral_source'),
+        'has_patient_contact' => db_column_exists($pdo, 'entries', 'patient_contact'),
+        'has_patient_address' => db_column_exists($pdo, 'entries', 'patient_address'),
+        'has_gender' => db_column_exists($pdo, 'entries', 'gender')
     ];
 }
 
@@ -480,20 +486,20 @@ try {
                         'added_by' => $input['added_by']
                     ];
 
-                    // Add additional optional fields if they exist in the input
-                    if (isset($input['priority'])) {
+                    // Add additional optional fields if they exist in the input AND in the database
+                    if (isset($input['priority']) && $entryCaps['has_priority']) {
                         $entryData['priority'] = $input['priority'];
                     }
-                    if (isset($input['referral_source'])) {
+                    if (isset($input['referral_source']) && $entryCaps['has_referral_source']) {
                         $entryData['referral_source'] = $input['referral_source'];
                     }
-                    if (isset($input['patient_contact'])) {
+                    if (isset($input['patient_contact']) && $entryCaps['has_patient_contact']) {
                         $entryData['patient_contact'] = $input['patient_contact'];
                     }
-                    if (isset($input['patient_address'])) {
+                    if (isset($input['patient_address']) && $entryCaps['has_patient_address']) {
                         $entryData['patient_address'] = $input['patient_address'];
                     }
-                    if (isset($input['gender'])) {
+                    if (isset($input['gender']) && $entryCaps['has_gender']) {
                         $entryData['gender'] = $input['gender'];
                     }
 
@@ -814,7 +820,27 @@ try {
             $aggJoin = '';
         }
         
-        $sql = "SELECT e.id, e.entry_date, e.status, e.priority, e.referral_source, e.created_at,\n                       p.name AS patient_name, p.uhid, p.age, p.sex, p.contact AS patient_contact, p.address AS patient_address,\n                       d.name AS doctor_name,\n                       o.name AS owner_name,\n                       u.username AS added_by_username, u.full_name AS added_by_full_name,\n                       {$aggSelect}\n                FROM entries e \n                LEFT JOIN patients p ON e.patient_id = p.id \n                LEFT JOIN doctors d ON e.doctor_id = d.id \n                LEFT JOIN owners o ON e.owner_id = o.id\n                LEFT JOIN users u ON e.added_by = u.id" .
+        // Build dynamic SELECT based on available columns
+        $entriesCaps = get_entries_schema_capabilities($pdo);
+        $selectFields = "e.id, e.entry_date, e.status, e.created_at";
+        
+        if ($entriesCaps['has_priority']) {
+            $selectFields .= ", e.priority";
+        }
+        if ($entriesCaps['has_referral_source']) {
+            $selectFields .= ", e.referral_source";
+        }
+        if ($entriesCaps['has_patient_contact']) {
+            $selectFields .= ", e.patient_contact";
+        }
+        if ($entriesCaps['has_patient_address']) {
+            $selectFields .= ", e.patient_address";
+        }
+        if ($entriesCaps['has_gender']) {
+            $selectFields .= ", e.gender";
+        }
+        
+        $sql = "SELECT {$selectFields},\n                       p.name AS patient_name, p.uhid, p.age, p.sex, p.contact AS patient_contact, p.address AS patient_address,\n                       d.name AS doctor_name,\n                       o.name AS owner_name,\n                       u.username AS added_by_username, u.full_name AS added_by_full_name,\n                       {$aggSelect}\n                FROM entries e \n                LEFT JOIN patients p ON e.patient_id = p.id \n                LEFT JOIN doctors d ON e.doctor_id = d.id \n                LEFT JOIN owners o ON e.owner_id = o.id\n                LEFT JOIN users u ON e.added_by = u.id" .
                 $aggJoin .
                 $scopeWhere .
                 " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
@@ -841,7 +867,7 @@ try {
                 'Tests Count' => $row['tests_count'] ?? 0,
                 'Status' => ucfirst($row['status'] ?? ''),
                 'Priority' => ucfirst($row['priority'] ?? 'Normal'),
-                'Referral Source' => ucfirst($row['referral_source'] ?? ''),
+                'Referral Source' => ucfirst($row['referral_source'] ?? 'N/A'),
                 'Amount' => number_format($finalAmount, 2),
                 'Added By' => $row['added_by_full_name'] ?? $row['added_by_username'] ?? '',
                 'Created' => date('d/m/Y H:i', strtotime($row['created_at']))
