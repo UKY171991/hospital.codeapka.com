@@ -73,16 +73,27 @@ function handleList() {
     $page = max(1, intval($_GET['page'] ?? 1));
     $limit = max(1, min(100, intval($_GET['limit'] ?? 10)));
     $search = trim($_GET['search'] ?? '');
+    $ownerId = trim($_GET['owner_id'] ?? '');
     $offset = ($page - 1) * $limit;
     
     try {
-        // Build the WHERE clause for search
-        $whereClause = '';
+        // Build the WHERE clause for search and owner filtering
+        $whereConditions = [];
         $params = [];
         
         if (!empty($search)) {
-            $whereClause = ' WHERE name LIKE :search OR uhid LIKE :search OR mobile LIKE :search';
+            $whereConditions[] = '(name LIKE :search OR uhid LIKE :search OR mobile LIKE :search)';
             $params[':search'] = "%$search%";
+        }
+        
+        if (!empty($ownerId)) {
+            $whereConditions[] = 'added_by = :owner_id';
+            $params[':owner_id'] = $ownerId;
+        }
+        
+        $whereClause = '';
+        if (!empty($whereConditions)) {
+            $whereClause = ' WHERE ' . implode(' AND ', $whereConditions);
         }
         
         // Count total records

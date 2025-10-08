@@ -267,7 +267,7 @@ function loadOwnerUsers() {
             $.ajax({
                 url: 'ajax/user_api.php',
                 method: 'GET',
-                data: { action: 'list' },
+                data: { action: 'list_simple' },
                 dataType: 'json',
                 success: function(userResponse) {
                     console.log('User response:', userResponse);
@@ -345,7 +345,7 @@ function loadDoctorsByOwner(ownerId) {
     $.ajax({
         url: 'ajax/doctor_api.php',
         method: 'GET',
-        data: { action: 'list', owner_id: ownerId },
+        data: { action: 'list', added_by: ownerId },
         dataType: 'json',
         success: function(response) {
             const doctorSelect = $('#doctorSelect');
