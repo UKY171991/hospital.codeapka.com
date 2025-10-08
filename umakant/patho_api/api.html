@@ -216,12 +216,12 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // API endpoints configuration with complete specifications
+        // API endpoints configuration matching Pathology menu pages exactly
         const apiEndpoints = [
             {
-                name: 'Doctor API (Patho)',
+                name: 'Doctor API',
                 file: 'doctor.php',
-                description: 'Comprehensive doctor management with specializations, qualifications, and contact details',
+                description: 'Doctor management API for Pathology > Doctors menu page',
                 baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/doctor.php',
                 endpoints: [
                     {
@@ -280,7 +280,6 @@
                                 'specialization': 'Cardiology',
                                 'hospital': 'City Hospital',
                                 'contact_no': '9876543210',
-                                'phone': '9876543210',
                                 'email': 'john.doe@hospital.com',
                                 'address': '123 Medical Street',
                                 'registration_no': 'MED12345',
@@ -305,7 +304,6 @@
                             'specialization': 'Orthopedics',
                             'hospital': 'General Hospital',
                             'contact_no': '9876543211',
-                            'phone': '9876543211',
                             'email': 'jane.smith@hospital.com',
                             'address': '456 Health Avenue',
                             'registration_no': 'MED12346',
@@ -340,131 +338,9 @@
                 ]
             },
             {
-                name: 'Doctor API (AJAX)',
-                file: 'doctor_api.php',
-                description: 'Internal AJAX API for doctor management with advanced filtering and owner-based access',
-                baseUrl: 'https://hospital.codeapka.com/umakant/ajax/doctor_api.php',
-                endpoints: [
-                    {
-                        action: 'list',
-                        method: 'POST',
-                        url: '?action=list',
-                        description: 'Get all doctors with advanced filtering and pagination',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'page': 1,
-                            'limit': 10,
-                            'search': 'doctor name or specialization',
-                            'owner_id': 1,
-                            'specialization': 'Cardiology'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'name': 'Dr. John Doe',
-                                    'qualification': 'MBBS, MD',
-                                    'specialization': 'Cardiology',
-                                    'hospital': 'City Hospital',
-                                    'contact_no': '9876543210',
-                                    'email': 'john.doe@hospital.com',
-                                    'address': '123 Medical Street',
-                                    'registration_no': 'MED12345',
-                                    'percent': 10.5,
-                                    'owner_id': 1,
-                                    'added_by': 1,
-                                    'created_at': '2025-09-08T10:30:00Z'
-                                }
-                            ],
-                            'total': 50,
-                            'page': 1,
-                            'limit': 10
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'POST',
-                        url: '?action=get',
-                        description: 'Get single doctor by ID with owner validation',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 1
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'name': 'Dr. John Doe',
-                                'qualification': 'MBBS, MD',
-                                'specialization': 'Cardiology',
-                                'hospital': 'City Hospital',
-                                'contact_no': '9876543210',
-                                'email': 'john.doe@hospital.com',
-                                'address': '123 Medical Street',
-                                'registration_no': 'MED12345',
-                                'percent': 10.5,
-                                'owner_id': 1,
-                                'added_by': 1
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save',
-                        description: 'Create or update doctor with owner assignment',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': '',
-                            'name': 'Dr. Jane Smith',
-                            'qualification': 'MBBS, MS',
-                            'specialization': 'Orthopedics',
-                            'hospital': 'General Hospital',
-                            'contact_no': '9876543211',
-                            'email': 'jane.smith@hospital.com',
-                            'address': '456 Health Avenue',
-                            'registration_no': 'MED12346',
-                            'percent': 12.0,
-                            'owner_id': 1
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Doctor saved successfully',
-                            'data': {
-                                'id': 2,
-                                'name': 'Dr. Jane Smith'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete',
-                        description: 'Delete doctor by ID (Admin/Master only)',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Doctor deleted successfully'
-                        }
-                    }
-                ]
-            },
-            {
-                name: 'Patient API (Patho)',
+                name: 'Patient API',
                 file: 'patient.php',
-                description: 'Patient management with demographics, medical history, and contact information',
+                description: 'Patient management API for Pathology > Patients menu page',
                 baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/patient.php',
                 endpoints: [
                     {
@@ -575,266 +451,71 @@
                 ]
             },
             {
-                name: 'Patient API (AJAX)',
-                file: 'patient_api.php',
-                description: 'Internal AJAX API for patient management with advanced filtering and owner-based access',
-                baseUrl: 'https://hospital.codeapka.com/umakant/ajax/patient_api.php',
+                name: 'Test Category API',
+                file: 'test_category.php',
+                description: 'Test category management API for Pathology > Test Categories menu page',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/test_category.php',
                 endpoints: [
                     {
                         action: 'list',
-                        method: 'POST',
+                        method: 'GET',
                         url: '?action=list',
-                        description: 'Get all patients with advanced filtering and pagination',
+                        description: 'Get all test categories',
                         headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'page': 1,
-                            'limit': 10,
-                            'search': 'patient name or phone',
-                            'owner_id': 1,
-                            'gender': 'Male',
-                            'age_from': 18,
-                            'age_to': 65
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         response: {
                             'success': true,
                             'data': [
                                 {
                                     'id': 1,
-                                    'name': 'John Patient',
-                                    'age': 35,
-                                    'gender': 'Male',
-                                    'phone': '9876543210',
-                                    'email': 'john.patient@email.com',
-                                    'address': '789 Patient Street',
-                                    'blood_group': 'O+',
-                                    'emergency_contact': '9876543211',
-                                    'medical_history': 'Diabetes, Hypertension',
-                                    'uhid': '2025000001',
-                                    'owner_id': 1,
-                                    'added_by': 1,
+                                    'name': 'Hematology',
+                                    'description': 'Blood-related tests',
+                                    'test_count': 15,
                                     'created_at': '2025-09-08T10:30:00Z'
                                 }
-                            ],
-                            'total': 50,
-                            'page': 1,
-                            'limit': 10
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'POST',
-                        url: '?action=get',
-                        description: 'Get single patient by ID with owner validation',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 1
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'name': 'John Patient',
-                                'age': 35,
-                                'gender': 'Male',
-                                'phone': '9876543210',
-                                'address': '789 Patient Street',
-                                'uhid': '2025000001',
-                                'owner_id': 1,
-                                'added_by': 1
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save',
-                        description: 'Create or update patient with owner assignment',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': '',
-                            'name': 'Jane Patient',
-                            'age': 28,
-                            'gender': 'Female',
-                            'phone': '9876543212',
-                            'email': 'jane.patient@email.com',
-                            'address': '321 Health Road',
-                            'blood_group': 'A+',
-                            'emergency_contact': '9876543213',
-                            'medical_history': 'Allergic to penicillin',
-                            'owner_id': 1
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Patient saved successfully',
-                            'data': {
-                                'id': 2,
-                                'name': 'Jane Patient'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete',
-                        description: 'Delete patient by ID (Admin/Master only)',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Patient deleted successfully'
-                        }
-                    }
-                ]
-            },
-            {
-                name: 'Entry API (Fixed)',
-                file: 'entry_api_fixed.php',
-                description: 'Comprehensive entry management with pricing fields, priority, referral source, and notes - FIXED VERSION',
-                baseUrl: 'https://hospital.codeapka.com/umakant/ajax/entry_api_fixed.php',
-                endpoints: [
-                    {
-                        action: 'list',
-                        method: 'POST',
-                        url: '?action=list',
-                        description: 'Get all entries with complete pricing information and additional fields',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'page': 1,
-                            'limit': 10,
-                            'patient_id': 1,
-                            'doctor_id': 2,
-                            'status': 'pending|completed|cancelled',
-                            'priority': 'normal|urgent|emergency|routine',
-                            'referral_source': 'doctor|hospital|walk_in|online|other'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'owner_id': 1,
-                                    'patient_id': 1,
-                                    'doctor_id': 2,
-                                    'entry_date': '2025-09-14',
-                                    'status': 'pending',
-                                    'priority': 'normal',
-                                    'referral_source': 'doctor',
-                                    'patient_contact': '9876543210',
-                                    'patient_address': '123 Patient Street',
-                                    'gender': 'Male',
-                                    'subtotal': 1080.00,
-                                    'discount_amount': 0.00,
-                                    'total_price': 1080.00,
-                                    'payment_status': 'pending',
-                                    'notes': 'Additional notes or remarks',
-                                    'added_by': 1,
-                                    'created_at': '2025-09-14 11:23:00',
-                                    'updated_at': '2025-09-14 11:23:00',
-                                    'patient_name': 'John Patient',
-                                    'doctor_name': 'Dr. Smith',
-                                    'added_by_username': 'admin'
-                                }
-                            ],
-                            'total': 25,
-                            'page': 1,
-                            'limit': 10
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'POST',
-                        url: '?action=get',
-                        description: 'Get single entry by ID with complete pricing and additional fields',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 1
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'owner_id': 1,
-                                'patient_id': 1,
-                                'doctor_id': 2,
-                                'entry_date': '2025-09-14',
-                                'status': 'pending',
-                                'priority': 'normal',
-                                'referral_source': 'doctor',
-                                'patient_contact': '9876543210',
-                                'patient_address': '123 Patient Street',
-                                'gender': 'Male',
-                                'subtotal': 1080.00,
-                                'discount_amount': 0.00,
-                                'total_price': 1080.00,
-                                'payment_status': 'pending',
-                                'notes': 'Additional notes or remarks',
-                                'added_by': 1,
-                                'created_at': '2025-09-14 11:23:00',
-                                'updated_at': '2025-09-14 11:23:00'
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save',
-                        description: 'Create or update entry with all pricing fields and additional information',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': '',
-                            'owner_id': 1,
-                            'patient_id': 1,
-                            'doctor_id': 2,
-                            'entry_date': '2025-09-14',
-                            'status': 'pending',
-                            'priority': 'urgent',
-                            'referral_source': 'hospital',
-                            'patient_contact': '9876543210',
-                            'patient_address': '123 Patient Street',
-                            'gender': 'Female',
-                            'subtotal': 1200.00,
-                            'discount_amount': 100.00,
-                            'total_price': 1100.00,
-                            'notes': 'Patient has allergy to penicillin',
-                            'tests': [
-                                {
-                                    'test_id': 1,
-                                    'test_name': 'Blood Test',
-                                    'price': 600.00
-                                },
-                                {
-                                    'test_id': 2,
-                                    'test_name': 'Urine Test',
-                                    'price': 600.00
-                                }
                             ]
+                        }
+                    },
+                    {
+                        action: 'get',
+                        method: 'GET',
+                        url: '?action=get&id=1',
+                        description: 'Get single test category by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         response: {
                             'success': true,
-                            'message': 'Entry saved successfully',
+                            'data': {
+                                'id': 1,
+                                'name': 'Hematology',
+                                'description': 'Blood-related tests',
+                                'test_count': 15
+                            }
+                        }
+                    },
+                    {
+                        action: 'save',
+                        method: 'POST',
+                        url: '?action=save',
+                        description: 'Create or update category',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'name': 'Biochemistry',
+                            'description': 'Chemical analysis tests'
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Category saved successfully',
                             'data': {
                                 'id': 2,
-                                'subtotal': 1200.00,
-                                'discount_amount': 100.00,
-                                'total_price': 1100.00,
-                                'priority': 'urgent',
-                                'referral_source': 'hospital'
+                                'name': 'Biochemistry'
                             }
                         }
                     },
@@ -842,16 +523,17 @@
                         action: 'delete',
                         method: 'POST',
                         url: '?action=delete',
-                        description: 'Delete entry by ID (Admin/Master only)',
+                        description: 'Delete category by ID',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
                             'id': 2
                         },
                         response: {
                             'success': true,
-                            'message': 'Entry deleted successfully'
+                            'message': 'Category deleted successfully'
                         }
                     }
                 ]
@@ -859,7 +541,7 @@
             {
                 name: 'Test API',
                 file: 'test.php',
-                description: 'Laboratory test management with pricing, reference ranges, and categories',
+                description: 'Laboratory test management API for Pathology > Tests menu page',
                 baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/test.php',
                 endpoints: [
                     {
@@ -973,871 +655,19 @@
                 ]
             },
             {
-                name: 'Test Categories API',
-                file: 'test_category.php',
-                description: 'Manage test categories and groupings',
-                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/test_category.php',
-                endpoints: [
-                    {
-                        action: 'list',
-                        method: 'GET',
-                        url: '?action=list',
-                        description: 'Get all test categories',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'name': 'Hematology',
-                                    'description': 'Blood-related tests',
-                                    'test_count': 15,
-                                    'created_at': '2025-09-08T10:30:00Z'
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'GET',
-                        url: '?action=get&id=1',
-                        description: 'Get single test category by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'name': 'Hematology',
-                                'description': 'Blood-related tests',
-                                'test_count': 15
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save',
-                        description: 'Create or update category',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'name': 'Biochemistry',
-                            'description': 'Chemical analysis tests'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Category saved successfully',
-                            'data': {
-                                'id': 2,
-                                'name': 'Biochemistry'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete',
-                        description: 'Delete category by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Category deleted successfully'
-                        }
-                    }
-                ]
-            },
-            {
-                name: 'Test API (AJAX)',
-                file: 'test_api.php',
-                description: 'Internal AJAX API for laboratory test management with advanced features',
-                baseUrl: 'https://hospital.codeapka.com/umakant/ajax/test_api.php',
-                endpoints: [
-                    {
-                        action: 'list',
-                        method: 'POST',
-                        url: '?action=list',
-                        description: 'Get all laboratory tests with advanced filtering',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'page': 1,
-                            'limit': 10,
-                            'category_id': 1,
-                            'search': 'test name',
-                            'price_min': 100,
-                            'price_max': 1000
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'name': 'Complete Blood Count',
-                                    'category_id': 1,
-                                    'category_name': 'Hematology',
-                                    'description': 'Complete blood count with differential',
-                                    'price': 500,
-                                    'unit': 'million cells/mcL',
-                                    'method': 'Automated',
-                                    'reference_range': '4.5-5.5 million cells/mcL',
-                                    'min_male': 4.5,
-                                    'max_male': 5.5,
-                                    'min_female': 4.0,
-                                    'max_female': 5.0,
-                                    'default_result': 'Normal',
-                                    'test_code': 'CBC001',
-                                    'print_new_page': 0,
-                                    'sub_heading': 0,
-                                    'shortcut': 'CBC',
-                                    'added_by': 1,
-                                    'created_at': '2025-09-08T10:30:00Z'
-                                }
-                            ],
-                            'total': 100,
-                            'page': 1,
-                            'limit': 10
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'POST',
-                        url: '?action=get',
-                        description: 'Get single test by ID with complete details',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 1
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'name': 'Complete Blood Count',
-                                'category_id': 1,
-                                'category_name': 'Hematology',
-                                'description': 'Complete blood count with differential',
-                                'price': 500,
-                                'unit': 'million cells/mcL',
-                                'method': 'Automated',
-                                'reference_range': '4.5-5.5 million cells/mcL',
-                                'min_male': 4.5,
-                                'max_male': 5.5,
-                                'min_female': 4.0,
-                                'max_female': 5.0,
-                                'default_result': 'Normal',
-                                'test_code': 'CBC001',
-                                'print_new_page': 0,
-                                'sub_heading': 0,
-                                'shortcut': 'CBC',
-                                'added_by': 1
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save',
-                        description: 'Create or update test with complete parameters',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': '',
-                            'name': 'Lipid Profile',
-                            'category_id': 2,
-                            'description': 'Complete lipid panel',
-                            'price': 800,
-                            'unit': 'mg/dL',
-                            'method': 'Enzymatic',
-                            'reference_range': '<200 mg/dL',
-                            'min_male': 0,
-                            'max_male': 200,
-                            'min_female': 0,
-                            'max_female': 200,
-                            'default_result': 'Normal',
-                            'test_code': 'LP001',
-                            'print_new_page': 0,
-                            'sub_heading': 0,
-                            'shortcut': 'LP'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Test saved successfully',
-                            'data': {
-                                'id': 2,
-                                'name': 'Lipid Profile'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete',
-                        description: 'Delete test by ID (Admin/Master only)',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Test deleted successfully'
-                        }
-                    }
-                ]
-            },
-            {
-                name: 'Plan API',
-                file: 'plan_api.php',
-                description: 'Subscription plan management with pricing, features, and QR code support',
-                baseUrl: 'https://hospital.codeapka.com/umakant/ajax/plan_api.php',
-                endpoints: [
-                    {
-                        action: 'list',
-                        method: 'POST',
-                        url: '?action=list',
-                        description: 'Get all subscription plans',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'page': 1,
-                            'limit': 10,
-                            'time_type': 'monthly|yearly'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'name': 'Basic Plan',
-                                    'description': 'Basic features for small clinics',
-                                    'price': 999.00,
-                                    'upi': 'hospital@paytm',
-                                    'time_type': 'monthly',
-                                    'start_date': '2025-01-01',
-                                    'end_date': '2025-12-31',
-                                    'qr_code': 'uploads/qr/qr_basic.png',
-                                    'added_by': 1,
-                                    'created_at': '2025-01-01T10:00:00Z',
-                                    'updated_at': '2025-01-01T10:00:00Z'
-                                }
-                            ],
-                            'total': 5,
-                            'page': 1,
-                            'limit': 10
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'POST',
-                        url: '?action=get',
-                        description: 'Get single plan by ID',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 1
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'name': 'Basic Plan',
-                                'description': 'Basic features for small clinics',
-                                'price': 999.00,
-                                'upi': 'hospital@paytm',
-                                'time_type': 'monthly',
-                                'start_date': '2025-01-01',
-                                'end_date': '2025-12-31',
-                                'qr_code': 'uploads/qr/qr_basic.png',
-                                'added_by': 1
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save',
-                        description: 'Create or update plan with QR code support',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': '',
-                            'name': 'Premium Plan',
-                            'description': 'Premium features for large hospitals',
-                            'price': 2999.00,
-                            'upi': 'hospital@paytm',
-                            'time_type': 'yearly',
-                            'start_date': '2025-01-01',
-                            'end_date': '2025-12-31'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Plan saved successfully',
-                            'data': {
-                                'id': 2,
-                                'name': 'Premium Plan'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete',
-                        description: 'Delete plan by ID (Admin/Master only)',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Plan deleted successfully'
-                        }
-                    }
-                ]
-            },
-            {
-                name: 'Owner API',
-                file: 'owner_api.php',
-                description: 'Hospital/clinic owner management with multi-tenant support',
-                baseUrl: 'https://hospital.codeapka.com/umakant/ajax/owner_api.php',
-                endpoints: [
-                    {
-                        action: 'list',
-                        method: 'POST',
-                        url: '?action=list',
-                        description: 'Get all owners/clinics with pagination',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'page': 1,
-                            'limit': 10,
-                            'search': 'owner name or clinic name'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'name': 'City Hospital',
-                                    'contact_person': 'Dr. John Smith',
-                                    'email': 'admin@cityhospital.com',
-                                    'phone': '9876543210',
-                                    'address': '123 Medical Street, City',
-                                    'license_number': 'MED12345',
-                                    'is_active': 1,
-                                    'created_at': '2025-01-01T10:00:00Z',
-                                    'updated_at': '2025-01-01T10:00:00Z'
-                                }
-                            ],
-                            'total': 10,
-                            'page': 1,
-                            'limit': 10
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'POST',
-                        url: '?action=get',
-                        description: 'Get single owner by ID',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 1
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'name': 'City Hospital',
-                                'contact_person': 'Dr. John Smith',
-                                'email': 'admin@cityhospital.com',
-                                'phone': '9876543210',
-                                'address': '123 Medical Street, City',
-                                'license_number': 'MED12345',
-                                'is_active': 1
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save',
-                        description: 'Create or update owner/clinic',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': '',
-                            'name': 'General Hospital',
-                            'contact_person': 'Dr. Jane Doe',
-                            'email': 'admin@generalhospital.com',
-                            'phone': '9876543211',
-                            'address': '456 Health Avenue, City',
-                            'license_number': 'MED12346',
-                            'is_active': 1
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Owner saved successfully',
-                            'data': {
-                                'id': 2,
-                                'name': 'General Hospital'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete',
-                        description: 'Delete owner by ID (Admin/Master only)',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Owner deleted successfully'
-                        }
-                    }
-                ]
-            },
-            {
-                name: 'User API (AJAX)',
-                file: 'user_api.php',
-                description: 'Internal user management API with role-based access control',
-                baseUrl: 'https://hospital.codeapka.com/umakant/ajax/user_api.php',
-                endpoints: [
-                    {
-                        action: 'list',
-                        method: 'POST',
-                        url: '?action=list',
-                        description: 'Get all users with role filtering',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'page': 1,
-                            'limit': 10,
-                            'search': 'username or full name',
-                            'role': 'user|admin|master',
-                            'is_active': 1
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'username': 'admin',
-                                    'full_name': 'System Administrator',
-                                    'email': 'admin@hospital.com',
-                                    'role': 'admin',
-                                    'is_active': 1,
-                                    'created_at': '2025-01-01T10:00:00Z',
-                                    'last_login': '2025-01-15T14:30:00Z'
-                                }
-                            ],
-                            'total': 5,
-                            'page': 1,
-                            'limit': 10
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'POST',
-                        url: '?action=get',
-                        description: 'Get single user by ID',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 1
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'username': 'admin',
-                                'full_name': 'System Administrator',
-                                'email': 'admin@hospital.com',
-                                'role': 'admin',
-                                'is_active': 1
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save',
-                        description: 'Create or update user',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': '',
-                            'username': 'newuser',
-                            'password': 'password123',
-                            'full_name': 'New User',
-                            'email': 'newuser@hospital.com',
-                            'role': 'user',
-                            'is_active': 1
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'User saved successfully',
-                            'data': {
-                                'id': 2,
-                                'username': 'newuser'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete',
-                        description: 'Deactivate user (soft delete)',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'User deactivated successfully'
-                        }
-                    }
-                ]
-            },
-            {
-                name: 'Notice API (AJAX)',
-                file: 'notice_api.php',
-                description: 'Internal notice management API for hospital announcements',
-                baseUrl: 'https://hospital.codeapka.com/umakant/ajax/notice_api.php',
-                endpoints: [
-                    {
-                        action: 'list',
-                        method: 'POST',
-                        url: '?action=list',
-                        description: 'Get all notices with date filtering',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'page': 1,
-                            'limit': 10,
-                            'active': 1,
-                            'date_from': '2025-01-01',
-                            'date_to': '2025-12-31'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'title': 'Hospital Maintenance Notice',
-                                    'content': 'The hospital will be undergoing maintenance on Sunday from 8 AM to 12 PM.',
-                                    'start_date': '2025-01-15',
-                                    'end_date': '2025-01-15',
-                                    'active': 1,
-                                    'added_by': 1,
-                                    'created_at': '2025-01-10T10:00:00Z',
-                                    'updated_at': '2025-01-10T10:00:00Z',
-                                    'added_by_username': 'admin'
-                                }
-                            ],
-                            'total': 3,
-                            'page': 1,
-                            'limit': 10
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'POST',
-                        url: '?action=get',
-                        description: 'Get single notice by ID',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 1
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'title': 'Hospital Maintenance Notice',
-                                'content': 'The hospital will be undergoing maintenance on Sunday from 8 AM to 12 PM.',
-                                'start_date': '2025-01-15',
-                                'end_date': '2025-01-15',
-                                'active': 1,
-                                'added_by': 1,
-                                'created_at': '2025-01-10T10:00:00Z',
-                                'updated_at': '2025-01-10T10:00:00Z'
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save',
-                        description: 'Create or update notice (Admin/Master only)',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': '',
-                            'title': 'New Hospital Notice',
-                            'content': 'This is a new hospital notice for all staff and patients.',
-                            'start_date': '2025-01-20',
-                            'end_date': '2025-01-25',
-                            'active': 1
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Notice saved successfully',
-                            'data': {
-                                'id': 2,
-                                'title': 'New Hospital Notice'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete',
-                        description: 'Delete notice by ID (Admin/Master only)',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Notice deleted successfully'
-                        }
-                    }
-                ]
-            },
-            {
-                name: 'Dashboard Counts API',
-                file: 'dashboard_counts.php',
-                description: 'Dashboard statistics and counts for all modules',
-                baseUrl: 'https://hospital.codeapka.com/umakant/ajax/dashboard_counts.php',
-                endpoints: [
-                    {
-                        action: 'get',
-                        method: 'POST',
-                        url: '?action=get',
-                        description: 'Get dashboard statistics and counts',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'date_from': '2025-01-01',
-                            'date_to': '2025-01-31',
-                            'owner_id': 1
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'patients': {
-                                    'total': 150,
-                                    'today': 5,
-                                    'this_month': 25
-                                },
-                                'doctors': {
-                                    'total': 12,
-                                    'active': 10
-                                },
-                                'entries': {
-                                    'total': 300,
-                                    'pending': 25,
-                                    'completed': 250,
-                                    'today': 8
-                                },
-                                'tests': {
-                                    'total': 50,
-                                    'active': 45
-                                },
-                                'revenue': {
-                                    'today': 15000.00,
-                                    'this_month': 450000.00,
-                                    'total': 1200000.00
-                                }
-                            }
-                        }
-                    }
-                ]
-            },
-            {
-                name: 'Recent Activity API',
-                file: 'recent_activity.php',
-                description: 'Get recent system activities and audit logs',
-                baseUrl: 'https://hospital.codeapka.com/umakant/ajax/recent_activity.php',
-                endpoints: [
-                    {
-                        action: 'get',
-                        method: 'POST',
-                        url: '?action=get',
-                        description: 'Get recent activities across all modules',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'limit': 20,
-                            'module': 'all|patients|doctors|entries|tests',
-                            'user_id': 1
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'module': 'entries',
-                                    'action': 'created',
-                                    'description': 'New entry created for patient John Doe',
-                                    'user_id': 1,
-                                    'user_name': 'admin',
-                                    'created_at': '2025-01-15T14:30:00Z',
-                                    'details': {
-                                        'entry_id': 25,
-                                        'patient_name': 'John Doe',
-                                        'amount': 1200.00
-                                    }
-                                }
-                            ],
-                            'total': 50,
-                            'limit': 20
-                        }
-                    }
-                ]
-            },
-            {
-                name: 'Upload File API',
-                file: 'upload_file.php',
-                description: 'File upload management for documents, images, and QR codes',
-                baseUrl: 'https://hospital.codeapka.com/umakant/ajax/upload_file.php',
-                endpoints: [
-                    {
-                        action: 'upload',
-                        method: 'POST',
-                        url: '?action=upload',
-                        description: 'Upload file with validation and categorization',
-                        headers: {
-                            'Content-Type': 'multipart/form-data'
-                        },
-                        body: {
-                            'file': 'file_object',
-                            'category': 'qr_code|document|image',
-                            'description': 'QR code for payment',
-                            'max_size': 2097152
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'File uploaded successfully',
-                            'data': {
-                                'file_path': 'uploads/qr/qr_payment_123.png',
-                                'file_name': 'qr_payment_123.png',
-                                'file_size': 15432,
-                                'file_type': 'image/png',
-                                'uploaded_at': '2025-01-15T14:30:00Z'
-                            }
-                        }
-                    },
-                    {
-                        action: 'list',
-                        method: 'POST',
-                        url: '?action=list',
-                        description: 'List uploaded files with filtering',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'category': 'qr_code|document|image',
-                            'page': 1,
-                            'limit': 10
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'file_path': 'uploads/qr/qr_payment_123.png',
-                                    'file_name': 'qr_payment_123.png',
-                                    'category': 'qr_code',
-                                    'description': 'QR code for payment',
-                                    'file_size': 15432,
-                                    'file_type': 'image/png',
-                                    'uploaded_by': 1,
-                                    'created_at': '2025-01-15T14:30:00Z'
-                                }
-                            ],
-                            'total': 5,
-                            'page': 1,
-                            'limit': 10
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete',
-                        description: 'Delete uploaded file',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 1
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'File deleted successfully'
-                        }
-                    }
-                ]
-            },
-
-            {
                 name: 'Entry API',
                 file: 'entry.php',
-                description: 'Comprehensive test entry management aligned with database columns (id, server_id, patient_id, doctor_id, test_id, entry_date, result_value, unit, remarks, status, added_by, price, discount_amount, total_price, created_at, updated_at)',
+                description: 'Test entry management API for Pathology > Entries menu page with complete pricing fields',
                 baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/entry.php',
                 endpoints: [
                     {
                         action: 'list',
                         method: 'GET',
                         url: '?action=list&secret_key=hospital-api-secret-2024',
-                        description: 'Get all test entries with complete database columns and enriched labels (patient_name, patient_uhid, doctor_name, test_name, added_by_username)',
+                        description: 'Get all test entries with complete database columns and enriched labels',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        note: 'Using secret_key parameter for authentication',
                         queryParams: {
                             'patient_id': 1,
                             'test_id': 2,
@@ -1995,10 +825,121 @@
                 ]
             },
             {
-                name: 'Root User API',
-                file: 'user_api.php',
-                description: 'User management API in root folder - Complete CRUD operations for users with authentication and role management',
-                baseUrl: 'https://hospital.codeapka.com/user_api.php',
+                name: 'Owner API',
+                file: 'owner.php',
+                description: 'Hospital/clinic owner management API for Pathology > Owners menu page',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/owner.php',
+                endpoints: [
+                    {
+                        action: 'list',
+                        method: 'GET',
+                        url: '?action=list',
+                        description: 'Get all owners/clinics with pagination',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        queryParams: {
+                            'page': 1,
+                            'limit': 10,
+                            'search': 'owner name or clinic name'
+                        },
+                        response: {
+                            'success': true,
+                            'data': [
+                                {
+                                    'id': 1,
+                                    'name': 'City Hospital',
+                                    'contact_person': 'Dr. John Smith',
+                                    'email': 'admin@cityhospital.com',
+                                    'phone': '9876543210',
+                                    'address': '123 Medical Street, City',
+                                    'license_number': 'MED12345',
+                                    'is_active': 1,
+                                    'created_at': '2025-01-01T10:00:00Z',
+                                    'updated_at': '2025-01-01T10:00:00Z'
+                                }
+                            ],
+                            'total': 10,
+                            'page': 1,
+                            'limit': 10
+                        }
+                    },
+                    {
+                        action: 'get',
+                        method: 'GET',
+                        url: '?action=get&id=1',
+                        description: 'Get single owner by ID',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'id': 1,
+                                'name': 'City Hospital',
+                                'contact_person': 'Dr. John Smith',
+                                'email': 'admin@cityhospital.com',
+                                'phone': '9876543210',
+                                'address': '123 Medical Street, City',
+                                'license_number': 'MED12345',
+                                'is_active': 1
+                            }
+                        }
+                    },
+                    {
+                        action: 'save',
+                        method: 'POST',
+                        url: '?action=save',
+                        description: 'Create or update owner/clinic',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'id': '',
+                            'name': 'General Hospital',
+                            'contact_person': 'Dr. Jane Doe',
+                            'email': 'admin@generalhospital.com',
+                            'phone': '9876543211',
+                            'address': '456 Health Avenue, City',
+                            'license_number': 'MED12346',
+                            'is_active': 1
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Owner saved successfully',
+                            'data': {
+                                'id': 2,
+                                'name': 'General Hospital'
+                            }
+                        }
+                    },
+                    {
+                        action: 'delete',
+                        method: 'POST',
+                        url: '?action=delete',
+                        description: 'Delete owner by ID (Admin/Master only)',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'id': 2
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Owner deleted successfully'
+                        }
+                    }
+                ]
+            },
+            {
+                name: 'User API',
+                file: 'user.php',
+                description: 'User management API for Pathology > Users menu page',
+                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/user.php',
                 endpoints: [
                     {
                         action: 'list',
@@ -2006,7 +947,8 @@
                         url: '?action=list',
                         description: 'Get all users with pagination and filtering',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         queryParams: {
                             'page': 1,
@@ -2042,7 +984,8 @@
                         url: '?action=get&id=1',
                         description: 'Get single user by ID',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         response: {
                             'success': true,
@@ -2063,7 +1006,8 @@
                         url: '?action=create',
                         description: 'Create new user',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
                             'username': 'newuser',
@@ -2089,7 +1033,8 @@
                         url: '?action=update&id=3',
                         description: 'Update existing user',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
                             'full_name': 'Updated User Name',
@@ -2108,7 +1053,8 @@
                         url: '?action=delete&id=3',
                         description: 'Deactivate user (soft delete)',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         response: {
                             'success': true,
@@ -2121,7 +1067,8 @@
                         url: '?action=activate',
                         description: 'Activate deactivated user',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
                             'id': 3
@@ -2134,163 +1081,9 @@
                 ]
             },
             {
-                name: 'Root Login API',
-                file: 'login_api.php',
-                description: 'Authentication and session management API in root folder - Login, logout, session management, and profile operations',
-                baseUrl: 'https://hospital.codeapka.com/login_api.php',
-                endpoints: [
-                    {
-                        action: 'login',
-                        method: 'POST',
-                        url: '?action=login',
-                        description: 'Authenticate user and create session',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'username': 'umakant',
-                            'password': 'your_password'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Login successful',
-                            'data': {
-                                'user': {
-                                    'id': 1,
-                                    'username': 'umakant',
-                                    'full_name': 'Umakant Yadav',
-                                    'email': 'umakant171991@gmail.com',
-                                    'role': 'master',
-                                    'is_active': true,
-                                    'user_type': 0
-                                },
-                                'session_id': 'abc123def456',
-                                'expires_in': 3600
-                            }
-                        }
-                    },
-                    {
-                        action: 'logout',
-                        method: 'POST',
-                        url: '?action=logout',
-                        description: 'Destroy session and logout user',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Logout successful'
-                        }
-                    },
-                    {
-                        action: 'check_session',
-                        method: 'GET',
-                        url: '?action=check_session',
-                        description: 'Verify if user session is valid',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Session is valid',
-                            'data': {
-                                'user': {
-                                    'id': 1,
-                                    'username': 'umakant',
-                                    'role': 'master',
-                                    'full_name': 'Umakant Yadav'
-                                },
-                                'session_id': 'abc123def456',
-                                'login_time': 1695720000
-                            }
-                        }
-                    },
-                    {
-                        action: 'change_password',
-                        method: 'POST',
-                        url: '?action=change_password',
-                        description: 'Change user password (requires active session)',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'current_password': 'old_password',
-                            'new_password': 'new_password',
-                            'confirm_password': 'new_password'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Password changed successfully'
-                        }
-                    },
-                    {
-                        action: 'forgot_password',
-                        method: 'POST',
-                        url: '?action=forgot_password',
-                        description: 'Initiate password reset process',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'username': 'umakant',
-                            'email': 'umakant171991@gmail.com'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Password reset instructions have been sent',
-                            'debug': {
-                                'reset_token': 'abc123def456789',
-                                'user_id': 1,
-                                'expires_at': '2025-09-26T15:30:00Z'
-                            }
-                        }
-                    },
-                    {
-                        action: 'profile',
-                        method: 'GET',
-                        url: '?action=profile',
-                        description: 'Get current user profile (requires active session)',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'username': 'umakant',
-                                'full_name': 'Umakant Yadav',
-                                'email': 'umakant171991@gmail.com',
-                                'role': 'master',
-                                'is_active': true,
-                                'user_type': 0,
-                                'created_at': '2025-09-26T10:12:24Z',
-                                'last_login': '2025-09-26T14:30:00Z'
-                            }
-                        }
-                    },
-                    {
-                        action: 'update_profile',
-                        method: 'POST',
-                        url: '?action=update_profile',
-                        description: 'Update user profile information (requires active session)',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'full_name': 'Updated Full Name',
-                            'email': 'updated@hospital.com'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Profile updated successfully'
-                        }
-                    }
-                ]
-            },
-            {
                 name: 'Notice API',
                 file: 'notice.php',
-                description: 'Hospital notice and announcement management with date range and active status control',
+                description: 'Notice management API for Pathology > Notices menu page',
                 baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/notice.php',
                 endpoints: [
                     {
