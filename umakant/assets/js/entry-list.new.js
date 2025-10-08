@@ -1191,34 +1191,54 @@ function populateEditForm(entry) {
     $('#priority').val(entry.priority || 'normal');
     
     // Populate pricing fields - handle both direct fields and aggregated fields
-    console.log('Complete entry object:', entry);
+    console.log('=== EDIT ENTRY DEBUG ===');
+    console.log('Complete entry object:', JSON.stringify(entry, null, 2));
+    console.log('All entry keys:', Object.keys(entry));
     console.log('Entry pricing data:', {
         subtotal: entry.subtotal,
         discount_amount: entry.discount_amount,
         total_price: entry.total_price,
         aggregated_total_price: entry.aggregated_total_price,
-        aggregated_total_discount: entry.aggregated_total_discount
+        aggregated_total_discount: entry.aggregated_total_discount,
+        final_amount: entry.final_amount,
+        price: entry.price,
+        agg_total_price: entry.agg_total_price,
+        agg_total_discount: entry.agg_total_discount
     });
     
     // Use direct fields if available (check for null/undefined, not falsy), otherwise use aggregated fields
-    // Use ?? (nullish coalescing) to handle 0 values correctly
+    // Check ALL possible field name variations from the API response
     const subtotalValue = (entry.subtotal !== null && entry.subtotal !== undefined) 
-        ? entry.subtotal 
+        ? parseFloat(entry.subtotal)
         : (entry.aggregated_total_price !== null && entry.aggregated_total_price !== undefined)
-            ? entry.aggregated_total_price
-            : 0;
+            ? parseFloat(entry.aggregated_total_price)
+            : (entry.agg_total_price !== null && entry.agg_total_price !== undefined)
+                ? parseFloat(entry.agg_total_price)
+                : (entry.price !== null && entry.price !== undefined)
+                    ? parseFloat(entry.price)
+                    : 0;
     
     const discountValue = (entry.discount_amount !== null && entry.discount_amount !== undefined)
-        ? entry.discount_amount
+        ? parseFloat(entry.discount_amount)
         : (entry.aggregated_total_discount !== null && entry.aggregated_total_discount !== undefined)
-            ? entry.aggregated_total_discount
-            : 0;
+            ? parseFloat(entry.aggregated_total_discount)
+            : (entry.agg_total_discount !== null && entry.agg_total_discount !== undefined)
+                ? parseFloat(entry.agg_total_discount)
+                : (entry.total_discount !== null && entry.total_discount !== undefined)
+                    ? parseFloat(entry.total_discount)
+                    : 0;
     
     const totalValue = (entry.total_price !== null && entry.total_price !== undefined)
-        ? entry.total_price
+        ? parseFloat(entry.total_price)
         : (entry.final_amount !== null && entry.final_amount !== undefined)
-            ? entry.final_amount
+            ? parseFloat(entry.final_amount)
             : Math.max(subtotalValue - discountValue, 0);
+    
+    console.log('Calculated pricing values:', {
+        subtotalValue: subtotalValue,
+        discountValue: discountValue,
+        totalValue: totalValue
+    });
     
     // Format pricing values properly - always show 2 decimal places
     const subtotal = parseFloat(subtotalValue).toFixed(2);
@@ -1337,22 +1357,31 @@ function populateEditForm(entry) {
         // This handles cases where the fields might have been cleared or reset
         setTimeout(function() {
             // Recalculate subtotal from entry data (not from test selections)
+            // Check ALL possible field name variations
             const finalSubtotal = (entry.subtotal !== null && entry.subtotal !== undefined) 
-                ? entry.subtotal 
+                ? parseFloat(entry.subtotal)
                 : (entry.aggregated_total_price !== null && entry.aggregated_total_price !== undefined)
-                    ? entry.aggregated_total_price
-                    : 0;
+                    ? parseFloat(entry.aggregated_total_price)
+                    : (entry.agg_total_price !== null && entry.agg_total_price !== undefined)
+                        ? parseFloat(entry.agg_total_price)
+                        : (entry.price !== null && entry.price !== undefined)
+                            ? parseFloat(entry.price)
+                            : 0;
             
             const finalDiscount = (entry.discount_amount !== null && entry.discount_amount !== undefined)
-                ? entry.discount_amount
+                ? parseFloat(entry.discount_amount)
                 : (entry.aggregated_total_discount !== null && entry.aggregated_total_discount !== undefined)
-                    ? entry.aggregated_total_discount
-                    : 0;
+                    ? parseFloat(entry.aggregated_total_discount)
+                    : (entry.agg_total_discount !== null && entry.agg_total_discount !== undefined)
+                        ? parseFloat(entry.agg_total_discount)
+                        : (entry.total_discount !== null && entry.total_discount !== undefined)
+                            ? parseFloat(entry.total_discount)
+                            : 0;
             
             const finalTotal = (entry.total_price !== null && entry.total_price !== undefined)
-                ? entry.total_price
+                ? parseFloat(entry.total_price)
                 : (entry.final_amount !== null && entry.final_amount !== undefined)
-                    ? entry.final_amount
+                    ? parseFloat(entry.final_amount)
                     : Math.max(finalSubtotal - finalDiscount, 0);
             
             $('#subtotal').val(parseFloat(finalSubtotal).toFixed(2));
@@ -1362,7 +1391,12 @@ function populateEditForm(entry) {
             console.log('Pricing fields re-populated after tests loaded:', {
                 subtotal: $('#subtotal').val(),
                 discountAmount: $('#discountAmount').val(),
-                totalPrice: $('#totalPrice').val()
+                totalPrice: $('#totalPrice').val(),
+                rawValues: {
+                    finalSubtotal: finalSubtotal,
+                    finalDiscount: finalDiscount,
+                    finalTotal: finalTotal
+                }
             });
         }, 200);
     });
