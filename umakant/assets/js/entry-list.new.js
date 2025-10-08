@@ -383,8 +383,8 @@ function loadTests(callback) {
                     const currentVal = $this.val();
                     $this.empty().append('<option value="">Select Test</option>');
                     response.data.forEach(function(test) {
-                        // include category and unit as data attributes for easy population
-                        const opt = $(`<option value="${test.id}" data-price="${test.price || 0}" data-unit="${(test.unit||'')}" data-category-id="${test.category_id||''}" data-category-name="${(test.category_name||'')}">${test.name} - ₹${test.price || 0}</option>`);
+                        // include category, unit, and reference range as data attributes for easy population
+                        const opt = $(`<option value="${test.id}" data-price="${test.price || 0}" data-unit="${(test.unit||'')}" data-reference-range="${(test.reference_range||'')}" data-category-id="${test.category_id||''}" data-category-name="${(test.category_name||'')}">${test.name} - ₹${test.price || 0}</option>`);
                         $this.append(opt);
                     });
                     // restore previously selected value if still present
@@ -421,6 +421,7 @@ function setupEventHandlers() {
         const $opt = $(this).find('option:selected');
         const price = $opt.data('price');
         const unit = $opt.data('unit') || '';
+        const referenceRange = $opt.data('reference-range') || '';
         const categoryName = $opt.data('category-name') || '';
         const categoryId = $opt.data('category-id') || '';
 
@@ -428,16 +429,14 @@ function setupEventHandlers() {
         // sanitize incoming values
         const safePrice = (typeof price !== 'undefined' && price !== null) ? price : '';
         const safeUnit = unit || '';
+        const safeReferenceRange = referenceRange || '';
         const safeCategoryName = categoryName || '';
         const safeCategoryId = categoryId || '';
 
-        // set fields in explicit order matching layout
-        if (safePrice !== '') {
-            $row.find('input[name*="[price]"]').val(safePrice);
-        }
         // Clear result when a new test is selected (user can enter new result)
         $row.find('.test-result').val('');
         $row.find('.test-unit').val(safeUnit);
+        $row.find('.test-reference-range').val(safeReferenceRange);
         $row.find('.test-category').val(safeCategoryName);
         $row.find('.test-category-id').val(safeCategoryId);
     });
@@ -531,7 +530,7 @@ function openAddEntryModal() {
     // Reset tests container
     $('#testsContainer').html(`
         <div class="test-row row mb-2">
-                <div class="col-md-3">
+            <div class="col-md-3">
                 <select class="form-control test-select select2" name="tests[0][test_id]" required>
                     <option value="">Select Test</option>
                 </select>
@@ -543,11 +542,11 @@ function openAddEntryModal() {
             <div class="col-md-2">
                 <input type="text" class="form-control test-result" name="tests[0][result_value]" placeholder="Result">
             </div>
-            <div class="col-md-1">
-                <input type="text" class="form-control test-unit" name="tests[0][unit]" placeholder="Unit" readonly>
+            <div class="col-md-2">
+                <input type="text" class="form-control test-reference-range" name="tests[0][reference_range]" placeholder="Reference Range" readonly>
             </div>
-            <div class="col-md-3">
-                <input type="number" class="form-control" name="tests[0][price]" placeholder="0.00" step="0.01" min="0" required>
+            <div class="col-md-2">
+                <input type="text" class="form-control test-unit" name="tests[0][unit]" placeholder="Unit" readonly>
             </div>
             <div class="col-md-1">
                 <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
@@ -631,11 +630,11 @@ function addTestRow() {
             <div class="col-md-2">
                 <input type="text" class="form-control test-result" name="tests[${testRowCount}][result_value]" placeholder="Result">
             </div>
-            <div class="col-md-1">
-                <input type="text" class="form-control test-unit" name="tests[${testRowCount}][unit]" placeholder="Unit" readonly>
+            <div class="col-md-2">
+                <input type="text" class="form-control test-reference-range" name="tests[${testRowCount}][reference_range]" placeholder="Reference Range" readonly>
             </div>
-            <div class="col-md-3">
-                <input type="number" class="form-control" name="tests[${testRowCount}][price]" placeholder="0.00" step="0.01" min="0" required>
+            <div class="col-md-2">
+                <input type="text" class="form-control test-unit" name="tests[${testRowCount}][unit]" placeholder="Unit" readonly>
             </div>
             <div class="col-md-1">
                 <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
@@ -651,7 +650,7 @@ function addTestRow() {
     setTimeout(function() {
         const $newRow = $('#testsContainer').find('.test-row').last();
         $newRow.find('.test-result').prop('readonly', false).prop('disabled', false);
-        $newRow.find('.test-unit').prop('readonly', true);
+        $newRow.find('.test-unit, .test-reference-range').prop('readonly', true);
     }, 50);
 }
 
@@ -692,23 +691,20 @@ function saveEntry(formElement) {
     if (!$testRows || $testRows.length === 0) { $testRows = $('#testsContainer').find('.test-row'); }
     $testRows.each(function() {
         const testId = $(this).find('.test-select').val();
-    const price = $(this).find('input[name*="[price]"]').val();
-    // discount column removed from UI; set to 0 by default
-    const discount = 0;
         const resultVal = $(this).find('.test-result').val();
         const unitVal = $(this).find('.test-unit').val() || '';
+        const referenceRangeVal = $(this).find('.test-reference-range').val() || '';
         const categoryName = $(this).find('.test-category').val() || '';
         const categoryId = $(this).find('.test-category-id').val() || '';
         const testName = $(this).find('.test-select option:selected').text() || '';
 
-        if (testId && price) {
+        if (testId) {
             tests.push({
                 test_id: testId,
                 test_name: testName,
-                price: parseFloat(price),
-                discount_amount: parseFloat(discount || 0),
                 result_value: resultVal || null,
                 unit: unitVal,
+                reference_range: referenceRangeVal,
                 category_id: categoryId,
                 category_name: categoryName
             });
@@ -869,33 +865,33 @@ function displayEntryDetails(entry) {
                 <h6><strong><i class="fas fa-flask mr-2"></i>Test Details</strong></h6>
                 <div class="table-responsive">
                     <table class="table table-sm table-bordered">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>Test Name</th>
-                                <th>Category</th>
-                                <th>Result</th>
-                                <th>Unit</th>
-                                <th>Price</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Test Name</th>
+                                    <th>Category</th>
+                                    <th>Result</th>
+                                    <th>Reference Range</th>
+                                    <th>Unit</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
                         <tbody>
         `;
         
-        entry.tests.forEach(function(test) {
-            const testStatus = test.status || 'pending';
-            const statusBadge = testStatus === 'completed' ? 'success' : (testStatus === 'pending' ? 'warning' : 'secondary');
-            testsTable += `
-                <tr>
-                    <td>${test.test_name || 'N/A'}</td>
-                    <td>${test.category_name || 'N/A'}</td>
-                    <td>${test.result_value || '-'}</td>
-                    <td>${test.unit || '-'}</td>
-                    <td>₹${parseFloat(test.price || 0).toFixed(2)}</td>
-                    <td><span class="badge badge-${statusBadge}">${testStatus}</span></td>
-                </tr>
-            `;
-        });
+            entry.tests.forEach(function(test) {
+                const testStatus = test.status || 'pending';
+                const statusBadge = testStatus === 'completed' ? 'success' : (testStatus === 'pending' ? 'warning' : 'secondary');
+                testsTable += `
+                    <tr>
+                        <td>${test.test_name || 'N/A'}</td>
+                        <td>${test.category_name || 'N/A'}</td>
+                        <td>${test.result_value || '-'}</td>
+                        <td>${test.reference_range || '-'}</td>
+                        <td>${test.unit || '-'}</td>
+                        <td><span class="badge badge-${statusBadge}">${testStatus}</span></td>
+                    </tr>
+                `;
+            });
         
         testsTable += `
                         </tbody>
@@ -1163,6 +1159,11 @@ function populateEditForm(entry) {
                 const testSelect = testRow.find('.test-select');
                 if (test.test_id) {
                     testSelect.val(test.test_id).trigger('change');
+                    // Populate result value and reference range after test selection
+                    setTimeout(function() {
+                        testRow.find('.test-result').val(test.result_value || '');
+                        testRow.find('.test-reference-range').val(test.reference_range || '');
+                    }, 100);
                 }
             });
         }

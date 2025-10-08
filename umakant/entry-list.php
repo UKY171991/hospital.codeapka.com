@@ -292,11 +292,11 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                             <div class="col-md-2">
                                 <small class="text-muted">Result</small>
                             </div>
-                            <div class="col-md-1">
-                                <small class="text-muted">Unit</small>
+                            <div class="col-md-2">
+                                <small class="text-muted">Reference Ranges</small>
                             </div>
-                            <div class="col-md-3">
-                                <small class="text-muted">Price (₹)</small>
+                            <div class="col-md-2">
+                                <small class="text-muted">Unit</small>
                             </div>
                             <div class="col-md-1">
                                 <small class="text-muted">Action</small>
@@ -316,12 +316,11 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 <div class="col-md-2">
                                     <input type="text" class="form-control test-result" name="tests[0][result_value]" placeholder="Result">
                                 </div>
-                                <div class="col-md-1">
-                                    <input type="text" class="form-control test-unit" name="tests[0][unit]" placeholder="Unit" readonly>
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control test-reference-range" name="tests[0][reference_range]" placeholder="Reference Range" readonly>
                                 </div>
-                                <div class="col-md-3">
-                                    <input type="number" class="form-control" name="tests[0][price]" 
-                                           placeholder="0.00" step="0.01" min="0" required>
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control test-unit" name="tests[0][unit]" placeholder="Unit" readonly>
                                 </div>
                                 <div class="col-md-1">
                                     <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">

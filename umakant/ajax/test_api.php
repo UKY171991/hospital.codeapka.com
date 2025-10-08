@@ -71,6 +71,7 @@ try {
             COALESCE(t.description, '') AS description,
             COALESCE(t.price, 0) AS price,
             COALESCE(t.unit, '') AS unit,
+            COALESCE(t.reference_range, '') AS reference_range,
             t.min,
             t.max,
             t.min_male,

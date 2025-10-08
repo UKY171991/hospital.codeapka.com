@@ -410,7 +410,7 @@ try {
         // Also fetch individual tests for the entry
         $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
         if ($entryTestsCaps['table_exists']) {
-            $testsSql = "SELECT et.*, t.name as test_name, t.unit, tc.name as category_name \n                         FROM entry_tests et \n                         LEFT JOIN tests t ON et.test_id = t.id\n                         LEFT JOIN categories tc ON t.category_id = tc.id\n                         WHERE et.entry_id = ?";
+            $testsSql = "SELECT et.*, t.name as test_name, t.unit, t.reference_range, tc.name as category_name \n                         FROM entry_tests et \n                         LEFT JOIN tests t ON et.test_id = t.id\n                         LEFT JOIN categories tc ON t.category_id = tc.id\n                         WHERE et.entry_id = ?";
             $testsStmt = $pdo->prepare($testsSql);
             $testsStmt->execute([$_GET['id']]);
             $row['tests'] = $testsStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -580,6 +580,7 @@ try {
                             'test_id' => $test['test_id'],
                             'result_value' => $test['result_value'] ?? null,
                             'unit' => $test['unit'] ?? null,
+                            'reference_range' => $test['reference_range'] ?? null,
                             'remarks' => $test['remarks'] ?? null,
                             'status' => 'pending'
                         ];
