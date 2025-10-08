@@ -762,6 +762,22 @@ function saveEntry(formElement) {
 
 // View entry
 function viewEntry(id) {
+    // Validate ID
+    if (!id) {
+        toastr.error('Invalid entry ID');
+        return;
+    }
+    
+    // Check if modal exists
+    if ($('#viewEntryModal').length === 0) {
+        console.error('View entry modal not found in DOM');
+        toastr.error('Modal element not found. Please refresh the page.');
+        return;
+    }
+    
+    // Show loading indicator
+    toastr.info('Loading entry details...', '', {timeOut: 1000});
+    
     $.ajax({
         url: 'ajax/entry_api_fixed.php',
         method: 'GET',
@@ -774,28 +790,67 @@ function viewEntry(id) {
             } else {
                 toastr.error(response.message || 'Failed to load entry details');
             }
+        },
+        error: function(xhr, status, error) {
+            console.error('View entry error:', xhr, status, error);
+            let errorMsg = 'Failed to load entry details. ';
+            if (xhr.status === 401 || xhr.status === 403) {
+                errorMsg += 'Please log in again.';
+            } else if (xhr.status === 404) {
+                errorMsg += 'Entry not found.';
+            } else if (xhr.status === 500) {
+                errorMsg += 'Server error occurred.';
+            } else {
+                errorMsg += 'Please try again.';
+            }
+            toastr.error(errorMsg);
         }
     });
 }
 
 // Display entry details
 function displayEntryDetails(entry) {
+    if (!entry) {
+        toastr.error('No entry data received');
+        return;
+    }
+    
+    // Format date safely
+    let entryDate = 'N/A';
+    try {
+        if (entry.entry_date) {
+            entryDate = new Date(entry.entry_date).toLocaleDateString('en-IN');
+        }
+    } catch (e) {
+        console.error('Error formatting entry date:', e);
+    }
+    
+    // Format created date safely
+    let createdDate = 'N/A';
+    try {
+        if (entry.created_at) {
+            createdDate = new Date(entry.created_at).toLocaleString('en-IN');
+        }
+    } catch (e) {
+        console.error('Error formatting created date:', e);
+    }
+    
     const details = `
         <div class="row">
             <div class="col-md-6">
                 <h6><strong>Entry Information</strong></h6>
-                <p><strong>ID:</strong> #${entry.id}</p>
-                <p><strong>Date:</strong> ${new Date(entry.entry_date).toLocaleDateString('en-IN')}</p>
-                <p><strong>Status:</strong> <span class="badge badge-${entry.status === 'completed' ? 'success' : entry.status === 'pending' ? 'warning' : 'danger'}">${entry.status}</span></p>
+                <p><strong>ID:</strong> #${entry.id || 'N/A'}</p>
+                <p><strong>Date:</strong> ${entryDate}</p>
+                <p><strong>Status:</strong> <span class="badge badge-${entry.status === 'completed' ? 'success' : entry.status === 'pending' ? 'warning' : 'danger'}">${entry.status || 'N/A'}</span></p>
                 <p><strong>Priority:</strong> <span class="badge badge-${entry.priority === 'urgent' ? 'danger' : entry.priority === 'emergency' ? 'warning' : 'info'}">${entry.priority || 'normal'}</span></p>
                 <p><strong>Tests Count:</strong> ${entry.tests_count || 0}</p>
-                <p><strong>Added By:</strong> ${entry.added_by_username || 'N/A'}</p>
+                <p><strong>Added By:</strong> ${entry.added_by_full_name || entry.added_by_username || 'N/A'}</p>
             </div>
             <div class="col-md-6">
                 <h6><strong>Patient Information</strong></h6>
                 <p><strong>Name:</strong> ${entry.patient_name || 'N/A'}</p>
                 <p><strong>UHID:</strong> ${entry.uhid || 'N/A'}</p>
-                <p><strong>Age/Gender:</strong> ${entry.age ? entry.age + ' ' + (entry.gender || '') : 'N/A'}</p>
+                <p><strong>Age/Gender:</strong> ${entry.age ? entry.age + ' ' + (entry.gender || entry.sex || '') : 'N/A'}</p>
                 ${entry.patient_contact ? `<p><strong>Contact:</strong> ${entry.patient_contact}</p>` : ''}
                 ${entry.patient_address ? `<p><strong>Address:</strong> ${entry.patient_address}</p>` : ''}
                 <p><strong>Doctor:</strong> ${entry.doctor_name || 'Not assigned'}</p>
@@ -806,17 +861,24 @@ function displayEntryDetails(entry) {
             <div class="col-md-6">
                 <h6><strong>Tests & Pricing</strong></h6>
                 <p><strong>Tests:</strong> ${entry.test_names || 'No tests'}</p>
-                <p><strong>Total Amount:</strong> ₹${parseFloat(entry.final_amount || 0).toFixed(2)}</p>
+                <p><strong>Total Amount:</strong> ₹${parseFloat(entry.final_amount || entry.total_price || 0).toFixed(2)}</p>
             </div>
             <div class="col-md-6">
                 <h6><strong>Additional Information</strong></h6>
                 ${entry.referral_source ? `<p><strong>Referral Source:</strong> ${entry.referral_source}</p>` : ''}
-                ${entry.notes ? `<p><strong>Notes:</strong> ${entry.notes}</p>` : ''}
-                <p><strong>Created:</strong> ${new Date(entry.created_at).toLocaleString('en-IN')}</p>
+                ${entry.notes || entry.remarks ? `<p><strong>Notes:</strong> ${entry.notes || entry.remarks}</p>` : ''}
+                <p><strong>Created:</strong> ${createdDate}</p>
             </div>
         </div>
     `;
-    $('#entryDetails').html(details);
+    
+    const detailsElement = $('#entryDetails');
+    if (detailsElement.length) {
+        detailsElement.html(details);
+    } else {
+        console.error('Entry details element not found');
+        toastr.error('Unable to display entry details');
+    }
 }
 
 // Edit entry
