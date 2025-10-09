@@ -1305,8 +1305,7 @@ function populateEditForm(entry) {
         total_price: entry.total_price,
         aggregated_total_price: entry.aggregated_total_price,
         aggregated_total_discount: entry.aggregated_total_discount,
-        //final_amount: entry.final_amount,
-        final_amount: entry.aggregated_total_price-entry.aggregated_total_discount,
+        final_amount: entry.final_amount,
         price: entry.price,
         agg_total_price: entry.agg_total_price,
         agg_total_discount: entry.agg_total_discount
