@@ -313,7 +313,8 @@ function loadPatientsByOwner(ownerId) {
                     const genderVal = patient.gender || patient.sex || '';
                     const contactVal = (patient.contact || patient.phone || patient.mobile || '');
                     const addressVal = (patient.address || patient.address_line || '');
-                    patientSelect.append(`<option value="${patient.id}" data-gender="${genderVal}" data-contact="${contactVal}" data-address="${addressVal}">${patient.name} (${patient.uhid || 'No UHID'})</option>`);
+                    const ageVal = patient.age || '';
+                    patientSelect.append(`<option value="${patient.id}" data-gender="${genderVal}" data-contact="${contactVal}" data-address="${addressVal}" data-age="${ageVal}">${patient.name} (${patient.uhid || 'No UHID'})</option>`);
                 });
                 $('#patientHelpText').text(`${response.data.length} patients available`);
             } else {
@@ -520,21 +521,25 @@ function setupEventHandlers() {
         }
     });
 
-    // When patient selection changes, auto-fill gender, contact and address if available
+    // When patient selection changes, auto-fill age, gender, contact and address from patient data
     $(document).on('change', '#patientSelect', function() {
         const selected = $(this).find('option:selected');
+        const age = selected.data('age') || '';
         const gender = selected.data('gender') || '';
         const contact = selected.data('contact') || '';
         const address = selected.data('address') || '';
+        
+        // Populate age field
+        try { $('#patientAge').val(age); } catch(e) { /* ignore */ }
+        
+        // Populate gender field
         try {
             if (gender) { $('#patientGender').val(gender).trigger('change'); } else { $('#patientGender').val(''); }
         } catch(e) { $('#patientGender').val(gender); }
+        
+        // Populate contact and address
         try { $('#patientContact').val(contact); } catch(e) { /* ignore */ }
         try { $('#patientAddress').val(address); } catch(e) { /* ignore */ }
-        
-        // Get age from selected patient data
-        const age = selected.data('age') || '';
-        try { $('#patientAge').val(age); } catch(e) { /* ignore */ }
     });
 }
 
@@ -1161,8 +1166,8 @@ function displayEntryDetails(entry) {
                         <td><strong>Age/Gender:</strong></td>
                         <td>
                             ${(() => {
-                                const age = entry.age || entry.patient_age;
-                                const gender = entry.gender || entry.sex || entry.patient_gender;
+                                const age = entry.patient_age || entry.age;
+                                const gender = entry.gender || entry.sex;
                                 if (age && gender) {
                                     return `${age} years / ${gender}`;
                                 } else if (age) {
@@ -1312,9 +1317,7 @@ function populateEditForm(entry) {
     $('#entryNotes').val(entry.notes || entry.remarks || '');
 
     // Populate additional fields
-    // Use entry age if available, otherwise fall back to patient age
-    const ageValue = entry.age || entry.patient_age || '';
-    $('#patientAge').val(ageValue);
+    // Age and gender will be populated automatically when patient is selected
     $('#patientContact').val(entry.patient_contact || '');
     $('#patientAddress').val(entry.patient_address || '');
     $('#referralSource').val(entry.referral_source || '');
@@ -1396,16 +1399,6 @@ function populateEditForm(entry) {
         $('#patientSelect').val(entry.patient_id).trigger('change');
         $('#doctorSelect').val(entry.doctor_id).trigger('change');
     }, 1000);
-    // Populate gender field from entry if present
-    setTimeout(function() {
-        if (entry.gender) {
-            try {
-                $('#patientGender').val(entry.gender).trigger('change');
-            } catch (e) {
-                $('#patientGender').val(entry.gender);
-            }
-        }
-    }, 1100);
 
     // Populate tests section
     const testsContainer = $('#testsContainer');

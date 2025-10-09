@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 08, 2025 at 10:24 PM
+-- Generation Time: Oct 09, 2025 at 10:24 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -106,6 +106,7 @@ CREATE TABLE `entries` (
   `patient_contact` varchar(100) DEFAULT NULL,
   `patient_address` text DEFAULT NULL,
   `gender` varchar(10) DEFAULT NULL,
+  `age` int(11) DEFAULT NULL COMMENT 'Patient age at time of entry',
   `subtotal` decimal(10,2) DEFAULT 0.00,
   `discount_amount` decimal(10,2) DEFAULT 0.00,
   `total_price` decimal(10,2) DEFAULT 0.00,
@@ -120,16 +121,21 @@ CREATE TABLE `entries` (
 -- Dumping data for table `entries`
 --
 
-INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`, `entry_date`, `status`, `priority`, `referral_source`, `patient_contact`, `patient_address`, `gender`, `subtotal`, `discount_amount`, `total_price`, `payment_status`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
-(1, 1, NULL, 3, NULL, '2025-10-06 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, 100.00, 20.00, 100.00, 'pending', NULL, 1, '2025-10-06 14:13:29', NULL),
-(2, 2, NULL, 2, 15, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, 100.00, 0.00, 60.00, 'pending', NULL, 2, '2025-10-06 15:53:42', NULL),
-(5, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, 200.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 16:21:47', NULL),
-(6, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, 300.00, 0.00, 400.00, 'pending', NULL, 1, '2025-10-06 16:40:50', NULL),
-(7, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, 400.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 17:12:12', NULL),
-(9, 2, NULL, 2, 14, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, 500.00, 0.00, 300.00, 'pending', NULL, 2, '2025-10-08 11:21:38', NULL),
-(10, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, 600.00, 0.00, 340.00, 'pending', NULL, 1, '2025-10-08 17:09:55', NULL),
-(11, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, 300.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-08 17:51:17', NULL),
-(12, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-08 18:00:34', NULL);
+INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`, `entry_date`, `status`, `priority`, `referral_source`, `patient_contact`, `patient_address`, `gender`, `age`, `subtotal`, `discount_amount`, `total_price`, `payment_status`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
+(1, 1, NULL, 3, NULL, '2025-10-06 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 100.00, 20.00, 100.00, 'pending', NULL, 1, '2025-10-06 14:13:29', NULL),
+(2, 2, NULL, 2, 15, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 100.00, 0.00, 60.00, 'pending', NULL, 2, '2025-10-06 15:53:42', NULL),
+(5, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, NULL, 200.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 16:21:47', NULL),
+(6, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, NULL, 300.00, 0.00, 400.00, 'pending', NULL, 1, '2025-10-06 16:40:50', NULL),
+(7, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, NULL, 400.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 17:12:12', NULL),
+(9, 2, NULL, 2, 14, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 500.00, 0.00, 300.00, 'pending', NULL, 2, '2025-10-08 11:21:38', NULL),
+(10, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 600.00, 0.00, 340.00, 'pending', NULL, 1, '2025-10-08 17:09:55', NULL),
+(11, 1, NULL, 4, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 300.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-08 17:51:17', NULL),
+(12, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-08 18:00:34', NULL),
+(13, 1, NULL, 4, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-09 08:15:03', NULL),
+(14, 1, NULL, 4, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-09 08:15:35', NULL),
+(15, 1, NULL, 3, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 1080.00, 0.00, 1080.00, 'pending', NULL, 1, '2025-10-09 08:16:19', NULL),
+(16, 1, NULL, 4, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 1080.00, 50.00, 1030.00, 'pending', NULL, 1, '2025-10-09 08:21:40', NULL),
+(17, 1, NULL, 4, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 100.00, 20.00, 80.00, 'pending', NULL, 1, '2025-10-09 08:30:36', NULL);
 
 -- --------------------------------------------------------
 
@@ -171,10 +177,18 @@ INSERT INTO `entry_tests` (`id`, `entry_id`, `test_id`, `result_value`, `unit`, 
 (21, 9, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 11:21:38'),
 (34, 10, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 17:50:21'),
 (35, 10, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 17:50:21'),
-(42, 11, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 18:03:51'),
-(43, 11, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 18:03:51'),
-(48, 12, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 03:51:43'),
-(49, 12, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 03:51:43');
+(56, 12, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 04:53:46'),
+(57, 12, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 04:53:46'),
+(58, 11, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 08:00:55'),
+(59, 11, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 08:00:55'),
+(60, 13, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 08:15:03'),
+(61, 14, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 08:15:35'),
+(62, 14, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 08:15:35'),
+(70, 15, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 980.00, '2025-10-09 15:01:48'),
+(71, 15, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 100.00, '2025-10-09 15:01:48'),
+(73, 16, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 100.00, '2025-10-09 15:18:15'),
+(74, 16, 1, '50', 'abc', NULL, 'pending', 0.00, 0.00, 980.00, '2025-10-09 15:18:15'),
+(77, 17, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 100.00, '2025-10-09 15:47:32');
 
 -- --------------------------------------------------------
 
@@ -280,7 +294,8 @@ CREATE TABLE `patients` (
 INSERT INTO `patients` (`id`, `server_id`, `name`, `email`, `mobile`, `father_husband`, `address`, `sex`, `age`, `contact`, `age_unit`, `uhid`, `created_at`, `updated_at`, `added_by`) VALUES
 (1, NULL, 'Naida Marquez', 'jejasiduw@mailinator.com', '5454455454', 'Indigo Holman', 'Voluptate quibusdam', 'Male', 45, '', 'Months', 'P033679005', '2025-09-28 12:02:58', '2025-09-28 13:52:46', 2),
 (2, NULL, 'James Sears', 'ciwi@mailinator.com', '5656565656', 'Arthur Oneal', 'Vel nobis error corr', 'Female', 10, '', 'Years', 'P642622065', '2025-09-28 12:27:50', '2025-09-28 13:52:29', 2),
-(3, NULL, 'Indigo Cortez', 'feloz@mailinator.com', '5454545454', 'Odette Villarreal', 'Et quaerat voluptati', 'Female', 86, '', 'Days', 'P483791824', '2025-09-28 13:31:49', '2025-09-28 13:55:01', 1);
+(3, NULL, 'Indigo Cortez', 'feloz@mailinator.com', '5454545454', 'Odette Villarreal', 'Et quaerat voluptati', 'Female', 86, '', 'Days', 'P483791824', '2025-09-28 13:31:49', '2025-09-28 13:55:01', 1),
+(4, NULL, 'Dr. Jane Ram', '', '9876543211', NULL, '456 Health Avenue', NULL, NULL, '', 'Years', '2025000004', NULL, '2025-10-09 05:41:19', 1);
 
 -- --------------------------------------------------------
 
@@ -391,7 +406,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-10-09 03:39:58', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-10-09 15:01:08', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
 (2, 'uma', '$2y$12$yBaDoENR.9MOXDLizW.UYunvNev1XOICwYC.WNCRmPEd1fQ5TS85q', 'Uma Yadav', 'umakant171991@gmail.com', 'user', 1, 0, '2025-09-26 10:13:58', NULL, '2025-10-11 10:13:00', '0000-00-00 00:00:00', '2025-09-26 04:43:58');
 
 -- --------------------------------------------------------
@@ -562,13 +577,13 @@ ALTER TABLE `doctors`
 -- AUTO_INCREMENT for table `entries`
 --
 ALTER TABLE `entries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `entry_tests`
 --
 ALTER TABLE `entry_tests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
 
 --
 -- AUTO_INCREMENT for table `notices`
@@ -592,7 +607,7 @@ ALTER TABLE `password_resets`
 -- AUTO_INCREMENT for table `patients`
 --
 ALTER TABLE `patients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `plans`

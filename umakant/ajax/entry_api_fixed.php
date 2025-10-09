@@ -533,12 +533,13 @@ try {
                     if (isset($input['patient_address']) && $entryCaps['has_patient_address']) {
                         $entryData['patient_address'] = $input['patient_address'];
                     }
-                    if (isset($input['gender']) && $entryCaps['has_gender']) {
-                        $entryData['gender'] = $input['gender'];
-                    }
-                    if (isset($input['age']) && $entryCaps['has_age']) {
-                        $entryData['age'] = $input['age'];
-                    }
+                    // Note: Age and gender are now fetched from patient data, not stored in entries
+                    // if (isset($input['gender']) && $entryCaps['has_gender']) {
+                    //     $entryData['gender'] = $input['gender'];
+                    // }
+                    // if (isset($input['age']) && $entryCaps['has_age']) {
+                    //     $entryData['age'] = $input['age'];
+                    // }
 
                     if ($entryCaps['has_remarks']) {
                         $entryData['remarks'] = $input['notes'] ?? null;
