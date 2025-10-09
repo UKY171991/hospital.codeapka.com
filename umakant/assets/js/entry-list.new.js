@@ -314,7 +314,18 @@ function loadPatientsByOwner(ownerId) {
                     const contactVal = (patient.contact || patient.phone || patient.mobile || '');
                     const addressVal = (patient.address || patient.address_line || '');
                     const ageVal = patient.age || '';
-                    patientSelect.append(`<option value="${patient.id}" data-gender="${genderVal}" data-contact="${contactVal}" data-address="${addressVal}" data-age="${ageVal}">${patient.name} (${patient.uhid || 'No UHID'})</option>`);
+                    
+                    // Create option with proper data attributes
+                    const option = $('<option>', {
+                        value: patient.id,
+                        text: `${patient.name} (${patient.uhid || 'No UHID'})`,
+                        'data-gender': genderVal,
+                        'data-contact': contactVal,
+                        'data-address': addressVal,
+                        'data-age': ageVal
+                    });
+                    
+                    patientSelect.append(option);
                 });
                 $('#patientHelpText').text(`${response.data.length} patients available`);
             } else {
@@ -530,16 +541,18 @@ function setupEventHandlers() {
         const address = selected.data('address') || '';
         
         // Populate age field
-        try { $('#patientAge').val(age); } catch(e) { /* ignore */ }
+        $('#patientAge').val(age);
         
         // Populate gender field
-        try {
-            if (gender) { $('#patientGender').val(gender).trigger('change'); } else { $('#patientGender').val(''); }
-        } catch(e) { $('#patientGender').val(gender); }
+        if (gender) {
+            $('#patientGender').val(gender).trigger('change');
+        } else {
+            $('#patientGender').val('');
+        }
         
         // Populate contact and address
-        try { $('#patientContact').val(contact); } catch(e) { /* ignore */ }
-        try { $('#patientAddress').val(address); } catch(e) { /* ignore */ }
+        $('#patientContact').val(contact);
+        $('#patientAddress').val(address);
     });
 }
 
