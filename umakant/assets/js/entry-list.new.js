@@ -1203,7 +1203,7 @@ function displayEntryDetails(entry) {
                     ` : ''}
                     <tr class="font-weight-bold">
                         <td><strong>Total Amount:</strong></td>
-                        <td class="text-success"><strong>₹${parseFloat(entry.final_amount || entry.total_price || 0).toFixed(2)}</strong></td>
+                        <td class="text-success"><strong>₹${parseFloat(entry.subtotal - entry.discount_amount || entry.total_price || 0).toFixed(2)}</strong></td>
                     </tr>
                 </table>
             </div>

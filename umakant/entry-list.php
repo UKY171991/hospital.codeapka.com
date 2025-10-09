@@ -450,7 +450,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
     </div>
 </div>
 
-<!-- View Entry Modal -->
+<!-- View Entry Modal --> 
 <div class="modal fade" id="viewEntryModal" tabindex="-1" role="dialog" aria-labelledby="viewEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document" style="max-width: 90%;">
         <div class="modal-content">
