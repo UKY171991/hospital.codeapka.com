@@ -1076,13 +1076,28 @@ function displayEntryDetails(entry) {
             entry.tests.forEach(function(test) {
                 const testStatus = test.status || 'pending';
                 const statusBadge = testStatus === 'completed' ? 'success' : (testStatus === 'pending' ? 'warning' : 'secondary');
+                
+                // Get patient gender to determine which min/max values to use
+                const patientGender = entry.gender || entry.sex;
+                let minValue = test.min || '-';
+                let maxValue = test.max || '-';
+                
+                // If patient has gender and gender-specific values exist, use them
+                if (patientGender && patientGender.toLowerCase() === 'male' && test.min_male !== null && test.max_male !== null) {
+                    minValue = test.min_male || '-';
+                    maxValue = test.max_male || '-';
+                } else if (patientGender && patientGender.toLowerCase() === 'female' && test.min_female !== null && test.max_female !== null) {
+                    minValue = test.min_female || '-';
+                    maxValue = test.max_female || '-';
+                }
+                
                 testsTable += `
                     <tr>
                         <td>${test.test_name || 'N/A'}</td>
                         <td>${test.category_name || 'N/A'}</td>
                         <td>${test.result_value || '-'}</td>
-                        <td>${test.min || '-'}</td>
-                        <td>${test.max || '-'}</td>
+                        <td>${minValue}</td>
+                        <td>${maxValue}</td>
                         <td>${test.unit || '-'}</td>
                         <td><span class="badge badge-${statusBadge}">${testStatus}</span></td>
                     </tr>
