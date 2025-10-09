@@ -627,7 +627,7 @@ try {
                         }
                         $updateParams['entry_id'] = $entryId;
 
-                        print_r($updateParams); die;
+                        //print_r($updateParams); die;
                         
                         error_log("UPDATE SQL fields: " . implode(', ', $updateFields));
                         
