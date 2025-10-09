@@ -198,7 +198,9 @@ function handleList($pdo, $config) {
                 $tests = $testsStmt->fetchAll(PDO::FETCH_ASSOC);
                 $entry['tests'] = $tests;
                 $entry['tests_count'] = count($tests);
-            } catch (Throwable $ignore) {
+                
+            } catch (Throwable $e) {
+                error_log("Entry {$entry['id']}: Error fetching tests: " . $e->getMessage());
                 $entry['tests'] = [];
                 $entry['tests_count'] = 0;
             }
