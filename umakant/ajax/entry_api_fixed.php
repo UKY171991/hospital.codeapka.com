@@ -76,7 +76,8 @@ function get_entries_schema_capabilities($pdo) {
         'has_referral_source' => db_column_exists($pdo, 'entries', 'referral_source'),
         'has_patient_contact' => db_column_exists($pdo, 'entries', 'patient_contact'),
         'has_patient_address' => db_column_exists($pdo, 'entries', 'patient_address'),
-        'has_gender' => db_column_exists($pdo, 'entries', 'gender')
+        'has_gender' => db_column_exists($pdo, 'entries', 'gender'),
+        'has_age' => db_column_exists($pdo, 'entries', 'age')
     ];
 }
 
@@ -534,6 +535,9 @@ try {
                     }
                     if (isset($input['gender']) && $entryCaps['has_gender']) {
                         $entryData['gender'] = $input['gender'];
+                    }
+                    if (isset($input['age']) && $entryCaps['has_age']) {
+                        $entryData['age'] = $input['age'];
                     }
 
                     if ($entryCaps['has_remarks']) {
