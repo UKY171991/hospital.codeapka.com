@@ -259,7 +259,7 @@ try {
             $ownerJoin = " LEFT JOIN owners o ON e.owner_id = o.id";
         }
 
-        $sql = "SELECT e.*, \n                   p.name AS patient_name, p.uhid, p.age, p.sex AS gender, p.contact AS patient_contact, p.address AS patient_address,\n                   d.name AS doctor_name,\n                   {$ownerSelect}\n                   du.username AS doctor_added_by_username,\n                   u.username AS added_by_username, u.full_name AS added_by_full_name,\n                   {$aggSelect}\n            FROM entries e \n            LEFT JOIN patients p ON e.patient_id = p.id \n            LEFT JOIN doctors d ON e.doctor_id = d.id " .
+        $sql = "SELECT e.*, \n                   p.name AS patient_name, p.uhid, p.age AS patient_age, p.sex AS gender, p.contact AS patient_contact, p.address AS patient_address,\n                   d.name AS doctor_name,\n                   {$ownerSelect}\n                   du.username AS doctor_added_by_username,\n                   u.username AS added_by_username, u.full_name AS added_by_full_name,\n                   {$aggSelect}\n            FROM entries e \n            LEFT JOIN patients p ON e.patient_id = p.id \n            LEFT JOIN doctors d ON e.doctor_id = d.id " .
             $ownerJoin .
             " LEFT JOIN users du ON d.added_by = du.id\n            LEFT JOIN users u ON e.added_by = u.id" .
             $aggJoin .
@@ -351,7 +351,7 @@ try {
             $aggJoin = '';
         }
 
-        $sql = "SELECT e.*, \n                   p.name AS patient_name, p.uhid, p.age, p.sex AS gender, p.contact AS patient_contact, p.address AS patient_address,\n                   d.name AS doctor_name,\n                   o.name AS owner_name,\n                   du.username AS doctor_added_by_username,\n                   u.username AS added_by_username, u.full_name AS added_by_full_name,\n                   {$aggSelect}\n            FROM entries e \n            LEFT JOIN patients p ON e.patient_id = p.id \n            LEFT JOIN doctors d ON e.doctor_id = d.id \n            LEFT JOIN owners o ON e.owner_id = o.id\n            LEFT JOIN users du ON d.added_by = du.id\n            LEFT JOIN users u ON e.added_by = u.id" .
+        $sql = "SELECT e.*, \n                   p.name AS patient_name, p.uhid, p.age AS patient_age, p.sex AS gender, p.contact AS patient_contact, p.address AS patient_address,\n                   d.name AS doctor_name,\n                   o.name AS owner_name,\n                   du.username AS doctor_added_by_username,\n                   u.username AS added_by_username, u.full_name AS added_by_full_name,\n                   {$aggSelect}\n            FROM entries e \n            LEFT JOIN patients p ON e.patient_id = p.id \n            LEFT JOIN doctors d ON e.doctor_id = d.id \n            LEFT JOIN owners o ON e.owner_id = o.id\n            LEFT JOIN users du ON d.added_by = du.id\n            LEFT JOIN users u ON e.added_by = u.id" .
             $aggJoin .
             " WHERE e.id = ?" . $scopeWhere;
         
@@ -946,7 +946,7 @@ try {
             $selectFields .= ", e.gender";
         }
         
-        $sql = "SELECT {$selectFields},\n                       p.name AS patient_name, p.uhid, p.age, p.sex, p.contact AS patient_contact, p.address AS patient_address,\n                       d.name AS doctor_name,\n                       o.name AS owner_name,\n                       u.username AS added_by_username, u.full_name AS added_by_full_name,\n                       {$aggSelect}\n                FROM entries e \n                LEFT JOIN patients p ON e.patient_id = p.id \n                LEFT JOIN doctors d ON e.doctor_id = d.id \n                LEFT JOIN owners o ON e.owner_id = o.id\n                LEFT JOIN users u ON e.added_by = u.id" .
+        $sql = "SELECT {$selectFields},\n                       p.name AS patient_name, p.uhid, p.age AS patient_age, p.sex, p.contact AS patient_contact, p.address AS patient_address,\n                       d.name AS doctor_name,\n                       o.name AS owner_name,\n                       u.username AS added_by_username, u.full_name AS added_by_full_name,\n                       {$aggSelect}\n                FROM entries e \n                LEFT JOIN patients p ON e.patient_id = p.id \n                LEFT JOIN doctors d ON e.doctor_id = d.id \n                LEFT JOIN owners o ON e.owner_id = o.id\n                LEFT JOIN users u ON e.added_by = u.id" .
                 $aggJoin .
                 $scopeWhere .
                 " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";

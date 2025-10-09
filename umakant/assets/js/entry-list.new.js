@@ -1312,7 +1312,9 @@ function populateEditForm(entry) {
     $('#entryNotes').val(entry.notes || entry.remarks || '');
 
     // Populate additional fields
-    $('#patientAge').val(entry.age || '');
+    // Use entry age if available, otherwise fall back to patient age
+    const ageValue = entry.age || entry.patient_age || '';
+    $('#patientAge').val(ageValue);
     $('#patientContact').val(entry.patient_contact || '');
     $('#patientAddress').val(entry.patient_address || '');
     $('#referralSource').val(entry.referral_source || '');
