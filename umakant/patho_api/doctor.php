@@ -138,8 +138,8 @@ try {
         $totalStmt->execute($params);
         $totalRecords = $totalStmt->fetchColumn();
 
-        // Get doctors with pagination and filters
-        $query = "SELECT d.*, u.username AS added_by_username " . $baseQuery . $whereSql . " ORDER BY d.id DESC LIMIT ?, ?";
+        // Get doctors with pagination and filters - explicitly select all columns
+        $query = "SELECT d.id, d.server_id, d.name, d.qualification, d.specialization, d.hospital, d.contact_no, d.phone, d.email, d.address, d.registration_no, d.percent, d.added_by, d.created_at, d.updated_at, u.username AS added_by_username " . $baseQuery . $whereSql . " ORDER BY d.id DESC LIMIT ?, ?";
         $stmt = $pdo->prepare($query);
         $params[] = $offset;
         $params[] = $limit;
@@ -177,7 +177,7 @@ try {
             json_response(['success' => false, 'message' => 'Doctor ID is required'], 400);
         }
         
-        $stmt = $pdo->prepare('SELECT d.*, u.username AS added_by_username 
+        $stmt = $pdo->prepare('SELECT d.id, d.server_id, d.name, d.qualification, d.specialization, d.hospital, d.contact_no, d.phone, d.email, d.address, d.registration_no, d.percent, d.added_by, d.created_at, d.updated_at, u.username AS added_by_username 
                               FROM doctors d 
                               LEFT JOIN users u ON d.added_by = u.id 
                               WHERE d.id = ?');
