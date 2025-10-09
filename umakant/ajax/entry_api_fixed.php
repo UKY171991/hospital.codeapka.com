@@ -590,15 +590,15 @@ try {
                     if ($entryCaps['has_price']) {
                         $entryData['price'] = $finalSubtotal;
                     }
-                    if ($entryCaps['has_subtotal']) {
+                    //if ($entryCaps['has_subtotal']) {
                         $entryData['subtotal'] = $finalSubtotal;
-                    }
-                    if ($entryCaps['has_discount_amount']) {
+                    //}
+                    //if ($entryCaps['has_discount_amount']) {
                         $entryData['discount_amount'] = $finalDiscount;
-                    }
-                    if ($entryCaps['has_total_price']) {
+                    //}
+                    //if ($entryCaps['has_total_price']) {
                         $entryData['total_price'] = $finalTotal;
-                    }
+                    //}
 
                     // Set primary test to first test for backward compatibility
                     if (!empty($tests) && $entryCaps['has_test_id']) {
@@ -626,6 +626,8 @@ try {
                             $updateFields[] = 'updated_at = NOW()';
                         }
                         $updateParams['entry_id'] = $entryId;
+
+                        //print_r($updateParams); die;
                         
                         error_log("UPDATE SQL fields: " . implode(', ', $updateFields));
                         
@@ -679,9 +681,9 @@ try {
                         if ($entryTestCaps['has_discount_amount']) {
                             $testData['discount_amount'] = $testDiscount;
                         }
-                        if ($entryTestCaps['has_total_price']) {
+                        //if ($entryTestCaps['has_total_price']) {
                             $testData['total_price'] = max($testPrice - $testDiscount, 0);
-                        }
+                        //}
                         
                         $testFields = implode(', ', array_keys($testData));
                         $testPlaceholders = ':' . implode(', :', array_keys($testData));
@@ -995,7 +997,7 @@ try {
                 }
             }
             
-            fclose($output);
+            fclose($output); 
             exit;
         } else {
             // Return JSON for other formats
