@@ -1154,7 +1154,21 @@ function displayEntryDetails(entry) {
                     </tr>
                     <tr>
                         <td><strong>Age/Gender:</strong></td>
-                        <td>${entry.age ? entry.age + ' years' : 'N/A'} ${entry.gender || entry.sex ? '/ ' + (entry.gender || entry.sex) : ''}</td>
+                        <td>
+                            ${(() => {
+                                const age = entry.age || entry.patient_age;
+                                const gender = entry.gender || entry.sex || entry.patient_gender;
+                                if (age && gender) {
+                                    return `${age} years / ${gender}`;
+                                } else if (age) {
+                                    return `${age} years`;
+                                } else if (gender) {
+                                    return gender;
+                                } else {
+                                    return 'N/A';
+                                }
+                            })()}
+                        </td>
                     </tr>
                     ${entry.patient_contact ? `
                     <tr>
