@@ -587,18 +587,18 @@ try {
                     error_log("FINAL pricing to save: subtotal=$finalSubtotal, discount=$finalDiscount, total=$finalTotal");
 
                     // Store pricing in entry record
-                    if ($entryCaps['price']) {
+                    //if ($entryCaps['has_price']) {
                         $entryData['price'] = $finalSubtotal;
-                    }
-                    if ($entryCaps['subtotal']) {
+                    //}
+                    //if ($entryCaps['has_subtotal']) {
                         $entryData['subtotal'] = $finalSubtotal;
-                    }
-                    if ($entryCaps['discount_amount']) {
+                    //}
+                    //if ($entryCaps['has_discount_amount']) {
                         $entryData['discount_amount'] = $finalDiscount;
-                    }
-                    if ($entryCaps['total_price']) {
+                    //}
+                    //if ($entryCaps['has_total_price']) {
                         $entryData['total_price'] = $finalTotal;
-                    }
+                    //}
 
                     // Set primary test to first test for backward compatibility
                     if (!empty($tests) && $entryCaps['has_test_id']) {
