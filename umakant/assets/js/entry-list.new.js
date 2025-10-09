@@ -531,6 +531,10 @@ function setupEventHandlers() {
         } catch(e) { $('#patientGender').val(gender); }
         try { $('#patientContact').val(contact); } catch(e) { /* ignore */ }
         try { $('#patientAddress').val(address); } catch(e) { /* ignore */ }
+        
+        // Get age from selected patient data
+        const age = selected.data('age') || '';
+        try { $('#patientAge').val(age); } catch(e) { /* ignore */ }
     });
 }
 
@@ -555,6 +559,7 @@ function openAddEntryModal() {
     $('#entryStatus').val('pending').trigger('change');
     
     // Reset additional fields
+    $('#patientAge').val('');
     $('#patientContact').val('');
     $('#patientAddress').val('');
     $('#referralSource').val('');
@@ -1307,6 +1312,7 @@ function populateEditForm(entry) {
     $('#entryNotes').val(entry.notes || entry.remarks || '');
 
     // Populate additional fields
+    $('#patientAge').val(entry.age || '');
     $('#patientContact').val(entry.patient_contact || '');
     $('#patientAddress').val(entry.patient_address || '');
     $('#referralSource').val(entry.referral_source || '');

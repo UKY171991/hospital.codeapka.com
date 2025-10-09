@@ -340,11 +340,18 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     </div>
                     
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label for="patientContact">Patient Contact</label>
                                 <input type="text" class="form-control" id="patientContact" name="patient_contact" 
                                        placeholder="Phone number or email...">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label for="patientAge">Age</label>
+                                <input type="number" class="form-control" id="patientAge" name="age" 
+                                       placeholder="Age" min="0" max="150">
                             </div>
                         </div>
                         <div class="col-md-2">
@@ -358,7 +365,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-5">
                             <div class="form-group">
                                 <label for="patientAddress">Patient Address</label>
                                 <textarea class="form-control" id="patientAddress" name="patient_address" rows="2" 
