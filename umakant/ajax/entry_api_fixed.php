@@ -681,9 +681,9 @@ try {
                         if ($entryTestCaps['has_discount_amount']) {
                             $testData['discount_amount'] = $testDiscount;
                         }
-                        if ($entryTestCaps['has_total_price']) {
+                        //if ($entryTestCaps['has_total_price']) {
                             $testData['total_price'] = max($testPrice - $testDiscount, 0);
-                        }
+                        //}
                         
                         $testFields = implode(', ', array_keys($testData));
                         $testPlaceholders = ':' . implode(', :', array_keys($testData));
