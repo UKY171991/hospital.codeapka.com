@@ -587,9 +587,9 @@ try {
                     error_log("FINAL pricing to save: subtotal=$finalSubtotal, discount=$finalDiscount, total=$finalTotal");
 
                     // Store pricing in entry record
-                    if ($entryCaps['has_price']) {
+                    //if ($entryCaps['has_price']) {
                         $entryData['price'] = $finalSubtotal;
-                    }
+                    //}
                     if ($entryCaps['has_subtotal']) {
                         $entryData['subtotal'] = $finalSubtotal;
                     }
