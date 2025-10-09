@@ -626,6 +626,8 @@ try {
                             $updateFields[] = 'updated_at = NOW()';
                         }
                         $updateParams['entry_id'] = $entryId;
+
+                        print_r($updateParams); die;
                         
                         error_log("UPDATE SQL fields: " . implode(', ', $updateFields));
                         
@@ -995,7 +997,7 @@ try {
                 }
             }
             
-            fclose($output);
+            fclose($output); 
             exit;
         } else {
             // Return JSON for other formats
