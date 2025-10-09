@@ -109,18 +109,6 @@ function initializeDataTable() {
                     return data || '<span class="text-muted">Not assigned</span>';
                 }
             },
-            { 
-                data: 'test_name',
-                render: function(data, type, row) {
-                    if (row.tests_count > 1) {
-                        return `<div>
-                            <span class="badge badge-info">${row.tests_count} tests</span>
-                            <br><small>${row.test_names}</small>
-                        </div>`;
-                    }
-                    return data || '<span class="text-muted">No tests</span>';
-                }
-            },
             {
                 data: 'status',
                 render: function(data, type, row) {
