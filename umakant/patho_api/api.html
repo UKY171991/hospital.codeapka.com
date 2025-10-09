@@ -227,7 +227,7 @@
                     {
                         action: 'list',
                         method: 'GET',
-                        url: '?action=list',
+                        url: '?action=list&secret_key=hospital-api-secret-2024',
                         description: 'Get all doctors with pagination',
                         headers: {
                             'Content-Type': 'application/json'
@@ -242,16 +242,21 @@
                             'data': [
                                 {
                                     'id': 1,
+                                    'server_id': null,
                                     'name': 'Dr. John Doe',
                                     'qualification': 'MBBS, MD',
                                     'specialization': 'Cardiology',
                                     'hospital': 'City Hospital',
                                     'contact_no': '9876543210',
+                                    'phone': '9876543210',
                                     'email': 'john.doe@hospital.com',
                                     'address': '123 Medical Street',
                                     'registration_no': 'MED12345',
                                     'percent': 10.5,
-                                    'created_at': '2025-09-08T10:30:00Z'
+                                    'added_by': 1,
+                                    'created_at': '2025-09-08T10:30:00Z',
+                                    'updated_at': '2025-09-08T10:30:00Z',
+                                    'added_by_username': 'admin'
                                 }
                             ],
                             'pagination': {
@@ -265,7 +270,7 @@
                     {
                         action: 'get',
                         method: 'GET',
-                        url: '?action=get&id=1',
+                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
                         description: 'Get single doctor by ID',
                         headers: {
                             'Content-Type': 'application/json',
@@ -275,24 +280,28 @@
                             'success': true,
                             'data': {
                                 'id': 1,
+                                'server_id': null,
                                 'name': 'Dr. John Doe',
                                 'qualification': 'MBBS, MD',
                                 'specialization': 'Cardiology',
                                 'hospital': 'City Hospital',
                                 'contact_no': '9876543210',
+                                'phone': '9876543210',
                                 'email': 'john.doe@hospital.com',
                                 'address': '123 Medical Street',
                                 'registration_no': 'MED12345',
                                 'percent': 10.5,
                                 'added_by': 1,
-                                'created_at': '2025-09-08T10:30:00Z'
+                                'created_at': '2025-09-08T10:30:00Z',
+                                'updated_at': '2025-09-08T10:30:00Z',
+                                'added_by_username': 'admin'
                             }
                         }
                     },
                     {
                         action: 'save',
                         method: 'POST',
-                        url: '?action=save',
+                        url: '?action=save&secret_key=hospital-api-secret-2024',
                         description: 'Create new doctor or update existing',
                         headers: {
                             'Content-Type': 'application/json',
@@ -304,6 +313,7 @@
                             'specialization': 'Orthopedics',
                             'hospital': 'General Hospital',
                             'contact_no': '9876543211',
+                            'phone': '9876543211',
                             'email': 'jane.smith@hospital.com',
                             'address': '456 Health Avenue',
                             'registration_no': 'MED12346',
@@ -321,11 +331,10 @@
                     {
                         action: 'delete',
                         method: 'POST',
-                        url: '?action=delete',
+                        url: '?action=delete&secret_key=hospital-api-secret-2024',
                         description: 'Delete doctor by ID',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
+                            'Content-Type': 'application/json'
                         },
                         body: {
                             'id': 2
@@ -333,6 +342,50 @@
                         response: {
                             'success': true,
                             'message': 'Doctor deleted successfully'
+                        }
+                    },
+                    {
+                        action: 'specializations',
+                        method: 'GET',
+                        url: '?action=specializations&secret_key=hospital-api-secret-2024',
+                        description: 'Get list of all doctor specializations',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        response: {
+                            'success': true,
+                            'data': ['Cardiology', 'Orthopedics', 'Neurology', 'General']
+                        }
+                    },
+                    {
+                        action: 'hospitals',
+                        method: 'GET',
+                        url: '?action=hospitals&secret_key=hospital-api-secret-2024',
+                        description: 'Get list of all hospitals',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        response: {
+                            'success': true,
+                            'data': ['City Hospital', 'General Hospital', 'Medical Center']
+                        }
+                    },
+                    {
+                        action: 'stats',
+                        method: 'GET',
+                        url: '?action=stats&secret_key=hospital-api-secret-2024',
+                        description: 'Get doctor statistics',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'total': 50,
+                                'active': 45,
+                                'specializations': 8,
+                                'hospitals': 12
+                            }
                         }
                     }
                 ]
@@ -346,7 +399,7 @@
                     {
                         action: 'list',
                         method: 'GET',
-                        url: '?action=list',
+                        url: '?action=list&secret_key=hospital-api-secret-2024',
                         description: 'Get all patients with filters',
                         headers: {
                             'Content-Type': 'application/json',
@@ -382,7 +435,7 @@
                     {
                         action: 'get',
                         method: 'GET',
-                        url: '?action=get&id=1',
+                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
                         description: 'Get single patient by ID',
                         headers: {
                             'Content-Type': 'application/json',
@@ -405,7 +458,7 @@
                     {
                         action: 'save',
                         method: 'POST',
-                        url: '?action=save',
+                        url: '?action=save&secret_key=hospital-api-secret-2024',
                         description: 'Create or update patient',
                         headers: {
                             'Content-Type': 'application/json',
@@ -434,7 +487,7 @@
                     {
                         action: 'delete',
                         method: 'POST',
-                        url: '?action=delete',
+                        url: '?action=delete&secret_key=hospital-api-secret-2024',
                         description: 'Delete patient by ID',
                         headers: {
                             'Content-Type': 'application/json',
@@ -459,7 +512,7 @@
                     {
                         action: 'list',
                         method: 'GET',
-                        url: '?action=list',
+                        url: '?action=list&secret_key=hospital-api-secret-2024',
                         description: 'Get all test categories',
                         headers: {
                             'Content-Type': 'application/json',
@@ -481,7 +534,7 @@
                     {
                         action: 'get',
                         method: 'GET',
-                        url: '?action=get&id=1',
+                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
                         description: 'Get single test category by ID',
                         headers: {
                             'Content-Type': 'application/json',
@@ -500,7 +553,7 @@
                     {
                         action: 'save',
                         method: 'POST',
-                        url: '?action=save',
+                        url: '?action=save&secret_key=hospital-api-secret-2024',
                         description: 'Create or update category',
                         headers: {
                             'Content-Type': 'application/json',
@@ -522,7 +575,7 @@
                     {
                         action: 'delete',
                         method: 'POST',
-                        url: '?action=delete',
+                        url: '?action=delete&secret_key=hospital-api-secret-2024',
                         description: 'Delete category by ID',
                         headers: {
                             'Content-Type': 'application/json',
@@ -547,7 +600,7 @@
                     {
                         action: 'list',
                         method: 'GET',
-                        url: '?action=list',
+                        url: '?action=list&secret_key=hospital-api-secret-2024',
                         description: 'Get all laboratory tests',
                         headers: {
                             'Content-Type': 'application/json',
@@ -585,7 +638,7 @@
                     {
                         action: 'get',
                         method: 'GET',
-                        url: '?action=get&id=1',
+                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
                         description: 'Get single test by ID',
                         headers: {
                             'Content-Type': 'application/json',
@@ -605,7 +658,7 @@
                     {
                         action: 'save',
                         method: 'POST',
-                        url: '?action=save',
+                        url: '?action=save&secret_key=hospital-api-secret-2024',
                         description: 'Create or update test',
                         headers: {
                             'Content-Type': 'application/json',
@@ -638,7 +691,7 @@
                     {
                         action: 'delete',
                         method: 'POST',
-                        url: '?action=delete',
+                        url: '?action=delete&secret_key=hospital-api-secret-2024',
                         description: 'Delete test by ID',
                         headers: {
                             'Content-Type': 'application/json',
@@ -913,7 +966,7 @@
                     {
                         action: 'list',
                         method: 'GET',
-                        url: '?action=list',
+                        url: '?action=list&secret_key=hospital-api-secret-2024',
                         description: 'Get all owners/clinics with pagination',
                         headers: {
                             'Content-Type': 'application/json',
@@ -948,7 +1001,7 @@
                     {
                         action: 'get',
                         method: 'GET',
-                        url: '?action=get&id=1',
+                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
                         description: 'Get single owner by ID',
                         headers: {
                             'Content-Type': 'application/json',
@@ -971,7 +1024,7 @@
                     {
                         action: 'save',
                         method: 'POST',
-                        url: '?action=save',
+                        url: '?action=save&secret_key=hospital-api-secret-2024',
                         description: 'Create or update owner/clinic',
                         headers: {
                             'Content-Type': 'application/json',
@@ -999,7 +1052,7 @@
                     {
                         action: 'delete',
                         method: 'POST',
-                        url: '?action=delete',
+                        url: '?action=delete&secret_key=hospital-api-secret-2024',
                         description: 'Delete owner by ID (Admin/Master only)',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1024,7 +1077,7 @@
                     {
                         action: 'list',
                         method: 'GET',
-                        url: '?action=list',
+                        url: '?action=list&secret_key=hospital-api-secret-2024',
                         description: 'Get all users with pagination and filtering',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1061,7 +1114,7 @@
                     {
                         action: 'get',
                         method: 'GET',
-                        url: '?action=get&id=1',
+                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
                         description: 'Get single user by ID',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1169,7 +1222,7 @@
                     {
                         action: 'list',
                         method: 'GET',
-                        url: '?action=list',
+                        url: '?action=list&secret_key=hospital-api-secret-2024',
                         description: 'Get all notices with author information',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1196,7 +1249,7 @@
                     {
                         action: 'get',
                         method: 'GET',
-                        url: '?action=get&id=1',
+                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
                         description: 'Get single notice by ID',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1221,7 +1274,7 @@
                     {
                         action: 'save',
                         method: 'POST',
-                        url: '?action=save',
+                        url: '?action=save&secret_key=hospital-api-secret-2024',
                         description: 'Create or update notice (Admin/Master only)',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1255,7 +1308,7 @@
                     {
                         action: 'delete',
                         method: 'POST',
-                        url: '?action=delete',
+                        url: '?action=delete&secret_key=hospital-api-secret-2024',
                         description: 'Delete notice by ID (Admin/Master only)',
                         headers: {
                             'Content-Type': 'application/json',
