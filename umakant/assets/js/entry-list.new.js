@@ -1203,7 +1203,7 @@ function displayEntryDetails(entry) {
                     ` : ''}
                     <tr class="font-weight-bold">
                         <td><strong>Total Amount:</strong></td>
-                        <td class="text-success"><strong>₹${parseFloat(entry.subtotal - entry.discount_amount || entry.total_price || 0).toFixed(2)}</strong></td>
+                        <td class="text-success"><strong>₹${parseFloat(entry.final_amount || entry.total_price || 0).toFixed(2)}</strong></td>
                     </tr>
                 </table>
             </div>
@@ -1305,7 +1305,8 @@ function populateEditForm(entry) {
         total_price: entry.total_price,
         aggregated_total_price: entry.aggregated_total_price,
         aggregated_total_discount: entry.aggregated_total_discount,
-        final_amount: entry.final_amount,
+        //final_amount: entry.final_amount,
+        final_amount: entry.aggregated_total_price-entry.aggregated_total_discount,
         price: entry.price,
         agg_total_price: entry.agg_total_price,
         agg_total_discount: entry.agg_total_discount
