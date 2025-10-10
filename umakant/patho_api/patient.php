@@ -47,9 +47,11 @@ try {
         $userId = $_GET['user_id'] ?? $_POST['user_id'] ?? $auth['user_id'];
         
         // DataTables parameters
-        $draw = $_POST['draw'] ?? 1;
-        $start = $_POST['start'] ?? 0;
-        $length = $_POST['length'] ?? 25;
+        $draw = (int)($_REQUEST['draw'] ?? 1);
+        $start = isset($_REQUEST['start']) ? (int)$_REQUEST['start'] : 0;
+        $length = isset($_REQUEST['length']) ? (int)$_REQUEST['length'] : 25;
+        if ($start < 0) { $start = 0; }
+        if ($length <= 0) { $length = 25; }
         $search = $_POST['search']['value'] ?? $_GET['search'] ?? '';
         $addedByFilter = $_POST['added_by'] ?? $_GET['added_by'] ?? '';
         
@@ -86,9 +88,17 @@ try {
                   LEFT JOIN users u ON p.added_by = u.id" . $whereSql . " 
                   ORDER BY p.id DESC LIMIT ?, ?";
         $stmt = $pdo->prepare($query);
-        $params[] = $start;
-        $params[] = $length;
-        $stmt->execute($params);
+
+        // Bind WHERE clause parameters (positional placeholders)
+        foreach ($params as $idx => $value) {
+            $stmt->bindValue($idx + 1, $value);
+        }
+
+        // Bind LIMIT/OFFSET as integers (PDO::PARAM_INT required when emulate prepares is disabled)
+        $stmt->bindValue(count($params) + 1, $start, PDO::PARAM_INT);
+        $stmt->bindValue(count($params) + 2, $length, PDO::PARAM_INT);
+
+        $stmt->execute();
         $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         json_response([
