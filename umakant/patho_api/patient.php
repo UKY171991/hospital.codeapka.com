@@ -37,6 +37,53 @@ try {
         return [];
     }
 
+    function patientTableHasColumn(PDO $pdo, string $column): bool {
+        static $columnCache = null;
+        if ($columnCache === null) {
+            $stmt = $pdo->query('DESCRIBE patients');
+            $columnCache = array_map(fn($row) => $row['Field'], $stmt->fetchAll(PDO::FETCH_ASSOC));
+        }
+        return in_array($column, $columnCache, true);
+    }
+
+    function getPatientGenderColumn(PDO $pdo): ?string {
+        static $genderColumn = null;
+        if ($genderColumn !== null) {
+            return $genderColumn;
+        }
+        if (patientTableHasColumn($pdo, 'gender')) {
+            $genderColumn = 'gender';
+        } elseif (patientTableHasColumn($pdo, 'sex')) {
+            $genderColumn = 'sex';
+        } else {
+            $genderColumn = null;
+        }
+        return $genderColumn;
+    }
+
+    function buildPatientSelectFields(PDO $pdo): string {
+        $fields = [
+            'p.id',
+            'p.uhid',
+            'p.name',
+            'p.father_husband',
+            'p.mobile',
+            'p.email',
+            'p.age',
+            'p.age_unit'
+        ];
+
+        $genderColumn = getPatientGenderColumn($pdo);
+        $fields[] = $genderColumn ? "p.`$genderColumn` AS gender" : 'NULL AS gender';
+
+        $fields[] = 'p.address';
+        $fields[] = 'p.added_by';
+        $fields[] = 'p.created_at';
+        $fields[] = 'u.username AS added_by_username';
+
+        return implode(', ', $fields);
+    }
+
     if ($action === 'list') {
         $auth = simpleAuthenticate($pdo);
         if (!$auth) {
@@ -83,7 +130,8 @@ try {
         $filteredRecords = $filteredStmt->fetchColumn();
         
         // Get patients data
-        $query = "SELECT p.id, p.uhid, p.name, p.father_husband, p.mobile, p.email, p.age, p.age_unit, p.gender, p.address, p.added_by, p.created_at, u.username AS added_by_username 
+        $selectFields = buildPatientSelectFields($pdo);
+        $query = "SELECT $selectFields 
                   FROM patients p 
                   LEFT JOIN users u ON p.added_by = u.id" . $whereSql . " 
                   ORDER BY p.id DESC LIMIT ?, ?";
@@ -121,10 +169,11 @@ try {
             json_response(['success' => false, 'message' => 'Patient ID is required'], 400);
         }
         
-        $stmt = $pdo->prepare('SELECT p.id, p.uhid, p.name, p.father_husband, p.mobile, p.email, p.age, p.age_unit, p.gender, p.address, p.added_by, p.created_at, u.username AS added_by_username 
+        $selectFields = buildPatientSelectFields($pdo);
+        $stmt = $pdo->prepare("SELECT $selectFields
                               FROM patients p 
                               LEFT JOIN users u ON p.added_by = u.id 
-                              WHERE p.id = ?');
+                              WHERE p.id = ?");
         $stmt->execute([$id]);
         $patient = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -155,39 +204,73 @@ try {
             // Update existing patient
             $patientId = intval($input['id']);
             
-            $stmt = $pdo->prepare('UPDATE patients SET uhid=?, name=?, father_husband=?, mobile=?, email=?, age=?, age_unit=?, gender=?, address=?, added_by=?, updated_at=NOW() WHERE id=?');
-            $stmt->execute([
-                trim($input['uhid']),
-                trim($input['name']),
-                trim($input['father_husband'] ?? ''),
-                trim($input['mobile'] ?? ''),
-                trim($input['email'] ?? ''),
-                intval($input['age'] ?? 0),
-                trim($input['age_unit'] ?? 'Years'),
-                trim($input['gender'] ?? ''),
-                trim($input['address'] ?? ''),
-                intval($input['added_by'] ?? $auth['user_id']),
-                $patientId
-            ]);
+            $genderColumn = getPatientGenderColumn($pdo);
+            $setParts = [
+                'uhid = :uhid',
+                'name = :name',
+                'father_husband = :father_husband',
+                'mobile = :mobile',
+                'email = :email',
+                'age = :age',
+                'age_unit = :age_unit',
+                'address = :address',
+                'added_by = :added_by'
+            ];
+
+            $params = [
+                ':uhid' => trim($input['uhid']),
+                ':name' => trim($input['name']),
+                ':father_husband' => trim($input['father_husband'] ?? ''),
+                ':mobile' => trim($input['mobile'] ?? ''),
+                ':email' => trim($input['email'] ?? ''),
+                ':age' => ($input['age'] === '' || $input['age'] === null) ? null : intval($input['age']),
+                ':age_unit' => trim($input['age_unit'] ?? 'Years'),
+                ':address' => trim($input['address'] ?? ''),
+                ':added_by' => intval($input['added_by'] ?? $auth['user_id']),
+                ':id' => $patientId
+            ];
+
+            if ($genderColumn) {
+                $setParts[] = '`' . $genderColumn . '` = :gender';
+                $params[':gender'] = trim($input['gender'] ?? '');
+            }
+
+            $sql = 'UPDATE patients SET ' . implode(', ', $setParts) . ', updated_at = NOW() WHERE id = :id';
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
             
             $message = 'Patient updated successfully';
             $action = 'updated';
             $id = $patientId;
         } else {
             // Create new patient
-            $stmt = $pdo->prepare('INSERT INTO patients (uhid, name, father_husband, mobile, email, age, age_unit, gender, address, added_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
-            $stmt->execute([
-                trim($input['uhid']),
-                trim($input['name']),
-                trim($input['father_husband'] ?? ''),
-                trim($input['mobile'] ?? ''),
-                trim($input['email'] ?? ''),
-                intval($input['age'] ?? 0),
-                trim($input['age_unit'] ?? 'Years'),
-                trim($input['gender'] ?? ''),
-                trim($input['address'] ?? ''),
-                intval($input['added_by'] ?? $auth['user_id'])
-            ]);
+            $genderColumn = getPatientGenderColumn($pdo);
+            $columns = ['uhid', 'name', 'father_husband', 'mobile', 'email', 'age', 'age_unit', 'address', 'added_by'];
+            $placeholders = [':uhid', ':name', ':father_husband', ':mobile', ':email', ':age', ':age_unit', ':address', ':added_by'];
+            $params = [
+                ':uhid' => trim($input['uhid']),
+                ':name' => trim($input['name']),
+                ':father_husband' => trim($input['father_husband'] ?? ''),
+                ':mobile' => trim($input['mobile'] ?? ''),
+                ':email' => trim($input['email'] ?? ''),
+                ':age' => ($input['age'] === '' || $input['age'] === null) ? null : intval($input['age']),
+                ':age_unit' => trim($input['age_unit'] ?? 'Years'),
+                ':address' => trim($input['address'] ?? ''),
+                ':added_by' => intval($input['added_by'] ?? $auth['user_id'])
+            ];
+
+            if ($genderColumn) {
+                $columns[] = $genderColumn;
+                $placeholders[] = ':gender';
+                $params[':gender'] = trim($input['gender'] ?? '');
+            }
+
+            $columnsSql = implode(', ', array_map(fn($col) => '`' . $col . '`', $columns));
+            $placeholdersSql = implode(', ', $placeholders);
+
+            $sql = "INSERT INTO patients ($columnsSql, `created_at`, `updated_at`) VALUES ($placeholdersSql, NOW(), NOW())";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
             
             $message = 'Patient created successfully';
             $action = 'created';
@@ -195,10 +278,11 @@ try {
         }
         
         // Fetch the saved patient
-        $stmt = $pdo->prepare('SELECT p.id, p.uhid, p.name, p.father_husband, p.mobile, p.email, p.age, p.age_unit, p.gender, p.added_by, p.created_at, u.username AS added_by_username 
+        $selectFields = buildPatientSelectFields($pdo);
+        $stmt = $pdo->prepare("SELECT $selectFields
                               FROM patients p 
                               LEFT JOIN users u ON p.added_by = u.id 
-                              WHERE p.id = ?');
+                              WHERE p.id = ?");
         $stmt->execute([$id]);
         $patient = $stmt->fetch(PDO::FETCH_ASSOC);
         
