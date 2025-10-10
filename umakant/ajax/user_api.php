@@ -109,7 +109,44 @@ if ($action === 'list') {
             if (empty($whereClause)) {
                 $whereClause = " WHERE " . $searchClause;
                 $params = $searchParams;
-            } else {
+            } elseif ($action === 'list') {
+        // fallback: this branch should not execute because of early return, but kept for clarity
+        json_response(['success' => false, 'message' => 'Invalid list request'], 400);
+    }
+
+if ($action === 'list_simple') {
+    $viewerRole = $_SESSION['role'] ?? 'user';
+    $viewerId = $_SESSION['user_id'] ?? null;
+
+    $whereClause = '';
+    $params = [];
+
+    if ($viewerRole !== 'master') {
+        $whereClause = " WHERE (added_by = ? OR id = ?)";
+        $params = [$viewerId, $viewerId];
+    }
+
+    $selectColumns = buildUserSelectColumns(['id', 'username', 'full_name', 'email', 'role']);
+    $query = "SELECT " . implode(', ', $selectColumns) .
+             " FROM users" . $whereClause . " ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
+
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
+    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($users as &$user) {
+        $user['user_type'] = normalizeUserTypeValue($user['user_type'] ?? null);
+    }
+    unset($user);
+
+    json_response([
+        'success' => true,
+        'recordsTotal' => count($users),
+        'data' => $users
+    ]);
+}
+
+if ($action === 'get' && isset($_GET['id'])) {
                 $whereClause .= " AND " . $searchClause;
                 $params = array_merge($params, $searchParams);
             }
@@ -175,6 +212,7 @@ if ($action === 'list') {
             'success' => true,
             'data' => $users
         ]);
+    }
 
 if ($action === 'list_simple') {
     $viewerRole = $_SESSION['role'] ?? 'user';
