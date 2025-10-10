@@ -177,11 +177,11 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                             <th width="5%">ID</th>
                                             <th width="15%">Patient</th>
                                             <th width="12%">Doctor</th>
-                                            <th width="8%">Owner</th>
                                             <th width="8%">Status</th>
                                             <th width="8%">Priority</th>
                                             <th width="10%">Amount</th>
                                             <th width="10%">Date</th>
+                                            <th width="8%">Added By</th>
                                             <th width="9%">Actions</th>
                                         </tr>
                                     </thead>

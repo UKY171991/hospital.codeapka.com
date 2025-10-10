@@ -103,23 +103,6 @@ function initializeDataTable() {
                     return data || '<span class="text-muted">Not assigned</span>';
                 }
             },
-            { 
-                data: 'owner_name',
-                render: function(data, type, row) {
-                    return data || '<span class="text-muted">Not assigned</span>';
-                }
-            },
-            {
-                data: 'status',
-                render: function(data, type, row) {
-                    const statusClass = {
-                        'pending': 'warning',
-                        'completed': 'success',
-                        'cancelled': 'danger'
-                    }[data] || 'secondary';
-                    return `<span class="badge badge-${statusClass}">${data}</span>`;
-                }
-            },
             {
                 data: 'priority',
                 render: function(data, type, row) {
@@ -131,6 +114,17 @@ function initializeDataTable() {
                         'normal': 'secondary'
                     }[priority] || 'secondary';
                     return `<span class="badge badge-${priorityClass}">${priority}</span>`;
+                }
+            },
+            {
+                data: 'status',
+                render: function(data, type, row) {
+                    const statusClass = {
+                        'pending': 'warning',
+                        'completed': 'success',
+                        'cancelled': 'danger'
+                    }[data] || 'secondary';
+                    return `<span class="badge badge-${statusClass}">${data}</span>`;
                 }
             },
             {
@@ -148,6 +142,12 @@ function initializeDataTable() {
                         return date.toLocaleDateString('en-IN');
                     }
                     return '<span class="text-muted">N/A</span>';
+                }
+            },
+            { 
+                data: 'added_by_full_name',
+                render: function(data, type, row) {
+                    return data || row.added_by_username || '<span class="text-muted">Unknown</span>';
                 }
             },
             {
@@ -168,7 +168,7 @@ function initializeDataTable() {
                 }
             }
         ],
-        order: [[8, 'desc']], // Sort by date descending (column 8 is Date)
+        order: [[6, 'desc']], // Sort by date descending (column 6 is Date)
         pageLength: 25,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         responsive: true,
