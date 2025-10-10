@@ -40,6 +40,15 @@ function resetForm() {
   generateUHID();
 }
 
+function normalizeGenderValue(rawGender) {
+  if (!rawGender) return '';
+  const normalized = rawGender.toString().trim().toLowerCase();
+  if (normalized === 'm' || normalized === 'male') return 'Male';
+  if (normalized === 'f' || normalized === 'female') return 'Female';
+  if (normalized === 'o' || normalized === 'other') return 'Other';
+  return rawGender;
+}
+
 function populateForm(patient) {
   $('#patientId').val(patient.id);
   $('#patientName').val(patient.name);
@@ -48,7 +57,7 @@ function populateForm(patient) {
   $('#patientEmail').val(patient.email);
   $('#patientAge').val(patient.age);
   $('#patientAgeUnit').val(patient.age_unit);
-  $('#patientGender').val(patient.gender);
+  $('#patientGender').val(normalizeGenderValue(patient.gender));
   $('#patientFatherHusband').val(patient.father_husband);
   $('#patientAddress').val(patient.address);
   // Assuming patient.added_by contains the ID of the user who added the patient
