@@ -1,9 +1,9 @@
 <div class="modal fade" id="categoryViewModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Category Details</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content category-view-modal">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title mb-0"><i class="fas fa-eye mr-2"></i>Category Details</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -12,8 +12,10 @@
           <!-- Category details injected here -->
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-dismiss="modal">
+          <i class="fas fa-times mr-1"></i>Close
+        </button>
       </div>
     </div>
   </div>

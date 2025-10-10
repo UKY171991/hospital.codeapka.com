@@ -224,13 +224,39 @@ function viewCategory(id){
         $.getJSON(TEST_CATEGORY_API,{action:'get',id:id}, function(resp){
             if(resp.success){
                 var d = resp.data;
-                var html = '<table class="table table-sm table-borderless">' +
-                    '<tr><th>ID</th><td>'+(d.id||'')+'</td></tr>' +
-                    '<tr><th>Name</th><td>'+(d.name||'')+'</td></tr>' +
-                    '<tr><th>Description</th><td>'+(d.description||'')+'</td></tr>' +
-                    '<tr><th>Test Count</th><td>'+(d.test_count||0)+'</td></tr>' +
-                    '<tr><th>Added By</th><td>'+((d.added_by_username && d.added_by_username!='')?d.added_by_username:(d.added_by||''))+'</td></tr>' +
-                    '</table>';
+                var html = '<div class="row">' +
+                    '<div class="col-md-6 mb-3">' +
+                        '<div class="card border-0 shadow-sm h-100">' +
+                            '<div class="card-body py-3">' +
+                                '<h6 class="text-uppercase text-muted mb-2">Category Name</h6>' +
+                                '<p class="h5 mb-0">'+ (d.name || '—') +'</p>' +
+                                '<span class="badge badge-light border mt-2">ID #'+ (d.id || '—') +'</span>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="col-md-6 mb-3">' +
+                        '<div class="card border-0 shadow-sm h-100">' +
+                            '<div class="card-body py-3">' +
+                                '<h6 class="text-uppercase text-muted mb-2">Usage Stats</h6>' +
+                                '<div class="d-flex align-items-center">' +
+                                    '<span class="badge badge-info badge-pill mr-3 px-3 py-2"><i class="fas fa-vial mr-1"></i>'+ (d.test_count || 0) +' tests</span>' +
+                                    '<div>' +
+                                        '<small class="text-muted d-block">Added By</small>' +
+                                        '<strong>'+ ((d.added_by_username && d.added_by_username!=='')?d.added_by_username:(d.added_by||'System')) +'</strong>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="col-12">' +
+                        '<div class="card border-0 shadow-sm">' +
+                            '<div class="card-body">' +
+                                '<h6 class="text-uppercase text-muted mb-2">Description</h6>' +
+                                '<p class="mb-0">'+ (d.description ? d.description : '<span class="text-muted">No description provided.</span>') +'</p>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
                 $('#categoryViewModal .category-view-content').html(html);
                 $('#categoryViewModal').modal('show');
             } else toastr.error('Category not found');
@@ -312,6 +338,6 @@ $(function(){
         $('#categoryForm').find('input,textarea,select').prop('disabled', false);
         $('#saveCategoryBtn').show();
         $('#categoryModalLabel').text('Add Category');
+        $('#categoryModalBadge').text('New').removeClass('badge-info').addClass('badge-primary');
     });
-});
 </script>
