@@ -228,7 +228,7 @@
                         action: 'list',
                         method: 'GET/POST',
                         url: '?action=list&secret_key=hospital-api-secret-2024',
-                        description: 'Get all doctors with pagination (supports both regular pagination and DataTables format)',
+                        description: 'Get doctors filtered by user ID (shows only doctors added by authenticated user by default, supports DataTables format)',
                         headers: {
                             'Content-Type': 'application/json'
                         },
@@ -248,29 +248,15 @@
                             'data': [
                                 {
                                     'id': 1,
-                                    'server_id': null,
                                     'name': 'Dr. John Doe',
-                                    'qualification': 'MBBS, MD',
-                                    'specialization': 'Cardiology',
                                     'hospital': 'City Hospital',
                                     'contact_no': '9876543210',
-                                    'phone': '9876543210',
-                                    'email': 'john.doe@hospital.com',
-                                    'address': '123 Medical Street',
-                                    'registration_no': 'MED12345',
                                     'percent': 10.5,
                                     'added_by': 1,
-                                    'created_at': '2025-09-08T10:30:00Z',
-                                    'updated_at': '2025-09-08T10:30:00Z',
+                                    'created_at': '2025-09-08 10:30:00',
                                     'added_by_username': 'admin'
                                 }
                             ],
-                            'pagination': {
-                                'total': 50,
-                                'page': 1,
-                                'limit': 10,
-                                'totalPages': 5
-                            },
                             'draw': 1,
                             'recordsTotal': 50,
                             'recordsFiltered': 25
@@ -289,20 +275,13 @@
                             'success': true,
                             'data': {
                                 'id': 1,
-                                'server_id': null,
                                 'name': 'Dr. John Doe',
-                                'qualification': 'MBBS, MD',
-                                'specialization': 'Cardiology',
                                 'hospital': 'City Hospital',
                                 'contact_no': '9876543210',
-                                'phone': '9876543210',
-                                'email': 'john.doe@hospital.com',
-                                'address': '123 Medical Street',
-                                'registration_no': 'MED12345',
                                 'percent': 10.5,
+                                'address': '123 Medical Street',
                                 'added_by': 1,
-                                'created_at': '2025-09-08T10:30:00Z',
-                                'updated_at': '2025-09-08T10:30:00Z',
+                                'created_at': '2025-09-08 10:30:00',
                                 'added_by_username': 'admin'
                             }
                         }
@@ -319,15 +298,10 @@
                         body: {
                             'id': 'optional - include for updates',
                             'name': 'Dr. Jane Smith (required)',
-                            'qualification': 'MBBS, MS',
-                            'specialization': 'Orthopedics',
                             'hospital': 'General Hospital',
                             'contact_no': '9876543211',
-                            'phone': '9876543211',
-                            'email': 'jane.smith@hospital.com',
-                            'address': '456 Health Avenue',
-                            'registration_no': 'MED12346',
                             'percent': 12.0,
+                            'address': '456 Health Avenue',
                             'added_by': 'user ID who added the doctor'
                         },
                         response: {
@@ -339,43 +313,11 @@
                                 'hospital': 'General Hospital',
                                 'contact_no': '9876543211',
                                 'percent': 12.0,
-                                'added_by_username': 'admin',
-                                'created_at': '2025-09-08T10:30:00Z'
+                                'added_by': 1,
+                                'created_at': '2025-09-08 10:30:00',
+                                'added_by_username': 'admin'
                             },
-                            'action': 'inserted or updated'
-                        }
-                    },
-                    {
-                        action: 'update',
-                        method: 'POST',
-                        url: '?action=update&secret_key=hospital-api-secret-2024',
-                        description: 'Update existing doctor (alias for save action with ID)',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'id': 'required - doctor ID to update',
-                            'name': 'Dr. Updated Name',
-                            'hospital': 'Updated Hospital',
-                            'contact_no': '9876543211',
-                            'percent': 15.0,
-                            'address': 'Updated Address',
-                            'added_by': 'user ID'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Doctor updated successfully',
-                            'data': {
-                                'id': 2,
-                                'name': 'Dr. Updated Name',
-                                'hospital': 'Updated Hospital',
-                                'contact_no': '9876543211',
-                                'percent': 15.0,
-                                'added_by_username': 'admin',
-                                'updated_at': '2025-09-08T10:30:00Z'
-                            },
-                            'action': 'updated'
+                            'action': 'created'
                         }
                     },
                     {
