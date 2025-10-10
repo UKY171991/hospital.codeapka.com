@@ -61,6 +61,25 @@ try {
         return $genderColumn;
     }
 
+    function normalizeGenderValue($value) {
+        if (!isset($value)) {
+            return null;
+        }
+        $normalized = strtolower(trim((string)$value));
+        return match ($normalized) {
+            'm', 'male' => 'Male',
+            'f', 'female' => 'Female',
+            'o', 'other' => 'Other',
+            default => $value
+        };
+    }
+
+    function assignGenderParam(array &$params, ?string $genderColumn, $value): void {
+        if ($genderColumn) {
+            $params[':gender'] = $value !== null ? trim($value) : '';
+        }
+    }
+
     function buildPatientSelectFields(PDO $pdo): string {
         $fields = [
             'p.id',
@@ -147,7 +166,10 @@ try {
         $stmt->bindValue(count($params) + 2, $length, PDO::PARAM_INT);
 
         $stmt->execute();
-        $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $patients = array_map(function ($row) {
+            $row['gender'] = normalizeGenderValue($row['gender'] ?? null);
+            return $row;
+        }, $stmt->fetchAll(PDO::FETCH_ASSOC));
 
         json_response([
             'draw' => intval($draw),
@@ -176,6 +198,9 @@ try {
                               WHERE p.id = ?");
         $stmt->execute([$id]);
         $patient = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($patient) {
+            $patient['gender'] = normalizeGenderValue($patient['gender'] ?? null);
+        }
         
         if (!$patient) {
             json_response(['success' => false, 'message' => 'Patient not found'], 404);
@@ -232,7 +257,7 @@ try {
 
             if ($genderColumn) {
                 $setParts[] = '`' . $genderColumn . '` = :gender';
-                $params[':gender'] = trim($input['gender'] ?? '');
+                assignGenderParam($params, $genderColumn, normalizeGenderValue($input['gender'] ?? ''));
             }
 
             $sql = 'UPDATE patients SET ' . implode(', ', $setParts) . ', updated_at = NOW() WHERE id = :id';
@@ -262,7 +287,7 @@ try {
             if ($genderColumn) {
                 $columns[] = $genderColumn;
                 $placeholders[] = ':gender';
-                $params[':gender'] = trim($input['gender'] ?? '');
+                assignGenderParam($params, $genderColumn, normalizeGenderValue($input['gender'] ?? ''));
             }
 
             $columnsSql = implode(', ', array_map(fn($col) => '`' . $col . '`', $columns));
@@ -332,15 +357,23 @@ try {
         $todayStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND DATE(created_at) = CURDATE()');
         $todayStmt->execute([$userId]);
         $today = $todayStmt->fetchColumn();
-        
-        $maleStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND gender = "Male"');
-        $maleStmt->execute([$userId]);
-        $male = $maleStmt->fetchColumn();
-        
-        $femaleStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND gender = "Female"');
-        $femaleStmt->execute([$userId]);
-        $female = $femaleStmt->fetchColumn();
-        
+
+        $genderColumn = getPatientGenderColumn($pdo);
+        $male = 0;
+        $female = 0;
+
+        if ($genderColumn) {
+            $genderField = 'LOWER(`' . $genderColumn . '`)';
+
+            $maleStmt = $pdo->prepare("SELECT COUNT(*) FROM patients WHERE added_by = ? AND $genderField IN ('male','m')");
+            $maleStmt->execute([$userId]);
+            $male = $maleStmt->fetchColumn();
+
+            $femaleStmt = $pdo->prepare("SELECT COUNT(*) FROM patients WHERE added_by = ? AND $genderField IN ('female','f')");
+            $femaleStmt->execute([$userId]);
+            $female = $femaleStmt->fetchColumn();
+        }
+
         json_response([
             'success' => true,
             'data' => [

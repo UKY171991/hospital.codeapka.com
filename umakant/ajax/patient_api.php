@@ -75,6 +75,23 @@ function patientHasColumn($col) {
     return in_array($col, $cols);
 }
 
+function normalizeGenderValue($value) {
+    if ($value === null) {
+        return '';
+    }
+    $normalized = strtolower(trim((string)$value));
+    return match ($normalized) {
+        'm', 'male' => 'Male',
+        'f', 'female' => 'Female',
+        'o', 'other' => 'Other',
+        default => (string)$value
+    };
+}
+
+function assignGenderParam(&$params, $value) {
+    $params[':gender'] = normalizeGenderValue($value);
+}
+
 function handleList() {
     global $pdo;
 
@@ -138,6 +155,11 @@ function handleList() {
         $stmt->bindValue(':offset', $start, PDO::PARAM_INT);
         $stmt->execute();
         $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($patients as &$patient) {
+            $rawGender = $patient['gender'] ?? ($patient['sex'] ?? null);
+            $patient['gender'] = normalizeGenderValue($rawGender);
+        }
+        unset($patient);
 
         if ($isDataTables) {
             echo json_encode([
@@ -353,7 +375,7 @@ function handleSave() {
                 ':email' => $data['email'] ?? '',
                 ':age' => $data['age'] !== '' ? $data['age'] : null,
                 ':age_unit' => $data['age_unit'] ?? 'Years',
-                ':gender' => $data['gender'] ?? '',
+                ':gender' => $normalizedGender,
                 ':address' => $data['address'] ?? '',
                 ':added_by' => $addedBy
             ]);
@@ -397,7 +419,7 @@ function handleSave() {
             ':email' => $data['email'] ?? '',
             ':age' => $data['age'] !== '' ? $data['age'] : null,
             ':age_unit' => $data['age_unit'] ?? 'Years',
-            ':gender' => $data['gender'] ?? '',
+            ':gender' => $normalizedGender,
             ':address' => $data['address'] ?? '',
             ':added_by' => $addedBy
         ]);
@@ -432,6 +454,7 @@ function handleUpdate() {
             'name = :name', 'father_husband = :father_husband', 'mobile = :mobile', 'email = :email',
             'age = :age', 'age_unit = :age_unit', 'address = :address'
         ];
+        $normalizedGender = normalizeGenderValue($data['gender'] ?? '');
         if (patientHasColumn('gender')) {
             $updateParts[] = 'gender = :gender';
         } elseif (patientHasColumn('sex')) {
