@@ -345,14 +345,14 @@
             {
                 name: 'Patient API',
                 file: 'patient.php',
-                description: 'Patient management API for Pathology > Patients menu page',
+                description: 'Lightweight Patient management API for Pathology > Patients menu page with DataTables support and user-based filtering',
                 baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/patient.php',
                 endpoints: [
                     {
                         action: 'list',
                         method: 'GET',
                         url: '?action=list&secret_key=hospital-api-secret-2024',
-                        description: 'Get all patients with filters',
+                        description: 'Get patients filtered by user ID (shows only patients added by authenticated user by default, supports DataTables format)',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-Api-Key': 'hospital-api-secret-2024'
@@ -360,28 +360,35 @@
                         queryParams: {
                             'page': 1,
                             'limit': 10,
-                            'search': 'patient name or phone',
-                            'gender': 'Male|Female',
-                            'age_from': 18,
-                            'age_to': 65
+                            'search': 'patient name, UHID, mobile, or email',
+                            'added_by': 'filter by user who added patient',
+                            'draw': 'DataTables draw counter',
+                            'start': 'DataTables start index',
+                            'length': 'DataTables page length',
+                            'user_id': 'specific user ID to filter by'
                         },
                         response: {
                             'success': true,
                             'data': [
                                 {
                                     'id': 1,
-                                    'name': 'John Patient',
+                                    'uhid': 'UHID001',
+                                    'name': 'John Doe',
+                                    'father_husband': 'Robert Doe',
+                                    'mobile': '9876543210',
+                                    'email': 'john@example.com',
                                     'age': 35,
+                                    'age_unit': 'Years',
                                     'gender': 'Male',
-                                    'phone': '9876543210',
-                                    'email': 'john.patient@email.com',
-                                    'address': '789 Patient Street',
-                                    'blood_group': 'O+',
-                                    'emergency_contact': '9876543211',
-                                    'medical_history': 'Diabetes, Hypertension',
-                                    'created_at': '2025-09-08T10:30:00Z'
+                                    'address': '123 Main St',
+                                    'added_by': 1,
+                                    'created_at': '2025-09-08 10:30:00',
+                                    'added_by_username': 'admin'
                                 }
-                            ]
+                            ],
+                            'draw': 1,
+                            'recordsTotal': 100,
+                            'recordsFiltered': 25
                         }
                     },
                     {
@@ -397,13 +404,18 @@
                             'success': true,
                             'data': {
                                 'id': 1,
-                                'name': 'John Patient',
+                                'uhid': 'UHID001',
+                                'name': 'John Doe',
+                                'father_husband': 'Robert Doe',
+                                'mobile': '9876543210',
+                                'email': 'john@example.com',
                                 'age': 35,
+                                'age_unit': 'Years',
                                 'gender': 'Male',
-                                'phone': '9876543210',
-                                'address': '789 Patient Street',
-                                'uhid': '2025000001',
-                                'added_by': 1
+                                'address': '123 Main St',
+                                'added_by': 1,
+                                'created_at': '2025-09-08 10:30:00',
+                                'added_by_username': 'admin'
                             }
                         }
                     },
@@ -417,23 +429,37 @@
                             'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
-                            'name': 'Jane Patient',
+                            'id': 'optional - include for updates',
+                            'uhid': 'UHID002 (required)',
+                            'name': 'Jane Doe (required)',
+                            'father_husband': 'Father/Husband name',
+                            'mobile': '9876543212',
+                            'email': 'jane@example.com',
                             'age': 28,
+                            'age_unit': 'Years',
                             'gender': 'Female',
-                            'phone': '9876543212',
-                            'email': 'jane.patient@email.com',
                             'address': '321 Health Road',
-                            'blood_group': 'A+',
-                            'emergency_contact': '9876543213',
-                            'medical_history': 'Allergic to penicillin'
+                            'added_by': 'user ID who added the patient'
                         },
                         response: {
                             'success': true,
                             'message': 'Patient saved successfully',
                             'data': {
                                 'id': 2,
-                                'name': 'Jane Patient'
-                            }
+                                'uhid': 'UHID002',
+                                'name': 'Jane Doe',
+                                'father_husband': 'Father/Husband name',
+                                'mobile': '9876543212',
+                                'email': 'jane@example.com',
+                                'age': 28,
+                                'age_unit': 'Years',
+                                'gender': 'Female',
+                                'address': '321 Health Road',
+                                'added_by': 1,
+                                'created_at': '2025-09-08 10:30:00',
+                                'added_by_username': 'admin'
+                            },
+                            'action': 'created'
                         }
                     },
                     {
@@ -451,6 +477,24 @@
                         response: {
                             'success': true,
                             'message': 'Patient deleted successfully'
+                        }
+                    },
+                    {
+                        action: 'stats',
+                        method: 'GET',
+                        url: '?action=stats&secret_key=hospital-api-secret-2024',
+                        description: 'Get patient statistics filtered by user ID',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        response: {
+                            'success': true,
+                            'data': {
+                                'total': 150,
+                                'today': 5,
+                                'male': 80,
+                                'female': 70
+                            }
                         }
                     }
                 ]
