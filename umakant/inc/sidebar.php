@@ -25,7 +25,7 @@ $role = $_SESSION['role'] ?? 'user';
     $pathologyPages = [
       'index.php','doctors.php','patient.php','owner.php',
       'test-category.php','test.php','upload_zip.php','upload_list.php',
-      'entry-list.php','plan.php','notice.php','user.php'
+      'entry-list.php','plan.php','notice.php'
     ];
     $isPathologyActive = in_array($activePage, $pathologyPages);
     // OPD menu and its pages - adjust filenames as needed
@@ -167,15 +167,6 @@ $role = $_SESSION['role'] ?? 'user';
               </a>
             </li>
 
-            <?php if (isset($_SESSION['user_id'])): ?>
-            <li class="nav-item">
-              <a href="user.php" class="nav-link <?php echo ($activePage == 'user.php') ? 'active' : ''; ?>">
-                <i class="fas fa-users nav-icon"></i>
-                <p>Users</p>
-              </a>
-            </li>
-            <?php endif; ?>
-
             <li class="nav-item">
               <a href="owner.php" class="nav-link <?php echo ($activePage == 'owner.php') ? 'active' : ''; ?>">
                 <i class="fas fa-id-badge nav-icon"></i>
@@ -185,6 +176,15 @@ $role = $_SESSION['role'] ?? 'user';
 
           </ul>
         </li>
+
+        <?php if (isset($_SESSION['user_id'])): ?>
+        <li class="nav-item">
+          <a href="user.php" class="nav-link <?php echo ($activePage == 'user.php') ? 'active' : ''; ?>">
+            <i class="nav-icon fas fa-users"></i>
+            <p>Users</p>
+          </a>
+        </li>
+        <?php endif; ?>
 
   <!-- Admins menu removed -->
 
