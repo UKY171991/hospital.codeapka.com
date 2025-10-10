@@ -1,8 +1,7 @@
 <?php
 /**
- * Doctor API - Comprehensive CRUD operations for doctors
- * Supports: CREATE, READ, UPDATE, DELETE operations
- * Authentication: Multiple methods supported (session, API token, shared secret, etc.)
+ * Doctor API - Lightweight CRUD for doctors.php page
+ * Supports: CREATE, READ, UPDATE, DELETE operations with user filtering
  */
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -17,159 +16,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
-require_once __DIR__ . '/../inc/api_config.php';
-require_once __DIR__ . '/../inc/smart_upsert.php';
 require_once __DIR__ . '/../inc/simple_auth.php';
 
-// Helper function to convert array keys to lowercase
-function array_keys_to_lowercase($array) {
-    return array_combine(array_map('strtolower', array_keys($array)), array_values($array));
-}
-
 // Get action from request
-$action = $_REQUEST['action'] ?? $_SERVER['REQUEST_METHOD'];
-$requestMethod = $_SERVER['REQUEST_METHOD'];
-
-// Map HTTP methods to actions
-switch($requestMethod) {
-    case 'GET':
-        $action = isset($_GET['id']) ? 'get' : ($_GET['action'] ?? 'list'); // Added $_GET['action'] for specific GET actions like 'specializations', 'hospitals', 'stats'
-        break;
-    case 'POST':
-        $action = $_REQUEST['action'] ?? 'save';
-        break;
-    case 'PUT':
-        $action = 'save';
-        break;
-    case 'DELETE':
-        $action = 'delete';
-        break;
-}
+$action = $_REQUEST['action'] ?? 'list';
+if ($action === 'update') $action = 'save';
 
 try {
-    // Validate doctor data
-    function validateDoctorData($data, $isUpdate = false) {
-        $errors = [];
-        
-        if (!$isUpdate || isset($data['name'])) {
-            if (empty(trim($data['name'] ?? ''))) {
-                $errors[] = 'Doctor name is required';
-            }
+    // Simple validation
+    function validateDoctorData($data) {
+        if (empty(trim($data['name'] ?? ''))) {
+            return ['Doctor name is required'];
         }
-        
-        if (isset($data['email']) && !empty($data['email'])) {
-            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                $errors[] = 'Invalid email format';
-            }
+        if (isset($data['percent']) && ($data['percent'] < 0 || $data['percent'] > 100)) {
+            return ['Percentage must be between 0 and 100'];
         }
-        
-        if (isset($data['percent'])) {
-            $percent = floatval($data['percent']);
-            if ($percent < 0 || $percent > 100) {
-                $errors[] = 'Percentage must be between 0 and 100';
-            }
-        }
-        
-        return $errors;
+        return [];
     }
 
     if ($action === 'list') {
         $auth = simpleAuthenticate($pdo);
-        
-        // For listing, we need some form of authentication
         if (!$auth) {
-            json_response([
-                'success' => false, 
-                'message' => 'Authentication required',
-                'debug_info' => getAuthDebugInfo()
-            ], 401);
-        }
-
-        // Check permissions
-        if (!simpleCheckPermission($auth, 'list')) {
-            json_response(['success' => false, 'message' => 'Permission denied'], 403);
+            json_response(['success' => false, 'message' => 'Authentication required'], 401);
         }
         
-        $userId = $_GET['user_id'] ?? $auth['user_id'];
+        // Get user ID - prioritize provided user_id, then authenticated user
+        $userId = $_GET['user_id'] ?? $_POST['user_id'] ?? $auth['user_id'];
         
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
-        $offset = ($page - 1) * $limit;
-
-        $search = $_GET['search'] ?? '';
-        $specializationFilter = $_GET['specialization'] ?? '';
-        $hospitalFilter = $_GET['hospital'] ?? '';
-
-        $whereClauses = [];
-        $params = [];
-
-        // Base query for doctors
-        $baseQuery = "FROM doctors d LEFT JOIN users u ON d.added_by = u.id";
-
-        // Add user-specific filter unless 'all' is requested by master/admin
-        if (!(isset($_GET['all']) && $_GET['all'] == '1' && in_array($auth['role'], ['master', 'admin']))) {
-            $whereClauses[] = "d.added_by = ?";
-            $params[] = $userId;
-        }
-
-        // Add search filter
+        // DataTables parameters
+        $draw = $_POST['draw'] ?? 1;
+        $start = $_POST['start'] ?? 0;
+        $length = $_POST['length'] ?? 25;
+        $search = $_POST['search']['value'] ?? $_GET['search'] ?? '';
+        $addedByFilter = $_POST['added_by'] ?? $_GET['added_by'] ?? '';
+        
+        // Build WHERE clause
+        $whereClauses = ["d.added_by = ?"];
+        $params = [$userId];
+        
+        // Search filter
         if (!empty($search)) {
-            $whereClauses[] = "(d.name LIKE ? OR d.qualification LIKE ? OR d.specialization LIKE ? OR d.hospital LIKE ? OR d.contact_no LIKE ? OR d.email LIKE ?)";
+            $whereClauses[] = "(d.name LIKE ? OR d.hospital LIKE ? OR d.contact_no LIKE ?)";
             $searchTerm = "%" . $search . "%";
-            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
         }
-
-        // Add specialization filter
-        if (!empty($specializationFilter)) {
-            $whereClauses[] = "d.specialization = ?";
-            $params[] = $specializationFilter;
-        }
-
-        // Add hospital filter
-        if (!empty($hospitalFilter)) {
-            $whereClauses[] = "d.hospital = ?";
-            $params[] = $hospitalFilter;
-        }
-
-        $whereSql = count($whereClauses) > 0 ? " WHERE " . implode(" AND ", $whereClauses) : "";
-
-        // Get total records (for pagination info)
-        $totalStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereSql);
-        $totalStmt->execute($params);
-        $totalRecords = $totalStmt->fetchColumn();
-
-        // Get doctors with pagination and filters - explicitly select all columns
-        $query = "SELECT d.id, d.server_id, d.name, d.qualification, d.specialization, d.hospital, d.contact_no, d.phone, d.email, d.address, d.registration_no, d.percent, d.added_by, d.created_at, d.updated_at, u.username AS added_by_username " . $baseQuery . $whereSql . " ORDER BY d.id DESC LIMIT ?, ?";
-        $stmt = $pdo->prepare($query);
-        $params[] = $offset;
-        $params[] = $limit;
-        $stmt->execute($params);
         
+        // Added by filter (overrides user filter if provided)
+        if (!empty($addedByFilter)) {
+            $whereClauses[0] = "d.added_by = ?";
+            $params[0] = $addedByFilter;
+        }
+        
+        $whereSql = " WHERE " . implode(" AND ", $whereClauses);
+        
+        // Get total and filtered counts
+        $totalStmt = $pdo->query("SELECT COUNT(*) FROM doctors d");
+        $totalRecords = $totalStmt->fetchColumn();
+        
+        $filteredStmt = $pdo->prepare("SELECT COUNT(*) FROM doctors d LEFT JOIN users u ON d.added_by = u.id" . $whereSql);
+        $filteredStmt->execute($params);
+        $filteredRecords = $filteredStmt->fetchColumn();
+        
+        // Get doctors data
+        $query = "SELECT d.id, d.name, d.hospital, d.contact_no, d.percent, d.added_by, d.created_at, u.username AS added_by_username 
+                  FROM doctors d 
+                  LEFT JOIN users u ON d.added_by = u.id" . $whereSql . " 
+                  ORDER BY d.id DESC LIMIT ?, ?";
+        $stmt = $pdo->prepare($query);
+        $params[] = $start;
+        $params[] = $length;
+        $stmt->execute($params);
         $doctors = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Convert all keys to lowercase for consistency with JavaScript
-        $doctors = array_map('array_keys_to_lowercase', $doctors);
-
+        
         json_response([
+            'draw' => intval($draw),
+            'recordsTotal' => intval($totalRecords),
+            'recordsFiltered' => intval($filteredRecords),
             'success' => true,
-            'data' => $doctors,
-            'pagination' => [
-                'total' => $totalRecords,
-                'page' => $page,
-                'limit' => $limit,
-                'totalPages' => ceil($totalRecords / $limit)
-            ]
+            'data' => $doctors
         ]);
     }
 
     if ($action === 'get') {
         $auth = simpleAuthenticate($pdo);
         if (!$auth) {
-            json_response([
-                'success' => false, 
-                'message' => 'Authentication required',
-                'debug_info' => getAuthDebugInfo()
-            ], 401);
+            json_response(['success' => false, 'message' => 'Authentication required'], 401);
         }
         
         $id = $_GET['id'] ?? null;
@@ -177,7 +108,7 @@ try {
             json_response(['success' => false, 'message' => 'Doctor ID is required'], 400);
         }
         
-        $stmt = $pdo->prepare('SELECT d.id, d.server_id, d.name, d.qualification, d.specialization, d.hospital, d.contact_no, d.phone, d.email, d.address, d.registration_no, d.percent, d.added_by, d.created_at, d.updated_at, u.username AS added_by_username 
+        $stmt = $pdo->prepare('SELECT d.id, d.name, d.hospital, d.contact_no, d.percent, d.address, d.added_by, d.created_at, u.username AS added_by_username 
                               FROM doctors d 
                               LEFT JOIN users u ON d.added_by = u.id 
                               WHERE d.id = ?');
@@ -188,248 +119,80 @@ try {
             json_response(['success' => false, 'message' => 'Doctor not found'], 404);
         }
 
-        // Check permissions
-        if (!simpleCheckPermission($auth, 'get', $doctor['added_by'])) {
-            json_response(['success' => false, 'message' => 'Permission denied'], 403);
-        }
-        
-        // Convert all keys to lowercase for consistency with JavaScript
-        $doctor = array_keys_to_lowercase($doctor);
-
         json_response(['success' => true, 'data' => $doctor]);
     }
 
     if ($action === 'save') {
         $auth = simpleAuthenticate($pdo);
         if (!$auth) {
-            json_response([
-                'success' => false, 
-                'message' => 'Authentication required',
-                'debug_info' => getAuthDebugInfo()
-            ], 401);
+            json_response(['success' => false, 'message' => 'Authentication required'], 401);
         }
 
         // Get input data
-        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        $input = $_POST;
+        
+        // Validate input
+        $errors = validateDoctorData($input);
+        if (!empty($errors)) {
+            json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
+        }
         
         // Check if this is an update (has ID)
-        $isUpdate = isset($input['id']) && !empty($input['id']);
-        
-        if ($isUpdate) {
+        if (isset($input['id']) && !empty($input['id'])) {
             // Update existing doctor
             $doctorId = intval($input['id']);
             
-            // Check if doctor exists and get current data
-            $stmt = $pdo->prepare('SELECT * FROM doctors WHERE id = ?');
-            $stmt->execute([$doctorId]);
-            $existingDoctor = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt = $pdo->prepare('UPDATE doctors SET name=?, hospital=?, contact_no=?, percent=?, address=?, added_by=?, updated_at=NOW() WHERE id=?');
+            $stmt->execute([
+                trim($input['name']),
+                trim($input['hospital'] ?? ''),
+                trim($input['contact_no'] ?? ''),
+                floatval($input['percent'] ?? 0),
+                trim($input['address'] ?? ''),
+                intval($input['added_by'] ?? $auth['user_id']),
+                $doctorId
+            ]);
             
-            if (!$existingDoctor) {
-                json_response(['success' => false, 'message' => 'Doctor not found'], 404);
-            }
-            
-            // Check permissions
-            if (!simpleCheckPermission($auth, 'update', $existingDoctor['added_by'])) {
-                json_response(['success' => false, 'message' => 'Permission denied'], 403);
-            }
-            
-            // Validate input
-            $errors = validateDoctorData($input, true);
-            if (!empty($errors)) {
-                json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
-            }
-            
-            // Prepare update data (only include fields that are provided)
-            $updateData = [];
-            $allowedFields = ['name', 'qualification', 'specialization', 'hospital', 'contact_no', 'phone', 'email', 'address', 'registration_no', 'percent', 'server_id'];
-            
-            foreach ($allowedFields as $field) {
-                if (isset($input[$field])) {
-                    if ($field === 'percent') {
-                        $updateData[$field] = floatval($input[$field]);
-                    } elseif ($field === 'server_id') {
-                        $updateData[$field] = intval($input[$field]);
-                    } else {
-                        $updateData[$field] = trim($input[$field]);
-                    }
-                }
-            }
-            
-            if (empty($updateData)) {
-                json_response(['success' => false, 'message' => 'No valid fields to update'], 400);
-            }
-            
-            // Build update query
-            $setParts = [];
-            $params = [];
-            foreach ($updateData as $field => $value) {
-                $setParts[] = "$field = ?";
-                $params[] = $value;
-            }
-            $params[] = $doctorId;
-            
-            $query = 'UPDATE doctors SET ' . implode(', ', $setParts) . ', updated_at = NOW() WHERE id = ?';
-            $stmt = $pdo->prepare($query);
-            $stmt->execute($params);
-            
-            // Fetch updated doctor
-            $stmt = $pdo->prepare('SELECT d.*, u.username AS added_by_username 
-                                  FROM doctors d 
-                                  LEFT JOIN users u ON d.added_by = u.id 
-                                  WHERE d.id = ?');
-            $stmt->execute([$doctorId]);
-            $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            // Convert all keys to lowercase for consistency with JavaScript
-            $doctor = array_keys_to_lowercase($doctor);
-
-            json_response(['success' => true, 'message' => 'Doctor updated successfully', 'data' => $doctor, 'action' => 'updated', 'id' => $doctorId]);
-            
+            $message = 'Doctor updated successfully';
+            $action = 'updated';
+            $id = $doctorId;
         } else {
-            // Create new doctor or upsert (insert new if name differs for same unique key)
+            // Create new doctor
+            $stmt = $pdo->prepare('INSERT INTO doctors (name, hospital, contact_no, percent, address, added_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())');
+            $stmt->execute([
+                trim($input['name']),
+                trim($input['hospital'] ?? ''),
+                trim($input['contact_no'] ?? ''),
+                floatval($input['percent'] ?? 0),
+                trim($input['address'] ?? ''),
+                intval($input['added_by'] ?? $auth['user_id'])
+            ]);
             
-            // Validate input
-            $errors = validateDoctorData($input);
-            if (!empty($errors)) {
-                json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
-            }
-
-            // Prepare data for insertion/upsert
-            $data = [
-                'name' => trim($input['name']),
-                'qualification' => trim($input['qualification'] ?? ''),
-                'specialization' => trim($input['specialization'] ?? ''),
-                'hospital' => trim($input['hospital'] ?? ''),
-                'contact_no' => trim($input['contact_no'] ?? ''),
-                'phone' => trim($input['phone'] ?? ''),
-                'email' => trim($input['email'] ?? ''),
-                'address' => trim($input['address'] ?? ''),
-                'registration_no' => trim($input['registration_no'] ?? ''),
-                'percent' => isset($input['percent']) ? floatval($input['percent']) : null,
-                // will set added_by below after validating the provided value (if any)
-                'added_by' => null
-            ];
-
-            // Normalize added_by: prefer provided added_by if it's a valid existing user id,
-            // otherwise default to the authenticated API user id to avoid FK constraint errors.
-            $providedAddedBy = isset($input['added_by']) && is_numeric($input['added_by']) ? intval($input['added_by']) : null;
-            if ($providedAddedBy !== null) {
-                try {
-                    $uStmt = $pdo->prepare('SELECT id FROM users WHERE id = ?');
-                    $uStmt->execute([$providedAddedBy]);
-                    $found = $uStmt->fetch(PDO::FETCH_ASSOC);
-                    if ($found && isset($found['id'])) {
-                        $data['added_by'] = (int)$found['id'];
-                    } else {
-                        // provided user does not exist -> fallback to authenticated user
-                        $data['added_by'] = $auth['user_id'];
-                    }
-                } catch (Throwable $e) {
-                    $data['added_by'] = $auth['user_id'];
-                }
-            } else {
-                $data['added_by'] = $auth['user_id'];
-            }
-
-            if (isset($input['server_id'])) {
-                $data['server_id'] = intval($input['server_id']);
-            }
-            
-            // Remove null percent if empty
-            if ($data['percent'] === null || $data['percent'] === '') {
-                unset($data['percent']);
-            }
-
-            // Build unique key preference
-            $uniqueWhere = [];
-            if (!empty($data['registration_no'])) {
-                $uniqueWhere['registration_no'] = $data['registration_no'];
-            } elseif (!empty($data['email'])) {
-                $uniqueWhere['email'] = $data['email'];
-            } elseif (!empty($data['name']) && !empty($data['hospital'])) {
-                $uniqueWhere = [ 'name' => $data['name'], 'hospital' => $data['hospital'] ];
-            }
-            if (empty($uniqueWhere)) {
-                json_response(['success' => false, 'message' => 'Cannot determine unique criteria for duplicate prevention'], 400);
-            }
-
-            // If existing doc found by unique key but name differs, INSERT a new one
-            $whereSql = implode(' AND ', array_map(fn($c) => "$c = ?", array_keys($uniqueWhere)));
-            $stmt = $pdo->prepare("SELECT id, name FROM doctors WHERE $whereSql LIMIT 1");
-            $stmt->execute(array_values($uniqueWhere));
-            $existing = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($existing && isset($data['name']) && trim($data['name']) !== trim($existing['name'])) {
-                $cols = implode(', ', array_keys($data));
-                $placeholders = implode(', ', array_fill(0, count($data), '?'));
-                $stmt = $pdo->prepare("INSERT INTO doctors ($cols) VALUES ($placeholders)");
-                $stmt->execute(array_values($data));
-                $newId = (int)$pdo->lastInsertId();
-                $action = 'inserted';
-            } else {
-                // Upsert behavior: try update first
-                $setParts = [];
-                $params = [];
-                foreach ($data as $field => $value) { $setParts[] = "$field = ?"; $params[] = $value; }
-                $params = array_merge($params, array_values($uniqueWhere));
-                $sql = 'UPDATE doctors SET ' . implode(', ', $setParts) . ', updated_at = NOW() WHERE ' . $whereSql;
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute($params);
-                if ($stmt->rowCount() === 0) {
-                    $cols = implode(', ', array_keys($data));
-                    $placeholders = implode(', ', array_fill(0, count($data), '?'));
-                    $stmt = $pdo->prepare("INSERT INTO doctors ($cols) VALUES ($placeholders)");
-                    $stmt->execute(array_values($data));
-                    $newId = (int)$pdo->lastInsertId();
-                    $action = 'inserted';
-                } else {
-                    $stmt = $pdo->prepare('SELECT id FROM doctors WHERE ' . $whereSql . ' LIMIT 1');
-                    $stmt->execute(array_values($uniqueWhere));
-                    $newId = (int)($stmt->fetchColumn() ?: 0);
-                    $action = 'updated';
-                }
-            }
-
-            // Fetch the saved doctor
-            $stmt = $pdo->prepare('SELECT d.*, u.username AS added_by_username 
-                                  FROM doctors d 
-                                  LEFT JOIN users u ON d.added_by = u.id 
-                                  WHERE d.id = ?');
-            $stmt->execute([$newId]);
-            $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
-            $doctor = array_keys_to_lowercase($doctor);
-            $message = $action === 'inserted' ? 'Doctor created successfully' : 'Doctor updated successfully';
-            json_response(['success' => true, 'message' => $message, 'data' => $doctor, 'action' => $action, 'id' => $newId]);
+            $message = 'Doctor created successfully';
+            $action = 'created';
+            $id = $pdo->lastInsertId();
         }
+        
+        // Fetch the saved doctor
+        $stmt = $pdo->prepare('SELECT d.id, d.name, d.hospital, d.contact_no, d.percent, d.added_by, d.created_at, u.username AS added_by_username 
+                              FROM doctors d 
+                              LEFT JOIN users u ON d.added_by = u.id 
+                              WHERE d.id = ?');
+        $stmt->execute([$id]);
+        $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        json_response(['success' => true, 'message' => $message, 'data' => $doctor, 'action' => $action, 'id' => $id]);
     }
 
     if ($action === 'delete') {
         $auth = simpleAuthenticate($pdo);
         if (!$auth) {
-            json_response([
-                'success' => false, 
-                'message' => 'Authentication required',
-                'debug_info' => getAuthDebugInfo()
-            ], 401);
+            json_response(['success' => false, 'message' => 'Authentication required'], 401);
         }
 
-        $id = $_GET['id'] ?? $_REQUEST['id'] ?? null;
+        $id = $_POST['id'] ?? $_GET['id'] ?? null;
         if (!$id) {
             json_response(['success' => false, 'message' => 'Doctor ID is required'], 400);
-        }
-
-        // Check if doctor exists
-        $stmt = $pdo->prepare('SELECT * FROM doctors WHERE id = ?');
-        $stmt->execute([$id]);
-        $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if (!$doctor) {
-            json_response(['success' => false, 'message' => 'Doctor not found'], 404);
-        }
-
-        // Check permissions
-        if (!simpleCheckPermission($auth, 'delete', $doctor['added_by'])) {
-            json_response(['success' => false, 'message' => 'Permission denied'], 403);
         }
 
         // Check if doctor has associated entries
@@ -446,76 +209,6 @@ try {
         $stmt->execute([$id]);
 
         json_response(['success' => true, 'message' => 'Doctor deleted successfully']);
-    }
-
-    if ($action === 'specializations') {
-        $auth = simpleAuthenticate($pdo);
-        if (!$auth) {
-            json_response([
-                'success' => false, 
-                'message' => 'Authentication required',
-                'debug_info' => getAuthDebugInfo()
-            ], 401);
-        }
-        if (!simpleCheckPermission($auth, 'list')) {
-            json_response(['success' => false, 'message' => 'Permission denied'], 403);
-        }
-        $stmt = $pdo->query('SELECT DISTINCT specialization FROM doctors WHERE specialization IS NOT NULL AND specialization != "" ORDER BY specialization');
-        $specializations = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        json_response(['success' => true, 'data' => $specializations]);
-    }
-
-    if ($action === 'hospitals') {
-        $auth = simpleAuthenticate($pdo);
-        if (!$auth) {
-            json_response([
-                'success' => false, 
-                'message' => 'Authentication required',
-                'debug_info' => getAuthDebugInfo()
-            ], 401);
-        }
-        if (!simpleCheckPermission($auth, 'list')) {
-            json_response(['success' => false, 'message' => 'Permission denied'], 403);
-        }
-        $stmt = $pdo->query('SELECT DISTINCT hospital FROM doctors WHERE hospital IS NOT NULL AND hospital != "" ORDER BY hospital');
-        $hospitals = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        json_response(['success' => true, 'data' => $hospitals]);
-    }
-
-    if ($action === 'stats') {
-        $auth = simpleAuthenticate($pdo);
-        if (!$auth) {
-            json_response([
-                'success' => false, 
-                'message' => 'Authentication required',
-                'debug_info' => getAuthDebugInfo()
-            ], 401);
-        }
-        if (!simpleCheckPermission($auth, 'list')) {
-            json_response(['success' => false, 'message' => 'Permission denied'], 403);
-        }
-        $totalStmt = $pdo->query("SELECT COUNT(*) FROM doctors");
-        $total = $totalStmt->fetchColumn();
-        
-        // Example: active doctors could be those added in the last 30 days, or with recent activity
-        $activeStmt = $pdo->query("SELECT COUNT(*) FROM doctors WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
-        $active = $activeStmt->fetchColumn();
-        
-        $specializationsStmt = $pdo->query("SELECT COUNT(DISTINCT specialization) FROM doctors WHERE specialization IS NOT NULL AND specialization != ''");
-        $specializations = $specializationsStmt->fetchColumn();
-        
-        $hospitalsStmt = $pdo->query("SELECT COUNT(DISTINCT hospital) FROM doctors WHERE hospital IS NOT NULL AND hospital != ''");
-        $hospitals = $hospitalsStmt->fetchColumn();
-        
-        json_response([
-            'success' => true,
-            'data' => [
-                'total' => $total,
-                'active' => $active,
-                'specializations' => $specializations,
-                'hospitals' => $hospitals
-            ]
-        ]);
     }
 
     // Invalid action

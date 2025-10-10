@@ -221,21 +221,27 @@
             {
                 name: 'Doctor API',
                 file: 'doctor.php',
-                description: 'Doctor management API for Pathology > Doctors menu page',
+                description: 'Lightweight Doctor management API for Pathology > Doctors menu page with DataTables support and user-based filtering',
                 baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/doctor.php',
                 endpoints: [
                     {
                         action: 'list',
-                        method: 'GET',
+                        method: 'GET/POST',
                         url: '?action=list&secret_key=hospital-api-secret-2024',
-                        description: 'Get all doctors with pagination',
+                        description: 'Get all doctors with pagination (supports both regular pagination and DataTables format)',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         queryParams: {
                             'page': 1,
                             'limit': 10,
-                            'search': 'optional search term'
+                            'search': 'optional search term',
+                            'added_by': 'filter by user who added doctor',
+                            'specialization': 'filter by specialization',
+                            'hospital': 'filter by hospital',
+                            'draw': 'DataTables draw counter',
+                            'start': 'DataTables start index',
+                            'length': 'DataTables page length'
                         },
                         response: {
                             'success': true,
@@ -263,8 +269,11 @@
                                 'total': 50,
                                 'page': 1,
                                 'limit': 10,
-                                'pages': 5
-                            }
+                                'totalPages': 5
+                            },
+                            'draw': 1,
+                            'recordsTotal': 50,
+                            'recordsFiltered': 25
                         }
                     },
                     {
@@ -308,7 +317,8 @@
                             'X-Api-Key': 'hospital-api-secret-2024'
                         },
                         body: {
-                            'name': 'Dr. Jane Smith',
+                            'id': 'optional - include for updates',
+                            'name': 'Dr. Jane Smith (required)',
                             'qualification': 'MBBS, MS',
                             'specialization': 'Orthopedics',
                             'hospital': 'General Hospital',
@@ -317,22 +327,62 @@
                             'email': 'jane.smith@hospital.com',
                             'address': '456 Health Avenue',
                             'registration_no': 'MED12346',
-                            'percent': 12.0
+                            'percent': 12.0,
+                            'added_by': 'user ID who added the doctor'
                         },
                         response: {
                             'success': true,
                             'message': 'Doctor saved successfully',
                             'data': {
                                 'id': 2,
-                                'name': 'Dr. Jane Smith'
-                            }
+                                'name': 'Dr. Jane Smith',
+                                'hospital': 'General Hospital',
+                                'contact_no': '9876543211',
+                                'percent': 12.0,
+                                'added_by_username': 'admin',
+                                'created_at': '2025-09-08T10:30:00Z'
+                            },
+                            'action': 'inserted or updated'
+                        }
+                    },
+                    {
+                        action: 'update',
+                        method: 'POST',
+                        url: '?action=update&secret_key=hospital-api-secret-2024',
+                        description: 'Update existing doctor (alias for save action with ID)',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Api-Key': 'hospital-api-secret-2024'
+                        },
+                        body: {
+                            'id': 'required - doctor ID to update',
+                            'name': 'Dr. Updated Name',
+                            'hospital': 'Updated Hospital',
+                            'contact_no': '9876543211',
+                            'percent': 15.0,
+                            'address': 'Updated Address',
+                            'added_by': 'user ID'
+                        },
+                        response: {
+                            'success': true,
+                            'message': 'Doctor updated successfully',
+                            'data': {
+                                'id': 2,
+                                'name': 'Dr. Updated Name',
+                                'hospital': 'Updated Hospital',
+                                'contact_no': '9876543211',
+                                'percent': 15.0,
+                                'added_by_username': 'admin',
+                                'updated_at': '2025-09-08T10:30:00Z'
+                            },
+                            'action': 'updated'
                         }
                     },
                     {
                         action: 'delete',
                         method: 'POST',
                         url: '?action=delete&secret_key=hospital-api-secret-2024',
-                        description: 'Delete doctor by ID',
+                        description: 'Delete doctor by ID (includes safety checks for associated records)',
                         headers: {
                             'Content-Type': 'application/json'
                         },
@@ -342,50 +392,10 @@
                         response: {
                             'success': true,
                             'message': 'Doctor deleted successfully'
-                        }
-                    },
-                    {
-                        action: 'specializations',
-                        method: 'GET',
-                        url: '?action=specializations&secret_key=hospital-api-secret-2024',
-                        description: 'Get list of all doctor specializations',
-                        headers: {
-                            'Content-Type': 'application/json'
                         },
-                        response: {
-                            'success': true,
-                            'data': ['Cardiology', 'Orthopedics', 'Neurology', 'General']
-                        }
-                    },
-                    {
-                        action: 'hospitals',
-                        method: 'GET',
-                        url: '?action=hospitals&secret_key=hospital-api-secret-2024',
-                        description: 'Get list of all hospitals',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        response: {
-                            'success': true,
-                            'data': ['City Hospital', 'General Hospital', 'Medical Center']
-                        }
-                    },
-                    {
-                        action: 'stats',
-                        method: 'GET',
-                        url: '?action=stats&secret_key=hospital-api-secret-2024',
-                        description: 'Get doctor statistics',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'total': 50,
-                                'active': 45,
-                                'specializations': 8,
-                                'hospitals': 12
-                            }
+                        errorResponse: {
+                            'success': false,
+                            'message': 'Cannot delete doctor with associated test entries'
                         }
                     }
                 ]
