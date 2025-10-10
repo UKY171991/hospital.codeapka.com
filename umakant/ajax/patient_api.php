@@ -344,6 +344,14 @@ function handleSave() {
     $addedBy = $data['added_by'] ?? ($_SESSION['user_id'] ?? null);
 
     try {
+        $genderColumn = patientHasColumn('gender') ? 'gender' : (patientHasColumn('sex') ? 'sex' : null);
+        $normalizedGender = normalizeGenderValue($data['gender'] ?? '');
+        $fatherName   = $data['father_husband'] ?? '';
+        $email        = $data['email'] ?? '';
+        $ageValue     = ($data['age'] ?? '') === '' ? null : $data['age'];
+        $ageUnit      = $data['age_unit'] ?? 'Years';
+        $addressValue = $data['address'] ?? '';
+
         if ($id > 0) {
             $updateParts = [
                 'name = :name',
@@ -355,10 +363,8 @@ function handleSave() {
                 'address = :address'
             ];
 
-            if (patientHasColumn('gender')) {
-                $updateParts[] = 'gender = :gender';
-            } elseif (patientHasColumn('sex')) {
-                $updateParts[] = 'sex = :gender';
+            if ($genderColumn) {
+                $updateParts[] = "`$genderColumn` = :gender";
             }
 
             if ($addedBy !== null && $addedBy !== '') {
@@ -367,18 +373,26 @@ function handleSave() {
 
             $sql = 'UPDATE patients SET ' . implode(', ', $updateParts) . ', updated_at = NOW() WHERE id = :id';
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([
+            $params = [
                 ':id' => $id,
                 ':name' => $data['name'],
-                ':father_husband' => $data['father_husband'] ?? '',
+                ':father_husband' => $fatherName,
                 ':mobile' => $data['mobile'],
-                ':email' => $data['email'] ?? '',
-                ':age' => $data['age'] !== '' ? $data['age'] : null,
-                ':age_unit' => $data['age_unit'] ?? 'Years',
-                ':gender' => $normalizedGender,
-                ':address' => $data['address'] ?? '',
-                ':added_by' => $addedBy
-            ]);
+                ':email' => $email,
+                ':age' => $ageValue,
+                ':age_unit' => $ageUnit,
+                ':address' => $addressValue
+            ];
+
+            if ($genderColumn) {
+                $params[':gender'] = $normalizedGender;
+            }
+
+            if ($addedBy !== null && $addedBy !== '') {
+                $params[':added_by'] = $addedBy;
+            }
+
+            $stmt->execute($params);
 
             echo json_encode([
                 'success' => true,
@@ -396,11 +410,8 @@ function handleSave() {
         $columns = ['uhid','name','father_husband','mobile','email','age','age_unit','address'];
         $placeholders = [':uhid',':name',':father_husband',':mobile',':email',':age',':age_unit',':address'];
 
-        if (patientHasColumn('gender')) {
-            $columns[] = 'gender';
-            $placeholders[] = ':gender';
-        } elseif (patientHasColumn('sex')) {
-            $columns[] = 'sex';
+        if ($genderColumn) {
+            $columns[] = $genderColumn;
             $placeholders[] = ':gender';
         }
 
@@ -411,18 +422,26 @@ function handleSave() {
 
         $sql = 'INSERT INTO patients (' . implode(',', $columns) . ') VALUES (' . implode(',', $placeholders) . ')';
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([
+        $params = [
             ':uhid' => $data['uhid'],
             ':name' => $data['name'],
-            ':father_husband' => $data['father_husband'] ?? '',
+            ':father_husband' => $fatherName,
             ':mobile' => $data['mobile'],
-            ':email' => $data['email'] ?? '',
-            ':age' => $data['age'] !== '' ? $data['age'] : null,
-            ':age_unit' => $data['age_unit'] ?? 'Years',
-            ':gender' => $normalizedGender,
-            ':address' => $data['address'] ?? '',
-            ':added_by' => $addedBy
-        ]);
+            ':email' => $email,
+            ':age' => $ageValue,
+            ':age_unit' => $ageUnit,
+            ':address' => $addressValue
+        ];
+
+        if ($genderColumn) {
+            $params[':gender'] = $normalizedGender;
+        }
+
+        if ($addedBy !== null && $addedBy !== '') {
+            $params[':added_by'] = $addedBy;
+        }
+
+        $stmt->execute($params);
 
         echo json_encode([
             'success' => true,

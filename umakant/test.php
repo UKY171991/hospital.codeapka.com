@@ -451,20 +451,6 @@ const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
 // Global variables
 let testsTable;
 let categoriesTable;
-    // Coerce to string to ensure replace() is available
-    const str = String(text);
-    // Replace common HTML-sensitive characters
-    return str.replace(/[&<>"']/g, function (ch) {
-        switch (ch) {
-            case '&': return '&amp;';
-            case '<': return '&lt;';
-            case '>': return '&gt;';
-            case '"': return '&quot;';
-            case "'": return '&#039;';
-            default: return ch;
-        }
-    });
-}
 
 // Simple DataTable initialization function
 function initDataTable(selector, options = {}) {
@@ -947,22 +933,29 @@ function loadCategories() {
         }
     }).fail(function(xhr){ console.warn('Failed to load categories', xhr.status); });
 }
+
+function populateCategoriesTable(categories = []) {
+    let html = '';
+
+    categories.forEach(category => {
+        const safeName = escapeHtml(category.name || '');
         html += `
             <tr>
                 <td>${category.id}</td>
-                <td>${category.name}</td>
-                <td><span class="badge badge-primary">${category.test_count || 0}</span></td>
+                <td>${safeName}</td>
+                <td><span class="badge badge-primary">${category.test_count ?? 0}</span></td>
                 <td>
-                    <button class="btn btn-warning btn-sm" onclick="editCategory(${category.id}, '${category.name}')">
+                    <button class="btn btn-warning btn-sm" onclick="editCategory(${category.id}, '${safeName}')">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id}, '${category.name}')">
+                    <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id}, '${safeName}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
             </tr>
         `;
     });
+
     $('#categoriesTableBody').html(html);
 }
 
