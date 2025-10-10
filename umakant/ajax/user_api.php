@@ -141,6 +141,7 @@ if ($action === 'list') {
         
         // Return DataTables format
         json_response([
+            'draw' => intval($draw),
             'recordsTotal' => $totalRecords,
             'recordsFiltered' => $totalRecords,
             'success' => true,
@@ -149,37 +150,25 @@ if ($action === 'list') {
         return;
     }
 
-    // Simple list request (for dropdowns, etc.)
-    if ($isDataTableRequest) return; // Early-return after DataTables branch to avoid double response.
+    // Simple list request (non-DataTables clients)
+    $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'role', 'added_by']);
+    $query = "SELECT " . implode(', ', $selectColumns) .
+             " FROM users ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
 
-    $viewerRole = $_SESSION['role'] ?? 'user';
-    $viewerId = $_SESSION['user_id'] ?? null;
+    $stmt = $pdo->prepare($query);
+    $stmt->execute();
+    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Base query - allow all users for now
-        $whereClause = "";
-        $params = [];
-
-{{ ... }}
-        $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'role', 'added_by']);
-        $query = "SELECT " . implode(', ', $selectColumns) .
-                 " FROM users" . $whereClause . " ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
-
-        $stmt = $pdo->prepare($query);
-        $stmt->execute($params);
-        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Process user_type field to ensure it's a string
-        foreach ($users as &$user) {
-            $user['user_type'] = normalizeUserTypeValue($user['user_type'] ?? null);
-        }
-        unset($user);
-
-        // Return simple format
-        json_response([
-            'success' => true,
-            'data' => $users
-        ]);
+    foreach ($users as &$user) {
+        $user['user_type'] = normalizeUserTypeValue($user['user_type'] ?? null);
     }
+    unset($user);
+
+    json_response([
+        'success' => true,
+        'data' => $users
+    ]);
+}
 
 if ($action === 'list_simple') {
     $viewerRole = $_SESSION['role'] ?? 'user';
