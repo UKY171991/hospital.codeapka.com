@@ -186,11 +186,25 @@ function loadCategories(){
                     '<td><strong>'+ (c.name||'') +'</strong></td>'+
                     '<td>'+ description +'</td>'+
                     '<td class="text-center"><span class="badge badge-pill badge-info">'+ (c.test_count||0) +'</span></td>'+
+                    '<td><span class="text-muted"><i class="fas fa-user mr-1 text-secondary"></i>'+ addedBy +'</span></td>'+
+                    '<td class="text-nowrap">'+
+                        '<button class="btn btn-sm btn-outline-primary mr-1" data-id="'+c.id+'" onclick="viewCategory('+c.id+')"><i class="fas fa-eye"></i></button>'+ 
+                        '<button class="btn btn-sm btn-outline-info mr-1 edit-category" data-id="'+c.id+'"><i class="fas fa-edit"></i></button>'+ 
+                        '<button class="btn btn-sm btn-outline-danger delete-category" data-id="'+c.id+'"><i class="fas fa-trash"></i></button>'+
+                    '</td>'+ 
+                    '</tr>';
+            });
+            $('#categoriesTable tbody').html(t);
+            // Reinitialize DataTable
+            window.categoryTable = initDataTable('#categoriesTable', {
+                dom: 'Bfrtip',
+                buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
                 language: {
                     emptyTable: 'No categories available yet. Click "New Category" to add one.'
                 }
             });
             $('#categoryCount').text(resp.total ?? resp.data.length ?? 0);
+
             // Bind search box to table search
             if (window.categoryTable) {
                 $('#categorySearch').off('keyup change').on('keyup change', function(){
@@ -221,27 +235,15 @@ function viewCategory(id){
     try{
         $.getJSON(TEST_CATEGORY_API,{action:'get',id:id}, function(resp){
             if(resp.success){
-                var d = resp.data || {};
-                var addedByName = (d.added_by_username && d.added_by_username !== '') ? d.added_by_username : (d.added_by || '');
-                var rows = [
-                    { icon: 'hashtag', label: 'Category ID', value: d.id || '--' },
-                    { icon: 'tag', label: 'Name', value: d.name || '--' },
-                    { icon: 'align-left', label: 'Description', value: d.description || 'No description provided' },
-                    { icon: 'flask', label: 'Linked Tests', value: (d.test_count !== undefined ? d.test_count : 0) },
-                    { icon: 'user', label: 'Added By', value: addedByName || '—' }
-                ];
-
-                var html = rows.map(function(item){
-                    return '<div class="list-group-item d-flex align-items-start">'
-                        + '<div class="pr-3 text-muted"><i class="fas fa-' + item.icon + ' fa-lg"></i></div>'
-                        + '<div>'
-                        + '<div class="font-weight-semibold">' + escapeHtml(item.label) + '</div>'
-                        + '<div class="text-muted">' + escapeHtml(String(item.value)) + '</div>'
-                        + '</div>'
-                        + '</div>';
-                }).join('');
-
-                $('#categoryViewContent').html(html);
+                var d = resp.data;
+                var html = '<table class="table table-sm table-borderless">' +
+                    '<tr><th>ID</th><td>'+(d.id||'')+'</td></tr>' +
+                    '<tr><th>Name</th><td>'+(d.name||'')+'</td></tr>' +
+                    '<tr><th>Description</th><td>'+(d.description||'')+'</td></tr>' +
+                    '<tr><th>Test Count</th><td>'+(d.test_count||0)+'</td></tr>' +
+                    '<tr><th>Added By</th><td>'+((d.added_by_username && d.added_by_username!='')?d.added_by_username:(d.added_by||''))+'</td></tr>' +
+                    '</table>';
+                $('#categoryViewModal .category-view-content').html(html);
                 $('#categoryViewModal').modal('show');
             } else toastr.error('Category not found');
         },'json').fail(function(xhr){ var msg = xhr.responseText || 'Server error'; try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} toastr.error(msg); });
