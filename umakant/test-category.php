@@ -4,59 +4,54 @@ require_once 'inc/sidebar.php';
 $category_count = '--';
 $current_user_id = $_SESSION['user_id'] ?? null;
 $current_user_role = $_SESSION['role'] ?? 'user';
+$current_username = $_SESSION['username'] ?? 'You';
 ?>
 
-    <!-- Content Header (Page header) -->
+<div class="content-wrapper">
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
                     <h1 class="mb-1">Test Categories</h1>
-                    <p class="text-muted mb-0">Manage and test categories with user-based filtering.</p>
+                    <span class="text-muted">Manage and organize categories for laboratory tests.</span>
                 </div>
-                <div class="col-sm-6 d-flex align-items-start justify-content-end">
-                    <ol class="breadcrumb float-sm-right mb-0">
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="index.php">Home</a></li>
                         <li class="breadcrumb-item active">Test Categories</li>
                     </ol>
                 </div>
             </div>
-        </div><!-- /.container-fluid -->
+        </div>
     </section>
 
-    <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <div class="info-box shadow-sm category-summary bg-white">
-                        <span class="info-box-icon bg-primary elevation-1"><i class="fas fa-tags"></i></span>
+            <div class="row mb-4">
+                <div class="col-md-4 col-sm-6">
+                    <div class="info-box category-summary">
+                        <span class="info-box-icon bg-primary"><i class="fas fa-tags"></i></span>
                         <div class="info-box-content">
-                            <span class="info-box-text text-uppercase text-muted">Total Categories</span>
+                            <span class="info-box-text">Total Categories</span>
                             <span class="info-box-number" id="categoryCount">0</span>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="info-box shadow-sm category-summary bg-white">
-                        <span class="info-box-icon bg-success elevation-1"><i class="fas fa-user-shield"></i></span>
+                <div class="col-md-4 col-sm-6">
+                    <div class="info-box category-summary">
+                        <span class="info-box-icon bg-success"><i class="fas fa-user"></i></span>
                         <div class="info-box-content">
-                            <span class="info-box-text text-uppercase text-muted">Current User</span>
-                            <span class="info-box-number" id="currentUserLabel">Loading...</span>
+                            <span class="info-box-text">Current User</span>
+                            <span class="info-box-number" id="currentUserLabel"><?php echo htmlspecialchars($current_username); ?></span>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="info-box shadow-sm category-summary bg-white">
-                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-search"></i></span>
+                <div class="col-md-4 col-sm-6">
+                    <div class="info-box category-summary">
+                        <span class="info-box-icon bg-info"><i class="fas fa-search"></i></span>
                         <div class="info-box-content">
-                            <span class="info-box-text text-uppercase text-muted">Search</span>
-                            <div class="input-group input-group-sm mt-1">
-                                <input type="text" id="categorySearch" class="form-control" placeholder="Search categories...">
-                                <div class="input-group-append">
-                                    <button class="btn btn-outline-secondary" type="button" id="clearCategorySearch"><i class="fas fa-times"></i></button>
-                                </div>
-                            </div>
+                            <span class="info-box-text">Search Categories</span>
+                            <input type="text" class="form-control form-control-sm mt-2" id="categorySearch" placeholder="Type to filter table">
                         </div>
                     </div>
                 </div>
@@ -64,56 +59,42 @@ $current_user_role = $_SESSION['role'] ?? 'user';
 
             <div class="row">
                 <div class="col-12">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between bg-white border-0">
-                            <div class="d-flex align-items-center mb-2 mb-md-0">
-                                <div class="icon-circle bg-primary text-white mr-3"><i class="fas fa-layer-group"></i></div>
-                                <div>
-                                    <h3 class="card-title mb-0">Category Directory</h3>
-                                    <small class="text-muted">Listings adjust based on your role and permissions.</small>
-                                </div>
-                            </div>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#categoryModal" onclick="openAddCategoryModal()">
-                                    <i class="fas fa-plus-circle mr-1"></i>New Category
+                    <div class="card card-primary card-outline">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h3 class="card-title mb-0"><i class="fas fa-layer-group mr-2"></i>Category Directory</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-primary btn-sm mr-2" onclick="openAddCategoryModal()" data-toggle="modal" data-target="#categoryModal">
+                                    <i class="fas fa-plus mr-1"></i> Add Category
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary" id="refreshCategories">
-                                    <i class="fas fa-sync-alt mr-1"></i>Refresh
+                                <button type="button" class="btn btn-default btn-sm" id="refreshCategories">
+                                    <i class="fas fa-sync-alt mr-1"></i> Refresh
                                 </button>
                             </div>
                         </div>
-                        <!-- /.card-header -->
-                        <div class="card-body pt-2">
+                        <div class="card-body">
                             <div class="table-responsive">
-                            <table id="categoriesTable" class="table table-hover table-striped align-middle">
-                                <thead>
-                                    <tr>
-                                        <th style="width:70px;">#</th>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>Description</th>
-                                        <th class="text-center">Tests</th>
-                                        <th>Added By</th>
-                                        <th style="width:150px;">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                                <table id="categoriesTable" class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:70px;">#</th>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Description</th>
+                                            <th class="text-center">Tests</th>
+                                            <th>Added By</th>
+                                            <th style="width:150px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
                             </div>
                         </div>
-                        <!-- /.card-body -->
                     </div>
-                    <!-- /.card -->
                 </div>
-                <!-- /.col -->
             </div>
-            <!-- /.row -->
         </div>
-        <!-- /.container-fluid -->
     </section>
-    <!-- /.content -->
 </div>
-<!-- /.content-wrapper -->
 
 <!-- Category Modal -->
 <div class="modal fade" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="categoryModalLabel" aria-hidden="true">
