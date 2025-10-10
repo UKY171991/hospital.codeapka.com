@@ -19,6 +19,43 @@ function userTableHasColumn($column) {
     return in_array($column, $userTableColumns, true);
 }
 
+function normalizeUserTypeValue($value) {
+    if ($value === null) {
+        return 'Pathology';
+    }
+
+    if (is_numeric($value)) {
+        if ((int)$value === 0) {
+            return 'Pathology';
+        }
+        // For unexpected numeric values, fall back to string form
+        $value = (string)$value;
+    }
+
+    if (is_string($value)) {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return 'Pathology';
+        }
+
+        switch (strtolower($trimmed)) {
+            case 'p':
+            case 'pathology':
+                return 'Pathology';
+            case 'h':
+            case 'hospital':
+                return 'Hospital';
+            case 's':
+            case 'school':
+                return 'School';
+            default:
+                return ucfirst($trimmed);
+        }
+    }
+
+    return 'Pathology';
+}
+
 function buildUserSelectColumns(array $baseColumns) {
     $columns = $baseColumns;
 
@@ -93,6 +130,11 @@ if ($action === 'list') {
         $dataStmt = $pdo->prepare($dataQuery);
         $dataStmt->execute($params);
         $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($data as &$row) {
+            $row['user_type'] = normalizeUserTypeValue($row['user_type'] ?? null);
+        }
+        unset($row);
         
         // Get total records count
         $totalRecords = $totalStmt->fetchColumn();
@@ -124,21 +166,15 @@ if ($action === 'list') {
 
         // Process user_type field to ensure it's a string
         foreach ($users as &$user) {
-            if (isset($user['user_type'])) {
-                // Convert numeric user_type to string if needed
-                if ($user['user_type'] === '0' || $user['user_type'] === 0 || $user['user_type'] === null) {
-                    $user['user_type'] = 'Pathology'; // Default user type
-                }
-            }
+            $user['user_type'] = normalizeUserTypeValue($user['user_type'] ?? null);
         }
+        unset($user);
 
         // Return simple format
         json_response([
             'success' => true,
             'data' => $users
         ]);
-    }
-}
 
 if ($action === 'list_simple') {
     $viewerRole = $_SESSION['role'] ?? 'user';
@@ -160,6 +196,11 @@ if ($action === 'list_simple') {
     $stmt->execute($params);
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    foreach ($users as &$user) {
+        $user['user_type'] = normalizeUserTypeValue($user['user_type'] ?? null);
+    }
+    unset($user);
+
     json_response([
         'success' => true,
         'recordsTotal' => count($users),
@@ -177,6 +218,7 @@ if ($action === 'get' && isset($_GET['id'])) {
     if (!$row) json_response(['success' => false, 'message' => 'User not found'],404);
     // enforce visibility: master sees all, admin/user only see their added users or themselves
     if ($viewerRole === 'master' || $row['added_by'] == $viewerId || $row['id'] == $viewerId) {
+        $row['user_type'] = normalizeUserTypeValue($row['user_type'] ?? null);
         json_response(['success' => true, 'data' => $row]);
     } else {
         json_response(['success' => false, 'message' => 'Unauthorized'],403);
