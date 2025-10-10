@@ -109,44 +109,7 @@ if ($action === 'list') {
             if (empty($whereClause)) {
                 $whereClause = " WHERE " . $searchClause;
                 $params = $searchParams;
-            } elseif ($action === 'list') {
-        // fallback: this branch should not execute because of early return, but kept for clarity
-        json_response(['success' => false, 'message' => 'Invalid list request'], 400);
-    }
-
-if ($action === 'list_simple') {
-    $viewerRole = $_SESSION['role'] ?? 'user';
-    $viewerId = $_SESSION['user_id'] ?? null;
-
-    $whereClause = '';
-    $params = [];
-
-    if ($viewerRole !== 'master') {
-        $whereClause = " WHERE (added_by = ? OR id = ?)";
-        $params = [$viewerId, $viewerId];
-    }
-
-    $selectColumns = buildUserSelectColumns(['id', 'username', 'full_name', 'email', 'role']);
-    $query = "SELECT " . implode(', ', $selectColumns) .
-             " FROM users" . $whereClause . " ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
-
-    $stmt = $pdo->prepare($query);
-    $stmt->execute($params);
-    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    foreach ($users as &$user) {
-        $user['user_type'] = normalizeUserTypeValue($user['user_type'] ?? null);
-    }
-    unset($user);
-
-    json_response([
-        'success' => true,
-        'recordsTotal' => count($users),
-        'data' => $users
-    ]);
-}
-
-if ($action === 'get' && isset($_GET['id'])) {
+            } else {
                 $whereClause .= " AND " . $searchClause;
                 $params = array_merge($params, $searchParams);
             }
@@ -178,21 +141,25 @@ if ($action === 'get' && isset($_GET['id'])) {
         
         // Return DataTables format
         json_response([
-            'draw' => intval($draw),
             'recordsTotal' => $totalRecords,
             'recordsFiltered' => $totalRecords,
             'success' => true,
             'data' => $data
         ]);
-    } else {
-        // Simple list request (for dropdowns, etc.)
-        $viewerRole = $_SESSION['role'] ?? 'user';
-        $viewerId = $_SESSION['user_id'] ?? null;
+        return;
+    }
+
+    // Simple list request (for dropdowns, etc.)
+    if ($isDataTableRequest) return; // Early-return after DataTables branch to avoid double response.
+
+    $viewerRole = $_SESSION['role'] ?? 'user';
+    $viewerId = $_SESSION['user_id'] ?? null;
 
         // Base query - allow all users for now
         $whereClause = "";
         $params = [];
 
+{{ ... }}
         $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'role', 'added_by']);
         $query = "SELECT " . implode(', ', $selectColumns) .
                  " FROM users" . $whereClause . " ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
@@ -226,7 +193,7 @@ if ($action === 'list_simple') {
         $params = [$viewerId, $viewerId];
     }
 
-    $selectColumns = buildUserSelectColumns(['id', 'username', 'full_name', 'email', 'role']);
+    $selectColumns = buildUserSelectColumns(['id', 'username', 'full_name', 'email', 'role', 'added_by']);
     $query = "SELECT " . implode(', ', $selectColumns) .
              " FROM users" . $whereClause . " ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
 
