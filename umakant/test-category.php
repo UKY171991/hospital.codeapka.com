@@ -97,46 +97,46 @@ $current_username = $_SESSION['username'] ?? 'You';
 </div>
 
 <!-- Category Modal -->
-<div class="modal fade" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="categoryModalLabel" aria-hidden="true">
+<div class="modal fade" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="categoryModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <div>
-                    <span class="badge badge-primary text-uppercase" id="categoryModalBadge">New</span>
-                    <h5 class="modal-title mt-2" id="categoryModalLabel">Add Category</h5>
-                    <small class="text-muted">Provide category name and optional description to organize your tests.</small>
-                </div>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="categoryModalTitle"><i class="fas fa-plus-circle mr-2"></i>Add Category</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body pt-0">
+            <div class="modal-body">
                 <form id="categoryForm">
                     <input type="hidden" id="categoryId" name="id">
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label class="font-weight-semibold" for="categoryName">Category Name <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-tag"></i></span>
-                                </div>
-                                <input type="text" class="form-control" id="categoryName" name="name" placeholder="e.g., Hematology" required>
+                    <div class="form-group">
+                        <label for="categoryName">Category Name <span class="text-danger">*</span></label>
+                        <div class="input-group input-group-lg">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-tag"></i></span>
                             </div>
+                            <input type="text" class="form-control" id="categoryName" name="name" placeholder="Enter category name" required>
                         </div>
-                        <div class="form-group col-md-6">
-                            <label class="font-weight-semibold" for="categoryAddedBy">Added By</label>
-                            <input type="text" class="form-control" id="categoryAddedBy" value="<?php echo htmlspecialchars($_SESSION['username'] ?? 'You'); ?>" disabled>
+                        <small class="form-text text-muted">Give the category a short, descriptive title.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="categoryAddedBy">Added By</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            </div>
+                            <input type="text" class="form-control" id="categoryAddedBy" value="<?php echo htmlspecialchars($current_username); ?>" readonly>
                         </div>
                     </div>
                     <div class="form-group mb-0">
-                        <label class="font-weight-semibold" for="categoryDescription">Description</label>
-                        <textarea class="form-control" id="categoryDescription" name="description" rows="4" placeholder="Describe when this category should be used (optional)"></textarea>
-                        <small class="form-text text-muted">Helpful descriptions make it easier for collaborators to pick the right category.</small>
+                        <label for="categoryDescription">Description</label>
+                        <textarea class="form-control" id="categoryDescription" name="description" rows="4" placeholder="Optional: describe when to use this category"></textarea>
+                        <small class="form-text text-muted">This note appears in the listing to help team members choose correctly.</small>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="saveCategoryBtn">
                     <i class="fas fa-save mr-1"></i>Save Category
                 </button>
@@ -196,7 +196,7 @@ function loadCategories(){
             });
             $('#categoriesTable tbody').html(t);
             // Reinitialize DataTable
-            initDataTable('#categoriesTable', {
+            window.categoryTable = initDataTable('#categoriesTable', {
                 dom: 'Bfrtip',
                 buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
                 language: {
@@ -204,6 +204,13 @@ function loadCategories(){
                 }
             });
             $('#categoryCount').text(resp.total ?? resp.data.length ?? 0);
+
+            // Bind search box to table search
+            if (window.categoryTable) {
+                $('#categorySearch').off('keyup change').on('keyup change', function(){
+                    window.categoryTable.search(this.value).draw();
+                });
+            }
         } else {
             toastr.error('Failed to load categories');
             $('#categoryCount').text('0');
@@ -216,7 +223,12 @@ function loadCategories(){
     });
 }
 
-function openAddCategoryModal(){ $('#categoryForm')[0].reset(); $('#categoryId').val(''); $('#categoryModal').modal('show'); }
+function openAddCategoryModal(){
+    $('#categoryForm')[0].reset();
+    $('#categoryId').val('');
+    $('#categoryModalTitle').html('<i class="fas fa-plus-circle mr-2"></i>Add Category');
+    $('#categoryModal').modal('show');
+}
 
 // global fallback used by inline onclick on View buttons
 function viewCategory(id){
@@ -269,8 +281,7 @@ $(function(){
                     $('#categoryId').val(d.id);
                     $('#categoryName').val(d.name);
                     $('#categoryDescription').val(d.description);
-                    $('#categoryModalLabel').text('Edit Category');
-                    $('#categoryModalBadge').text('Edit').removeClass('badge-primary').addClass('badge-info');
+                    $('#categoryModalTitle').html('<i class="fas fa-edit mr-2"></i>Edit Category');
                     $('#saveCategoryBtn').show();
                     $('#categoryForm').find('input,textarea,select').prop('disabled', false);
                     $('#categoryModal').modal('show');
@@ -311,7 +322,7 @@ $(function(){
     $('#categoryModal').on('hidden.bs.modal', function(){
         $('#categoryForm').find('input,textarea,select').prop('disabled', false);
         $('#saveCategoryBtn').show();
-        $('#categoryModalLabel').text('Add Category');
+        $('#categoryModalTitle').html('<i class="fas fa-plus-circle mr-2"></i>Add Category');
     });
 });
 </script>
