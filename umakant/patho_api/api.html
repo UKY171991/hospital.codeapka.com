@@ -1318,6 +1318,14 @@
             }
         ];
 
+        const VALID_HTTP_METHODS = ['GET','POST','PUT','PATCH','DELETE','OPTIONS','HEAD'];
+        function normalizeMethod(method) {
+            if (!method) return 'GET';
+            const cleaned = method.toString().trim().toUpperCase();
+            const token = cleaned.split(/[\s,|/]+/)[0] || 'GET';
+            return VALID_HTTP_METHODS.includes(token) ? token : 'GET';
+        }
+
         let apiResults = {};
 
         function loadAllApis() {
@@ -1364,7 +1372,7 @@
                 }
             
             // Get unique methods from all endpoints
-            const methods = [...new Set(api.endpoints.map(ep => ep.method))];
+            const methods = [...new Set(api.endpoints.map(ep => normalizeMethod(ep.method)))];
             const actions = api.endpoints.map(ep => ep.action);
             
             card.innerHTML = `
@@ -1407,7 +1415,7 @@
                                                 data-bs-toggle="collapse" 
                                                 data-bs-target="#collapse-${index}-${epIndex}" 
                                                 aria-expanded="false">
-                                            <span class="badge bg-${getMethodColor(endpoint.method)} me-2">${endpoint.method}</span>
+                                            <span class="badge bg-${getMethodColor(endpoint.method)} me-2">${normalizeMethod(endpoint.method)}</span>
                                             <strong>${endpoint.action}</strong> - ${endpoint.description}
                                         </button>
                                     </h2>
@@ -1518,13 +1526,17 @@
         }
 
         function getMethodColor(method) {
+            const normalized = normalizeMethod(method);
             const colors = {
                 'GET': 'success',
                 'POST': 'primary',
                 'PUT': 'warning',
-                'DELETE': 'danger'
+                'PATCH': 'warning',
+                'DELETE': 'danger',
+                'OPTIONS': 'secondary',
+                'HEAD': 'secondary'
             };
-            return colors[method] || 'secondary';
+            return colors[normalized] || 'secondary';
         }
 
         function toggleApiDetails(index) {
@@ -1874,7 +1886,7 @@ echo json_encode($data, JSON_PRETTY_PRINT);
                                 <div class="accordion-item">
                                     <h2 class="accordion-header" id="doc-h-${apiIdx}-${epIdx}">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#doc-c-${apiIdx}-${epIdx}" aria-expanded="false">
-                                            <span class="badge bg-${getMethodColor(ep.method)} me-2">${ep.method}</span>
+                                            <span class="badge bg-${getMethodColor(ep.method)} me-2">${normalizeMethod(ep.method)}</span>
                                             <strong>${ep.action}</strong> - ${ep.description || ''}
                                         </button>
                                     </h2>
