@@ -6,19 +6,18 @@ $current_user_id = $_SESSION['user_id'] ?? null;
 $current_user_role = $_SESSION['role'] ?? 'user';
 ?>
 
-<!-- Content Wrapper. Contains page content -->
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Test Categories <small class="text-muted">(<span id="categoryCount">0</span>)</small></h1>
+                    <h1 class="mb-1">Test Categories</h1>
+                    <p class="text-muted mb-0">Manage and test categories with user-based filtering.</p>
                 </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
+                <div class="col-sm-6 d-flex align-items-start justify-content-end">
+                    <ol class="breadcrumb float-sm-right mb-0">
                         <li class="breadcrumb-item"><a href="index.php">Home</a></li>
                         <li class="breadcrumb-item active">Test Categories</li>
-{{ ... }}
                     </ol>
                 </div>
             </div>
@@ -28,40 +27,79 @@ $current_user_role = $_SESSION['role'] ?? 'user';
     <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="info-box shadow-sm category-summary bg-white">
+                        <span class="info-box-icon bg-primary elevation-1"><i class="fas fa-tags"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text text-uppercase text-muted">Total Categories</span>
+                            <span class="info-box-number" id="categoryCount">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="info-box shadow-sm category-summary bg-white">
+                        <span class="info-box-icon bg-success elevation-1"><i class="fas fa-user-shield"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text text-uppercase text-muted">Current User</span>
+                            <span class="info-box-number" id="currentUserLabel">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="info-box shadow-sm category-summary bg-white">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-search"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text text-uppercase text-muted">Search</span>
+                            <div class="input-group input-group-sm mt-1">
+                                <input type="text" id="categorySearch" class="form-control" placeholder="Search categories...">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" id="clearCategorySearch"><i class="fas fa-times"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Test Category Management</h3>
-                            <div class="card-tools">
-                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#categoryModal" onclick="openAddCategoryModal()">
-                                    <i class="fas fa-plus"></i> Add Category
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between bg-white border-0">
+                            <div class="d-flex align-items-center mb-2 mb-md-0">
+                                <div class="icon-circle bg-primary text-white mr-3"><i class="fas fa-layer-group"></i></div>
+                                <div>
+                                    <h3 class="card-title mb-0">Category Directory</h3>
+                                    <small class="text-muted">Listings adjust based on your role and permissions.</small>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#categoryModal" onclick="openAddCategoryModal()">
+                                    <i class="fas fa-plus-circle mr-1"></i>New Category
                                 </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-                                    <i class="fas fa-times"></i>
+                                <button type="button" class="btn btn-outline-secondary" id="refreshCategories">
+                                    <i class="fas fa-sync-alt mr-1"></i>Refresh
                                 </button>
                             </div>
                         </div>
                         <!-- /.card-header -->
-                        <div class="card-body">
-                            <!-- Removed custom search and per-page controls; DataTables provides these -->
-                            <table id="categoriesTable" class="table table-bordered table-striped">
+                        <div class="card-body pt-2">
+                            <div class="table-responsive">
+                            <table id="categoriesTable" class="table table-hover table-striped align-middle">
                                 <thead>
                                     <tr>
-                                        <th>S.No.</th>
-                                        <th class="sortable" data-key="id">ID <span class="sort-indicator"></span></th>
-                                        <th class="sortable" data-key="name">Name <span class="sort-indicator"></span></th>
-                                        <th class="sortable" data-key="description">Description <span class="sort-indicator"></span></th>
-                                        <th>Test Count</th>
-                                        <th class="sortable" data-key="added_by_username">Added By <span class="sort-indicator"></span></th>
-                                        <th>Actions</th>
+                                        <th style="width:70px;">#</th>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th class="text-center">Tests</th>
+                                        <th>Added By</th>
+                                        <th style="width:150px;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
                             </table>
+                            </div>
                         </div>
                         <!-- /.card-body -->
                     </div>
@@ -79,30 +117,48 @@ $current_user_role = $_SESSION['role'] ?? 'user';
 
 <!-- Category Modal -->
 <div class="modal fade" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="categoryModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="categoryModalLabel">Add Category</h5>
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <span class="badge badge-primary text-uppercase" id="categoryModalBadge">New</span>
+                    <h5 class="modal-title mt-2" id="categoryModalLabel">Add Category</h5>
+                    <small class="text-muted">Provide category name and optional description to organize your tests.</small>
+                </div>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body pt-0">
                 <form id="categoryForm">
                     <input type="hidden" id="categoryId" name="id">
-                    <div class="form-group">
-                        <label for="categoryName">Name *</label>
-                        <input type="text" class="form-control" id="categoryName" name="name" required>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label class="font-weight-semibold" for="categoryName">Category Name <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                </div>
+                                <input type="text" class="form-control" id="categoryName" name="name" placeholder="e.g., Hematology" required>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="font-weight-semibold" for="categoryAddedBy">Added By</label>
+                            <input type="text" class="form-control" id="categoryAddedBy" value="<?php echo htmlspecialchars($_SESSION['username'] ?? 'You'); ?>" disabled>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="categoryDescription">Description</label>
-                        <textarea class="form-control" id="categoryDescription" name="description" rows="3"></textarea>
+                    <div class="form-group mb-0">
+                        <label class="font-weight-semibold" for="categoryDescription">Description</label>
+                        <textarea class="form-control" id="categoryDescription" name="description" rows="4" placeholder="Describe when this category should be used (optional)"></textarea>
+                        <small class="form-text text-muted">Helpful descriptions make it easier for collaborators to pick the right category.</small>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveCategoryBtn">Save Category</button>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveCategoryBtn">
+                    <i class="fas fa-save mr-1"></i>Save Category
+                </button>
             </div>
         </div>
     </div>
@@ -141,21 +197,31 @@ function loadCategories(){
 
             var t='';
             resp.data.forEach(function(c, idx){
+                var description = (c.description && c.description.length > 80) ? c.description.substring(0, 77) + '…' : (c.description||'');
+                var addedBy = (c.added_by_username && c.added_by_username!=='')?c.added_by_username:(c.added_by||'');
                 t += '<tr>'+
-                    '<td>'+(idx+1)+'</td>'+ // S.No.
-                    '<td>'+c.id+'</td>'+
-                    '<td>'+ (c.name||'') +'</td>'+
-                    '<td>'+ (c.description||'') +'</td>'+
-                    '<td>'+ (c.test_count||0) +'</td>'+
-                    '<td>'+ ((c.added_by_username && c.added_by_username!='')?c.added_by_username:(c.added_by||'')) +'</td>'+
-                    '<td><button class="btn btn-sm btn-info view-category" data-id="'+c.id+'" onclick="viewCategory('+c.id+')">View</button> '+
-                        '<button class="btn btn-sm btn-primary edit-category" data-id="'+c.id+'">Edit</button> '+
-                        '<button class="btn btn-sm btn-danger delete-category" data-id="'+c.id+'">Delete</button></td>'+
+                    '<td class="text-center">'+(idx+1)+'</td>'+ // S.No.
+                    '<td><span class="badge badge-light border">#'+c.id+'</span></td>'+
+                    '<td><strong>'+ (c.name||'') +'</strong></td>'+
+                    '<td>'+ description +'</td>'+
+                    '<td class="text-center"><span class="badge badge-pill badge-info">'+ (c.test_count||0) +'</span></td>'+
+                    '<td><span class="text-muted"><i class="fas fa-user mr-1 text-secondary"></i>'+ addedBy +'</span></td>'+
+                    '<td class="text-nowrap">'+
+                        '<button class="btn btn-sm btn-outline-primary mr-1" data-id="'+c.id+'" onclick="viewCategory('+c.id+')"><i class="fas fa-eye"></i></button>'+ 
+                        '<button class="btn btn-sm btn-outline-info mr-1 edit-category" data-id="'+c.id+'"><i class="fas fa-edit"></i></button>'+ 
+                        '<button class="btn btn-sm btn-outline-danger delete-category" data-id="'+c.id+'"><i class="fas fa-trash"></i></button>'+
+                    '</td>'+ 
                     '</tr>';
             });
             $('#categoriesTable tbody').html(t);
             // Reinitialize DataTable
-            initDataTable('#categoriesTable');
+            initDataTable('#categoriesTable', {
+                dom: 'Bfrtip',
+                buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+                language: {
+                    emptyTable: 'No categories available yet. Click "New Category" to add one.'
+                }
+            });
             $('#categoryCount').text(resp.total ?? resp.data.length ?? 0);
         } else {
             toastr.error('Failed to load categories');
@@ -223,6 +289,7 @@ $(function(){
                     $('#categoryName').val(d.name);
                     $('#categoryDescription').val(d.description);
                     $('#categoryModalLabel').text('Edit Category');
+                    $('#categoryModalBadge').text('Edit').removeClass('badge-primary').addClass('badge-info');
                     $('#saveCategoryBtn').show();
                     $('#categoryForm').find('input,textarea,select').prop('disabled', false);
                     $('#categoryModal').modal('show');
