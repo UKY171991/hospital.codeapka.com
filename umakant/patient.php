@@ -87,7 +87,7 @@ require_once 'inc/sidebar.php';
                                     <i class="fas fa-plus"></i> Add New Patient
                                 </button>
                                 <button type="button" class="btn btn-success btn-sm" id="exportPatientsBtn">
-                                    <i class="fas fa-download"></i> Export All
+                                    <i class="fas fa-download"></i> Export CSV
                                 </button>
                             </div>
                         </div>
@@ -169,6 +169,8 @@ require_once 'inc/sidebar.php';
 </div>
 
 <!-- Include custom CSS and JavaScript -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
 <link rel="stylesheet" href="assets/css/patient.css">
 
 <!-- Add/Edit Patient Modal -->
@@ -265,4 +267,15 @@ require_once 'inc/sidebar.php';
   </div>
 </div>
 
-<?php require_once 'inc/footer.php'; ?>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+<script src="assets/js/patient.js"></script>
+
+<style>
+    #exportPatientsBtn {
+        white-space: nowrap;
+        width: 150px;
+    }
+</style>

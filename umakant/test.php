@@ -444,20 +444,13 @@ require_once 'inc/sidebar.php';
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
+const TEST_CATEGORY_API = 'patho_api/test_category.php?action=';
+const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+
 // Global variables
 let testsTable;
 let categoriesTable;
-
-// Utility function to escape HTML
-function escapeHtml(text) {
-    // Treat only null/undefined as empty — keep 0/false as valid values
-    if (text === null || text === undefined) return '';
     // Coerce to string to ensure replace() is available
     const str = String(text);
     // Replace common HTML-sensitive characters
@@ -929,8 +922,12 @@ function refreshTests() {
 
 
 function loadCategories() {
-    // Use internal ajax endpoint which handles session/permissions
-    $.get('ajax/test_category_api.php', { action: 'list' }, function(response) {
+    const params = { action: 'list' };
+    if (CURRENT_USER_ID) {
+        params.user_id = CURRENT_USER_ID;
+    }
+
+    $.getJSON(TEST_CATEGORY_API, params, function(response) {
         if (response && response.success) {
             let options = '<option value="">Select Category</option>';
             let filterOptions = '<option value="">All Categories</option>';
@@ -946,15 +943,10 @@ function loadCategories() {
             // Populate categories table
             populateCategoriesTable(response.data || []);
         } else {
-            // silently ignore or show a polite message
             console.warn('Failed to load categories', response && response.message);
         }
-    }, 'json').fail(function(xhr){ console.warn('Failed to load categories', xhr.status); });
+    }).fail(function(xhr){ console.warn('Failed to load categories', xhr.status); });
 }
-
-function populateCategoriesTable(categories) {
-    let html = '';
-    categories.forEach(category => {
         html += `
             <tr>
                 <td>${category.id}</td>

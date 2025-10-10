@@ -1,34 +1,24 @@
 <?php
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
-// Fetch total categories count for display in the page header
 $category_count = '--';
-try{
-    if(isset($pdo)){
-        $category_count = (int) $pdo->query('SELECT COUNT(*) FROM categories')->fetchColumn();
-    } else {
-        // try to include connection if not present
-        @include_once 'inc/connection.php';
-        if(isset($pdo)) $category_count = (int) $pdo->query('SELECT COUNT(*) FROM categories')->fetchColumn();
-    }
-} catch(Throwable $e){
-    $category_count = '--';
-}
+$current_user_id = $_SESSION['user_id'] ?? null;
+$current_user_role = $_SESSION['role'] ?? 'user';
 ?>
 
 <!-- Content Wrapper. Contains page content -->
-<div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Test Categories <small class="text-muted">(<?php echo htmlspecialchars($category_count); ?>)</small></h1>
+                    <h1>Test Categories <small class="text-muted">(<span id="categoryCount">0</span>)</small></h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="index.php">Home</a></li>
                         <li class="breadcrumb-item active">Test Categories</li>
+{{ ... }}
                     </ol>
                 </div>
             </div>
@@ -131,8 +121,17 @@ try{
 require_once __DIR__ . '/inc/category_view_modal.php'; ?>
 
 <script>
+const TEST_CATEGORY_API = 'patho_api/test_category.php';
+const CURRENT_USER_ID = <?php echo (int)($current_user_id ?? 0); ?>;
+const CURRENT_USER_ROLE = <?php echo json_encode($current_user_role); ?>;
+
 function loadCategories(){
-    $.get('ajax/test_category_api.php',{action:'list'},function(resp){
+    const params = { action: 'list' };
+    if (CURRENT_USER_ID) {
+        params.user_id = CURRENT_USER_ID;
+    }
+
+    $.getJSON(TEST_CATEGORY_API, params, function(resp){
         if(resp.success){
             var $table = $('#categoriesTable');
             // Destroy existing DataTable instance if it exists
@@ -157,10 +156,17 @@ function loadCategories(){
             $('#categoriesTable tbody').html(t);
             // Reinitialize DataTable
             initDataTable('#categoriesTable');
+            $('#categoryCount').text(resp.total ?? resp.data.length ?? 0);
         } else {
             toastr.error('Failed to load categories');
+            $('#categoryCount').text('0');
         }
-    },'json');
+    }).fail(function(xhr){
+        var msg = xhr.responseText || 'Server error';
+        try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){}
+        toastr.error(msg);
+        $('#categoryCount').text('0');
+    });
 }
 
 function openAddCategoryModal(){ $('#categoryForm')[0].reset(); $('#categoryId').val(''); $('#categoryModal').modal('show'); }
@@ -168,7 +174,7 @@ function openAddCategoryModal(){ $('#categoryForm')[0].reset(); $('#categoryId')
 // global fallback used by inline onclick on View buttons
 function viewCategory(id){
     try{
-        $.get('ajax/test_category_api.php',{action:'get',id:id}, function(resp){
+        $.getJSON(TEST_CATEGORY_API,{action:'get',id:id}, function(resp){
             if(resp.success){
                 var d = resp.data;
                 var html = '<table class="table table-sm table-borderless">' +
@@ -192,7 +198,7 @@ $(function(){
     // Save, edit, delete handlers
     $('#saveCategoryBtn').click(function(){
         var data=$('#categoryForm').serialize() + '&action=save';
-        $.post('ajax/test_category_api.php', data, function(resp){
+        $.post(TEST_CATEGORY_API, data, function(resp){
             if(resp.success){
                 toastr.success(resp.message||'Saved');
                 $('#categoryModal').modal('hide');
@@ -210,7 +216,7 @@ $(function(){
     $(document).on('click', '.edit-category', function(){
         try{
             var id=$(this).data('id');
-            $.get('ajax/test_category_api.php',{action:'get',id:id}, function(resp){
+            $.getJSON(TEST_CATEGORY_API,{action:'get',id:id}, function(resp){
                 if(resp.success){
                     var d=resp.data;
                     $('#categoryId').val(d.id);
@@ -237,7 +243,7 @@ $(function(){
         try{
             if(!confirm('Delete category?')) return;
             var id=$(this).data('id');
-            $.post('ajax/test_category_api.php',{action:'delete',id:id}, function(resp){
+            $.post(TEST_CATEGORY_API,{action:'delete',id:id}, function(resp){
                 if(resp.success){
                     toastr.success(resp.message);
                     loadCategories(); // Refresh table after delete

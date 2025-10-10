@@ -226,22 +226,18 @@
                 endpoints: [
                     {
                         action: 'list',
-                        method: 'GET/POST',
-                        url: '?action=list&secret_key=hospital-api-secret-2024',
-                        description: 'Get doctors filtered by user ID (shows only doctors added by authenticated user by default, supports DataTables format)',
+                        method: 'GET',
+                        url: '?action=list&secret_key=hospital-api-secret-2024&user_id=<current_user_id>',
+                        description: 'Get doctors for the authenticated user (or provided user_id for master/admin). Supports DataTables paging/search.',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         queryParams: {
-                            'page': 1,
-                            'limit': 10,
-                            'search': 'optional search term',
-                            'added_by': 'filter by user who added doctor',
-                            'specialization': 'filter by specialization',
-                            'hospital': 'filter by hospital',
-                            'draw': 'DataTables draw counter',
+                            'user_id': 'Override authenticated user when master/admin (optional)',
+                            'search': 'Search doctor name/hospital/contact',
                             'start': 'DataTables start index',
-                            'length': 'DataTables page length'
+                            'length': 'DataTables page length',
+                            'draw': 'DataTables draw counter'
                         },
                         response: {
                             'success': true,

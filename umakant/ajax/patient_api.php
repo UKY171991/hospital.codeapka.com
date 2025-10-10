@@ -15,6 +15,10 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 try {
+        if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
     require_once '../inc/connection.php';
     
     $action = $_GET['action'] ?? $_POST['action'] ?? '';
@@ -30,10 +34,14 @@ try {
             handleCreate();
             break;
         case 'read':
+        case 'get':
             handleRead();
             break;
         case 'update':
             handleUpdate();
+            break;
+        case 'save':
+            handleSave();
             break;
         case 'delete':
             handleDelete();
@@ -69,83 +77,86 @@ function patientHasColumn($col) {
 
 function handleList() {
     global $pdo;
-    
-    $page = max(1, intval($_GET['page'] ?? 1));
-    $limit = max(1, min(100, intval($_GET['limit'] ?? 10)));
-    $search = trim($_GET['search'] ?? '');
-    $ownerId = trim($_GET['owner_id'] ?? '');
-    $offset = ($page - 1) * $limit;
-    
+
+    $isDataTables = isset($_POST['draw']);
+    $draw   = intval($_POST['draw'] ?? 0);
+    $start  = intval($_POST['start'] ?? 0);
+    $length = intval($_POST['length'] ?? 25);
+
+    if ($length <= 0) {
+        $length = 25;
+    }
+
+    $search = '';
+    if (isset($_POST['search']['value'])) {
+        $search = trim($_POST['search']['value']);
+    } else {
+        $search = trim($_GET['search'] ?? '');
+    }
+
+    $addedBy = $_POST['added_by'] ?? $_GET['added_by'] ?? '';
+
     try {
-        // Build the WHERE clause for search and owner filtering
-        $whereConditions = [];
+        $whereClauses = [];
         $params = [];
-        
-        if (!empty($search)) {
-            $whereConditions[] = '(name LIKE :search OR uhid LIKE :search OR mobile LIKE :search)';
-            $params[':search'] = "%$search%";
+
+        if ($search !== '') {
+            $whereClauses[] = '(p.name LIKE :search OR p.uhid LIKE :search OR p.mobile LIKE :search)';
+            $params[':search'] = '%' . $search . '%';
         }
-        
-        if (!empty($ownerId)) {
-            $whereConditions[] = 'added_by = :owner_id';
-            $params[':owner_id'] = $ownerId;
+
+        if ($addedBy !== '') {
+            $whereClauses[] = 'p.added_by = :added_by';
+            $params[':added_by'] = $addedBy;
         }
-        
-        $whereClause = '';
-        if (!empty($whereConditions)) {
-            $whereClause = ' WHERE ' . implode(' AND ', $whereConditions);
+
+        $whereSql = $whereClauses ? (' WHERE ' . implode(' AND ', $whereClauses)) : '';
+
+        $totalSql = 'SELECT COUNT(*) FROM patients';
+        $totalRecords = (int)$pdo->query($totalSql)->fetchColumn();
+
+        $filteredSql = 'SELECT COUNT(*) FROM patients p' . $whereSql;
+        $filteredStmt = $pdo->prepare($filteredSql);
+        foreach ($params as $key => $value) {
+            $filteredStmt->bindValue($key, $value);
         }
-        
-        // Count total records
-        $countSql = "SELECT COUNT(*) as total FROM patients" . $whereClause;
-        $countStmt = $pdo->prepare($countSql);
-        $countStmt->execute($params);
-        $totalRecords = $countStmt->fetch()['total'];
-        
-        if ($totalRecords == 0) {
-            echo json_encode([
-                'success' => true,
-                'data' => [],
-                'pagination' => [
-                    'current_page' => $page,
-                    'total_pages' => 0,
-                    'total_records' => 0,
-                    'per_page' => $limit
-                ],
-                'message' => 'No patients found'
-            ]);
-            return;
-        }
-        
-        // Get patients with pagination
-        $sql = "SELECT * FROM patients" . $whereClause . " ORDER BY id DESC LIMIT :limit OFFSET :offset";
-        $stmt = $pdo->prepare($sql);
-        
-        // Bind search parameters if they exist
+        $filteredStmt->execute();
+        $filteredRecords = (int)$filteredStmt->fetchColumn();
+
+        $dataSql = 'SELECT p.*, u.username AS added_by_name
+                    FROM patients p
+                    LEFT JOIN users u ON p.added_by = u.id'
+                    . $whereSql .
+                    ' ORDER BY p.id DESC
+                      LIMIT :limit OFFSET :offset';
+
+        $stmt = $pdo->prepare($dataSql);
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value);
         }
-        
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $length, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $start, PDO::PARAM_INT);
         $stmt->execute();
-        
-        $patients = $stmt->fetchAll();
-        $totalPages = ceil($totalRecords / $limit);
-        
-        echo json_encode([
-            'success' => true,
-            'data' => $patients,
-            'pagination' => [
-                'current_page' => $page,
-                'total_pages' => $totalPages,
-                'total_records' => $totalRecords,
-                'per_page' => $limit
-            ]
-        ]);
-        
+        $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if ($isDataTables) {
+            echo json_encode([
+                'draw' => $draw,
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $filteredRecords,
+                'data' => $patients,
+                'success' => true
+            ]);
+        } else {
+            echo json_encode([
+                'success' => true,
+                'data' => $patients,
+                'total' => $filteredRecords
+            ]);
+        }
+
     } catch (Exception $e) {
-        throw new Exception("Failed to fetch patients: " . $e->getMessage());
+        throw new Exception('Failed to fetch patients: ' . $e->getMessage());
     }
 }
 
@@ -270,7 +281,10 @@ function handleRead() {
     }
     
     try {
-        $stmt = $pdo->prepare("SELECT * FROM patients WHERE id = :id");
+        $stmt = $pdo->prepare("SELECT p.*, u.username AS added_by_name
+                                FROM patients p
+                                LEFT JOIN users u ON p.added_by = u.id
+                                WHERE p.id = :id");
         $stmt->execute([':id' => $id]);
         $patient = $stmt->fetch();
         
@@ -285,6 +299,117 @@ function handleRead() {
         
     } catch (Exception $e) {
         throw new Exception("Failed to fetch patient: " . $e->getMessage());
+    }
+}
+
+function handleSave() {
+    global $pdo;
+
+    $id = intval($_POST['id'] ?? 0);
+    $data = [];
+    foreach ($_POST as $key => $value) {
+        $data[$key] = is_string($value) ? trim($value) : $value;
+    }
+
+    if (empty($data['name'])) {
+        throw new Exception("Patient name is required");
+    }
+
+    if (empty($data['mobile'])) {
+        throw new Exception("Mobile number is required");
+    }
+
+    $addedBy = $data['added_by'] ?? ($_SESSION['user_id'] ?? null);
+
+    try {
+        if ($id > 0) {
+            $updateParts = [
+                'name = :name',
+                'father_husband = :father_husband',
+                'mobile = :mobile',
+                'email = :email',
+                'age = :age',
+                'age_unit = :age_unit',
+                'address = :address'
+            ];
+
+            if (patientHasColumn('gender')) {
+                $updateParts[] = 'gender = :gender';
+            } elseif (patientHasColumn('sex')) {
+                $updateParts[] = 'sex = :gender';
+            }
+
+            if ($addedBy !== null && $addedBy !== '') {
+                $updateParts[] = 'added_by = :added_by';
+            }
+
+            $sql = 'UPDATE patients SET ' . implode(', ', $updateParts) . ', updated_at = NOW() WHERE id = :id';
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ':id' => $id,
+                ':name' => $data['name'],
+                ':father_husband' => $data['father_husband'] ?? '',
+                ':mobile' => $data['mobile'],
+                ':email' => $data['email'] ?? '',
+                ':age' => $data['age'] !== '' ? $data['age'] : null,
+                ':age_unit' => $data['age_unit'] ?? 'Years',
+                ':gender' => $data['gender'] ?? '',
+                ':address' => $data['address'] ?? '',
+                ':added_by' => $addedBy
+            ]);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Patient updated successfully'
+            ]);
+            return;
+        }
+
+        if (empty($data['uhid'])) {
+            $stmt = $pdo->query("SELECT MAX(CAST(SUBSTR(uhid, 2) AS UNSIGNED)) FROM patients WHERE uhid LIKE 'P%'");
+            $next = (int)$stmt->fetchColumn();
+            $data['uhid'] = 'P' . str_pad($next + 1, 6, '0', STR_PAD_LEFT);
+        }
+
+        $columns = ['uhid','name','father_husband','mobile','email','age','age_unit','address'];
+        $placeholders = [':uhid',':name',':father_husband',':mobile',':email',':age',':age_unit',':address'];
+
+        if (patientHasColumn('gender')) {
+            $columns[] = 'gender';
+            $placeholders[] = ':gender';
+        } elseif (patientHasColumn('sex')) {
+            $columns[] = 'sex';
+            $placeholders[] = ':gender';
+        }
+
+        if ($addedBy !== null && $addedBy !== '') {
+            $columns[] = 'added_by';
+            $placeholders[] = ':added_by';
+        }
+
+        $sql = 'INSERT INTO patients (' . implode(',', $columns) . ') VALUES (' . implode(',', $placeholders) . ')';
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':uhid' => $data['uhid'],
+            ':name' => $data['name'],
+            ':father_husband' => $data['father_husband'] ?? '',
+            ':mobile' => $data['mobile'],
+            ':email' => $data['email'] ?? '',
+            ':age' => $data['age'] !== '' ? $data['age'] : null,
+            ':age_unit' => $data['age_unit'] ?? 'Years',
+            ':gender' => $data['gender'] ?? '',
+            ':address' => $data['address'] ?? '',
+            ':added_by' => $addedBy
+        ]);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Patient created successfully',
+            'data' => ['id' => $pdo->lastInsertId()]
+        ]);
+
+    } catch (Exception $e) {
+        throw new Exception('Failed to save patient: ' . $e->getMessage());
     }
 }
 

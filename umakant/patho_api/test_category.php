@@ -14,6 +14,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+function determineTargetUserId(array $user_data): ?int {
+    $role = $user_data['role'] ?? 'user';
+    $requested = $_GET['user_id'] ?? $_POST['user_id'] ?? null;
+    $requested = is_numeric($requested) ? (int)$requested : null;
+    $includeAll = isset($_REQUEST['all']) && (string)$_REQUEST['all'] === '1';
+
+    if (in_array($role, ['master', 'admin'], true)) {
+        if ($includeAll) {
+            return null; // master/admin can request all records
+        }
+        if ($requested !== null) {
+            return $requested;
+        }
+        return (int)$user_data['user_id'];
+    }
+
+    return (int)$user_data['user_id'];
+}
+
 if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
@@ -74,7 +93,7 @@ function handleList($pdo, $config) {
     $user_data = simpleAuthenticate($pdo);
     if (!$user_data) {
         json_response([
-            'success' => false, 
+            'success' => false,
             'message' => 'Authentication required',
             'debug_info' => getAuthDebugInfo()
         ], 401);
@@ -84,13 +103,58 @@ function handleList($pdo, $config) {
     }
 
     try {
-        $sql = "SELECT c.*, COUNT(t.id) as test_count FROM {$config['table_name']} c LEFT JOIN tests t ON c.id = t.category_id GROUP BY c.id ORDER BY c.name";
+        $targetUserId = determineTargetUserId($user_data);
+        $searchTerm = trim((string)($_GET['search'] ?? $_POST['search'] ?? ''));
+
+        $filters = [];
+        $params = [];
+
+        if ($targetUserId !== null) {
+            $filters[] = 'c.added_by = ?';
+            $params[] = $targetUserId;
+        }
+
+        if ($searchTerm !== '') {
+            $filters[] = '(c.name LIKE ? OR c.description LIKE ?)';
+            $like = '%' . $searchTerm . '%';
+            $params[] = $like;
+            $params[] = $like;
+        }
+
+        $sql = "SELECT c.id, c.name, c.description, c.added_by, COALESCE(u.username, '') AS added_by_username, COUNT(t.id) AS test_count
+                FROM {$config['table_name']} c
+                LEFT JOIN tests t ON c.id = t.category_id
+                LEFT JOIN users u ON c.added_by = u.id";
+
+        if (!empty($filters)) {
+            $sql .= ' WHERE ' . implode(' AND ', $filters);
+        }
+
+        $sql .= ' GROUP BY c.id ORDER BY c.name';
+
         $stmt = $pdo->prepare($sql);
-        $stmt->execute();
-        $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        json_response(['success' => true, 'data' => $categories, 'total' => count($categories)]);
+        $stmt->execute($params);
+        $categories = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        foreach ($categories as $idx => &$category) {
+            $category['sno'] = $idx + 1;
+            $category['test_count'] = (int)($category['test_count'] ?? 0);
+            if (isset($category['added_by'])) {
+                $category['added_by'] = $category['added_by'] !== null ? (int)$category['added_by'] : null;
+            }
+        }
+
+        json_response([
+            'success' => true,
+            'data' => $categories,
+            'total' => count($categories),
+            'filters' => [
+                'user_id' => $targetUserId,
+                'search' => $searchTerm
+            ]
+        ]);
     } catch (Exception $e) {
-        error_log("List test categories error: " . $e->getMessage());
+        error_log('List test categories error: ' . $e->getMessage());
         json_response(['success' => false, 'message' => 'Failed to fetch test categories'], 500);
     }
 }
@@ -111,7 +175,12 @@ function handleGet($pdo, $config) {
     }
 
     try {
-        $sql = "SELECT c.*, COUNT(t.id) as test_count FROM {$config['table_name']} c LEFT JOIN tests t ON c.id = t.category_id WHERE c.{$config['id_field']} = ? GROUP BY c.id";
+        $sql = "SELECT c.id, c.name, c.description, c.added_by, COALESCE(u.username, '') AS added_by_username, COUNT(t.id) AS test_count
+                FROM {$config['table_name']} c
+                LEFT JOIN tests t ON c.id = t.category_id
+                LEFT JOIN users u ON c.added_by = u.id
+                WHERE c.{$config['id_field']} = ?
+                GROUP BY c.id";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id]);
         $category = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -123,6 +192,8 @@ function handleGet($pdo, $config) {
         if (!simpleCheckPermission($user_data, 'get', $category['added_by'] ?? null)) {
             json_response(['success' => false, 'message' => 'Permission denied to view this category'], 403);
         }
+
+        $category['test_count'] = (int)($category['test_count'] ?? 0);
 
         json_response(['success' => true, 'data' => $category]);
     } catch (Exception $e) {
@@ -142,6 +213,7 @@ function handleSave($pdo, $config) {
     }
 
     $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+    $input = array_map(fn($v) => is_string($v) ? trim($v) : $v, $input);
     $id = $input['id'] ?? null;
 
     if ($id) { // Update
@@ -161,7 +233,7 @@ function handleSave($pdo, $config) {
     }
 
     foreach ($config['required_fields'] as $field) {
-        if (empty($input[$field])) {
+        if (!isset($input[$field]) || trim((string)$input[$field]) === '') {
             json_response(['success' => false, 'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'], 400);
         }
     }
@@ -173,7 +245,18 @@ function handleSave($pdo, $config) {
                 $data[$field] = $input[$field];
             }
         }
-        $data['added_by'] = $data['added_by'] ?? $user_data['user_id'];
+        if (!empty($data['added_by'])) {
+            $data['added_by'] = (int)$data['added_by'];
+        }
+
+        // Always default new records to the authenticated user
+        if (!$id || empty($data['added_by'])) {
+            $data['added_by'] = (int)$user_data['user_id'];
+        }
+
+        if ($id && !simpleCheckPermission($user_data, 'save', $data['added_by'])) {
+            json_response(['success' => false, 'message' => 'Permission denied to update this category'], 403);
+        }
 
         if ($id) {
             $set_clause = implode(', ', array_map(fn($field) => "$field = ?", array_keys($data)));
@@ -193,9 +276,17 @@ function handleSave($pdo, $config) {
             $action = 'inserted';
         }
 
-        $stmt = $pdo->prepare("SELECT c.*, COUNT(t.id) as test_count FROM {$config['table_name']} c LEFT JOIN tests t ON c.id = t.category_id WHERE c.id = ? GROUP BY c.id");
+        $stmt = $pdo->prepare("SELECT c.id, c.name, c.description, c.added_by, COALESCE(u.username, '') AS added_by_username, COUNT(t.id) AS test_count
+                                FROM {$config['table_name']} c
+                                LEFT JOIN tests t ON c.id = t.category_id
+                                LEFT JOIN users u ON c.added_by = u.id
+                                WHERE c.id = ?
+                                GROUP BY c.id");
         $stmt->execute([$category_id]);
         $saved_category = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($saved_category) {
+            $saved_category['test_count'] = (int)($saved_category['test_count'] ?? 0);
+        }
 
         json_response([
             'success' => true,
