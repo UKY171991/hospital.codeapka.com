@@ -342,11 +342,11 @@ try {
                              p.name as patient_name,
                              d.name as doctor_name,
                              t.name as test_name,
-                             et.result,
-                             et.status as entry_status,
-                             et.price as test_price,
-                             et.discount_amount as test_discount,
-                             (et.price - COALESCE(et.discount_amount, 0)) as test_total
+                             COALESCE(et.result_value, '') as result,
+                             COALESCE(et.status, 'pending') as entry_status,
+                             COALESCE(et.price, 0) as test_price,
+                             COALESCE(et.discount_amount, 0) as test_discount,
+                             (COALESCE(et.price, 0) - COALESCE(et.discount_amount, 0)) as test_total
                       FROM entries e
                       LEFT JOIN patients p ON e.patient_id = p.id
                       LEFT JOIN doctors d ON e.doctor_id = d.id
@@ -368,7 +368,7 @@ try {
             }
 
             if ($status) {
-                $query .= " AND et.status = ?";
+                $query .= " AND COALESCE(et.status, 'pending') = ?";
                 $params[] = $status;
             }
 
