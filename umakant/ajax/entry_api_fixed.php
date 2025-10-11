@@ -382,10 +382,12 @@ try {
                 $params[] = $date_to;
             }
 
-            // Add viewer scope if not admin
-            if ($user_data['role'] !== 'master') {
+            // Add viewer scope if not admin - use the same logic as the list action
+            $viewerRole = $user_data['role'] ?? 'user';
+            $viewerId = (int)($user_data['user_id'] ?? 0);
+            if ($viewerRole !== 'master') {
                 $query .= " AND e.added_by = ?";
-                $params[] = $user_data['user_id'];
+                $params[] = $viewerId;
             }
 
             $query .= " ORDER BY e.entry_date DESC, e.id DESC";
