@@ -34,7 +34,15 @@ register_shutdown_function(function(){
     }
 });
 
-require_once __DIR__ . '/../inc/connection.php';
+// Database connection with error handling
+try {
+    require_once __DIR__ . '/../inc/connection.php';
+    $db_available = true;
+} catch (Exception $e) {
+    $db_available = false;
+    json_response(['success' => false, 'message' => 'Database connection failed', 'error' => $e->getMessage()], 500);
+}
+
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 require_once __DIR__ . '/../inc/smart_upsert.php';
@@ -735,6 +743,12 @@ function handleUpdateTestResult($pdo) {
         } else {
             json_response(['success' => false, 'message' => 'Failed to update test result'], 500);
         }
+    } catch (Exception $e) {
+        error_log("Update test result error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to update test result'], 500);
+    }
+}
+
 // Handle report list with filtering
 function handleReportList($pdo) {
     $user_data = simpleAuthenticate($pdo);

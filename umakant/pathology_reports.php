@@ -2,6 +2,15 @@
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 
+// Database connection check with error handling
+try {
+    require_once 'inc/connection.php';
+    $db_available = true;
+} catch (Exception $e) {
+    $db_available = false;
+    $db_error = $e->getMessage();
+}
+
 if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
@@ -27,6 +36,15 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
 
     <section class="content">
         <div class="container-fluid">
+            <?php if (!$db_available): ?>
+            <div class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                <h5><i class="icon fas fa-ban"></i> Database Connection Error</h5>
+                Unable to connect to the database. Please check your database configuration and ensure the MySQL server is running.
+                <br><small>Error: <?php echo htmlspecialchars($db_error); ?></small>
+                <br><a href="index.php" class="btn btn-sm btn-primary mt-2">Return to Dashboard</a>
+            </div>
+            <?php else: ?>
             <div class="card card-primary card-outline">
                 <div class="card-header">
                     <h3 class="card-title"><i class="fas fa-search mr-1"></i>Search Filters</h3>
@@ -95,12 +113,14 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
         </div>
     </section>
 </div>
 
 <?php include 'inc/footer.php'; ?>
 
+<?php if ($db_available): ?>
 <!-- Initialize configuration and load scripts in the correct order -->
 <script>
     // Global configuration
@@ -137,3 +157,12 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
             });
     });
 </script>
+<?php else: ?>
+<script>
+    // Show error message when database is not available
+    $(document).ready(function() {
+        $('#reportSummary').text('Database connection unavailable - Please contact support');
+    });
+</script>
+<?php endif; ?>
+

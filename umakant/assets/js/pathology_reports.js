@@ -70,6 +70,8 @@
             },
             error: function (xhr, status, error) {
                 console.error('Failed to load tests', status, error, xhr.responseText);
+                // Show user-friendly error message
+                toastr.error('Failed to load test options. Please refresh the page or contact support.');
             }
         });
     }
@@ -92,6 +94,8 @@
             },
             error: function (xhr, status, error) {
                 console.error('Failed to load doctors', status, error, xhr.responseText);
+                // Show user-friendly error message
+                toastr.error('Failed to load doctor options. Please refresh the page or contact support.');
             }
         });
     }
@@ -208,6 +212,8 @@
             },
             error: function (xhr, status, error) {
                 console.error('Failed to fetch reports', status, error, xhr.responseText);
+                // Show user-friendly error message
+                toastr.error('Failed to fetch reports. Please check your connection and try again.');
                 onSuccess([], { total_records: 0, total_amount_formatted: '0.00' });
             }
         });
