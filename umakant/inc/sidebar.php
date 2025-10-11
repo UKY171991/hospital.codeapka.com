@@ -25,7 +25,7 @@ $role = $_SESSION['role'] ?? 'user';
     $pathologyPages = [
       'index.php','doctors.php','patient.php','owner.php',
       'test-category.php','test.php','upload_zip.php','upload_list.php',
-      'entry-list.php','plan.php','notice.php'
+      'entry-list.php','plan.php','notice.php','pathology_reports.php'
     ];
     $isPathologyActive = in_array($activePage, $pathologyPages);
     // OPD menu and its pages - adjust filenames as needed
@@ -143,6 +143,13 @@ $role = $_SESSION['role'] ?? 'user';
               <a href="entry-list.php" class="nav-link <?php echo ($activePage == 'entry-list.php') ? 'active' : ''; ?>">
                 <i class="fas fa-file-medical nav-icon"></i>
                 <p>Entries</p>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="pathology_reports.php" class="nav-link <?php echo ($activePage == 'pathology_reports.php') ? 'active' : ''; ?>">
+                <i class="fas fa-file-medical-alt nav-icon"></i>
+                <p>Reports</p>
               </a>
             </li>
 

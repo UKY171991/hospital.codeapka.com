@@ -26,8 +26,8 @@ $entity_config = [
     'id_field' => 'id',
     'required_fields' => ['username', 'full_name'],
     'allowed_fields' => [
-        'username', 'full_name', 'email', 'password', 'role', 'is_active',
-        'expire_date', 'added_by', 'api_token'
+        'username', 'full_name', 'email', 'password', 'role', 'user_type',
+        'is_active', 'expire_date', 'added_by', 'api_token'
     ]
 ];
 
@@ -99,7 +99,9 @@ function handleList($pdo, $config) {
             $params = array_merge($scopeIds, $scopeIds);
         }
 
-        $sql = "SELECT id, username, full_name, email, role, is_active, created_at, last_login, expire_date, added_by FROM {$config['table_name']}" . $where . " ORDER BY username";
+        $sql = "SELECT id, username, full_name, email, password, role, user_type, is_active,
+                       created_at, updated_at, last_login, expire_date, added_by, api_token
+                FROM {$config['table_name']}" . $where . " ORDER BY username";
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -126,7 +128,9 @@ function handleGet($pdo, $config) {
     }
 
     try {
-        $sql = "SELECT id, username, full_name, email, role, is_active, created_at, last_login, expire_date, added_by, api_token FROM {$config['table_name']} WHERE {$config['id_field']} = ?";
+        $sql = "SELECT id, username, full_name, email, password, role, user_type, is_active,
+                       created_at, updated_at, last_login, expire_date, added_by, api_token
+                FROM {$config['table_name']} WHERE {$config['id_field']} = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -259,7 +263,9 @@ function handleSave($pdo, $config) {
             $action = 'inserted';
         }
 
-        $stmt = $pdo->prepare("SELECT id, username, full_name, email, role, is_active, created_at, last_login, expire_date, added_by FROM {$config['table_name']} WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT id, username, full_name, email, password, role, user_type, is_active,
+                                      created_at, updated_at, last_login, expire_date, added_by, api_token
+                               FROM {$config['table_name']} WHERE id = ?");
         $stmt->execute([$user_id]);
         $saved_user = $stmt->fetch(PDO::FETCH_ASSOC);
 

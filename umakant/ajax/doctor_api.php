@@ -69,7 +69,13 @@ try {
         $action = 'save';
     }
 
-    if ($action === 'list') {
+    if ($action === 'list' || $action === 'simple_list') {
+        if ($action === 'simple_list') {
+            $stmt = $pdo->query('SELECT id, name FROM doctors ORDER BY name ASC');
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            json_response(['success' => true, 'data' => $rows]);
+        }
+
         // Support DataTables server-side processing
         $draw = $_POST['draw'] ?? 1;
         $start = $_POST['start'] ?? 0;

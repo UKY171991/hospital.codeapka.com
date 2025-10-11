@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // ajax/entry_api.php - CRUD for entries
 try {
     require_once __DIR__ . '/../inc/connection.php';
@@ -613,9 +613,9 @@ try {
                     // Log what we're about to save
                     error_log("Entry data being saved: " . json_encode($entryData));
                     if (isset($entryData['subtotal'])) {
-                        error_log("✓ Pricing fields included in save: subtotal={$entryData['subtotal']}, discount={$entryData['discount_amount']}, total={$entryData['total_price']}");
+                        error_log("âœ“ Pricing fields included in save: subtotal={$entryData['subtotal']}, discount={$entryData['discount_amount']}, total={$entryData['total_price']}");
                     } else {
-                        error_log("✗ WARNING: Pricing fields NOT in entryData!");
+                        error_log("âœ— WARNING: Pricing fields NOT in entryData!");
                     }
                     
                     // Insert or Update entry
@@ -737,7 +737,7 @@ try {
                     error_log("VERIFICATION: Entry $entryId saved pricing - subtotal={$savedEntry['subtotal']}, discount={$savedEntry['discount_amount']}, total={$savedEntry['total_price']}");
                     
                     if ($savedEntry['subtotal'] == 0 && $savedEntry['total_price'] == 0) {
-                        error_log("⚠️ WARNING: Entry saved but pricing is ZERO in database!");
+                        error_log("âš ï¸ WARNING: Entry saved but pricing is ZERO in database!");
                     }
                     
                     $successMessage = $isUpdate 
@@ -1021,3 +1021,4 @@ try {
     http_response_code(500);
     json_response(['success' => false, 'message' => 'Server error', 'error' => $e->getMessage()]);
 }
+
