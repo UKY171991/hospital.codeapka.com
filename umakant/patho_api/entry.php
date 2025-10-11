@@ -121,6 +121,9 @@ try {
         case 'update_test_result':
             handleUpdateTestResult($pdo);
             break;
+        case 'report_list':
+            handleReportList($pdo);
+            break;
         default:
             json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
     }
@@ -732,9 +735,129 @@ function handleUpdateTestResult($pdo) {
         } else {
             json_response(['success' => false, 'message' => 'Failed to update test result'], 500);
         }
+// Handle report list with filtering
+function handleReportList($pdo) {
+    $user_data = simpleAuthenticate($pdo);
+    if (!$user_data) {
+        json_response([
+            'success' => false,
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
+    }
+    if (!simpleCheckPermission($user_data, 'list')) {
+        json_response(['success' => false, 'message' => 'Permission denied to list reports'], 403);
+    }
+
+    try {
+        $test_id = $_GET['test_id'] ?? null;
+        $doctor_id = $_GET['doctor_id'] ?? null;
+        $status = $_GET['status'] ?? '';
+        $date_from = $_GET['date_from'] ?? null;
+        $date_to = $_GET['date_to'] ?? null;
+
+        // Role-based scoping by added_by
+        $scopeIds = getScopedUserIds($pdo, $user_data);
+        $where = '';
+        $params = [];
+        if (is_array($scopeIds)) {
+            $placeholders = implode(',', array_fill(0, count($scopeIds), '?'));
+            $where = ' WHERE e.added_by IN (' . $placeholders . ')';
+            $params = $scopeIds;
+        }
+
+        // Base query with all necessary joins
+        $query = "SELECT e.*,
+                         p.name as patient_name,
+                         d.name as doctor_name,
+                         t.name as test_name,
+                         COALESCE(et.result_value, '') as result,
+                         COALESCE(et.status, 'pending') as entry_status,
+                         COALESCE(et.price, 0) as test_price,
+                         COALESCE(et.discount_amount, 0) as test_discount,
+                         (COALESCE(et.price, 0) - COALESCE(et.discount_amount, 0)) as test_total
+                  FROM entries e
+                  LEFT JOIN patients p ON e.patient_id = p.id
+                  LEFT JOIN doctors d ON e.doctor_id = d.id
+                  LEFT JOIN entry_tests et ON e.id = et.entry_id
+                  LEFT JOIN tests t ON et.test_id = t.id" . $where;
+
+        // Add filters
+        if ($test_id) {
+            $query .= " AND et.test_id = ?";
+            $params[] = $test_id;
+        }
+
+        if ($doctor_id) {
+            $query .= " AND e.doctor_id = ?";
+            $params[] = $doctor_id;
+        }
+
+        if ($status) {
+            $query .= " AND COALESCE(et.status, 'pending') = ?";
+            $params[] = $status;
+        }
+
+        if ($date_from) {
+            $query .= " AND DATE(e.entry_date) >= ?";
+            $params[] = $date_from;
+        }
+
+        if ($date_to) {
+            $query .= " AND DATE(e.entry_date) <= ?";
+            $params[] = $date_to;
+        }
+
+        $query .= " ORDER BY e.entry_date DESC, e.id DESC";
+
+        $stmt = $pdo->prepare($query);
+
+        // Execute with parameters if any
+        if (!empty($params)) {
+            $stmt->execute($params);
+        } else {
+            $stmt->execute();
+        }
+
+        $reports = [];
+        $total_amount = 0;
+
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $test_total = isset($row['test_total']) ? (float)$row['test_total'] : 0;
+
+            $reports[] = [
+                'entry_id' => $row['id'],
+                'entry_date' => $row['entry_date'] ?? $row['created_at'],
+                'entry_date_formatted' => date('d M Y', strtotime($row['entry_date'] ?? $row['created_at'])),
+                'patient_name' => $row['patient_name'] ?? 'N/A',
+                'doctor_name' => $row['doctor_name'] ?? 'N/A',
+                'test_name' => $row['test_name'] ?? 'N/A',
+                'result' => $row['result'] ?? '',
+                'result_display' => !empty($row['result']) ? $row['result'] : 'Pending',
+                'entry_status' => $row['entry_status'] ?? 'pending',
+                'amount' => $test_total,
+                'test_price' => (float)($row['test_price'] ?? 0),
+                'test_discount' => (float)($row['test_discount'] ?? 0)
+            ];
+            $total_amount += $test_total;
+        }
+
+        json_response([
+            'success' => true,
+            'data' => $reports,
+            'summary' => [
+                'total_records' => count($reports),
+                'total_amount' => $total_amount,
+                'total_amount_formatted' => number_format($total_amount, 2)
+            ]
+        ]);
+
     } catch (Exception $e) {
-        error_log("Update test result error: " . $e->getMessage());
-        json_response(['success' => false, 'message' => 'Failed to update test result'], 500);
+        error_log('Error in report_list: ' . $e->getMessage());
+        json_response([
+            'success' => false,
+            'message' => 'Failed to fetch reports',
+            'error' => $e->getMessage()
+        ], 500);
     }
 }
-?>

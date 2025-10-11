@@ -12,7 +12,7 @@
     const form = $('#pathologyReportFilters');
 
     const apiConfig = {
-        listEndpoint: 'ajax/entry_api_fixed.php',
+        listEndpoint: 'patho_api/entry.php',
         testEndpoint: 'ajax/test_api.php',
         doctorEndpoint: 'ajax/doctor_api.php'
     };
