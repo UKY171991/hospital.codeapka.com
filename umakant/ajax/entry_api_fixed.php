@@ -322,7 +322,10 @@ try {
             }
         }
         
-    if ($action === 'report_list') {
+        // Return the formatted data
+        json_response(['success' => true, 'data' => $rows]);
+        
+    } else if ($action === 'report_list') {
         if (!simpleCheckPermission($user_data, 'list')) {
             json_response(['success' => false, 'message' => 'Permission denied to list reports'], 403);
         }
@@ -334,8 +337,16 @@ try {
             $date_from = $_GET['date_from'] ?? null;
             $date_to = $_GET['date_to'] ?? null;
 
-            $query = "SELECT e.*, p.name as patient_name, d.name as doctor_name, 
-                             t.name as test_name, et.result, et.status as entry_status
+            // Base query with all necessary joins
+            $query = "SELECT e.*, 
+                             p.name as patient_name, 
+                             d.name as doctor_name,
+                             t.name as test_name, 
+                             et.result, 
+                             et.status as entry_status,
+                             et.price as test_price,
+                             et.discount_amount as test_discount,
+                             (et.price - COALESCE(et.discount_amount, 0)) as test_total
                       FROM entries e
                       LEFT JOIN patients p ON e.patient_id = p.id
                       LEFT JOIN doctors d ON e.doctor_id = d.id
@@ -346,6 +357,7 @@ try {
             $params = [];
             $types = '';
 
+            // Add filters
             if ($test_id) {
                 $query .= " AND et.test_id = ?";
                 $params[] = $test_id;
@@ -376,11 +388,17 @@ try {
                 $types .= 's';
             }
 
-            $query .= " GROUP BY e.id, et.id";
-            $query .= " ORDER BY e.entry_date DESC";
+            // Add viewer scope if not admin
+            if ($user_data['role'] !== 'master') {
+                $query .= " AND e.added_by = ?";
+                $params[] = $user_data['user_id'];
+            }
+
+            $query .= " ORDER BY e.entry_date DESC, e.id DESC";
 
             $stmt = $pdo->prepare($query);
             
+            // Execute with parameters if any
             if (!empty($params)) {
                 $stmt->execute($params);
             } else {
@@ -391,19 +409,23 @@ try {
             $total_amount = 0;
             
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $test_total = isset($row['test_total']) ? (float)$row['test_total'] : 0;
+                
                 $reports[] = [
                     'entry_id' => $row['id'],
-                    'entry_date' => $row['entry_date'],
-                    'entry_date_formatted' => date('d M Y', strtotime($row['entry_date'])),
-                    'patient_name' => $row['patient_name'],
-                    'doctor_name' => $row['doctor_name'],
-                    'test_name' => $row['test_name'],
-                    'result' => $row['result'],
-                    'result_display' => $row['result'] ? $row['result'] : 'Pending',
+                    'entry_date' => $row['entry_date'] ?? $row['created_at'],
+                    'entry_date_formatted' => date('d M Y', strtotime($row['entry_date'] ?? $row['created_at'])),
+                    'patient_name' => $row['patient_name'] ?? 'N/A',
+                    'doctor_name' => $row['doctor_name'] ?? 'N/A',
+                    'test_name' => $row['test_name'] ?? 'N/A',
+                    'result' => $row['result'] ?? '',
+                    'result_display' => !empty($row['result']) ? $row['result'] : 'Pending',
                     'entry_status' => $row['entry_status'] ?? 'pending',
-                    'amount' => $row['amount'] ?? 0
+                    'amount' => $test_total,
+                    'test_price' => (float)($row['test_price'] ?? 0),
+                    'test_discount' => (float)($row['test_discount'] ?? 0)
                 ];
-                $total_amount += (float)($row['amount'] ?? 0);
+                $total_amount += $test_total;
             }
 
             json_response([
@@ -424,16 +446,8 @@ try {
                 'error' => $e->getMessage()
             ], 500);
         }
-         = [];
-        if ( !== 'master') {
-            [] = 'e.added_by = ?';
-            [] = ;
-        }
-
-        if () {
-            [] = 'et.test_id = ?';
-            [] = ;
-        }
+    } else if ($action === 'create' || $action === 'update') {
+        // Rest of your existing code...
 
         if () {
             [] = 'e.doctor_id = ?';
