@@ -123,7 +123,7 @@ if ($action === 'list') {
         $orderBy = " ORDER BY id DESC";
         $limit = " LIMIT $start, $length";
         
-        $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'role', 'added_by']);
+        $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'password', 'role', 'added_by']);
         $dataQuery = "SELECT " . implode(', ', $selectColumns) . ' ' .
                      $baseQuery . $whereClause . $orderBy . $limit;
         
@@ -151,7 +151,7 @@ if ($action === 'list') {
     }
 
     // Simple list request (non-DataTables clients)
-    $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'role', 'added_by']);
+    $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'password', 'role', 'added_by']);
     $query = "SELECT " . implode(', ', $selectColumns) .
              " FROM users ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
 
@@ -182,7 +182,7 @@ if ($action === 'list_simple') {
         $params = [$viewerId, $viewerId];
     }
 
-    $selectColumns = buildUserSelectColumns(['id', 'username', 'full_name', 'email', 'role', 'added_by']);
+    $selectColumns = buildUserSelectColumns(['id', 'username', 'full_name', 'email', 'password', 'role', 'added_by']);
     $query = "SELECT " . implode(', ', $selectColumns) .
              " FROM users" . $whereClause . " ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
 
@@ -205,7 +205,7 @@ if ($action === 'list_simple') {
 if ($action === 'get' && isset($_GET['id'])) {
     $viewerRole = $_SESSION['role'] ?? 'user';
     $viewerId = $_SESSION['user_id'] ?? null;
-    $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'role', 'added_by']);
+    $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'password', 'role', 'added_by']);
     $stmt = $pdo->prepare('SELECT ' . implode(', ', $selectColumns) . ' FROM users WHERE id = ?');
     $stmt->execute([$_GET['id']]);
     $row = $stmt->fetch();
