@@ -100,10 +100,40 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
 </div>
 
 <?php include 'inc/footer.php'; ?>
+
+<!-- Initialize configuration and load scripts in the correct order -->
 <script>
+    // Global configuration
     const pathologyReportsConfig = {
         currentUserId: <?php echo json_encode($_SESSION['user_id'] ?? null); ?>,
         currentUserRole: <?php echo json_encode($_SESSION['role'] ?? 'user'); ?>
     };
+
+    // Ensure jQuery is loaded
+    if (typeof jQuery === 'undefined') {
+        document.write('<script src="https://code.jquery.com/jquery-3.6.0.min.js"><\/script>');
+    }
 </script>
-<script src="assets/js/pathology_reports.js"></script>
+
+<!-- Load additional required libraries -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+
+<!-- Initialize after all dependencies are loaded -->
+<script>
+    // Wait for the document to be fully loaded
+    $(document).ready(function() {
+        // Initialize Select2
+        $('.select2').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
+
+        // Load the main script after all dependencies are ready
+        $.getScript('assets/js/pathology_reports.js')
+            .fail(function(jqxhr, settings, exception) {
+                console.error('Failed to load pathology_reports.js:', exception);
+            });
+    });
+</script>
