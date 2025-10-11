@@ -73,7 +73,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
             <div class="card card-outline card-secondary">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h3 class="card-title mb-0"><i class="fas fa-table mr-1"></i>Report Results</h3>
-                    <small class="text-muted" id="reportSummary">Showing latest records</small>
+                    <small class="text-muted" id="reportSummary">No search applied - Use filters above to search reports</small>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">

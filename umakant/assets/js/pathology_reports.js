@@ -2,6 +2,7 @@
 
 (function () {
     let reportsTable = null;
+    let searchPerformed = false;
     const testSelect = $('#filterTest');
     const doctorSelect = $('#filterDoctor');
     const statusSelect = $('#filterStatus');
@@ -39,6 +40,7 @@
     function bindEvents() {
         form.on('submit', function (event) {
             event.preventDefault();
+            searchPerformed = true;
             reloadTable();
         });
 
@@ -46,6 +48,7 @@
             form.trigger('reset');
             testSelect.val('').trigger('change');
             doctorSelect.val('').trigger('change');
+            searchPerformed = false;
             reloadTable();
         });
     }
@@ -111,6 +114,11 @@
             serverSide: false,
             deferRender: true,
             ajax: function (data, callback) {
+                if (!searchPerformed) {
+                    callback({ data: [] });
+                    updateSummary(null);
+                    return;
+                }
                 fetchReports(function (rows, meta) {
                     callback({
                         data: rows
@@ -163,7 +171,8 @@
             ],
             order: [[1, 'desc']],
             language: {
-                processing: 'Loading reports...'
+                processing: 'Loading reports...',
+                emptyTable: 'No data available - Please use the search filters above'
             }
         });
     }
@@ -205,6 +214,10 @@
     }
 
     function updateSummary(summary) {
+        if (!searchPerformed) {
+            summaryLabel.text('No search applied - Use filters above to search reports');
+            return;
+        }
         if (!summary) {
             summaryLabel.text('No records found');
             return;
