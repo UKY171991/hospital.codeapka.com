@@ -322,121 +322,121 @@ try {
             }
         }
         
-        json_response(['success' => true, 'data' => $rows, 'total' => count($rows)]);
+    if ( === 'report_list') {
+        if (!simpleCheckPermission(, 'list')) {
+            json_response(['success' => false, 'message' => 'Permission denied to list reports'], 403);
+        }
+
+         = ['role'] ?? 'user';
+         = (int)(['user_id'] ?? 0);
+
+         = isset(['test_id']) && ['test_id'] !== '' ? (int)['test_id'] : null;
+         = isset(['doctor_id']) && ['doctor_id'] !== '' ? (int)['doctor_id'] : null;
+         = isset(['status']) && ['status'] !== '' ? trim(['status']) : null;
+         = isset(['date_from']) && ['date_from'] !== '' ? ['date_from'] : null;
+         = isset(['date_to']) && ['date_to'] !== '' ? ['date_to'] : null;
+
+         = [];
+         = [];
+        if ( !== 'master') {
+            [] = 'e.added_by = ?';
+            [] = ;
+        }
+
+        if () {
+            [] = 'et.test_id = ?';
+            [] = ;
+        }
+
+        if () {
+            [] = 'e.doctor_id = ?';
+            [] = ;
+        }
+
+        if () {
+            [] = 'e.status = ?';
+            [] = ;
+        }
+
+        if () {
+            [] = 'DATE(COALESCE(e.entry_date, e.created_at)) >= ?';
+            [] = ;
+        }
+
+        if () {
+            [] = 'DATE(COALESCE(e.entry_date, e.created_at)) <= ?';
+            [] = ;
+        }
+
+         = '';
+        if (!empty()) {
+             = ' WHERE ' . implode(' AND ', );
+        }
+
+        try {
+             = 'SELECT e.id AS entry_id,\\n                           COALESCE(e.entry_date, e.created_at) AS entry_date,\\n                           p.name AS patient_name,\\n                           d.name AS doctor_name,\\n                           t.name AS test_name,\\n                           et.result_value,\\n                           et.unit AS test_unit,\\n                           et.status AS test_status,\\n                           e.status AS entry_status,\\n                           COALESCE(et.total_price, et.price, 0) AS test_amount\\n                    FROM entries e\\n                    INNER JOIN entry_tests et ON et.entry_id = e.id\\n                    LEFT JOIN tests t ON et.test_id = t.id\\n                    LEFT JOIN patients p ON e.patient_id = p.id\\n                    LEFT JOIN doctors d ON e.doctor_id = d.id' .
+                     .
+                    ' ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC';
+
+             = ->prepare();
+            ->execute();
+             = ->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception ) {
+            json_response([
+                'success' => false,
+                'message' => 'Database error while fetching reports',
+                'error' => ->getMessage()
+            ], 500);
+        }
+
+         = [];
+         = 0;
+
+        foreach ( as ) {
+             = ['entry_date'] ?? null;
+             = isset(['test_amount']) ? (float)['test_amount'] : 0;
+             += ;
+
+             = trim((string)(['result_value'] ?? ''));
+             = trim((string)(['test_unit'] ?? ''));
+             = trim( . ' ' . );
+            if ( === '') {
+                 = '-';
+            }
+
+            [] = [
+                'entry_id' => (int)['entry_id'],
+                'entry_date' => ,
+                'entry_date_formatted' =>  ? date('d M Y', strtotime()) : '-',
+                'patient_name' => ['patient_name'] ?? 'Unknown',
+                'doctor_name' => ['doctor_name'] ?? null,
+                'test_name' => ['test_name'] ?? 'Unknown Test',
+                'result_value' => ,
+                'unit' => ,
+                'result_display' => ,
+                'entry_status' => ['entry_status'] ?? 'pending',
+                'test_status' => ['test_status'] ?? 'pending',
+                'amount' => ,
+                'amount_formatted' => number_format(, 2)
+            ];
+        }
+
+        json_response([
+            'success' => true,
+            'data' => ,
+            'recordsTotal' => count(),
+            'recordsFiltered' => count(),
+            'summary' => [
+                'total_records' => count(),
+                'total_amount' => ,
+                'total_amount_formatted' => number_format(, 2)
+            ]
+        ]);
     }
 
-    if ($action === 'get' && isset($_GET['id'])) {
-        // Check permission
-        if (!simpleCheckPermission($user_data, 'get', $_GET['id'])) {
-            json_response(['success' => false, 'message' => 'Permission denied to view entry'], 403);
-        }
-        
-        // Return comprehensive entry data
-        $viewerRole = $user_data['role'] ?? 'user';
-        $viewerId = (int)($user_data['user_id'] ?? 0);
-        $scopeWhere = '';
-        $params = [$_GET['id']];
-        if ($viewerRole !== 'master') {
-            $scopeWhere = ' AND e.added_by = ?';
-            $params[] = $viewerId;
-        }
+    if ( === 'get' && isset(['id'])) {
 
-        $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
-        if ($entryTestsCaps['table_exists']) {
-            $aggSql = build_entry_tests_aggregation_sql($pdo);
-            $aggSelect = "COALESCE(agg.tests_count, 0) AS agg_tests_count,\n                   COALESCE(agg.test_names, '') AS agg_test_names,\n                   COALESCE(agg.test_ids, '') AS agg_test_ids,\n                   COALESCE(agg.total_price, 0) AS agg_total_price,\n                   COALESCE(agg.total_discount, 0) AS agg_total_discount";
-            $aggJoin = " LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id";
-        } else {
-            $aggSelect = "0 AS agg_tests_count, '' AS agg_test_names, '' AS agg_test_ids, 0 AS agg_total_price, 0 AS agg_total_discount";
-            $aggJoin = '';
-        }
-
-        $sql = "SELECT e.*, \n                   p.name AS patient_name, p.uhid, p.age AS patient_age, p.sex AS gender, p.contact AS patient_contact, p.address AS patient_address,\n                   d.name AS doctor_name,\n                   o.name AS owner_name,\n                   du.username AS doctor_added_by_username,\n                   u.username AS added_by_username, u.full_name AS added_by_full_name,\n                   {$aggSelect}\n            FROM entries e \n            LEFT JOIN patients p ON e.patient_id = p.id \n            LEFT JOIN doctors d ON e.doctor_id = d.id \n            LEFT JOIN owners o ON e.owner_id = o.id\n            LEFT JOIN users du ON d.added_by = du.id\n            LEFT JOIN users u ON e.added_by = u.id" .
-            $aggJoin .
-            " WHERE e.id = ?" . $scopeWhere;
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if (!$row) {
-            http_response_code(404);
-            json_response(['success' => false, 'message' => 'Entry not found']);
-            return;
-        }
-        
-        // Format data for frontend compatibility
-        $entriesCaps = get_entries_schema_capabilities($pdo);
-        if (empty($row['entry_date'])) {
-            $row['entry_date'] = $row['created_at'];
-        }
-        
-        // Format test information
-        $testsCount = isset($row['tests_count']) ? (int)$row['tests_count'] : (int)($row['agg_tests_count'] ?? 0);
-        $testNames = $row['test_names'] ?? ($row['agg_test_names'] ?? '');
-        $testIds = $row['test_ids'] ?? ($row['agg_test_ids'] ?? '');
-
-        $row['tests_count'] = $testsCount;
-        $row['test_names'] = $testNames;
-        $row['test_ids'] = $testIds;
-        
-        // Format pricing
-        $aggTotalPrice = isset($row['agg_total_price']) ? (float)$row['agg_total_price'] : (float)($row['total_price'] ?? 0);
-        $aggDiscount = isset($row['agg_total_discount']) ? (float)$row['agg_total_discount'] : (float)($row['total_discount'] ?? 0);
-        $row['aggregated_total_price'] = $aggTotalPrice;
-        $row['aggregated_total_discount'] = $aggDiscount;
-
-        if ($entriesCaps['has_total_price'] && isset($row['total_price'])) {
-            $finalAmount = (float)$row['total_price'];
-        } else if ($entriesCaps['has_subtotal'] && isset($row['subtotal'])) {
-            $finalAmount = (float)$row['subtotal'] - (float)($row['discount_amount'] ?? 0);
-        } else {
-            $finalAmount = $aggTotalPrice - $aggDiscount;
-        }
-
-        $row['total_price'] = $entriesCaps['has_total_price'] && isset($row['total_price'])
-            ? (float)$row['total_price']
-            : $aggTotalPrice;
-        $row['total_discount'] = $entriesCaps['has_discount_amount'] && isset($row['discount_amount'])
-            ? (float)$row['discount_amount']
-            : $aggDiscount;
-        $row['final_amount'] = $finalAmount;
-        
-        // Set grouped flag based on test count
-        $row['grouped'] = $row['tests_count'] > 1 ? 1 : 0;
-        
-        // For backward compatibility, set test_name to first test or all tests
-        if ($row['tests_count'] == 1) {
-            $row['test_name'] = $row['test_names'];
-        } else if ($row['tests_count'] > 1) {
-            $row['test_name'] = $row['tests_count'] . ' tests: ' . $row['test_names'];
-        } else {
-            $row['test_name'] = 'No tests';
-        }
-        
-        // Also fetch individual tests for the entry
-        $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
-        if ($entryTestsCaps['table_exists']) {
-            $testsSql = "SELECT et.*, t.name as test_name, t.unit, t.reference_range, t.min, t.max, t.min_male, t.max_male, t.min_female, t.max_female, tc.name as category_name \n                         FROM entry_tests et \n                         LEFT JOIN tests t ON et.test_id = t.id\n                         LEFT JOIN categories tc ON t.category_id = tc.id\n                         WHERE et.entry_id = ?";
-            $testsStmt = $pdo->prepare($testsSql);
-            $testsStmt->execute([$_GET['id']]);
-            $row['tests'] = $testsStmt->fetchAll(PDO::FETCH_ASSOC);
-        } else {
-            $row['tests'] = [];
-        }
-
-        json_response(['success' => true, 'data' => $row]);
-    }
-
-    if ($action === 'save') {
-        // Check permission
-        if (!simpleCheckPermission($user_data, 'save')) {
-            json_response(['success' => false, 'message' => 'Permission denied to save entry'], 403);
-        }
-        
-        // Handle multiple tests per entry
-        $input = [];
-        $content_type = $_SERVER['CONTENT_TYPE'] ?? '';
+    if ( === 'get' && isset(['id'])) {
         if (strpos($content_type, 'application/json') !== false) {
             $input = json_decode(file_get_contents('php://input'), true) ?: [];
         } else {
@@ -1021,4 +1021,8 @@ try {
     http_response_code(500);
     json_response(['success' => false, 'message' => 'Server error', 'error' => $e->getMessage()]);
 }
+
+
+
+
 
