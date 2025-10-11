@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // ajax/entry_api.php - CRUD for entries
 try {
     require_once __DIR__ . '/../inc/connection.php';
@@ -322,21 +322,108 @@ try {
             }
         }
         
-    if ( === 'report_list') {
-        if (!simpleCheckPermission(, 'list')) {
+    if ($action === 'report_list') {
+        if (!simpleCheckPermission($user_data, 'list')) {
             json_response(['success' => false, 'message' => 'Permission denied to list reports'], 403);
         }
 
-         = ['role'] ?? 'user';
-         = (int)(['user_id'] ?? 0);
+        try {
+            $test_id = $_GET['test_id'] ?? null;
+            $doctor_id = $_GET['doctor_id'] ?? null;
+            $status = $_GET['status'] ?? '';
+            $date_from = $_GET['date_from'] ?? null;
+            $date_to = $_GET['date_to'] ?? null;
 
-         = isset(['test_id']) && ['test_id'] !== '' ? (int)['test_id'] : null;
-         = isset(['doctor_id']) && ['doctor_id'] !== '' ? (int)['doctor_id'] : null;
-         = isset(['status']) && ['status'] !== '' ? trim(['status']) : null;
-         = isset(['date_from']) && ['date_from'] !== '' ? ['date_from'] : null;
-         = isset(['date_to']) && ['date_to'] !== '' ? ['date_to'] : null;
+            $query = "SELECT e.*, p.name as patient_name, d.name as doctor_name, 
+                             t.name as test_name, et.result, et.status as entry_status
+                      FROM entries e
+                      LEFT JOIN patients p ON e.patient_id = p.id
+                      LEFT JOIN doctors d ON e.doctor_id = d.id
+                      LEFT JOIN entry_tests et ON e.id = et.entry_id
+                      LEFT JOIN tests t ON et.test_id = t.id
+                      WHERE 1=1";
 
-         = [];
+            $params = [];
+            $types = '';
+
+            if ($test_id) {
+                $query .= " AND et.test_id = ?";
+                $params[] = $test_id;
+                $types .= 'i';
+            }
+
+            if ($doctor_id) {
+                $query .= " AND e.doctor_id = ?";
+                $params[] = $doctor_id;
+                $types .= 'i';
+            }
+
+            if ($status) {
+                $query .= " AND et.status = ?";
+                $params[] = $status;
+                $types .= 's';
+            }
+
+            if ($date_from) {
+                $query .= " AND DATE(e.entry_date) >= ?";
+                $params[] = $date_from;
+                $types .= 's';
+            }
+
+            if ($date_to) {
+                $query .= " AND DATE(e.entry_date) <= ?";
+                $params[] = $date_to;
+                $types .= 's';
+            }
+
+            $query .= " GROUP BY e.id, et.id";
+            $query .= " ORDER BY e.entry_date DESC";
+
+            $stmt = $pdo->prepare($query);
+            
+            if (!empty($params)) {
+                $stmt->execute($params);
+            } else {
+                $stmt->execute();
+            }
+
+            $reports = [];
+            $total_amount = 0;
+            
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $reports[] = [
+                    'entry_id' => $row['id'],
+                    'entry_date' => $row['entry_date'],
+                    'entry_date_formatted' => date('d M Y', strtotime($row['entry_date'])),
+                    'patient_name' => $row['patient_name'],
+                    'doctor_name' => $row['doctor_name'],
+                    'test_name' => $row['test_name'],
+                    'result' => $row['result'],
+                    'result_display' => $row['result'] ? $row['result'] : 'Pending',
+                    'entry_status' => $row['entry_status'] ?? 'pending',
+                    'amount' => $row['amount'] ?? 0
+                ];
+                $total_amount += (float)($row['amount'] ?? 0);
+            }
+
+            json_response([
+                'success' => true,
+                'data' => $reports,
+                'summary' => [
+                    'total_records' => count($reports),
+                    'total_amount' => $total_amount,
+                    'total_amount_formatted' => number_format($total_amount, 2)
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            error_log('Error in report_list: ' . $e->getMessage());
+            json_response([
+                'success' => false, 
+                'message' => 'Failed to fetch reports',
+                'error' => $e->getMessage()
+            ], 500);
+        }
          = [];
         if ( !== 'master') {
             [] = 'e.added_by = ?';
