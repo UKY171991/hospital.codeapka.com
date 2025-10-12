@@ -84,6 +84,7 @@ function simpleAuthenticate($pdo) {
             }
         } catch (Exception $e) {
             // Token check failed, continue to other methods
+            // Don't log this as it might be expected if users table doesn't exist yet
         }
     }
     
@@ -113,6 +114,7 @@ function simpleAuthenticate($pdo) {
             }
         } catch (Exception $e) {
             // API key check failed, continue
+            // Don't log this as it might be expected if users table doesn't exist yet
         }
     }
     
