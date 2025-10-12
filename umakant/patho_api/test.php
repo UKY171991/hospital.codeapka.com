@@ -49,7 +49,7 @@ set_exception_handler('handle_exception');
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key, X-API-Secret');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key, X-Api-Key, X-API-Secret');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -130,14 +130,17 @@ function handleList($pdo, $config, $isSimpleList = false) {
 
     $scopeIds = getScopedUserIds($pdo, $user_data);
     $where = '';
-    $params = [];
+    // Separate params for total (scope-only) and filtered (scope + search)
+    $paramsScope = [];
+    $paramsFiltered = [];
 
     // Build WHERE clause for user scoping
     if ($scopeIds !== null) { // null means no restriction (master user)
         if (is_array($scopeIds) && !empty($scopeIds)) {
             $placeholders = implode(',', array_fill(0, count($scopeIds), '?'));
             $where = ' WHERE t.added_by IN (' . $placeholders . ')';
-            $params = array_merge($params, $scopeIds);
+            $paramsScope = $scopeIds;
+            $paramsFiltered = $scopeIds;
         }
     }
 
@@ -146,7 +149,8 @@ function handleList($pdo, $config, $isSimpleList = false) {
     $length = (int)($_REQUEST['length'] ?? 25);
     $search = $_REQUEST['search']['value'] ?? '';
 
-    $baseQuery = "FROM {$config['table_name']} t LEFT JOIN categories c ON t.category_id = c.id";
+    // Base FROM/JOIN clause (without the literal FROM keyword duplication in SELECTs)
+    $baseQuery = "{$config['table_name']} t LEFT JOIN categories c ON t.category_id = c.id";
     $whereClause = $where;
 
     // Add search conditions
@@ -154,8 +158,8 @@ function handleList($pdo, $config, $isSimpleList = false) {
         $searchWhere = (empty($where) ? ' WHERE ' : ' AND ') . "(t.name LIKE ? OR c.name LIKE ?)";
         $whereClause .= $searchWhere;
         $searchTerm = "%$search%";
-        $params[] = $searchTerm;
-        $params[] = $searchTerm;
+        $paramsFiltered[] = $searchTerm;
+        $paramsFiltered[] = $searchTerm;
     }
 
     // Build queries with proper WHERE clauses
@@ -163,16 +167,16 @@ function handleList($pdo, $config, $isSimpleList = false) {
     $filteredWhere = $whereClause;
 
     $totalStmt = $pdo->prepare("SELECT COUNT(*) FROM {$config['table_name']} t $totalWhere");
-    $totalStmt->execute($params);
+    $totalStmt->execute($paramsScope);
     $totalRecords = $totalStmt->fetchColumn();
 
-    $filteredStmt = $pdo->prepare("SELECT COUNT(*) $baseQuery $filteredWhere");
-    $filteredStmt->execute($params);
+    $filteredStmt = $pdo->prepare("SELECT COUNT(*) FROM $baseQuery $filteredWhere");
+    $filteredStmt->execute($paramsFiltered);
     $filteredRecords = $filteredStmt->fetchColumn();
 
     $query = "SELECT t.*, c.name as category_name FROM $baseQuery $filteredWhere ORDER BY t.id DESC LIMIT $start, $length";
     $stmt = $pdo->prepare($query);
-    $stmt->execute($params);
+    $stmt->execute($paramsFiltered);
     $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     json_response([
