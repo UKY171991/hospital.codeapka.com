@@ -72,9 +72,12 @@ try {
 }
 
 function handleList($pdo, $config, $user_data, $isSimpleList = false) {
+    error_log("handleList called");
     if (!simpleCheckPermission($user_data, 'list')) {
+        error_log("Permission denied");
         json_response(['success' => false, 'message' => 'Permission denied to list tests'], 403);
     }
+    error_log("Permission check passed");
 
     if ($isSimpleList) {
         $stmt = $pdo->query("SELECT t.id, t.name, t.price, c.name as category_name FROM {$config['table_name']} t LEFT JOIN categories c ON t.category_id = c.id ORDER BY t.name");
@@ -84,6 +87,7 @@ function handleList($pdo, $config, $user_data, $isSimpleList = false) {
     }
 
     $scopeIds = getScopedUserIds($pdo, $user_data);
+    error_log("scopeIds: " . json_encode($scopeIds));
     $where = '';
     $params = [];
     if (is_array($scopeIds)) {
@@ -114,9 +118,12 @@ function handleList($pdo, $config, $user_data, $isSimpleList = false) {
     $filteredRecords = $filteredStmt->fetchColumn();
 
     $query = "SELECT t.*, c.name as category_name FROM $baseQuery $whereClause ORDER BY t.id DESC LIMIT $start, $length";
+    error_log("query: " . $query);
+    error_log("params: " . json_encode($params));
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
     $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    error_log("tests count: " . count($tests));
 
     json_response([
         'draw' => $draw,
