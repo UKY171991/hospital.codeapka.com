@@ -29,6 +29,9 @@
     <div class="d-flex">
         <div class="sidebar">
             <h4 class="mb-4">APIs</h4>
+            <div class="d-grid gap-2">
+                <button id="test-all-btn" class="btn btn-primary mb-3">Test All APIs</button>
+            </div>
             <div id="api-list" class="list-group"></div>
         </div>
         <div class="main-content">
@@ -131,7 +134,7 @@
                 file: 'owner.php',
                 description: 'API for managing owners.',
                 endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all owners.'},
+                    { action: 'list', method: 'GET', description: 'Get all owners.' },
                     { action: 'get', method: 'GET', description: 'Get a single owner by ID.', params: ['id'] },
                     { action: 'save', method: 'POST', description: 'Create or update an owner.' },
                     { action: 'delete', method: 'POST', description: 'Delete an owner by ID.', params: ['id'] }
@@ -141,6 +144,7 @@
 
         const apiList = document.getElementById('api-list');
         const apiDocumentation = document.getElementById('api-documentation');
+        const testAllBtn = document.getElementById('test-all-btn');
 
         function renderApiList() {
             apiList.innerHTML = '';
@@ -148,8 +152,15 @@
                 const a = document.createElement('a');
                 a.href = `#${api.file}`;
                 a.className = 'list-group-item list-group-item-action';
-                a.textContent = api.name;
-                a.onclick = () => renderApiDocumentation(api);
+                a.innerHTML = `${api.name} <button class="btn btn-sm btn-outline-primary float-end test-btn">Test</button>`;
+                a.onclick = (e) => {
+                    if (e.target.classList.contains('test-btn')) {
+                        e.preventDefault();
+                        testApi(api);
+                    } else {
+                        renderApiDocumentation(api);
+                    }
+                };
                 apiList.appendChild(a);
             });
         }
@@ -190,13 +201,46 @@
 
             apiDocumentation.innerHTML = `
                 <div class="card">
-                    <div class="card-body">
+                    <div class="card-header d-flex justify-content-between">
                         <h2 class="card-title">${api.name}</h2>
+                        <div id="test-result-${api.file}"></div>
+                    </div>
+                    <div class="card-body">
                         <p class="card-text">${api.description}</p>
                         ${endpointsHtml}
                     </div>
                 </div>
             `;
+        }
+
+        async function testApi(api) {
+            const resultDiv = document.getElementById(`test-result-${api.file}`);
+            resultDiv.innerHTML = '<span class="badge bg-warning">Testing...</span>';
+
+            const endpoint = api.endpoints.find(ep => ep.action === 'list');
+            if (!endpoint) {
+                resultDiv.innerHTML = '<span class="badge bg-danger">"list" action not found</span>';
+                return;
+            }
+
+            const url = `/umakant/patho_api/${api.file}?action=${endpoint.action}&secret_key=hospital-api-secret-2024`;
+
+            try {
+                const response = await axios.get(url);
+                if (response.data.success) {
+                    resultDiv.innerHTML = '<span class="badge bg-success">Success</span>';
+                } else {
+                    resultDiv.innerHTML = '<span class="badge bg-danger">Failed</span>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<span class="badge bg-danger">Error</span>';
+            }
+        }
+
+        async function testAllApis() {
+            for (const api of apiEndpoints) {
+                await testApi(api);
+            }
         }
 
         function generateCurlExample(api, endpoint) {
@@ -218,6 +262,8 @@
             const url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
             return `<?php\n$url = "${window.location.origin}${url}&secret_key=hospital-api-secret-2024";\n$response = file_get_contents($url);\n$data = json_decode($response, true);\nprint_r($data);\n?>`;
         }
+
+        testAllBtn.addEventListener('click', testAllApis);
 
         renderApiList();
         if (apiEndpoints.length > 0) {
