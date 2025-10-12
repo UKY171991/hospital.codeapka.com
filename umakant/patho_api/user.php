@@ -93,8 +93,9 @@ function handleList($pdo, $config) {
 
     try {
         // Role-based scoping
+        error_log("About to call getScopedUserIds with user_data: " . json_encode($user_data));
         $scopeIds = getScopedUserIds($pdo, $user_data); // null => no restriction (master)
-        error_log("Scope IDs: " . json_encode($scopeIds));
+        error_log("getScopedUserIds returned: " . json_encode($scopeIds));
         $params = [];
         $where = '';
         if (is_array($scopeIds)) {
@@ -105,6 +106,8 @@ function handleList($pdo, $config) {
             $params = array_merge($scopeIds, $scopeIds);
             error_log("WHERE clause: $where");
             error_log("Params: " . json_encode($params));
+        } else {
+            error_log("No WHERE clause needed - scopeIds is not an array");
         }
 
         // Check if users table exists and has correct structure
@@ -138,16 +141,48 @@ function handleList($pdo, $config) {
         $sql = "SELECT id, username, full_name, email, password, role, user_type, is_active,
                        created_at, updated_at, last_login, expire_date, added_by, api_token
                 FROM {$config['table_name']}" . $where . " ORDER BY username";
-        error_log("Executing query: " . $sql . " with params: " . json_encode($params));
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        error_log("Query executed successfully, found " . count($users) . " users");
-        json_response(['success' => true, 'data' => $users, 'total' => count($users)]);
-    } catch (Exception $e) {
-        error_log("List users error: " . $e->getMessage());
-        json_response(['success' => false, 'message' => 'Failed to fetch users'], 500);
-    }
+        error_log("About to execute query: " . $sql);
+        error_log("Query params: " . json_encode($params));
+        error_log("Table name: " . $config['table_name']);
+
+        try {
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            error_log("Query executed successfully, found " . count($users) . " users");
+            json_response(['success' => true, 'data' => $users, 'total' => count($users)]);
+        } catch (PDOException $e) {
+            error_log("PDO Error in query execution: " . $e->getMessage());
+            error_log("SQL: " . $sql);
+            error_log("Params: " . json_encode($params));
+
+            // Check if this is a table doesn't exist error
+            if (strpos($e->getMessage(), "Table") !== false && strpos($e->getMessage(), "doesn't exist") !== false) {
+                json_response([
+                    'success' => false,
+                    'message' => 'Users table does not exist. Please create the users table in your database.',
+                    'debug_info' => [
+                        'issue' => 'missing_users_table',
+                        'error' => $e->getMessage(),
+                        'solution' => 'Run the following SQL to create the users table:',
+                        'sql' => 'CREATE TABLE users (id int(11) NOT NULL AUTO_INCREMENT, username varchar(255) NOT NULL, full_name varchar(255) NOT NULL, email varchar(255) DEFAULT NULL, password varchar(255) NOT NULL, role varchar(50) NOT NULL DEFAULT "user", user_type varchar(50) DEFAULT NULL, is_active tinyint(1) NOT NULL DEFAULT 1, expire_date datetime DEFAULT NULL, added_by int(11) DEFAULT NULL, api_token varchar(255) DEFAULT NULL, created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, last_login datetime DEFAULT NULL, PRIMARY KEY (id), UNIQUE KEY username (username)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;'
+                    ]
+                ], 500);
+            } else {
+                json_response([
+                    'success' => false,
+                    'message' => 'Database query failed.',
+                    'debug_info' => [
+                        'error' => $e->getMessage(),
+                        'sql' => $sql,
+                        'params' => $params
+                    ]
+                ], 500);
+            }
+        } catch (Exception $e) {
+            error_log("General error in query execution: " . $e->getMessage());
+            json_response(['success' => false, 'message' => 'Failed to fetch users'], 500);
+        }
 }
 
 function handleGet($pdo, $config) {
