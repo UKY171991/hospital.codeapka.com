@@ -151,12 +151,19 @@ function handleList($pdo, $config, $isSimpleList = false) {
         array_push($params, $searchTerm, $searchTerm);
     }
 
-    $totalStmt = $pdo->query("SELECT COUNT(*) FROM {$config['table_name']}");
+    // Total records count should also respect user scoping
+    $totalStmt = $pdo->prepare("SELECT COUNT(*) FROM {$config['table_name']} t $where");
+    $totalStmt->execute($params);
     $totalRecords = $totalStmt->fetchColumn();
 
     $filteredStmt = $pdo->prepare("SELECT COUNT(*) $baseQuery $whereClause");
     $filteredStmt->execute($params);
     $filteredRecords = $filteredStmt->fetchColumn();
+
+    $query = "SELECT t.*, c.name as category_name FROM $baseQuery $whereClause ORDER BY t.id DESC LIMIT $start, $length";
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
+    $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $query = "SELECT t.*, c.name as category_name FROM $baseQuery $whereClause ORDER BY t.id DESC LIMIT $start, $length";
     $stmt = $pdo->prepare($query);
