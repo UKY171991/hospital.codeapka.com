@@ -33,6 +33,8 @@ $entity_config = [
     ]
 ];
 
+echo "Hello"; die;
+
 $user_data = false;
 if (isset($pdo) && $pdo) {
     $user_data = simpleAuthenticate($pdo);
