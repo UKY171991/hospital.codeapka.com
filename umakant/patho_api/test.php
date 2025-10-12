@@ -33,7 +33,6 @@ $entity_config = [
     ]
 ];
 
-echo "Hello"; die;
 
 $user_data = false;
 if (isset($pdo) && $pdo) {
