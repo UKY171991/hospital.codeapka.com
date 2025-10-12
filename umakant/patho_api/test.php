@@ -131,10 +131,14 @@ function handleList($pdo, $config, $isSimpleList = false) {
     $scopeIds = getScopedUserIds($pdo, $user_data);
     $where = '';
     $params = [];
-    if (is_array($scopeIds)) {
-        $placeholders = implode(',', array_fill(0, count($scopeIds), '?'));
-        $where = ' WHERE t.added_by IN (' . $placeholders . ')';
-        $params = $scopeIds;
+
+    // Build WHERE clause for user scoping
+    if ($scopeIds !== null) { // null means no restriction (master user)
+        if (is_array($scopeIds) && !empty($scopeIds)) {
+            $placeholders = implode(',', array_fill(0, count($scopeIds), '?'));
+            $where = ' WHERE t.added_by IN (' . $placeholders . ')';
+            $params = array_merge($params, $scopeIds);
+        }
     }
 
     $draw = (int)($_REQUEST['draw'] ?? 1);
@@ -145,27 +149,28 @@ function handleList($pdo, $config, $isSimpleList = false) {
     $baseQuery = "FROM {$config['table_name']} t LEFT JOIN categories c ON t.category_id = c.id";
     $whereClause = $where;
 
+    // Add search conditions
     if (!empty($search)) {
-        $whereClause .= (empty($where) ? ' WHERE ' : ' AND ') . "(t.name LIKE ? OR c.name LIKE ?)";
+        $searchWhere = (empty($where) ? ' WHERE ' : ' AND ') . "(t.name LIKE ? OR c.name LIKE ?)";
+        $whereClause .= $searchWhere;
         $searchTerm = "%$search%";
-        array_push($params, $searchTerm, $searchTerm);
+        $params[] = $searchTerm;
+        $params[] = $searchTerm;
     }
 
-    // Total records count should also respect user scoping
-    $totalStmt = $pdo->prepare("SELECT COUNT(*) FROM {$config['table_name']} t $where");
+    // Build queries with proper WHERE clauses
+    $totalWhere = $where;
+    $filteredWhere = $whereClause;
+
+    $totalStmt = $pdo->prepare("SELECT COUNT(*) FROM {$config['table_name']} t $totalWhere");
     $totalStmt->execute($params);
     $totalRecords = $totalStmt->fetchColumn();
 
-    $filteredStmt = $pdo->prepare("SELECT COUNT(*) $baseQuery $whereClause");
+    $filteredStmt = $pdo->prepare("SELECT COUNT(*) $baseQuery $filteredWhere");
     $filteredStmt->execute($params);
     $filteredRecords = $filteredStmt->fetchColumn();
 
-    $query = "SELECT t.*, c.name as category_name FROM $baseQuery $whereClause ORDER BY t.id DESC LIMIT $start, $length";
-    $stmt = $pdo->prepare($query);
-    $stmt->execute($params);
-    $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    $query = "SELECT t.*, c.name as category_name FROM $baseQuery $whereClause ORDER BY t.id DESC LIMIT $start, $length";
+    $query = "SELECT t.*, c.name as category_name FROM $baseQuery $filteredWhere ORDER BY t.id DESC LIMIT $start, $length";
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
     $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
