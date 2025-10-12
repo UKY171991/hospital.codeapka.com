@@ -82,6 +82,9 @@ if ($requestMethod === 'GET' && !isset($_GET['id'])) $action = 'list';
 if ($requestMethod === 'POST' || $requestMethod === 'PUT') $action = 'save';
 if ($requestMethod === 'DELETE') $action = 'delete';
 
+// Debug: Log the action being processed
+error_log("Test API Debug: Action = " . $action . ", Method = " . $requestMethod);
+
 try {
     switch($action) {
         case 'list':
@@ -109,23 +112,37 @@ try {
 }
 
 function handleList($pdo, $config, $isSimpleList = false) {
+    error_log("Test API Debug: handleList called with isSimpleList = " . ($isSimpleList ? 'true' : 'false'));
+    
     $user_data = simpleAuthenticate($pdo);
     if (!$user_data) {
+        error_log("Test API Debug: Authentication failed");
         json_response([
             'success' => false,
             'message' => 'Authentication required',
             'debug_info' => getAuthDebugInfo()
         ], 401);
+        return;
     }
+    error_log("Test API Debug: Authentication successful for user " . $user_data['user_id']);
+    
     if (!simpleCheckPermission($user_data, 'list')) {
+        error_log("Test API Debug: Permission denied for list action");
         json_response(['success' => false, 'message' => 'Permission denied to list tests'], 403);
+        return;
     }
+    error_log("Test API Debug: Permission check passed");
 
     if ($isSimpleList) {
-        $stmt = $pdo->query("SELECT t.id, t.name, t.price, c.name as category_name FROM {$config['table_name']} t LEFT JOIN categories c ON t.category_id = c.id ORDER BY t.name");
-        $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        json_response(['success' => true, 'data' => $tests]);
-        return;
+        try {
+            $stmt = $pdo->query("SELECT t.id, t.name, t.price, c.name as category_name FROM {$config['table_name']} t LEFT JOIN categories c ON t.category_id = c.id ORDER BY t.name");
+            $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            json_response(['success' => true, 'data' => $tests]);
+            return;
+        } catch (Exception $e) {
+            json_response(['success' => false, 'message' => 'Database query error: ' . $e->getMessage()], 500);
+            return;
+        }
     }
 
     $scopeIds = getScopedUserIds($pdo, $user_data);
@@ -170,18 +187,22 @@ function handleList($pdo, $config, $isSimpleList = false) {
     $filteredStmt->execute($params);
     $filteredRecords = $filteredStmt->fetchColumn();
 
-    $query = "SELECT t.*, c.name as category_name FROM $baseQuery $filteredWhere ORDER BY t.id DESC LIMIT $start, $length";
-    $stmt = $pdo->prepare($query);
-    $stmt->execute($params);
-    $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $query = "SELECT t.*, c.name as category_name FROM $baseQuery $filteredWhere ORDER BY t.id DESC LIMIT $start, $length";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($params);
+        $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    json_response([
-        'draw' => $draw,
-        'recordsTotal' => $totalRecords,
-        'recordsFiltered' => $filteredRecords,
-        'success' => true,
-        'data' => $tests
-    ]);
+        json_response([
+            'draw' => $draw,
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $filteredRecords,
+            'success' => true,
+            'data' => $tests
+        ]);
+    } catch (Exception $e) {
+        json_response(['success' => false, 'message' => 'Database query error: ' . $e->getMessage()], 500);
+    }
 }
 
 function handleGet($pdo, $config) {
@@ -192,11 +213,13 @@ function handleGet($pdo, $config) {
             'message' => 'Authentication required',
             'debug_info' => getAuthDebugInfo()
         ], 401);
+        return;
     }
 
     $id = $_GET['id'] ?? null;
     if (!$id) {
         json_response(['success' => false, 'message' => 'Test ID is required'], 400);
+        return;
     }
 
     $stmt = $pdo->prepare("SELECT t.*, c.name as category_name FROM {$config['table_name']} t LEFT JOIN categories c ON t.category_id = c.id WHERE t.id = ?");
@@ -205,10 +228,12 @@ function handleGet($pdo, $config) {
 
     if (!$test) {
         json_response(['success' => false, 'message' => 'Test not found'], 404);
+        return;
     }
 
     if (!simpleCheckPermission($user_data, 'get', $test['added_by'])) {
         json_response(['success' => false, 'message' => 'Permission denied to view this test'], 403);
+        return;
     }
 
     json_response(['success' => true, 'data' => $test]);
@@ -222,6 +247,7 @@ function handleSave($pdo, $config) {
             'message' => 'Authentication required',
             'debug_info' => getAuthDebugInfo()
         ], 401);
+        return;
     }
 
     $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
@@ -233,19 +259,23 @@ function handleSave($pdo, $config) {
         $existing = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$existing) {
             json_response(['success' => false, 'message' => 'Test not found'], 404);
+            return;
         }
         if (!simpleCheckPermission($user_data, 'save', $existing['added_by'])) {
             json_response(['success' => false, 'message' => 'Permission denied to update this test'], 403);
+            return;
         }
     } else { // Create
         if (!simpleCheckPermission($user_data, 'save')) {
             json_response(['success' => false, 'message' => 'Permission denied to create tests'], 403);
+            return;
         }
     }
 
     foreach ($config['required_fields'] as $field) {
         if (empty($input[$field])) {
             json_response(['success' => false, 'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'], 400);
+            return;
         }
     }
 
@@ -290,11 +320,13 @@ function handleDelete($pdo, $config) {
             'message' => 'Authentication required',
             'debug_info' => getAuthDebugInfo()
         ], 401);
+        return;
     }
 
     $id = $_REQUEST['id'] ?? null;
     if (!$id) {
         json_response(['success' => false, 'message' => 'Test ID is required'], 400);
+        return;
     }
 
     $stmt = $pdo->prepare("SELECT added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
@@ -303,10 +335,12 @@ function handleDelete($pdo, $config) {
 
     if (!$test) {
         json_response(['success' => false, 'message' => 'Test not found'], 404);
+        return;
     }
 
     if (!simpleCheckPermission($user_data, 'delete', $test['added_by'])) {
         json_response(['success' => false, 'message' => 'Permission denied to delete this test'], 403);
+        return;
     }
 
     $stmt = $pdo->prepare("DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
@@ -323,10 +357,12 @@ function handleStats($pdo) {
             'message' => 'Authentication required',
             'debug_info' => getAuthDebugInfo()
         ], 401);
+        return;
     }
 
     if (!simpleCheckPermission($user_data, 'list')) {
         json_response(['success' => false, 'message' => 'Permission denied to view stats'], 403);
+        return;
     }
 
     $stats = [];
