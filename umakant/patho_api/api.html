@@ -152,15 +152,8 @@
                 const a = document.createElement('a');
                 a.href = `#${api.file}`;
                 a.className = 'list-group-item list-group-item-action';
-                a.innerHTML = `${api.name} <button class="btn btn-sm btn-outline-primary float-end test-btn">Test</button>`;
-                a.onclick = (e) => {
-                    if (e.target.classList.contains('test-btn')) {
-                        e.preventDefault();
-                        testApi(api);
-                    } else {
-                        renderApiDocumentation(api);
-                    }
-                };
+                a.innerHTML = `${api.name} <span id="test-result-badge-${api.file}" class="badge float-end"></span>`;
+                a.onclick = () => renderApiDocumentation(api);
                 apiList.appendChild(a);
             });
         }
@@ -170,8 +163,9 @@
             api.endpoints.forEach(endpoint => {
                 endpointsHtml += `
                     <div class="card mb-3">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between">
                             <h5>${endpoint.action}</h5>
+                            <button class="btn btn-sm btn-primary test-endpoint-btn" data-api-file="${api.file}" data-endpoint-action="${endpoint.action}">Test</button>
                         </div>
                         <div class="card-body">
                             <p>${endpoint.description}</p>
@@ -194,6 +188,7 @@
                                     <pre class="code-viewer"><code>${generatePhpExample(api, endpoint)}</code></pre>
                                 </div>
                             </div>
+                            <div id="test-result-${api.file}-${endpoint.action}" class="mt-3"></div>
                         </div>
                     </div>
                 `;
@@ -201,9 +196,8 @@
 
             apiDocumentation.innerHTML = `
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between">
+                    <div class="card-header">
                         <h2 class="card-title">${api.name}</h2>
-                        <div id="test-result-${api.file}"></div>
                     </div>
                     <div class="card-body">
                         <p class="card-text">${api.description}</p>
@@ -211,15 +205,43 @@
                     </div>
                 </div>
             `;
+
+            document.querySelectorAll('.test-endpoint-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const apiFile = e.target.dataset.apiFile;
+                    const endpointAction = e.target.dataset.endpointAction;
+                    const api = apiEndpoints.find(a => a.file === apiFile);
+                    const endpoint = api.endpoints.find(ep => ep.action === endpointAction);
+                    const resultDiv = document.getElementById(`test-result-${api.file}-${endpoint.action}`);
+                    resultDiv.innerHTML = '<span class="badge bg-warning">Testing...</span>';
+
+                    const url = `/umakant/patho_api/${api.file}?action=${endpoint.action}&secret_key=hospital-api-secret-2024`;
+
+                    try {
+                        const response = await axios.get(url);
+                        let resultHtml = '<pre class="code-viewer"><code>' + JSON.stringify(response.data, null, 2) + '</code></pre>';
+                        if (response.data.success) {
+                            resultDiv.innerHTML = '<span class="badge bg-success">Success</span>' + resultHtml;
+                        } else {
+                            resultDiv.innerHTML = '<span class="badge bg-danger">Failed</span>' + resultHtml;
+                        }
+                    } catch (error) {
+                        let errorHtml = '<pre class="code-viewer"><code>' + JSON.stringify(error.response.data, null, 2) + '</code></pre>';
+                        resultDiv.innerHTML = '<span class="badge bg-danger">Error</span>' + errorHtml;
+                    }
+                });
+            });
         }
 
         async function testApi(api) {
-            const resultDiv = document.getElementById(`test-result-${api.file}`);
-            resultDiv.innerHTML = '<span class="badge bg-warning">Testing...</span>';
+            const resultBadge = document.getElementById(`test-result-badge-${api.file}`);
+            resultBadge.className = 'badge float-end bg-warning';
+            resultBadge.textContent = 'Testing...';
 
             const endpoint = api.endpoints.find(ep => ep.action === 'list');
             if (!endpoint) {
-                resultDiv.innerHTML = '<span class="badge bg-danger">"list" action not found</span>';
+                resultBadge.className = 'badge float-end bg-danger';
+                resultBadge.textContent = 'No "list" action';
                 return;
             }
 
@@ -228,12 +250,15 @@
             try {
                 const response = await axios.get(url);
                 if (response.data.success) {
-                    resultDiv.innerHTML = '<span class="badge bg-success">Success</span>';
+                    resultBadge.className = 'badge float-end bg-success';
+                    resultBadge.textContent = 'Success';
                 } else {
-                    resultDiv.innerHTML = '<span class="badge bg-danger">Failed</span>';
+                    resultBadge.className = 'badge float-end bg-danger';
+                    resultBadge.textContent = 'Failed';
                 }
             } catch (error) {
-                resultDiv.innerHTML = '<span class="badge bg-danger">Error</span>';
+                resultBadge.className = 'badge float-end bg-danger';
+                resultBadge.textContent = 'Error';
             }
         }
 
