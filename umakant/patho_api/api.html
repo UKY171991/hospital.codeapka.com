@@ -3,490 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Patho API Testing Interface</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>API Test Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
-        .api-card { margin-bottom: 20px; transition: all 0.3s ease; }
-        .api-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .method-badge { font-size: 0.8em; margin-right: 5px; }
-        .response-container { max-height: 400px; overflow-y: auto; }
-        .endpoint-url { font-family: 'Courier New', monospace; background: #e9ecef; padding: 5px 10px; border-radius: 4px; }
-        .auth-section { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 15px 0; }
-        .test-form { background: white; border-radius: 8px; padding: 20px; margin: 10px 0; }
-        .loading { display: none; }
-        .result-success { background: #d1edff; border-left: 4px solid #0dcaf0; }
-        .result-error { background: #f8d7da; border-left: 4px solid #dc3545; }
-        .result-warning { background: #fff3cd; border-left: 4px solid #ffc107; }
-        .nav-pills .nav-link.active { background-color: #0d6efd; }
-        .api-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        body { background-color: #f0f2f5; }
+        .api-dashboard { display: flex; height: 100vh; }
+        .sidebar { width: 280px; background: #fff; border-right: 1px solid #dee2e6; padding: 20px; }
+        .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; }
+        .api-list .list-group-item { cursor: pointer; }
+        .response-viewer { background: #212529; color: #fff; padding: 15px; border-radius: 5px; max-height: 600px; overflow-y: auto; }
     </style>
 </head>
 <body>
-    <div class="container-fluid py-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1><i class="fas fa-code text-primary"></i> Patho API Testing Interface</h1>
-                    <div>
-                        <button class="btn btn-outline-primary" onclick="loadAllApis()">
-                            <i class="fas fa-sync-alt"></i> Refresh APIs
-                        </button>
-                        <button class="btn btn-outline-success" onclick="testAllEndpoints()">
-                            <i class="fas fa-play"></i> Test All
-                        </button>
-                    </div>
-                </div>
-            </div>
+    <div class="api-dashboard">
+        <div class="sidebar">
+            <h4 class="mb-4">APIs</h4>
+            <div id="api-list" class="list-group"></div>
         </div>
-
-        <!-- Authentication Section -->
-        <div class="auth-section">
-            <h5><i class="fas fa-key text-warning"></i> Authentication Settings</h5>
-            <div class="row">
-                <div class="col-md-4">
-                    <label class="form-label">API Key (Header: X-Api-Key)</label>
-                    <input type="text" id="apiKey" class="form-control" placeholder="your-api-key">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Secret Key (Param: secret_key)</label>
-                    <input type="text" id="secretKey" class="form-control" placeholder="your-secret-key" value="hospital-api-secret-2024">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Base URL</label>
-                    <input type="text" id="baseUrl" class="form-control" value="/umakant/patho_api/">
-                </div>
-            </div>
-        </div>
-
-        <!-- Navigation Tabs -->
-        <ul class="nav nav-pills mb-4" id="apiTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="overview-tab" data-bs-toggle="pill" data-bs-target="#overview" type="button" role="tab">
-                    <i class="fas fa-chart-bar"></i> Overview
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="endpoints-tab" data-bs-toggle="pill" data-bs-target="#endpoints" type="button" role="tab">
-                    <i class="fas fa-list"></i> All Endpoints
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="testing-tab" data-bs-toggle="pill" data-bs-target="#testing" type="button" role="tab">
-                    <i class="fas fa-flask"></i> API Testing
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="docs-tab" data-bs-toggle="pill" data-bs-target="#docs" type="button" role="tab">
-                    <i class="fas fa-book"></i> Documentation
-                </button>
-            </li>
-        </ul>
-
-        <div class="tab-content" id="apiTabContent">
-            <!-- Overview Tab -->
-            <div class="tab-pane fade show active" id="overview" role="tabpanel">
+        <div class="main-content">
+            <div class="container-fluid">
                 <div class="row">
-                    <div class="col-md-3">
-                        <div class="card text-center">
+                    <div class="col-md-12">
+                        <div class="card">
                             <div class="card-body">
-                                <i class="fas fa-code fa-2x text-primary mb-2"></i>
-                                <h5 id="totalApis">0</h5>
-                                <p class="card-text">Total APIs</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
-                                <h5 id="workingApis">0</h5>
-                                <p class="card-text">Working APIs</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
-                                <h5 id="errorApis">0</h5>
-                                <p class="card-text">APIs with Errors</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <i class="fas fa-clock fa-2x text-info mb-2"></i>
-                                <h5 id="lastTested">Never</h5>
-                                <p class="card-text">Last Tested</p>
+                                <h5 class="card-title">API Request</h5>
+                                <div class="mb-3">
+                                    <label for="api-url" class="form-label">URL</label>
+                                    <input type="text" class="form-control" id="api-url" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="api-method" class="form-label">Method</label>
+                                    <input type="text" class="form-control" id="api-method" readonly>
+                                </div>
+                                <button id="send-request" class="btn btn-primary">Send Request</button>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="mt-4">
-                    <h4>API Status Overview</h4>
-                    <div id="apiStatusOverview"></div>
-                </div>
-            </div>
-
-            <!-- All Endpoints Tab -->
-            <div class="tab-pane fade" id="endpoints" role="tabpanel">
-                <div id="apiList" class="api-grid"></div>
-            </div>
-
-            <!-- API Testing Tab -->
-            <div class="tab-pane fade" id="testing" role="tabpanel">
-                <div class="test-form">
-                    <h4><i class="fas fa-flask"></i> Manual API Testing</h4>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Method</label>
-                            <select id="testMethod" class="form-select">
-                                <option value="GET">GET</option>
-                                <option value="POST">POST</option>
-                                <option value="PUT">PUT</option>
-                                <option value="DELETE">DELETE</option>
-                            </select>
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Response</h5>
+                                <pre id="response-viewer" class="response-viewer"><code></code></pre>
+                            </div>
                         </div>
-                        <div class="col-md-9">
-                            <label class="form-label">Endpoint URL</label>
-                            <input type="text" id="testUrl" class="form-control" placeholder="/umakant/patho_api/doctor.php?action=list">
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Request Headers (JSON)</label>
-                            <textarea id="testHeaders" class="form-control" rows="4" placeholder='{"X-Api-Key": "your-key"}'></textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Request Body (JSON)</label>
-                            <textarea id="testBody" class="form-control" rows="4" placeholder='{"name": "Test Doctor", "email": "test@example.com"}'></textarea>
-                        </div>
-                    </div>
-
-                    <button class="btn btn-primary" onclick="executeManualTest()">
-                        <i class="fas fa-play"></i> Execute Test
-                    </button>
-
-                    <div id="manualTestResult" class="mt-3"></div>
-                </div>
-            </div>
-
-            <!-- Documentation Tab -->
-            <div class="tab-pane fade" id="docs" role="tabpanel">
-                <div class="card">
-                    <div class="card-body">
-                        <h4><i class="fas fa-book"></i> API Documentation</h4>
-                        
-                        <h5>Authentication Methods</h5>
-                        <ul>
-                            <li><strong>API Key Header:</strong> <code>X-Api-Key: your-api-key</code></li>
-                            <li><strong>Secret Parameter:</strong> <code>secret_key=your-secret-key</code></li>
-                            <li><strong>Session-based:</strong> Login with username/password</li>
-                            <li><strong>Bearer Token:</strong> <code>Authorization: Bearer your-token</code></li>
-                        </ul>
-
-                        <h5>Common Actions</h5>
-                        <ul>
-                            <li><strong>list:</strong> Get all records (GET /endpoint.php?action=list)</li>
-                            <li><strong>get:</strong> Get single record (GET /endpoint.php?action=get&id=123)</li>
-                            <li><strong>save:</strong> Create/Update record (POST /endpoint.php?action=save)</li>
-                            <li><strong>delete:</strong> Delete record (POST /endpoint.php?action=delete&id=123)</li>
-                        </ul>
-
-                        <h5>Available Endpoints</h5>
-                        <div id="endpointsDocs"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
         const apiEndpoints = [
-            {
-                name: 'Doctor API',
-                file: 'doctor.php',
-                description: 'Doctor management API.',
-                endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all doctors.' },
-                    { action: 'get', method: 'GET', description: 'Get a single doctor by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a doctor.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a doctor by ID.', params: ['id'] }
-                ]
-            },
-            {
-                name: 'Patient API',
-                file: 'patient.php',
-                description: 'Patient management API.',
-                endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all patients.' },
-                    { action: 'get', method: 'GET', description: 'Get a single patient by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a patient.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a patient by ID.', params: ['id'] },
-                    { action: 'stats', method: 'GET', description: 'Get patient statistics.' }
-                ]
-            },
-            {
-                name: 'Test Category API',
-                file: 'test_category.php',
-                description: 'Test category management API.',
-                endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all test categories.' },
-                    { action: 'get', method: 'GET', description: 'Get a single test category by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a test category.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a test category by ID.', params: ['id'] }
-                ]
-            },
-            {
-                name: 'Test API',
-                file: 'test.php',
-                description: 'Test management API.',
-                endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all tests.' },
-                    { action: 'get', method: 'GET', description: 'Get a single test by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a test.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a test by ID.', params: ['id'] },
-                    { action: 'stats', method: 'GET', description: 'Get test statistics.' }
-                ]
-            },
-            {
-                name: 'Entry API',
-                file: 'entry.php',
-                description: 'Test entry management API.',
-                endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all test entries.' },
-                    { action: 'get', method: 'GET', description: 'Get a single test entry by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a test entry.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a test entry by ID.', params: ['id'] },
-                    { action: 'stats', method: 'GET', description: 'Get test entry statistics.' },
-                    { action: 'add_test', method: 'POST', description: 'Add a test to an entry.' },
-                    { action: 'remove_test', method: 'POST', description: 'Remove a test from an entry.' },
-                    { action: 'get_tests', method: 'GET', description: 'Get all tests for an entry.', params: ['entry_id'] },
-                    { action: 'update_test_result', method: 'POST', description: 'Update a test result.' }
-                ]
-            },
-            {
-                name: 'Owner API',
-                file: 'owner.php',
-                description: 'Owner management API.',
-                endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all owners.' },
-                    { action: 'get', method: 'GET', description: 'Get a single owner by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update an owner.' },
-                    { action: 'delete', method: 'POST', description: 'Delete an owner by ID.', params: ['id'] }
-                ]
-            },
-            {
-                name: 'User API',
-                file: 'user.php',
-                description: 'User management API.',
-                endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all users.' },
-                    { action: 'get', method: 'GET', description: 'Get a single user by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a user.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a user by ID.', params: ['id'] }
-                ]
-            },
-            {
-                name: 'Notice API',
-                file: 'notice.php',
-                description: 'Notice management API.',
-                endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all notices.' },
-                    { action: 'get', method: 'GET', description: 'Get a single notice by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a notice.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a notice by ID.', params: ['id'] }
-                ]
-            }
+            { name: 'Users', file: 'user.php' },
+            { name: 'Doctors', file: 'doctor.php' },
+            { name: 'Patients', file: 'patient.php' },
+            { name: 'Tests', file: 'test.php' },
+            { name: 'Test Categories', file: 'test_category.php' },
+            { name: 'Entries', file: 'entry.php' },
+            { name: 'Notices', file: 'notice.php' },
+            { name: 'Owners', file: 'owner.php' },
         ];
 
-        function getBaseUrl() {
-            return document.getElementById('baseUrl').value || '/umakant/patho_api/';
-        }
+        const apiList = document.getElementById('api-list');
+        const apiUrl = document.getElementById('api-url');
+        const apiMethod = document.getElementById('api-method');
+        const sendRequestBtn = document.getElementById('send-request');
+        const responseViewer = document.querySelector('#response-viewer code');
 
-        function getSecretKey() {
-            return document.getElementById('secretKey').value || 'hospital-api-secret-2024';
-        }
-
-        function getApiKey() {
-            return document.getElementById('apiKey').value || '';
-        }
-
-        function getHeaders() {
-            const headers = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            };
-            const apiKey = getApiKey();
-            if (apiKey) {
-                headers['X-Api-Key'] = apiKey;
-            }
-            return headers;
-        }
-
-        function loadAllApis() {
-            const apiList = document.getElementById('apiList');
+        function renderApiList() {
             apiList.innerHTML = '';
-            apiEndpoints.forEach((api, index) => {
-                const card = createApiCard(api, index);
-                apiList.appendChild(card);
+            apiEndpoints.forEach(api => {
+                const a = document.createElement('a');
+                a.href = '#';
+                a.className = 'list-group-item list-group-item-action';
+                a.textContent = api.name;
+                a.onclick = () => selectApi(api);
+                apiList.appendChild(a);
             });
-            updateOverview();
-            generateDocumentation();
         }
 
-        function createApiCard(api, index) {
-            const card = document.createElement('div');
-            card.className = 'card api-card';
-            const methods = [...new Set(api.endpoints.map(ep => ep.method))];
-            const actions = api.endpoints.map(ep => ep.action);
-            
-            card.innerHTML = `
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-code text-primary"></i> ${api.name}</h5>
-                    <div>
-                        <span class="badge bg-primary method-badge">${methods.join(', ')}</span>
-                        <button class="btn btn-sm btn-outline-primary" onclick="testApi(${index})">
-                            <i class="fas fa-play"></i> Test
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">${api.description}</p>
-                    <div class="endpoint-url mb-2"><i class="fas fa-link"></i> ${getBaseUrl()}${api.file}</div>
-                    <div class="mb-2">
-                        <strong>Actions:</strong> 
-                        ${actions.map(action => `<span class="badge bg-secondary me-1">${action}</span>`).join('')}
-                    </div>
-                    <div id="result-${index}" class="mt-3"></div>
-                </div>
-            `;
-            return card;
+        function selectApi(api) {
+            apiUrl.value = `/umakant/patho_api/${api.file}?action=list&secret_key=hospital-api-secret-2024`;
+            apiMethod.value = 'GET';
         }
 
-        async function testApi(index) {
-            const api = apiEndpoints[index];
-            const resultDiv = document.getElementById(`result-${index}`);
-            resultDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Testing...</div>';
+        async function sendRequest() {
+            const url = apiUrl.value;
+            const method = apiMethod.value;
 
-            // Test the 'list' endpoint by default
-            const endpoint = api.endpoints.find(ep => ep.action === 'list');
-            if (!endpoint) {
-                resultDiv.innerHTML = '<div class="p-2 rounded result-error"><strong>✗ Error:</strong> "list" action not found for this API.</div>';
+            if (!url) {
+                alert('Please select an API first.');
                 return;
             }
 
-            const url = `${getBaseUrl()}${api.file}?action=${endpoint.action}&secret_key=${getSecretKey()}`;
-            
+            responseViewer.textContent = 'Loading...';
+
             try {
-                const response = await fetch(url, {
-                    method: endpoint.method,
-                    headers: getHeaders()
+                const response = await axios({
+                    method: method,
+                    url: url,
                 });
-                const data = await response.json();
-                const isSuccess = response.ok && data.success;
 
-                apiResults[api.file] = { status: isSuccess ? 'success' : 'error', response: data };
-
-                resultDiv.innerHTML = `
-                    <div class="p-2 rounded ${isSuccess ? 'result-success' : 'result-error'}">
-                        <strong>${isSuccess ? '✓ Success' : '✗ Error'}</strong>
-                        <small class="d-block">Status: ${response.status} | Action: ${endpoint.action}</small>
-                        <details class="mt-2">
-                            <summary>Response Details</summary>
-                            <pre class="mt-2 p-2 bg-light rounded"><code>${JSON.stringify(data, null, 2)}</code></pre>
-                        </details>
-                    </div>
-                `;
+                responseViewer.textContent = JSON.stringify(response.data, null, 2);
             } catch (error) {
-                apiResults[api.file] = { status: 'error', error: error.message };
-                resultDiv.innerHTML = `
-                    <div class="p-2 rounded result-error">
-                        <strong>✗ Network Error</strong>
-                        <small class="d-block">${error.message}</small>
-                    </div>
-                `;
-            }
-            updateOverview();
-        }
-
-        async function testAllEndpoints() {
-            for (let i = 0; i < apiEndpoints.length; i++) {
-                await testApi(i);
-                await new Promise(resolve => setTimeout(resolve, 200));
+                responseViewer.textContent = JSON.stringify(error.response.data, null, 2);
             }
         }
-        
-        function updateOverview() {
-            const total = apiEndpoints.length;
-            const working = Object.values(apiResults).filter(r => r.status === 'success').length;
-            const errors = total - working;
-            
-            document.getElementById('totalApis').textContent = total;
-            document.getElementById('workingApis').textContent = working;
-            document.getElementById('errorApis').textContent = errors;
-            document.getElementById('lastTested').textContent = new Date().toLocaleTimeString();
-            
-            const statusOverview = document.getElementById('apiStatusOverview');
-            statusOverview.innerHTML = apiEndpoints.map(api => {
-                const result = apiResults[api.file];
-                const status = result ? result.status : 'untested';
-                const icon = status === 'success' ? '✓' : status === 'error' ? '✗' : '○';
-                const color = status === 'success' ? 'success' : status === 'error' ? 'danger' : 'secondary';
-                
-                return `
-                    <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
-                        <span>${api.name}</span>
-                        <span class="badge bg-${color}">${icon} ${status}</span>
-                    </div>
-                `;
-            }).join('');
-        }
 
-        function generateDocumentation() {
-            const docsDiv = document.getElementById('endpointsDocs');
-            docsDiv.innerHTML = '';
-            apiEndpoints.forEach(api => {
-                const apiDiv = document.createElement('div');
-                apiDiv.className = 'mb-4 p-3 border rounded';
-                let endpointsHtml = '';
-                api.endpoints.forEach(endpoint => {
-                    endpointsHtml += `
-                        <div class="p-2 border-bottom">
-                            <strong>${endpoint.action}</strong> <span class="badge bg-secondary">${endpoint.method}</span>
-                            <p class="mb-0">${endpoint.description}</p>
-                            ${endpoint.params ? `<p class="mb-0">Params: <code>${endpoint.params.join(', ')}</code></p>` : ''}
-                        </div>
-                    `;
-                });
-                apiDiv.innerHTML = `
-                    <h5 class="mb-1">${api.name}</h5>
-                    <p class="mb-2 text-muted">${api.description}</p>
-                    <div class="endpoint-url mb-3"><i class="fas fa-link"></i> ${getBaseUrl()}${api.file}</div>
-                    ${endpointsHtml}
-                `;
-                docsDiv.appendChild(apiDiv);
-            });
-        }
+        sendRequestBtn.addEventListener('click', sendRequest);
 
-        document.addEventListener('DOMContentLoaded', () => {
-            window.apiResults = {};
-            loadAllApis();
-        });
+        renderApiList();
     </script>
 </body>
 </html>
