@@ -191,6 +191,29 @@ if (!function_exists('json_response')) {
 }
 
 /**
+ * Get list of user IDs whose data is visible to the current auth scope
+ * - master: all (return null to indicate no restriction)
+ * - admin: self + users they created (users.added_by = admin_id)
+ * - user: only self
+ */
+if (!function_exists('getScopedUserIds')) {
+    function getScopedUserIds($pdo, $auth) {
+        if (!$auth) return [0];
+        $role = $auth['role'] ?? 'user';
+        $userId = (int)($auth['user_id'] ?? 0);
+        if ($role === 'master') {
+            return null; // no restriction
+        }
+        if ($role === 'admin') {
+            // Admin scope restricted to only their own user_id
+            return [$userId];
+        }
+        // Regular user scope restricted to only their own user_id
+        return [$userId];
+    }
+}
+
+/**
  * Get authentication debug info
  * 
  * @return array Debug information about available auth methods
