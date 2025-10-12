@@ -7,6 +7,13 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key, X-API-Secret');
 
+
+if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/../inc/connection.php';
+require_once __DIR__ . '/../inc/ajax_helpers.php';
+require_once __DIR__ . '/../inc/api_config.php';
+require_once __DIR__ . '/../inc/simple_auth.php';
+
 // Centralized error handler
 function handle_error($errno, $errstr, $errfile, $errline) { 
     $error_data = [
