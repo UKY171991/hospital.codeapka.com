@@ -285,7 +285,8 @@
 
         function generatePhpExample(api, endpoint) {
             const url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
-            return `<?php\n$url = "${window.location.origin}${url}&secret_key=hospital-api-secret-2024";\n$response = file_get_contents($url);\n$data = json_decode($response, true);\nprint_r($data);\n?>`;
+            const code = `<?php\n$url = "${window.location.origin}${url}&secret_key=hospital-api-secret-2024";\n$response = file_get_contents($url);\n$data = json_decode($response, true);\nprint_r($data);\n?>`;
+            return code.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
         testAllBtn.addEventListener('click', testAllApis);
