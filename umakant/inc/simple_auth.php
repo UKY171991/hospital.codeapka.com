@@ -35,9 +35,13 @@ function simpleAuthenticate($pdo) {
     
     // Method 2: Check for session-based authentication
     if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+        try {
+            session_start();
+        } catch (Exception $e) {
+            // Session start failed, continue without session
+        }
     }
-    
+
     if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
         return [
             'user_id' => $_SESSION['user_id'],
