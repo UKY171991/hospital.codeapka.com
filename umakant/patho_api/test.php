@@ -1,4 +1,46 @@
 <?php
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
+// Centralized error handler
+function handle_error($errno, $errstr, $errfile, $errline) {
+    $error_data = [
+        'success' => false,
+        'message' => 'An unexpected error occurred.',
+        'error' => [
+            'type' => 'PHP Error',
+            'message' => $errstr,
+            'file' => $errfile,
+            'line' => $errline
+        ]
+    ];
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($error_data);
+    exit;
+}
+set_error_handler('handle_error');
+
+// Centralized exception handler
+function handle_exception($exception) {
+    $error_data = [
+        'success' => false,
+        'message' => 'An unexpected exception occurred.',
+        'error' => [
+            'type' => get_class($exception),
+            'message' => $exception->getMessage(),
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+            'trace' => $exception->getTraceAsString()
+        ]
+    ];
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($error_data);
+    exit;
+}
+set_exception_handler('handle_exception');
+
 /**
  * Test API - Comprehensive CRUD operations for tests
  * Supports: CREATE, READ, UPDATE, DELETE operations
