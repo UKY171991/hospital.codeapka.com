@@ -14,6 +14,18 @@ require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 require_once __DIR__ . '/../inc/simple_auth.php';
 
+$entity_config = [
+    'table_name' => 'owners',
+    'id_field' => 'id',
+    'required_fields' => ['name', 'phone'],
+    'allowed_fields' => ['name', 'phone', 'whatsapp', 'email', 'address', 'link', 'added_by']
+];
+
+$user_data = simpleAuthenticate($pdo);
+if (!$user_data) {
+    json_response(['success' => false, 'message' => 'Authentication required', 'debug_info' => getAuthDebugInfo()], 401);
+}
+
 // Centralized error handler
 function handle_error($errno, $errstr, $errfile, $errline) { 
     $error_data = [
