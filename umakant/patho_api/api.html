@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+'''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -216,1478 +216,192 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // API endpoints configuration matching Pathology menu pages exactly
         const apiEndpoints = [
             {
                 name: 'Doctor API',
                 file: 'doctor.php',
-                description: 'Lightweight Doctor management API for Pathology > Doctors menu page with DataTables support and user-based filtering',
-                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/doctor.php',
+                description: 'Doctor management API.',
                 endpoints: [
-                    {
-                        action: 'list',
-                        method: 'GET',
-                        url: '?action=list&secret_key=hospital-api-secret-2024&user_id=<current_user_id>',
-                        description: 'Get doctors for the authenticated user (or provided user_id for master/admin). Supports DataTables paging/search.',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        queryParams: {
-                            'user_id': 'Override authenticated user when master/admin (optional)',
-                            'search': 'Search doctor name/hospital/contact',
-                            'start': 'DataTables start index',
-                            'length': 'DataTables page length',
-                            'draw': 'DataTables draw counter'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'name': 'Dr. John Doe',
-                                    'hospital': 'City Hospital',
-                                    'contact_no': '9876543210',
-                                    'percent': 10.5,
-                                    'added_by': 1,
-                                    'created_at': '2025-09-08 10:30:00',
-                                    'added_by_username': 'admin'
-                                }
-                            ],
-                            'draw': 1,
-                            'recordsTotal': 50,
-                            'recordsFiltered': 25
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'GET',
-                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
-                        description: 'Get single doctor by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'name': 'Dr. John Doe',
-                                'hospital': 'City Hospital',
-                                'contact_no': '9876543210',
-                                'percent': 10.5,
-                                'address': '123 Medical Street',
-                                'added_by': 1,
-                                'created_at': '2025-09-08 10:30:00',
-                                'added_by_username': 'admin'
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save&secret_key=hospital-api-secret-2024',
-                        description: 'Create new doctor or update existing',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'id': 'optional - include for updates',
-                            'name': 'Dr. Jane Smith (required)',
-                            'hospital': 'General Hospital',
-                            'contact_no': '9876543211',
-                            'percent': 12.0,
-                            'address': '456 Health Avenue',
-                            'added_by': 'user ID who added the doctor'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Doctor saved successfully',
-                            'data': {
-                                'id': 2,
-                                'name': 'Dr. Jane Smith',
-                                'hospital': 'General Hospital',
-                                'contact_no': '9876543211',
-                                'percent': 12.0,
-                                'added_by': 1,
-                                'created_at': '2025-09-08 10:30:00',
-                                'added_by_username': 'admin'
-                            },
-                            'action': 'created'
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete&secret_key=hospital-api-secret-2024',
-                        description: 'Delete doctor by ID (includes safety checks for associated records)',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Doctor deleted successfully'
-                        },
-                        errorResponse: {
-                            'success': false,
-                            'message': 'Cannot delete doctor with associated test entries'
-                        }
-                    }
+                    { action: 'list', method: 'GET', description: 'Get all doctors.' },
+                    { action: 'get', method: 'GET', description: 'Get a single doctor by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a doctor.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a doctor by ID.', params: ['id'] }
                 ]
             },
             {
                 name: 'Patient API',
                 file: 'patient.php',
-                description: 'Lightweight Patient management API for Pathology > Patients menu page with DataTables support and user-based filtering',
-                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/patient.php',
+                description: 'Patient management API.',
                 endpoints: [
-                    {
-                        action: 'list',
-                        method: 'GET',
-                        url: '?action=list&secret_key=hospital-api-secret-2024',
-                        description: 'Get patients filtered by user ID (shows only patients added by authenticated user by default, supports DataTables format)',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        queryParams: {
-                            'page': 1,
-                            'limit': 10,
-                            'search': 'patient name, UHID, mobile, or email',
-                            'added_by': 'filter by user who added patient',
-                            'draw': 'DataTables draw counter',
-                            'start': 'DataTables start index',
-                            'length': 'DataTables page length',
-                            'user_id': 'specific user ID to filter by'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'uhid': 'UHID001',
-                                    'name': 'John Doe',
-                                    'father_husband': 'Robert Doe',
-                                    'mobile': '9876543210',
-                                    'email': 'john@example.com',
-                                    'age': 35,
-                                    'age_unit': 'Years',
-                                    'gender': 'Male',
-                                    'address': '123 Main St',
-                                    'added_by': 1,
-                                    'created_at': '2025-09-08 10:30:00',
-                                    'added_by_username': 'admin'
-                                }
-                            ],
-                            'draw': 1,
-                            'recordsTotal': 100,
-                            'recordsFiltered': 25
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'GET',
-                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
-                        description: 'Get single patient by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'uhid': 'UHID001',
-                                'name': 'John Doe',
-                                'father_husband': 'Robert Doe',
-                                'mobile': '9876543210',
-                                'email': 'john@example.com',
-                                'age': 35,
-                                'age_unit': 'Years',
-                                'gender': 'Male',
-                                'address': '123 Main St',
-                                'added_by': 1,
-                                'created_at': '2025-09-08 10:30:00',
-                                'added_by_username': 'admin'
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save&secret_key=hospital-api-secret-2024',
-                        description: 'Create or update patient',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'id': 'optional - include for updates',
-                            'uhid': 'UHID002 (required)',
-                            'name': 'Jane Doe (required)',
-                            'father_husband': 'Father/Husband name',
-                            'mobile': '9876543212',
-                            'email': 'jane@example.com',
-                            'age': 28,
-                            'age_unit': 'Years',
-                            'gender': 'Female',
-                            'address': '321 Health Road',
-                            'added_by': 'user ID who added the patient'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Patient saved successfully',
-                            'data': {
-                                'id': 2,
-                                'uhid': 'UHID002',
-                                'name': 'Jane Doe',
-                                'father_husband': 'Father/Husband name',
-                                'mobile': '9876543212',
-                                'email': 'jane@example.com',
-                                'age': 28,
-                                'age_unit': 'Years',
-                                'gender': 'Female',
-                                'address': '321 Health Road',
-                                'added_by': 1,
-                                'created_at': '2025-09-08 10:30:00',
-                                'added_by_username': 'admin'
-                            },
-                            'action': 'created'
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete&secret_key=hospital-api-secret-2024',
-                        description: 'Delete patient by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Patient deleted successfully'
-                        }
-                    },
-                    {
-                        action: 'stats',
-                        method: 'GET',
-                        url: '?action=stats&secret_key=hospital-api-secret-2024',
-                        description: 'Get patient statistics filtered by user ID',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'total': 150,
-                                'today': 5,
-                                'male': 80,
-                                'female': 70
-                            }
-                        }
-                    }
+                    { action: 'list', method: 'GET', description: 'Get all patients.' },
+                    { action: 'get', method: 'GET', description: 'Get a single patient by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a patient.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a patient by ID.', params: ['id'] },
+                    { action: 'stats', method: 'GET', description: 'Get patient statistics.' }
                 ]
             },
             {
                 name: 'Test Category API',
                 file: 'test_category.php',
-                description: 'Test category management API for Pathology > Test Categories menu page',
-                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/test_category.php',
+                description: 'Test category management API.',
                 endpoints: [
-                    {
-                        action: 'list',
-                        method: 'GET',
-                        url: '?action=list&secret_key=hospital-api-secret-2024',
-                        description: 'Get all test categories',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'name': 'Hematology',
-                                    'description': 'Blood-related tests',
-                                    'test_count': 15,
-                                    'created_at': '2025-09-08T10:30:00Z'
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'GET',
-                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
-                        description: 'Get single test category by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'name': 'Hematology',
-                                'description': 'Blood-related tests',
-                                'test_count': 15
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save&secret_key=hospital-api-secret-2024',
-                        description: 'Create or update category',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'name': 'Biochemistry',
-                            'description': 'Chemical analysis tests'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Category saved successfully',
-                            'data': {
-                                'id': 2,
-                                'name': 'Biochemistry'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete&secret_key=hospital-api-secret-2024',
-                        description: 'Delete category by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Category deleted successfully'
-                        }
-                    }
+                    { action: 'list', method: 'GET', description: 'Get all test categories.' },
+                    { action: 'get', method: 'GET', description: 'Get a single test category by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a test category.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a test category by ID.', params: ['id'] }
                 ]
             },
             {
                 name: 'Test API',
                 file: 'test.php',
-                description: 'Laboratory test management API for Pathology > Tests menu page',
-                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/test.php',
+                description: 'Test management API.',
                 endpoints: [
-                    {
-                        action: 'list',
-                        method: 'GET',
-                        url: '?action=list&secret_key=hospital-api-secret-2024',
-                        description: 'Get all laboratory tests',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        queryParams: {
-                            'category_id': 1,
-                            'search': 'test name',
-                            'price_min': 100,
-                            'price_max': 1000
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'test_name': 'Complete Blood Count',
-                                    'category_id': 1,
-                                    'category_name': 'Hematology',
-                                    'test_method': 'Automated',
-                                    'rate': 500,
-                                    'cost': 300,
-                                    'description': 'Complete blood count with differential',
-                                    'normal_value_male': '4.5-5.5 million cells/mcL',
-                                    'normal_value_female': '4.0-5.0 million cells/mcL',
-                                    'min_range_male': 4.5,
-                                    'max_range_male': 5.5,
-                                    'min_range_female': 4.0,
-                                    'max_range_female': 5.0,
-                                    'unit': 'million cells/mcL'
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'GET',
-                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
-                        description: 'Get single test by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'test_name': 'Complete Blood Count',
-                                'category_id': 1,
-                                'category_name': 'Hematology',
-                                'unit': 'million cells/mcL'
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save&secret_key=hospital-api-secret-2024',
-                        description: 'Create or update test',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'test_name': 'Lipid Profile',
-                            'category_id': 2,
-                            'test_method': 'Enzymatic',
-                            'rate': 800,
-                            'cost': 500,
-                            'description': 'Complete lipid panel',
-                            'normal_value_male': '<200 mg/dL',
-                            'normal_value_female': '<200 mg/dL',
-                            'min_range_male': 0,
-                            'max_range_male': 200,
-                            'min_range_female': 0,
-                            'max_range_female': 200,
-                            'unit': 'mg/dL'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Test saved successfully',
-                            'data': {
-                                'id': 2,
-                                'test_name': 'Lipid Profile'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete&secret_key=hospital-api-secret-2024',
-                        description: 'Delete test by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Test deleted successfully'
-                        }
-                    }
+                    { action: 'list', method: 'GET', description: 'Get all tests.' },
+                    { action: 'get', method: 'GET', description: 'Get a single test by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a test.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a test by ID.', params: ['id'] },
+                    { action: 'stats', method: 'GET', description: 'Get test statistics.' }
                 ]
             },
             {
                 name: 'Entry API',
                 file: 'entry.php',
-                description: 'Test entry management API for Pathology > Entries menu page with complete pricing fields',
-                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/entry.php',
+                description: 'Test entry management API.',
                 endpoints: [
-                    {
-                        action: 'list',
-                        method: 'GET',
-                        url: '?action=list&secret_key=hospital-api-secret-2024',
-                        description: 'Get all test entries with complete database columns and enriched labels',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        queryParams: {
-                            'patient_id': 1,
-                            'test_id': 2,
-                            'doctor_id': 3,
-                            'status': 'pending|completed|cancelled',
-                            'entry_date_from': '2025-09-01',
-                            'entry_date_to': '2025-09-30'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 20,
-                                    'owner_id': 1,
-                                    'server_id': null,
-                                    'patient_id': 1,
-                                    'doctor_id': 2,
-                                    'test_id': 3,
-                                    'entry_date': '2025-09-14',
-                                    'status': 'pending',
-                                    'priority': 'normal',
-                                    'referral_source': null,
-                                    'patient_contact': '9876543210',
-                                    'patient_address': '123 Patient St',
-                                    'gender': 'Male',
-                                    'subtotal': 500.00,
-                                    'discount_amount': 50.00,
-                                    'total_price': 450.00,
-                                    'payment_status': 'pending',
-                                    'notes': 'Additional notes',
-                                    'added_by': 1,
-                                    'created_at': '2025-09-14 11:23:00',
-                                    'updated_at': '2025-09-14 11:23:00',
-                                    'patient_name': 'test alk',
-                                    'patient_uhid': 'UHID001',
-                                    'doctor_name': 'Dr. Smith',
-                                    'test_name': 'Blood Sugar',
-                                    'added_by_username': 'admin',
-                                    'tests': [
-                                        {
-                                            'id': 1,
-                                            'entry_id': 20,
-                                            'test_id': 3,
-                                            'test_name': 'Blood Sugar',
-                                            'result_value': '95',
-                                            'unit': 'mg/dL',
-                                            'remarks': 'Normal',
-                                            'status': 'pending',
-                                            'price': 300.00,
-                                            'discount_amount': 0.00,
-                                            'total_price': 300.00,
-                                            'test_rate': 300.00,
-                                            'test_unit': 'mg/dL',
-                                            'created_at': '2025-09-14 11:23:00'
-                                        },
-                                        {
-                                            'id': 2,
-                                            'entry_id': 20,
-                                            'test_id': 5,
-                                            'test_name': 'HbA1c',
-                                            'result_value': '5.6',
-                                            'unit': '%',
-                                            'remarks': 'Normal',
-                                            'status': 'pending',
-                                            'price': 200.00,
-                                            'discount_amount': 50.00,
-                                            'total_price': 150.00,
-                                            'test_rate': 200.00,
-                                            'test_unit': '%',
-                                            'created_at': '2025-09-14 11:23:00'
-                                        }
-                                    ],
-                                    'tests_count': 2
-                                }
-                            ],
-                            'total': 1
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'GET',
-                        url: '?action=get&id=20&secret_key=hospital-api-secret-2024',
-                        description: 'Get single entry by ID with complete database columns and enriched labels',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 20,
-                                'owner_id': 1,
-                                'server_id': null,
-                                'patient_id': 1,
-                                'doctor_id': 2,
-                                'test_id': 3,
-                                'entry_date': '2025-09-14',
-                                'status': 'pending',
-                                'priority': 'normal',
-                                'referral_source': null,
-                                'patient_contact': '9876543210',
-                                'patient_address': '123 Patient St',
-                                'gender': 'Male',
-                                'subtotal': 500.00,
-                                'discount_amount': 50.00,
-                                'total_price': 450.00,
-                                'payment_status': 'pending',
-                                'notes': 'Additional notes',
-                                'added_by': 1,
-                                'created_at': '2025-09-14 11:23:00',
-                                'updated_at': '2025-09-14 11:23:00',
-                                'patient_name': 'test alk',
-                                'patient_uhid': 'UHID001',
-                                'doctor_name': 'Dr. Smith',
-                                'test_name': 'Blood Sugar',
-                                'added_by_username': 'admin',
-                                'tests': [
-                                    {
-                                        'id': 1,
-                                        'entry_id': 20,
-                                        'test_id': 3,
-                                        'test_name': 'Blood Sugar',
-                                        'result_value': '95',
-                                        'unit': 'mg/dL',
-                                        'remarks': 'Normal',
-                                        'status': 'pending',
-                                        'price': 300.00,
-                                        'discount_amount': 0.00,
-                                        'total_price': 300.00,
-                                        'test_rate': 300.00,
-                                        'test_unit': 'mg/dL',
-                                        'created_at': '2025-09-14 11:23:00'
-                                    },
-                                    {
-                                        'id': 2,
-                                        'entry_id': 20,
-                                        'test_id': 5,
-                                        'test_name': 'HbA1c',
-                                        'result_value': '5.6',
-                                        'unit': '%',
-                                        'remarks': 'Normal',
-                                        'status': 'pending',
-                                        'price': 200.00,
-                                        'discount_amount': 50.00,
-                                        'total_price': 150.00,
-                                        'test_rate': 200.00,
-                                        'test_unit': '%',
-                                        'created_at': '2025-09-14 11:23:00'
-                                    }
-                                ],
-                                'tests_count': 2
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save&secret_key=hospital-api-secret-2024',
-                        description: 'Create or update test entry using database columns. total_price will be computed as price - discount_amount if not provided.',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': '',
-                            'server_id': null,
-                            'patient_id': 1,
-                            'doctor_id': 2,
-                            'test_id': 3,
-                            'entry_date': '2025-09-14',
-                            'result_value': '95.5',
-                            'unit': 'mg/dL',
-                            'remarks': 'Fasting blood sugar within normal range',
-                            'status': 'completed',
-                            'price': 800.00,
-                            'discount_amount': 50.00,
-                            'total_price': 750.00
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Entry saved successfully',
-                            'data': {
-                                'id': 21,
-                                'server_id': null,
-                                'patient_id': 1,
-                                'doctor_id': 2,
-                                'test_id': 3,
-                                'entry_date': '2025-09-14',
-                                'result_value': '95.5',
-                                'unit': 'mg/dL',
-                                'remarks': 'Fasting blood sugar within normal range',
-                                'status': 'completed',
-                                'price': 800.00,
-                                'discount_amount': 50.00,
-                                'total_price': 750.00,
-                                'patient_name': 'test alk',
-                                'test_name': 'Blood Sugar',
-                                'doctor_name': 'Dr. Smith'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete&secret_key=hospital-api-secret-2024',
-                        description: 'Delete entry by ID (Admin/Master only)',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: {
-                            'id': 21
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Entry deleted successfully'
-                        }
-                    },
-                    {
-                        action: 'stats',
-                        method: 'GET',
-                        url: '?action=stats&secret_key=hospital-api-secret-2024',
-                        description: 'Get entry statistics for dashboard',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        response: {
-                            'success': true,
-                            'status': 'success',
-                            'data': {
-                                'total': 25,
-                                'pending': 5,
-                                'completed': 18,
-                                'today': 3
-                            }
-                        }
-                    }
+                    { action: 'list', method: 'GET', description: 'Get all test entries.' },
+                    { action: 'get', method: 'GET', description: 'Get a single test entry by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a test entry.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a test entry by ID.', params: ['id'] },
+                    { action: 'stats', method: 'GET', description: 'Get test entry statistics.' },
+                    { action: 'add_test', method: 'POST', description: 'Add a test to an entry.' },
+                    { action: 'remove_test', method: 'POST', description: 'Remove a test from an entry.' },
+                    { action: 'get_tests', method: 'GET', description: 'Get all tests for an entry.', params: ['entry_id'] },
+                    { action: 'update_test_result', method: 'POST', description: 'Update a test result.' }
                 ]
             },
             {
                 name: 'Owner API',
                 file: 'owner.php',
-                description: 'Hospital/clinic owner management API for Pathology > Owners menu page',
-                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/owner.php',
+                description: 'Owner management API.',
                 endpoints: [
-                    {
-                        action: 'list',
-                        method: 'GET',
-                        url: '?action=list&secret_key=hospital-api-secret-2024',
-                        description: 'Get all owners/clinics with pagination',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        queryParams: {
-                            'page': 1,
-                            'limit': 10,
-                            'search': 'owner name or clinic name'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'name': 'City Hospital',
-                                    'contact_person': 'Dr. John Smith',
-                                    'email': 'admin@cityhospital.com',
-                                    'phone': '9876543210',
-                                    'address': '123 Medical Street, City',
-                                    'license_number': 'MED12345',
-                                    'is_active': 1,
-                                    'created_at': '2025-01-01T10:00:00Z',
-                                    'updated_at': '2025-01-01T10:00:00Z'
-                                }
-                            ],
-                            'total': 10,
-                            'page': 1,
-                            'limit': 10
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'GET',
-                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
-                        description: 'Get single owner by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'name': 'City Hospital',
-                                'contact_person': 'Dr. John Smith',
-                                'email': 'admin@cityhospital.com',
-                                'phone': '9876543210',
-                                'address': '123 Medical Street, City',
-                                'license_number': 'MED12345',
-                                'is_active': 1
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save&secret_key=hospital-api-secret-2024',
-                        description: 'Create or update owner/clinic',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'id': '',
-                            'name': 'General Hospital',
-                            'contact_person': 'Dr. Jane Doe',
-                            'email': 'admin@generalhospital.com',
-                            'phone': '9876543211',
-                            'address': '456 Health Avenue, City',
-                            'license_number': 'MED12346',
-                            'is_active': 1
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Owner saved successfully',
-                            'data': {
-                                'id': 2,
-                                'name': 'General Hospital'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete&secret_key=hospital-api-secret-2024',
-                        description: 'Delete owner by ID (Admin/Master only)',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Owner deleted successfully'
-                        }
-                    }
+                    { action: 'list', method: 'GET', description: 'Get all owners.' },
+                    { action: 'get', method: 'GET', description: 'Get a single owner by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update an owner.' },
+                    { action: 'delete', method: 'POST', description: 'Delete an owner by ID.', params: ['id'] }
                 ]
             },
             {
                 name: 'User API',
                 file: 'user.php',
-                description: 'User management API for Pathology > Users menu page',
-                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/user.php',
+                description: 'User management API.',
                 endpoints: [
-                    {
-                        action: 'list',
-                        method: 'GET',
-                        url: '?action=list&secret_key=hospital-api-secret-2024',
-                        description: 'Get all users with pagination and filtering',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        queryParams: {
-                            'page': 1,
-                            'limit': 50,
-                            'search': 'username or full name',
-                            'role': 'user|admin|master'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'username': 'umakant',
-                                    'full_name': 'Umakant Yadav',
-                                    'email': 'umakant171991@gmail.com',
-                                    'role': 'master',
-                                    'is_active': true,
-                                    'user_type': 0,
-                                    'created_at': '2025-09-26T10:12:24Z',
-                                    'last_login': null,
-                                    'expire_date': '2025-10-26T10:12:00Z'
-                                }
-                            ],
-                            'total': 2,
-                            'page': 1,
-                            'limit': 50,
-                            'pages': 1
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'GET',
-                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
-                        description: 'Get single user by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'username': 'umakant',
-                                'full_name': 'Umakant Yadav',
-                                'email': 'umakant171991@gmail.com',
-                                'role': 'master',
-                                'is_active': true,
-                                'user_type': 0
-                            }
-                        }
-                    },
-                    {
-                        action: 'create',
-                        method: 'POST',
-                        url: '?action=create',
-                        description: 'Create new user',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'username': 'newuser',
-                            'password': 'password123',
-                            'full_name': 'New User',
-                            'email': 'newuser@hospital.com',
-                            'role': 'user',
-                            'is_active': 1,
-                            'user_type': 0,
-                            'expire_date': '2025-12-31 23:59:59'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'User created successfully',
-                            'data': {
-                                'id': 3
-                            }
-                        }
-                    },
-                    {
-                        action: 'update',
-                        method: 'PUT',
-                        url: '?action=update&id=3',
-                        description: 'Update existing user',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'full_name': 'Updated User Name',
-                            'email': 'updated@hospital.com',
-                            'role': 'admin',
-                            'is_active': 1
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'User updated successfully'
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'DELETE',
-                        url: '?action=delete&id=3',
-                        description: 'Deactivate user (soft delete)',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'User deactivated successfully'
-                        }
-                    },
-                    {
-                        action: 'activate',
-                        method: 'POST',
-                        url: '?action=activate',
-                        description: 'Activate deactivated user',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'id': 3
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'User activated successfully'
-                        }
-                    }
+                    { action: 'list', method: 'GET', description: 'Get all users.' },
+                    { action: 'get', method: 'GET', description: 'Get a single user by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a user.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a user by ID.', params: ['id'] }
                 ]
             },
             {
                 name: 'Notice API',
                 file: 'notice.php',
-                description: 'Notice management API for Pathology > Notices menu page',
-                baseUrl: 'https://hospital.codeapka.com/umakant/patho_api/notice.php',
+                description: 'Notice management API.',
                 endpoints: [
-                    {
-                        action: 'list',
-                        method: 'GET',
-                        url: '?action=list&secret_key=hospital-api-secret-2024',
-                        description: 'Get all notices with author information',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        response: {
-                            'success': true,
-                            'data': [
-                                {
-                                    'id': 1,
-                                    'title': 'Hospital Maintenance Notice',
-                                    'content': 'The hospital will be undergoing maintenance on Sunday from 8 AM to 12 PM.',
-                                    'start_date': '2025-09-15',
-                                    'end_date': '2025-09-15',
-                                    'active': 1,
-                                    'added_by': 1,
-                                    'created_at': '2025-09-10T10:00:00Z',
-                                    'updated_at': '2025-09-10T10:00:00Z',
-                                    'added_by_username': 'admin'
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        action: 'get',
-                        method: 'GET',
-                        url: '?action=get&id=1&secret_key=hospital-api-secret-2024',
-                        description: 'Get single notice by ID',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        response: {
-                            'success': true,
-                            'data': {
-                                'id': 1,
-                                'title': 'Hospital Maintenance Notice',
-                                'content': 'The hospital will be undergoing maintenance on Sunday from 8 AM to 12 PM.',
-                                'start_date': '2025-09-15',
-                                'end_date': '2025-09-15',
-                                'active': 1,
-                                'added_by': 1,
-                                'created_at': '2025-09-10T10:00:00Z',
-                                'updated_at': '2025-09-10T10:00:00Z',
-                                'added_by_username': 'admin'
-                            }
-                        }
-                    },
-                    {
-                        action: 'save',
-                        method: 'POST',
-                        url: '?action=save&secret_key=hospital-api-secret-2024',
-                        description: 'Create or update notice (Admin/Master only)',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'id': '',
-                            'title': 'New Hospital Notice',
-                            'content': 'This is a new hospital notice for all staff and patients.',
-                            'start_date': '2025-09-20',
-                            'end_date': '2025-09-25',
-                            'active': 1
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Notice saved successfully',
-                            'data': {
-                                'id': 2,
-                                'title': 'New Hospital Notice',
-                                'content': 'This is a new hospital notice for all staff and patients.',
-                                'start_date': '2025-09-20',
-                                'end_date': '2025-09-25',
-                                'active': 1,
-                                'added_by': 1,
-                                'created_at': '2025-09-11T10:30:00Z',
-                                'updated_at': '2025-09-11T10:30:00Z',
-                                'added_by_username': 'admin'
-                            }
-                        }
-                    },
-                    {
-                        action: 'delete',
-                        method: 'POST',
-                        url: '?action=delete&secret_key=hospital-api-secret-2024',
-                        description: 'Delete notice by ID (Admin/Master only)',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Api-Key': 'hospital-api-secret-2024'
-                        },
-                        body: {
-                            'id': 2
-                        },
-                        response: {
-                            'success': true,
-                            'message': 'Notice deleted successfully'
-                        }
-                    }
+                    { action: 'list', method: 'GET', description: 'Get all notices.' },
+                    { action: 'get', method: 'GET', description: 'Get a single notice by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a notice.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a notice by ID.', params: ['id'] }
                 ]
             }
         ];
 
-        const VALID_HTTP_METHODS = ['GET','POST','PUT','PATCH','DELETE','OPTIONS','HEAD'];
-        function normalizeMethod(method) {
-            if (!method) return 'GET';
-            const cleaned = method.toString().trim().toUpperCase();
-            const token = cleaned.split(/[\s,|/]+/)[0] || 'GET';
-            return VALID_HTTP_METHODS.includes(token) ? token : 'GET';
+        function getBaseUrl() {
+            return document.getElementById('baseUrl').value || '/umakant/patho_api/';
         }
 
-        let apiResults = {};
+        function getSecretKey() {
+            return document.getElementById('secretKey').value || 'hospital-api-secret-2024';
+        }
+
+        function getApiKey() {
+            return document.getElementById('apiKey').value || '';
+        }
+
+        function getHeaders() {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            };
+            const apiKey = getApiKey();
+            if (apiKey) {
+                headers['X-Api-Key'] = apiKey;
+            }
+            return headers;
+        }
 
         function loadAllApis() {
-            try {
-                console.log('Loading APIs...');
-                const apiList = document.getElementById('apiList');
-                if (!apiList) {
-                    console.error('apiList element not found');
-                    return;
-                }
-                
-                apiList.innerHTML = '';
-                console.log('Processing', apiEndpoints.length, 'APIs');
-
-                if (apiEndpoints.length === 0) {
-                    console.warn('No APIs found in apiEndpoints array');
-                    apiList.innerHTML = '<div class="alert alert-warning">No APIs found. Please check the configuration.</div>';
-                    return;
-                }
-
-                apiEndpoints.forEach((api, index) => {
-                    console.log('Creating card for:', api.name);
-                    const card = createApiCard(api, index);
-                    apiList.appendChild(card);
-                });
-
-                updateOverview();
-                generateDocumentation();
-                console.log('APIs loaded successfully');
-            } catch (error) {
-                console.error('Error loading APIs:', error);
-            }
+            const apiList = document.getElementById('apiList');
+            apiList.innerHTML = '';
+            apiEndpoints.forEach((api, index) => {
+                const card = createApiCard(api, index);
+                apiList.appendChild(card);
+            });
+            updateOverview();
+            generateDocumentation();
         }
 
         function createApiCard(api, index) {
-            try {
             const card = document.createElement('div');
             card.className = 'card api-card';
-                
-                // Validate API structure
-                if (!api.endpoints || !Array.isArray(api.endpoints)) {
-                    console.warn(`API ${api.name} has no endpoints array`);
-                    return card;
-                }
-            
-            // Get unique methods from all endpoints
-            const methods = [...new Set(api.endpoints.map(ep => normalizeMethod(ep.method)))];
+            const methods = [...new Set(api.endpoints.map(ep => ep.method))];
             const actions = api.endpoints.map(ep => ep.action);
             
             card.innerHTML = `
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-code text-primary"></i> ${api.name}
-                    </h5>
+                    <h5 class="mb-0"><i class="fas fa-code text-primary"></i> ${api.name}</h5>
                     <div>
                         <span class="badge bg-primary method-badge">${methods.join(', ')}</span>
-                        <button class="btn btn-sm btn-outline-primary" onclick="testSingleApi(${index})">
+                        <button class="btn btn-sm btn-outline-primary" onclick="testApi(${index})">
                             <i class="fas fa-play"></i> Test
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" onclick="toggleApiDetails(${index})">
-                            <i class="fas fa-eye"></i> Details
                         </button>
                     </div>
                 </div>
                 <div class="card-body">
                     <p class="card-text">${api.description}</p>
-                    <div class="endpoint-url mb-2">
-                        <i class="fas fa-link"></i> ${api.baseUrl}
-                    </div>
-                    <div class="alert alert-warning py-2">
-                        <strong>Auth sent:</strong> <code>?secret_key=hospital-api-secret-2024</code> (auto-added for /patho_api/)
-                        <br/>
-                        <small>Also accepted: <code>X-Api-Key</code> or <code>X-API-Key</code> header with the same secret, <code>api_key</code> param, session, or <code>Authorization: Bearer &lt;token&gt;</code>.</small>
-                    </div>
+                    <div class="endpoint-url mb-2"><i class="fas fa-link"></i> ${getBaseUrl()}${api.file}</div>
                     <div class="mb-2">
                         <strong>Actions:</strong> 
                         ${actions.map(action => `<span class="badge bg-secondary me-1">${action}</span>`).join('')}
                     </div>
-                    
-                    <!-- Detailed API Information -->
-                    <div id="api-details-${index}" class="api-details mt-3" style="display: none;">
-                        <div class="accordion" id="accordion-${index}">
-                            ${api.endpoints.map((endpoint, epIndex) => `
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="heading-${index}-${epIndex}">
-                                        <button class="accordion-button collapsed" type="button" 
-                                                data-bs-toggle="collapse" 
-                                                data-bs-target="#collapse-${index}-${epIndex}" 
-                                                aria-expanded="false">
-                                            <span class="badge bg-${getMethodColor(endpoint.method)} me-2">${normalizeMethod(endpoint.method)}</span>
-                                            <strong>${endpoint.action}</strong> - ${endpoint.description}
-                                        </button>
-                                    </h2>
-                                    <div id="collapse-${index}-${epIndex}" 
-                                         class="accordion-collapse collapse" 
-                                         data-bs-parent="#accordion-${index}">
-                                        <div class="accordion-body">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <h6><i class="fas fa-arrow-up text-success"></i> Request</h6>
-                                                    
-                                                    <div class="mb-3">
-                                                        <strong>URL:</strong>
-                                                        <div class="endpoint-url">${api.baseUrl}${endpoint.url}</div>
-                                                    </div>
-                                                    
-                                                    <div class="mb-3">
-                                                        <strong>Headers:</strong>
-                                                        <pre class="bg-light p-2 rounded"><code>${JSON.stringify({ ...(getHeaders()), ...(endpoint.headers||{}) }, null, 2)}</code></pre>
-                                                        <small class="text-muted">Note: For patho_api endpoints the tester also appends <code>?secret_key=hospital-api-secret-2024</code> to the URL.</small>
-                                                    </div>
-                                                    
-                                                    ${endpoint.queryParams ? `
-                                                        <div class="mb-3">
-                                                            <strong>Query Parameters:</strong>
-                                                            <pre class="bg-light p-2 rounded"><code>${JSON.stringify(endpoint.queryParams, null, 2)}</code></pre>
-                                                        </div>
-                                                    ` : ''}
-                                                    
-                                                    ${endpoint.body ? `
-                                                        <div class="mb-3">
-                                                            <strong>Request Body:</strong>
-                                                            <pre class="bg-light p-2 rounded"><code>${JSON.stringify(endpoint.body, null, 2)}</code></pre>
-                                                        </div>
-                                                    ` : ''}
-                                                    
-                                                    <button class="btn btn-sm btn-success" onclick="copyToClipboard('${index}-${epIndex}-request')">
-                                                        <i class="fas fa-copy"></i> Copy Request
-                                                    </button>
-                                                    
-                                                    <button class="btn btn-sm btn-primary" onclick="testSpecificEndpoint(${index}, ${epIndex})">
-                                                        <i class="fas fa-play"></i> Test This
-                                                    </button>
-                                                </div>
-                                                
-                                                <div class="col-md-6">
-                                                    <h6><i class="fas fa-arrow-down text-info"></i> Response</h6>
-                                                    <div class="mb-3">
-                                                        <strong>Sample Response:</strong>
-                                                        <pre class="bg-light p-2 rounded"><code>${JSON.stringify(endpoint.response, null, 2)}</code></pre>
-                                                    </div>
-                                                    
-                                                    <button class="btn btn-sm btn-info" onclick="copyToClipboard('${index}-${epIndex}-response')">
-                                                        <i class="fas fa-copy"></i> Copy Response
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- cURL Command -->
-                                            <div class="mt-3">
-                                                <h6><i class="fas fa-terminal"></i> cURL Command</h6>
-                                                <pre class="bg-dark text-light p-2 rounded"><code id="curl-${index}-${epIndex}">${generateCurlCommand(api, endpoint)}</code></pre>
-                                                <button class="btn btn-sm btn-secondary" onclick="copyToClipboard('curl-${index}-${epIndex}')">
-                                                    <i class="fas fa-copy"></i> Copy cURL
-                                                </button>
-                                            </div>
-                                            
-                                            <!-- JavaScript Example -->
-                                            <div class="mt-3">
-                                                <h6><i class="fab fa-js-square"></i> JavaScript Example</h6>
-                                                <pre class="bg-light p-2 rounded"><code id="js-${index}-${epIndex}">${generateJavaScriptExample(api, endpoint)}</code></pre>
-                                                <button class="btn btn-sm btn-warning" onclick="copyToClipboard('js-${index}-${epIndex}')">
-                                                    <i class="fas fa-copy"></i> Copy JS
-                                                </button>
-                                            </div>
-                                            
-                                            <!-- PHP Example -->
-                                            <div class="mt-3">
-                                                <h6><i class="fab fa-php"></i> PHP Example</h6>
-                                                <pre class="bg-light p-2 rounded"><code id="php-${index}-${epIndex}">${generatePhpExample(api, endpoint)}</code></pre>
-                                                <button class="btn btn-sm btn-info" onclick="copyToClipboard('php-${index}-${epIndex}')">
-                                                    <i class="fas fa-copy"></i> Copy PHP
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    
                     <div id="result-${index}" class="mt-3"></div>
                 </div>
             `;
             return card;
-            } catch (error) {
-                console.error(`Error creating card for API ${api.name}:`, error);
-                const errorCard = document.createElement('div');
-                errorCard.className = 'card api-card border-danger';
-                errorCard.innerHTML = `
-                    <div class="card-body">
-                        <h5 class="card-title text-danger">${api.name}</h5>
-                        <p class="card-text text-danger">Error loading API details</p>
-                    </div>
-                `;
-                return errorCard;
-            }
         }
 
-        function getMethodColor(method) {
-            const normalized = normalizeMethod(method);
-            const colors = {
-                'GET': 'success',
-                'POST': 'primary',
-                'PUT': 'warning',
-                'PATCH': 'warning',
-                'DELETE': 'danger',
-                'OPTIONS': 'secondary',
-                'HEAD': 'secondary'
-            };
-            return colors[normalized] || 'secondary';
-        }
-
-        function toggleApiDetails(index) {
-            const details = document.getElementById(`api-details-${index}`);
-            if (details.style.display === 'none') {
-                details.style.display = 'block';
-            } else {
-                details.style.display = 'none';
-            }
-        }
-
-        function generateCurlCommand(api, endpoint) {
-            let curl = `curl -X ${endpoint.method} \\
-  "${api.baseUrl}${endpoint.url}" \\`;
-            
-            // Add headers
-            Object.entries(endpoint.headers).forEach(([key, value]) => {
-                curl += `\n  -H "${key}: ${value}" \\`;
-            });
-            
-            // Add body if present
-            if (endpoint.body) {
-                curl += `\n  -d '${JSON.stringify(endpoint.body)}' \\`;
-            }
-            
-            return curl.slice(0, -2); // Remove trailing backslash
-        }
-
-        function generateJavaScriptExample(api, endpoint) {
-            const options = {
-                method: endpoint.method,
-                headers: endpoint.headers
-            };
-            
-            if (endpoint.body) {
-                options.body = JSON.stringify(endpoint.body);
-            }
-            
-            return `fetch('${api.baseUrl}${endpoint.url}', ${JSON.stringify(options, null, 2)})
-  .then(response => response.json())
-  .then(data => console.log(data))
-  .catch(error => console.error('Error:', error));`;
-        }
-
-        function generatePhpExample(api, endpoint) {
-            let php = `<?php
-$url = '${api.baseUrl}${endpoint.url}';
-$headers = [`;
-            
-            Object.entries(endpoint.headers).forEach(([key, value]) => {
-                php += `\n    '${key}: ${value}',`;
-            });
-            
-            php += `
-];
-
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);`;
-
-            if (endpoint.method !== 'GET') {
-                php += `\ncurl_setopt($ch, CURLOPT_CUSTOMREQUEST, '${endpoint.method}');`;
-            }
-            
-            if (endpoint.body) {
-                php += `\ncurl_setopt($ch, CURLOPT_POSTFIELDS, '${JSON.stringify(endpoint.body)}');`;
-            }
-            
-            php += `
-
-$response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-
-$data = json_decode($response, true);
-echo json_encode($data, JSON_PRETTY_PRINT);
-?>`;
-            
-            return php;
-        }
-
-        function copyToClipboard(elementId) {
-            const element = document.getElementById(elementId);
-            const text = element.textContent;
-            
-            navigator.clipboard.writeText(text).then(() => {
-                // Show success feedback
-                const button = event.target.closest('button');
-                const originalText = button.innerHTML;
-                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                button.classList.add('btn-success');
-                
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.classList.remove('btn-success');
-                }, 2000);
-            });
-        }
-
-        async function testSingleApi(index) {
+        async function testApi(index) {
             const api = apiEndpoints[index];
             const resultDiv = document.getElementById(`result-${index}`);
-            
             resultDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Testing...</div>';
+
+            // Test the 'list' endpoint by default
+            const endpoint = api.endpoints.find(ep => ep.action === 'list');
+            if (!endpoint) {
+                resultDiv.innerHTML = '<div class="p-2 rounded result-error"><strong>✗ Error:</strong> "list" action not found for this API.</div>';
+                return;
+            }
+
+            const url = `${getBaseUrl()}${api.file}?action=${endpoint.action}&secret_key=${getSecretKey()}`;
             
             try {
-                // Test the first endpoint (usually list action)
-                const endpoint = api.endpoints[0];
-                let url = `${api.baseUrl}${endpoint.url}`;
-                
-                // Add secret_key parameter for authentication if it's a patho_api endpoint
-                if (api.baseUrl.includes('/patho_api/')) {
-                    const separator = url.includes('?') ? '&' : '?';
-                    url += `${separator}secret_key=hospital-api-secret-2024`;
-                }
-                
-                const headers = getHeaders();
-                
                 const response = await fetch(url, {
                     method: endpoint.method,
-                    headers: { ...endpoint.headers, ...headers }
+                    headers: getHeaders()
                 });
-                
-                let data;
-                let rawText = '';
-                try {
-                    rawText = await response.text();
-                    data = rawText ? JSON.parse(rawText) : { success: false, message: 'Empty response body', raw: '' };
-                } catch (e) {
-                    data = { success: false, message: 'Non-JSON response', raw: rawText };
-                }
-                const isSuccess = response.ok; // treat HTTP 2xx as success, even if body isn't valid JSON
-                
-                // Log detailed error information for debugging
-                if (!isSuccess) {
-                    console.error(`API Test Failed for ${api.name}:`, {
-                        url: url,
-                        status: response.status,
-                        statusText: response.statusText,
-                        response: data,
-                        headers: { ...endpoint.headers, ...headers }
-                    });
-                }
-                
-                apiResults[api.file] = {
-                    status: isSuccess ? 'success' : 'error',
-                    response: data,
-                    timestamp: new Date().toISOString()
-                };
-                
+                const data = await response.json();
+                const isSuccess = response.ok && data.success;
+
+                apiResults[api.file] = { status: isSuccess ? 'success' : 'error', response: data };
+
                 resultDiv.innerHTML = `
                     <div class="p-2 rounded ${isSuccess ? 'result-success' : 'result-error'}">
                         <strong>${isSuccess ? '✓ Success' : '✗ Error'}</strong>
@@ -1698,14 +412,8 @@ echo json_encode($data, JSON_PRETTY_PRINT);
                         </details>
                     </div>
                 `;
-                
             } catch (error) {
-                apiResults[api.file] = {
-                    status: 'error',
-                    error: error.message,
-                    timestamp: new Date().toISOString()
-                };
-                
+                apiResults[api.file] = { status: 'error', error: error.message };
                 resultDiv.innerHTML = `
                     <div class="p-2 rounded result-error">
                         <strong>✗ Network Error</strong>
@@ -1713,135 +421,28 @@ echo json_encode($data, JSON_PRETTY_PRINT);
                     </div>
                 `;
             }
-            
             updateOverview();
-        }
-
-        async function testSpecificEndpoint(apiIndex, endpointIndex) {
-            const api = apiEndpoints[apiIndex];
-            const endpoint = api.endpoints[endpointIndex];
-            const resultDiv = document.getElementById(`result-${apiIndex}`);
-            
-            try {
-                let url = `${api.baseUrl}${endpoint.url}`;
-                
-                // Add secret_key parameter for authentication if it's a patho_api endpoint
-                if (api.baseUrl.includes('/patho_api/')) {
-                    const separator = url.includes('?') ? '&' : '?';
-                    url += `${separator}secret_key=hospital-api-secret-2024`;
-                }
-                
-                const headers = { ...endpoint.headers, ...getHeaders() };
-                
-                const options = {
-                    method: endpoint.method,
-                    headers: headers
-                };
-                
-                if (endpoint.body) {
-                    options.body = JSON.stringify(endpoint.body);
-                }
-                
-                const response = await fetch(url, options);
-                let data;
-                let rawText = '';
-                try {
-                    rawText = await response.text();
-                    data = rawText ? JSON.parse(rawText) : { success: false, message: 'Empty response body', raw: '' };
-                } catch (e) {
-                    data = { success: false, message: 'Non-JSON response', raw: rawText };
-                }
-                const isSuccess = response.ok; // treat HTTP 2xx as success for dashboard
-                
-                resultDiv.innerHTML = `
-                    <div class="p-2 rounded ${isSuccess ? 'result-success' : 'result-error'}">
-                        <strong>${isSuccess ? '✓ Success' : '✗ Error'}</strong> - ${endpoint.action}
-                        <small class="d-block">Status: ${response.status} | Method: ${endpoint.method}</small>
-                        <details class="mt-2">
-                            <summary>Response Details</summary>
-                            <pre class="mt-2 p-2 bg-light rounded"><code>${JSON.stringify(data, null, 2)}</code></pre>
-                        </details>
-                    </div>
-                `;
-                
-            } catch (error) {
-                resultDiv.innerHTML = `
-                    <div class="p-2 rounded result-error">
-                        <strong>✗ Error</strong> - ${endpoint.action}
-                        <small class="d-block">${error.message}</small>
-                    </div>
-                `;
-            }
         }
 
         async function testAllEndpoints() {
             for (let i = 0; i < apiEndpoints.length; i++) {
-                await testSingleApi(i);
-                // Small delay between requests
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await testApi(i);
+                await new Promise(resolve => setTimeout(resolve, 200));
             }
         }
-
-        async function executeManualTest() {
-            const method = document.getElementById('testMethod').value;
-            const url = document.getElementById('testUrl').value;
-            const headersText = document.getElementById('testHeaders').value;
-            const bodyText = document.getElementById('testBody').value;
-            const resultDiv = document.getElementById('manualTestResult');
-            
-            try {
-                let headers = getHeaders();
-                if (headersText.trim()) {
-                    const customHeaders = JSON.parse(headersText);
-                    headers = { ...headers, ...customHeaders };
-                }
-                
-                const options = {
-                    method: method,
-                    headers: headers
-                };
-                
-                if (method !== 'GET' && bodyText.trim()) {
-                    if (headers['Content-Type']?.includes('application/json')) {
-                        options.body = bodyText;
-                    } else {
-                        options.body = new URLSearchParams(JSON.parse(bodyText));
-                    }
-                }
-                
-                const response = await fetch(url, options);
-                const data = await response.json();
-                
-                resultDiv.innerHTML = `
-                    <div class="p-3 rounded ${response.ok ? 'result-success' : 'result-error'}">
-                        <h5>Response (${response.status} ${response.statusText})</h5>
-                        <pre class="p-2 bg-light rounded"><code>${JSON.stringify(data, null, 2)}</code></pre>
-                    </div>
-                `;
-                
-            } catch (error) {
-                resultDiv.innerHTML = `
-                    <div class="p-3 rounded result-error">
-                        <h5>Error</h5>
-                        <pre class="p-2 bg-light rounded"><code>${error.message}</code></pre>
-                    </div>
-                `;
-            }
-        }
-
+        
         function updateOverview() {
             const total = apiEndpoints.length;
             const working = Object.values(apiResults).filter(r => r.status === 'success').length;
-            const errors = Object.values(apiResults).filter(r => r.status === 'error').length;
+            const errors = total - working;
             
             document.getElementById('totalApis').textContent = total;
             document.getElementById('workingApis').textContent = working;
             document.getElementById('errorApis').textContent = errors;
             document.getElementById('lastTested').textContent = new Date().toLocaleTimeString();
             
-            // Generate status overview
             const statusOverview = document.getElementById('apiStatusOverview');
-            statusOverview.innerHTML = apiEndpoints.map((api, index) => {
+            statusOverview.innerHTML = apiEndpoints.map(api => {
                 const result = apiResults[api.file];
                 const status = result ? result.status : 'untested';
                 const icon = status === 'success' ? '✓' : status === 'error' ? '✗' : '○';
@@ -1857,184 +458,36 @@ echo json_encode($data, JSON_PRETTY_PRINT);
         }
 
         function generateDocumentation() {
-            try {
-                const docsDiv = document.getElementById('endpointsDocs');
-                if (!docsDiv) {
-                    console.warn('Documentation div not found');
-                    return;
-                }
-
-                // Render full docs directly from apiEndpoints (no duplicates, single source)
-                const docsHtml = apiEndpoints.map((api, apiIdx) => {
-                    const methodList = [...new Set(api.endpoints.map(ep => ep.method))].join(', ');
-                    return `
-                    <div class="mb-4 p-3 border rounded">
-                        <h5 class="mb-1">${api.name}</h5>
-                        <p class="mb-2 text-muted">${api.description || ''}</p>
-                        <div class="endpoint-url mb-3"><i class="fas fa-link"></i> ${api.baseUrl}</div>
-                        <div class="small mb-3">
-                            <strong>Methods:</strong> ${methodList} &nbsp;|&nbsp;
-                            <strong>Actions:</strong> ${api.endpoints.map(ep => ep.action).join(', ')} &nbsp;|&nbsp;
-                            <strong>Total Endpoints:</strong> ${api.endpoints.length}
+            const docsDiv = document.getElementById('endpointsDocs');
+            docsDiv.innerHTML = '';
+            apiEndpoints.forEach(api => {
+                const apiDiv = document.createElement('div');
+                apiDiv.className = 'mb-4 p-3 border rounded';
+                let endpointsHtml = '';
+                api.endpoints.forEach(endpoint => {
+                    endpointsHtml += `
+                        <div class="p-2 border-bottom">
+                            <strong>${endpoint.action}</strong> <span class="badge bg-secondary">${endpoint.method}</span>
+                            <p class="mb-0">${endpoint.description}</p>
+                            ${endpoint.params ? `<p class="mb-0">Params: <code>${endpoint.params.join(', ')}</code></p>` : ''}
                         </div>
-
-                        <div class="accordion" id="doc-acc-${apiIdx}">
-                            ${api.endpoints.map((ep, epIdx) => {
-                                const url = `${api.baseUrl}${ep.url}`;
-                                const headers = { ...getHeaders(), ...(ep.headers || {}) };
-                                return `
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="doc-h-${apiIdx}-${epIdx}">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#doc-c-${apiIdx}-${epIdx}" aria-expanded="false">
-                                            <span class="badge bg-${getMethodColor(ep.method)} me-2">${normalizeMethod(ep.method)}</span>
-                                            <strong>${ep.action}</strong> - ${ep.description || ''}
-                                        </button>
-                                    </h2>
-                                    <div id="doc-c-${apiIdx}-${epIdx}" class="accordion-collapse collapse" data-bs-parent="#doc-acc-${apiIdx}">
-                                        <div class="accordion-body">
-                                            <div class="row g-3">
-                                                <div class="col-md-6">
-                                                    <h6 class="mb-2"><i class="fas fa-arrow-up text-success"></i> Request</h6>
-                                                    <div class="mb-2"><strong>URL:</strong><div class="endpoint-url">${url}</div></div>
-                                                    <div class="mb-2"><strong>Headers:</strong><pre class="bg-light p-2 rounded"><code>${JSON.stringify(headers, null, 2)}</code></pre></div>
-                                                    ${ep.queryParams ? `<div class=\"mb-2\"><strong>Query Params:</strong><pre class=\"bg-light p-2 rounded\"><code>${JSON.stringify(ep.queryParams, null, 2)}</code></pre></div>` : ''}
-                                                    ${ep.body ? `<div class=\"mb-2\"><strong>Request Body:</strong><pre class=\"bg-light p-2 rounded\"><code>${JSON.stringify(ep.body, null, 2)}</code></pre></div>` : ''}
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <h6 class="mb-2"><i class="fas fa-arrow-down text-info"></i> Sample Response</h6>
-                                                    <pre class="bg-light p-2 rounded"><code>${JSON.stringify(ep.response || { success: true }, null, 2)}</code></pre>
-                                                </div>
-                                            </div>
-
-                                            <div class="mt-3">
-                                                <h6 class="mb-2"><i class="fas fa-terminal"></i> Code Examples</h6>
-                                                <div class="row g-3">
-                                                    <div class="col-md-4">
-                                                        <div class="small text-muted mb-1">cURL</div>
-                                                        <pre class="bg-dark text-light p-2 rounded"><code>${generateCurlCommand(api, ep)}</code></pre>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="small text-muted mb-1">JavaScript (fetch)</div>
-                                                        <pre class="bg-light p-2 rounded"><code>${generateJavaScriptExample(api, ep)}</code></pre>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="small text-muted mb-1">PHP</div>
-                                                        <pre class="bg-light p-2 rounded"><code>${generatePhpExample(api, ep)}</code></pre>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="mt-2 text-end">
-                                                <button class="btn btn-sm btn-primary" onclick="testSpecificEndpoint(${apiIdx}, ${epIdx})"><i class="fas fa-play"></i> Test This</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>`;
-                            }).join('')}
-                        </div>
-                    </div>`;
-                }).join('');
-
-                docsDiv.innerHTML = docsHtml;
-            } catch (error) {
-                console.error('Error generating documentation:', error);
-            }
+                    `;
+                });
+                apiDiv.innerHTML = `
+                    <h5 class="mb-1">${api.name}</h5>
+                    <p class="mb-2 text-muted">${api.description}</p>
+                    <div class="endpoint-url mb-3"><i class="fas fa-link"></i> ${getBaseUrl()}${api.file}</div>
+                    ${endpointsHtml}
+                `;
+                docsDiv.appendChild(apiDiv);
+            });
         }
 
-        function getBaseUrl() {
-            return document.getElementById('baseUrl').value || '/umakant/patho_api/';
-        }
-
-        function getHeaders() {
-            const headers = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            };
-            
-            const apiKey = document.getElementById('apiKey').value;
-            if (apiKey) {
-                headers['X-Api-Key'] = apiKey;
-            }
-            
-            return headers;
-        }
-
-        function generateCodeExample(api, endpoint, language) {
-            const baseUrl = api.baseUrl;
-            const url = `${baseUrl}${endpoint.url}`;
-            const headers = { ...endpoint.headers, ...getHeaders() };
-            
-            switch (language) {
-                case 'curl':
-                    let curlCmd = `curl -X ${endpoint.method}`;
-                    Object.entries(headers).forEach(([key, value]) => {
-                        curlCmd += ` \\\n  -H "${key}: ${value}"`;
-                    });
-                    if (endpoint.body) {
-                        curlCmd += ` \\\n  -d '${JSON.stringify(endpoint.body)}'`;
-                    }
-                    curlCmd += ` \\\n  "${url}"`;
-                    return curlCmd;
-                    
-                case 'javascript':
-                    return `// ${endpoint.action}
-const response = await fetch('${url}', {
-    method: '${endpoint.method}',
-    headers: ${JSON.stringify(headers, null, 8)},${endpoint.body ? `
-    body: JSON.stringify(${JSON.stringify(endpoint.body, null, 8)})` : ''}
-});
-
-const data = await response.json();
-console.log(data);`;
-
-                case 'php':
-                    return `<?php
-// ${endpoint.action}
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, '${url}');
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_CUSTOMREQUEST, '${endpoint.method}');
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-${Object.entries(headers).map(([key, value]) => `    '${key}: ${value}'`).join(',\n')}
-]);${endpoint.body ? `
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(${JSON.stringify(endpoint.body, null, 4).replace(/"/g, "'")}));` : ''}
-
-$response = curl_exec($ch);
-$data = json_decode($response, true);
-curl_close($ch);
-
-print_r($data);
-?>`;
-
-                default:
-                    return 'Language not supported';
-            }
-        }
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Page loaded - ' + new Date().toISOString());
-            console.log('📊 API Endpoints defined:', typeof apiEndpoints !== 'undefined');
-            if (typeof apiEndpoints !== 'undefined') {
-                console.log('📈 API Endpoints count:', apiEndpoints.length);
-                console.log('📋 API Endpoints:', apiEndpoints);
-            } else {
-                console.error('❌ apiEndpoints is undefined - syntax error likely');
-            }
-            
-            // Test if the page elements exist
-            const apiList = document.getElementById('apiList');
-            console.log('apiList element:', apiList);
-            
-            if (apiEndpoints && apiEndpoints.length > 0) {
-                loadAllApis();
-            } else {
-                console.error('apiEndpoints array is empty or undefined');
-                if (apiList) {
-                    apiList.innerHTML = '<div class="alert alert-danger">Error: API endpoints array is empty or undefined</div>';
-                }
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            window.apiResults = {};
+            loadAllApis();
         });
     </script>
 </body>
 </html>
+''

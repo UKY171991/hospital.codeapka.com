@@ -18,378 +18,174 @@ require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/simple_auth.php';
 
-// Get action from request
-$action = $_REQUEST['action'] ?? 'list';
-if ($action === 'update') $action = 'save';
+$entity_config = [
+    'table_name' => 'patients',
+    'id_field' => 'id',
+    'required_fields' => ['name', 'uhid'],
+    'allowed_fields' => ['name', 'uhid', 'father_husband', 'mobile', 'email', 'age', 'age_unit', 'gender', 'address', 'added_by']
+];
+
+$user_data = simpleAuthenticate($pdo);
+if (!$user_data) {
+    json_response(['success' => false, 'message' => 'Authentication required', 'debug_info' => getAuthDebugInfo()], 401);
+}
+
+$requestMethod = $_SERVER['REQUEST_METHOD'];
+$action = $_REQUEST['action'] ?? $requestMethod;
+
+if ($requestMethod === 'GET' && isset($_GET['id'])) $action = 'get';
+if ($requestMethod === 'GET' && !isset($_GET['id'])) $action = 'list';
+if ($requestMethod === 'POST' || $requestMethod === 'PUT') $action = 'save';
+if ($requestMethod === 'DELETE') $action = 'delete';
 
 try {
-    // Simple validation
-    function validatePatientData($data) {
-        if (empty(trim($data['name'] ?? ''))) {
-            return ['Patient name is required'];
-        }
-        if (empty(trim($data['uhid'] ?? ''))) {
-            return ['UHID is required'];
-        }
-        if (isset($data['age']) && ($data['age'] < 0 || $data['age'] > 150)) {
-            return ['Age must be between 0 and 150'];
-        }
-        return [];
+    switch($action) {
+        case 'list': handleList($pdo, $entity_config, $user_data); break;
+        case 'get': handleGet($pdo, $entity_config, $user_data); break;
+        case 'save': handleSave($pdo, $entity_config, $user_data); break;
+        case 'delete': handleDelete($pdo, $entity_config, $user_data); break;
+        case 'stats': handleStats($pdo, $user_data); break;
+        default: json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
     }
-
-    function patientTableHasColumn(PDO $pdo, string $column): bool {
-        static $columnCache = null;
-        if ($columnCache === null) {
-            $stmt = $pdo->query('DESCRIBE patients');
-            $columnCache = array_map(fn($row) => $row['Field'], $stmt->fetchAll(PDO::FETCH_ASSOC));
-        }
-        return in_array($column, $columnCache, true);
-    }
-
-    function getPatientGenderColumn(PDO $pdo): ?string {
-        static $genderColumn = null;
-        if ($genderColumn !== null) {
-            return $genderColumn;
-        }
-        if (patientTableHasColumn($pdo, 'gender')) {
-            $genderColumn = 'gender';
-        } elseif (patientTableHasColumn($pdo, 'sex')) {
-            $genderColumn = 'sex';
-        } else {
-            $genderColumn = null;
-        }
-        return $genderColumn;
-    }
-
-    function normalizeGenderValue($value) {
-        if (!isset($value)) {
-            return null;
-        }
-        $normalized = strtolower(trim((string)$value));
-        return match ($normalized) {
-            'm', 'male' => 'Male',
-            'f', 'female' => 'Female',
-            'o', 'other' => 'Other',
-            default => $value
-        };
-    }
-
-    function assignGenderParam(array &$params, ?string $genderColumn, $value): void {
-        if ($genderColumn) {
-            $params[':gender'] = $value !== null ? trim($value) : '';
-        }
-    }
-
-    function buildPatientSelectFields(PDO $pdo): string {
-        $fields = [
-            'p.id',
-            'p.uhid',
-            'p.name',
-            'p.father_husband',
-            'p.mobile',
-            'p.email',
-            'p.age',
-            'p.age_unit'
-        ];
-
-        $genderColumn = getPatientGenderColumn($pdo);
-        $fields[] = $genderColumn ? "p.`$genderColumn` AS gender" : 'NULL AS gender';
-
-        $fields[] = 'p.address';
-        $fields[] = 'p.added_by';
-        $fields[] = 'p.created_at';
-        $fields[] = 'u.username AS added_by_username';
-
-        return implode(', ', $fields);
-    }
-
-    if ($action === 'list') {
-        $auth = simpleAuthenticate($pdo);
-        if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
-        }
-        
-        // Get user ID - prioritize provided user_id, then authenticated user
-        $userId = $_GET['user_id'] ?? $_POST['user_id'] ?? $auth['user_id'];
-        
-        // DataTables parameters
-        $draw = (int)($_REQUEST['draw'] ?? 1);
-        $start = isset($_REQUEST['start']) ? (int)$_REQUEST['start'] : 0;
-        $length = isset($_REQUEST['length']) ? (int)$_REQUEST['length'] : 25;
-        if ($start < 0) { $start = 0; }
-        if ($length <= 0) { $length = 25; }
-        $search = $_POST['search']['value'] ?? $_GET['search'] ?? '';
-        $addedByFilter = $_POST['added_by'] ?? $_GET['added_by'] ?? '';
-        
-        // Build WHERE clause
-        $whereClauses = ["p.added_by = ?"];
-        $params = [$userId];
-        
-        // Search filter
-        if (!empty($search)) {
-            $whereClauses[] = "(p.name LIKE ? OR p.uhid LIKE ? OR p.mobile LIKE ? OR p.email LIKE ?)";
-            $searchTerm = "%" . $search . "%";
-            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
-        }
-        
-        // Added by filter (overrides user filter if provided)
-        if (!empty($addedByFilter)) {
-            $whereClauses[0] = "p.added_by = ?";
-            $params[0] = $addedByFilter;
-        }
-        
-        $whereSql = " WHERE " . implode(" AND ", $whereClauses);
-        
-        // Get total and filtered counts
-        $totalStmt = $pdo->query("SELECT COUNT(*) FROM patients p");
-        $totalRecords = $totalStmt->fetchColumn();
-        
-        $filteredStmt = $pdo->prepare("SELECT COUNT(*) FROM patients p LEFT JOIN users u ON p.added_by = u.id" . $whereSql);
-        $filteredStmt->execute($params);
-        $filteredRecords = $filteredStmt->fetchColumn();
-        
-        // Get patients data
-        $selectFields = buildPatientSelectFields($pdo);
-        $query = "SELECT $selectFields 
-                  FROM patients p 
-                  LEFT JOIN users u ON p.added_by = u.id" . $whereSql . " 
-                  ORDER BY p.id DESC LIMIT ?, ?";
-        $stmt = $pdo->prepare($query);
-
-        // Bind WHERE clause parameters (positional placeholders)
-        foreach ($params as $idx => $value) {
-            $stmt->bindValue($idx + 1, $value);
-        }
-
-        // Bind LIMIT/OFFSET as integers (PDO::PARAM_INT required when emulate prepares is disabled)
-        $stmt->bindValue(count($params) + 1, $start, PDO::PARAM_INT);
-        $stmt->bindValue(count($params) + 2, $length, PDO::PARAM_INT);
-
-        $stmt->execute();
-        $patients = array_map(function ($row) {
-            $row['gender'] = normalizeGenderValue($row['gender'] ?? null);
-            return $row;
-        }, $stmt->fetchAll(PDO::FETCH_ASSOC));
-
-        json_response([
-            'draw' => intval($draw),
-            'recordsTotal' => intval($totalRecords),
-            'recordsFiltered' => intval($filteredRecords),
-            'success' => true,
-            'data' => $patients
-        ]);
-    }
-
-    if ($action === 'get') {
-        $auth = simpleAuthenticate($pdo);
-        if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
-        }
-        
-        $id = $_GET['id'] ?? null;
-        if (!$id) {
-            json_response(['success' => false, 'message' => 'Patient ID is required'], 400);
-        }
-        
-        $selectFields = buildPatientSelectFields($pdo);
-        $stmt = $pdo->prepare("SELECT $selectFields
-                              FROM patients p 
-                              LEFT JOIN users u ON p.added_by = u.id 
-                              WHERE p.id = ?");
-        $stmt->execute([$id]);
-        $patient = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($patient) {
-            $patient['gender'] = normalizeGenderValue($patient['gender'] ?? null);
-        }
-        
-        if (!$patient) {
-            json_response(['success' => false, 'message' => 'Patient not found'], 404);
-        }
-
-        json_response(['success' => true, 'data' => $patient]);
-    }
-
-    if ($action === 'save') {
-        $auth = simpleAuthenticate($pdo);
-        if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
-        }
-
-        // Get input data
-        $input = $_POST;
-            
-            // Validate input
-        $errors = validatePatientData($input);
-            if (!empty($errors)) {
-                json_response(['success' => false, 'message' => 'Validation failed', 'errors' => $errors], 400);
-            }
-            
-        // Check if this is an update (has ID)
-        if (isset($input['id']) && !empty($input['id'])) {
-            // Update existing patient
-            $patientId = intval($input['id']);
-            
-            $genderColumn = getPatientGenderColumn($pdo);
-            $setParts = [
-                'uhid = :uhid',
-                'name = :name',
-                'father_husband = :father_husband',
-                'mobile = :mobile',
-                'email = :email',
-                'age = :age',
-                'age_unit = :age_unit',
-                'address = :address',
-                'added_by = :added_by'
-            ];
-
-            $params = [
-                ':uhid' => trim($input['uhid']),
-                ':name' => trim($input['name']),
-                ':father_husband' => trim($input['father_husband'] ?? ''),
-                ':mobile' => trim($input['mobile'] ?? ''),
-                ':email' => trim($input['email'] ?? ''),
-                ':age' => ($input['age'] === '' || $input['age'] === null) ? null : intval($input['age']),
-                ':age_unit' => trim($input['age_unit'] ?? 'Years'),
-                ':address' => trim($input['address'] ?? ''),
-                ':added_by' => intval($input['added_by'] ?? $auth['user_id']),
-                ':id' => $patientId
-            ];
-
-            if ($genderColumn) {
-                $setParts[] = '`' . $genderColumn . '` = :gender';
-                assignGenderParam($params, $genderColumn, normalizeGenderValue($input['gender'] ?? ''));
-            }
-
-            $sql = 'UPDATE patients SET ' . implode(', ', $setParts) . ', updated_at = NOW() WHERE id = :id';
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
-            
-            $message = 'Patient updated successfully';
-            $action = 'updated';
-            $id = $patientId;
-        } else {
-            // Create new patient
-            $genderColumn = getPatientGenderColumn($pdo);
-            $columns = ['uhid', 'name', 'father_husband', 'mobile', 'email', 'age', 'age_unit', 'address', 'added_by'];
-            $placeholders = [':uhid', ':name', ':father_husband', ':mobile', ':email', ':age', ':age_unit', ':address', ':added_by'];
-            $params = [
-                ':uhid' => trim($input['uhid']),
-                ':name' => trim($input['name']),
-                ':father_husband' => trim($input['father_husband'] ?? ''),
-                ':mobile' => trim($input['mobile'] ?? ''),
-                ':email' => trim($input['email'] ?? ''),
-                ':age' => ($input['age'] === '' || $input['age'] === null) ? null : intval($input['age']),
-                ':age_unit' => trim($input['age_unit'] ?? 'Years'),
-                ':address' => trim($input['address'] ?? ''),
-                ':added_by' => intval($input['added_by'] ?? $auth['user_id'])
-            ];
-
-            if ($genderColumn) {
-                $columns[] = $genderColumn;
-                $placeholders[] = ':gender';
-                assignGenderParam($params, $genderColumn, normalizeGenderValue($input['gender'] ?? ''));
-            }
-
-            $columnsSql = implode(', ', array_map(fn($col) => '`' . $col . '`', $columns));
-            $placeholdersSql = implode(', ', $placeholders);
-
-            $sql = "INSERT INTO patients ($columnsSql, `created_at`, `updated_at`) VALUES ($placeholdersSql, NOW(), NOW())";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
-            
-            $message = 'Patient created successfully';
-            $action = 'created';
-            $id = $pdo->lastInsertId();
-        }
-        
-        // Fetch the saved patient
-        $selectFields = buildPatientSelectFields($pdo);
-        $stmt = $pdo->prepare("SELECT $selectFields
-                              FROM patients p 
-                              LEFT JOIN users u ON p.added_by = u.id 
-                              WHERE p.id = ?");
-        $stmt->execute([$id]);
-        $patient = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        json_response(['success' => true, 'message' => $message, 'data' => $patient, 'action' => $action, 'id' => $id]);
-    }
-
-    if ($action === 'delete') {
-        $auth = simpleAuthenticate($pdo);
-        if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
-        }
-
-        $id = $_POST['id'] ?? $_GET['id'] ?? null;
-        if (!$id) {
-            json_response(['success' => false, 'message' => 'Patient ID is required'], 400);
-        }
-
-            // Check if patient has associated entries
-            $stmt = $pdo->prepare('SELECT COUNT(*) as count FROM entries WHERE patient_id = ?');
-            $stmt->execute([$id]);
-            $entryCount = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
-
-            if ($entryCount > 0) {
-                json_response(['success' => false, 'message' => 'Cannot delete patient with associated test entries'], 400);
-            }
-
-        // Delete patient
-        $stmt = $pdo->prepare('DELETE FROM patients WHERE id = ?');
-        $stmt->execute([$id]);
-
-        json_response(['success' => true, 'message' => 'Patient deleted successfully']);
-    }
-
-    if ($action === 'stats') {
-        $auth = simpleAuthenticate($pdo);
-        if (!$auth) {
-            json_response(['success' => false, 'message' => 'Authentication required'], 401);
-        }
-        
-        $userId = $_GET['user_id'] ?? $_POST['user_id'] ?? $auth['user_id'];
-        
-        // Get statistics for the user's patients
-        $totalStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ?');
-        $totalStmt->execute([$userId]);
-        $total = $totalStmt->fetchColumn();
-        
-        $todayStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND DATE(created_at) = CURDATE()');
-        $todayStmt->execute([$userId]);
-        $today = $todayStmt->fetchColumn();
-
-        $genderColumn = getPatientGenderColumn($pdo);
-        $male = 0;
-        $female = 0;
-
-        if ($genderColumn) {
-            $genderField = 'LOWER(`' . $genderColumn . '`)';
-
-            $maleStmt = $pdo->prepare("SELECT COUNT(*) FROM patients WHERE added_by = ? AND $genderField IN ('male','m')");
-            $maleStmt->execute([$userId]);
-            $male = $maleStmt->fetchColumn();
-
-            $femaleStmt = $pdo->prepare("SELECT COUNT(*) FROM patients WHERE added_by = ? AND $genderField IN ('female','f')");
-            $femaleStmt->execute([$userId]);
-            $female = $femaleStmt->fetchColumn();
-        }
-
-        json_response([
-            'success' => true,
-            'data' => [
-                'total' => $total,
-                'today' => $today,
-                'male' => $male,
-                'female' => $female
-            ]
-        ]);
-    }
-
-    // Invalid action
-    json_response(['success' => false, 'message' => 'Invalid action: ' . $action], 400);
-
 } catch (Exception $e) {
-    error_log('Patient API Error: ' . $e->getMessage());
-    json_response(['success' => false, 'message' => 'Internal server error', 'error' => $e->getMessage()], 500);
+    error_log("Patient API Error: " . $e->getMessage());
+    json_response(['success' => false, 'message' => 'An internal server error occurred.'], 500);
+}
+
+function handleList($pdo, $config, $user_data) {
+    $userId = $_REQUEST['user_id'] ?? $user_data['user_id'];
+    $draw = (int)($_REQUEST['draw'] ?? 1);
+    $start = (int)($_REQUEST['start'] ?? 0);
+    $length = (int)($_REQUEST['length'] ?? 25);
+    $search = $_REQUEST['search']['value'] ?? '';
+
+    $whereClauses = ["p.added_by = ?"];
+    $params = [$userId];
+
+    if (!empty($search)) {
+        $whereClauses[] = "(p.name LIKE ? OR p.uhid LIKE ? OR p.mobile LIKE ?)";
+        $searchTerm = "%$search%";
+        array_push($params, $searchTerm, $searchTerm, $searchTerm);
+    }
+
+    $whereSql = " WHERE " . implode(" AND ", $whereClauses);
+
+    $totalStmt = $pdo->query("SELECT COUNT(*) FROM {$config['table_name']}");
+    $totalRecords = $totalStmt->fetchColumn();
+
+    $filteredStmt = $pdo->prepare("SELECT COUNT(*) FROM {$config['table_name']} p $whereSql");
+    $filteredStmt->execute($params);
+    $filteredRecords = $filteredStmt->fetchColumn();
+
+    $query = "SELECT p.*, u.username as added_by_username FROM {$config['table_name']} p LEFT JOIN users u ON p.added_by = u.id $whereSql ORDER BY p.id DESC LIMIT $start, $length";
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
+    $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    json_response([
+        'draw' => $draw,
+        'recordsTotal' => $totalRecords,
+        'recordsFiltered' => $filteredRecords,
+        'success' => true,
+        'data' => $patients
+    ]);
+}
+
+function handleGet($pdo, $config, $user_data) {
+    $id = $_GET['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Patient ID is required'], 400);
+    }
+
+    $stmt = $pdo->prepare("SELECT p.*, u.username as added_by_username FROM {$config['table_name']} p LEFT JOIN users u ON p.added_by = u.id WHERE p.id = ?");
+    $stmt->execute([$id]);
+    $patient = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$patient) {
+        json_response(['success' => false, 'message' => 'Patient not found'], 404);
+    }
+
+    json_response(['success' => true, 'data' => $patient]);
+}
+
+function handleSave($pdo, $config, $user_data) {
+    $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+    $id = $input['id'] ?? null;
+
+    foreach ($config['required_fields'] as $field) {
+        if (empty($input[$field])) {
+            json_response(['success' => false, 'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'], 400);
+        }
+    }
+
+    $data = array_intersect_key($input, array_flip($config['allowed_fields']));
+    $data['added_by'] = $data['added_by'] ?? $user_data['user_id'];
+
+    if ($id) {
+        $set_clause = implode(', ', array_map(fn($field) => "`$field` = ?", array_keys($data)));
+        $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
+        $values = array_merge(array_values($data), [$id]);
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($values);
+        $patient_id = $id;
+        $action_status = 'updated';
+    } else {
+        $cols = implode(', ', array_keys($data));
+        $placeholders = implode(', ', array_fill(0, count($data), '?'));
+        $sql = "INSERT INTO {$config['table_name']} ($cols) VALUES ($placeholders)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(array_values($data));
+        $patient_id = $pdo->lastInsertId();
+        $action_status = 'inserted';
+    }
+
+    $stmt = $pdo->prepare("SELECT p.*, u.username as added_by_username FROM {$config['table_name']} p LEFT JOIN users u ON p.added_by = u.id WHERE p.id = ?");
+    $stmt->execute([$patient_id]);
+    $saved_patient = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    json_response([
+        'success' => true,
+        'message' => "Patient {$action_status} successfully",
+        'data' => $saved_patient,
+        'id' => $patient_id
+    ]);
+}
+
+function handleDelete($pdo, $config, $user_data) {
+    $id = $_REQUEST['id'] ?? null;
+    if (!$id) {
+        json_response(['success' => false, 'message' => 'Patient ID is required'], 400);
+    }
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM entries WHERE patient_id = ?');
+    $stmt->execute([$id]);
+    if ($stmt->fetchColumn() > 0) {
+        json_response(['success' => false, 'message' => 'Cannot delete patient with associated test entries'], 400);
+    }
+
+    $stmt = $pdo->prepare("DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+    $result = $stmt->execute([$id]);
+
+    json_response(['success' => $result, 'message' => $result ? 'Patient deleted successfully' : 'Failed to delete patient']);
+}
+
+function handleStats($pdo, $user_data) {
+    $userId = $_REQUEST['user_id'] ?? $user_data['user_id'];
+
+    $totalStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ?');
+    $totalStmt->execute([$userId]);
+    $total = $totalStmt->fetchColumn();
+
+    $todayStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND DATE(created_at) = CURDATE()');
+    $todayStmt->execute([$userId]);
+    $today = $todayStmt->fetchColumn();
+
+    json_response([
+        'success' => true,
+        'data' => [
+            'total' => $total,
+            'today' => $today
+        ]
+    ]);
 }
 ?>
