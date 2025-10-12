@@ -1,4 +1,5 @@
 <?php
+echo "Hello"; die;
 /**
  * Test API - Comprehensive CRUD operations for tests
  * Supports: CREATE, READ, UPDATE, DELETE operations
