@@ -1,4 +1,46 @@
 <?php
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
+// Centralized error handler
+function handle_error($errno, $errstr, $errfile, $errline) {
+    $error_data = [
+        'success' => false,
+        'message' => 'An unexpected error occurred.',
+        'error' => [
+            'type' => 'PHP Error',
+            'message' => $errstr,
+            'file' => $errfile,
+            'line' => $errline
+        ]
+    ];
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($error_data);
+    exit;
+}
+set_error_handler('handle_error');
+
+// Centralized exception handler
+function handle_exception($exception) {
+    $error_data = [
+        'success' => false,
+        'message' => 'An unexpected exception occurred.',
+        'error' => [
+            'type' => get_class($exception),
+            'message' => $exception->getMessage(),
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+            'trace' => $exception->getTraceAsString()
+        ]
+    ];
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($error_data);
+    exit;
+}
+set_exception_handler('handle_exception');
+
 /**
  * Test API - Comprehensive CRUD operations for tests
  * Supports: CREATE, READ, UPDATE, DELETE operations
@@ -20,7 +62,6 @@ require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 require_once __DIR__ . '/../inc/simple_auth.php';
 
-
 $entity_config = [
     'table_name' => 'tests',
     'id_field' => 'id',
@@ -32,23 +73,6 @@ $entity_config = [
         'test_code', 'shortcut', 'sub_heading', 'print_new_page', 'specimen', 'added_by'
     ]
 ];
-
-
-$user_data = false;
-if (isset($pdo) && $pdo) {
-    $user_data = simpleAuthenticate($pdo);
-    if (!$user_data) {
-        json_response(['success' => false, 'message' => 'Authentication required', 'debug_info' => getAuthDebugInfo()], 401);
-    }
-} else {
-    // For testing without database, allow master access
-    $user_data = [
-        'user_id' => 1,
-        'role' => 'master',
-        'username' => 'test_user',
-        'auth_method' => 'no_db'
-    ];
-}
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $action = $_REQUEST['action'] ?? $requestMethod;
@@ -62,19 +86,19 @@ try {
     switch($action) {
         case 'list':
         case 'simple_list':
-            handleList($pdo, $entity_config, $user_data, $action === 'simple_list');
+            handleList($pdo, $entity_config, $action === 'simple_list');
             break;
         case 'get':
-            handleGet($pdo, $entity_config, $user_data);
+            handleGet($pdo, $entity_config);
             break;
         case 'save':
-            handleSave($pdo, $entity_config, $user_data);
+            handleSave($pdo, $entity_config);
             break;
         case 'delete':
-            handleDelete($pdo, $entity_config, $user_data);
+            handleDelete($pdo, $entity_config);
             break;
         case 'stats':
-            handleStats($pdo, $user_data);
+            handleStats($pdo);
             break;
         default:
             json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
@@ -84,22 +108,18 @@ try {
     json_response(['success' => false, 'message' => 'An internal server error occurred.'], 500);
 }
 
-function handleList($pdo, $config, $user_data, $isSimpleList = false) {
-    error_log("handleList called");
-    if (!isset($pdo) || !$pdo) {
-        // Return mock data for testing without database
-        json_response(['success' => true, 'data' => [
-            ['id' => 1, 'name' => 'Test 1', 'category_id' => 1, 'price' => 100.00],
-            ['id' => 2, 'name' => 'Test 2', 'category_id' => 1, 'price' => 200.00]
-        ]]);
-        return;
+function handleList($pdo, $config, $isSimpleList = false) {
+    $user_data = simpleAuthenticate($pdo);
+    if (!$user_data) {
+        json_response([
+            'success' => false,
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
     }
-
     if (!simpleCheckPermission($user_data, 'list')) {
-        error_log("Permission denied");
         json_response(['success' => false, 'message' => 'Permission denied to list tests'], 403);
     }
-    error_log("Permission check passed");
 
     if ($isSimpleList) {
         $stmt = $pdo->query("SELECT t.id, t.name, t.price, c.name as category_name FROM {$config['table_name']} t LEFT JOIN categories c ON t.category_id = c.id ORDER BY t.name");
@@ -109,7 +129,6 @@ function handleList($pdo, $config, $user_data, $isSimpleList = false) {
     }
 
     $scopeIds = getScopedUserIds($pdo, $user_data);
-    error_log("scopeIds: " . json_encode($scopeIds));
     $where = '';
     $params = [];
     if (is_array($scopeIds)) {
@@ -140,12 +159,9 @@ function handleList($pdo, $config, $user_data, $isSimpleList = false) {
     $filteredRecords = $filteredStmt->fetchColumn();
 
     $query = "SELECT t.*, c.name as category_name FROM $baseQuery $whereClause ORDER BY t.id DESC LIMIT $start, $length";
-    error_log("query: " . $query);
-    error_log("params: " . json_encode($params));
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
     $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    error_log("tests count: " . count($tests));
 
     json_response([
         'draw' => $draw,
@@ -156,22 +172,19 @@ function handleList($pdo, $config, $user_data, $isSimpleList = false) {
     ]);
 }
 
-function handleGet($pdo, $config, $user_data) {
+function handleGet($pdo, $config) {
+    $user_data = simpleAuthenticate($pdo);
+    if (!$user_data) {
+        json_response([
+            'success' => false,
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
+    }
+
     $id = $_GET['id'] ?? null;
     if (!$id) {
         json_response(['success' => false, 'message' => 'Test ID is required'], 400);
-    }
-
-    if (!isset($pdo) || !$pdo) {
-        // Return mock data for testing without database
-        json_response(['success' => true, 'data' => [
-            'id' => (int)$id,
-            'name' => 'Test ' . $id,
-            'category_id' => 1,
-            'price' => 100.00,
-            'category_name' => 'Test Category'
-        ]]);
-        return;
     }
 
     $stmt = $pdo->prepare("SELECT t.*, c.name as category_name FROM {$config['table_name']} t LEFT JOIN categories c ON t.category_id = c.id WHERE t.id = ?");
@@ -189,21 +202,18 @@ function handleGet($pdo, $config, $user_data) {
     json_response(['success' => true, 'data' => $test]);
 }
 
-function handleSave($pdo, $config, $user_data) {
+function handleSave($pdo, $config) {
+    $user_data = simpleAuthenticate($pdo);
+    if (!$user_data) {
+        json_response([
+            'success' => false,
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
+    }
+
     $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
     $id = $input['id'] ?? null;
-
-    if (!isset($pdo) || !$pdo) {
-        // Return mock success response for testing without database
-        $mock_id = $id ?? 1;
-        json_response([
-            'success' => true,
-            'message' => "Test " . ($id ? 'updated' : 'inserted') . " successfully",
-            'data' => array_merge($input, ['id' => $mock_id, 'category_name' => 'Test Category']),
-            'id' => $mock_id
-        ]);
-        return;
-    }
 
     if ($id) { // Update
         $stmt = $pdo->prepare("SELECT added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
@@ -260,16 +270,19 @@ function handleSave($pdo, $config, $user_data) {
     ]);
 }
 
-function handleDelete($pdo, $config, $user_data) {
+function handleDelete($pdo, $config) {
+    $user_data = simpleAuthenticate($pdo);
+    if (!$user_data) {
+        json_response([
+            'success' => false,
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
+    }
+
     $id = $_REQUEST['id'] ?? null;
     if (!$id) {
         json_response(['success' => false, 'message' => 'Test ID is required'], 400);
-    }
-
-    if (!isset($pdo) || !$pdo) {
-        // Return mock success response for testing without database
-        json_response(['success' => true, 'message' => 'Test deleted successfully']);
-        return;
     }
 
     $stmt = $pdo->prepare("SELECT added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
@@ -290,14 +303,14 @@ function handleDelete($pdo, $config, $user_data) {
     json_response(['success' => $result, 'message' => $result ? 'Test deleted successfully' : 'Failed to delete test']);
 }
 
-function handleStats($pdo, $user_data) {
-    if (!isset($pdo) || !$pdo) {
-        // Return mock stats for testing without database
-        json_response(['success' => true, 'data' => [
-            'total' => 10,
-            'categories' => 3
-        ]]);
-        return;
+function handleStats($pdo) {
+    $user_data = simpleAuthenticate($pdo);
+    if (!$user_data) {
+        json_response([
+            'success' => false,
+            'message' => 'Authentication required',
+            'debug_info' => getAuthDebugInfo()
+        ], 401);
     }
 
     if (!simpleCheckPermission($user_data, 'list')) {
