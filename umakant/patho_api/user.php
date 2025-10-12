@@ -1,4 +1,5 @@
 <?php
+error_log("user.php started");
 /**
  * User API - Comprehensive CRUD operations for users
  * Supports: CREATE, READ, UPDATE, DELETE operations
@@ -15,10 +16,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 if (session_status() === PHP_SESSION_NONE) session_start();
+error_log("requiring files");
 require_once __DIR__ . '/../inc/connection.php';
 require_once __DIR__ . '/../inc/ajax_helpers.php';
 require_once __DIR__ . '/../inc/api_config.php';
 require_once __DIR__ . '/../inc/simple_auth.php';
+error_log("files required");
 
 // Entity Configuration for Users
 $entity_config = [
@@ -196,6 +199,7 @@ function handleList($pdo, $config) {
         error_log("Fatal error in handleList: " . $e->getMessage());
         json_response(['success' => false, 'message' => 'Internal server error'], 500);
     }
+}
 
 function handleGet($pdo, $config) {
     $user_data = simpleAuthenticate($pdo);
