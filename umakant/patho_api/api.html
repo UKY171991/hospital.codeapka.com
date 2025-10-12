@@ -1,56 +1,39 @@
-'''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Test Dashboard</title>
+    <title>API Documentation & Tester</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background-color: #f0f2f5; }
-        .api-dashboard { display: flex; height: 100vh; }
-        .sidebar { width: 280px; background: #fff; border-right: 1px solid #dee2e6; padding: 20px; }
-        .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; }
+        .sidebar {
+            width: 280px;
+            background: #fff;
+            border-right: 1px solid #dee2e6;
+            padding: 20px;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+        }
+        .main-content {
+            margin-left: 280px;
+            padding: 20px;
+        }
         .api-list .list-group-item { cursor: pointer; }
-        .response-viewer { background: #212529; color: #fff; padding: 15px; border-radius: 5px; max-height: 600px; overflow-y: auto; }
+        .code-viewer { background: #212529; color: #fff; padding: 15px; border-radius: 5px; max-height: 400px; overflow-y: auto; }
     </style>
 </head>
 <body>
-    <div class="api-dashboard">
+    <div class="d-flex">
         <div class="sidebar">
             <h4 class="mb-4">APIs</h4>
             <div id="api-list" class="list-group"></div>
         </div>
         <div class="main-content">
             <div class="container-fluid">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">API Request</h5>
-                                <div class="mb-3">
-                                    <label for="api-url" class="form-label">URL</label>
-                                    <input type="text" class="form-control" id="api-url" readonly>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="api-method" class="form-label">Method</label>
-                                    <input type="text" class="form-control" id="api-method" readonly>
-                                </div>
-                                <button id="send-request" class="btn btn-primary">Send Request</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Response</h5>
-                                <pre id="response-viewer" class="response-viewer"><code></code></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div id="api-documentation"></div>
             </div>
         </div>
     </div>
@@ -59,66 +42,187 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
         const apiEndpoints = [
-            { name: 'Users', file: 'user.php' },
-            { name: 'Doctors', file: 'doctor.php' },
-            { name: 'Patients', file: 'patient.php' },
-            { name: 'Tests', file: 'test.php' },
-            { name: 'Test Categories', file: 'test_category.php' },
-            { name: 'Entries', file: 'entry.php' },
-            { name: 'Notices', file: 'notice.php' },
-            { name: 'Owners', file: 'owner.php' },
+            {
+                name: 'Users',
+                file: 'user.php',
+                description: 'API for managing users.',
+                endpoints: [
+                    { action: 'list', method: 'GET', description: 'Get all users.' },
+                    { action: 'get', method: 'GET', description: 'Get a single user by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a user.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a user by ID.', params: ['id'] }
+                ]
+            },
+            {
+                name: 'Doctors',
+                file: 'doctor.php',
+                description: 'API for managing doctors.',
+                endpoints: [
+                    { action: 'list', method: 'GET', description: 'Get all doctors.' },
+                    { action: 'get', method: 'GET', description: 'Get a single doctor by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a doctor.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a doctor by ID.', params: ['id'] }
+                ]
+            },
+            {
+                name: 'Patients',
+                file: 'patient.php',
+                description: 'API for managing patients.',
+                endpoints: [
+                    { action: 'list', method: 'GET', description: 'Get all patients.' },
+                    { action: 'get', method: 'GET', description: 'Get a single patient by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a patient.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a patient by ID.', params: ['id'] },
+                    { action: 'stats', method: 'GET', description: 'Get patient statistics.' }
+                ]
+            },
+            {
+                name: 'Tests',
+                file: 'test.php',
+                description: 'API for managing tests.',
+                endpoints: [
+                    { action: 'list', method: 'GET', description: 'Get all tests.' },
+                    { action: 'get', method: 'GET', description: 'Get a single test by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a test.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a test by ID.', params: ['id'] },
+                    { action: 'stats', method: 'GET', description: 'Get test statistics.' }
+                ]
+            },
+            {
+                name: 'Test Categories',
+                file: 'test_category.php',
+                description: 'API for managing test categories.',
+                endpoints: [
+                    { action: 'list', method: 'GET', description: 'Get all test categories.' },
+                    { action: 'get', method: 'GET', description: 'Get a single test category by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a test category.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a test category by ID.', params: ['id'] }
+                ]
+            },
+            {
+                name: 'Entries',
+                file: 'entry.php',
+                description: 'API for managing test entries.',
+                endpoints: [
+                    { action: 'list', method: 'GET', description: 'Get all test entries.' },
+                    { action: 'get', method: 'GET', description: 'Get a single test entry by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a test entry.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a test entry by ID.', params: ['id'] },
+                    { action: 'stats', method: 'GET', description: 'Get test entry statistics.' },
+                    { action: 'add_test', method: 'POST', description: 'Add a test to an entry.' },
+                    { action: 'remove_test', method: 'POST', description: 'Remove a test from an entry.' },
+                    { action: 'get_tests', method: 'GET', description: 'Get all tests for an entry.', params: ['entry_id'] },
+                    { action: 'update_test_result', method: 'POST', description: 'Update a test result.' }
+                ]
+            },
+            {
+                name: 'Notices',
+                file: 'notice.php',
+                description: 'API for managing notices.',
+                endpoints: [
+                    { action: 'list', method: 'GET', description: 'Get all notices.' },
+                    { action: 'get', method: 'GET', description: 'Get a single notice by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a notice.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a notice by ID.', params: ['id'] }
+                ]
+            },
+            {
+                name: 'Owners',
+                file: 'owner.php',
+                description: 'API for managing owners.',
+                endpoints: [
+                    { action: 'list', method: 'GET', description: 'Get all owners.'},
+                    { action: 'get', method: 'GET', description: 'Get a single owner by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update an owner.' },
+                    { action: 'delete', method: 'POST', description: 'Delete an owner by ID.', params: ['id'] }
+                ]
+            },
         ];
 
         const apiList = document.getElementById('api-list');
-        const apiUrl = document.getElementById('api-url');
-        const apiMethod = document.getElementById('api-method');
-        const sendRequestBtn = document.getElementById('send-request');
-        const responseViewer = document.querySelector('#response-viewer code');
+        const apiDocumentation = document.getElementById('api-documentation');
 
         function renderApiList() {
             apiList.innerHTML = '';
             apiEndpoints.forEach(api => {
                 const a = document.createElement('a');
-                a.href = '#';
+                a.href = `#${api.file}`;
                 a.className = 'list-group-item list-group-item-action';
                 a.textContent = api.name;
-                a.onclick = () => selectApi(api);
+                a.onclick = () => renderApiDocumentation(api);
                 apiList.appendChild(a);
             });
         }
 
-        function selectApi(api) {
-            apiUrl.value = `/umakant/patho_api/${api.file}?action=list&secret_key=hospital-api-secret-2024`;
-            apiMethod.value = 'GET';
+        function renderApiDocumentation(api) {
+            let endpointsHtml = '';
+            api.endpoints.forEach(endpoint => {
+                endpointsHtml += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5>${endpoint.action}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>${endpoint.description}</p>
+                            <p><strong>Method:</strong> ${endpoint.method}</p>
+                            <p><strong>URL:</strong> <code>/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}</code></p>
+                            <h6>Code Examples</h6>
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#curl-${api.file}-${endpoint.action}" type="button" role="tab">cURL</button></li>
+                                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#js-${api.file}-${endpoint.action}" type="button" role="tab">JavaScript</button></li>
+                                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#php-${api.file}-${endpoint.action}" type="button" role="tab">PHP</button></li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane fade show active" id="curl-${api.file}-${endpoint.action}" role="tabpanel">
+                                    <pre class="code-viewer"><code>${generateCurlExample(api, endpoint)}</code></pre>
+                                </div>
+                                <div class="tab-pane fade" id="js-${api.file}-${endpoint.action}" role="tabpanel">
+                                    <pre class="code-viewer"><code>${generateJsExample(api, endpoint)}</code></pre>
+                                </div>
+                                <div class="tab-pane fade" id="php-${api.file}-${endpoint.action}" role="tabpanel">
+                                    <pre class="code-viewer"><code>${generatePhpExample(api, endpoint)}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            apiDocumentation.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">${api.name}</h2>
+                        <p class="card-text">${api.description}</p>
+                        ${endpointsHtml}
+                    </div>
+                </div>
+            `;
         }
 
-        async function sendRequest() {
-            const url = apiUrl.value;
-            const method = apiMethod.value;
-
-            if (!url) {
-                alert('Please select an API first.');
-                return;
-            }
-
-            responseViewer.textContent = 'Loading...';
-
-            try {
-                const response = await axios({
-                    method: method,
-                    url: url,
-                });
-
-                responseViewer.textContent = JSON.stringify(response.data, null, 2);
-            } catch (error) {
-                responseViewer.textContent = JSON.stringify(error.response.data, null, 2);
-            }
+        function generateCurlExample(api, endpoint) {
+            const url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
+            return `curl -X ${endpoint.method} "${window.location.origin}${url}&secret_key=hospital-api-secret-2024"`;
         }
 
-        sendRequestBtn.addEventListener('click', sendRequest);
+        function generateJsExample(api, endpoint) {
+            const url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
+            return `axios({
+    method: '${endpoint.method}',
+    url: '${url}&secret_key=hospital-api-secret-2024'
+}).then(response => {
+    console.log(response.data);
+});`;
+        }
+
+        function generatePhpExample(api, endpoint) {
+            const url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
+            return `<?php\n$url = "${window.location.origin}${url}&secret_key=hospital-api-secret-2024";\n$response = file_get_contents($url);\n$data = json_decode($response, true);\nprint_r($data);\n?>`;
+        }
 
         renderApiList();
+        if (apiEndpoints.length > 0) {
+            renderApiDocumentation(apiEndpoints[0]);
+        }
     </script>
 </body>
 </html>
-''
