@@ -121,7 +121,7 @@ function handleList($pdo, $config) {
             $params[] = $like;
         }
 
-        $sql = "SELECT c.id, c.name, c.description, c.added_by, COALESCE(u.username, '') AS added_by_username, COUNT(t.id) AS test_count
+        $sql = "SELECT c.*, COALESCE(u.username, '') AS added_by_username, COUNT(t.id) AS test_count
                 FROM {$config['table_name']} c
                 LEFT JOIN tests t ON c.id = t.category_id
                 LEFT JOIN users u ON c.added_by = u.id";
@@ -175,7 +175,7 @@ function handleGet($pdo, $config) {
     }
 
     try {
-        $sql = "SELECT c.id, c.name, c.description, c.added_by, COALESCE(u.username, '') AS added_by_username, COUNT(t.id) AS test_count
+        $sql = "SELECT c.*, COALESCE(u.username, '') AS added_by_username, COUNT(t.id) AS test_count
                 FROM {$config['table_name']} c
                 LEFT JOIN tests t ON c.id = t.category_id
                 LEFT JOIN users u ON c.added_by = u.id
