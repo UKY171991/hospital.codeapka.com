@@ -74,21 +74,27 @@ try {
 }
 
 function handleList($pdo, $config) {
+    error_log("handleList called");
     $user_data = simpleAuthenticate($pdo);
     if (!$user_data) {
+        error_log("Authentication failed");
         json_response([
             'success' => false, 
             'message' => 'Authentication required',
             'debug_info' => getAuthDebugInfo()
         ], 401);
     }
+    error_log("Authentication successful: " . json_encode($user_data));
     if (!simpleCheckPermission($user_data, 'list')) {
+        error_log("Permission denied");
         json_response(['success' => false, 'message' => 'Permission denied to list users'], 403);
     }
+    error_log("Permission check passed");
 
     try {
         // Role-based scoping
         $scopeIds = getScopedUserIds($pdo, $user_data); // null => no restriction (master)
+        error_log("Scope IDs: " . json_encode($scopeIds));
         $params = [];
         $where = '';
         if (is_array($scopeIds)) {
@@ -97,48 +103,46 @@ function handleList($pdo, $config) {
             $placeholders = implode(',', array_fill(0, count($scopeIds), '?'));
             $where = " WHERE id IN ($placeholders) OR added_by IN ($placeholders)";
             $params = array_merge($scopeIds, $scopeIds);
+            error_log("WHERE clause: $where");
+            error_log("Params: " . json_encode($params));
         }
 
-        // Check if users table exists, create if not
-        $stmt = $pdo->query("SHOW TABLES LIKE 'users'");
-        if ($stmt->rowCount() == 0) {
-            // Create users table
-            $create_table_sql = "CREATE TABLE `users` (
-              `id` int(11) NOT NULL AUTO_INCREMENT,
-              `username` varchar(255) NOT NULL,
-              `full_name` varchar(255) NOT NULL,
-              `email` varchar(255) DEFAULT NULL,
-              `password` varchar(255) NOT NULL,
-              `role` enum('user','admin','master') NOT NULL DEFAULT 'user',
-              `user_type` varchar(50) DEFAULT NULL,
-              `is_active` tinyint(1) NOT NULL DEFAULT 1,
-              `expire_date` datetime DEFAULT NULL,
-              `added_by` int(11) DEFAULT NULL,
-              `api_token` varchar(255) DEFAULT NULL,
-              `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-              `last_login` datetime DEFAULT NULL,
-              PRIMARY KEY (`id`),
-              UNIQUE KEY `username` (`username`),
-              KEY `idx_users_email` (`email`),
-              KEY `idx_users_role` (`role`),
-              KEY `idx_users_is_active` (`is_active`),
-              KEY `idx_users_added_by` (`added_by`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci";
+        // Check if users table exists and has correct structure
+        try {
+            $stmt = $pdo->query("SHOW TABLES LIKE 'users'");
+            $tableExists = $stmt->rowCount() > 0;
 
-            $pdo->exec($create_table_sql);
-
-            // Insert default admin user
-            $pdo->exec("INSERT IGNORE INTO `users` (`username`, `full_name`, `email`, `password`, `role`, `is_active`)
-                       VALUES ('admin', 'System Administrator', 'admin@hospital.com', '" . password_hash('password', PASSWORD_DEFAULT) . "', 'admin', 1)");
+            if (!$tableExists) {
+                error_log("Users table does not exist");
+                json_response([
+                    'success' => false,
+                    'message' => 'Users table does not exist. Please create the users table in your database or contact your administrator.',
+                    'debug_info' => [
+                        'issue' => 'missing_users_table',
+                        'solution' => 'Run the following SQL to create the users table:',
+                        'sql' => 'CREATE TABLE users (id int(11) NOT NULL AUTO_INCREMENT, username varchar(255) NOT NULL, full_name varchar(255) NOT NULL, email varchar(255) DEFAULT NULL, password varchar(255) NOT NULL, role varchar(50) NOT NULL DEFAULT "user", user_type varchar(50) DEFAULT NULL, is_active tinyint(1) NOT NULL DEFAULT 1, expire_date datetime DEFAULT NULL, added_by int(11) DEFAULT NULL, api_token varchar(255) DEFAULT NULL, created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, last_login datetime DEFAULT NULL, PRIMARY KEY (id), UNIQUE KEY username (username)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;'
+                    ]
+                ], 500);
+                return;
+            }
+        } catch (Exception $e) {
+            error_log("Error checking users table: " . $e->getMessage());
+            json_response([
+                'success' => false,
+                'message' => 'Database connection issue. Please check your database configuration.',
+                'debug_info' => ['error' => $e->getMessage()]
+            ], 500);
+            return;
         }
 
         $sql = "SELECT id, username, full_name, email, password, role, user_type, is_active,
                        created_at, updated_at, last_login, expire_date, added_by, api_token
                 FROM {$config['table_name']}" . $where . " ORDER BY username";
+        error_log("Executing query: " . $sql . " with params: " . json_encode($params));
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        error_log("Query executed successfully, found " . count($users) . " users");
         json_response(['success' => true, 'data' => $users, 'total' => count($users)]);
     } catch (Exception $e) {
         error_log("List users error: " . $e->getMessage());
