@@ -117,17 +117,21 @@ function handleList($pdo, $config) {
                 $tableExists = $stmt->rowCount() > 0;
 
                 if (!$tableExists) {
-                    error_log("Users table does not exist");
+                    error_log("Users table does not exist - providing setup instructions");
                     json_response([
                         'success' => false,
                         'message' => 'Users table does not exist. Please create the users table in your database.',
                         'debug_info' => [
                             'issue' => 'missing_users_table',
                             'solution' => 'Run the following SQL to create the users table:',
-                            'sql' => 'CREATE TABLE users (id int(11) NOT NULL AUTO_INCREMENT, username varchar(255) NOT NULL, full_name varchar(255) NOT NULL, email varchar(255) DEFAULT NULL, password varchar(255) NOT NULL, role varchar(50) NOT NULL DEFAULT "user", user_type varchar(50) DEFAULT NULL, is_active tinyint(1) NOT NULL DEFAULT 1, expire_date datetime DEFAULT NULL, added_by int(11) DEFAULT NULL, api_token varchar(255) DEFAULT NULL, created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, last_login datetime DEFAULT NULL, PRIMARY KEY (id), UNIQUE KEY username (username)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;'
+                            'sql' => 'CREATE TABLE users (id int(11) NOT NULL AUTO_INCREMENT, username varchar(255) NOT NULL, full_name varchar(255) NOT NULL, email varchar(255) DEFAULT NULL, password varchar(255) NOT NULL, role varchar(50) NOT NULL DEFAULT "user", user_type varchar(50) DEFAULT NULL, is_active tinyint(1) NOT NULL DEFAULT 1, expire_date datetime DEFAULT NULL, added_by int(11) DEFAULT NULL, api_token varchar(255) DEFAULT NULL, created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, last_login datetime DEFAULT NULL, PRIMARY KEY (id), UNIQUE KEY username (username)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;',
+                            'alternative' => 'Or run this simplified version:',
+                            'simple_sql' => 'CREATE TABLE users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) NOT NULL UNIQUE, full_name VARCHAR(255) NOT NULL, email VARCHAR(255), password VARCHAR(255) NOT NULL, role VARCHAR(50) DEFAULT "user", is_active TINYINT DEFAULT 1, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);'
                         ]
                     ], 500);
                     return;
+                } else {
+                    error_log("Users table exists - proceeding with query");
                 }
             } catch (Exception $e) {
                 error_log("Error checking users table: " . $e->getMessage());
