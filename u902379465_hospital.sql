@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 09, 2025 at 10:24 AM
+-- Generation Time: Oct 12, 2025 at 04:38 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -41,8 +41,7 @@ CREATE TABLE `categories` (
 --
 
 INSERT INTO `categories` (`id`, `name`, `description`, `added_by`, `created_at`, `updated_at`) VALUES
-(3, 'asd', 'qw', 1, '2025-09-27 10:14:02', '2025-09-27 10:14:36'),
-(4, 'asdf hh', 'sdf', 1, '2025-09-27 10:14:09', '2025-09-27 10:14:40'),
+(3, 'asd', 'qw', 1, '2025-09-27 10:14:02', '2025-10-10 13:12:26'),
 (5, 'erfg  hh', 'qws', 1, '2025-09-27 10:30:03', '2025-09-27 10:30:11'),
 (6, 'Sydnee Levine hh', 'Eos et in lorem non', 1, '2025-09-28 10:02:38', '2025-09-28 10:02:50');
 
@@ -75,8 +74,7 @@ CREATE TABLE `doctors` (
 --
 
 INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specialization`, `hospital`, `contact_no`, `phone`, `email`, `address`, `registration_no`, `percent`, `added_by`, `created_at`, `updated_at`) VALUES
-(5, NULL, 'Test Doctor 2', 'MBBS', 'General', 'Test Hospital', '1234567890', '1234567890', 'test2@example.com', 'Test Address', 'REG124', 10.00, 1, NULL, NULL),
-(6, NULL, 'Wade Solomon', '', '', 'Quas nostrud quibusd', 'Assumenda et suscipi', '', '', 'Ipsum labore eaque a', '', 57.00, 1, '2025-09-27 17:08:37', '2025-09-27 17:08:37'),
+(6, NULL, 'Wade Solomon', '', '', 'Quas nostrud quibusd', 'Assumenda et suscipi', '', '', 'Ipsum labore eaque a', '', 57.00, 1, '2025-09-27 17:08:37', '2025-10-10 12:38:34'),
 (7, NULL, 'Constance Conrad', NULL, NULL, 'Nostrud obcaecati co', 'Ipsa iusto totam oc', NULL, NULL, 'Porro eum irure odio', NULL, 60.00, 1, '2025-09-27 17:10:52', '2025-09-27 17:10:52'),
 (8, NULL, 'Sylvester Harmon', NULL, NULL, 'Quia et repellendus', 'Cum occaecat dicta u', NULL, NULL, 'Fugiat quas reiciend', NULL, 24.00, 1, '2025-09-27 17:13:41', '2025-09-27 17:13:41'),
 (9, NULL, 'sdef', NULL, NULL, 'qw', 'qw', NULL, NULL, 'qw', NULL, 4.00, 1, '2025-09-27 17:18:42', '2025-09-27 17:18:42'),
@@ -85,7 +83,7 @@ INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specializati
 (12, NULL, 'Alma Cooke', NULL, NULL, 'Quia et rerum totam', 'Cupiditate sunt et', NULL, NULL, 'Dolor soluta quibusd', NULL, 96.00, 1, '2025-09-27 17:27:21', '2025-09-27 17:27:21'),
 (13, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, 'Ea vero eos et aut t', NULL, 44.00, 2, '2025-09-28 11:32:44', '2025-09-28 11:32:44'),
 (14, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, 'Tempore proident s', NULL, 41.00, 2, '2025-09-28 11:41:15', '2025-09-28 11:41:15'),
-(15, NULL, 'ASD', NULL, NULL, 'QW', 'Q', NULL, NULL, 'Q', NULL, 2.00, 2, '2025-09-28 11:44:10', '2025-09-28 11:44:10');
+(15, NULL, 'ASD', NULL, NULL, 'QW', 'Q', NULL, NULL, 'Q', NULL, 4.00, 1, '2025-09-28 11:44:10', '2025-10-11 16:08:04');
 
 -- --------------------------------------------------------
 
@@ -125,17 +123,17 @@ INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`,
 (1, 1, NULL, 3, NULL, '2025-10-06 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 100.00, 20.00, 100.00, 'pending', NULL, 1, '2025-10-06 14:13:29', NULL),
 (2, 2, NULL, 2, 15, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 100.00, 0.00, 60.00, 'pending', NULL, 2, '2025-10-06 15:53:42', NULL),
 (5, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, NULL, 200.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 16:21:47', NULL),
-(6, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, NULL, 300.00, 0.00, 400.00, 'pending', NULL, 1, '2025-10-06 16:40:50', NULL),
+(6, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, NULL, 1080.00, 100.00, 980.00, 'pending', NULL, 1, '2025-10-06 16:40:50', NULL),
 (7, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, NULL, 400.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 17:12:12', NULL),
 (9, 2, NULL, 2, 14, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 500.00, 0.00, 300.00, 'pending', NULL, 2, '2025-10-08 11:21:38', NULL),
 (10, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 600.00, 0.00, 340.00, 'pending', NULL, 1, '2025-10-08 17:09:55', NULL),
-(11, 1, NULL, 4, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 300.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-08 17:51:17', NULL),
+(11, 1, NULL, NULL, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 300.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-08 17:51:17', NULL),
 (12, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-08 18:00:34', NULL),
-(13, 1, NULL, 4, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-09 08:15:03', NULL),
-(14, 1, NULL, 4, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-09 08:15:35', NULL),
+(13, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-09 08:15:03', NULL),
+(14, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-09 08:15:35', NULL),
 (15, 1, NULL, 3, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 1080.00, 0.00, 1080.00, 'pending', NULL, 1, '2025-10-09 08:16:19', NULL),
-(16, 1, NULL, 4, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 1080.00, 50.00, 1030.00, 'pending', NULL, 1, '2025-10-09 08:21:40', NULL),
-(17, 1, NULL, 4, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 100.00, 20.00, 80.00, 'pending', NULL, 1, '2025-10-09 08:30:36', NULL);
+(16, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 1080.00, 50.00, 1030.00, 'pending', NULL, 1, '2025-10-09 08:21:40', NULL),
+(17, 1, NULL, 3, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 100.00, 20.00, 80.00, 'pending', NULL, 1, '2025-10-09 08:30:36', NULL);
 
 -- --------------------------------------------------------
 
@@ -165,8 +163,6 @@ INSERT INTO `entry_tests` (`id`, `entry_id`, `test_id`, `result_value`, `unit`, 
 (1, 1, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 14:13:29'),
 (8, 5, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 16:21:47'),
 (9, 5, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 16:21:47'),
-(10, 6, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 16:40:50'),
-(11, 6, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 16:40:50'),
 (12, 7, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 17:12:12'),
 (13, 7, 1, '50', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 17:12:12'),
 (14, 8, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-07 07:20:16'),
@@ -188,7 +184,9 @@ INSERT INTO `entry_tests` (`id`, `entry_id`, `test_id`, `result_value`, `unit`, 
 (71, 15, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 100.00, '2025-10-09 15:01:48'),
 (73, 16, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 100.00, '2025-10-09 15:18:15'),
 (74, 16, 1, '50', 'abc', NULL, 'pending', 0.00, 0.00, 980.00, '2025-10-09 15:18:15'),
-(77, 17, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 100.00, '2025-10-09 15:47:32');
+(78, 17, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 100.00, '2025-10-09 16:01:41'),
+(79, 6, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 980.00, '2025-10-10 06:44:42'),
+(80, 6, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 100.00, '2025-10-10 06:44:42');
 
 -- --------------------------------------------------------
 
@@ -208,6 +206,14 @@ CREATE TABLE `notices` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+--
+-- Dumping data for table `notices`
+--
+
+INSERT INTO `notices` (`id`, `server_id`, `title`, `content`, `start_date`, `end_date`, `active`, `added_by`, `created_at`, `updated_at`) VALUES
+(1, NULL, 'Dolores irure non qu', 'Temporibus itaque re', '1990-03-11 14:49:00', '2017-12-22 21:06:00', 1, 1, '2025-10-10 19:14:13', NULL),
+(2, NULL, 'Magna sint est vel', 'Qui praesentium eos', '1988-01-10 01:37:00', '1979-10-28 00:26:00', 1, 1, '2025-10-10 19:14:26', NULL);
 
 -- --------------------------------------------------------
 
@@ -234,9 +240,7 @@ CREATE TABLE `owners` (
 --
 
 INSERT INTO `owners` (`id`, `server_id`, `name`, `phone`, `whatsapp`, `email`, `address`, `link`, `added_by`, `created_at`, `updated_at`) VALUES
-(1, NULL, 'Veronica Conner', '+1 (943) 454-5052', 'Consequatur esse au', 'colabyfa@mailinator.com', 'Veniam voluptatem e', '', 0, NULL, NULL),
-(2, NULL, 'Odette Bolton', '+1 (299) 142-5748', 'Quaerat autem adipis', 'kysefaco@mailinator.com', 'Enim in commodo at e', 'https://hospital.codeapka.com/', 0, NULL, '2025-09-28 15:31:20'),
-(3, NULL, 'Velma Vasquez', '+1 (339) 777-1313', 'Rerum corporis adipi', 'dadixalex@mailinator.com', 'Et delectus error n', 'https://www.vih.us', 1, NULL, NULL);
+(4, NULL, 'Support (Umakant Yadav)', '9453619260', '9453619260', '', '', 'https://hospital.codeapka.com/', 1, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -294,8 +298,7 @@ CREATE TABLE `patients` (
 INSERT INTO `patients` (`id`, `server_id`, `name`, `email`, `mobile`, `father_husband`, `address`, `sex`, `age`, `contact`, `age_unit`, `uhid`, `created_at`, `updated_at`, `added_by`) VALUES
 (1, NULL, 'Naida Marquez', 'jejasiduw@mailinator.com', '5454455454', 'Indigo Holman', 'Voluptate quibusdam', 'Male', 45, '', 'Months', 'P033679005', '2025-09-28 12:02:58', '2025-09-28 13:52:46', 2),
 (2, NULL, 'James Sears', 'ciwi@mailinator.com', '5656565656', 'Arthur Oneal', 'Vel nobis error corr', 'Female', 10, '', 'Years', 'P642622065', '2025-09-28 12:27:50', '2025-09-28 13:52:29', 2),
-(3, NULL, 'Indigo Cortez', 'feloz@mailinator.com', '5454545454', 'Odette Villarreal', 'Et quaerat voluptati', 'Female', 86, '', 'Days', 'P483791824', '2025-09-28 13:31:49', '2025-09-28 13:55:01', 1),
-(4, NULL, 'Dr. Jane Ram', '', '9876543211', NULL, '456 Health Avenue', NULL, NULL, '', 'Years', '2025000004', NULL, '2025-10-09 05:41:19', 1);
+(3, NULL, 'Indigo Cortez', 'feloz@mailinator.com', '5454545454', 'Odette Villarreal', 'Et quaerat voluptati', NULL, 86, '', 'Days', 'P483791824', '2025-09-28 13:31:49', '2025-10-10 15:46:54', 1);
 
 -- --------------------------------------------------------
 
@@ -324,7 +327,7 @@ CREATE TABLE `plans` (
 
 INSERT INTO `plans` (`id`, `name`, `description`, `price`, `upi`, `time_type`, `start_date`, `end_date`, `qr_code`, `added_by`, `created_at`, `updated_at`) VALUES
 (1, 'Yearly Plan', '', 2999.00, '8081674028@upi', 'yearly', NULL, NULL, 'uploads/qr/1756541847_ca675b2b7067.jpg', 1, '2025-08-27 05:25:32', '2025-08-30 13:47:27'),
-(2, 'Basic Plan', '', 299.00, '8081674028@upi', 'monthly', NULL, NULL, 'uploads/qr/1756541839_7947cffc3422.jpg', 1, '2025-08-27 05:26:40', '2025-08-30 13:47:19');
+(2, 'Basic Plan', '', 299.00, '8081674028@upi', 'monthly', NULL, NULL, 'uploads/qr/1756541839_7947cffc3422.jpg', 1, '2025-08-27 05:26:40', '2025-10-11 05:03:23');
 
 -- --------------------------------------------------------
 
@@ -393,10 +396,11 @@ CREATE TABLE `users` (
   `email` varchar(255) DEFAULT NULL,
   `role` varchar(50) NOT NULL DEFAULT 'user',
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  `user_type` int(11) NOT NULL,
+  `user_type` text NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `last_login` datetime DEFAULT NULL,
   `expire_date` datetime DEFAULT NULL,
+  `api_token` text NOT NULL,
   `added_by` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
@@ -405,9 +409,9 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 0, '2025-09-26 10:12:24', '2025-10-09 15:01:08', '2025-10-26 10:12:00', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
-(2, 'uma', '$2y$12$yBaDoENR.9MOXDLizW.UYunvNev1XOICwYC.WNCRmPEd1fQ5TS85q', 'Uma Yadav', 'umakant171991@gmail.com', 'user', 1, 0, '2025-09-26 10:13:58', NULL, '2025-10-11 10:13:00', '0000-00-00 00:00:00', '2025-09-26 04:43:58');
+INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `api_token`, `added_by`, `updated_at`) VALUES
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-10-12 09:37:05', '2025-10-26 10:12:00', '', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(2, 'uma', '$2y$12$yBaDoENR.9MOXDLizW.UYunvNev1XOICwYC.WNCRmPEd1fQ5TS85q', 'Uma Yadav', 'umakant171992@gmail.com', 'user', 1, 'Pathology', '2025-09-26 10:13:58', NULL, '2025-10-11 10:13:00', '', '0000-00-00 00:00:00', '2025-09-26 04:43:58');
 
 -- --------------------------------------------------------
 
@@ -583,19 +587,19 @@ ALTER TABLE `entries`
 -- AUTO_INCREMENT for table `entry_tests`
 --
 ALTER TABLE `entry_tests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT for table `notices`
 --
 ALTER TABLE `notices`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `owners`
 --
 ALTER TABLE `owners`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `password_resets`
