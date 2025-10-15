@@ -126,6 +126,13 @@ $role = $_SESSION['role'] ?? 'user';
             </li>
 
             <li class="nav-item">
+              <a href="main-test-category.php" class="nav-link <?php echo ($activePage == 'main-test-category.php') ? 'active' : ''; ?>">
+                <i class="fas fa-th-large nav-icon"></i>
+                <p>Main Test Categories</p>
+              </a>
+            </li>
+
+            <li class="nav-item">
               <a href="test-category.php" class="nav-link <?php echo ($activePage == 'test-category.php') ? 'active' : ''; ?>">
                 <i class="fas fa-th-list nav-icon"></i>
                 <p>Test Categories</p>

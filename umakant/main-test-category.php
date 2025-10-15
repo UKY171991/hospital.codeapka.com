@@ -12,13 +12,13 @@ $current_username = $_SESSION['username'] ?? 'You';
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="mb-1">Test Categories</h1>
-                    <span class="text-muted">Manage and organize categories for laboratory tests.</span>
+                    <h1 class="mb-1">Main Test Categories</h1>
+                    <span class="text-muted">Manage and organize main categories for laboratory tests.</span>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="index.php">Home</a></li>
-                        <li class="breadcrumb-item active">Test Categories</li>
+                        <li class="breadcrumb-item active">Main Test Categories</li>
                     </ol>
                 </div>
             </div>
@@ -79,7 +79,6 @@ $current_username = $_SESSION['username'] ?? 'You';
                                             <th style="width:70px;">#</th>
                                             <th>ID</th>
                                             <th>Name</th>
-                                            <th>Main Category</th>
                                             <th>Description</th>
                                             <th class="text-center">Tests</th>
                                             <th>Added By</th>
@@ -110,18 +109,6 @@ $current_username = $_SESSION['username'] ?? 'You';
             <div class="modal-body">
                 <form id="categoryForm">
                     <input type="hidden" id="categoryId" name="id">
-                    <div class="form-group">
-                        <label for="mainCategory">Main Category <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-th-large"></i></span>
-                            </div>
-                            <select class="form-control" id="mainCategory" name="main_category_id" required>
-                                <option value="">Select Main Category</option>
-                            </select>
-                        </div>
-                    </div>
-
                     <div class="form-group">
                         <label for="categoryName">Category Name <span class="text-danger">*</span></label>
                         <div class="input-group input-group-lg">
@@ -171,11 +158,9 @@ $current_username = $_SESSION['username'] ?? 'You';
 require_once __DIR__ . '/inc/category_view_modal.php'; ?>
 
 <script>
-const TEST_CATEGORY_API = 'ajax/test_category_api.php';
+const TEST_CATEGORY_API = 'ajax/main_test_category_api.php';
 const CURRENT_USER_ID = <?php echo (int)($current_user_id ?? 0); ?>;
 const CURRENT_USER_ROLE = <?php echo json_encode($current_user_role); ?>;
-
-const MAIN_TEST_CATEGORY_API = 'ajax/main_test_category_api.php';
 
 function loadCategories(){
     const params = { action: 'list' };
@@ -186,6 +171,7 @@ function loadCategories(){
     $.getJSON(TEST_CATEGORY_API, params, function(resp){
         if(resp.success){
             var $table = $('#categoriesTable');
+            // Destroy existing DataTable instance if it exists
             if ($.fn.DataTable.isDataTable($table)) {
                 $table.DataTable().destroy();
             }
@@ -198,18 +184,18 @@ function loadCategories(){
                     '<td class="text-center">'+(idx+1)+'</td>'+
                     '<td><span class="badge badge-light border">#'+c.id+'</span></td>'+
                     '<td><strong>'+ (c.name||'') +'</strong></td>'+
-                    '<td>'+ (c.main_category_name||'') +'</td>'+
                     '<td>'+ description +'</td>'+
                     '<td class="text-center"><span class="badge badge-pill badge-info">'+ (c.test_count||0) +'</span></td>'+
                     '<td><span class="text-muted"><i class="fas fa-user mr-1 text-secondary"></i>'+ addedBy +'</span></td>'+
                     '<td class="text-nowrap">'+
                         '<button class="btn btn-sm btn-outline-primary mr-1" data-id="'+c.id+'" onclick="viewCategory('+c.id+')"><i class="fas fa-eye"></i></button>'+ 
                         '<button class="btn btn-sm btn-outline-info mr-1 edit-category" data-id="'+c.id+'"><i class="fas fa-edit"></i></button>'+ 
-                        '<button class="btn btn-sm btn-outline-danger delete-category" data-id="'+c.id+'"><i class="fas fa-trash"></i></button>'+ 
+                        '<button class="btn btn-sm btn-outline-danger delete-category" data-id="'+c.id+'"><i class="fas fa-trash"></i></button>'+
                     '</td>'+ 
                     '</tr>';
             });
             $('#categoriesTable tbody').html(t);
+            // Reinitialize DataTable
             window.categoryTable = initDataTable('#categoriesTable', {
                 dom: 'Bfrtip',
                 buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
@@ -219,6 +205,7 @@ function loadCategories(){
             });
             $('#categoryCount').text(resp.total ?? resp.data.length ?? 0);
 
+            // Bind search box to table search
             if (window.categoryTable) {
                 $('#categorySearch').off('keyup change').on('keyup change', function(){
                     window.categoryTable.search(this.value).draw();
@@ -236,17 +223,6 @@ function loadCategories(){
     });
 }
 
-function loadMainCategories(){
-    $.getJSON(MAIN_TEST_CATEGORY_API, { action: 'list' }, function(resp){
-        if(resp.success){
-            var options = '<option value="">Select Main Category</option>';
-            resp.data.forEach(function(c){
-                options += '<option value="'+c.id+'">'+c.name+'</option>';
-            });
-            $('#mainCategory').html(options);
-        }
-    });
-}
 function openAddCategoryModal(){
     $('#categoryForm')[0].reset();
     $('#categoryId').val('');
@@ -265,7 +241,7 @@ function viewCategory(id){
                     '<tr><th>Name</th><td>'+(d.name||'')+'</td></tr>' +
                     '<tr><th>Description</th><td>'+(d.description||'')+'</td></tr>' +
                     '<tr><th>Test Count</th><td>'+(d.test_count||0)+'</td></tr>' +
-                    '<tr><th>Added By</th><td>'+((d.added_by_username && d.added_by_username!='')?d.added_by_username:(d.added_by||''))+'</td></tr>' +
+                    '<tr><th>Added By</th><td>'+((d.added_by_username && d.added_by_username!=='')?d.added_by_username:(d.added_by||''))+'</td></tr>' +
                     '</table>';
                 $('#categoryViewModal .category-view-content').html(html);
                 $('#categoryViewModal').modal('show');
@@ -277,7 +253,6 @@ function viewCategory(id){
 $(function(){
     // Initial load of categories
     loadCategories();
-    loadMainCategories();
 
     // Save, edit, delete handlers
     $('#saveCategoryBtn').click(function(){
@@ -305,7 +280,6 @@ $(function(){
                     var d=resp.data;
                     $('#categoryId').val(d.id);
                     $('#categoryName').val(d.name);
-                    $('#mainCategory').val(d.main_category_id);
                     $('#categoryDescription').val(d.description);
                     $('#categoryModalTitle').html('<i class="fas fa-edit mr-2"></i>Edit Category');
                     $('#saveCategoryBtn').show();
