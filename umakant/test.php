@@ -839,13 +839,13 @@ function applyFilters() {
     
     // Apply gender filter
     if (gender) {
-        testsTable.column(5).search(gender, false, false);
+        testsTable.column(6).search(gender, false, false);
     }
     
     // Apply price filter
     if (maxPrice) {
-        testsTable.column(4).search(function(settings, data, dataIndex) {
-            const price = parseFloat(data[4].replace(/[₹,]/g, ''));
+        testsTable.column(5).search(function(settings, data, dataIndex) {
+            const price = parseFloat(data[5].replace(/[₹,]/g, ''));
             return price <= parseFloat(maxPrice);
         });
     }
