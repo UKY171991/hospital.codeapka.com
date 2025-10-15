@@ -136,6 +136,11 @@ require_once 'inc/sidebar.php';
                             <!-- Advanced Filters -->
                             <div class="row mb-3">
                                 <div class="col-md-3">
+                                    <select id="mainCategoryFilter" class="form-control">
+                                        <option value="">All Main Categories</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
                                     <select id="categoryFilter" class="form-control">
                                         <option value="">All Categories</option>
                                     </select>
@@ -166,6 +171,7 @@ require_once 'inc/sidebar.php';
                                             <th width="40"><input type="checkbox" id="selectAllTests"></th>
                                             <th>ID</th>
                                             <th>Test Name</th>
+                                            <th>Main Category</th>
                                             <th>Category</th>
                                             <th>Price</th>
                                             <th>Gender</th>
@@ -654,6 +660,16 @@ function initializeDataTable() {
                 }
             },
             { 
+                data: 'main_category_name',
+                render: function(data, type, row) {
+                    var mainCategoryName = data || row.main_category_name || '';
+                    if (mainCategoryName === '' || mainCategoryName === null || mainCategoryName === undefined) {
+                        return '-';
+                    }
+                    return `<span class="badge badge-secondary">${mainCategoryName}</span>`;
+                }
+            },
+            { 
                 data: 'category_name',
                 render: function(data, type, row) {
                     var categoryName = data || row.category_name || '';
@@ -802,6 +818,7 @@ function initializeDataTable() {
 }
 
 function applyFilters() {
+    const mainCategory = $('#mainCategoryFilter').val();
     const category = $('#categoryFilter').val();
     const gender = $('#genderFilter').val();
     const maxPrice = $('#priceFilter').val();
@@ -810,9 +827,14 @@ function applyFilters() {
     testsTable.search('');
     testsTable.columns().search('');
     
+    // Apply main category filter
+    if (mainCategory) {
+        testsTable.column(3).search(mainCategory, false, false);
+    }
+
     // Apply category filter
     if (category) {
-        testsTable.column(3).search(category, false, false);
+        testsTable.column(4).search(category, false, false);
     }
     
     // Apply gender filter
@@ -832,6 +854,7 @@ function applyFilters() {
 }
 
 function clearFilters() {
+    $('#mainCategoryFilter').val('');
     $('#categoryFilter').val('');
     $('#genderFilter').val('');
     $('#priceFilter').val('');
@@ -948,6 +971,18 @@ function loadCategories() {
             console.warn('Failed to load categories', response && response.message);
         }
     }).fail(function(xhr){ console.warn('Failed to load categories', xhr.status); });
+
+    $.getJSON('ajax/main_test_category_api.php', { action: 'list' }, function(response) {
+        if (response && response.success) {
+            let filterOptions = '<option value="">All Main Categories</option>';
+            (response.data || []).forEach(category => {
+                filterOptions += `<option value="${category.name}">${category.name}</option>`;
+            });
+            $('#mainCategoryFilter').html(filterOptions);
+        } else {
+            console.warn('Failed to load main categories', response && response.message);
+        }
+    }).fail(function(xhr){ console.warn('Failed to load main categories', xhr.status); });
 }
 
 function populateCategoriesTable(categories = []) {

@@ -66,6 +66,7 @@ try {
         $dataQuery = "SELECT 
             t.id,
             COALESCE(t.name, '') AS name,
+            COALESCE(mc.name, '') AS main_category_name,
             COALESCE(tc.name, '') AS category_name,
             t.category_id,
             COALESCE(t.description, '') AS description,
@@ -86,6 +87,7 @@ try {
             COALESCE(u.username, '') AS added_by_username
             FROM tests t 
             LEFT JOIN {$categories_table} tc ON t.category_id = tc.id 
+            LEFT JOIN main_test_categories mc ON tc.main_category_id = mc.id
             LEFT JOIN users u ON t.added_by = u.id" . $whereClause . $orderBy . $limit;
         
         $dataStmt = $pdo->prepare($dataQuery);
