@@ -321,6 +321,22 @@ require_once 'inc/sidebar.php';
                                     <input type="text" class="form-control" id="femaleUnit" name="female_unit" placeholder="Unit">
                                 </div>
                             </div>
+
+                            <!-- Child Range -->
+                            <div class="row mb-3">
+                                <div class="col-md-2">
+                                    <label class="font-weight-bold text-warning">Child Range:</label>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" id="testMinChild" name="min_child" placeholder="Min" step="0.01">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" id="testMaxChild" name="max_child" placeholder="Max" step="0.01">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="childUnit" name="child_unit" placeholder="Unit">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1024,6 +1040,9 @@ function editTest(id) {
                 $('#testMaxMale').val(test.max_male);
                 $('#testMinFemale').val(test.min_female);
                 $('#testMaxFemale').val(test.max_female);
+                $('#testMinChild').val(test.min_child);
+                $('#testMaxChild').val(test.max_child);
+                $('#childUnit').val(test.child_unit);
                 $('#testSubHeading').val(test.sub_heading);
                 $('#testPrintNewPage').val(test.print_new_page);
                 $('#testDescription').val(test.description);
@@ -1417,6 +1436,7 @@ window.viewTest = function(id){
                 html += '<tr><td>General</td><td>' + escapeHtml(d.min||'') + '</td><td>' + escapeHtml(d.max||'') + '</td></tr>';
                 html += '<tr><td>Male</td><td>' + escapeHtml(d.min_male||'') + '</td><td>' + escapeHtml(d.max_male||'') + '</td></tr>';
                 html += '<tr><td>Female</td><td>' + escapeHtml(d.min_female||'') + '</td><td>' + escapeHtml(d.max_female||'') + '</td></tr>';
+                html += '<tr><td>Child</td><td>' + escapeHtml(d.min_child||'') + '</td><td>' + escapeHtml(d.max_child||'') + '</td></tr>';
                 html += '</tbody></table></div>';
 
                 if(d.reference_range){ html += '<p class="mt-2"><strong>Reference Note:</strong> ' + escapeHtml(d.reference_range) + '</p>'; }

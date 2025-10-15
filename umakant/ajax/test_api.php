@@ -78,6 +78,9 @@ try {
             t.max_male,
             t.min_female,
             t.max_female,
+            t.min_child,
+            t.max_child,
+            t.child_unit,
             COALESCE(t.sub_heading, 0) AS sub_heading,
             COALESCE(t.print_new_page, 0) AS print_new_page,
             COALESCE(u.username, '') AS added_by_username
@@ -185,6 +188,9 @@ try {
     $max_male = $_POST['max_male'] ?? null;
     $min_female = $_POST['min_female'] ?? null;
     $max_female = $_POST['max_female'] ?? null;
+    $min_child = $_POST['min_child'] ?? null;
+    $max_child = $_POST['max_child'] ?? null;
+    $child_unit = trim($_POST['child_unit'] ?? '');
         $sub_heading = $_POST['sub_heading'] ?? 0;
         $test_code = trim($_POST['test_code'] ?? '');
         $method = trim($_POST['method'] ?? '');
@@ -195,7 +201,8 @@ try {
         $ranges = [
             ['min'=>$min, 'max'=>$max, 'label'=>'General'],
             ['min'=>$min_male, 'max'=>$max_male, 'label'=>'Male'],
-            ['min'=>$min_female, 'max'=>$max_female, 'label'=>'Female']
+            ['min'=>$min_female, 'max'=>$max_female, 'label'=>'Female'],
+            ['min'=>$min_child, 'max'=>$max_child, 'label'=>'Child']
         ];
         foreach($ranges as $r){
             if($r['min'] !== null && $r['max'] !== null && $r['min'] !== '' && $r['max'] !== ''){
@@ -234,7 +241,7 @@ try {
 
         if ($id) {
             try {
-                $stmt = $pdo->prepare('UPDATE tests SET category_id=?, name=?, description=?, price=?, unit=?, default_result=?, reference_range=?, min=?, max=?, min_male=?, max_male=?, min_female=?, max_female=?, sub_heading=?, test_code=?, method=?, print_new_page=?, shortcut=? WHERE id=?');
+                $stmt = $pdo->prepare('UPDATE tests SET category_id=?, name=?, description=?, price=?, unit=?, default_result=?, reference_range=?, min=?, max=?, min_male=?, max_male=?, min_female=?, max_female=?, min_child=?, max_child=?, child_unit=?, sub_heading=?, test_code=?, method=?, print_new_page=?, shortcut=? WHERE id=?');
                 // Bind explicitly to ensure NULLs are preserved
                 $b = 1;
                 if ($category_id === null) {
@@ -254,6 +261,9 @@ try {
                 $stmt->bindValue($b++, $max_male, PDO::PARAM_STR);
                 $stmt->bindValue($b++, $min_female, PDO::PARAM_STR);
                 $stmt->bindValue($b++, $max_female, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $min_child, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $max_child, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $child_unit, PDO::PARAM_STR);
                 $stmt->bindValue($b++, $sub_heading, PDO::PARAM_INT);
                 $stmt->bindValue($b++, $test_code, PDO::PARAM_STR);
                 $stmt->bindValue($b++, $method, PDO::PARAM_STR);
@@ -268,7 +278,7 @@ try {
         } else {
             $added_by = $_SESSION['user_id'] ?? null;
             try {
-                $stmt = $pdo->prepare('INSERT INTO tests (category_id, name, description, price, unit, default_result, reference_range, min, max, min_male, max_male, min_female, max_female, sub_heading, test_code, method, print_new_page, shortcut, added_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+                $stmt = $pdo->prepare('INSERT INTO tests (category_id, name, description, price, unit, default_result, reference_range, min, max, min_male, max_male, min_female, max_female, min_child, max_child, child_unit, sub_heading, test_code, method, print_new_page, shortcut, added_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
                 // Bind parameters explicitly to ensure NULL values are sent as NULL (not empty string)
                 $bindIndex = 1;
                 if ($category_id === null) {
@@ -288,6 +298,9 @@ try {
                 $stmt->bindValue($bindIndex++, $max_male, PDO::PARAM_STR);
                 $stmt->bindValue($bindIndex++, $min_female, PDO::PARAM_STR);
                 $stmt->bindValue($bindIndex++, $max_female, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $min_child, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $max_child, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $child_unit, PDO::PARAM_STR);
                 $stmt->bindValue($bindIndex++, $sub_heading, PDO::PARAM_INT);
                 $stmt->bindValue($bindIndex++, $test_code, PDO::PARAM_STR);
                 $stmt->bindValue($bindIndex++, $method, PDO::PARAM_STR);
