@@ -1324,12 +1324,13 @@ function loadTests(){
         if(resp && resp.success && Array.isArray(resp.data)){
             var t=''; 
             if(resp.data.length === 0) {
-                t = '<tr><td colspan="9" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
+                t = '<tr><td colspan="10" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
             } else {
                 resp.data.forEach(function(x, idx){ t += '<tr>'+
-                            '<td></td>'+ // S.No. - will be handled by DataTable
+                            '<td><input type="checkbox" class="test-checkbox" value="'+x.id+'"></td>'+
                             '<td>'+x.id+'</td>'+
                             '<td>'+ (x.name||'') +'</td>'+
+                            '<td>'+ (x.main_category_name||'') +'</td>'+
                             '<td>'+ (x.category_name||'') +'</td>'+
                             '<td>'+ (x.price||'') +'</td>'+
                             '<td>'+ (x.gender||'') +'</td>'+
@@ -1343,11 +1344,11 @@ function loadTests(){
 
             $('#testsTable tbody').html(t);
         } else {
-            $('#testsTable tbody').html('<tr><td colspan="9" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load tests</td></tr>');
+            $('#testsTable tbody').html('<tr><td colspan="10" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load tests</td></tr>');
             toastr.error('Failed to load tests');
         }
     },'json').fail(function(xhr){ 
-        $('#testsTable tbody').html('<tr><td colspan="9" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading tests</td></tr>');
+        $('#testsTable tbody').html('<tr><td colspan="10" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading tests</td></tr>');
         var msg = xhr.responseText || 'Server error'; 
         try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} 
         toastr.error(msg); 
