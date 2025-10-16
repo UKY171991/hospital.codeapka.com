@@ -941,8 +941,11 @@ function exportTests() {
 
 function refreshTests() {
     // Reload table data
-    if (typeof loadTests === 'function') loadTests();
-    if (typeof initializeDataTable === 'function') initializeDataTable();
+    if (typeof initializeDataTable === 'function') {
+        initializeDataTable();
+    } else if (typeof loadTests === 'function') {
+        loadTests();
+    }
 }
 
 
