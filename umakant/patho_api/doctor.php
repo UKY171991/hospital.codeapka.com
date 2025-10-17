@@ -62,6 +62,12 @@ try {
         case 'save':
             handleSave($pdo, $entity_config, $user_data);
             break;
+        case 'specializations':
+            handleSpecializations($pdo, $user_data);
+            break;
+        case 'hospitals':
+            handleHospitals($pdo, $user_data);
+            break;
         case 'delete':
             handleDelete($pdo, $entity_config, $user_data);
             break;
@@ -261,5 +267,34 @@ function handleStats($pdo, $user_data) {
     $stats['hospitals'] = (int) $stmt->fetchColumn();
 
     json_response(['success' => true, 'data' => $stats]);
+}
+
+/**
+ * Return a list of distinct specializations from doctors
+ */
+function handleSpecializations($pdo, $user_data) {
+    if (!simpleCheckPermission($user_data, 'list')) {
+        json_response(['success' => false, 'message' => 'Permission denied to list specializations'], 403);
+    }
+
+    $stmt = $pdo->query("SELECT DISTINCT specialization FROM doctors WHERE specialization IS NOT NULL AND specialization != '' ORDER BY specialization");
+    $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    // Normalize to simple array of strings
+    $data = array_values(array_filter(array_map('trim', $rows), fn($v) => $v !== ''));
+    json_response(['success' => true, 'data' => $data]);
+}
+
+/**
+ * Return a list of distinct hospitals from doctors
+ */
+function handleHospitals($pdo, $user_data) {
+    if (!simpleCheckPermission($user_data, 'list')) {
+        json_response(['success' => false, 'message' => 'Permission denied to list hospitals'], 403);
+    }
+
+    $stmt = $pdo->query("SELECT DISTINCT hospital FROM doctors WHERE hospital IS NOT NULL AND hospital != '' ORDER BY hospital");
+    $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $data = array_values(array_filter(array_map('trim', $rows), fn($v) => $v !== ''));
+    json_response(['success' => true, 'data' => $data]);
 }
 ?>
