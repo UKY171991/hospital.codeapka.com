@@ -118,6 +118,17 @@
                 ]
             },
             {
+                name: 'Main Test Categories',
+                file: 'main_test_category.php',
+                description: 'API for managing main test categories (used by main-test-category.php).',
+                endpoints: [
+                    { action: 'list', method: 'GET', description: 'Get all main test categories.' },
+                    { action: 'get', method: 'GET', description: 'Get a single main category by ID.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a main test category.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a main test category by ID.', params: ['id'] }
+                ]
+            },
+            {
                 name: 'Entries',
                 file: 'entry.php',
                 description: 'API for managing test entries.',
