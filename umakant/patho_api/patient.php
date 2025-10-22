@@ -31,25 +31,31 @@ if (!$user_data) {
 }
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
-$action = $_REQUEST['action'] ?? $requestMethod;
+$action = $_REQUEST['action'] ?? $_GET['action'] ?? $_POST['action'] ?? $requestMethod;
 
-if ($requestMethod === 'GET' && isset($_GET['id'])) $action = 'get';
-if ($requestMethod === 'GET' && !isset($_GET['id'])) $action = 'list';
-if ($requestMethod === 'POST' || $requestMethod === 'PUT') $action = 'save';
-if ($requestMethod === 'DELETE') $action = 'delete';
+// Handle specific actions based on request method and parameters
+if ($requestMethod === 'GET' && isset($_GET['id']) && !isset($_GET['action'])) $action = 'get';
+if ($requestMethod === 'GET' && !isset($_GET['id']) && !isset($_GET['action'])) $action = 'list';
+if (($requestMethod === 'POST' || $requestMethod === 'PUT') && $action !== 'delete') $action = 'save';
+if ($requestMethod === 'DELETE' || $action === 'delete') $action = 'delete';
 
 try {
+    // Log the action for debugging
+    error_log("Patient API - Action: $action, Method: $requestMethod, ID: " . ($_REQUEST['id'] ?? 'none'));
+    
     switch($action) {
         case 'list': handleList($pdo, $entity_config, $user_data); break;
         case 'get': handleGet($pdo, $entity_config, $user_data); break;
         case 'save': handleSave($pdo, $entity_config, $user_data); break;
         case 'delete': handleDelete($pdo, $entity_config, $user_data); break;
         case 'stats': handleStats($pdo, $user_data); break;
-        default: json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
+        default: 
+            error_log("Patient API - Invalid action: $action");
+            json_response(['success' => false, 'message' => "Invalid action specified: $action"], 400);
     }
 } catch (Exception $e) {
-    error_log("Patient API Error: " . $e->getMessage());
-    json_response(['success' => false, 'message' => 'An internal server error occurred.'], 500);
+    error_log("Patient API Error: " . $e->getMessage() . " - Trace: " . $e->getTraceAsString());
+    json_response(['success' => false, 'message' => 'An internal server error occurred: ' . $e->getMessage()], 500);
 }
 
 function handleList($pdo, $config, $user_data) {
@@ -180,21 +186,42 @@ function handleSave($pdo, $config, $user_data) {
 }
 
 function handleDelete($pdo, $config, $user_data) {
-    $id = $_REQUEST['id'] ?? null;
+    // Get ID from various sources
+    $id = $_REQUEST['id'] ?? $_GET['id'] ?? $_POST['id'] ?? null;
+    
     if (!$id) {
         json_response(['success' => false, 'message' => 'Patient ID is required'], 400);
     }
 
-    $stmt = $pdo->prepare('SELECT COUNT(*) FROM entries WHERE patient_id = ?');
-    $stmt->execute([$id]);
-    if ($stmt->fetchColumn() > 0) {
-        json_response(['success' => false, 'message' => 'Cannot delete patient with associated test entries'], 400);
+    try {
+        // First check if patient exists
+        $checkStmt = $pdo->prepare("SELECT id FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $checkStmt->execute([$id]);
+        if (!$checkStmt->fetch()) {
+            json_response(['success' => false, 'message' => 'Patient not found'], 404);
+        }
+
+        // Check for associated test entries
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM entries WHERE patient_id = ?');
+        $stmt->execute([$id]);
+        if ($stmt->fetchColumn() > 0) {
+            json_response(['success' => false, 'message' => 'Cannot delete patient with associated test entries'], 400);
+        }
+
+        // Perform the deletion
+        $deleteStmt = $pdo->prepare("DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $result = $deleteStmt->execute([$id]);
+        
+        if ($result && $deleteStmt->rowCount() > 0) {
+            json_response(['success' => true, 'message' => 'Patient deleted successfully']);
+        } else {
+            json_response(['success' => false, 'message' => 'Failed to delete patient - no rows affected'], 500);
+        }
+        
+    } catch (Exception $e) {
+        error_log("Delete patient error: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Database error occurred while deleting patient'], 500);
     }
-
-    $stmt = $pdo->prepare("DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
-    $result = $stmt->execute([$id]);
-
-    json_response(['success' => $result, 'message' => $result ? 'Patient deleted successfully' : 'Failed to delete patient']);
 }
 
 function handleStats($pdo, $user_data) {

@@ -534,17 +534,32 @@ function handleDelete() {
     }
     
     try {
-        $stmt = $pdo->prepare("DELETE FROM patients WHERE id = :id");
-        $stmt->execute([':id' => $id]);
-        
-        if ($stmt->rowCount() === 0) {
+        // First check if patient exists
+        $checkStmt = $pdo->prepare("SELECT id FROM patients WHERE id = :id");
+        $checkStmt->execute([':id' => $id]);
+        if (!$checkStmt->fetch()) {
             throw new Exception('Patient not found');
         }
+
+        // Check for associated test entries
+        $entriesStmt = $pdo->prepare('SELECT COUNT(*) FROM entries WHERE patient_id = :id');
+        $entriesStmt->execute([':id' => $id]);
+        if ($entriesStmt->fetchColumn() > 0) {
+            throw new Exception('Cannot delete patient with associated test entries');
+        }
+
+        // Perform the deletion
+        $deleteStmt = $pdo->prepare("DELETE FROM patients WHERE id = :id");
+        $result = $deleteStmt->execute([':id' => $id]);
         
-        echo json_encode([
-            'success' => true,
-            'message' => 'Patient deleted successfully'
-        ]);
+        if ($result && $deleteStmt->rowCount() > 0) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Patient deleted successfully'
+            ]);
+        } else {
+            throw new Exception('Failed to delete patient - no rows affected');
+        }
         
     } catch (Exception $e) {
         throw new Exception("Failed to delete patient: " . $e->getMessage());
