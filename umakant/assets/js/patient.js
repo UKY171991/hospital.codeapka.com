@@ -37,6 +37,16 @@ function loadAddedByUsers(selectedUserId = null) {
 function resetForm() {
   $('#patientForm')[0].reset();
   $('#patientId').val('');
+  $('#patientName').val('');
+  $('#patientMobile').val('');
+  $('#patientEmail').val('');
+  $('#patientAge').val('');
+  $('#patientAgeUnit').val('Years');
+  $('#patientGender').val('');
+  $('#patientFatherHusband').val('');
+  $('#patientAddress').val('');
+  $('#patientContact').val('');
+  $('#patientAddedBy').val('');
   generateUHID();
 }
 
@@ -57,17 +67,23 @@ function populateForm(patient) {
   $('#patientEmail').val(patient.email);
   $('#patientAge').val(patient.age);
   $('#patientAgeUnit').val(patient.age_unit);
-  $('#patientGender').val(normalizeGenderValue(patient.gender));
+  $('#patientGender').val(normalizeGenderValue(patient.gender || patient.sex));
   $('#patientFatherHusband').val(patient.father_husband);
   $('#patientAddress').val(patient.address);
+  $('#patientContact').val(patient.contact);
   // Assuming patient.added_by contains the ID of the user who added the patient
   $('#patientAddedBy').val(patient.added_by); 
 }
 
 function generateUHID() {
-  const timestamp = Date.now().toString().slice(-6);
-  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-  const uhid = 'P' + timestamp + random;
+  // Generate a more unique UHID using timestamp and random number
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2);
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  const time = now.getTime().toString().slice(-4);
+  const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+  const uhid = 'P' + year + month + day + time + random;
   $('#patientUHID').val(uhid);
 }
 
@@ -134,6 +150,10 @@ function renderPatientDetails(patient) {
                           <tr>
                               <td><strong>Mobile:</strong></td>
                               <td><i class="fas fa-mobile-alt"></i> ${patient.mobile}</td>
+                          </tr>
+                          <tr>
+                              <td><strong>Secondary Contact:</strong></td>
+                              <td>${patient.contact ? `<i class="fas fa-phone"></i> ${patient.contact}` : 'N/A'}</td>
                           </tr>
                           <tr>
                               <td><strong>Email:</strong></td>
@@ -233,6 +253,29 @@ $(function(){
   $(document).on('submit', '#patientForm', function(e) {
     console.log('#patientForm submitted');
     e.preventDefault();
+    
+    // Client-side validation
+    const name = $('#patientName').val().trim();
+    const mobile = $('#patientMobile').val().trim();
+    
+    if (!name) {
+      toastr.error('Patient name is required');
+      $('#patientName').focus();
+      return;
+    }
+    
+    if (!mobile) {
+      toastr.error('Mobile number is required');
+      $('#patientMobile').focus();
+      return;
+    }
+    
+    if (mobile.length !== 10 || !/^\d{10}$/.test(mobile)) {
+      toastr.error('Please enter a valid 10-digit mobile number');
+      $('#patientMobile').focus();
+      return;
+    }
+    
     var formData = new FormData(this);
     formData.append('action', 'save');
 
@@ -252,9 +295,9 @@ $(function(){
         if (r && r.success) {
           toastr.success(r.message || 'Patient saved successfully!');
           $('#patientModal').modal('hide');
-          console.log('Save successful, attempting to reload DataTable.'); // Add this log
+          console.log('Save successful, attempting to reload DataTable.');
           table.ajax.reload(null, false); // Reload the DataTable
-          console.log('DataTable reload initiated.'); // Add this log
+          console.log('DataTable reload initiated.');
         } else {
           console.error('Failed to save patient:', r && r.message);
           toastr.error((r && r.message) || 'Failed to save patient');
@@ -273,6 +316,7 @@ $(function(){
           if (xhr.responseText) errorMessage = xhr.responseText;
         }
         toastr.error(errorMessage);
+        console.error('AJAX Error:', xhr);
       },
       complete: function() {
         submitBtn.html(originalText).prop('disabled', false);

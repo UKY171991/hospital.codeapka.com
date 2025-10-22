@@ -21,8 +21,8 @@ require_once __DIR__ . '/../inc/simple_auth.php';
 $entity_config = [
     'table_name' => 'patients',
     'id_field' => 'id',
-    'required_fields' => ['name', 'uhid'],
-    'allowed_fields' => ['name', 'uhid', 'father_husband', 'mobile', 'email', 'age', 'age_unit', 'gender', 'address', 'added_by']
+    'required_fields' => ['name', 'mobile'],
+    'allowed_fields' => ['name', 'uhid', 'father_husband', 'mobile', 'email', 'age', 'age_unit', 'gender', 'address', 'contact', 'added_by']
 ];
 
 $user_data = simpleAuthenticate($pdo);
@@ -81,6 +81,13 @@ function handleList($pdo, $config, $user_data) {
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
     $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Map sex column to gender for frontend compatibility
+    foreach ($patients as &$patient) {
+        $patient['gender'] = $patient['sex'] ?? '';
+        $patient['added_by_name'] = $patient['added_by_username'];
+    }
+    unset($patient);
 
     json_response([
         'draw' => $draw,
@@ -105,6 +112,10 @@ function handleGet($pdo, $config, $user_data) {
         json_response(['success' => false, 'message' => 'Patient not found'], 404);
     }
 
+    // Map sex column to gender for frontend compatibility
+    $patient['gender'] = $patient['sex'] ?? '';
+    $patient['added_by_name'] = $patient['added_by_username'];
+
     json_response(['success' => true, 'data' => $patient]);
 }
 
@@ -120,6 +131,19 @@ function handleSave($pdo, $config, $user_data) {
 
     $data = array_intersect_key($input, array_flip($config['allowed_fields']));
     $data['added_by'] = $data['added_by'] ?? $user_data['user_id'];
+    
+    // Map gender to sex column for database storage
+    if (isset($data['gender'])) {
+        $data['sex'] = $data['gender'];
+        unset($data['gender']);
+    }
+    
+    // Generate UHID if not provided for new patients
+    if (!$id && empty($data['uhid'])) {
+        $stmt = $pdo->query("SELECT MAX(CAST(SUBSTR(uhid, 2) AS UNSIGNED)) FROM patients WHERE uhid LIKE 'P%'");
+        $next = (int)$stmt->fetchColumn();
+        $data['uhid'] = 'P' . str_pad($next + 1, 6, '0', STR_PAD_LEFT);
+    }
 
     if ($id) {
         $set_clause = implode(', ', array_map(fn($field) => "`$field` = ?", array_keys($data)));
@@ -142,6 +166,10 @@ function handleSave($pdo, $config, $user_data) {
     $stmt = $pdo->prepare("SELECT p.*, u.username as added_by_username FROM {$config['table_name']} p LEFT JOIN users u ON p.added_by = u.id WHERE p.id = ?");
     $stmt->execute([$patient_id]);
     $saved_patient = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    // Map sex back to gender for frontend
+    $saved_patient['gender'] = $saved_patient['sex'] ?? '';
+    $saved_patient['added_by_name'] = $saved_patient['added_by_username'];
 
     json_response([
         'success' => true,

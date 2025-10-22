@@ -156,8 +156,13 @@ function handleList() {
         $stmt->execute();
         $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($patients as &$patient) {
-            $rawGender = $patient['gender'] ?? ($patient['sex'] ?? null);
+            // Map sex column to gender for frontend compatibility
+            $rawGender = $patient['sex'] ?? ($patient['gender'] ?? null);
             $patient['gender'] = normalizeGenderValue($rawGender);
+            // Ensure added_by_name is available for display
+            if (!isset($patient['added_by_name']) && isset($patient['added_by_username'])) {
+                $patient['added_by_name'] = $patient['added_by_username'];
+            }
         }
         unset($patient);
 
@@ -303,16 +308,20 @@ function handleRead() {
     }
     
     try {
-        $stmt = $pdo->prepare("SELECT p.*, u.username AS added_by_name
+        $stmt = $pdo->prepare("SELECT p.*, u.username AS added_by_name, u.username AS added_by_username
                                 FROM patients p
                                 LEFT JOIN users u ON p.added_by = u.id
                                 WHERE p.id = :id");
         $stmt->execute([':id' => $id]);
-        $patient = $stmt->fetch();
+        $patient = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$patient) {
             throw new Exception('Patient not found');
         }
+        
+        // Map sex column to gender for frontend compatibility
+        $rawGender = $patient['sex'] ?? ($patient['gender'] ?? null);
+        $patient['gender'] = normalizeGenderValue($rawGender);
         
         echo json_encode([
             'success' => true,
@@ -344,15 +353,18 @@ function handleSave() {
     $addedBy = $data['added_by'] ?? ($_SESSION['user_id'] ?? null);
 
     try {
-        $genderColumn = patientHasColumn('gender') ? 'gender' : (patientHasColumn('sex') ? 'sex' : null);
+        // Always use 'sex' column as that's what exists in the database
+        $genderColumn = 'sex';
         $normalizedGender = normalizeGenderValue($data['gender'] ?? '');
         $fatherName   = $data['father_husband'] ?? '';
         $email        = $data['email'] ?? '';
-        $ageValue     = ($data['age'] ?? '') === '' ? null : $data['age'];
+        $ageValue     = ($data['age'] ?? '') === '' ? null : intval($data['age']);
         $ageUnit      = $data['age_unit'] ?? 'Years';
         $addressValue = $data['address'] ?? '';
+        $contactValue = $data['contact'] ?? '';
 
         if ($id > 0) {
+            // Update existing patient
             $updateParts = [
                 'name = :name',
                 'father_husband = :father_husband',
@@ -360,12 +372,10 @@ function handleSave() {
                 'email = :email',
                 'age = :age',
                 'age_unit = :age_unit',
-                'address = :address'
+                'address = :address',
+                'contact = :contact',
+                'sex = :gender'
             ];
-
-            if ($genderColumn) {
-                $updateParts[] = "`$genderColumn` = :gender";
-            }
 
             if ($addedBy !== null && $addedBy !== '') {
                 $updateParts[] = 'added_by = :added_by';
@@ -381,12 +391,10 @@ function handleSave() {
                 ':email' => $email,
                 ':age' => $ageValue,
                 ':age_unit' => $ageUnit,
-                ':address' => $addressValue
+                ':address' => $addressValue,
+                ':contact' => $contactValue,
+                ':gender' => $normalizedGender
             ];
-
-            if ($genderColumn) {
-                $params[':gender'] = $normalizedGender;
-            }
 
             if ($addedBy !== null && $addedBy !== '') {
                 $params[':added_by'] = $addedBy;
@@ -394,26 +402,29 @@ function handleSave() {
 
             $stmt->execute($params);
 
+            // Return updated patient data
+            $stmt = $pdo->prepare("SELECT p.*, u.username AS added_by_name FROM patients p LEFT JOIN users u ON p.added_by = u.id WHERE p.id = :id");
+            $stmt->execute([':id' => $id]);
+            $updatedPatient = $stmt->fetch(PDO::FETCH_ASSOC);
+            $updatedPatient['gender'] = normalizeGenderValue($updatedPatient['sex']);
+
             echo json_encode([
                 'success' => true,
-                'message' => 'Patient updated successfully'
+                'message' => 'Patient updated successfully',
+                'data' => $updatedPatient
             ]);
             return;
         }
 
+        // Create new patient
         if (empty($data['uhid'])) {
             $stmt = $pdo->query("SELECT MAX(CAST(SUBSTR(uhid, 2) AS UNSIGNED)) FROM patients WHERE uhid LIKE 'P%'");
             $next = (int)$stmt->fetchColumn();
             $data['uhid'] = 'P' . str_pad($next + 1, 6, '0', STR_PAD_LEFT);
         }
 
-        $columns = ['uhid','name','father_husband','mobile','email','age','age_unit','address'];
-        $placeholders = [':uhid',':name',':father_husband',':mobile',':email',':age',':age_unit',':address'];
-
-        if ($genderColumn) {
-            $columns[] = $genderColumn;
-            $placeholders[] = ':gender';
-        }
+        $columns = ['uhid','name','father_husband','mobile','email','age','age_unit','address','contact','sex'];
+        $placeholders = [':uhid',':name',':father_husband',':mobile',':email',':age',':age_unit',':address',':contact',':gender'];
 
         if ($addedBy !== null && $addedBy !== '') {
             $columns[] = 'added_by';
@@ -430,23 +441,29 @@ function handleSave() {
             ':email' => $email,
             ':age' => $ageValue,
             ':age_unit' => $ageUnit,
-            ':address' => $addressValue
+            ':address' => $addressValue,
+            ':contact' => $contactValue,
+            ':gender' => $normalizedGender
         ];
-
-        if ($genderColumn) {
-            $params[':gender'] = $normalizedGender;
-        }
 
         if ($addedBy !== null && $addedBy !== '') {
             $params[':added_by'] = $addedBy;
         }
 
         $stmt->execute($params);
+        $newId = $pdo->lastInsertId();
+
+        // Return created patient data
+        $stmt = $pdo->prepare("SELECT p.*, u.username AS added_by_name FROM patients p LEFT JOIN users u ON p.added_by = u.id WHERE p.id = :id");
+        $stmt->execute([':id' => $newId]);
+        $newPatient = $stmt->fetch(PDO::FETCH_ASSOC);
+        $newPatient['gender'] = normalizeGenderValue($newPatient['sex']);
 
         echo json_encode([
             'success' => true,
             'message' => 'Patient created successfully',
-            'data' => ['id' => $pdo->lastInsertId()]
+            'data' => $newPatient,
+            'id' => $newId
         ]);
 
     } catch (Exception $e) {

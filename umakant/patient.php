@@ -204,7 +204,7 @@ require_once 'inc/sidebar.php';
             <div class="col-md-6">
               <div class="form-group">
                 <label for="patientMobile">Mobile No. <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="patientMobile" name="mobile" required>
+                <input type="text" class="form-control" id="patientMobile" name="mobile" required pattern="[0-9]{10}" title="Please enter a valid 10-digit mobile number">
               </div>
             </div>
             <div class="col-md-6">
@@ -250,6 +250,10 @@ require_once 'inc/sidebar.php';
           <div class="form-group">
             <label for="patientAddress">Address</label>
             <textarea class="form-control" id="patientAddress" name="address" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="patientContact">Secondary Contact</label>
+            <input type="text" class="form-control" id="patientContact" name="contact" placeholder="Alternative contact number">
           </div>
           <div class="form-group">
             <label for="patientAddedBy">Added By</label>
