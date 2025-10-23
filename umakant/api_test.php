@@ -131,7 +131,7 @@ const API_SECRET = 'hospital-api-secret-2024';
 
 async function testDashboardAPI() {
     const resultsDiv = document.getElementById('dashboard-api-results');
-    resultsDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Testing Dashboard APIs...</div>';
+    resultsDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Testing Dashboard APIs with User ID 1...</div>';
     
     const dashboardEndpoints = [
         'overview',
@@ -148,12 +148,13 @@ async function testDashboardAPI() {
         'alerts'
     ];
     
-    let results = '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Endpoint</th><th>Status</th><th>Response Time</th></tr></thead><tbody>';
+    let results = '<div class="alert alert-info"><strong>Note:</strong> Testing with test_user_id=1 (Admin user)</div>';
+    results += '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Endpoint</th><th>Status</th><th>Response Time</th><th>User Data</th></tr></thead><tbody>';
     
     for (const endpoint of dashboardEndpoints) {
         const startTime = Date.now();
         try {
-            const response = await fetch(`patho_api/dashboard.php?action=${endpoint}&secret_key=${API_SECRET}`);
+            const response = await fetch(`patho_api/dashboard.php?action=${endpoint}&secret_key=${API_SECRET}&test_user_id=1`);
             const endTime = Date.now();
             const responseTime = endTime - startTime;
             
@@ -162,16 +163,27 @@ async function testDashboardAPI() {
                 const status = data.success ? 
                     '<span class="badge badge-success">Success</span>' : 
                     '<span class="badge badge-warning">Failed</span>';
-                results += `<tr><td>${endpoint}</td><td>${status}</td><td>${responseTime}ms</td></tr>`;
+                
+                let userInfo = '';
+                if (data.success && data.data && data.data.user_info) {
+                    userInfo = `User: ${data.data.user_info.username} (${data.data.user_info.role})`;
+                } else if (data.success && endpoint === 'overview') {
+                    userInfo = 'User-filtered data';
+                } else {
+                    userInfo = data.message || 'No user info';
+                }
+                
+                results += `<tr><td>${endpoint}</td><td>${status}</td><td>${responseTime}ms</td><td><small>${userInfo}</small></td></tr>`;
             } else {
-                results += `<tr><td>${endpoint}</td><td><span class="badge badge-danger">Error ${response.status}</span></td><td>${responseTime}ms</td></tr>`;
+                results += `<tr><td>${endpoint}</td><td><span class="badge badge-danger">Error ${response.status}</span></td><td>${responseTime}ms</td><td>-</td></tr>`;
             }
         } catch (error) {
-            results += `<tr><td>${endpoint}</td><td><span class="badge badge-danger">Network Error</span></td><td>-</td></tr>`;
+            results += `<tr><td>${endpoint}</td><td><span class="badge badge-danger">Network Error</span></td><td>-</td><td>-</td></tr>`;
         }
     }
     
     results += '</tbody></table></div>';
+    results += '<div class="mt-3"><small class="text-muted">💡 Tip: Add &test_user_id=2 or &test_username=doctor1 to test with different users</small></div>';
     resultsDiv.innerHTML = results;
 }
 

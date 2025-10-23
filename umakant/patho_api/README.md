@@ -23,14 +23,17 @@ The most advanced API providing complete dashboard functionality:
 
 #### Example Usage:
 ```bash
-# Get dashboard overview
+# Get dashboard overview for current user (requires session or user parameters)
 GET /umakant/patho_api/dashboard.php?action=overview&secret_key=hospital-api-secret-2024
 
-# Get quick stats
-GET /umakant/patho_api/dashboard.php?action=quick_stats&secret_key=hospital-api-secret-2024
+# Get dashboard overview for specific user (testing)
+GET /umakant/patho_api/dashboard.php?action=overview&secret_key=hospital-api-secret-2024&test_user_id=1
 
-# Get charts data
-GET /umakant/patho_api/dashboard.php?action=charts_data&secret_key=hospital-api-secret-2024
+# Get quick stats for specific username (testing)
+GET /umakant/patho_api/dashboard.php?action=quick_stats&secret_key=hospital-api-secret-2024&test_username=admin
+
+# Get charts data (user-filtered)
+GET /umakant/patho_api/dashboard.php?action=charts_data&secret_key=hospital-api-secret-2024&test_user_id=2
 ```
 
 ## 📊 Other Available APIs
@@ -45,9 +48,24 @@ GET /umakant/patho_api/dashboard.php?action=charts_data&secret_key=hospital-api-
 - `owner.php` - Owner management (list, get, save, delete)
 - `user.php` - User management (list, get, save, delete)
 
-## 🔐 Authentication
+## 🔐 Authentication & User Filtering
 
 All APIs require a secret key parameter: `secret_key=hospital-api-secret-2024`
+
+### User-Specific Data Filtering
+
+The Dashboard API now shows **only the current user's data** based on authentication:
+
+- **Session-based**: Uses `$_SESSION['user_id']` and `$_SESSION['role']` from active session
+- **Parameter-based** (for testing): Use `test_user_id=1` or `test_username=admin`
+- **Role-based access**: 
+  - **Admin/Super Admin**: See all system data
+  - **Regular Users**: See only their own patients, entries, and activities
+
+### User Authentication Methods:
+1. **Active Session** (Production): User must be logged in
+2. **Test Parameters** (Development): Add `&test_user_id=1` or `&test_username=admin`
+3. **API Parameters**: Pass `user_id`, `username`, and `role` parameters
 
 ## 📖 Interactive Documentation
 

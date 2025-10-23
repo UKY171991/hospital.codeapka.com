@@ -20,6 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once '../inc/connection.php';
 
+// Start session to get user information
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Security check
 $secret_key = $_GET['secret_key'] ?? $_POST['secret_key'] ?? '';
 if ($secret_key !== 'hospital-api-secret-2024') {
@@ -32,56 +37,101 @@ if ($secret_key !== 'hospital-api-secret-2024') {
     exit();
 }
 
+// Get current user information
+$current_user_id = $_SESSION['user_id'] ?? $_GET['user_id'] ?? $_POST['user_id'] ?? null;
+$current_user_role = $_SESSION['role'] ?? $_GET['role'] ?? $_POST['role'] ?? 'user';
+$current_username = $_SESSION['username'] ?? $_GET['username'] ?? $_POST['username'] ?? null;
+
+// If no user session, try to get from parameters or return error
+if (!$current_user_id && !$current_username) {
+    // For API testing, allow passing user_id or username as parameter
+    if (isset($_GET['test_user_id'])) {
+        $current_user_id = (int) $_GET['test_user_id'];
+    } elseif (isset($_GET['test_username'])) {
+        $current_username = $_GET['test_username'];
+        // Get user_id from username
+        try {
+            $stmt = $pdo->prepare('SELECT id, role FROM users WHERE username = ?');
+            $stmt->execute([$current_username]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($user) {
+                $current_user_id = (int) $user['id'];
+                $current_user_role = $user['role'];
+            }
+        } catch (Exception $e) {
+            // Continue without user filtering if user lookup fails
+        }
+    }
+    
+    if (!$current_user_id) {
+        http_response_code(401);
+        echo json_encode([
+            'success' => false,
+            'message' => 'User authentication required. Please provide user_id, username, or valid session.',
+            'error_code' => 'USER_AUTH_REQUIRED',
+            'help' => 'Add &test_user_id=1 or &test_username=admin to test with specific user'
+        ]);
+        exit();
+    }
+}
+
 $action = $_GET['action'] ?? $_POST['action'] ?? 'overview';
+
+// Create user context array
+$user_context = [
+    'user_id' => $current_user_id,
+    'username' => $current_username,
+    'role' => $current_user_role
+];
 
 try {
     switch ($action) {
         case 'overview':
-            echo json_encode(getDashboardOverview($pdo));
+            echo json_encode(getDashboardOverview($pdo, $user_context));
             break;
             
         case 'stats':
-            echo json_encode(getDashboardStats($pdo));
+            echo json_encode(getDashboardStats($pdo, $user_context));
             break;
             
         case 'recent_activities':
-            echo json_encode(getRecentActivities($pdo));
+            echo json_encode(getRecentActivities($pdo, $user_context));
             break;
             
         case 'charts_data':
-            echo json_encode(getChartsData($pdo));
+            echo json_encode(getChartsData($pdo, $user_context));
             break;
             
         case 'quick_stats':
-            echo json_encode(getQuickStats($pdo));
+            echo json_encode(getQuickStats($pdo, $user_context));
             break;
             
         case 'revenue_stats':
-            echo json_encode(getRevenueStats($pdo));
+            echo json_encode(getRevenueStats($pdo, $user_context));
             break;
             
         case 'test_performance':
-            echo json_encode(getTestPerformance($pdo));
+            echo json_encode(getTestPerformance($pdo, $user_context));
             break;
             
         case 'patient_demographics':
-            echo json_encode(getPatientDemographics($pdo));
+            echo json_encode(getPatientDemographics($pdo, $user_context));
             break;
             
         case 'monthly_trends':
-            echo json_encode(getMonthlyTrends($pdo));
+            echo json_encode(getMonthlyTrends($pdo, $user_context));
             break;
             
         case 'top_tests':
-            echo json_encode(getTopTests($pdo));
+            echo json_encode(getTopTests($pdo, $user_context));
             break;
             
         case 'doctor_performance':
-            echo json_encode(getDoctorPerformance($pdo));
+            echo json_encode(getDoctorPerformance($pdo, $user_context));
             break;
             
         case 'alerts':
-            echo json_encode(getSystemAlerts($pdo));
+            echo json_encode(getSystemAlerts($pdo, $user_context));
             break;
             
         default:
@@ -108,17 +158,22 @@ try {
 }
 
 /**
- * Get comprehensive dashboard overview
+ * Get comprehensive dashboard overview for current user
  */
-function getDashboardOverview($pdo) {
+function getDashboardOverview($pdo, $user_context) {
     try {
         $overview = [
             'success' => true,
             'data' => [
-                'counts' => getEntityCounts($pdo),
-                'recent_stats' => getRecentStats($pdo),
-                'quick_metrics' => getQuickMetrics($pdo),
-                'system_health' => getSystemHealth($pdo),
+                'user_info' => [
+                    'user_id' => $user_context['user_id'],
+                    'username' => $user_context['username'],
+                    'role' => $user_context['role']
+                ],
+                'counts' => getEntityCounts($pdo, $user_context),
+                'recent_stats' => getRecentStats($pdo, $user_context),
+                'quick_metrics' => getQuickMetrics($pdo, $user_context),
+                'system_health' => getSystemHealth($pdo, $user_context),
                 'timestamp' => date('Y-m-d H:i:s')
             ]
         ];
@@ -133,9 +188,9 @@ function getDashboardOverview($pdo) {
 }
 
 /**
- * Get entity counts for dashboard cards
+ * Get entity counts for dashboard cards (filtered by current user)
  */
-function getEntityCounts($pdo) {
+function getEntityCounts($pdo, $user_context) {
     $counts = [
         'doctors' => 0,
         'patients' => 0,
@@ -148,13 +203,64 @@ function getEntityCounts($pdo) {
         'plans' => 0
     ];
     
+    $user_id = $user_context['user_id'];
+    $user_role = $user_context['role'];
+    
     try {
-        $counts['doctors'] = (int) $pdo->query('SELECT COUNT(*) FROM doctors')->fetchColumn();
-        $counts['patients'] = (int) $pdo->query('SELECT COUNT(*) FROM patients')->fetchColumn();
-        $counts['entries'] = (int) $pdo->query('SELECT COUNT(*) FROM entries')->fetchColumn();
-        $counts['tests'] = (int) $pdo->query('SELECT COUNT(*) FROM tests')->fetchColumn();
+        // If admin, show all data; otherwise filter by user
+        if ($user_role === 'admin' || $user_role === 'super_admin') {
+            // Admin sees all data
+            $counts['doctors'] = (int) $pdo->query('SELECT COUNT(*) FROM doctors')->fetchColumn();
+            $counts['patients'] = (int) $pdo->query('SELECT COUNT(*) FROM patients')->fetchColumn();
+            $counts['entries'] = (int) $pdo->query('SELECT COUNT(*) FROM entries')->fetchColumn();
+            $counts['tests'] = (int) $pdo->query('SELECT COUNT(*) FROM tests')->fetchColumn();
+            $counts['users'] = (int) $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
+            $counts['owners'] = (int) $pdo->query('SELECT COUNT(*) FROM owners')->fetchColumn();
+            $counts['notices'] = (int) $pdo->query('SELECT COUNT(*) FROM notices')->fetchColumn();
+            $counts['plans'] = (int) $pdo->query('SELECT COUNT(*) FROM plans')->fetchColumn();
+        } else {
+            // Regular users see only their data
+            
+            // Doctors - if user is a doctor, count only themselves; otherwise count doctors they've worked with
+            try {
+                $stmt = $pdo->prepare('SELECT COUNT(*) FROM doctors WHERE id = ? OR id IN (SELECT DISTINCT doctor_id FROM entries WHERE added_by = ?)');
+                $stmt->execute([$user_id, $user_id]);
+                $counts['doctors'] = (int) $stmt->fetchColumn();
+            } catch (Exception $e) {
+                $counts['doctors'] = 0;
+            }
+            
+            // Patients - only patients added by this user or assigned to them
+            try {
+                $stmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? OR id IN (SELECT DISTINCT patient_id FROM entries WHERE added_by = ?)');
+                $stmt->execute([$user_id, $user_id]);
+                $counts['patients'] = (int) $stmt->fetchColumn();
+            } catch (Exception $e) {
+                $counts['patients'] = 0;
+            }
+            
+            // Entries - only entries created by this user
+            try {
+                $stmt = $pdo->prepare('SELECT COUNT(*) FROM entries WHERE added_by = ?');
+                $stmt->execute([$user_id]);
+                $counts['entries'] = (int) $stmt->fetchColumn();
+            } catch (Exception $e) {
+                $counts['entries'] = 0;
+            }
+            
+            // Tests - all tests (not user-specific)
+            $counts['tests'] = (int) $pdo->query('SELECT COUNT(*) FROM tests')->fetchColumn();
+            
+            // Users - only show count of 1 (themselves) for regular users
+            $counts['users'] = 1;
+            
+            // Owners, notices, plans - limited access for regular users
+            $counts['owners'] = 0;
+            $counts['notices'] = (int) $pdo->query('SELECT COUNT(*) FROM notices WHERE is_public = 1 OR added_by = ' . $user_id)->fetchColumn();
+            $counts['plans'] = (int) $pdo->query('SELECT COUNT(*) FROM plans')->fetchColumn();
+        }
         
-        // Handle categories table (might be named differently)
+        // Handle categories table (might be named differently) - same for all users
         try {
             $counts['test_categories'] = (int) $pdo->query('SELECT COUNT(*) FROM categories')->fetchColumn();
         } catch (Exception $e) {
@@ -165,11 +271,6 @@ function getEntityCounts($pdo) {
             }
         }
         
-        $counts['users'] = (int) $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
-        $counts['owners'] = (int) $pdo->query('SELECT COUNT(*) FROM owners')->fetchColumn();
-        $counts['notices'] = (int) $pdo->query('SELECT COUNT(*) FROM notices')->fetchColumn();
-        $counts['plans'] = (int) $pdo->query('SELECT COUNT(*) FROM plans')->fetchColumn();
-        
     } catch (Exception $e) {
         // Return zeros if tables don't exist
     }
@@ -178,9 +279,9 @@ function getEntityCounts($pdo) {
 }
 
 /**
- * Get recent statistics (last 30 days)
+ * Get recent statistics (last 30 days) filtered by current user
  */
-function getRecentStats($pdo) {
+function getRecentStats($pdo, $user_context) {
     $stats = [
         'new_patients_30d' => 0,
         'new_entries_30d' => 0,
@@ -188,33 +289,65 @@ function getRecentStats($pdo) {
         'revenue_30d' => 0
     ];
     
+    $user_id = $user_context['user_id'];
+    $user_role = $user_context['role'];
+    
     try {
-        // New patients in last 30 days
-        $stmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
-        $stmt->execute();
-        $stats['new_patients_30d'] = (int) $stmt->fetchColumn();
-        
-        // New entries in last 30 days
-        $stmt = $pdo->prepare('SELECT COUNT(*) FROM entries WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
-        $stmt->execute();
-        $stats['new_entries_30d'] = (int) $stmt->fetchColumn();
-        
-        // Completed tests in last 30 days (assuming status field exists)
-        try {
-            $stmt = $pdo->prepare('SELECT COUNT(*) FROM entries WHERE status = "completed" AND updated_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
+        if ($user_role === 'admin' || $user_role === 'super_admin') {
+            // Admin sees all data
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
             $stmt->execute();
-            $stats['completed_tests_30d'] = (int) $stmt->fetchColumn();
-        } catch (Exception $e) {
-            $stats['completed_tests_30d'] = 0;
-        }
-        
-        // Revenue calculation (if price/amount field exists)
-        try {
-            $stmt = $pdo->prepare('SELECT SUM(total_amount) FROM entries WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
+            $stats['new_patients_30d'] = (int) $stmt->fetchColumn();
+            
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM entries WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
             $stmt->execute();
-            $stats['revenue_30d'] = (float) $stmt->fetchColumn() ?: 0;
-        } catch (Exception $e) {
-            $stats['revenue_30d'] = 0;
+            $stats['new_entries_30d'] = (int) $stmt->fetchColumn();
+            
+            try {
+                $stmt = $pdo->prepare('SELECT COUNT(*) FROM entries WHERE status = "completed" AND updated_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
+                $stmt->execute();
+                $stats['completed_tests_30d'] = (int) $stmt->fetchColumn();
+            } catch (Exception $e) {
+                $stats['completed_tests_30d'] = 0;
+            }
+            
+            try {
+                $stmt = $pdo->prepare('SELECT SUM(total_amount) FROM entries WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
+                $stmt->execute();
+                $stats['revenue_30d'] = (float) $stmt->fetchColumn() ?: 0;
+            } catch (Exception $e) {
+                $stats['revenue_30d'] = 0;
+            }
+        } else {
+            // Regular users see only their data
+            
+            // New patients added by this user in last 30 days
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
+            $stmt->execute([$user_id]);
+            $stats['new_patients_30d'] = (int) $stmt->fetchColumn();
+            
+            // New entries created by this user in last 30 days
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM entries WHERE added_by = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
+            $stmt->execute([$user_id]);
+            $stats['new_entries_30d'] = (int) $stmt->fetchColumn();
+            
+            // Completed tests by this user in last 30 days
+            try {
+                $stmt = $pdo->prepare('SELECT COUNT(*) FROM entries WHERE added_by = ? AND status = "completed" AND updated_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
+                $stmt->execute([$user_id]);
+                $stats['completed_tests_30d'] = (int) $stmt->fetchColumn();
+            } catch (Exception $e) {
+                $stats['completed_tests_30d'] = 0;
+            }
+            
+            // Revenue from entries created by this user in last 30 days
+            try {
+                $stmt = $pdo->prepare('SELECT SUM(total_amount) FROM entries WHERE added_by = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
+                $stmt->execute([$user_id]);
+                $stats['revenue_30d'] = (float) $stmt->fetchColumn() ?: 0;
+            } catch (Exception $e) {
+                $stats['revenue_30d'] = 0;
+            }
         }
         
     } catch (Exception $e) {
@@ -227,7 +360,7 @@ function getRecentStats($pdo) {
 /**
  * Get quick metrics for dashboard
  */
-function getQuickMetrics($pdo) {
+function getQuickMetrics($pdo, $user_context) {
     $metrics = [
         'avg_tests_per_patient' => 0,
         'completion_rate' => 0,
@@ -276,7 +409,7 @@ function getQuickMetrics($pdo) {
 /**
  * Get system health indicators
  */
-function getSystemHealth($pdo) {
+function getSystemHealth($pdo, $user_context) {
     $health = [
         'database_status' => 'healthy',
         'last_backup' => null,
@@ -313,17 +446,17 @@ function getSystemHealth($pdo) {
 }
 
 /**
- * Get detailed dashboard statistics
+ * Get detailed dashboard statistics filtered by current user
  */
-function getDashboardStats($pdo) {
+function getDashboardStats($pdo, $user_context) {
     try {
         return [
             'success' => true,
             'data' => [
-                'daily_stats' => getDailyStats($pdo),
-                'weekly_stats' => getWeeklyStats($pdo),
-                'monthly_stats' => getMonthlyStats($pdo),
-                'yearly_stats' => getYearlyStats($pdo)
+                'daily_stats' => getDailyStats($pdo, $user_context),
+                'weekly_stats' => getWeeklyStats($pdo, $user_context),
+                'monthly_stats' => getMonthlyStats($pdo, $user_context),
+                'yearly_stats' => getYearlyStats($pdo, $user_context)
             ]
         ];
     } catch (Exception $e) {
@@ -337,7 +470,7 @@ function getDashboardStats($pdo) {
 /**
  * Get daily statistics
  */
-function getDailyStats($pdo) {
+function getDailyStats($pdo, $user_context) {
     $stats = [];
     
     try {
@@ -393,7 +526,7 @@ function getDailyStats($pdo) {
 /**
  * Get weekly statistics
  */
-function getWeeklyStats($pdo) {
+function getWeeklyStats($pdo, $user_context) {
     $stats = [];
     
     try {
@@ -442,7 +575,7 @@ function getWeeklyStats($pdo) {
 /**
  * Get monthly statistics
  */
-function getMonthlyStats($pdo) {
+function getMonthlyStats($pdo, $user_context) {
     $stats = [];
     
     try {
@@ -500,7 +633,7 @@ function getMonthlyStats($pdo) {
 /**
  * Get yearly statistics
  */
-function getYearlyStats($pdo) {
+function getYearlyStats($pdo, $user_context) {
     $currentYear = date('Y');
     $stats = [];
     
@@ -551,16 +684,44 @@ function getYearlyStats($pdo) {
 }
 
 /**
- * Get recent activities
+ * Get recent activities filtered by current user
  */
-function getRecentActivities($pdo) {
+function getRecentActivities($pdo, $user_context) {
     try {
         $activities = [];
+        $user_id = $user_context['user_id'];
+        $user_role = $user_context['role'];
         
-        // Recent patients
-        $stmt = $pdo->prepare('SELECT id, name, created_at FROM patients ORDER BY created_at DESC LIMIT 5');
-        $stmt->execute();
-        $recentPatients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if ($user_role === 'admin' || $user_role === 'super_admin') {
+            // Admin sees all activities
+            $stmt = $pdo->prepare('SELECT id, name, created_at FROM patients ORDER BY created_at DESC LIMIT 5');
+            $stmt->execute();
+            $recentPatients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $stmt = $pdo->prepare('
+                SELECT e.id, e.created_at, p.name as patient_name 
+                FROM entries e 
+                LEFT JOIN patients p ON e.patient_id = p.id 
+                ORDER BY e.created_at DESC LIMIT 5
+            ');
+            $stmt->execute();
+            $recentEntries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } else {
+            // Regular users see only their activities
+            $stmt = $pdo->prepare('SELECT id, name, created_at FROM patients WHERE added_by = ? ORDER BY created_at DESC LIMIT 5');
+            $stmt->execute([$user_id]);
+            $recentPatients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $stmt = $pdo->prepare('
+                SELECT e.id, e.created_at, p.name as patient_name 
+                FROM entries e 
+                LEFT JOIN patients p ON e.patient_id = p.id 
+                WHERE e.added_by = ?
+                ORDER BY e.created_at DESC LIMIT 5
+            ');
+            $stmt->execute([$user_id]);
+            $recentEntries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
         
         foreach ($recentPatients as $patient) {
             $activities[] = [
@@ -572,16 +733,6 @@ function getRecentActivities($pdo) {
                 'color' => 'success'
             ];
         }
-        
-        // Recent entries
-        $stmt = $pdo->prepare('
-            SELECT e.id, e.created_at, p.name as patient_name 
-            FROM entries e 
-            LEFT JOIN patients p ON e.patient_id = p.id 
-            ORDER BY e.created_at DESC LIMIT 5
-        ');
-        $stmt->execute();
-        $recentEntries = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         foreach ($recentEntries as $entry) {
             $activities[] = [
@@ -615,15 +766,15 @@ function getRecentActivities($pdo) {
 /**
  * Get charts data for dashboard
  */
-function getChartsData($pdo) {
+function getChartsData($pdo, $user_context) {
     try {
         return [
             'success' => true,
             'data' => [
-                'patient_growth' => getPatientGrowthChart($pdo),
-                'revenue_chart' => getRevenueChart($pdo),
-                'test_distribution' => getTestDistributionChart($pdo),
-                'doctor_performance' => getDoctorPerformanceChart($pdo)
+                'patient_growth' => getPatientGrowthChart($pdo, $user_context),
+                'revenue_chart' => getRevenueChart($pdo, $user_context),
+                'test_distribution' => getTestDistributionChart($pdo, $user_context),
+                'doctor_performance' => getDoctorPerformanceChart($pdo, $user_context)
             ]
         ];
     } catch (Exception $e) {
@@ -637,7 +788,7 @@ function getChartsData($pdo) {
 /**
  * Get patient growth chart data
  */
-function getPatientGrowthChart($pdo) {
+function getPatientGrowthChart($pdo, $user_context) {
     $chartData = [
         'labels' => [],
         'datasets' => [
@@ -673,7 +824,7 @@ function getPatientGrowthChart($pdo) {
 /**
  * Get revenue chart data
  */
-function getRevenueChart($pdo) {
+function getRevenueChart($pdo, $user_context) {
     $chartData = [
         'labels' => [],
         'datasets' => [
@@ -709,7 +860,7 @@ function getRevenueChart($pdo) {
 /**
  * Get test distribution chart data
  */
-function getTestDistributionChart($pdo) {
+function getTestDistributionChart($pdo, $user_context) {
     $chartData = [
         'labels' => [],
         'datasets' => [
@@ -750,7 +901,7 @@ function getTestDistributionChart($pdo) {
 /**
  * Get doctor performance chart data
  */
-function getDoctorPerformanceChart($pdo) {
+function getDoctorPerformanceChart($pdo, $user_context) {
     $chartData = [
         'labels' => [],
         'datasets' => [
@@ -789,7 +940,7 @@ function getDoctorPerformanceChart($pdo) {
 /**
  * Get quick stats for widgets
  */
-function getQuickStats($pdo) {
+function getQuickStats($pdo, $user_context) {
     try {
         $today = date('Y-m-d');
         $yesterday = date('Y-m-d', strtotime('-1 day'));
@@ -872,7 +1023,7 @@ function getQuickStats($pdo) {
 /**
  * Get revenue statistics
  */
-function getRevenueStats($pdo) {
+function getRevenueStats($pdo, $user_context) {
     try {
         $stats = [
             'total_revenue' => 0,
@@ -940,7 +1091,7 @@ function getRevenueStats($pdo) {
 /**
  * Get test performance metrics
  */
-function getTestPerformance($pdo) {
+function getTestPerformance($pdo, $user_context) {
     try {
         $performance = [
             'most_ordered' => [],
@@ -998,7 +1149,7 @@ function getTestPerformance($pdo) {
 /**
  * Get patient demographics
  */
-function getPatientDemographics($pdo) {
+function getPatientDemographics($pdo, $user_context) {
     try {
         $demographics = [
             'age_groups' => [],
@@ -1060,11 +1211,11 @@ function getPatientDemographics($pdo) {
 /**
  * Get monthly trends
  */
-function getMonthlyTrends($pdo) {
+function getMonthlyTrends($pdo, $user_context) {
     try {
         return [
             'success' => true,
-            'data' => getMonthlyStats($pdo)
+            'data' => getMonthlyStats($pdo, $user_context)
         ];
     } catch (Exception $e) {
         return [
@@ -1077,7 +1228,7 @@ function getMonthlyTrends($pdo) {
 /**
  * Get top tests
  */
-function getTopTests($pdo) {
+function getTopTests($pdo, $user_context) {
     try {
         $topTests = [];
         
@@ -1110,7 +1261,7 @@ function getTopTests($pdo) {
 /**
  * Get doctor performance
  */
-function getDoctorPerformance($pdo) {
+function getDoctorPerformance($pdo, $user_context) {
     try {
         $performance = [];
         
@@ -1155,7 +1306,7 @@ function getDoctorPerformance($pdo) {
 /**
  * Get system alerts
  */
-function getSystemAlerts($pdo) {
+function getSystemAlerts($pdo, $user_context) {
     try {
         $alerts = [];
         

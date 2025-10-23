@@ -169,20 +169,20 @@
             {
                 name: 'Dashboard',
                 file: 'dashboard.php',
-                description: 'Comprehensive dashboard API for pathology management system.',
+                description: 'Comprehensive dashboard API for pathology management system. Shows user-specific data based on authentication.',
                 endpoints: [
-                    { action: 'overview', method: 'GET', description: 'Get complete dashboard overview with counts, stats, and metrics.' },
-                    { action: 'stats', method: 'GET', description: 'Get detailed statistics (daily, weekly, monthly, yearly).' },
-                    { action: 'recent_activities', method: 'GET', description: 'Get recent activities and events.' },
-                    { action: 'charts_data', method: 'GET', description: 'Get data for dashboard charts and graphs.' },
-                    { action: 'quick_stats', method: 'GET', description: 'Get quick statistics for today vs yesterday.' },
-                    { action: 'revenue_stats', method: 'GET', description: 'Get comprehensive revenue statistics.' },
-                    { action: 'test_performance', method: 'GET', description: 'Get test performance metrics and analytics.' },
-                    { action: 'patient_demographics', method: 'GET', description: 'Get patient demographic breakdowns.' },
-                    { action: 'monthly_trends', method: 'GET', description: 'Get monthly trend analysis.' },
-                    { action: 'top_tests', method: 'GET', description: 'Get most popular and profitable tests.' },
-                    { action: 'doctor_performance', method: 'GET', description: 'Get doctor performance metrics.' },
-                    { action: 'alerts', method: 'GET', description: 'Get system alerts and notifications.' }
+                    { action: 'overview', method: 'GET', description: 'Get complete dashboard overview with counts, stats, and metrics for current user.', params: ['test_user_id', 'test_username'] },
+                    { action: 'stats', method: 'GET', description: 'Get detailed statistics (daily, weekly, monthly, yearly) for current user.', params: ['test_user_id', 'test_username'] },
+                    { action: 'recent_activities', method: 'GET', description: 'Get recent activities and events for current user.', params: ['test_user_id', 'test_username'] },
+                    { action: 'charts_data', method: 'GET', description: 'Get data for dashboard charts and graphs for current user.', params: ['test_user_id', 'test_username'] },
+                    { action: 'quick_stats', method: 'GET', description: 'Get quick statistics for today vs yesterday for current user.', params: ['test_user_id', 'test_username'] },
+                    { action: 'revenue_stats', method: 'GET', description: 'Get comprehensive revenue statistics for current user.', params: ['test_user_id', 'test_username'] },
+                    { action: 'test_performance', method: 'GET', description: 'Get test performance metrics and analytics for current user.', params: ['test_user_id', 'test_username'] },
+                    { action: 'patient_demographics', method: 'GET', description: 'Get patient demographic breakdowns for current user.', params: ['test_user_id', 'test_username'] },
+                    { action: 'monthly_trends', method: 'GET', description: 'Get monthly trend analysis for current user.', params: ['test_user_id', 'test_username'] },
+                    { action: 'top_tests', method: 'GET', description: 'Get most popular and profitable tests for current user.', params: ['test_user_id', 'test_username'] },
+                    { action: 'doctor_performance', method: 'GET', description: 'Get doctor performance metrics for current user.', params: ['test_user_id', 'test_username'] },
+                    { action: 'alerts', method: 'GET', description: 'Get system alerts and notifications for current user.', params: ['test_user_id', 'test_username'] }
                 ]
             },
         ];
@@ -260,7 +260,12 @@
                     const resultDiv = document.getElementById(`test-result-${api.file}-${endpoint.action}`);
                     resultDiv.innerHTML = '<span class="badge bg-warning">Testing...</span>';
 
-                    const url = `/umakant/patho_api/${api.file}?action=${endpoint.action}&secret_key=hospital-api-secret-2024`;
+                    let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}&secret_key=hospital-api-secret-2024`;
+                    
+                    // Add test user parameter for dashboard API
+                    if (api.file === 'dashboard.php') {
+                        url += '&test_user_id=1'; // Test with user ID 1
+                    }
 
                     try {
                         const response = await axios.get(url);
@@ -290,7 +295,12 @@
                 return;
             }
 
-            const url = `/umakant/patho_api/${api.file}?action=${endpoint.action}&secret_key=hospital-api-secret-2024`;
+            let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}&secret_key=hospital-api-secret-2024`;
+            
+            // Add test user parameter for dashboard API
+            if (api.file === 'dashboard.php') {
+                url += '&test_user_id=1'; // Test with user ID 1
+            }
 
             try {
                 const response = await axios.get(url);
@@ -314,23 +324,44 @@
         }
 
         function generateCurlExample(api, endpoint) {
-            const url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
-            return `curl -X ${endpoint.method} "${window.location.origin}${url}&secret_key=hospital-api-secret-2024"`;
+            let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
+            let fullUrl = `${window.location.origin}${url}&secret_key=hospital-api-secret-2024`;
+            
+            // Add user parameter example for dashboard API
+            if (api.file === 'dashboard.php') {
+                fullUrl += '&test_user_id=1';
+            }
+            
+            return `curl -X ${endpoint.method} "${fullUrl}"`;
         }
 
         function generateJsExample(api, endpoint) {
-            const url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
+            let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
+            let fullUrl = `${url}&secret_key=hospital-api-secret-2024`;
+            
+            // Add user parameter example for dashboard API
+            if (api.file === 'dashboard.php') {
+                fullUrl += '&test_user_id=1';
+            }
+            
             return `axios({
     method: '${endpoint.method}',
-    url: '${url}&secret_key=hospital-api-secret-2024'
+    url: '${fullUrl}'
 }).then(response => {
     console.log(response.data);
 });`;
         }
 
         function generatePhpExample(api, endpoint) {
-            const url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
-            const code = `<?php\n$url = "${window.location.origin}${url}&secret_key=hospital-api-secret-2024";\n$response = file_get_contents($url);\n$data = json_decode($response, true);\nprint_r($data);\n?>`;
+            let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
+            let fullUrl = `${window.location.origin}${url}&secret_key=hospital-api-secret-2024`;
+            
+            // Add user parameter example for dashboard API
+            if (api.file === 'dashboard.php') {
+                fullUrl += '&test_user_id=1';
+            }
+            
+            const code = `<?php\n$url = "${fullUrl}";\n$response = file_get_contents($url);\n$data = json_decode($response, true);\nprint_r($data);\n?>`;
             return code.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 

@@ -232,7 +232,14 @@ class PathologyDashboard {
     }
     
     async apiCall(action) {
-        const response = await fetch(`${this.apiBase}?action=${action}&secret_key=${this.secretKey}`);
+        // Get user info from session or use test user
+        let url = `${this.apiBase}?action=${action}&secret_key=${this.secretKey}`;
+        
+        // Add user authentication - in a real scenario, this would come from session
+        // For testing, we'll use a default test user
+        url += '&test_user_id=1'; // This should be replaced with actual session user ID
+        
+        const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`API call failed: ${response.statusText}`);
         }
