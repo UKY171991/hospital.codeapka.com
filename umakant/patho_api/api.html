@@ -7,10 +7,54 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* Base Styles */
+        * {
+            box-sizing: border-box;
+        }
+        
         body { 
             background-color: #f0f2f5; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
         }
+
+        /* Mobile-First Header */
+        .mobile-header {
+            display: none;
+            background: #fff;
+            padding: 1rem;
+            border-bottom: 1px solid #dee2e6;
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .mobile-header .navbar-brand {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #0d6efd;
+            text-decoration: none;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #0d6efd;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Enhanced Sidebar */
         .sidebar {
             width: 280px;
             background: #fff;
@@ -20,28 +64,98 @@
             position: fixed;
             overflow-y: auto;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1040;
+            transition: transform 0.3s ease;
         }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .sidebar-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0d6efd;
+            margin: 0;
+        }
+
+        .sidebar-close {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-close:hover {
+            background-color: #f8f9fa;
+            color: #0d6efd;
+        }
+
+        /* Main Content */
         .main-content {
             margin-left: 280px;
             padding: 20px;
             min-height: 100vh;
+            transition: margin-left 0.3s ease;
         }
+
+        /* API List Styling */
         .api-list .list-group-item { 
             cursor: pointer; 
             transition: all 0.3s ease;
             border: none;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             border-radius: 8px;
+            padding: 12px 16px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+
         .api-list .list-group-item:hover {
             background-color: #f8f9fa;
             transform: translateX(5px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
         .api-list .list-group-item.active {
             background-color: #0d6efd;
             color: white;
             font-weight: 600;
+            box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
         }
+
+        .api-list .list-group-item.active:hover {
+            transform: translateX(0);
+            background-color: #0b5ed7;
+        }
+
+        /* Test All Button */
+        #test-all-btn {
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 12px;
+            box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        #test-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+        }
+
+        /* Code Viewer */
         .code-viewer { 
             background: #212529; 
             color: #fff; 
@@ -52,7 +166,10 @@
             font-family: 'Courier New', monospace;
             font-size: 14px;
             line-height: 1.4;
+            border: 1px solid #495057;
         }
+
+        /* Loading Spinner */
         .loading-spinner {
             display: inline-block;
             width: 20px;
@@ -62,59 +179,454 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Endpoint Cards */
         .endpoint-card {
             transition: all 0.3s ease;
             border: 1px solid #dee2e6;
+            border-radius: 12px;
+            overflow: hidden;
         }
+
         .endpoint-card:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transform: translateY(-4px);
+            border-color: #0d6efd;
         }
+
+        .endpoint-card .card-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 1rem;
+        }
+
         .nav-tabs .nav-link {
             border-radius: 8px 8px 0 0;
-            margin-right: 5px;
+            margin-right: 8px;
+            padding: 12px 20px;
+            font-weight: 500;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
         }
+
+        .nav-tabs .nav-link:hover {
+            border-color: #dee2e6;
+            background-color: #f8f9fa;
+        }
+
         .nav-tabs .nav-link.active {
             background-color: #0d6efd;
             border-color: #0d6efd;
             color: white;
+            box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
         }
+
+        /* Badges and Status */
         .badge-status {
             animation: pulse 2s infinite;
         }
+
         @keyframes pulse {
             0% { opacity: 1; }
-            50% { opacity: 0.5; }
+            50% { opacity: 0.7; }
             100% { opacity: 1; }
         }
 
-        @media (max-width: 768px) {
+        /* Breadcrumb */
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: "›";
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        /* Alerts */
+        .alert {
+            border-radius: 8px;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.875rem;
+        }
+
+        /* Overlay for mobile sidebar */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1030;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+        }
+
+        /* Responsive Design */
+        
+        /* Large Tablets and Small Desktops */
+        @media (max-width: 1200px) {
             .sidebar {
-                position: static;
-                width: 100%;
-                height: auto;
-                border-right: none;
-                border-bottom: 1px solid #dee2e6;
+                width: 260px;
             }
             .main-content {
+                margin-left: 260px;
+            }
+        }
+
+        /* Tablets */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 240px;
+            }
+            .main-content {
+                margin-left: 240px;
+                padding: 15px;
+            }
+            .code-viewer {
+                font-size: 12px;
+                max-height: 300px;
+            }
+        }
+
+        /* Small Tablets and Large Phones */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 280px;
+                height: 100vh;
+                transform: translateX(-100%);
+                z-index: 1040;
+                padding-top: 70px;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .sidebar-close {
+                display: block;
+                position: absolute;
+                top: 15px;
+                right: 15px;
+            }
+
+            .main-content {
                 margin-left: 0;
+                padding: 15px;
+                padding-top: 80px;
+            }
+
+            .nav-tabs .nav-link {
+                padding: 8px 12px;
+                font-size: 0.875rem;
+                margin-right: 4px;
+            }
+
+            .endpoint-card .card-header {
+                padding: 1rem;
+            }
+
+            .endpoint-card .card-header h5 {
+                font-size: 1rem;
+            }
+
+            .code-viewer {
+                font-size: 11px;
+                padding: 10px;
+                max-height: 250px;
+            }
+
+            .alert {
+                padding: 0.75rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Mobile Phones */
+        @media (max-width: 576px) {
+            .mobile-header {
+                padding: 0.75rem 1rem;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 15px;
+                padding-top: 60px;
+            }
+
+            .main-content {
+                padding: 10px;
+                padding-top: 70px;
+            }
+
+            .endpoint-card {
+                margin-bottom: 1rem;
+            }
+
+            .endpoint-card .card-header {
+                padding: 0.75rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .endpoint-card .card-header .btn {
+                width: 100%;
+                margin-top: 0.5rem;
+            }
+
+            .nav-tabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .nav-tabs::-webkit-scrollbar {
+                display: none;
+            }
+
+            .nav-tabs .nav-link {
+                white-space: nowrap;
+                min-width: 80px;
+                text-align: center;
+                padding: 8px 10px;
+                font-size: 0.8rem;
+            }
+
+            .code-viewer {
+                font-size: 10px;
+                padding: 8px;
+                max-height: 200px;
+            }
+
+            .breadcrumb {
+                font-size: 0.875rem;
+            }
+
+            .card-body {
+                padding: 1rem;
+            }
+
+            .alert {
+                padding: 0.5rem;
+                font-size: 0.8rem;
+            }
+
+            .btn-sm {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+
+            #test-all-btn {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+
+            .api-list .list-group-item {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Extra Small Phones */
+        @media (max-width: 400px) {
+            .mobile-header {
+                padding: 0.5rem;
+            }
+
+            .main-content {
+                padding: 8px;
+                padding-top: 65px;
+            }
+
+            .sidebar {
+                padding: 10px;
+                padding-top: 55px;
+            }
+
+            .endpoint-card .card-header h5 {
+                font-size: 0.9rem;
+            }
+
+            .nav-tabs .nav-link {
+                padding: 6px 8px;
+                font-size: 0.75rem;
+                min-width: 70px;
+            }
+
+            .code-viewer {
+                font-size: 9px;
+                padding: 6px;
+                max-height: 150px;
+            }
+        }
+
+        /* Touch Device Optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .api-list .list-group-item:hover {
+                transform: none;
+            }
+
+            .endpoint-card:hover {
+                transform: none;
+            }
+
+            .btn:hover {
+                transform: none;
+            }
+
+            .nav-tabs .nav-link:hover {
+                background-color: transparent;
+                border-color: transparent;
+            }
+
+            .nav-tabs .nav-link.active:hover {
+                background-color: #0d6efd;
+                border-color: #0d6efd;
+            }
+        }
+
+        /* High DPI Displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .code-viewer {
+                font-size: 13px;
+            }
+        }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1a1a1a;
+                color: #ffffff;
+            }
+
+            .sidebar {
+                background: #2d2d2d;
+                border-right-color: #404040;
+            }
+
+            .mobile-header {
+                background: #2d2d2d;
+                border-bottom-color: #404040;
+            }
+
+            .endpoint-card {
+                background: #2d2d2d;
+                border-color: #404040;
+            }
+
+            .endpoint-card .card-header {
+                background: linear-gradient(135deg, #3a3a3a 0%, #2d2d2d 100%);
+                border-bottom-color: #404040;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .sidebar,
+            .mobile-header,
+            .sidebar-overlay {
+                display: none !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+            }
+
+            .endpoint-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            .code-viewer {
+                background: #f8f9fa !important;
+                color: #000 !important;
+                border: 1px solid #dee2e6 !important;
             }
         }
     </style>
 </head>
 <body>
-    <div class="d-flex flex-column flex-md-row">
-        <div class="sidebar">
-            <h4 class="mb-4">APIs</h4>
-            <div class="d-grid gap-2">
-                <button id="test-all-btn" class="btn btn-primary mb-3">Test All APIs</button>
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <a href="#" class="navbar-brand">
+            <i class="fas fa-code me-2"></i>API Documentation
+        </a>
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Main Layout -->
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <button class="sidebar-close" id="sidebarClose">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="sidebar-header">
+                <h4 class="sidebar-title">
+                    <i class="fas fa-code me-2"></i>APIs
+                </h4>
             </div>
-            <div id="api-list" class="list-group"></div>
+            <div class="d-grid gap-2 mb-3">
+                <button id="test-all-btn" class="btn btn-primary">
+                    <i class="fas fa-play me-2"></i>Test All APIs
+                </button>
+            </div>
+            <div id="api-list" class="list-group api-list"></div>
         </div>
+
+        <!-- Main Content -->
         <div class="main-content">
             <div class="container-fluid">
                 <div id="api-documentation"></div>
@@ -277,7 +789,14 @@
 
         function renderApiDocumentation(api) {
             // Scroll to top of main content
-            document.querySelector('.main-content').scrollTop = 0;
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.scrollTop = 0;
+            }
+            // Also scroll window to top on mobile
+            if (window.innerWidth <= 768) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
             
             let endpointsHtml = '';
             api.endpoints.forEach(endpoint => {
@@ -301,13 +820,34 @@
                             </ul>
                             <div class="tab-content">
                                 <div class="tab-pane fade show active" id="curl-${api.file}-${endpoint.action}" role="tabpanel">
-                                    <pre class="code-viewer"><code>${generateCurlExample(api, endpoint)}</code></pre>
+                                    <div class="position-relative">
+                                        <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2 copy-btn" 
+                                                data-copy="${generateCurlExample(api, endpoint).replace(/"/g, '&quot;')}" 
+                                                title="Copy to clipboard">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                        <pre class="code-viewer"><code>${generateCurlExample(api, endpoint)}</code></pre>
+                                    </div>
                                 </div>
                                 <div class="tab-pane fade" id="js-${api.file}-${endpoint.action}" role="tabpanel">
-                                    <pre class="code-viewer"><code>${generateJsExample(api, endpoint)}</code></pre>
+                                    <div class="position-relative">
+                                        <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2 copy-btn" 
+                                                data-copy="${generateJsExample(api, endpoint).replace(/"/g, '&quot;')}" 
+                                                title="Copy to clipboard">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                        <pre class="code-viewer"><code>${generateJsExample(api, endpoint)}</code></pre>
+                                    </div>
                                 </div>
                                 <div class="tab-pane fade" id="php-${api.file}-${endpoint.action}" role="tabpanel">
-                                    <pre class="code-viewer"><code>${generatePhpExample(api, endpoint)}</code></pre>
+                                    <div class="position-relative">
+                                        <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2 copy-btn" 
+                                                data-copy="${generatePhpExample(api, endpoint).replace(/"/g, '&quot;')}" 
+                                                title="Copy to clipboard">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                        <pre class="code-viewer"><code>${generatePhpExample(api, endpoint)}</code></pre>
+                                    </div>
                                 </div>
                             </div>
                             <div id="test-result-${api.file}-${endpoint.action}" class="mt-3"></div>
@@ -343,6 +883,40 @@
             const tabTriggerList = document.querySelectorAll('[data-bs-toggle="tab"]');
             tabTriggerList.forEach(tabTriggerEl => {
                 new bootstrap.Tab(tabTriggerEl);
+            });
+
+            // Initialize copy buttons
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const textToCopy = e.target.closest('.copy-btn').dataset.copy;
+                    const icon = e.target.closest('.copy-btn').querySelector('i');
+                    
+                    try {
+                        await navigator.clipboard.writeText(textToCopy);
+                        icon.className = 'fas fa-check';
+                        e.target.closest('.copy-btn').classList.remove('btn-outline-light');
+                        e.target.closest('.copy-btn').classList.add('btn-success');
+                        
+                        setTimeout(() => {
+                            icon.className = 'fas fa-copy';
+                            e.target.closest('.copy-btn').classList.remove('btn-success');
+                            e.target.closest('.copy-btn').classList.add('btn-outline-light');
+                        }, 2000);
+                    } catch (err) {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        icon.className = 'fas fa-check';
+                        setTimeout(() => {
+                            icon.className = 'fas fa-copy';
+                        }, 2000);
+                    }
+                });
             });
 
             document.querySelectorAll('.test-endpoint-btn').forEach(btn => {
@@ -529,9 +1103,136 @@
         // Listen for hash changes
         window.addEventListener('hashchange', handleHashNavigation);
 
-        // Initialize the page
-        renderApiList();
-        handleHashNavigation();
+        // Mobile Sidebar Functionality
+        function initializeMobileSidebar() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarClose = document.getElementById('sidebarClose');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            function showSidebar() {
+                sidebar.classList.add('show');
+                sidebarOverlay.style.display = 'block';
+                setTimeout(() => sidebarOverlay.classList.add('show'), 10);
+                document.body.style.overflow = 'hidden';
+            }
+
+            function hideSidebar() {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+                setTimeout(() => {
+                    sidebarOverlay.style.display = 'none';
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+
+            // Event listeners
+            sidebarToggle.addEventListener('click', showSidebar);
+            sidebarClose.addEventListener('click', hideSidebar);
+            sidebarOverlay.addEventListener('click', hideSidebar);
+
+            // Close sidebar when clicking on API items on mobile
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.list-group-item') && window.innerWidth <= 768) {
+                    setTimeout(hideSidebar, 300);
+                }
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    hideSidebar();
+                }
+            });
+
+            // Handle escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && sidebar.classList.contains('show')) {
+                    hideSidebar();
+                }
+            });
+        }
+
+        // Enhanced scroll handling for mobile
+        function handleMobileScroll() {
+            let lastScrollTop = 0;
+            const mobileHeader = document.querySelector('.mobile-header');
+            
+            if (!mobileHeader) return;
+
+            window.addEventListener('scroll', () => {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (scrollTop > lastScrollTop && scrollTop > 100) {
+                    // Scrolling down
+                    mobileHeader.style.transform = 'translateY(-100%)';
+                } else {
+                    // Scrolling up
+                    mobileHeader.style.transform = 'translateY(0)';
+                }
+                
+                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+            }, { passive: true });
+        }
+
+        // Touch gesture support for sidebar
+        function initializeTouchGestures() {
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+
+            document.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+            }, { passive: true });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX;
+            }, { passive: true });
+
+            document.addEventListener('touchend', () => {
+                if (!isDragging) return;
+                isDragging = false;
+
+                const diffX = currentX - startX;
+                const sidebar = document.getElementById('sidebar');
+
+                // Swipe right to open sidebar (from left edge)
+                if (diffX > 50 && startX < 50 && window.innerWidth <= 768) {
+                    sidebar.classList.add('show');
+                    document.getElementById('sidebarOverlay').style.display = 'block';
+                    setTimeout(() => document.getElementById('sidebarOverlay').classList.add('show'), 10);
+                }
+
+                // Swipe left to close sidebar
+                if (diffX < -50 && sidebar.classList.contains('show')) {
+                    sidebar.classList.remove('show');
+                    const overlay = document.getElementById('sidebarOverlay');
+                    overlay.classList.remove('show');
+                    setTimeout(() => overlay.style.display = 'none', 300);
+                }
+            }, { passive: true });
+        }
+
+        // Initialize everything
+        function initializeApp() {
+            renderApiList();
+            handleHashNavigation();
+            initializeMobileSidebar();
+            handleMobileScroll();
+            initializeTouchGestures();
+
+            // Add loading state
+            document.body.classList.add('loaded');
+        }
+
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
     </script>
 </body>
 </html>
