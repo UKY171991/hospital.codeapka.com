@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,14 +12,14 @@
         * {
             box-sizing: border-box;
         }
-        
+
         html {
             overflow-x: hidden;
             width: 100%;
         }
-        
-        body { 
-            background-color: #f0f2f5; 
+
+        body {
+            background-color: #f0f2f5;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
@@ -36,7 +37,7 @@
             position: sticky;
             top: 0;
             z-index: 1050;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .mobile-header .navbar-brand {
@@ -70,7 +71,7 @@
             height: 100vh;
             position: fixed;
             overflow-y: auto;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
             z-index: 1040;
             transition: transform 0.3s ease;
         }
@@ -118,7 +119,7 @@
             max-width: calc(100vw - 280px);
             overflow-x: hidden;
         }
-        
+
         .container-fluid {
             padding-left: 0;
             padding-right: 0;
@@ -127,8 +128,8 @@
         }
 
         /* API List Styling */
-        .api-list .list-group-item { 
-            cursor: pointer; 
+        .api-list .list-group-item {
+            cursor: pointer;
             transition: all 0.3s ease;
             border: none;
             margin-bottom: 8px;
@@ -143,7 +144,7 @@
         .api-list .list-group-item:hover {
             background-color: #f8f9fa;
             transform: translateX(5px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .api-list .list-group-item.active {
@@ -173,12 +174,12 @@
         }
 
         /* Code Viewer */
-        .code-viewer { 
-            background: #212529; 
-            color: #fff; 
-            padding: 15px; 
-            border-radius: 8px; 
-            max-height: 400px; 
+        .code-viewer {
+            background: #212529;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 400px;
             overflow: auto;
             font-family: 'Courier New', monospace;
             font-size: 14px;
@@ -190,7 +191,7 @@
             white-space: pre-wrap;
             word-break: break-all;
         }
-        
+
         .code-viewer code {
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -198,7 +199,7 @@
             display: block;
             width: 100%;
         }
-        
+
         /* Fix for pre elements */
         pre {
             white-space: pre-wrap;
@@ -221,8 +222,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* Endpoint Cards */
@@ -234,12 +240,12 @@
             width: 100%;
             max-width: 100%;
         }
-        
+
         .endpoint-card .card-body {
             overflow-x: hidden;
             word-wrap: break-word;
         }
-        
+
         .endpoint-card .card-body p,
         .endpoint-card .card-body code {
             word-wrap: break-word;
@@ -248,7 +254,7 @@
         }
 
         .endpoint-card:hover {
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             transform: translateY(-4px);
             border-color: #0d6efd;
         }
@@ -267,26 +273,26 @@
             flex-wrap: nowrap;
             scrollbar-width: thin;
         }
-        
+
         .nav-tabs::-webkit-scrollbar {
             height: 4px;
         }
-        
+
         .nav-tabs::-webkit-scrollbar-track {
             background: #f1f1f1;
         }
-        
+
         .nav-tabs::-webkit-scrollbar-thumb {
             background: #c1c1c1;
             border-radius: 2px;
         }
-        
+
         /* Fix for tab content */
         .tab-content {
             overflow-x: hidden;
             width: 100%;
         }
-        
+
         .tab-pane {
             overflow-x: hidden;
             width: 100%;
@@ -319,9 +325,17 @@
         }
 
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
         /* Breadcrumb */
@@ -331,7 +345,7 @@
             margin-bottom: 1rem;
         }
 
-        .breadcrumb-item + .breadcrumb-item::before {
+        .breadcrumb-item+.breadcrumb-item::before {
             content: "›";
             font-weight: 600;
             color: #6c757d;
@@ -341,7 +355,7 @@
         .alert {
             border-radius: 8px;
             border: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         /* Buttons */
@@ -379,12 +393,13 @@
         }
 
         /* Responsive Design */
-        
+
         /* Large Tablets and Small Desktops */
         @media (max-width: 1200px) {
             .sidebar {
                 width: 260px;
             }
+
             .main-content {
                 margin-left: 260px;
             }
@@ -395,10 +410,12 @@
             .sidebar {
                 width: 240px;
             }
+
             .main-content {
                 margin-left: 240px;
                 padding: 15px;
             }
+
             .code-viewer {
                 font-size: 12px;
                 max-height: 300px;
@@ -443,7 +460,7 @@
                 max-width: 100vw;
                 overflow-x: hidden;
             }
-            
+
             .container-fluid {
                 padding-left: 10px;
                 padding-right: 10px;
@@ -473,7 +490,7 @@
                 word-break: break-all;
                 max-width: calc(100vw - 50px);
             }
-            
+
             .code-viewer code {
                 font-size: 11px;
                 white-space: pre-wrap;
@@ -505,7 +522,7 @@
                 max-width: 100vw;
                 overflow-x: hidden;
             }
-            
+
             .container-fluid {
                 padding-left: 5px;
                 padding-right: 5px;
@@ -556,7 +573,7 @@
                 word-break: break-all;
                 max-width: calc(100vw - 30px);
             }
-            
+
             .code-viewer code {
                 font-size: 10px;
                 white-space: pre-wrap;
@@ -651,7 +668,8 @@
         }
 
         /* High DPI Displays */
-        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+        @media (-webkit-min-device-pixel-ratio: 2),
+        (min-resolution: 192dpi) {
             .code-viewer {
                 font-size: 13px;
             }
@@ -685,36 +703,82 @@
             }
         }
 
+        /* Postman Example Styling */
+        .postman-example {
+            padding: 1rem 0;
+        }
+
+        .postman-header h6 {
+            color: #ff6c37;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .postman-instructions .alert {
+            background-color: #e7f3ff;
+            border-left: 4px solid #0d6efd;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .postman-instructions h6 {
+            color: #0d6efd;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .postman-instructions ol {
+            padding-left: 1.2rem;
+        }
+
+        .postman-instructions li {
+            margin-bottom: 0.25rem;
+            color: #495057;
+        }
+
+        /* Postman tab icon styling */
+        .nav-tabs .nav-link i.fa-rocket {
+            color: #ff6c37;
+        }
+
+        .nav-tabs .nav-link.active i.fa-rocket {
+            color: white;
+        }
+
         /* Comprehensive Overflow Fixes */
-        .card, .card-body, .card-header {
+        .card,
+        .card-body,
+        .card-header {
             overflow-x: hidden;
             word-wrap: break-word;
         }
-        
+
         .alert {
             overflow-x: hidden;
             word-wrap: break-word;
         }
-        
+
         .breadcrumb {
             overflow-x: hidden;
             word-wrap: break-word;
         }
-        
+
         /* URL and long text fixes */
-        code, kbd, pre, samp {
+        code,
+        kbd,
+        pre,
+        samp {
             white-space: pre-wrap;
             word-wrap: break-word;
             word-break: break-all;
             overflow-wrap: break-word;
         }
-        
+
         /* Table responsiveness */
         .table-responsive {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
-        
+
         /* Force break long words */
         .force-break {
             word-break: break-all;
@@ -722,7 +786,7 @@
             overflow-wrap: break-word;
             hyphens: auto;
         }
-        
+
         /* Apply force-break to specific elements */
         .endpoint-card p,
         .endpoint-card code,
@@ -734,6 +798,7 @@
 
         /* Print Styles */
         @media print {
+
             .sidebar,
             .mobile-header,
             .sidebar-overlay {
@@ -762,6 +827,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Mobile Header -->
     <div class="mobile-header">
@@ -967,7 +1033,7 @@
             if (window.innerWidth <= 768) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
-            
+
             let endpointsHtml = '';
             api.endpoints.forEach(endpoint => {
                 endpointsHtml += `
@@ -985,6 +1051,7 @@
                             <h6>Code Examples</h6>
                             <ul class="nav nav-tabs" role="tablist">
                                 <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#curl-${api.file}-${endpoint.action}" type="button" role="tab">cURL</button></li>
+                                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#postman-${api.file}-${endpoint.action}" type="button" role="tab"><i class="fas fa-rocket me-1"></i>Postman</button></li>
                                 <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#js-${api.file}-${endpoint.action}" type="button" role="tab">JavaScript</button></li>
                                 <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#php-${api.file}-${endpoint.action}" type="button" role="tab">PHP</button></li>
                             </ul>
@@ -997,6 +1064,42 @@
                                             <i class="fas fa-copy"></i>
                                         </button>
                                         <pre class="code-viewer"><code>${generateCurlExample(api, endpoint)}</code></pre>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="postman-${api.file}-${endpoint.action}" role="tabpanel">
+                                    <div class="postman-example">
+                                        <div class="postman-header mb-3">
+                                            <h6><i class="fas fa-rocket me-2"></i>Postman Collection Example</h6>
+                                            <p class="text-muted small">Copy this JSON and import it into Postman as a new collection</p>
+                                        </div>
+                                        <div class="position-relative">
+                                            <div class="btn-group position-absolute top-0 end-0 m-2" role="group">
+                                                <button class="btn btn-sm btn-outline-light copy-btn" 
+                                                        data-copy="${generatePostmanExample(api, endpoint).replace(/"/g, '&quot;')}" 
+                                                        title="Copy Postman Collection">
+                                                    <i class="fas fa-copy me-1"></i>Copy
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-light download-postman-btn" 
+                                                        data-api="${api.file}" 
+                                                        data-endpoint="${endpoint.action}"
+                                                        title="Download Postman Collection">
+                                                    <i class="fas fa-download me-1"></i>Download
+                                                </button>
+                                            </div>
+                                            <pre class="code-viewer"><code>${generatePostmanExample(api, endpoint)}</code></pre>
+                                        </div>
+                                        <div class="postman-instructions mt-3">
+                                            <div class="alert alert-info">
+                                                <h6><i class="fas fa-info-circle me-2"></i>How to use in Postman:</h6>
+                                                <ol class="mb-0 small">
+                                                    <li>Copy the JSON above</li>
+                                                    <li>Open Postman → Import → Raw text</li>
+                                                    <li>Paste the JSON and click Continue</li>
+                                                    <li>Update the variables if needed</li>
+                                                    <li>Send the request</li>
+                                                </ol>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="tab-pane fade" id="js-${api.file}-${endpoint.action}" role="tabpanel">
@@ -1037,7 +1140,14 @@
                     <div class="card-header bg-primary text-white">
                         <div class="d-flex justify-content-between align-items-center flex-wrap">
                             <h2 class="card-title mb-0 force-break"><i class="fas fa-cogs me-2"></i>${api.name} API</h2>
-                            <span class="badge bg-light text-dark force-break">${api.file}</span>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <button class="btn btn-sm btn-light download-full-collection-btn" 
+                                        data-api-file="${api.file}"
+                                        title="Download Complete Postman Collection">
+                                    <i class="fas fa-rocket me-1"></i>Download Full Collection
+                                </button>
+                                <span class="badge bg-light text-dark force-break">${api.file}</span>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
@@ -1060,13 +1170,13 @@
                 btn.addEventListener('click', async (e) => {
                     const textToCopy = e.target.closest('.copy-btn').dataset.copy;
                     const icon = e.target.closest('.copy-btn').querySelector('i');
-                    
+
                     try {
                         await navigator.clipboard.writeText(textToCopy);
                         icon.className = 'fas fa-check';
                         e.target.closest('.copy-btn').classList.remove('btn-outline-light');
                         e.target.closest('.copy-btn').classList.add('btn-success');
-                        
+
                         setTimeout(() => {
                             icon.className = 'fas fa-copy';
                             e.target.closest('.copy-btn').classList.remove('btn-success');
@@ -1080,12 +1190,87 @@
                         textArea.select();
                         document.execCommand('copy');
                         document.body.removeChild(textArea);
-                        
+
                         icon.className = 'fas fa-check';
                         setTimeout(() => {
                             icon.className = 'fas fa-copy';
                         }, 2000);
                     }
+                });
+            });
+
+            // Initialize Postman download buttons
+            document.querySelectorAll('.download-postman-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const apiFile = e.target.closest('.download-postman-btn').dataset.api;
+                    const endpointAction = e.target.closest('.download-postman-btn').dataset.endpoint;
+                    const api = apiEndpoints.find(a => a.file === apiFile);
+                    const endpoint = api.endpoints.find(ep => ep.action === endpointAction);
+                    const icon = e.target.closest('.download-postman-btn').querySelector('i');
+
+                    // Generate Postman collection
+                    const postmanJson = generatePostmanExample(api, endpoint);
+
+                    // Create download
+                    const blob = new Blob([postmanJson], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${api.name.replace(/\s+/g, '_')}_${endpoint.action}_postman_collection.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    // Visual feedback
+                    const originalClass = icon.className;
+                    icon.className = 'fas fa-check';
+                    e.target.closest('.download-postman-btn').classList.remove('btn-outline-light');
+                    e.target.closest('.download-postman-btn').classList.add('btn-success');
+
+                    setTimeout(() => {
+                        icon.className = originalClass;
+                        e.target.closest('.download-postman-btn').classList.remove('btn-success');
+                        e.target.closest('.download-postman-btn').classList.add('btn-outline-light');
+                    }, 2000);
+                });
+            });
+
+            // Initialize full collection download buttons
+            document.querySelectorAll('.download-full-collection-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const apiFile = e.target.closest('.download-full-collection-btn').dataset.apiFile;
+                    const api = apiEndpoints.find(a => a.file === apiFile);
+                    const icon = e.target.closest('.download-full-collection-btn').querySelector('i');
+
+                    // Generate full Postman collection
+                    const postmanCollection = generateFullPostmanCollection(api);
+                    const postmanJson = JSON.stringify(postmanCollection, null, 2);
+
+                    // Create download
+                    const blob = new Blob([postmanJson], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${api.name.replace(/\s+/g, '_')}_Complete_Postman_Collection.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    // Visual feedback
+                    const originalClass = icon.className;
+                    const originalText = e.target.closest('.download-full-collection-btn').innerHTML;
+                    icon.className = 'fas fa-check';
+                    e.target.closest('.download-full-collection-btn').innerHTML = '<i class="fas fa-check me-1"></i>Downloaded!';
+                    e.target.closest('.download-full-collection-btn').classList.remove('btn-light');
+                    e.target.closest('.download-full-collection-btn').classList.add('btn-success');
+
+                    setTimeout(() => {
+                        e.target.closest('.download-full-collection-btn').innerHTML = originalText;
+                        e.target.closest('.download-full-collection-btn').classList.remove('btn-success');
+                        e.target.closest('.download-full-collection-btn').classList.add('btn-light');
+                    }, 3000);
                 });
             });
 
@@ -1098,14 +1283,14 @@
                     const resultDiv = document.getElementById(`test-result-${api.file}-${endpoint.action}`);
                     const button = e.target;
                     const originalText = button.innerHTML;
-                    
+
                     // Show loading state
                     button.disabled = true;
                     button.innerHTML = '<span class="loading-spinner"></span> Testing...';
                     resultDiv.innerHTML = '<div class="alert alert-info"><span class="loading-spinner me-2"></span>Testing API endpoint...</div>';
 
                     let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}&secret_key=hospital-api-secret-2024`;
-                    
+
                     // Add test user parameter for dashboard API
                     if (api.file === 'dashboard.php') {
                         url += '&test_user_id=1'; // Test with user ID 1
@@ -1160,7 +1345,7 @@
             }
 
             let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}&secret_key=hospital-api-secret-2024`;
-            
+
             // Add user parameter for APIs that need user filtering
             if (['patient.php', 'dashboard.php', 'entry.php', 'doctor.php'].includes(api.file)) {
                 if (api.file === 'dashboard.php') {
@@ -1194,24 +1379,24 @@
         function generateCurlExample(api, endpoint) {
             let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
             let fullUrl = `${window.location.origin}${url}&secret_key=hospital-api-secret-2024`;
-            
+
             // Add user parameter example for dashboard API
             if (api.file === 'dashboard.php') {
                 fullUrl += '&test_user_id=1';
             }
-            
+
             return `curl -X ${endpoint.method} "${fullUrl}"`;
         }
 
         function generateJsExample(api, endpoint) {
             let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
             let fullUrl = `${url}&secret_key=hospital-api-secret-2024`;
-            
+
             // Add user parameter example for dashboard API
             if (api.file === 'dashboard.php') {
                 fullUrl += '&test_user_id=1';
             }
-            
+
             return `axios({
     method: '${endpoint.method}',
     url: '${fullUrl}'
@@ -1223,14 +1408,421 @@
         function generatePhpExample(api, endpoint) {
             let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}${endpoint.params ? `&${endpoint.params.join('=&lt;value&gt;&')}=&lt;value&gt;` : ''}`;
             let fullUrl = `${window.location.origin}${url}&secret_key=hospital-api-secret-2024`;
-            
+
             // Add user parameter example for dashboard API
             if (api.file === 'dashboard.php') {
                 fullUrl += '&test_user_id=1';
             }
-            
+
             const code = `<?php\n$url = "${fullUrl}";\n$response = file_get_contents($url);\n$data = json_decode($response, true);\nprint_r($data);\n?>`;
             return code.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function generatePostmanExample(api, endpoint) {
+            let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}`;
+            let fullUrl = `${window.location.origin}${url}`;
+
+            // Build query parameters
+            let queryParams = [
+                {
+                    "key": "action",
+                    "value": endpoint.action,
+                    "description": "API action to perform"
+                },
+                {
+                    "key": "secret_key",
+                    "value": "hospital-api-secret-2024",
+                    "description": "API secret key for authentication"
+                }
+            ];
+
+            // Add endpoint-specific parameters
+            if (endpoint.params) {
+                endpoint.params.forEach(param => {
+                    queryParams.push({
+                        "key": param,
+                        "value": param === 'id' ? "1" : (param.includes('user') ? "1" : "example_value"),
+                        "description": `${param.charAt(0).toUpperCase() + param.slice(1)} parameter`
+                    });
+                });
+            }
+
+            // Add special parameters for specific APIs
+            if (api.file === 'dashboard.php') {
+                queryParams.push({
+                    "key": "test_user_id",
+                    "value": "1",
+                    "description": "Test user ID for dashboard API"
+                });
+            } else if (['patient.php', 'entry.php', 'doctor.php'].includes(api.file)) {
+                queryParams.push({
+                    "key": "user_id",
+                    "value": "1",
+                    "description": "User ID for filtering data"
+                });
+            }
+
+            // Generate request body for POST requests
+            let requestBody = null;
+            if (endpoint.method === 'POST') {
+                if (endpoint.action === 'save') {
+                    if (api.file === 'user.php') {
+                        requestBody = {
+                            "mode": "raw",
+                            "raw": JSON.stringify({
+                                "name": "John Doe",
+                                "email": "john@example.com",
+                                "username": "johndoe",
+                                "password": "password123",
+                                "role": "user"
+                            }, null, 2),
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        };
+                    } else if (api.file === 'patient.php') {
+                        requestBody = {
+                            "mode": "raw",
+                            "raw": JSON.stringify({
+                                "name": "Jane Smith",
+                                "age": "30",
+                                "gender": "Female",
+                                "phone": "1234567890",
+                                "address": "123 Main St",
+                                "user_id": "1"
+                            }, null, 2),
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        };
+                    } else if (api.file === 'doctor.php') {
+                        requestBody = {
+                            "mode": "raw",
+                            "raw": JSON.stringify({
+                                "name": "Dr. Smith",
+                                "specialization": "Cardiology",
+                                "phone": "1234567890",
+                                "email": "dr.smith@example.com",
+                                "hospital": "General Hospital"
+                            }, null, 2),
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        };
+                    } else {
+                        requestBody = {
+                            "mode": "raw",
+                            "raw": JSON.stringify({
+                                "name": "Example Name",
+                                "description": "Example Description"
+                            }, null, 2),
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        };
+                    }
+                } else if (endpoint.action === 'delete') {
+                    requestBody = {
+                        "mode": "formdata",
+                        "formdata": [
+                            {
+                                "key": "id",
+                                "value": "1",
+                                "description": "ID of the record to delete",
+                                "type": "text"
+                            }
+                        ]
+                    };
+                }
+            }
+
+            // Create Postman collection structure
+            const postmanCollection = {
+                "info": {
+                    "name": `${api.name} API - ${endpoint.action}`,
+                    "description": `${api.description}\\n\\nEndpoint: ${endpoint.description}`,
+                    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+                },
+                "item": [
+                    {
+                        "name": `${endpoint.action} - ${api.name}`,
+                        "request": {
+                            "method": endpoint.method,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json",
+                                    "description": "Content type for JSON requests"
+                                },
+                                {
+                                    "key": "Accept",
+                                    "value": "application/json",
+                                    "description": "Accept JSON responses"
+                                }
+                            ],
+                            "url": {
+                                "raw": fullUrl,
+                                "protocol": window.location.protocol.replace(':', ''),
+                                "host": window.location.hostname.split('.'),
+                                "port": window.location.port || (window.location.protocol === 'https:' ? '443' : '80'),
+                                "path": url.split('?')[0].split('/').filter(p => p),
+                                "query": queryParams
+                            },
+                            "description": `${endpoint.description}\\n\\nAPI File: ${api.file}\\nMethod: ${endpoint.method}`
+                        },
+                        "response": [
+                            {
+                                "name": "Success Response Example",
+                                "originalRequest": {
+                                    "method": endpoint.method,
+                                    "header": [],
+                                    "url": {
+                                        "raw": fullUrl,
+                                        "protocol": window.location.protocol.replace(':', ''),
+                                        "host": window.location.hostname.split('.'),
+                                        "path": url.split('?')[0].split('/').filter(p => p),
+                                        "query": queryParams
+                                    }
+                                },
+                                "status": "OK",
+                                "code": 200,
+                                "_postman_previewlanguage": "json",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "cookie": [],
+                                "body": JSON.stringify({
+                                    "success": true,
+                                    "message": "Operation completed successfully",
+                                    "data": endpoint.action === 'list' ? [] : {}
+                                }, null, 2)
+                            }
+                        ]
+                    }
+                ],
+                "variable": [
+                    {
+                        "key": "base_url",
+                        "value": window.location.origin,
+                        "description": "Base URL for the API"
+                    },
+                    {
+                        "key": "api_secret",
+                        "value": "hospital-api-secret-2024",
+                        "description": "API secret key"
+                    }
+                ]
+            };
+
+            // Add body to request if it's a POST request
+            if (requestBody) {
+                postmanCollection.item[0].request.body = requestBody;
+            }
+
+            return JSON.stringify(postmanCollection, null, 2);
+        }
+
+        function generateFullPostmanCollection(api) {
+            const items = api.endpoints.map(endpoint => {
+                let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}`;
+                let fullUrl = `${window.location.origin}${url}`;
+
+                // Build query parameters
+                let queryParams = [
+                    {
+                        "key": "action",
+                        "value": endpoint.action,
+                        "description": "API action to perform"
+                    },
+                    {
+                        "key": "secret_key",
+                        "value": "{{api_secret}}",
+                        "description": "API secret key for authentication"
+                    }
+                ];
+
+                // Add endpoint-specific parameters
+                if (endpoint.params) {
+                    endpoint.params.forEach(param => {
+                        queryParams.push({
+                            "key": param,
+                            "value": param === 'id' ? "{{record_id}}" : (param.includes('user') ? "{{user_id}}" : "{{" + param + "}}"),
+                            "description": `${param.charAt(0).toUpperCase() + param.slice(1)} parameter`
+                        });
+                    });
+                }
+
+                // Add special parameters for specific APIs
+                if (api.file === 'dashboard.php') {
+                    queryParams.push({
+                        "key": "test_user_id",
+                        "value": "{{user_id}}",
+                        "description": "Test user ID for dashboard API"
+                    });
+                } else if (['patient.php', 'entry.php', 'doctor.php'].includes(api.file)) {
+                    queryParams.push({
+                        "key": "user_id",
+                        "value": "{{user_id}}",
+                        "description": "User ID for filtering data"
+                    });
+                }
+
+                // Generate request body for POST requests
+                let requestBody = null;
+                if (endpoint.method === 'POST') {
+                    if (endpoint.action === 'save') {
+                        if (api.file === 'user.php') {
+                            requestBody = {
+                                "mode": "raw",
+                                "raw": JSON.stringify({
+                                    "name": "{{user_name}}",
+                                    "email": "{{user_email}}",
+                                    "username": "{{username}}",
+                                    "password": "{{password}}",
+                                    "role": "{{user_role}}"
+                                }, null, 2),
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            };
+                        } else if (api.file === 'patient.php') {
+                            requestBody = {
+                                "mode": "raw",
+                                "raw": JSON.stringify({
+                                    "name": "{{patient_name}}",
+                                    "age": "{{patient_age}}",
+                                    "gender": "{{patient_gender}}",
+                                    "phone": "{{patient_phone}}",
+                                    "address": "{{patient_address}}",
+                                    "user_id": "{{user_id}}"
+                                }, null, 2),
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            };
+                        } else if (api.file === 'doctor.php') {
+                            requestBody = {
+                                "mode": "raw",
+                                "raw": JSON.stringify({
+                                    "name": "{{doctor_name}}",
+                                    "specialization": "{{specialization}}",
+                                    "phone": "{{doctor_phone}}",
+                                    "email": "{{doctor_email}}",
+                                    "hospital": "{{hospital_name}}"
+                                }, null, 2),
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            };
+                        } else {
+                            requestBody = {
+                                "mode": "raw",
+                                "raw": JSON.stringify({
+                                    "name": "{{item_name}}",
+                                    "description": "{{item_description}}"
+                                }, null, 2),
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            };
+                        }
+                    } else if (endpoint.action === 'delete') {
+                        requestBody = {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "id",
+                                    "value": "{{record_id}}",
+                                    "description": "ID of the record to delete",
+                                    "type": "text"
+                                }
+                            ]
+                        };
+                    }
+                }
+
+                const item = {
+                    "name": `${endpoint.action.charAt(0).toUpperCase() + endpoint.action.slice(1)} ${api.name}`,
+                    "request": {
+                        "method": endpoint.method,
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "description": "Content type for JSON requests"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "description": "Accept JSON responses"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}" + url,
+                            "host": ["{{base_url}}"],
+                            "path": url.split('?')[0].split('/').filter(p => p),
+                            "query": queryParams
+                        },
+                        "description": `${endpoint.description}\\n\\nMethod: ${endpoint.method}\\nAction: ${endpoint.action}`
+                    }
+                };
+
+                if (requestBody) {
+                    item.request.body = requestBody;
+                }
+
+                return item;
+            });
+
+            return {
+                "info": {
+                    "name": `${api.name} API - Complete Collection`,
+                    "description": `Complete Postman collection for ${api.name} API\\n\\n${api.description}\\n\\nThis collection includes all available endpoints for the ${api.name} API with example requests and responses.`,
+                    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+                },
+                "item": items,
+                "variable": [
+                    {
+                        "key": "base_url",
+                        "value": window.location.origin,
+                        "description": "Base URL for the API"
+                    },
+                    {
+                        "key": "api_secret",
+                        "value": "hospital-api-secret-2024",
+                        "description": "API secret key for authentication"
+                    },
+                    {
+                        "key": "user_id",
+                        "value": "1",
+                        "description": "User ID for API requests"
+                    },
+                    {
+                        "key": "record_id",
+                        "value": "1",
+                        "description": "Record ID for get/update/delete operations"
+                    }
+                ]
+            };
         }
 
         testAllBtn.addEventListener('click', testAllApis);
@@ -1327,12 +1919,12 @@
         function handleMobileScroll() {
             let lastScrollTop = 0;
             const mobileHeader = document.querySelector('.mobile-header');
-            
+
             if (!mobileHeader) return;
 
             window.addEventListener('scroll', () => {
                 const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                
+
                 if (scrollTop > lastScrollTop && scrollTop > 100) {
                     // Scrolling down
                     mobileHeader.style.transform = 'translateY(-100%)';
@@ -1340,7 +1932,7 @@
                     // Scrolling up
                     mobileHeader.style.transform = 'translateY(0)';
                 }
-                
+
                 lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
             }, { passive: true });
         }
@@ -1405,4 +1997,5 @@
         }
     </script>
 </body>
+
 </html>
