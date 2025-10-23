@@ -25,9 +25,67 @@ $entity_config = [
     'allowed_fields' => ['name', 'uhid', 'father_husband', 'mobile', 'email', 'age', 'age_unit', 'gender', 'address', 'contact', 'added_by']
 ];
 
+// Enhanced authentication with user filtering support
 $user_data = simpleAuthenticate($pdo);
 if (!$user_data) {
     json_response(['success' => false, 'message' => 'Authentication required', 'debug_info' => getAuthDebugInfo()], 401);
+}
+
+// Handle user-specific filtering
+$current_user_id = null;
+$current_user_role = $user_data['role'];
+
+// Check if specific user is requested (for testing or admin access)
+if (isset($_REQUEST['user_id']) && !empty($_REQUEST['user_id'])) {
+    $requested_user_id = (int) $_REQUEST['user_id'];
+    
+    // Only allow if authenticated as master/admin or requesting own data
+    if ($user_data['role'] === 'master' || $user_data['role'] === 'admin' || $user_data['user_id'] == $requested_user_id) {
+        $current_user_id = $requested_user_id;
+    } else {
+        json_response(['success' => false, 'message' => 'Access denied: Cannot access other user data'], 403);
+    }
+} elseif (isset($_REQUEST['username']) && !empty($_REQUEST['username'])) {
+    $requested_username = $_REQUEST['username'];
+    
+    // Get user ID from username
+    try {
+        $stmt = $pdo->prepare('SELECT id, role FROM users WHERE username = ?');
+        $stmt->execute([$requested_username]);
+        $requested_user = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($requested_user) {
+            $requested_user_id = (int) $requested_user['id'];
+            
+            // Only allow if authenticated as master/admin or requesting own data
+            if ($user_data['role'] === 'master' || $user_data['role'] === 'admin' || $user_data['user_id'] == $requested_user_id) {
+                $current_user_id = $requested_user_id;
+            } else {
+                json_response(['success' => false, 'message' => 'Access denied: Cannot access other user data'], 403);
+            }
+        } else {
+            json_response(['success' => false, 'message' => 'User not found'], 404);
+        }
+    } catch (Exception $e) {
+        json_response(['success' => false, 'message' => 'Error looking up user'], 500);
+    }
+} else {
+    // Use authenticated user's ID
+    $current_user_id = $user_data['user_id'];
+}
+
+// If still no user ID and not master/admin, require user specification
+if (!$current_user_id && $user_data['role'] !== 'master' && $user_data['role'] !== 'admin') {
+    json_response([
+        'success' => false, 
+        'message' => 'User ID required. Add &user_id=1 or &username=admin parameter',
+        'help' => 'For testing: add &user_id=1 to see user 1 data, or &username=doctor1 to see doctor1 data'
+    ], 400);
+}
+
+// For master/admin without specific user, default to user 1 for testing
+if (!$current_user_id && ($user_data['role'] === 'master' || $user_data['role'] === 'admin')) {
+    $current_user_id = 1; // Default test user
 }
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -59,14 +117,28 @@ try {
 }
 
 function handleList($pdo, $config, $user_data) {
-    $userId = $_REQUEST['user_id'] ?? $user_data['user_id'];
+    global $current_user_id, $current_user_role;
+    
     $draw = (int)($_REQUEST['draw'] ?? 1);
     $start = (int)($_REQUEST['start'] ?? 0);
     $length = (int)($_REQUEST['length'] ?? 25);
     $search = $_REQUEST['search']['value'] ?? '';
 
-    $whereClauses = ["p.added_by = ?"];
-    $params = [$userId];
+    // Filter by current user unless admin/master viewing all
+    $whereClauses = [];
+    $params = [];
+    
+    if ($current_user_role === 'master' || $current_user_role === 'admin') {
+        // Admin can see all, but if user_id specified, filter by that user
+        if ($current_user_id) {
+            $whereClauses[] = "p.added_by = ?";
+            $params[] = $current_user_id;
+        }
+    } else {
+        // Regular users see only their data
+        $whereClauses[] = "p.added_by = ?";
+        $params[] = $current_user_id;
+    }
 
     if (!empty($search)) {
         $whereClauses[] = "(p.name LIKE ? OR p.uhid LIKE ? OR p.mobile LIKE ?)";
@@ -105,17 +177,29 @@ function handleList($pdo, $config, $user_data) {
 }
 
 function handleGet($pdo, $config, $user_data) {
+    global $current_user_id, $current_user_role;
+    
     $id = $_GET['id'] ?? null;
     if (!$id) {
         json_response(['success' => false, 'message' => 'Patient ID is required'], 400);
     }
 
-    $stmt = $pdo->prepare("SELECT p.*, u.username as added_by_username FROM {$config['table_name']} p LEFT JOIN users u ON p.added_by = u.id WHERE p.id = ?");
-    $stmt->execute([$id]);
+    // Build query with user filtering
+    $sql = "SELECT p.*, u.username as added_by_username FROM {$config['table_name']} p LEFT JOIN users u ON p.added_by = u.id WHERE p.id = ?";
+    $params = [$id];
+    
+    // Add user filtering for non-admin users
+    if ($current_user_role !== 'master' && $current_user_role !== 'admin') {
+        $sql .= " AND p.added_by = ?";
+        $params[] = $current_user_id;
+    }
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $patient = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$patient) {
-        json_response(['success' => false, 'message' => 'Patient not found'], 404);
+        json_response(['success' => false, 'message' => 'Patient not found or access denied'], 404);
     }
 
     // Map sex column to gender for frontend compatibility
@@ -126,6 +210,8 @@ function handleGet($pdo, $config, $user_data) {
 }
 
 function handleSave($pdo, $config, $user_data) {
+    global $current_user_id, $current_user_role;
+    
     $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
     $id = $input['id'] ?? null;
 
@@ -136,7 +222,7 @@ function handleSave($pdo, $config, $user_data) {
     }
 
     $data = array_intersect_key($input, array_flip($config['allowed_fields']));
-    $data['added_by'] = $data['added_by'] ?? $user_data['user_id'];
+    $data['added_by'] = $current_user_id; // Always use current user ID
     
     // Map gender to sex column for database storage
     if (isset($data['gender'])) {
@@ -186,6 +272,8 @@ function handleSave($pdo, $config, $user_data) {
 }
 
 function handleDelete($pdo, $config, $user_data) {
+    global $current_user_id, $current_user_role;
+    
     // Get ID from various sources
     $id = $_REQUEST['id'] ?? $_GET['id'] ?? $_POST['id'] ?? null;
     
@@ -194,52 +282,91 @@ function handleDelete($pdo, $config, $user_data) {
     }
 
     try {
-        // First check if patient exists
-        $checkStmt = $pdo->prepare("SELECT id FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
-        $checkStmt->execute([$id]);
-        if (!$checkStmt->fetch()) {
-            json_response(['success' => false, 'message' => 'Patient not found'], 404);
+        // First check if patient exists and user has access
+        $checkSql = "SELECT id, added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?";
+        $checkParams = [$id];
+        
+        // Add user filtering for non-admin users
+        if ($current_user_role !== 'master' && $current_user_role !== 'admin') {
+            $checkSql .= " AND added_by = ?";
+            $checkParams[] = $current_user_id;
+        }
+        
+        $checkStmt = $pdo->prepare($checkSql);
+        $checkStmt->execute($checkParams);
+        $patient = $checkStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$patient) {
+            json_response(['success' => false, 'message' => 'Patient not found or access denied'], 404);
         }
 
         // Check for associated test entries
-        $stmt = $pdo->prepare('SELECT COUNT(*) FROM entries WHERE patient_id = ?');
-        $stmt->execute([$id]);
-        if ($stmt->fetchColumn() > 0) {
-            json_response(['success' => false, 'message' => 'Cannot delete patient with associated test entries'], 400);
+        $entriesStmt = $pdo->prepare('SELECT COUNT(*) FROM entries WHERE patient_id = ?');
+        $entriesStmt->execute([$id]);
+        $entryCount = $entriesStmt->fetchColumn();
+        
+        if ($entryCount > 0) {
+            json_response(['success' => false, 'message' => "Cannot delete patient with {$entryCount} associated test entries"], 400);
         }
 
-        // Perform the deletion
-        $deleteStmt = $pdo->prepare("DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
-        $result = $deleteStmt->execute([$id]);
+        // Perform the deletion with user filtering
+        $deleteSql = "DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?";
+        $deleteParams = [$id];
+        
+        // Add user filtering for non-admin users
+        if ($current_user_role !== 'master' && $current_user_role !== 'admin') {
+            $deleteSql .= " AND added_by = ?";
+            $deleteParams[] = $current_user_id;
+        }
+        
+        $deleteStmt = $pdo->prepare($deleteSql);
+        $result = $deleteStmt->execute($deleteParams);
         
         if ($result && $deleteStmt->rowCount() > 0) {
-            json_response(['success' => true, 'message' => 'Patient deleted successfully']);
+            json_response([
+                'success' => true, 
+                'message' => 'Patient deleted successfully',
+                'deleted_id' => $id,
+                'user_id' => $current_user_id
+            ]);
         } else {
-            json_response(['success' => false, 'message' => 'Failed to delete patient - no rows affected'], 500);
+            json_response(['success' => false, 'message' => 'Failed to delete patient - no rows affected or access denied'], 500);
         }
         
     } catch (Exception $e) {
         error_log("Delete patient error: " . $e->getMessage());
-        json_response(['success' => false, 'message' => 'Database error occurred while deleting patient'], 500);
+        json_response(['success' => false, 'message' => 'Database error occurred while deleting patient: ' . $e->getMessage()], 500);
     }
 }
 
 function handleStats($pdo, $user_data) {
-    $userId = $_REQUEST['user_id'] ?? $user_data['user_id'];
+    global $current_user_id, $current_user_role;
 
     $totalStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ?');
-    $totalStmt->execute([$userId]);
+    $totalStmt->execute([$current_user_id]);
     $total = $totalStmt->fetchColumn();
 
     $todayStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND DATE(created_at) = CURDATE()');
-    $todayStmt->execute([$userId]);
+    $todayStmt->execute([$current_user_id]);
     $today = $todayStmt->fetchColumn();
+
+    $thisWeekStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND YEARWEEK(created_at) = YEARWEEK(CURDATE())');
+    $thisWeekStmt->execute([$current_user_id]);
+    $thisWeek = $thisWeekStmt->fetchColumn();
+
+    $thisMonthStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE())');
+    $thisMonthStmt->execute([$current_user_id]);
+    $thisMonth = $thisMonthStmt->fetchColumn();
 
     json_response([
         'success' => true,
         'data' => [
-            'total' => $total,
-            'today' => $today
+            'user_id' => $current_user_id,
+            'user_role' => $current_user_role,
+            'total' => (int) $total,
+            'today' => (int) $today,
+            'this_week' => (int) $thisWeek,
+            'this_month' => (int) $thisMonth
         ]
     ]);
 }

@@ -192,10 +192,10 @@ async function testOtherAPIs() {
     resultsDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Testing Other APIs...</div>';
     
     const otherAPIs = [
-        { name: 'Patient API', file: 'patient.php', action: 'list' },
-        { name: 'Doctor API', file: 'doctor.php', action: 'list' },
+        { name: 'Patient API', file: 'patient.php', action: 'list', needsUser: true },
+        { name: 'Doctor API', file: 'doctor.php', action: 'list', needsUser: true },
         { name: 'Test API', file: 'test.php', action: 'list' },
-        { name: 'Entry API', file: 'entry.php', action: 'list' },
+        { name: 'Entry API', file: 'entry.php', action: 'list', needsUser: true },
         { name: 'Test Category API', file: 'test_category.php', action: 'list' },
         { name: 'Notice API', file: 'notice.php', action: 'list' },
         { name: 'Owner API', file: 'owner.php', action: 'list' },
@@ -207,7 +207,14 @@ async function testOtherAPIs() {
     for (const api of otherAPIs) {
         const startTime = Date.now();
         try {
-            const response = await fetch(`patho_api/${api.file}?action=${api.action}&secret_key=${API_SECRET}`);
+            let url = `patho_api/${api.file}?action=${api.action}&secret_key=${API_SECRET}`;
+            
+            // Add user parameter for APIs that need user filtering
+            if (api.needsUser) {
+                url += '&user_id=1';
+            }
+            
+            const response = await fetch(url);
             const endTime = Date.now();
             const responseTime = endTime - startTime;
             
@@ -216,7 +223,13 @@ async function testOtherAPIs() {
                 const status = data.success ? 
                     '<span class="badge badge-success">Success</span>' : 
                     '<span class="badge badge-warning">Failed</span>';
-                results += `<tr><td>${api.name}</td><td>${status}</td><td>${responseTime}ms</td></tr>`;
+                
+                let userInfo = '';
+                if (api.needsUser && data.success) {
+                    userInfo = ' (User: 1)';
+                }
+                
+                results += `<tr><td>${api.name}${userInfo}</td><td>${status}</td><td>${responseTime}ms</td></tr>`;
             } else {
                 results += `<tr><td>${api.name}</td><td><span class="badge badge-danger">Error ${response.status}</span></td><td>${responseTime}ms</td></tr>`;
             }

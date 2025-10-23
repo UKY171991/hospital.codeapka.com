@@ -85,13 +85,13 @@
             {
                 name: 'Patients',
                 file: 'patient.php',
-                description: 'API for managing patients.',
+                description: 'API for managing patients. Shows only current user\'s patients unless admin.',
                 endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all patients.' },
-                    { action: 'get', method: 'GET', description: 'Get a single patient by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a patient.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a patient by ID.', params: ['id'] },
-                    { action: 'stats', method: 'GET', description: 'Get patient statistics.' }
+                    { action: 'list', method: 'GET', description: 'Get patients for current user.', params: ['user_id', 'username'] },
+                    { action: 'get', method: 'GET', description: 'Get a single patient by ID (user-filtered).', params: ['id', 'user_id', 'username'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a patient for current user.', params: ['user_id', 'username'] },
+                    { action: 'delete', method: 'POST', description: 'Delete a patient by ID (user-filtered).', params: ['id', 'user_id', 'username'] },
+                    { action: 'stats', method: 'GET', description: 'Get patient statistics for current user.', params: ['user_id', 'username'] }
                 ]
             },
             {
@@ -297,9 +297,13 @@
 
             let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}&secret_key=hospital-api-secret-2024`;
             
-            // Add test user parameter for dashboard API
-            if (api.file === 'dashboard.php') {
-                url += '&test_user_id=1'; // Test with user ID 1
+            // Add user parameter for APIs that need user filtering
+            if (['patient.php', 'dashboard.php', 'entry.php', 'doctor.php'].includes(api.file)) {
+                if (api.file === 'dashboard.php') {
+                    url += '&test_user_id=1'; // Dashboard uses test_user_id
+                } else {
+                    url += '&user_id=1'; // Other APIs use user_id
+                }
             }
 
             try {

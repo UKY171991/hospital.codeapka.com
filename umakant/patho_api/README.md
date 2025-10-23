@@ -38,7 +38,7 @@ GET /umakant/patho_api/dashboard.php?action=charts_data&secret_key=hospital-api-
 
 ## 📊 Other Available APIs
 
-- `patient.php` - Patient management (list, get, save, delete, stats)
+- `patient.php` - Patient management (list, get, save, delete, stats) - **User-filtered**
 - `doctor.php` - Doctor management (list, get, save, delete, specializations, hospitals)
 - `test.php` - Test management (list, get, save, delete, stats)
 - `entry.php` - Test entry management (list, get, save, delete, stats, add_test, remove_test, get_tests, update_test_result)
@@ -126,9 +126,15 @@ The new dashboard API is integrated with:
 
 ### JavaScript (Fetch API):
 ```javascript
-const response = await fetch('/umakant/patho_api/dashboard.php?action=overview&secret_key=hospital-api-secret-2024');
+// Dashboard API (user-filtered)
+const response = await fetch('/umakant/patho_api/dashboard.php?action=overview&secret_key=hospital-api-secret-2024&test_user_id=1');
 const data = await response.json();
 console.log(data);
+
+// Patient API (user-filtered)
+const patientResponse = await fetch('/umakant/patho_api/patient.php?action=list&secret_key=hospital-api-secret-2024&user_id=1');
+const patientData = await patientResponse.json();
+console.log('User 1 Patients:', patientData.data);
 ```
 
 ### JavaScript (Axios):
