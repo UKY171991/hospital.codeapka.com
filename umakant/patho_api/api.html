@@ -166,6 +166,25 @@
                     { action: 'delete', method: 'POST', description: 'Delete an owner by ID.', params: ['id'] }
                 ]
             },
+            {
+                name: 'Dashboard',
+                file: 'dashboard.php',
+                description: 'Comprehensive dashboard API for pathology management system.',
+                endpoints: [
+                    { action: 'overview', method: 'GET', description: 'Get complete dashboard overview with counts, stats, and metrics.' },
+                    { action: 'stats', method: 'GET', description: 'Get detailed statistics (daily, weekly, monthly, yearly).' },
+                    { action: 'recent_activities', method: 'GET', description: 'Get recent activities and events.' },
+                    { action: 'charts_data', method: 'GET', description: 'Get data for dashboard charts and graphs.' },
+                    { action: 'quick_stats', method: 'GET', description: 'Get quick statistics for today vs yesterday.' },
+                    { action: 'revenue_stats', method: 'GET', description: 'Get comprehensive revenue statistics.' },
+                    { action: 'test_performance', method: 'GET', description: 'Get test performance metrics and analytics.' },
+                    { action: 'patient_demographics', method: 'GET', description: 'Get patient demographic breakdowns.' },
+                    { action: 'monthly_trends', method: 'GET', description: 'Get monthly trend analysis.' },
+                    { action: 'top_tests', method: 'GET', description: 'Get most popular and profitable tests.' },
+                    { action: 'doctor_performance', method: 'GET', description: 'Get doctor performance metrics.' },
+                    { action: 'alerts', method: 'GET', description: 'Get system alerts and notifications.' }
+                ]
+            },
         ];
 
         const apiList = document.getElementById('api-list');

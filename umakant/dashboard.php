@@ -1,534 +1,739 @@
 <?php
-require_once 'inc/connection.php';
-@include_once 'inc/seed_admin.php';
-include_once 'inc/header.php';
-include_once 'inc/sidebar.php';
-
-// Summary metrics for the master dashboard
-$counts = [
-  'doctors' => '--',
-  'patients' => '--',
-  'owners' => '--',
-  'notices' => '--',
-  'plans' => '--',
-  'entries' => '--',
-  'tests' => '--',
-  'test_categories' => '--',
-  'users' => '--',
-  'uploads' => '--',
-];
-
-try {
-  if (isset($pdo)) {
-    $counts['doctors'] = (int) $pdo->query('SELECT COUNT(*) FROM doctors')->fetchColumn();
-    $counts['patients'] = (int) $pdo->query('SELECT COUNT(*) FROM patients')->fetchColumn();
-    $counts['owners'] = (int) $pdo->query('SELECT COUNT(*) FROM owners')->fetchColumn();
-    $counts['notices'] = (int) $pdo->query('SELECT COUNT(*) FROM notices')->fetchColumn();
-    $counts['plans'] = (int) $pdo->query('SELECT COUNT(*) FROM plans')->fetchColumn();
-    $counts['entries'] = (int) $pdo->query('SELECT COUNT(*) FROM entries')->fetchColumn();
-    $counts['tests'] = (int) $pdo->query('SELECT COUNT(*) FROM tests')->fetchColumn();
-
-    try {
-      $counts['test_categories'] = (int) $pdo->query('SELECT COUNT(*) FROM categories')->fetchColumn();
-    } catch (Throwable $inner) {
-      $counts['test_categories'] = '--';
-    }
-
-    $counts['users'] = (int) $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
-
-    try {
-      $stmt = $pdo->query("SHOW TABLES LIKE 'zip_uploads'");
-      $hasTable = (bool) $stmt->fetch();
-      if ($hasTable) {
-        $counts['uploads'] = (int) $pdo->query('SELECT COUNT(*) FROM zip_uploads')->fetchColumn();
-      }
-    } catch (Throwable $inner) {
-      $counts['uploads'] = '--';
-    }
-  }
-} catch (Throwable $e) {
-  // Keep placeholder values -- no additional handling required for now
-}
-
-$showDebugCounts = (isset($_GET['debug_counts']) && $_GET['debug_counts'] == 1)
-  || (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
-
-if ($counts['test_categories'] === '--') {
-  error_log('Master Dashboard: test_categories count unavailable - verify categories table.');
-}
+require_once 'inc/header.php';
+require_once 'inc/sidebar.php';
 ?>
 
+<!-- Content Wrapper. Contains page content -->
 <div class="content-wrapper">
-  <div class="content-header">
-    <div class="container-fluid">
-      <div class="row mb-2">
-        <div class="col-sm-6">
-          <h1 class="m-0">
-            <i class="fas fa-tachometer-alt mr-2 text-primary"></i>
-            Master Dashboard
-          </h1>
-        </div>
-        <div class="col-sm-6">
-          <ol class="breadcrumb float-sm-right">
-            <li class="breadcrumb-item active">Dashboard</li>
-          </ol>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <section class="content">
-    <div class="container-fluid">
-      <div class="row mb-4">
-        <div class="col-12">
-          <div class="card bg-gradient-primary text-white">
-            <div class="card-body">
-              <div class="row align-items-center">
-                <div class="col-md-8">
-                  <h4 class="mb-1">Welcome back!</h4>
-                  <p class="mb-0 opacity-75">
-                    <i class="far fa-clock mr-1"></i>
-                    Today is <?php echo date('l, F j, Y'); ?>
-                  </p>
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Pathology Dashboard</h1>
                 </div>
-                <div class="col-md-4 text-right d-none d-md-block">
-                  <i class="fas fa-hospital fa-3x opacity-50"></i>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="index.php">Home</a></li>
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ol>
                 </div>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
+    </section>
 
-      <div class="row mb-4">
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-gradient-info shadow">
-            <div class="inner">
-              <h3 id="md_doctorsCount"><?php echo htmlspecialchars($counts['doctors']); ?></h3>
-              <p>Doctors</p>
-            </div>
-            <div class="icon"><i class="fas fa-user-md"></i></div>
-            <a href="doctor.php" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
-          </div>
-        </div>
-
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-gradient-success shadow">
-            <div class="inner">
-              <h3 id="md_patientsCount"><?php echo htmlspecialchars($counts['patients']); ?></h3>
-              <p>Patients</p>
-            </div>
-            <div class="icon"><i class="fas fa-users"></i></div>
-            <a href="patient.php" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
-          </div>
-        </div>
-
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-gradient-warning shadow">
-            <div class="inner">
-              <h3 id="md_entriesCount"><?php echo htmlspecialchars($counts['entries']); ?></h3>
-              <p>Test Entries</p>
-            </div>
-            <div class="icon"><i class="fas fa-clipboard-list"></i></div>
-            <a href="entry-list.php" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
-          </div>
-        </div>
-
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-gradient-danger shadow">
-            <div class="inner">
-              <h3 id="md_testsCount"><?php echo htmlspecialchars($counts['tests']); ?></h3>
-              <p>Tests</p>
-            </div>
-            <div class="icon"><i class="fas fa-vial"></i></div>
-            <a href="test.php" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
-          </div>
-        </div>
-      </div>
-
-      <div class="row mb-4">
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-gradient-teal shadow">
-            <div class="inner">
-              <h3 id="md_testCategoriesCount"><?php echo htmlspecialchars($counts['test_categories']); ?></h3>
-              <p>Test Categories</p>
-            </div>
-            <div class="icon"><i class="fas fa-th-list"></i></div>
-            <a href="test-category.php" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
-          </div>
-        </div>
-
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-gradient-primary shadow">
-            <div class="inner">
-              <h3 id="md_plansCount"><?php echo htmlspecialchars($counts['plans']); ?></h3>
-              <p>Plans</p>
-            </div>
-            <div class="icon"><i class="fas fa-list-alt"></i></div>
-            <a href="plan.php" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
-          </div>
-        </div>
-
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-gradient-secondary shadow">
-            <div class="inner">
-              <h3 id="md_usersCount"><?php echo htmlspecialchars($counts['users']); ?></h3>
-              <p>Users</p>
-            </div>
-            <div class="icon"><i class="fas fa-user-cog"></i></div>
-            <a href="user.php" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
-          </div>
-        </div>
-
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-gradient-dark shadow">
-            <div class="inner">
-              <h3 id="md_ownersCount"><?php echo htmlspecialchars($counts['owners']); ?></h3>
-              <p>Owners</p>
-            </div>
-            <div class="icon"><i class="fas fa-id-badge"></i></div>
-            <a href="owner.php" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
-          </div>
-        </div>
-      </div>
-
-      <div class="row mb-4">
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-gradient-purple shadow">
-            <div class="inner">
-              <h3 id="md_noticesCount"><?php echo htmlspecialchars($counts['notices']); ?></h3>
-              <p>Notices</p>
-            </div>
-            <div class="icon"><i class="fas fa-bell"></i></div>
-            <a href="notice.php" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
-          </div>
-        </div>
-
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-gradient-maroon shadow">
-            <div class="inner">
-              <h3 id="md_uploadsCount"><?php echo htmlspecialchars($counts['uploads']); ?></h3>
-              <p>Uploads</p>
-            </div>
-            <div class="icon"><i class="fas fa-upload"></i></div>
-            <a href="upload_list.php" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-md-8">
-          <div class="card card-primary card-outline">
-            <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-chart-line mr-1"></i>System Overview</h3>
-              <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
-                <button type="button" class="btn btn-tool" data-card-widget="maximize"><i class="fas fa-expand"></i></button>
-              </div>
-            </div>
-            <div class="card-body">
-              <canvas id="masterDashboardChart" style="min-height:250px;height:250px;max-height:250px;max-width:100%;"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-4">
-          <div class="card card-success card-outline">
-            <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-rocket mr-1"></i>Quick Actions</h3>
-            </div>
-            <div class="card-body">
-              <div class="d-grid gap-2">
-                <a href="patient.php" class="btn btn-primary btn-block"><i class="fas fa-user-plus mr-2"></i>Add New Patient</a>
-                <a href="doctor.php" class="btn btn-info btn-block"><i class="fas fa-user-md mr-2"></i>Manage Doctors</a>
-                <a href="test.php" class="btn btn-warning btn-block"><i class="fas fa-vial mr-2"></i>Manage Tests</a>
-                <a href="entry-list.php" class="btn btn-success btn-block"><i class="fas fa-clipboard-list mr-2"></i>Test Entries</a>
-                <a href="plan.php" class="btn btn-purple btn-block"><i class="fas fa-list-alt mr-2"></i>Manage Plans</a>
-              </div>
-            </div>
-          </div>
-
-          <div class="card card-info card-outline">
-            <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-info-circle mr-1"></i>System Info</h3>
-            </div>
-            <div class="card-body">
-              <div class="info-box-content">
-                <div class="row">
-                  <div class="col-12 mb-2">
-                    <div class="d-flex justify-content-between"><span class="text-muted">PHP Version:</span><span class="font-weight-bold"><?php echo PHP_VERSION; ?></span></div>
-                  </div>
-                  <div class="col-12 mb-2">
-                    <div class="d-flex justify-content-between"><span class="text-muted">Server:</span><span class="font-weight-bold"><?php echo $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown'; ?></span></div>
-                  </div>
-                  <div class="col-12 mb-2">
-                    <div class="d-flex justify-content-between"><span class="text-muted">Database:</span><span class="font-weight-bold">MySQL/MariaDB</span></div>
-                  </div>
-                  <div class="col-12">
-                    <div class="d-flex justify-content-between"><span class="text-muted">Status:</span><span class="badge badge-success">Online</span></div>
-                  </div>
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            
+            <!-- Loading Indicator -->
+            <div id="dashboard-loading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
                 </div>
-              </div>
+                <p class="mt-2">Loading dashboard data...</p>
             </div>
-          </div>
-        </div>
-      </div>
 
-      <div class="row mt-4">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-history mr-1"></i>Recent Activity</h3>
-              <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="refresh" onclick="loadMasterRecentActivity()"><i class="fas fa-sync"></i></button>
-                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
-              </div>
-            </div>
-            <div class="card-body">
-              <div id="masterRecentActivity">
-                <div class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Loading recent activity...</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+            <!-- Dashboard Content -->
+            <div id="dashboard-content" style="display: none;">
+                
+                <!-- Quick Stats Row -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-chart-line mr-2"></i>
+                                    Today's Performance
+                                </h3>
+                                <div class="card-tools">
+                                    <button type="button" class="btn btn-tool" onclick="refreshQuickStats()">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row" id="quick-stats-row">
+                                    <!-- Quick stats will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-      <?php if (!empty($showDebugCounts)): ?>
-      <div class="row mt-3">
-        <div class="col-12">
-          <div class="card card-outline card-danger">
-            <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-bug mr-1"></i>Debug: Dashboard Counts</h3>
+                <!-- Main Stats Cards -->
+                <div class="row mb-4" id="main-stats-cards">
+                    <!-- Main stats cards will be loaded here -->
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row mb-4">
+                    <!-- Patient Growth Chart -->
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-users mr-2"></i>
+                                    Patient Growth
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="patientGrowthChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Revenue Chart -->
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-rupee-sign mr-2"></i>
+                                    Revenue Trends
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="revenueChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Charts Row -->
+                <div class="row mb-4">
+                    <!-- Test Distribution -->
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-flask mr-2"></i>
+                                    Test Distribution
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="testDistributionChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Doctor Performance -->
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-user-md mr-2"></i>
+                                    Doctor Performance
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="doctorPerformanceChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Tables Row -->
+                <div class="row mb-4">
+                    <!-- Recent Activities -->
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-clock mr-2"></i>
+                                    Recent Activities
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="recent-activities">
+                                    <!-- Recent activities will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Tests -->
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-star mr-2"></i>
+                                    Top Performing Tests
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="top-tests">
+                                    <!-- Top tests will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Alerts -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    System Alerts
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="system-alerts">
+                                    <!-- System alerts will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div class="card-body">
-              <pre><?php echo htmlspecialchars(print_r($counts, true)); ?></pre>
-              <p class="text-muted">If any value shows <strong>--</strong>, the underlying query may have failed or the table is missing.</p>
-            </div>
-          </div>
         </div>
-      </div>
-      <?php endif; ?>
-    </div>
-  </section>
+    </section>
 </div>
 
+<!-- Include Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Dashboard JavaScript -->
 <script>
-(function(){
-  document.addEventListener('DOMContentLoaded', function(){
-    initializeMasterChart();
-    loadMasterRecentActivity();
-    setInterval(refreshMasterStats, 300000);
-    try{ refreshMasterStats(); } catch(e){ console.warn('refreshMasterStats failed', e); }
-  });
-
-  function initializeMasterChart(){
-    var canvas = document.getElementById('masterDashboardChart');
-    if(!canvas) return;
-    var ctx = canvas.getContext('2d');
-    var chartData = {
-      labels: ['Doctors', 'Patients', 'Tests', 'Entries', 'Plans', 'Users', 'Notices', 'Owners'],
-      datasets: [{
-        label: 'Count',
-        data: [
-          <?php echo (int) $counts['doctors']; ?>,
-          <?php echo (int) $counts['patients']; ?>,
-          <?php echo (int) $counts['tests']; ?>,
-          <?php echo (int) $counts['entries']; ?>,
-          <?php echo (int) $counts['plans']; ?>,
-          <?php echo (int) $counts['users']; ?>,
-          <?php echo (int) $counts['notices']; ?>,
-          <?php echo (int) $counts['owners']; ?>
-        ],
-        backgroundColor: [
-          'rgba(54, 162, 235, 0.2)',
-          'rgba(75, 192, 192, 0.2)',
-          'rgba(255, 206, 86, 0.2)',
-          'rgba(255, 99, 132, 0.2)',
-          'rgba(153, 102, 255, 0.2)',
-          'rgba(255, 159, 64, 0.2)',
-          'rgba(255, 99, 71, 0.2)',
-          'rgba(70, 130, 180, 0.2)'
-        ],
-        borderColor: [
-          'rgba(54, 162, 235, 1)',
-          'rgba(75, 192, 192, 1)',
-          'rgba(255, 206, 86, 1)',
-          'rgba(255, 99, 132, 1)',
-          'rgba(153, 102, 255, 1)',
-          'rgba(255, 159, 64, 1)',
-          'rgba(255, 99, 71, 1)',
-          'rgba(70, 130, 180, 1)'
-        ],
-        borderWidth: 2
-      }]
-    };
-
-    new Chart(ctx, {
-      type: 'doughnut',
-      data: chartData,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom' },
-          title: { display: true, text: 'System Data Distribution' }
-        },
-        animation: {
-          animateScale: true,
-          animateRotate: true
+class PathologyDashboard {
+    constructor() {
+        this.apiBase = 'patho_api/dashboard.php';
+        this.secretKey = 'hospital-api-secret-2024';
+        this.charts = {};
+        this.refreshInterval = null;
+        
+        this.init();
+    }
+    
+    async init() {
+        try {
+            await this.loadDashboardData();
+            this.setupAutoRefresh();
+            this.hideLoading();
+        } catch (error) {
+            console.error('Dashboard initialization failed:', error);
+            this.showError('Failed to load dashboard data');
         }
-      }
-    });
-  }
-
-  function loadMasterRecentActivity(){
-    var container = document.getElementById('masterRecentActivity');
-    if(!container) return;
-    container.innerHTML = '<div class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Loading recent activity...</div>';
-    fetch('ajax/recent_activity.php', { cache: 'no-store' })
-      .then(function(resp){ return resp.json(); })
-      .then(function(data){
-        if(!data || !data.success || !Array.isArray(data.items)){
-          container.innerHTML = '<div class="text-center text-muted">No recent activity available.</div>';
-          return;
+    }
+    
+    async loadDashboardData() {
+        // Load all dashboard components
+        await Promise.all([
+            this.loadOverview(),
+            this.loadQuickStats(),
+            this.loadChartsData(),
+            this.loadRecentActivities(),
+            this.loadTopTests(),
+            this.loadSystemAlerts()
+        ]);
+    }
+    
+    async apiCall(action) {
+        const response = await fetch(`${this.apiBase}?action=${action}&secret_key=${this.secretKey}`);
+        if (!response.ok) {
+            throw new Error(`API call failed: ${response.statusText}`);
         }
-        var html = '<div class="timeline">';
-        data.items.forEach(function(item){
-          var icon = 'fas fa-info-circle';
-          var color = 'text-secondary';
-          if(item.type === 'patient'){ icon = 'fas fa-user-plus'; color = 'text-success'; }
-          if(item.type === 'entry'){ icon = 'fas fa-vial'; color = 'text-info'; }
-          if(item.type === 'notice'){ icon = 'fas fa-bell'; color = 'text-warning'; }
-          if(item.type === 'upload'){ icon = 'fas fa-upload'; color = 'text-purple'; }
-
-          var title = escapeHtml(item.title || '');
-          var details = escapeHtml(item.details || '');
-          var time = item.time ? escapeHtml(new Date(item.time).toLocaleString()) : '';
-
-          html += '\n            <div class="timeline-item">\n              <div class="timeline-marker">\n                <i class="' + icon + ' ' + color + '"></i>\n              </div>\n              <div class="timeline-content">\n                <h6 class="timeline-title">' + title + '</h6>\n                <p class="timeline-text">' + details + '</p>\n                <small class="text-muted">' + time + '</small>\n              </div>\n            </div>\n          ';
+        return await response.json();
+    }
+    
+    async loadOverview() {
+        try {
+            const data = await this.apiCall('overview');
+            if (data.success) {
+                this.renderMainStatsCards(data.data.counts);
+            }
+        } catch (error) {
+            console.error('Failed to load overview:', error);
+        }
+    }
+    
+    async loadQuickStats() {
+        try {
+            const data = await this.apiCall('quick_stats');
+            if (data.success) {
+                this.renderQuickStats(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to load quick stats:', error);
+        }
+    }
+    
+    async loadChartsData() {
+        try {
+            const data = await this.apiCall('charts_data');
+            if (data.success) {
+                this.renderCharts(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to load charts data:', error);
+        }
+    }
+    
+    async loadRecentActivities() {
+        try {
+            const data = await this.apiCall('recent_activities');
+            if (data.success) {
+                this.renderRecentActivities(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to load recent activities:', error);
+        }
+    }
+    
+    async loadTopTests() {
+        try {
+            const data = await this.apiCall('top_tests');
+            if (data.success) {
+                this.renderTopTests(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to load top tests:', error);
+        }
+    }
+    
+    async loadSystemAlerts() {
+        try {
+            const data = await this.apiCall('alerts');
+            if (data.success) {
+                this.renderSystemAlerts(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to load system alerts:', error);
+        }
+    }
+    
+    renderMainStatsCards(counts) {
+        const container = document.getElementById('main-stats-cards');
+        const cards = [
+            { title: 'Total Patients', value: counts.patients, icon: 'fas fa-users', color: 'primary' },
+            { title: 'Total Doctors', value: counts.doctors, icon: 'fas fa-user-md', color: 'success' },
+            { title: 'Test Entries', value: counts.entries, icon: 'fas fa-file-medical', color: 'info' },
+            { title: 'Available Tests', value: counts.tests, icon: 'fas fa-flask', color: 'warning' }
+        ];
+        
+        container.innerHTML = cards.map(card => `
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-${card.color}">
+                    <div class="inner">
+                        <h3>${card.value.toLocaleString()}</h3>
+                        <p>${card.title}</p>
+                    </div>
+                    <div class="icon">
+                        <i class="${card.icon}"></i>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    renderQuickStats(stats) {
+        const container = document.getElementById('quick-stats-row');
+        const quickStats = [
+            { 
+                title: 'Today\'s Patients', 
+                today: stats.today.patients, 
+                yesterday: stats.yesterday.patients,
+                growth: stats.growth.patients 
+            },
+            { 
+                title: 'Today\'s Entries', 
+                today: stats.today.entries, 
+                yesterday: stats.yesterday.entries,
+                growth: stats.growth.entries 
+            },
+            { 
+                title: 'Today\'s Revenue', 
+                today: `₹${stats.today.revenue.toLocaleString()}`, 
+                yesterday: `₹${stats.yesterday.revenue.toLocaleString()}`,
+                growth: stats.growth.revenue 
+            }
+        ];
+        
+        container.innerHTML = quickStats.map(stat => {
+            const growthClass = stat.growth >= 0 ? 'text-success' : 'text-danger';
+            const growthIcon = stat.growth >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+            
+            return `
+                <div class="col-lg-4 col-md-6">
+                    <div class="info-box">
+                        <div class="info-box-content">
+                            <span class="info-box-text">${stat.title}</span>
+                            <span class="info-box-number">${stat.today}</span>
+                            <div class="progress">
+                                <div class="progress-bar bg-primary" style="width: 70%"></div>
+                            </div>
+                            <span class="progress-description">
+                                <span class="${growthClass}">
+                                    <i class="fas ${growthIcon}"></i> ${Math.abs(stat.growth)}%
+                                </span>
+                                vs yesterday (${stat.yesterday})
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    renderCharts(chartsData) {
+        // Patient Growth Chart
+        this.renderLineChart('patientGrowthChart', chartsData.patient_growth, 'Patient Growth');
+        
+        // Revenue Chart
+        this.renderLineChart('revenueChart', chartsData.revenue_chart, 'Revenue Trends');
+        
+        // Test Distribution Chart
+        this.renderDoughnutChart('testDistributionChart', chartsData.test_distribution, 'Test Distribution');
+        
+        // Doctor Performance Chart
+        this.renderBarChart('doctorPerformanceChart', chartsData.doctor_performance, 'Doctor Performance');
+    }
+    
+    renderLineChart(canvasId, data, title) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        if (this.charts[canvasId]) {
+            this.charts[canvasId].destroy();
+        }
+        
+        this.charts[canvasId] = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
         });
-        html += '</div>';
-        container.innerHTML = html;
-      })
-      .catch(function(){
-        container.innerHTML = '<div class="text-center text-muted">Failed to load recent activity.</div>';
-      });
-  }
-
-  function refreshMasterStats(){
-    fetch('ajax/dashboard_counts.php', { cache: 'no-store' })
-      .then(function(resp){ return resp.json(); })
-      .then(function(data){
-        if(!data || !data.success || !data.counts){
-          console.warn('Master dashboard counts response invalid', data);
-          return;
+    }
+    
+    renderBarChart(canvasId, data, title) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        if (this.charts[canvasId]) {
+            this.charts[canvasId].destroy();
         }
-        var c = data.counts;
-        function setText(id, val){ var el = document.getElementById(id); if(el) el.textContent = val; }
-        if('doctors' in c) setText('md_doctorsCount', c.doctors);
-        if('patients' in c) setText('md_patientsCount', c.patients);
-        if('entries' in c) setText('md_entriesCount', c.entries);
-        if('tests' in c) setText('md_testsCount', c.tests);
-        if('test_categories' in c) setText('md_testCategoriesCount', c.test_categories);
-        if('plans' in c) setText('md_plansCount', c.plans);
-        if('users' in c) setText('md_usersCount', c.users);
-        if('notices' in c) setText('md_noticesCount', c.notices);
-        if('owners' in c) setText('md_ownersCount', c.owners);
-        if('uploads' in c) setText('md_uploadsCount', c.uploads);
-      })
-      .catch(function(){ console.warn('Failed to fetch master dashboard counts'); });
-  }
+        
+        this.charts[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    renderDoughnutChart(canvasId, data, title) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        if (this.charts[canvasId]) {
+            this.charts[canvasId].destroy();
+        }
+        
+        this.charts[canvasId] = new Chart(ctx, {
+            type: 'doughnut',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title
+                    },
+                    legend: {
+                        display: true,
+                        position: 'right'
+                    }
+                }
+            }
+        });
+    }
+    
+    renderRecentActivities(activities) {
+        const container = document.getElementById('recent-activities');
+        
+        if (!activities || activities.length === 0) {
+            container.innerHTML = '<p class="text-muted">No recent activities found.</p>';
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="timeline">
+                ${activities.map(activity => `
+                    <div class="time-label">
+                        <span class="bg-${activity.color}">${this.formatDate(activity.timestamp)}</span>
+                    </div>
+                    <div>
+                        <i class="fas fa-${activity.icon} bg-${activity.color}"></i>
+                        <div class="timeline-item">
+                            <h3 class="timeline-header">${activity.title}</h3>
+                            <div class="timeline-body">
+                                ${activity.description}
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    renderTopTests(tests) {
+        const container = document.getElementById('top-tests');
+        
+        if (!tests || tests.length === 0) {
+            container.innerHTML = '<p class="text-muted">No test data available.</p>';
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Test Name</th>
+                            <th>Orders</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tests.slice(0, 10).map(test => `
+                            <tr>
+                                <td>${test.name}</td>
+                                <td><span class="badge badge-primary">${test.order_count || 0}</span></td>
+                                <td>₹${(test.total_revenue || 0).toLocaleString()}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+    
+    renderSystemAlerts(alerts) {
+        const container = document.getElementById('system-alerts');
+        
+        if (!alerts || alerts.length === 0) {
+            container.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>All systems are running normally.</div>';
+            return;
+        }
+        
+        container.innerHTML = alerts.map(alert => {
+            const alertClass = alert.type === 'danger' ? 'alert-danger' : 
+                              alert.type === 'warning' ? 'alert-warning' : 'alert-info';
+            const icon = alert.type === 'danger' ? 'fa-exclamation-triangle' : 
+                        alert.type === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            return `
+                <div class="alert ${alertClass}">
+                    <i class="fas ${icon} mr-2"></i>
+                    <strong>${alert.title}:</strong> ${alert.message}
+                    ${alert.action ? `<br><small>Action: ${alert.action}</small>` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+    
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    }
+    
+    setupAutoRefresh() {
+        // Refresh dashboard every 5 minutes
+        this.refreshInterval = setInterval(() => {
+            this.loadQuickStats();
+            this.loadRecentActivities();
+            this.loadSystemAlerts();
+        }, 5 * 60 * 1000);
+    }
+    
+    hideLoading() {
+        document.getElementById('dashboard-loading').style.display = 'none';
+        document.getElementById('dashboard-content').style.display = 'block';
+    }
+    
+    showError(message) {
+        document.getElementById('dashboard-loading').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                ${message}
+                <br>
+                <button class="btn btn-primary mt-2" onclick="location.reload()">
+                    <i class="fas fa-refresh mr-2"></i>Retry
+                </button>
+            </div>
+        `;
+    }
+    
+    destroy() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+        }
+        
+        // Destroy all charts
+        Object.values(this.charts).forEach(chart => {
+            if (chart) chart.destroy();
+        });
+    }
+}
 
-  function escapeHtml(str){
-    if(!str) return '';
-    return String(str).replace(/[&<>"'`]/g, function(c){
-      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;', '`':'&#96;' }[c];
-    });
-  }
-})();
+// Global functions
+function refreshQuickStats() {
+    if (window.dashboard) {
+        window.dashboard.loadQuickStats();
+    }
+}
+
+// Initialize dashboard when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    window.dashboard = new PathologyDashboard();
+});
+
+// Cleanup when page unloads
+window.addEventListener('beforeunload', function() {
+    if (window.dashboard) {
+        window.dashboard.destroy();
+    }
+});
 </script>
 
+<!-- Custom Dashboard Styles -->
 <style>
-.bg-gradient-maroon {
-  background: linear-gradient(45deg, #d81b60, #8e24aa) !important;
-}
-
-.bg-gradient-purple {
-  background: linear-gradient(45deg, #6f42c1, #9c27b0) !important;
-}
-
-.bg-gradient-teal {
-  background: linear-gradient(45deg, #20c997, #17a2b8) !important;
-}
-
-.btn-purple {
-  background: linear-gradient(45deg, #6f42c1, #9c27b0);
-  border: none;
-  color: #fff;
-}
-
-.btn-purple:hover {
-  background: linear-gradient(45deg, #5a2d91, #7b1fa2);
-  color: #fff;
-}
-
 .small-box {
-  border-radius: 10px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 10px;
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+    margin-bottom: 20px;
 }
 
-.small-box:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+.info-box {
+    border-radius: 10px;
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+    margin-bottom: 20px;
 }
 
 .card {
-  border-radius: 10px;
-  border: none;
+    border-radius: 10px;
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
 }
 
 .timeline {
-  position: relative;
-  padding-left: 40px;
+    position: relative;
+    margin: 0 0 30px 0;
+    padding: 0;
+    list-style: none;
 }
 
-.timeline-item {
-  position: relative;
-  margin-bottom: 20px;
+.timeline:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #dee2e6;
+    left: 31px;
+    margin: 0;
+    border-radius: 2px;
 }
 
-.timeline-marker {
-  position: absolute;
-  left: -35px;
-  top: 0;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: #fff;
-  border: 2px solid #dee2e6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
+.timeline > div {
+    position: relative;
+    margin-right: 10px;
+    margin-bottom: 15px;
 }
 
-.timeline-content {
-  background: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
-  border-left: 3px solid #007bff;
+.timeline > div > .timeline-item {
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    border-radius: 3px;
+    margin-top: 0;
+    background: #fff;
+    color: #444;
+    margin-left: 60px;
+    margin-right: 15px;
+    padding: 0;
+    position: relative;
 }
 
-.timeline-title {
-  margin-bottom: 5px;
-  font-weight: 600;
+.timeline > div > .fas {
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+    line-height: 30px;
+    position: absolute;
+    color: #666;
+    background: #f4f4f4;
+    border-radius: 50%;
+    text-align: center;
+    left: 18px;
+    top: 0;
 }
 
-.timeline-text {
-  margin-bottom: 5px;
-  color: #6c757d;
+.timeline-header {
+    margin: 0;
+    color: #555;
+    border-bottom: 1px solid #f4f4f4;
+    padding: 10px 15px;
+    font-size: 16px;
+    line-height: 1.1;
+}
+
+.timeline-body {
+    padding: 10px 15px;
+}
+
+.time-label > span {
+    font-weight: 600;
+    padding: 5px 10px;
+    display: inline-block;
+    background-color: #fff;
+    border-radius: 4px;
+}
+
+#dashboard-loading {
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
 }
 </style>
 
-<?php include_once 'inc/footer.php'; ?>
+<?php require_once 'inc/footer.php'; ?>

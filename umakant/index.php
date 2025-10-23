@@ -98,6 +98,15 @@ if (isset($counts['test_categories']) && $counts['test_categories'] === '--') {
                     </p>
                   </div>
                   <div class="col-md-4 text-right d-none d-md-block">
+                    <a href="dashboard.php" class="btn btn-light btn-sm mr-2">
+                      <i class="fas fa-chart-line mr-1"></i>
+                      Pathology Dashboard
+                    </a>
+                    <a href="api_test.php" class="btn btn-outline-light btn-sm">
+                      <i class="fas fa-cogs mr-1"></i>
+                      API Test
+                    </a>
+                  </div>
                     <i class="fas fa-hospital fa-3x opacity-50"></i>
                   </div>
                 </div>

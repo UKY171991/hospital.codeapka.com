@@ -1,62 +1,161 @@
-Save doctor helper (PowerShell)
-================================
+# Pathology API Documentation
 
-What
-----
-This directory includes `save_doctor.ps1`, a small PowerShell helper that logs in to the patho_api and posts to `doctor.php?action=save` using the same PHP session so the API accepts the request.
+This directory contains comprehensive API endpoints for the pathology management system.
 
-Usage
------
-Open PowerShell (Windows) and run:
+## 🚀 New Dashboard API
 
-    cd c:\git\hospital.codeapka.com\umakant\patho_api
-    .\save_doctor.ps1 -Username your_user -Name 'Dr Example' -Email 'dr@example.com'
+### **dashboard.php** - Comprehensive Dashboard API
+The most advanced API providing complete dashboard functionality:
 
-The script will prompt for the password securely, perform login, then perform the save using the session cookie.
+#### Available Endpoints:
+- `overview` - Complete dashboard overview with counts, stats, and metrics
+- `stats` - Detailed statistics (daily, weekly, monthly, yearly)
+- `recent_activities` - Recent activities and events
+- `charts_data` - Data for dashboard charts and graphs
+- `quick_stats` - Quick statistics for today vs yesterday
+- `revenue_stats` - Comprehensive revenue statistics
+- `test_performance` - Test performance metrics and analytics
+- `patient_demographics` - Patient demographic breakdowns
+- `monthly_trends` - Monthly trend analysis
+- `top_tests` - Most popular and profitable tests
+- `doctor_performance` - Doctor performance metrics
+- `alerts` - System alerts and notifications
 
-Options
--------
--BaseUrl: Base API URL (defaults to https://hospital.codeapka.com/umakant/patho_api)
--Username: login username (required)
--Password: if not provided, you'll be prompted (secure)
--Name, -Qualification, -Specialization, -Hospital, -ContactNo, -Phone, -Email, -Address, -RegistrationNo, -Percent
+#### Example Usage:
+```bash
+# Get dashboard overview
+GET /umakant/patho_api/dashboard.php?action=overview&secret_key=hospital-api-secret-2024
 
-Troubleshooting
----------------
-- If login fails, verify username/password and that the user is active in the `users` table.
-- If save returns 401, ensure the login response included a `PHPSESSID` cookie and the script did not modify cookie handling. The script uses a PowerShell WebSession to store cookies.
-- For programmatic non-session access, consider adding token-based auth to the API (I can help implement it).
+# Get quick stats
+GET /umakant/patho_api/dashboard.php?action=quick_stats&secret_key=hospital-api-secret-2024
 
-Direct server-to-server insert (secret)
--------------------------------------
-If you need the API to accept direct inserts without session/cookie or user credentials, you can use a shared secret.
+# Get charts data
+GET /umakant/patho_api/dashboard.php?action=charts_data&secret_key=hospital-api-secret-2024
+```
 
-1) Configure the server environment variables (recommended, do NOT commit secrets):
-    - PATHO_API_SECRET=your-long-secret
-    - PATHO_API_DEFAULT_USER_ID=1  # user id used as added_by for direct inserts
+## 📊 Other Available APIs
 
-2) Call the save endpoint with header `X-Api-Key: your-long-secret` or include `secret_key=your-long-secret` in the request body.
+- `patient.php` - Patient management (list, get, save, delete, stats)
+- `doctor.php` - Doctor management (list, get, save, delete, specializations, hospitals)
+- `test.php` - Test management (list, get, save, delete, stats)
+- `entry.php` - Test entry management (list, get, save, delete, stats, add_test, remove_test, get_tests, update_test_result)
+- `test_category.php` - Test category management (list, get, save, delete)
+- `main_test_category.php` - Main test category management (list, get, save, delete)
+- `notice.php` - Notice management (list, get, save, delete)
+- `owner.php` - Owner management (list, get, save, delete)
+- `user.php` - User management (list, get, save, delete)
 
-Example:
-curl -H "X-Api-Key: your-long-secret" -d "name=Dr Direct&percent=1&email=dr@direct.example" "https://hospital.codeapka.com/umakant/patho_api/doctor.php?action=save"
+## 🔐 Authentication
 
-Security: Use HTTPS, rotate the secret periodically, and restrict the default user permissions if possible.
+All APIs require a secret key parameter: `secret_key=hospital-api-secret-2024`
 
-Security
---------
-Don't store plaintext passwords in scripts. Use the prompt or a secure vault.
-# Patho API - Notices
+## 📖 Interactive Documentation
 
-This folder contains small public API endpoints (PHP) for external clients.
+Visit the interactive API documentation and testing interface:
+- **Local**: `/umakant/patho_api/api.html`
+- **Live**: `https://hospital.codeapka.com/umakant/patho_api/api.html`
 
-New: `notice.php` - provides list/get/save/delete actions for notices.
+## 🎯 Dashboard Integration
 
-Quick test with Postman:
-- Import `notice_postman_collection.json` into Postman.
-- Set the environment variable `baseUrl` to your local site root (e.g. `http://localhost/umakant`).
-- Use the `Create Notice (POST)` request to create notices. Note: write actions require an authenticated session with role `admin` or `master` (browser cookie). If you don't have that, log into the app in a browser first and copy the session cookie to Postman.
+The new dashboard API is integrated with:
+- **Main Dashboard**: `/umakant/dashboard.php` - Visual dashboard using the API
+- **API Testing**: `/umakant/api_test.php` - Test all APIs functionality
 
-Files added:
-- `notice.php` - API endpoint
-- `notice.txt` - endpoint documentation
-- `notice_postman_collection.json` - Postman collection for import
+## 📈 Features
+
+### Dashboard API Features:
+- **Real-time Statistics** - Live data from database
+- **Chart Data** - Ready-to-use data for Chart.js
+- **Performance Metrics** - Doctor and test performance analytics
+- **Revenue Analytics** - Comprehensive financial reporting
+- **System Health** - Database status and alerts
+- **Activity Tracking** - Recent activities and events
+- **Demographic Analysis** - Patient demographic breakdowns
+- **Trend Analysis** - Monthly and yearly trends
+
+### Response Format:
+```json
+{
+  "success": true,
+  "data": {
+    // API-specific data structure
+  },
+  "message": "Optional message",
+  "timestamp": "2024-01-01 12:00:00"
+}
+```
+
+### Error Handling:
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "error_code": "ERROR_CODE"
+}
+```
+
+## 🔧 Technical Details
+
+- **Language**: PHP 7.4+
+- **Database**: MySQL/MariaDB
+- **Security**: Secret key authentication
+- **CORS**: Enabled for cross-origin requests
+- **Response Format**: JSON
+- **Error Handling**: Comprehensive error responses
+- **Performance**: Optimized queries with error handling
+
+## 📱 Usage Examples
+
+### JavaScript (Fetch API):
+```javascript
+const response = await fetch('/umakant/patho_api/dashboard.php?action=overview&secret_key=hospital-api-secret-2024');
+const data = await response.json();
+console.log(data);
+```
+
+### JavaScript (Axios):
+```javascript
+const response = await axios.get('/umakant/patho_api/dashboard.php', {
+  params: {
+    action: 'overview',
+    secret_key: 'hospital-api-secret-2024'
+  }
+});
+console.log(response.data);
+```
+
+### PHP (cURL):
+```php
+$url = 'https://hospital.codeapka.com/umakant/patho_api/dashboard.php?action=overview&secret_key=hospital-api-secret-2024';
+$response = file_get_contents($url);
+$data = json_decode($response, true);
+print_r($data);
+```
+
+### Python (Requests):
+```python
+import requests
+
+url = 'https://hospital.codeapka.com/umakant/patho_api/dashboard.php'
+params = {
+    'action': 'overview',
+    'secret_key': 'hospital-api-secret-2024'
+}
+response = requests.get(url, params=params)
+data = response.json()
+print(data)
+```
+
+## 🚀 Getting Started
+
+1. **Access the API Documentation**: Visit `/umakant/patho_api/api.html`
+2. **Test the APIs**: Use `/umakant/api_test.php` for quick testing
+3. **View Dashboard**: Check `/umakant/dashboard.php` for visual representation
+4. **Integration**: Use the APIs in your applications with the secret key
+
+## 📞 Support
+
+For API support and questions:
+- Check the interactive documentation at `api.html`
+- Use the API test page at `api_test.php`
+- Review the dashboard implementation at `dashboard.php`
