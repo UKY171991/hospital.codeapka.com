@@ -7,7 +7,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f0f2f5; }
+        body { 
+            background-color: #f0f2f5; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
         .sidebar {
             width: 280px;
             background: #fff;
@@ -16,13 +19,78 @@
             height: 100vh;
             position: fixed;
             overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
         }
         .main-content {
             margin-left: 280px;
             padding: 20px;
+            min-height: 100vh;
         }
-        .api-list .list-group-item { cursor: pointer; }
-        .code-viewer { background: #212529; color: #fff; padding: 15px; border-radius: 5px; max-height: 400px; overflow-y: auto; }
+        .api-list .list-group-item { 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            border: none;
+            margin-bottom: 5px;
+            border-radius: 8px;
+        }
+        .api-list .list-group-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(5px);
+        }
+        .api-list .list-group-item.active {
+            background-color: #0d6efd;
+            color: white;
+            font-weight: 600;
+        }
+        .code-viewer { 
+            background: #212529; 
+            color: #fff; 
+            padding: 15px; 
+            border-radius: 8px; 
+            max-height: 400px; 
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .endpoint-card {
+            transition: all 0.3s ease;
+            border: 1px solid #dee2e6;
+        }
+        .endpoint-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .nav-tabs .nav-link {
+            border-radius: 8px 8px 0 0;
+            margin-right: 5px;
+        }
+        .nav-tabs .nav-link.active {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+        .badge-status {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
 
         @media (max-width: 768px) {
             .sidebar {
@@ -198,19 +266,28 @@
                 a.href = `#${api.file}`;
                 a.className = 'list-group-item list-group-item-action';
                 a.innerHTML = `${api.name} <span id="test-result-badge-${api.file}" class="badge float-end"></span>`;
-                a.onclick = () => renderApiDocumentation(api);
+                a.onclick = (e) => {
+                    e.preventDefault();
+                    window.location.hash = api.file;
+                    // The hashchange event will handle the rest
+                };
                 apiList.appendChild(a);
             });
         }
 
         function renderApiDocumentation(api) {
+            // Scroll to top of main content
+            document.querySelector('.main-content').scrollTop = 0;
+            
             let endpointsHtml = '';
             api.endpoints.forEach(endpoint => {
                 endpointsHtml += `
-                    <div class="card mb-3">
-                        <div class="card-header d-flex justify-content-between">
-                            <h5>${endpoint.action}</h5>
-                            <button class="btn btn-sm btn-primary test-endpoint-btn" data-api-file="${api.file}" data-endpoint-action="${endpoint.action}">Test</button>
+                    <div class="card mb-3 endpoint-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-code me-2"></i>${endpoint.action}</h5>
+                            <button class="btn btn-sm btn-primary test-endpoint-btn" data-api-file="${api.file}" data-endpoint-action="${endpoint.action}">
+                                <i class="fas fa-play me-1"></i>Test
+                            </button>
                         </div>
                         <div class="card-body">
                             <p>${endpoint.description}</p>
@@ -240,16 +317,33 @@
             });
 
             apiDocumentation.innerHTML = `
+                <nav aria-label="breadcrumb" class="mb-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#" onclick="location.reload()">API Documentation</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">${api.name}</li>
+                    </ol>
+                </nav>
                 <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">${api.name}</h2>
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h2 class="card-title mb-0"><i class="fas fa-cogs me-2"></i>${api.name} API</h2>
+                            <span class="badge bg-light text-dark">${api.file}</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <p class="card-text">${api.description}</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>${api.description}
+                        </div>
                         ${endpointsHtml}
                     </div>
                 </div>
             `;
+
+            // Initialize Bootstrap tabs
+            const tabTriggerList = document.querySelectorAll('[data-bs-toggle="tab"]');
+            tabTriggerList.forEach(tabTriggerEl => {
+                new bootstrap.Tab(tabTriggerEl);
+            });
 
             document.querySelectorAll('.test-endpoint-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
@@ -258,7 +352,13 @@
                     const api = apiEndpoints.find(a => a.file === apiFile);
                     const endpoint = api.endpoints.find(ep => ep.action === endpointAction);
                     const resultDiv = document.getElementById(`test-result-${api.file}-${endpoint.action}`);
-                    resultDiv.innerHTML = '<span class="badge bg-warning">Testing...</span>';
+                    const button = e.target;
+                    const originalText = button.innerHTML;
+                    
+                    // Show loading state
+                    button.disabled = true;
+                    button.innerHTML = '<span class="loading-spinner"></span> Testing...';
+                    resultDiv.innerHTML = '<div class="alert alert-info"><span class="loading-spinner me-2"></span>Testing API endpoint...</div>';
 
                     let url = `/umakant/patho_api/${api.file}?action=${endpoint.action}&secret_key=hospital-api-secret-2024`;
                     
@@ -271,13 +371,33 @@
                         const response = await axios.get(url);
                         let resultHtml = '<pre class="code-viewer"><code>' + JSON.stringify(response.data, null, 2) + '</code></pre>';
                         if (response.data.success) {
-                            resultDiv.innerHTML = '<span class="badge bg-success">Success</span>' + resultHtml;
+                            resultDiv.innerHTML = `
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle me-2"></i>Success
+                                </div>
+                                ${resultHtml}
+                            `;
                         } else {
-                            resultDiv.innerHTML = '<span class="badge bg-danger">Failed</span>' + resultHtml;
+                            resultDiv.innerHTML = `
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>API returned failure
+                                </div>
+                                ${resultHtml}
+                            `;
                         }
                     } catch (error) {
-                        let errorHtml = '<pre class="code-viewer"><code>' + JSON.stringify(error.response.data, null, 2) + '</code></pre>';
-                        resultDiv.innerHTML = '<span class="badge bg-danger">Error</span>' + errorHtml;
+                        let errorData = error.response?.data || { error: error.message };
+                        let errorHtml = '<pre class="code-viewer"><code>' + JSON.stringify(errorData, null, 2) + '</code></pre>';
+                        resultDiv.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-times-circle me-2"></i>Request Error (${error.response?.status || 'Network Error'})
+                            </div>
+                            ${errorHtml}
+                        `;
+                    } finally {
+                        // Restore button state
+                        button.disabled = false;
+                        button.innerHTML = originalText;
                     }
                 });
             });
@@ -371,10 +491,47 @@
 
         testAllBtn.addEventListener('click', testAllApis);
 
-        renderApiList();
-        if (apiEndpoints.length > 0) {
-            renderApiDocumentation(apiEndpoints[0]);
+        // Handle URL hash navigation
+        function handleHashNavigation() {
+            const hash = window.location.hash.substring(1); // Remove the # symbol
+            if (hash) {
+                const targetApi = apiEndpoints.find(api => api.file === hash);
+                if (targetApi) {
+                    renderApiDocumentation(targetApi);
+                    updateActiveNavigation(hash);
+                    // Update page title
+                    document.title = `${targetApi.name} API - API Documentation & Tester`;
+                    return;
+                }
+            }
+            // Default to first API if no valid hash
+            if (apiEndpoints.length > 0) {
+                const firstApi = apiEndpoints[0];
+                renderApiDocumentation(firstApi);
+                updateActiveNavigation(firstApi.file);
+                // Update URL without triggering hashchange
+                history.replaceState(null, null, `#${firstApi.file}`);
+                document.title = `${firstApi.name} API - API Documentation & Tester`;
+            }
         }
+
+        // Update active navigation state
+        function updateActiveNavigation(activeFile) {
+            document.querySelectorAll('.list-group-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const activeItem = document.querySelector(`a[href="#${activeFile}"]`);
+            if (activeItem) {
+                activeItem.classList.add('active');
+            }
+        }
+
+        // Listen for hash changes
+        window.addEventListener('hashchange', handleHashNavigation);
+
+        // Initialize the page
+        renderApiList();
+        handleHashNavigation();
     </script>
 </body>
 </html>
