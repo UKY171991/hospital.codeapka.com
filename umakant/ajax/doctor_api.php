@@ -88,11 +88,11 @@ try {
             json_response(['success' => true, 'data' => $rows]);
         }
 
-        // Support DataTables server-side processing
-        $draw = $_POST['draw'] ?? 1;
-        $start = $_POST['start'] ?? 0;
-        $length = $_POST['length'] ?? 25;
-        $search = $_POST['search']['value'] ?? '';
+        // Support DataTables server-side processing - validate and sanitize parameters
+        $draw = (int)($_REQUEST['draw'] ?? 1);
+        $start = max(0, (int)($_REQUEST['start'] ?? 0));
+        $length = max(1, min(100, (int)($_REQUEST['length'] ?? 25))); // Limit between 1-100 records
+        $search = trim($_REQUEST['search']['value'] ?? '');
         
         // Base query
         $baseQuery = "FROM doctors d LEFT JOIN users u ON d.added_by = u.id";
@@ -101,9 +101,9 @@ try {
         
         // Add search conditions
         if (!empty($search)) {
-            $whereClause = " WHERE (d.name LIKE ? OR d.specialization LIKE ? OR d.hospital LIKE ? OR d.phone LIKE ? OR d.email LIKE ?)";
+            $whereClause = " WHERE (d.name LIKE ? OR d.hospital LIKE ? OR d.contact_no LIKE ? OR u.username LIKE ?)";
             $searchTerm = "%$search%";
-            $params = [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm];
+            $params = [$searchTerm, $searchTerm, $searchTerm, $searchTerm];
         }
 
         // Optional filter by added_by (from dropdown)
@@ -149,30 +149,64 @@ try {
             }
         }
         
-    // Get total records (no filters)
-    $totalStmt = $pdo->query("SELECT COUNT(*) " . $baseQuery);
-    $totalRecords = $totalStmt->fetchColumn();
+        // Get total records (no filters) with error handling - optimized query
+        try {
+            // Use simple count without JOIN for better performance when no filters
+            if (empty($whereClause)) {
+                $totalStmt = $pdo->query("SELECT COUNT(*) FROM doctors");
+            } else {
+                $totalStmt = $pdo->query("SELECT COUNT(*) " . $baseQuery);
+            }
+            $totalRecords = $totalStmt->fetchColumn();
+        } catch (PDOException $e) {
+            json_response(['success' => false, 'message' => 'Error counting total records: ' . $e->getMessage()], 500);
+        }
 
-    // Get filtered records (with current search filters and added_by)
-    $filteredStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereClause);
-    $filteredStmt->execute($params);
-    $filteredRecords = $filteredStmt->fetchColumn();
+        // Get filtered records (with current search filters and added_by) with error handling
+        try {
+            $filteredStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereClause);
+            $filteredStmt->execute($params);
+            $filteredRecords = $filteredStmt->fetchColumn();
+        } catch (PDOException $e) {
+            json_response(['success' => false, 'message' => 'Error counting filtered records: ' . $e->getMessage()], 500);
+        }
+        // Handle ordering
         $orderBy = " ORDER BY d.id DESC";
+        if (isset($_REQUEST['order']) && is_array($_REQUEST['order']) && count($_REQUEST['order']) > 0) {
+            $orderColumn = (int)$_REQUEST['order'][0]['column'];
+            $orderDir = $_REQUEST['order'][0]['dir'] === 'asc' ? 'ASC' : 'DESC';
+            
+            $columns = ['d.id', 'd.name', 'd.hospital', 'd.contact_no', 'd.percent', 'u.username', 'd.created_at'];
+            if (isset($columns[$orderColumn])) {
+                $orderBy = " ORDER BY " . $columns[$orderColumn] . " " . $orderDir;
+            }
+        }
+        
         $limit = " LIMIT $start, $length";
         
-    $dataQuery = "SELECT d.id,
-                 d.name,
-                 d.hospital,
-                 d.contact_no,
-                 d.percent,
-                 d.added_by,
-                 u.username as added_by_username,
-                 d.created_at
-              " . $baseQuery . $whereClause . $orderBy . $limit;
+        // Get data records with error handling
+        // Performance note: Consider adding these indexes for better performance:
+        // CREATE INDEX idx_doctors_added_by ON doctors(added_by);
+        // CREATE INDEX idx_doctors_name ON doctors(name);
+        // CREATE INDEX idx_doctors_hospital ON doctors(hospital);
+        // CREATE INDEX idx_doctors_created_at ON doctors(created_at);
+        try {
+            $dataQuery = "SELECT d.id,
+                         d.name,
+                         d.hospital,
+                         d.contact_no,
+                         d.percent,
+                         d.added_by,
+                         u.username as added_by_username,
+                         d.created_at
+                      " . $baseQuery . $whereClause . $orderBy . $limit;
 
-    $dataStmt = $pdo->prepare($dataQuery);
-    $dataStmt->execute($params);
-    $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
+            $dataStmt = $pdo->prepare($dataQuery);
+            $dataStmt->execute($params);
+            $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            json_response(['success' => false, 'message' => 'Error fetching data records: ' . $e->getMessage()], 500);
+        }
         
         // Return DataTables format
         json_response([

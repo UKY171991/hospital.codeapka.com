@@ -186,16 +186,17 @@ include_once 'inc/sidebar.php';
   $(function(){
     window.doctorTable = $('#doctorTable').DataTable({
       processing: true,
+      serverSide: true,
       responsive: true,
       ajax: {
         url: 'ajax/doctor_api.php',
+        type: 'POST',
         cache: false,
         data: function(d){
           d.action = 'list';
           var addedBy = $('#filterAddedBy').val();
           if (addedBy) d.added_by = addedBy;
-        },
-        dataSrc: 'data'
+        }
       },
       columns: [
         { data: 'id' },
