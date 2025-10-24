@@ -149,16 +149,26 @@ function handleList($pdo, $config, $user_data) {
     $whereClauses = [];
     $params = [];
     
-    if ($current_user_role === 'master' || $current_user_role === 'admin') {
-        // Admin can see all, but if user_id specified, filter by that user
-        if ($current_user_id) {
+    // Check if added_by column exists before using it for filtering
+    $hasAddedByColumn = true;
+    try {
+        $pdo->query("SELECT added_by FROM {$config['table_name']} LIMIT 1");
+    } catch (PDOException $e) {
+        $hasAddedByColumn = false;
+    }
+    
+    if ($hasAddedByColumn) {
+        if ($current_user_role === 'master' || $current_user_role === 'admin') {
+            // Admin can see all, but if user_id specified, filter by that user
+            if ($current_user_id) {
+                $whereClauses[] = "p.added_by = ?";
+                $params[] = $current_user_id;
+            }
+        } else {
+            // Regular users see only their data
             $whereClauses[] = "p.added_by = ?";
             $params[] = $current_user_id;
         }
-    } else {
-        // Regular users see only their data
-        $whereClauses[] = "p.added_by = ?";
-        $params[] = $current_user_id;
     }
 
     if (!empty($search)) {
@@ -176,10 +186,23 @@ function handleList($pdo, $config, $user_data) {
     $filteredStmt->execute($params);
     $filteredRecords = $filteredStmt->fetchColumn();
 
-    $query = "SELECT p.*, u.username as added_by_username FROM {$config['table_name']} p LEFT JOIN users u ON p.added_by = u.id $whereSql ORDER BY p.id DESC LIMIT $start, $length";
-    $stmt = $pdo->prepare($query);
-    $stmt->execute($params);
-    $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Try with added_by column first, fallback without it
+    try {
+        $query = "SELECT p.*, u.username as added_by_username FROM {$config['table_name']} p LEFT JOIN users u ON p.added_by = u.id $whereSql ORDER BY p.id DESC LIMIT $start, $length";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($params);
+        $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        if (strpos($e->getMessage(), 'added_by') !== false) {
+            // Fallback query without added_by column
+            $query = "SELECT p.*, '' as added_by_username FROM {$config['table_name']} p $whereSql ORDER BY p.id DESC LIMIT $start, $length";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute($params);
+            $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } else {
+            throw $e;
+        }
+    }
     
     // Map sex column to gender for frontend compatibility
     foreach ($patients as &$patient) {
@@ -205,19 +228,33 @@ function handleGet($pdo, $config, $user_data) {
         json_response(['success' => false, 'message' => 'Patient ID is required'], 400);
     }
 
-    // Build query with user filtering
-    $sql = "SELECT p.*, u.username as added_by_username FROM {$config['table_name']} p LEFT JOIN users u ON p.added_by = u.id WHERE p.id = ?";
-    $params = [$id];
-    
-    // Add user filtering for non-admin users
-    if ($current_user_role !== 'master' && $current_user_role !== 'admin') {
-        $sql .= " AND p.added_by = ?";
-        $params[] = $current_user_id;
+    // Build query with user filtering, handle missing added_by column
+    try {
+        $sql = "SELECT p.*, u.username as added_by_username FROM {$config['table_name']} p LEFT JOIN users u ON p.added_by = u.id WHERE p.id = ?";
+        $params = [$id];
+        
+        // Add user filtering for non-admin users
+        if ($current_user_role !== 'master' && $current_user_role !== 'admin') {
+            $sql .= " AND p.added_by = ?";
+            $params[] = $current_user_id;
+        }
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $patient = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        if (strpos($e->getMessage(), 'added_by') !== false) {
+            // Fallback query without added_by column
+            $sql = "SELECT p.*, '' as added_by_username FROM {$config['table_name']} p WHERE p.id = ?";
+            $params = [$id];
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $patient = $stmt->fetch(PDO::FETCH_ASSOC);
+        } else {
+            throw $e;
+        }
     }
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $patient = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$patient) {
         json_response(['success' => false, 'message' => 'Patient not found or access denied'], 404);
@@ -251,6 +288,11 @@ function handleSave($pdo, $config, $user_data) {
         unset($data['gender']);
     }
     
+    // Ensure added_by is always set
+    if (!isset($data['added_by']) || empty($data['added_by'])) {
+        $data['added_by'] = $current_user_id;
+    }
+    
     // Generate UHID if not provided for new patients
     if (!$id && empty($data['uhid'])) {
         $stmt = $pdo->query("SELECT MAX(CAST(SUBSTR(uhid, 2) AS UNSIGNED)) FROM patients WHERE uhid LIKE 'P%'");
@@ -258,22 +300,49 @@ function handleSave($pdo, $config, $user_data) {
         $data['uhid'] = 'P' . str_pad($next + 1, 6, '0', STR_PAD_LEFT);
     }
 
-    if ($id) {
-        $set_clause = implode(', ', array_map(fn($field) => "`$field` = ?", array_keys($data)));
-        $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
-        $values = array_merge(array_values($data), [$id]);
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($values);
-        $patient_id = $id;
-        $action_status = 'updated';
-    } else {
-        $cols = implode(', ', array_keys($data));
-        $placeholders = implode(', ', array_fill(0, count($data), '?'));
-        $sql = "INSERT INTO {$config['table_name']} ($cols) VALUES ($placeholders)";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute(array_values($data));
-        $patient_id = $pdo->lastInsertId();
-        $action_status = 'inserted';
+    try {
+        if ($id) {
+            $set_clause = implode(', ', array_map(fn($field) => "`$field` = ?", array_keys($data)));
+            $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
+            $values = array_merge(array_values($data), [$id]);
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($values);
+            $patient_id = $id;
+            $action_status = 'updated';
+        } else {
+            $cols = implode(', ', array_keys($data));
+            $placeholders = implode(', ', array_fill(0, count($data), '?'));
+            $sql = "INSERT INTO {$config['table_name']} ($cols) VALUES ($placeholders)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(array_values($data));
+            $patient_id = $pdo->lastInsertId();
+            $action_status = 'inserted';
+        }
+    } catch (PDOException $e) {
+        // If added_by column doesn't exist, remove it and try again
+        if (strpos($e->getMessage(), 'added_by') !== false) {
+            unset($data['added_by']);
+            
+            if ($id) {
+                $set_clause = implode(', ', array_map(fn($field) => "`$field` = ?", array_keys($data)));
+                $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
+                $values = array_merge(array_values($data), [$id]);
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($values);
+                $patient_id = $id;
+                $action_status = 'updated';
+            } else {
+                $cols = implode(', ', array_keys($data));
+                $placeholders = implode(', ', array_fill(0, count($data), '?'));
+                $sql = "INSERT INTO {$config['table_name']} ($cols) VALUES ($placeholders)";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute(array_values($data));
+                $patient_id = $pdo->lastInsertId();
+                $action_status = 'inserted';
+            }
+        } else {
+            throw $e; // Re-throw if it's a different error
+        }
     }
 
     $stmt = $pdo->prepare("SELECT p.*, u.username as added_by_username FROM {$config['table_name']} p LEFT JOIN users u ON p.added_by = u.id WHERE p.id = ?");
@@ -304,18 +373,32 @@ function handleDelete($pdo, $config, $user_data) {
 
     try {
         // First check if patient exists and user has access
-        $checkSql = "SELECT id, added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?";
-        $checkParams = [$id];
-        
-        // Add user filtering for non-admin users
-        if ($current_user_role !== 'master' && $current_user_role !== 'admin') {
-            $checkSql .= " AND added_by = ?";
-            $checkParams[] = $current_user_id;
+        try {
+            $checkSql = "SELECT id, added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?";
+            $checkParams = [$id];
+            
+            // Add user filtering for non-admin users
+            if ($current_user_role !== 'master' && $current_user_role !== 'admin') {
+                $checkSql .= " AND added_by = ?";
+                $checkParams[] = $current_user_id;
+            }
+            
+            $checkStmt = $pdo->prepare($checkSql);
+            $checkStmt->execute($checkParams);
+            $patient = $checkStmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            if (strpos($e->getMessage(), 'added_by') !== false) {
+                // Fallback without added_by column
+                $checkSql = "SELECT id FROM {$config['table_name']} WHERE {$config['id_field']} = ?";
+                $checkParams = [$id];
+                
+                $checkStmt = $pdo->prepare($checkSql);
+                $checkStmt->execute($checkParams);
+                $patient = $checkStmt->fetch(PDO::FETCH_ASSOC);
+            } else {
+                throw $e;
+            }
         }
-        
-        $checkStmt = $pdo->prepare($checkSql);
-        $checkStmt->execute($checkParams);
-        $patient = $checkStmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$patient) {
             json_response(['success' => false, 'message' => 'Patient not found or access denied'], 404);
@@ -331,17 +414,30 @@ function handleDelete($pdo, $config, $user_data) {
         }
 
         // Perform the deletion with user filtering
-        $deleteSql = "DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?";
-        $deleteParams = [$id];
-        
-        // Add user filtering for non-admin users
-        if ($current_user_role !== 'master' && $current_user_role !== 'admin') {
-            $deleteSql .= " AND added_by = ?";
-            $deleteParams[] = $current_user_id;
+        try {
+            $deleteSql = "DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?";
+            $deleteParams = [$id];
+            
+            // Add user filtering for non-admin users
+            if ($current_user_role !== 'master' && $current_user_role !== 'admin') {
+                $deleteSql .= " AND added_by = ?";
+                $deleteParams[] = $current_user_id;
+            }
+            
+            $deleteStmt = $pdo->prepare($deleteSql);
+            $result = $deleteStmt->execute($deleteParams);
+        } catch (PDOException $e) {
+            if (strpos($e->getMessage(), 'added_by') !== false) {
+                // Fallback without added_by column
+                $deleteSql = "DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?";
+                $deleteParams = [$id];
+                
+                $deleteStmt = $pdo->prepare($deleteSql);
+                $result = $deleteStmt->execute($deleteParams);
+            } else {
+                throw $e;
+            }
         }
-        
-        $deleteStmt = $pdo->prepare($deleteSql);
-        $result = $deleteStmt->execute($deleteParams);
         
         if ($result && $deleteStmt->rowCount() > 0) {
             json_response([
@@ -363,27 +459,51 @@ function handleDelete($pdo, $config, $user_data) {
 function handleStats($pdo, $user_data) {
     global $current_user_id, $current_user_role;
 
-    $totalStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ?');
-    $totalStmt->execute([$current_user_id]);
-    $total = $totalStmt->fetchColumn();
+    // Check if added_by column exists
+    $hasAddedByColumn = true;
+    try {
+        $pdo->query("SELECT added_by FROM patients LIMIT 1");
+    } catch (PDOException $e) {
+        $hasAddedByColumn = false;
+    }
 
-    $todayStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND DATE(created_at) = CURDATE()');
-    $todayStmt->execute([$current_user_id]);
-    $today = $todayStmt->fetchColumn();
+    if ($hasAddedByColumn) {
+        $totalStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ?');
+        $totalStmt->execute([$current_user_id]);
+        $total = $totalStmt->fetchColumn();
 
-    $thisWeekStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND YEARWEEK(created_at) = YEARWEEK(CURDATE())');
-    $thisWeekStmt->execute([$current_user_id]);
-    $thisWeek = $thisWeekStmt->fetchColumn();
+        $todayStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND DATE(created_at) = CURDATE()');
+        $todayStmt->execute([$current_user_id]);
+        $today = $todayStmt->fetchColumn();
 
-    $thisMonthStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE())');
-    $thisMonthStmt->execute([$current_user_id]);
-    $thisMonth = $thisMonthStmt->fetchColumn();
+        $thisWeekStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND YEARWEEK(created_at) = YEARWEEK(CURDATE())');
+        $thisWeekStmt->execute([$current_user_id]);
+        $thisWeek = $thisWeekStmt->fetchColumn();
+
+        $thisMonthStmt = $pdo->prepare('SELECT COUNT(*) FROM patients WHERE added_by = ? AND YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE())');
+        $thisMonthStmt->execute([$current_user_id]);
+        $thisMonth = $thisMonthStmt->fetchColumn();
+    } else {
+        // Fallback to total counts without user filtering
+        $totalStmt = $pdo->query('SELECT COUNT(*) FROM patients');
+        $total = $totalStmt->fetchColumn();
+
+        $todayStmt = $pdo->query('SELECT COUNT(*) FROM patients WHERE DATE(created_at) = CURDATE()');
+        $today = $todayStmt->fetchColumn();
+
+        $thisWeekStmt = $pdo->query('SELECT COUNT(*) FROM patients WHERE YEARWEEK(created_at) = YEARWEEK(CURDATE())');
+        $thisWeek = $thisWeekStmt->fetchColumn();
+
+        $thisMonthStmt = $pdo->query('SELECT COUNT(*) FROM patients WHERE YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE())');
+        $thisMonth = $thisMonthStmt->fetchColumn();
+    }
 
     json_response([
         'success' => true,
         'data' => [
             'user_id' => $current_user_id,
             'user_role' => $current_user_role,
+            'has_added_by_column' => $hasAddedByColumn,
             'total' => (int) $total,
             'today' => (int) $today,
             'this_week' => (int) $thisWeek,
