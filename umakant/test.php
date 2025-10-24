@@ -413,15 +413,28 @@ $(document).ready(function() {
         return;
     }
     
+    // Ensure toastr is available with fallback
     if (typeof toastr === 'undefined') {
         console.warn('Toastr is not loaded, using alert fallback');
         window.toastr = {
-            success: function(msg) { alert('Success: ' + msg); },
-            error: function(msg) { alert('Error: ' + msg); },
-            warning: function(msg) { alert('Warning: ' + msg); },
-            info: function(msg) { alert('Info: ' + msg); }
+            success: function(msg) { console.log('SUCCESS:', msg); },
+            error: function(msg) { console.error('ERROR:', msg); },
+            warning: function(msg) { console.warn('WARNING:', msg); },
+            info: function(msg) { console.info('INFO:', msg); }
         };
     }
+    
+    // Prevent any undefined function errors
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+        console.error('JavaScript Error:', {
+            message: msg,
+            source: url,
+            line: lineNo,
+            column: columnNo,
+            error: error
+        });
+        return false; // Don't suppress default browser error handling
+    };
     
     try {
         // Initialize components in order
@@ -498,6 +511,12 @@ function loadTests() {
     
     // Show loading state
     $('#testManagementTable tbody').html('<tr><td colspan="6" class="text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...</td></tr>');
+    
+    // Ensure we have a valid table element
+    if (!$('#testManagementTable').length) {
+        console.error('Test management table not found');
+        return;
+    }
     
     $.ajax({
         url: 'ajax/test_api.php?action=list',
@@ -655,28 +674,32 @@ function setupEventHandlers() {
 
 // Setup checkbox events
 function setupCheckboxEvents() {
-    // Remove existing handlers
-    $('#selectAll').off('change.testTable');
-    $(document).off('change.testTable', '.test-checkbox');
-    
-    // Select all handler
-    $('#selectAll').on('change.testTable', function() {
-        $('.test-checkbox').prop('checked', $(this).is(':checked'));
-    });
-    
-    // Individual checkbox handler
-    $(document).on('change.testTable', '.test-checkbox', function() {
-        const totalCheckboxes = $('.test-checkbox').length;
-        const checkedCheckboxes = $('.test-checkbox:checked').length;
+    try {
+        // Remove existing handlers
+        $('#selectAll').off('change.testTable');
+        $(document).off('change.testTable', '.test-checkbox');
         
-        if (checkedCheckboxes === 0) {
-            $('#selectAll').prop('indeterminate', false).prop('checked', false);
-        } else if (checkedCheckboxes === totalCheckboxes) {
-            $('#selectAll').prop('indeterminate', false).prop('checked', true);
-        } else {
-            $('#selectAll').prop('indeterminate', true);
-        }
-    });
+        // Select all handler
+        $('#selectAll').on('change.testTable', function() {
+            $('.test-checkbox').prop('checked', $(this).is(':checked'));
+        });
+        
+        // Individual checkbox handler
+        $(document).on('change.testTable', '.test-checkbox', function() {
+            const totalCheckboxes = $('.test-checkbox').length;
+            const checkedCheckboxes = $('.test-checkbox:checked').length;
+            
+            if (checkedCheckboxes === 0) {
+                $('#selectAll').prop('indeterminate', false).prop('checked', false);
+            } else if (checkedCheckboxes === totalCheckboxes) {
+                $('#selectAll').prop('indeterminate', false).prop('checked', true);
+            } else {
+                $('#selectAll').prop('indeterminate', true);
+            }
+        });
+    } catch (error) {
+        console.error('Error setting up checkbox events:', error);
+    }
 }
 
 // Apply filters
@@ -721,6 +744,12 @@ function clearFilters() {
 // Load categories
 function loadCategories() {
     console.log('Loading main categories...');
+    
+    // Ensure required elements exist
+    if (!$('#mainCategorySelect').length || !$('#categoryFilter').length) {
+        console.error('Required category select elements not found');
+        return;
+    }
     
     // Load main categories
     $.ajax({
@@ -1013,6 +1042,12 @@ function loadTestCategoriesByMainForEdit(mainCategoryId, selectedCategoryId) {
 // Load stats
 function loadStats() {
     console.log('Loading statistics...');
+    
+    // Ensure stats elements exist
+    if (!$('#totalTests').length || !$('#activeTests').length || !$('#totalCategories').length || !$('#testEntries').length) {
+        console.error('Required stats elements not found');
+        return;
+    }
     
     $.ajax({
         url: 'ajax/test_api.php?action=stats',

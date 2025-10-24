@@ -7,27 +7,45 @@
 // Global variables to track initialized tables
 window.initializedTables = window.initializedTables || new Set();
 
-$(document).ready(function() {
+// Define APP_LOG function if not already defined
+if (typeof APP_LOG === 'undefined') {
+    window.APP_LOG = function (message, ...args) {
+        console.log('[TABLE-MANAGER]', message, ...args);
+    };
+}
+
+$(document).ready(function () {
     // Prevent double initialization
     if (window.tablesInitialized) {
         return;
     }
     window.tablesInitialized = true;
-    
+
+    // Add global error handler for table manager
+    window.addEventListener('error', function (e) {
+        if (e.filename && e.filename.includes('table-manager.js')) {
+            console.error('[TABLE-MANAGER] JavaScript Error:', e.message, 'at line', e.lineno);
+        }
+    });
+
     // Initialize all tables after DOM is ready
-    setTimeout(function() {
-        initializeAllTables();
+    setTimeout(function () {
+        try {
+            initializeAllTables();
+        } catch (error) {
+            console.error('[TABLE-MANAGER] Failed to initialize tables:', error);
+        }
     }, 100);
 });
 
 function initializeAllTables() {
     APP_LOG('Initializing all tables...');
-    
+
     // Check each table type and initialize only once
-    var tryInit = function(name, fn){
-        try{
+    var tryInit = function (name, fn) {
+        try {
             fn();
-        }catch(err){
+        } catch (err) {
             console.error('Table init failed for', name, err);
         }
     };
@@ -51,7 +69,7 @@ function initializeAllTables() {
         if (/\/test\.php$/i.test(path)) {
             APP_LOG('Skipping test table init on test.php - page handles its own table initialization');
         }
-    } catch(e) {
+    } catch (e) {
         APP_LOG('Path detection failed, skipping test table initialization to prevent conflicts');
     }
 
@@ -62,14 +80,14 @@ function initializeAllTables() {
     if ($('#testCategoriesTable').length > 0 && !window.initializedTables.has('testCategoriesTable')) {
         tryInit('testCategoriesTable', initializeTestCategoryTable);
     }
-    
+
     // Validate that we're not accidentally trying to initialize test management table
     if ($('#testManagementTable').length > 0) {
         APP_LOG('Found #testManagementTable but skipping DataTables init - handled by test.php');
     }
-    
+
     // Initialize any other table with specific class
-    $('.data-table').each(function() {
+    $('.data-table').each(function () {
         const tableId = $(this).attr('id');
         if (tableId && !window.initializedTables.has(tableId)) {
             initializeGenericTable(tableId);
@@ -139,7 +157,7 @@ function getCommonTableConfig() {
                 previous: 'Previous'
             }
         },
-        error: function(xhr, error, thrown) {
+        error: function (xhr, error, thrown) {
             console.error('DataTable Error:', error, thrown);
             showToast('error', 'Failed to load data: ' + error);
         }
@@ -149,18 +167,18 @@ function getCommonTableConfig() {
 function initializePatientTable() {
     APP_LOG('Initializing Patient Table...');
     destroyTableIfExists('patientsTable');
-    
+
     try {
         const config = $.extend(true, {}, getCommonTableConfig(), {
             serverSide: true,
             ajax: {
                 url: 'ajax/patient_api.php',
                 type: 'POST',
-                data: function(d) {
+                data: function (d) {
                     d.action = 'list';
                     return d;
                 },
-                dataSrc: function(json) {
+                dataSrc: function (json) {
                     // Support multiple response formats:
                     // 1) DataTables server-side: { draw, recordsTotal, recordsFiltered, data }
                     // 2) Legacy API: { success: true, data: [...] }
@@ -186,7 +204,7 @@ function initializePatientTable() {
                     // Fallback: try to return data array if present
                     return json.data || [];
                 },
-                error: function(xhr, error, thrown) {
+                error: function (xhr, error, thrown) {
                     console.error('Patient AJAX Error:', {
                         status: xhr.status,
                         statusText: xhr.statusText,
@@ -200,7 +218,7 @@ function initializePatientTable() {
                         var j = JSON.parse(xhr.responseText || '{}');
                         if (j.message) msg = j.message;
                         else if (j.debug && j.debug.sql_executed) msg = j.message || ('Server returned error; see console for SQL');
-                    } catch (e) {}
+                    } catch (e) { }
                     if (xhr.status === 0 && navigator.onLine) {
                         console.warn('Suppressed toast for Patient AJAX status 0 while online:', msg);
                     } else {
@@ -214,7 +232,7 @@ function initializePatientTable() {
                     orderable: false,
                     className: 'text-center',
                     width: '40px',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `<input type="checkbox" class="patient-checkbox" value="${row.id}">`;
                     }
                 },
@@ -222,21 +240,21 @@ function initializePatientTable() {
                 {
                     data: null,
                     title: 'Patient Details',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `<div><strong>${row.name || 'N/A'}</strong><br><small class="text-muted">${row.mobile || 'No mobile'}</small></div>`;
                     }
                 },
                 {
                     data: null,
                     title: 'Contact',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `${row.mobile || 'N/A'}<br><small>${row.email || 'No email'}</small>`;
                     }
                 },
                 {
                     data: null,
                     title: 'Age/Gender',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         const age = row.age ? `${row.age} ${row.age_unit || 'years'}` : 'N/A';
                         return `${age}<br><span class="badge badge-${row.gender === 'Male' ? 'primary' : (row.gender === 'Female' ? 'pink' : 'secondary')}">${row.gender || 'N/A'}</span>`;
                     }
@@ -245,7 +263,7 @@ function initializePatientTable() {
                 {
                     data: 'created_at',
                     title: 'Registration',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return data ? new Date(data).toLocaleDateString() : 'N/A';
                     }
                 },
@@ -256,7 +274,7 @@ function initializePatientTable() {
                     className: 'text-center',
                     width: '120px',
                     title: 'Actions',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <div class="btn-group">
                                 <button class="btn btn-info btn-sm" onclick="viewPatient(${row.id})" title="View">
@@ -274,14 +292,14 @@ function initializePatientTable() {
                 }
             ]
         });
-        
+
         $('#patientsTable').DataTable(config);
         markTableAsInitialized('patientsTable');
-        
+
         // Load stats
         loadPatientStats();
         showToast('success', 'Patient table loaded successfully');
-        
+
     } catch (error) {
         console.error('Error initializing patient table:', error);
         showToast('error', 'Error initializing patient table');
@@ -291,18 +309,18 @@ function initializePatientTable() {
 function initializeUserTable() {
     APP_LOG('Initializing User Table...');
     destroyTableIfExists('usersTable');
-    
+
     try {
         const config = $.extend(true, {}, getCommonTableConfig(), {
             serverSide: true,
             ajax: {
                 url: 'ajax/user_api.php',
                 type: 'POST',
-                data: function(d) {
+                data: function (d) {
                     d.action = 'list';
                     return d;
                 },
-                dataSrc: function(json) {
+                dataSrc: function (json) {
                     if (json.success) {
                         return json.data || [];
                     } else {
@@ -311,7 +329,7 @@ function initializeUserTable() {
                         return [];
                     }
                 },
-                error: function(xhr, error, thrown) {
+                error: function (xhr, error, thrown) {
                     console.error('User AJAX Error:', {
                         status: xhr.status,
                         statusText: xhr.statusText,
@@ -328,7 +346,7 @@ function initializeUserTable() {
                     orderable: false,
                     className: 'text-center',
                     width: '40px',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `<input type="checkbox" class="user-checkbox" value="${row.id}">`;
                     }
                 },
@@ -336,10 +354,10 @@ function initializeUserTable() {
                 { data: 'username', title: 'Username' },
                 { data: 'email', title: 'Email' },
                 { data: 'full_name', title: 'Full Name' },
-                { 
-                    data: 'role', 
+                {
+                    data: 'role',
                     title: 'Role',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         const badgeClass = data === 'admin' ? 'badge-danger' : (data === 'master' ? 'badge-success' : 'badge-info');
                         return `<span class="badge ${badgeClass}">${data}</span>`;
                     }
@@ -347,7 +365,7 @@ function initializeUserTable() {
                 {
                     data: 'user_type',
                     title: 'User Type',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return data ? `<span class="badge badge-secondary">${data}</span>` : '-';
                     }
                 },
@@ -358,7 +376,7 @@ function initializeUserTable() {
                     className: 'text-center',
                     width: '120px',
                     title: 'Actions',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <div class="btn-group">
                                 <button class="btn btn-info btn-sm" onclick="viewUser(${row.id})" title="View">
@@ -376,11 +394,11 @@ function initializeUserTable() {
                 }
             ]
         });
-        
+
         $('#usersTable').DataTable(config);
         markTableAsInitialized('usersTable');
         showToast('success', 'User table loaded successfully');
-        
+
     } catch (error) {
         console.error('Error initializing user table:', error);
         showToast('error', 'Error initializing user table');
@@ -389,7 +407,7 @@ function initializeUserTable() {
 
 function initializeTestTable() {
     APP_LOG('Test table initialization called - but test.php handles its own table');
-    
+
     // Check if we're on test.php page and skip initialization to prevent conflicts
     try {
         var path = window.location && window.location.pathname ? window.location.pathname : '';
@@ -397,32 +415,32 @@ function initializeTestTable() {
             APP_LOG('Skipping DataTables initialization on test.php - page uses custom table management');
             return;
         }
-    } catch(e) {
+    } catch (e) {
         APP_LOG('Path detection failed, proceeding with caution');
     }
-    
+
     // For other pages, try to initialize with correct selector
     destroyTableIfExists('testManagementTable');
-    
+
     try {
         // Guard: ensure table element exists and is a table with headers
         var $testsEl = $('#testManagementTable');
-        
+
         // Diagnostic logging
         try {
             console.debug('[table-manager] initializeTestTable called. #testManagementTable length:', $testsEl.length, 'isTable:', $testsEl.is('table'));
             if ($testsEl.length) {
                 console.debug('[table-manager] #testManagementTable thead th count:', $testsEl.find('thead tr').first().find('th').length);
             }
-        } catch(diagErr) { 
-            console.warn('[table-manager] diagnostic logging failed', diagErr); 
+        } catch (diagErr) {
+            console.warn('[table-manager] diagnostic logging failed', diagErr);
         }
-        
+
         if (!$testsEl.length || !$testsEl.is('table')) {
             APP_LOG('No #testManagementTable element found, skipping test table initialization');
             return;
         }
-        
+
         // Ensure there's a thead with at least one th (DataTables requires headers)
         var $ths = $testsEl.find('thead tr').first().find('th');
         if (!$ths.length) {
@@ -434,11 +452,11 @@ function initializeTestTable() {
             ajax: {
                 url: 'ajax/test_api.php',
                 type: 'POST',
-                data: function(d) {
+                data: function (d) {
                     d.action = 'list';
                     return d;
                 },
-                dataSrc: function(json) {
+                dataSrc: function (json) {
                     // Accept both DataTables server-side format and our unified {success,data}
                     if (!json) return [];
                     if (typeof json.draw !== 'undefined' && Array.isArray(json.data)) return json.data;
@@ -447,15 +465,15 @@ function initializeTestTable() {
                     showToast('error', 'Failed to load tests' + (json && json.message ? (': ' + json.message) : ''));
                     return [];
                 },
-                error: function(xhr, error, thrown) {
-                        console.error('Test AJAX Error:', {
-                            status: xhr.status,
-                            statusText: xhr.statusText,
-                            responseText: xhr.responseText,
-                            error: error,
-                            thrown: thrown
-                        });
-                        showToast('error', 'Failed to load test data (see console)');
+                error: function (xhr, error, thrown) {
+                    console.error('Test AJAX Error:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText,
+                        error: error,
+                        thrown: thrown
+                    });
+                    showToast('error', 'Failed to load test data (see console)');
                 }
             },
             columns: [
@@ -464,7 +482,7 @@ function initializeTestTable() {
                     orderable: false,
                     className: 'text-center',
                     width: '40px',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `<input type="checkbox" class="test-checkbox" value="${row.id}">`;
                     }
                 },
@@ -472,19 +490,19 @@ function initializeTestTable() {
                 {
                     data: 'name',
                     title: 'Test Name',
-                    render: function(data, type, row){
+                    render: function (data, type, row) {
                         var testName = data || row.name || 'N/A';
                         if (testName === '' || testName === null || testName === undefined) testName = 'N/A';
-                        return `<div class="font-weight-bold text-primary">${testName}</div>`+
-                               (row.description ? `<small class="text-muted">${row.description}</small>` : '');
+                        return `<div class="font-weight-bold text-primary">${testName}</div>` +
+                            (row.description ? `<small class="text-muted">${row.description}</small>` : '');
                     }
                 },
-                { data: 'category_name', title: 'Category', render: function(d){ return d ? `<span class="badge badge-info">${d}</span>` : '-'; } },
-                { data: 'price', title: 'Price', render: function(d){ return d ? `₹${parseFloat(d).toFixed(2)}` : '-'; } },
+                { data: 'category_name', title: 'Category', render: function (d) { return d ? `<span class="badge badge-info">${d}</span>` : '-'; } },
+                { data: 'price', title: 'Price', render: function (d) { return d ? `₹${parseFloat(d).toFixed(2)}` : '-'; } },
                 {
                     data: null,
                     title: 'Gender',
-                    render: function(data, type, row){
+                    render: function (data, type, row) {
                         let g = [];
                         if (row.min_male !== null || row.max_male !== null) g.push('<span class="badge badge-primary badge-sm">Male</span>');
                         if (row.min_female !== null || row.max_female !== null) g.push('<span class="badge badge-danger badge-sm">Female</span>');
@@ -495,22 +513,22 @@ function initializeTestTable() {
                 {
                     data: null,
                     title: 'Range',
-                    render: function(data, type, row){
+                    render: function (data, type, row) {
                         let r = [];
-                        if (row.min_male !== null || row.max_male !== null) r.push(`M: ${row.min_male||0}-${row.max_male||'∞'}`);
-                        if (row.min_female !== null || row.max_female !== null) r.push(`F: ${row.min_female||0}-${row.max_female||'∞'}`);
-                        if (!r.length && (row.min !== null || row.max !== null)) r.push(`${row.min||0}-${row.max||'∞'}`);
+                        if (row.min_male !== null || row.max_male !== null) r.push(`M: ${row.min_male || 0}-${row.max_male || '∞'}`);
+                        if (row.min_female !== null || row.max_female !== null) r.push(`F: ${row.min_female || 0}-${row.max_female || '∞'}`);
+                        if (!r.length && (row.min !== null || row.max !== null)) r.push(`${row.min || 0}-${row.max || '∞'}`);
                         return r.length ? r.join('<br>') : '-';
                     }
                 },
-                { data: 'unit', title: 'Unit', render: d=> d || '-' },
+                { data: 'unit', title: 'Unit', render: d => d || '-' },
                 {
                     data: null,
                     orderable: false,
                     className: 'text-center',
                     width: '120px',
                     title: 'Actions',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <div class="btn-group btn-group-sm" role="group">
                                 <button class="btn btn-info btn-sm" onclick="viewTest(${row.id})" title="View">
@@ -519,7 +537,7 @@ function initializeTestTable() {
                                 <button class="btn btn-warning btn-sm" onclick="editTest(${row.id})" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteTest(${row.id}, '${(row.name||'').replace(/'/g, "\\'")}')" title="Delete">
+                                <button class="btn btn-danger btn-sm" onclick="deleteTest(${row.id}, '${(row.name || '').replace(/'/g, "\\'")}')" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -528,7 +546,7 @@ function initializeTestTable() {
                 }
             ]
         });
-        
+
         try {
             $('#testManagementTable').DataTable(config);
             markTableAsInitialized('testManagementTable');
@@ -537,7 +555,7 @@ function initializeTestTable() {
             console.error('DataTable initialization failed for #testManagementTable:', dtError);
             APP_LOG('Failed to initialize #testManagementTable, skipping.');
         }
-        
+
     } catch (error) {
         console.error('Error initializing test table:', error);
         showToast('error', 'Error initializing test table');
@@ -547,18 +565,18 @@ function initializeTestTable() {
 function initializeDoctorTable() {
     APP_LOG('Initializing Doctor Table...');
     destroyTableIfExists('doctorsTable');
-    
+
     try {
         const config = $.extend(true, {}, getCommonTableConfig(), {
             serverSide: true,
             ajax: {
                 url: 'ajax/doctor_api.php',
                 type: 'POST',
-                data: function(d) {
+                data: function (d) {
                     d.action = 'list';
                     return d;
                 },
-                dataSrc: function(json) {
+                dataSrc: function (json) {
                     if (json.success) {
                         return json.data || [];
                     } else {
@@ -567,15 +585,15 @@ function initializeDoctorTable() {
                         return [];
                     }
                 },
-                error: function(xhr, error, thrown) {
-                        console.error('Doctor AJAX Error:', {
-                            status: xhr.status,
-                            statusText: xhr.statusText,
-                            responseText: xhr.responseText,
-                            error: error,
-                            thrown: thrown
-                        });
-                        showToast('error', 'Failed to load doctor data (see console)');
+                error: function (xhr, error, thrown) {
+                    console.error('Doctor AJAX Error:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText,
+                        error: error,
+                        thrown: thrown
+                    });
+                    showToast('error', 'Failed to load doctor data (see console)');
                 }
             },
             columns: [
@@ -584,7 +602,7 @@ function initializeDoctorTable() {
                     orderable: false,
                     className: 'text-center',
                     width: '40px',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `<input type="checkbox" class="doctor-checkbox" value="${row.id}">`;
                     }
                 },
@@ -597,7 +615,7 @@ function initializeDoctorTable() {
                 {
                     data: 'status',
                     title: 'Status',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `<span class="badge badge-${data === 'Active' ? 'success' : 'secondary'}">${data}</span>`;
                     }
                 },
@@ -607,7 +625,7 @@ function initializeDoctorTable() {
                     className: 'text-center',
                     width: '120px',
                     title: 'Actions',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <div class="btn-group">
                                 <button class="btn btn-info btn-sm" onclick="viewDoctor(${row.id})" title="View">
@@ -625,11 +643,11 @@ function initializeDoctorTable() {
                 }
             ]
         });
-        
+
         $('#doctorsTable').DataTable(config);
         markTableAsInitialized('doctorsTable');
         showToast('success', 'Doctor table loaded successfully');
-        
+
     } catch (error) {
         console.error('Error initializing doctor table:', error);
         showToast('error', 'Error initializing doctor table');
@@ -639,17 +657,17 @@ function initializeDoctorTable() {
 function initializeTestCategoryTable() {
     APP_LOG('Initializing Test Category Table...');
     destroyTableIfExists('testCategoriesTable');
-    
+
     try {
         const config = $.extend(true, {}, getCommonTableConfig(), {
             ajax: {
                 url: 'ajax/test_category_api.php',
                 type: 'POST',
-                data: function(d) {
+                data: function (d) {
                     d.action = 'list';
                     return d;
                 },
-                dataSrc: function(json) {
+                dataSrc: function (json) {
                     if (json.success) {
                         return json.data || [];
                     } else {
@@ -658,7 +676,7 @@ function initializeTestCategoryTable() {
                         return [];
                     }
                 },
-                error: function(xhr, error, thrown) {
+                error: function (xhr, error, thrown) {
                     console.error('Test Category AJAX Error:', error, thrown);
                     showToast('error', 'Failed to load test category data');
                 }
@@ -676,7 +694,7 @@ function initializeTestCategoryTable() {
                     className: 'text-center',
                     width: '120px',
                     title: 'Actions',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <div class="btn-group">
                                 <button class="btn btn-warning btn-sm" onclick="editCategory(${row.id})" title="Edit">
@@ -691,11 +709,11 @@ function initializeTestCategoryTable() {
                 }
             ]
         });
-        
+
         $('#testCategoriesTable').DataTable(config);
         markTableAsInitialized('testCategoriesTable');
         showToast('success', 'Test category table loaded successfully');
-        
+
     } catch (error) {
         console.error('Error initializing test category table:', error);
         showToast('error', 'Error initializing test category table');
@@ -705,13 +723,13 @@ function initializeTestCategoryTable() {
 function initializeGenericTable(tableId) {
     APP_LOG('Initializing Generic Table:', tableId);
     destroyTableIfExists(tableId);
-    
+
     try {
         const config = getCommonTableConfig();
         $('#' + tableId).DataTable(config);
         markTableAsInitialized(tableId);
         showToast('success', `Table ${tableId} loaded successfully`);
-        
+
     } catch (error) {
         console.error('Error initializing generic table:', tableId, error);
         showToast('error', `Error initializing ${tableId}`);
@@ -723,7 +741,7 @@ function loadPatientStats() {
         url: 'ajax/patient_api.php',
         type: 'POST',
         data: { action: 'stats' },
-        success: function(response) {
+        success: function (response) {
             if (response.success) {
                 $('#totalPatients').text(response.data.total || 0);
                 $('#todayPatients').text(response.data.today || 0);
@@ -731,7 +749,7 @@ function loadPatientStats() {
                 $('#femalePatients').text(response.data.female || 0);
             }
         },
-        error: function() {
+        error: function () {
             console.error('Failed to load patient statistics');
         }
     });
@@ -741,7 +759,7 @@ function showToast(type, message) {
     if (typeof toastr !== 'undefined') {
         toastr[type](message);
     } else {
-    APP_LOG(`${type.toUpperCase()}: ${message}`);
+        APP_LOG(`${type.toUpperCase()}: ${message}`);
     }
 }
 
@@ -750,16 +768,16 @@ window.initializeAllTables = initializeAllTables;
 window.loadPatientStats = loadPatientStats;
 
 // Unified reload helpers
-function reloadDataTable(tableId, resetPaging){
-    if ($.fn.DataTable && $.fn.dataTable.isDataTable('#'+tableId)) {
-        try { $('#'+tableId).DataTable().ajax.reload(null, resetPaging === true); }
-        catch(e){ console.error('Failed to reload DataTable', tableId, e); }
+function reloadDataTable(tableId, resetPaging) {
+    if ($.fn.DataTable && $.fn.dataTable.isDataTable('#' + tableId)) {
+        try { $('#' + tableId).DataTable().ajax.reload(null, resetPaging === true); }
+        catch (e) { console.error('Failed to reload DataTable', tableId, e); }
     }
 }
 
-function reloadAllTables(){
+function reloadAllTables() {
     if (window.initializedTables) {
-        window.initializedTables.forEach(function(id){ reloadDataTable(id,false); });
+        window.initializedTables.forEach(function (id) { reloadDataTable(id, false); });
     }
 }
 
