@@ -492,10 +492,21 @@ require_once 'inc/sidebar.php';
 <script>
 const TEST_CATEGORY_API = 'patho_api/test_category.php?action=';
 const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+const CACHE_BUSTER = Date.now(); // Prevent caching issues
 
 // Global variables
 let testsTable;
 let categoriesTable;
+
+// Debug function
+function debugTableState() {
+    console.log('=== TABLE DEBUG INFO ===');
+    console.log('testsTable exists:', !!testsTable);
+    console.log('DataTable initialized:', $.fn.dataTable.isDataTable('#testsTable'));
+    console.log('Table HTML:', $('#testsTable').length);
+    console.log('Table rows:', $('#testsTable tbody tr').length);
+    console.log('========================');
+}
 
 // Simple DataTable initialization function - DEPRECATED
 // Use initializeDataTable() instead
@@ -504,22 +515,33 @@ let categoriesTable;
 $(document).ready(function() {
     console.log('Initializing Test Management page...');
     
+    // Clear any cached DataTable instances
+    if ($.fn.DataTable) {
+        $.fn.dataTable.ext.errMode = 'none'; // Suppress DataTable errors
+    }
+    
     try {
-        initializeDataTable();
-        loadCategories();
-        loadStats();
-        initializeEventListeners();
+        // Small delay to ensure DOM is fully ready
+        setTimeout(function() {
+            initializeDataTable();
+            loadCategories();
+            loadStats();
+            initializeEventListeners();
+            
+            // Additional initialization
+            loadCategoriesForTests();
+            
+            // Event handlers
+            setupEventHandlers();
+            
+            console.log('Test Management page initialized successfully');
+        }, 100);
         
-        // Additional initialization
-        loadCategoriesForTests();
-        
-        // Event handlers
-        setupEventHandlers();
-        
-        console.log('Test Management page initialized successfully');
     } catch (error) {
         console.error('Error initializing Test Management page:', error);
         toastr.error('Error initializing page: ' + error.message);
+        // Fallback to manual loading
+        setTimeout(loadTestsManually, 1000);
     }
 });
 
@@ -624,12 +646,13 @@ function initializeDataTable() {
     try {
         console.log('Initializing DataTable...');
         
-        // Destroy existing DataTable if it exists
+        // Completely destroy and clear existing DataTable
         if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
-            $('#testsTable').DataTable().destroy();
+            $('#testsTable').DataTable().clear().destroy();
+            $('#testsTable').empty();
         }
         
-        // Ensure table has proper structure
+        // Rebuild table structure completely
         $('#testsTable').html(`
             <thead class="thead-dark">
                 <tr>
@@ -644,26 +667,30 @@ function initializeDataTable() {
             <tbody></tbody>
         `);
         
+        // Initialize fresh DataTable
         testsTable = $('#testsTable').DataTable({
-            processing: true,
+            processing: false, // Disable processing indicator to avoid loading issues
             serverSide: false,
-            destroy: true, // Allow reinitialization
+            destroy: true,
+            deferRender: true,
             ajax: {
-                url: 'ajax/test_api.php?action=list',
+                url: 'ajax/test_api.php?action=list&cb=' + CACHE_BUSTER,
                 type: 'GET',
+                cache: false, // Prevent caching issues
                 dataSrc: function(json) {
                     console.log('DataTable AJAX response:', json);
-                    if (json.success) {
+                    if (json && json.success) {
                         return json.data || [];
                     } else {
-                        console.error('Failed to load tests:', json.message);
-                        toastr.error('Failed to load tests: ' + (json.message || 'Unknown error'));
+                        console.error('Failed to load tests:', json ? json.message : 'No response');
+                        toastr.error('Failed to load tests: ' + (json ? json.message : 'No response'));
                         return [];
                     }
                 },
                 error: function(xhr, error, thrown) {
                     console.error('DataTable AJAX Error:', error, thrown);
                     toastr.error('Failed to load tests data');
+                    return [];
                 }
             },
         columns: [
@@ -800,10 +827,23 @@ function initializeDataTable() {
         }catch(e){}
     });
 
+    // Handle draw event to ensure proper rendering
+    testsTable.on('draw.dt', function() {
+        initializeCheckboxEvents();
+    });
+
     // Initialize checkbox events
     initializeCheckboxEvents();
 
     console.log('DataTable initialized successfully');
+    
+    // Fallback: if DataTable fails to load after 5 seconds, try manual load
+    setTimeout(function() {
+        if (testsTable.data().count() === 0) {
+            console.log('DataTable appears empty, trying fallback load...');
+            loadTestsManually();
+        }
+    }, 5000);
     
     } catch (error) {
         console.error('Error initializing DataTable:', error);
@@ -1563,6 +1603,66 @@ function loadTests(){
         // Reinitialize DataTable
         initializeDataTable();
     }
+}
+
+function loadTestsManually() {
+    console.log('Loading tests manually...');
+    $.ajax({
+        url: 'ajax/test_api.php?action=list&v=' + Date.now(),
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success) {
+                const data = response.data || [];
+                let html = '';
+                
+                if (data.length === 0) {
+                    html = '<tr><td colspan="6" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
+                } else {
+                    data.forEach(function(test) {
+                        let categoryHtml = '';
+                        if (test.main_category_name) {
+                            categoryHtml += `<span class="badge badge-secondary badge-sm">${test.main_category_name}</span><br>`;
+                        }
+                        if (test.category_name) {
+                            categoryHtml += `<span class="badge badge-info">${test.category_name}</span>`;
+                        } else {
+                            categoryHtml += '<span class="text-muted">No Category</span>';
+                        }
+                        
+                        html += `
+                            <tr>
+                                <td class="text-center"><input type="checkbox" class="test-checkbox" value="${test.id}"></td>
+                                <td class="text-center">${test.id}</td>
+                                <td><strong class="text-primary">${test.name || 'N/A'}</strong></td>
+                                <td>${categoryHtml}</td>
+                                <td class="text-right"><strong class="text-success">₹${test.price || '0'}</strong></td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-info btn-sm" onclick="viewTest(${test.id})" title="View"><i class="fas fa-eye"></i></button>
+                                        <button class="btn btn-outline-warning btn-sm" onclick="editTest(${test.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="deleteTest(${test.id}, '${(test.name || '').replace(/'/g, '\\\'')}')" title="Delete"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                $('#testsTable tbody').html(html);
+                initializeCheckboxEvents();
+                console.log('Manual load completed');
+            } else {
+                $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load tests</td></tr>');
+                toastr.error('Failed to load tests: ' + (response ? response.message : 'Unknown error'));
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Manual load failed:', error);
+            $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading tests</td></tr>');
+            toastr.error('Error loading tests');
+        }
+    });
 }
 
 // Debounced reload to avoid concurrent AJAX requests causing aborts
