@@ -913,13 +913,18 @@
             {
                 name: 'Tests',
                 file: 'test.php',
-                description: 'API for managing tests.',
+                description: 'Enhanced API for managing laboratory tests with complete field support. Returns all 27 fields from tests table including reference ranges, categories, and metadata.',
                 endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all tests.' },
-                    { action: 'get', method: 'GET', description: 'Get a single test by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a test.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a test by ID.', params: ['id'] },
-                    { action: 'stats', method: 'GET', description: 'Get test statistics.' }
+                    { action: 'list', method: 'GET', description: 'Get all tests with server-side pagination, search, and filtering. Returns complete test data including category names, main category names, and user information.' },
+                    { action: 'simple_list', method: 'GET', description: 'Get simplified list of all tests with complete field data for dropdowns and selections.' },
+                    { action: 'get', method: 'GET', description: 'Get a single test by ID with all fields including category relationships.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a test with support for all test fields: name, category_id, main_category_id, price, unit, specimen, default_result, reference_range, min/max values for all demographics, test_code, method, print settings, etc.' },
+                    { action: 'delete', method: 'POST', description: 'Delete a test by ID with constraint checking.', params: ['id'] },
+                    { action: 'stats', method: 'GET', description: 'Get comprehensive test statistics including totals, categories, and entries.' },
+                    { action: 'main_categories', method: 'GET', description: 'Get list of main test categories for test organization.' },
+                    { action: 'categories', method: 'GET', description: 'Get list of test categories, optionally filtered by main category.', params: ['main_category_id'] },
+                    { action: 'categories_by_main', method: 'GET', description: 'Get test categories filtered by main category ID.', params: ['main_category_id'] },
+                    { action: 'debug', method: 'GET', description: 'Debug endpoint for troubleshooting API issues and checking authentication.' }
                 ]
             },
             {
