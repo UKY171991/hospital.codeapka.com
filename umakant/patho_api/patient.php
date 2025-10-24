@@ -89,13 +89,34 @@ if (!$current_user_id && ($user_data['role'] === 'master' || $user_data['role'] 
 }
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
-$action = $_REQUEST['action'] ?? $_GET['action'] ?? $_POST['action'] ?? $requestMethod;
+$action = $_REQUEST['action'] ?? $_GET['action'] ?? $_POST['action'] ?? null;
 
 // Handle specific actions based on request method and parameters
-if ($requestMethod === 'GET' && isset($_GET['id']) && !isset($_GET['action'])) $action = 'get';
-if ($requestMethod === 'GET' && !isset($_GET['id']) && !isset($_GET['action'])) $action = 'list';
-if (($requestMethod === 'POST' || $requestMethod === 'PUT') && $action !== 'delete') $action = 'save';
-if ($requestMethod === 'DELETE' || $action === 'delete') $action = 'delete';
+if (!$action) {
+    if ($requestMethod === 'GET' && isset($_GET['id'])) {
+        $action = 'get';
+    } elseif ($requestMethod === 'GET') {
+        $action = 'list';
+    } elseif ($requestMethod === 'POST' || $requestMethod === 'PUT') {
+        $action = 'save';
+    } elseif ($requestMethod === 'DELETE') {
+        $action = 'delete';
+    } else {
+        // Default action if none specified
+        $action = 'list';
+    }
+}
+
+// Validate action parameter
+$validActions = ['list', 'get', 'save', 'delete', 'stats'];
+if (!in_array($action, $validActions)) {
+    json_response([
+        'success' => false, 
+        'message' => 'Invalid action specified. Valid actions are: ' . implode(', ', $validActions),
+        'provided_action' => $action,
+        'help' => 'Add ?action=list to your request URL'
+    ], 400);
+}
 
 try {
     // Log the action for debugging

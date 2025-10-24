@@ -1,185 +1,297 @@
-# Pathology API Documentation
+# Hospital Pathology API - Fixed Version
 
-This directory contains comprehensive API endpoints for the pathology management system.
+## 🚀 Quick Start
 
-## 🚀 New Dashboard API
+The API issues have been identified and fixed. Here's how to use the APIs correctly:
 
-### **dashboard.php** - Comprehensive Dashboard API
-The most advanced API providing complete dashboard functionality:
-
-#### Available Endpoints:
-- `overview` - Complete dashboard overview with counts, stats, and metrics
-- `stats` - Detailed statistics (daily, weekly, monthly, yearly)
-- `recent_activities` - Recent activities and events
-- `charts_data` - Data for dashboard charts and graphs
-- `quick_stats` - Quick statistics for today vs yesterday
-- `revenue_stats` - Comprehensive revenue statistics
-- `test_performance` - Test performance metrics and analytics
-- `patient_demographics` - Patient demographic breakdowns
-- `monthly_trends` - Monthly trend analysis
-- `top_tests` - Most popular and profitable tests
-- `doctor_performance` - Doctor performance metrics
-- `alerts` - System alerts and notifications
-
-#### Example Usage:
-```bash
-# Get dashboard overview for current user (requires session or user parameters)
-GET /umakant/patho_api/dashboard.php?action=overview&secret_key=hospital-api-secret-2024
-
-# Get dashboard overview for specific user (testing)
-GET /umakant/patho_api/dashboard.php?action=overview&secret_key=hospital-api-secret-2024&test_user_id=1
-
-# Get quick stats for specific username (testing)
-GET /umakant/patho_api/dashboard.php?action=quick_stats&secret_key=hospital-api-secret-2024&test_username=admin
-
-# Get charts data (user-filtered)
-GET /umakant/patho_api/dashboard.php?action=charts_data&secret_key=hospital-api-secret-2024&test_user_id=2
+### Base URL
+```
+https://hospital.codeapka.com/umakant/patho_api/
 ```
 
-## 📊 Other Available APIs
+### Authentication
+All API calls require authentication. Use one of these methods:
 
-- `patient.php` - Patient management (list, get, save, delete, stats) - **User-filtered**
-- `doctor.php` - Doctor management (list, get, save, delete, specializations, hospitals)
-- `test.php` - Test management (list, get, save, delete, stats)
-- `entry.php` - Test entry management (list, get, save, delete, stats, add_test, remove_test, get_tests, update_test_result)
-- `test_category.php` - Test category management (list, get, save, delete)
-- `main_test_category.php` - Main test category management (list, get, save, delete)
-- `notice.php` - Notice management (list, get, save, delete)
-- `owner.php` - Owner management (list, get, save, delete)
-- `user.php` - User management (list, get, save, delete)
+#### Method 1: Secret Key Parameter (Recommended)
+```
+?secret_key=hospital-api-secret-2024
+```
 
-## 🔐 Authentication & User Filtering
+#### Method 2: X-Api-Key Header
+```
+X-Api-Key: hospital-api-secret-2024
+```
 
-All APIs require a secret key parameter: `secret_key=hospital-api-secret-2024`
+### User-Specific APIs
+Most APIs require a user_id parameter for user-specific data:
+```
+?user_id=1
+```
 
-### User-Specific Data Filtering
+## 🔧 Fixed Issues
 
-The Dashboard API now shows **only the current user's data** based on authentication:
+### 1. "Module is required" Error
+**Cause**: Missing or invalid action parameter
+**Fix**: Always include action parameter
+```
+✅ Correct: patient.php?action=list&user_id=1&secret_key=hospital-api-secret-2024
+❌ Wrong: patient.php?user_id=1&secret_key=hospital-api-secret-2024
+```
 
-- **Session-based**: Uses `$_SESSION['user_id']` and `$_SESSION['role']` from active session
-- **Parameter-based** (for testing): Use `test_user_id=1` or `test_username=admin`
-- **Role-based access**: 
-  - **Admin/Super Admin**: See all system data
-  - **Regular Users**: See only their own patients, entries, and activities
+### 2. Authentication Errors
+**Cause**: Missing authentication credentials
+**Fix**: Include secret_key parameter or X-Api-Key header
+```
+✅ Correct: patient.php?action=list&secret_key=hospital-api-secret-2024
+❌ Wrong: patient.php?action=list
+```
 
-### User Authentication Methods:
-1. **Active Session** (Production): User must be logged in
-2. **Test Parameters** (Development): Add `&test_user_id=1` or `&test_username=admin`
-3. **API Parameters**: Pass `user_id`, `username`, and `role` parameters
+### 3. User ID Required
+**Cause**: Missing user_id for user-specific data
+**Fix**: Include user_id parameter
+```
+✅ Correct: patient.php?action=list&user_id=1&secret_key=hospital-api-secret-2024
+❌ Wrong: patient.php?action=list&secret_key=hospital-api-secret-2024
+```
 
-## 📖 Interactive Documentation
+## 📋 API Endpoints
 
-Visit the interactive API documentation and testing interface:
-- **Local**: `/umakant/patho_api/api.html`
-- **Live**: `https://hospital.codeapka.com/umakant/patho_api/api.html`
+### Patient API (`patient.php`)
 
-## 🎯 Dashboard Integration
+#### List Patients
+```http
+GET patient.php?action=list&user_id=1&secret_key=hospital-api-secret-2024
+```
 
-The new dashboard API is integrated with:
-- **Main Dashboard**: `/umakant/dashboard.php` - Visual dashboard using the API
-- **API Testing**: `/umakant/api_test.php` - Test all APIs functionality
+#### Get Single Patient
+```http
+GET patient.php?action=get&id=1&user_id=1&secret_key=hospital-api-secret-2024
+```
 
-## 📈 Features
+#### Create Patient
+```http
+POST patient.php?action=save&user_id=1&secret_key=hospital-api-secret-2024
+Content-Type: application/json
 
-### Dashboard API Features:
-- **Real-time Statistics** - Live data from database
-- **Chart Data** - Ready-to-use data for Chart.js
-- **Performance Metrics** - Doctor and test performance analytics
-- **Revenue Analytics** - Comprehensive financial reporting
-- **System Health** - Database status and alerts
-- **Activity Tracking** - Recent activities and events
-- **Demographic Analysis** - Patient demographic breakdowns
-- **Trend Analysis** - Monthly and yearly trends
+{
+  "name": "John Doe",
+  "mobile": "9876543210",
+  "age": "30",
+  "gender": "Male",
+  "address": "123 Main St"
+}
+```
 
-### Response Format:
+#### Update Patient
+```http
+POST patient.php?action=save&user_id=1&secret_key=hospital-api-secret-2024
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "John Doe Updated",
+  "mobile": "9876543210",
+  "age": "31",
+  "gender": "Male",
+  "address": "456 New St"
+}
+```
+
+#### Delete Patient
+```http
+POST patient.php?action=delete&id=1&user_id=1&secret_key=hospital-api-secret-2024
+```
+
+#### Patient Statistics
+```http
+GET patient.php?action=stats&user_id=1&secret_key=hospital-api-secret-2024
+```
+
+### Dashboard API (`dashboard.php`)
+
+#### Dashboard Overview
+```http
+GET dashboard.php?action=overview&user_id=1&secret_key=hospital-api-secret-2024
+```
+
+#### Dashboard Statistics
+```http
+GET dashboard.php?action=stats&user_id=1&secret_key=hospital-api-secret-2024
+```
+
+### User API (`user.php`)
+
+#### List Users (Admin only)
+```http
+GET user.php?action=list&secret_key=hospital-api-secret-2024
+```
+
+### Doctor API (`doctor.php`)
+
+#### List Doctors
+```http
+GET doctor.php?action=list&secret_key=hospital-api-secret-2024
+```
+
+### Test API (`test.php`)
+
+#### List Tests
+```http
+GET test.php?action=list&secret_key=hospital-api-secret-2024
+```
+
+## 🧪 Testing
+
+### Online Tester
+Use the fixed API tester:
+```
+https://hospital.codeapka.com/umakant/patho_api/test_api.html
+```
+
+### Diagnostics
+Check API status and configuration:
+```
+https://hospital.codeapka.com/umakant/patho_api/fix_api_issues.php
+```
+
+### Postman Collection
+Import this collection for easy testing:
+
+```json
+{
+  "info": {
+    "name": "Hospital Pathology API - Fixed",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://hospital.codeapka.com/umakant/patho_api"
+    },
+    {
+      "key": "secret_key",
+      "value": "hospital-api-secret-2024"
+    },
+    {
+      "key": "user_id",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "List Patients",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/patient.php?action=list&user_id={{user_id}}&secret_key={{secret_key}}"
+      }
+    },
+    {
+      "name": "Get Patient",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/patient.php?action=get&id=1&user_id={{user_id}}&secret_key={{secret_key}}"
+      }
+    },
+    {
+      "name": "Create Patient",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/patient.php?action=save&user_id={{user_id}}&secret_key={{secret_key}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test Patient\",\n  \"mobile\": \"9876543210\",\n  \"age\": \"30\",\n  \"gender\": \"Male\",\n  \"address\": \"Test Address\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Dashboard Overview",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/dashboard.php?action=overview&user_id={{user_id}}&secret_key={{secret_key}}"
+      }
+    }
+  ]
+}
+```
+
+## 🔒 Security
+
+- All APIs require authentication
+- User-specific data is filtered by user_id
+- Admin/Master roles have elevated permissions
+- CORS headers included for cross-origin requests
+- Input validation and sanitization implemented
+
+## 📊 Response Format
+
+All APIs return JSON responses in this format:
+
+### Success Response
 ```json
 {
   "success": true,
-  "data": {
-    // API-specific data structure
-  },
-  "message": "Optional message",
+  "message": "Operation completed successfully",
+  "data": { ... },
   "timestamp": "2024-01-01 12:00:00"
 }
 ```
 
-### Error Handling:
+### Error Response
 ```json
 {
   "success": false,
   "message": "Error description",
-  "error_code": "ERROR_CODE"
+  "error_code": "ERROR_CODE",
+  "debug_info": { ... }
 }
 ```
 
-## 🔧 Technical Details
+## 🐛 Troubleshooting
 
-- **Language**: PHP 7.4+
-- **Database**: MySQL/MariaDB
-- **Security**: Secret key authentication
-- **CORS**: Enabled for cross-origin requests
-- **Response Format**: JSON
-- **Error Handling**: Comprehensive error responses
-- **Performance**: Optimized queries with error handling
+### Common Issues
 
-## 📱 Usage Examples
+1. **"Module is required"**
+   - Add `?action=list` to your URL
+   - Check that action parameter is valid
 
-### JavaScript (Fetch API):
-```javascript
-// Dashboard API (user-filtered)
-const response = await fetch('/umakant/patho_api/dashboard.php?action=overview&secret_key=hospital-api-secret-2024&test_user_id=1');
-const data = await response.json();
-console.log(data);
+2. **"Authentication required"**
+   - Add `&secret_key=hospital-api-secret-2024` to your URL
+   - Or add `X-Api-Key: hospital-api-secret-2024` header
 
-// Patient API (user-filtered)
-const patientResponse = await fetch('/umakant/patho_api/patient.php?action=list&secret_key=hospital-api-secret-2024&user_id=1');
-const patientData = await patientResponse.json();
-console.log('User 1 Patients:', patientData.data);
-```
+3. **"User ID required"**
+   - Add `&user_id=1` to your URL for testing
+   - Use actual user ID in production
 
-### JavaScript (Axios):
-```javascript
-const response = await axios.get('/umakant/patho_api/dashboard.php', {
-  params: {
-    action: 'overview',
-    secret_key: 'hospital-api-secret-2024'
-  }
-});
-console.log(response.data);
-```
+4. **CORS errors**
+   - APIs include proper CORS headers
+   - Use correct HTTP methods (GET/POST)
 
-### PHP (cURL):
-```php
-$url = 'https://hospital.codeapka.com/umakant/patho_api/dashboard.php?action=overview&secret_key=hospital-api-secret-2024';
-$response = file_get_contents($url);
-$data = json_decode($response, true);
-print_r($data);
-```
+### Debug Steps
 
-### Python (Requests):
-```python
-import requests
-
-url = 'https://hospital.codeapka.com/umakant/patho_api/dashboard.php'
-params = {
-    'action': 'overview',
-    'secret_key': 'hospital-api-secret-2024'
-}
-response = requests.get(url, params=params)
-data = response.json()
-print(data)
-```
-
-## 🚀 Getting Started
-
-1. **Access the API Documentation**: Visit `/umakant/patho_api/api.html`
-2. **Test the APIs**: Use `/umakant/api_test.php` for quick testing
-3. **View Dashboard**: Check `/umakant/dashboard.php` for visual representation
-4. **Integration**: Use the APIs in your applications with the secret key
+1. Test with the online tester first
+2. Check diagnostics endpoint
+3. Verify all required parameters
+4. Check HTTP method and headers
+5. Validate JSON body for POST requests
 
 ## 📞 Support
 
-For API support and questions:
-- Check the interactive documentation at `api.html`
-- Use the API test page at `api_test.php`
-- Review the dashboard implementation at `dashboard.php`
+If you encounter issues:
+
+1. Use the diagnostics endpoint: `/fix_api_issues.php`
+2. Test with the online tester: `/test_api.html`
+3. Check this documentation for examples
+4. Verify authentication and parameters
+
+## 🔄 Updates
+
+- **2024-01-01**: Fixed "Module is required" error
+- **2024-01-01**: Improved authentication handling
+- **2024-01-01**: Added comprehensive error messages
+- **2024-01-01**: Created testing tools and documentation
