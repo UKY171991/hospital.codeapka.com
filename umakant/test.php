@@ -497,16 +497,8 @@ const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
 let testsTable;
 let categoriesTable;
 
-// Simple DataTable initialization function
-function initDataTable(selector, options = {}) {
-    if ($.fn.DataTable && !$.fn.dataTable.isDataTable(selector)) {
-        $(selector).DataTable({
-            responsive: true,
-            pageLength: 25,
-            ...options
-        });
-    }
-}
+// Simple DataTable initialization function - DEPRECATED
+// Use initializeDataTable() instead
 
 // Initialize page
 $(document).ready(function() {
@@ -637,9 +629,25 @@ function initializeDataTable() {
             $('#testsTable').DataTable().destroy();
         }
         
+        // Ensure table has proper structure
+        $('#testsTable').html(`
+            <thead class="thead-dark">
+                <tr>
+                    <th width="30"><input type="checkbox" id="selectAll"></th>
+                    <th width="50">ID</th>
+                    <th>Test Name</th>
+                    <th>Category</th>
+                    <th width="100">Price (₹)</th>
+                    <th width="120">Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        `);
+        
         testsTable = $('#testsTable').DataTable({
             processing: true,
             serverSide: false,
+            destroy: true, // Allow reinitialization
             ajax: {
                 url: 'ajax/test_api.php?action=list',
                 type: 'GET',
@@ -779,13 +787,45 @@ function initializeDataTable() {
         applyFilters();
     });
     
+    // Checkbox events are now handled by initializeCheckboxEvents()
+
+    // After DataTable ajax completes, refresh the stat cards and reinitialize events
+    testsTable.on('xhr.dt', function(e, settings, json, xhr){
+        try{ 
+            if(typeof loadStats === 'function') loadStats(); 
+            // Reinitialize checkbox events after table reload
+            setTimeout(function() {
+                initializeCheckboxEvents();
+            }, 100);
+        }catch(e){}
+    });
+
+    // Initialize checkbox events
+    initializeCheckboxEvents();
+
+    console.log('DataTable initialized successfully');
+    
+    } catch (error) {
+        console.error('Error initializing DataTable:', error);
+        toastr.error('Error initializing data table: ' + error.message);
+        
+        // Fallback: show a simple message in the table
+        $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-warning py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading table. Please refresh the page.</td></tr>');
+    }
+}
+
+function initializeCheckboxEvents() {
+    // Remove existing event handlers to avoid duplicates
+    $('#selectAll').off('change.testTable');
+    $(document).off('change.testTable', '.test-checkbox');
+    
     // Checkbox selection handlers
-    $('#selectAll').on('change', function() {
+    $('#selectAll').on('change.testTable', function() {
         $('.test-checkbox').prop('checked', $(this).is(':checked'));
         updateBulkActions();
     });
     
-    $(document).on('change', '.test-checkbox', function() {
+    $(document).on('change.testTable', '.test-checkbox', function() {
         updateBulkActions();
         // Update select all checkbox state
         const totalCheckboxes = $('.test-checkbox').length;
@@ -799,23 +839,6 @@ function initializeDataTable() {
             $('#selectAll').prop('indeterminate', true);
         }
     });
-
-    // After DataTable ajax completes, refresh the stat cards so they reflect current data
-    try{
-        $('#testsTable').on('xhr.dt', function(e, settings, json, xhr){
-            try{ if(typeof loadStats === 'function') loadStats(); }catch(e){}
-        });
-    }catch(e){}
-
-    console.log('DataTable initialized successfully');
-    
-    } catch (error) {
-        console.error('Error initializing DataTable:', error);
-        toastr.error('Error initializing data table: ' + error.message);
-        
-        // Fallback: show a simple message in the table
-        $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-warning py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading table. Please refresh the page.</td></tr>');
-    }
 }
 
 function applyFilters() {
@@ -924,11 +947,10 @@ function exportTests() {
 }
 
 function refreshTests() {
-    // Reload table data
-    if (typeof initializeDataTable === 'function') {
+    if (testsTable && testsTable.ajax) {
+        testsTable.ajax.reload(null, false);
+    } else {
         initializeDataTable();
-    } else if (typeof loadTests === 'function') {
-        loadTests();
     }
 }
 
@@ -1184,14 +1206,11 @@ function saveTestData() {
                 toastr.success(id ? 'Test updated successfully!' : 'Test added successfully!');
                 $('#testModal').modal('hide');
                 
-                // Always reload the DataTable to keep column alignment stable
-                if (testsTable && typeof testsTable.ajax === 'function') {
+                // Reload the DataTable
+                if (testsTable && testsTable.ajax) {
                     testsTable.ajax.reload(null, false);
-                } else if (typeof reloadDataTable === 'function') {
-                    reloadDataTable('testsTable', false);
-                } else if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
-                    try { $('#testsTable').DataTable().ajax.reload(null, false); } catch(e){}
-                } else if (typeof initializeDataTable === 'function') {
+                } else {
+                    // Reinitialize if needed
                     initializeDataTable();
                 }
                 
@@ -1227,13 +1246,11 @@ function deleteTest(id, name) {
             success: function(response) {
                 if (response.success) {
                     toastr.success('Test deleted successfully!');
-                    if (typeof reloadDataTable === 'function') {
-                        reloadDataTable('testsTable', false);
-                    } else if (typeof reloadTestsDebounced === 'function') {
-                        reloadTestsDebounced();
-                    } else if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
-                        try { $('#testsTable').DataTable().ajax.reload(null,false); } catch(e){}
-                    } else if (typeof loadTests === 'function') { loadTests(); }
+                    if (testsTable && testsTable.ajax) {
+                        testsTable.ajax.reload(null, false);
+                    } else {
+                        initializeDataTable();
+                    }
                     loadStats();
                 } else {
                     toastr.error('Error deleting test: ' + (response.message || 'Unknown error'));
@@ -1539,62 +1556,13 @@ function loadCategoriesForTests(){
 }
 
 function loadTests(){
-    // Prefer DataTable AJAX reload when DataTable is initialized
-    if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
-        try {
-            $('#testsTable').DataTable().ajax.reload(null, false);
-            return;
-        } catch (e) {
-            console.warn('DataTable reload failed, falling back to manual load', e);
-        }
+    // Use DataTable reload if available
+    if (testsTable && testsTable.ajax) {
+        testsTable.ajax.reload(null, false);
+    } else {
+        // Reinitialize DataTable
+        initializeDataTable();
     }
-
-    // Fallback: fetch and render rows
-    $.get('ajax/test_api.php',{action:'list',ajax:1},function(resp){
-        if(resp && resp.success && Array.isArray(resp.data)){
-            var t=''; 
-            if(resp.data.length === 0) {
-                t = '<tr><td colspan="6" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
-            } else {
-                resp.data.forEach(function(x, idx){ 
-                    var categoryHtml = '';
-                    if (x.main_category_name) {
-                        categoryHtml += '<span class="badge badge-secondary badge-sm">' + (x.main_category_name||'') + '</span><br>';
-                    }
-                    if (x.category_name) {
-                        categoryHtml += '<span class="badge badge-info">' + (x.category_name||'') + '</span>';
-                    } else {
-                        categoryHtml += '<span class="text-muted">No Category</span>';
-                    }
-                    
-                    t += '<tr>'+
-                        '<td><input type="checkbox" class="test-checkbox" value="'+x.id+'"></td>'+
-                        '<td class="text-center">'+x.id+'</td>'+
-                        '<td><strong class="text-primary">'+ (x.name||'') +'</strong></td>'+
-                        '<td>'+ categoryHtml +'</td>'+
-                        '<td class="text-right"><strong class="text-success">₹'+ (x.price||'0') +'</strong></td>'+
-                        '<td class="text-center">'+
-                            '<div class="btn-group btn-group-sm">'+
-                                '<button class="btn btn-outline-info btn-sm" onclick="viewTest('+x.id+')" title="View"><i class="fas fa-eye"></i></button> '+
-                                '<button class="btn btn-outline-warning btn-sm" onclick="editTest('+x.id+')" title="Edit"><i class="fas fa-edit"></i></button> '+
-                                '<button class="btn btn-outline-danger btn-sm" onclick="deleteTest('+x.id+', \''+(x.name||'').replace(/'/g, '\\\'')+'\')" title="Delete"><i class="fas fa-trash"></i></button>'+
-                            '</div>'+
-                        '</td>'+
-                    '</tr>'; 
-                });
-            }
-
-            $('#testsTable tbody').html(t);
-        } else {
-            $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load tests</td></tr>');
-            toastr.error('Failed to load tests');
-        }
-    },'json').fail(function(xhr){ 
-        $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading tests</td></tr>');
-        var msg = xhr.responseText || 'Server error'; 
-        try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} 
-        toastr.error(msg); 
-    });
 }
 
 // Debounced reload to avoid concurrent AJAX requests causing aborts
@@ -1603,22 +1571,17 @@ function reloadTestsDebounced(delay){
     delay = typeof delay === 'number' ? delay : 200;
     if (_reloadTimer) clearTimeout(_reloadTimer);
     _reloadTimer = setTimeout(function(){
-        if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
-            try { $('#testsTable').DataTable().ajax.reload(null, false); return; } catch(e){}
-        }
         loadTests();
     }, delay);
 }
 
 // Unified simple reload alias used across CRUD handlers
 window.reloadTests = function(){
-    if (typeof reloadDataTable === 'function') {
-        reloadDataTable('testsTable', false);
-    } else if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
-        try { $('#testsTable').DataTable().ajax.reload(null,false); } catch(e){}
-    } else if (typeof reloadTestsDebounced === 'function') {
-        reloadTestsDebounced();
-    } else if (typeof loadTests === 'function') { loadTests(); }
+    if (testsTable && testsTable.ajax) {
+        testsTable.ajax.reload(null, false);
+    } else {
+        initializeDataTable();
+    }
 };
 
 function applyTestsFilters(){
