@@ -146,22 +146,13 @@ require_once 'inc/sidebar.php';
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="col-md-3">
+                                        <div class="col-md-4">
                                             <label class="form-label">Category</label>
                                             <select id="categoryFilter" class="form-control">
                                                 <option value="">All Categories</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label">Gender</label>
-                                            <select id="genderFilter" class="form-control">
-                                                <option value="">All Genders</option>
-                                                <option value="Male">Male</option>
-                                                <option value="Female">Female</option>
-                                                <option value="Both">Both</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-2">
+                                        <div class="col-md-3">
                                             <label class="form-label">Max Price (₹)</label>
                                             <input type="number" id="priceFilter" class="form-control" placeholder="Max Price">
                                         </div>
@@ -188,10 +179,7 @@ require_once 'inc/sidebar.php';
                                             <th width="50">ID</th>
                                             <th>Test Name</th>
                                             <th>Category</th>
-                                            <th>Price (₹)</th>
-                                            <th>Gender</th>
-                                            <th>Range</th>
-                                            <th>Unit</th>
+                                            <th width="100">Price (₹)</th>
                                             <th width="120">Actions</th>
                                         </tr>
                                     </thead>
@@ -688,54 +676,36 @@ function initializeDataTable() {
             { 
                 data: 'name',
                 render: function(data, type, row) {
-                    return `<strong>${data || 'N/A'}</strong>`;
+                    let html = `<div class="test-name-cell">`;
+                    html += `<strong class="text-primary">${data || 'N/A'}</strong>`;
+                    if (row.description) {
+                        html += `<br><small class="text-muted">${row.description.substring(0, 50)}${row.description.length > 50 ? '...' : ''}</small>`;
+                    }
+                    html += `</div>`;
+                    return html;
                 }
             },
             { 
                 data: 'category_name',
                 render: function(data, type, row) {
-                    return data ? `<span class="badge badge-info">${data}</span>` : '<span class="text-muted">-</span>';
+                    let html = '';
+                    if (row.main_category_name) {
+                        html += `<span class="badge badge-secondary badge-sm">${row.main_category_name}</span><br>`;
+                    }
+                    if (data) {
+                        html += `<span class="badge badge-info">${data}</span>`;
+                    } else {
+                        html += '<span class="text-muted">No Category</span>';
+                    }
+                    return html;
                 }
             },
             { 
                 data: 'price',
                 className: 'text-right',
+                width: '100px',
                 render: function(data, type, row) {
-                    return data ? `₹${parseFloat(data).toFixed(0)}` : '<span class="text-muted">-</span>';
-                }
-            },
-            {
-                data: null,
-                className: 'text-center',
-                render: function(data, type, row) {
-                    let genders = [];
-                    if (row.min_male !== null || row.max_male !== null) genders.push('Male');
-                    if (row.min_female !== null || row.max_female !== null) genders.push('Female');
-                    if (!genders.length && (row.min !== null || row.max !== null)) genders.push('Both');
-                    return genders.length > 0 ? genders.join(', ') : '<span class="text-muted">-</span>';
-                }
-            },
-            {
-                data: null,
-                render: function(data, type, row) {
-                    let ranges = [];
-                    if (row.min !== null && row.max !== null) {
-                        ranges.push(`${row.min}-${row.max}`);
-                    }
-                    if (row.min_male !== null && row.max_male !== null) {
-                        ranges.push(`M: ${row.min_male}-${row.max_male}`);
-                    }
-                    if (row.min_female !== null && row.max_female !== null) {
-                        ranges.push(`F: ${row.min_female}-${row.max_female}`);
-                    }
-                    return ranges.length > 0 ? ranges.join('<br>') : '<span class="text-muted">-</span>';
-                }
-            },
-            { 
-                data: 'unit',
-                className: 'text-center',
-                render: function(data, type, row) {
-                    return data ? `<code>${data}</code>` : '<span class="text-muted">-</span>';
+                    return data ? `<strong class="text-success">₹${parseFloat(data).toFixed(0)}</strong>` : '<span class="text-muted">-</span>';
                 }
             },
             {
@@ -851,7 +821,6 @@ function initializeDataTable() {
 function applyFilters() {
     if (!testsTable) return;
     
-    const mainCategory = $('#mainCategoryFilter').val();
     const category = $('#categoryFilter').val();
     const gender = $('#genderFilter').val();
     const maxPrice = $('#priceFilter').val();
@@ -863,11 +832,6 @@ function applyFilters() {
     // Apply category filter (column 3)
     if (category) {
         testsTable.column(3).search(category, false, false);
-    }
-    
-    // Apply gender filter (column 5)
-    if (gender) {
-        testsTable.column(5).search(gender, false, false);
     }
     
     // Apply price filter (column 4)
@@ -884,7 +848,6 @@ function applyFilters() {
 
 function clearFilters() {
     $('#categoryFilter').val('');
-    $('#genderFilter').val('');
     $('#priceFilter').val('');
     $('#quickSearch').val('');
     if (testsTable) {
@@ -1011,9 +974,10 @@ function loadCategories() {
 }
 
 // Handle main category selection to load corresponding test categories
-function loadTestCategoriesByMain(mainCategoryId) {
+function loadTestCategoriesByMain(mainCategoryId, callback) {
     if (!mainCategoryId) {
         $('#testCategoryId').html('<option value="">Select Test Category</option>');
+        if (callback) callback();
         return;
     }
 
@@ -1028,13 +992,16 @@ function loadTestCategoriesByMain(mainCategoryId) {
             });
 
             $('#testCategoryId').html(options);
+            if (callback) callback();
         } else {
             console.warn('Failed to load test categories', response && response.message);
             $('#testCategoryId').html('<option value="">Error loading categories</option>');
+            if (callback) callback();
         }
     }).fail(function(xhr){ 
         console.warn('Failed to load test categories', xhr.status);
         $('#testCategoryId').html('<option value="">Error loading categories</option>');
+        if (callback) callback();
     });
 }
 
@@ -1115,13 +1082,30 @@ function editTest(id) {
                 const test = response.data;
                 $('#testId').val(test.id);
                 $('#testName').val(test.name);
-                $('#testCategoryId').val(test.category_id);
+                
+                // Set main category first, then load test categories
+                if (test.main_category_id) {
+                    $('#mainCategorySelect').val(test.main_category_id);
+                    // Load test categories for this main category
+                    loadTestCategoriesByMain(test.main_category_id, function() {
+                        // After categories are loaded, set the test category
+                        $('#testCategoryId').val(test.category_id);
+                    });
+                } else {
+                    $('#testCategoryId').val(test.category_id);
+                }
+                
                 $('#testPrice').val(test.price);
                 $('#testUnit').val(test.unit);
-                // Populate range-specific unit fields (server stores a single unit column)
+                $('#testMethod').val(test.method);
+                
+                // Populate range-specific unit fields
                 $('#generalUnit').val(test.unit);
-                $('#maleUnit').val(test.unit);
-                $('#femaleUnit').val(test.unit);
+                $('#maleUnit').val(test.male_unit || test.unit);
+                $('#femaleUnit').val(test.female_unit || test.unit);
+                $('#childUnit').val(test.child_unit || test.unit);
+                
+                // Set range values
                 $('#testMin').val(test.min);
                 $('#testMax').val(test.max);
                 $('#testMinMale').val(test.min_male);
@@ -1130,9 +1114,10 @@ function editTest(id) {
                 $('#testMaxFemale').val(test.max_female);
                 $('#testMinChild').val(test.min_child);
                 $('#testMaxChild').val(test.max_child);
-                $('#childUnit').val(test.child_unit);
-                $('#testSubHeading').val(test.sub_heading);
-                $('#testPrintNewPage').val(test.print_new_page);
+                
+                // Set other fields
+                $('#testSubHeading').val(test.sub_heading || 0);
+                $('#testPrintNewPage').val(test.print_new_page || 0);
                 $('#testDescription').val(test.description);
                 $('#testReferenceRange').val(test.reference_range);
                 
@@ -1358,6 +1343,20 @@ function showAlert(message, type) {
 
 #testsTable tbody tr:hover {
     background-color: rgba(0,123,255,0.05);
+}
+
+.test-name-cell {
+    max-width: 250px;
+}
+
+.test-name-cell strong {
+    display: block;
+    margin-bottom: 2px;
+}
+
+.badge-sm {
+    font-size: 0.7em;
+    padding: 0.25em 0.5em;
 }
 
 .btn-outline-info:hover {
@@ -1649,10 +1648,12 @@ window.viewTest = function(id){
                 html += '    <div class="card-body p-3">';
                 html += '      <h6 class="card-title mb-3"><i class="fas fa-info-circle mr-2"></i>Test Information</h6>';
                 html += '      <div class="row">';
-                html += '        <div class="col-sm-6 mb-2"><strong>Category:</strong><br><span class="badge badge-info">' + escapeHtml(d.category_name||'N/A') + '</span></div>';
+                html += '        <div class="col-sm-6 mb-2"><strong>Main Category:</strong><br><span class="badge badge-secondary">' + escapeHtml(d.main_category_name||'N/A') + '</span></div>';
+                html += '        <div class="col-sm-6 mb-2"><strong>Test Category:</strong><br><span class="badge badge-info">' + escapeHtml(d.category_name||'N/A') + '</span></div>';
                 html += '        <div class="col-sm-6 mb-2"><strong>Price:</strong><br><span class="text-success font-weight-bold">₹' + escapeHtml(d.price||'0') + '</span></div>';
                 html += '        <div class="col-sm-6 mb-2"><strong>Unit:</strong><br><code>' + escapeHtml(d.unit||'N/A') + '</code></div>';
                 html += '        <div class="col-sm-6 mb-2"><strong>Method:</strong><br>' + escapeHtml(d.method||'N/A') + '</div>';
+                html += '        <div class="col-sm-6 mb-2"><strong>Test Code:</strong><br><code>' + escapeHtml(d.test_code||'N/A') + '</code></div>';
                 html += '      </div>';
                 html += '    </div>';
                 html += '  </div>';
@@ -1675,6 +1676,21 @@ window.viewTest = function(id){
 
                 html += '</div>'; // row
 
+                // Gender Applicability
+                html += '<div class="row mt-3">';
+                html += '<div class="col-12">';
+                html += '  <h6 class="mb-3"><i class="fas fa-venus-mars mr-2"></i>Gender Applicability</h6>';
+                html += '  <div class="mb-3">';
+                let genders = [];
+                if (d.min_male !== null || d.max_male !== null) genders.push('<span class="badge badge-primary mr-1">Male</span>');
+                if (d.min_female !== null || d.max_female !== null) genders.push('<span class="badge badge-danger mr-1">Female</span>');
+                if (d.min_child !== null || d.max_child !== null) genders.push('<span class="badge badge-warning mr-1">Child</span>');
+                if (!genders.length && (d.min !== null || d.max !== null)) genders.push('<span class="badge badge-success mr-1">All</span>');
+                html += genders.length > 0 ? genders.join('') : '<span class="text-muted">No specific gender requirements</span>';
+                html += '  </div>';
+                html += '</div>';
+                html += '</div>';
+
                 // Reference Ranges
                 html += '<div class="row mt-3">';
                 html += '<div class="col-12">';
@@ -1682,13 +1698,35 @@ window.viewTest = function(id){
                 html += '  <div class="table-responsive">';
                 html += '  <table class="table table-sm table-bordered">';
                 html += '    <thead class="thead-light">';
-                html += '      <tr><th>Scope</th><th>Min Value</th><th>Max Value</th><th>Unit</th></tr>';
+                html += '      <tr><th>Scope</th><th>Min Value</th><th>Max Value</th><th>Unit</th><th>Range Display</th></tr>';
                 html += '    </thead>';
                 html += '    <tbody>';
-                html += '      <tr><td><strong>General</strong></td><td>' + escapeHtml(d.min||'-') + '</td><td>' + escapeHtml(d.max||'-') + '</td><td>' + escapeHtml(d.unit||'-') + '</td></tr>';
-                html += '      <tr><td><strong class="text-primary">Male</strong></td><td>' + escapeHtml(d.min_male||'-') + '</td><td>' + escapeHtml(d.max_male||'-') + '</td><td>' + escapeHtml(d.male_unit||d.unit||'-') + '</td></tr>';
-                html += '      <tr><td><strong class="text-danger">Female</strong></td><td>' + escapeHtml(d.min_female||'-') + '</td><td>' + escapeHtml(d.max_female||'-') + '</td><td>' + escapeHtml(d.female_unit||d.unit||'-') + '</td></tr>';
-                html += '      <tr><td><strong class="text-warning">Child</strong></td><td>' + escapeHtml(d.min_child||'-') + '</td><td>' + escapeHtml(d.max_child||'-') + '</td><td>' + escapeHtml(d.child_unit||d.unit||'-') + '</td></tr>';
+                
+                // General range
+                if (d.min !== null || d.max !== null) {
+                    html += '      <tr><td><strong>General</strong></td><td>' + escapeHtml(d.min||'-') + '</td><td>' + escapeHtml(d.max||'-') + '</td><td>' + escapeHtml(d.unit||'-') + '</td><td>' + escapeHtml((d.min||'') + ' - ' + (d.max||'')) + '</td></tr>';
+                }
+                
+                // Male range
+                if (d.min_male !== null || d.max_male !== null) {
+                    html += '      <tr><td><strong class="text-primary">Male</strong></td><td>' + escapeHtml(d.min_male||'-') + '</td><td>' + escapeHtml(d.max_male||'-') + '</td><td>' + escapeHtml(d.male_unit||d.unit||'-') + '</td><td>M: ' + escapeHtml((d.min_male||'') + ' - ' + (d.max_male||'')) + '</td></tr>';
+                }
+                
+                // Female range
+                if (d.min_female !== null || d.max_female !== null) {
+                    html += '      <tr><td><strong class="text-danger">Female</strong></td><td>' + escapeHtml(d.min_female||'-') + '</td><td>' + escapeHtml(d.max_female||'-') + '</td><td>' + escapeHtml(d.female_unit||d.unit||'-') + '</td><td>F: ' + escapeHtml((d.min_female||'') + ' - ' + (d.max_female||'')) + '</td></tr>';
+                }
+                
+                // Child range
+                if (d.min_child !== null || d.max_child !== null) {
+                    html += '      <tr><td><strong class="text-warning">Child</strong></td><td>' + escapeHtml(d.min_child||'-') + '</td><td>' + escapeHtml(d.max_child||'-') + '</td><td>' + escapeHtml(d.child_unit||d.unit||'-') + '</td><td>C: ' + escapeHtml((d.min_child||'') + ' - ' + (d.max_child||'')) + '</td></tr>';
+                }
+                
+                // If no ranges defined
+                if (!d.min && !d.max && !d.min_male && !d.max_male && !d.min_female && !d.max_female && !d.min_child && !d.max_child) {
+                    html += '      <tr><td colspan="5" class="text-center text-muted">No reference ranges defined</td></tr>';
+                }
+                
                 html += '    </tbody>';
                 html += '  </table>';
                 html += '  </div>';
