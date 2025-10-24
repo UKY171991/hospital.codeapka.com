@@ -889,6 +889,67 @@ function loadMainCategoriesForEdit(selectedMainCategoryId, selectedCategoryId) {
     });
 }
 
+// Load test categories synchronously for edit
+function loadTestCategoriesForEditSync(mainCategoryId, selectedCategoryId) {
+    console.log('Loading test categories synchronously - main:', mainCategoryId, 'selected:', selectedCategoryId);
+    
+    if (!mainCategoryId) {
+        $('#testCategoryId').html('<option value="">Select Test Category</option>');
+        return;
+    }
+
+    // Show loading state
+    $('#testCategoryId').html('<option value="">Loading categories...</option>');
+
+    $.ajax({
+        url: TEST_CATEGORY_API + 'list',
+        type: 'GET',
+        dataType: 'json',
+        timeout: 10000,
+        success: function(response) {
+            console.log('Test categories sync response:', response);
+            
+            if (response && response.success && Array.isArray(response.data)) {
+                let options = '<option value="">Select Test Category</option>';
+                let foundCategories = 0;
+                let categoryFound = false;
+                
+                response.data.forEach(category => {
+                    if (category && category.main_category_id == mainCategoryId && category.id && category.name) {
+                        const isSelected = selectedCategoryId && category.id == selectedCategoryId;
+                        options += `<option value="${category.id}"${isSelected ? ' selected' : ''}>${escapeHtml(category.name)}</option>`;
+                        foundCategories++;
+                        if (isSelected) {
+                            categoryFound = true;
+                        }
+                    }
+                });
+
+                $('#testCategoryId').html(options);
+                
+                // Set the selected value if not already set by the selected attribute
+                if (selectedCategoryId && !categoryFound) {
+                    $('#testCategoryId').val(selectedCategoryId);
+                }
+                
+                console.log(`Sync loaded ${foundCategories} categories, selected: ${selectedCategoryId}, found: ${categoryFound}`);
+                console.log('Test category value is now:', $('#testCategoryId').val());
+                
+                if (foundCategories === 0) {
+                    $('#testCategoryId').html('<option value="">No categories found</option>');
+                }
+            } else {
+                console.warn('Invalid response for test categories:', response);
+                $('#testCategoryId').html('<option value="">Error loading categories</option>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to load test categories sync:', {xhr, status, error});
+            $('#testCategoryId').html('<option value="">Error loading categories</option>');
+        }
+    });
+}
+
 // Load test categories by main category for edit (with callback to set selected value)
 function loadTestCategoriesByMainForEdit(mainCategoryId, selectedCategoryId) {
     console.log('Loading test categories for edit - main category:', mainCategoryId, 'selected:', selectedCategoryId);
@@ -1009,98 +1070,141 @@ function editTest(id) {
         return;
     }
     
+    // First, ensure categories are loaded, then get test data
+    ensureCategoriesLoadedThenEdit(id);
+}
+
+// Ensure categories are loaded before editing
+function ensureCategoriesLoadedThenEdit(testId) {
+    console.log('Ensuring categories are loaded before editing test:', testId);
+    
+    // Load main categories first
     $.ajax({
-        url: 'ajax/test_api.php',
+        url: 'ajax/main_test_category_api.php',
         type: 'GET',
-        data: {action: 'get', id: id},
+        data: { action: 'list' },
         dataType: 'json',
         timeout: 10000,
-        success: function(response) {
-            console.log('Edit test response:', response);
+        success: function(categoryResponse) {
+            console.log('Categories loaded for edit:', categoryResponse);
             
-            // Debug: Log the specific category data
-            if (response && response.data) {
-                console.log('Category data from API:', {
-                    main_category_id: response.data.main_category_id,
-                    main_category_name: response.data.main_category_name,
-                    category_id: response.data.category_id,
-                    category_name: response.data.category_name
-                });
-            }
-            
-            try {
-                if (response && response.success && response.data) {
-                    const test = response.data;
-                    
-                    // Reset form first
-                    $('#testForm')[0].reset();
-                    
-                    // Populate basic form fields
-                    $('#testId').val(test.id);
-                    $('#testName').val(test.name || '');
-                    $('#testPrice').val(test.price || '');
-                    $('#testUnit').val(test.unit || '');
-                    $('#testMethod').val(test.method || '');
-                    
-                    // Set main category and load test categories
-                    if (test.main_category_id) {
-                        console.log('Attempting to set main category to:', test.main_category_id);
-                        
-                        // Function to set categories after ensuring they're loaded
-                        const setCategoriesWhenReady = function() {
-                            // Debug: Check if main categories are loaded
-                            console.log('Main category options available:', $('#mainCategorySelect option').length);
-                            
-                            // Check if we have more than just the default option
-                            if ($('#mainCategorySelect option').length <= 1) {
-                                console.log('Main categories not loaded yet, loading them first');
-                                loadMainCategoriesForEdit(test.main_category_id, test.category_id);
-                                return;
-                            }
-                            
-                            // Check if the option exists
-                            const mainCategoryOption = $('#mainCategorySelect option[value="' + test.main_category_id + '"]');
-                            if (mainCategoryOption.length > 0) {
-                                console.log('Main category option found, setting value');
-                                $('#mainCategorySelect').val(test.main_category_id);
-                                
-                                // Trigger change event to ensure any listeners are notified
-                                $('#mainCategorySelect').trigger('change');
-                                
-                                // Load test categories and then set the selected category
-                                loadTestCategoriesByMainForEdit(test.main_category_id, test.category_id);
-                            } else {
-                                console.warn('Main category option not found for ID:', test.main_category_id);
-                                console.log('Available options:');
-                                $('#mainCategorySelect option').each(function() {
-                                    console.log('  Option:', $(this).val(), $(this).text());
-                                });
-                                // Try to reload main categories and then set the value
-                                loadMainCategoriesForEdit(test.main_category_id, test.category_id);
-                            }
-                        };
-                        
-                        // Try immediately, then with a small delay if needed
-                        setCategoriesWhenReady();
-                        
-                    } else {
-                        $('#mainCategorySelect').val('');
-                        $('#testCategoryId').html('<option value="">Select Test Category</option>');
+            if (categoryResponse && categoryResponse.success && Array.isArray(categoryResponse.data)) {
+                // Populate main categories
+                let modalOptions = '<option value="">Select Main Category</option>';
+                categoryResponse.data.forEach(category => {
+                    if (category && category.id && category.name) {
+                        modalOptions += `<option value="${category.id}">${escapeHtml(category.name)}</option>`;
                     }
-                    
-                    // Set range values
-                    $('#testMin').val(test.min || '');
-                    $('#testMax').val(test.max || '');
-                    $('#testMinMale').val(test.min_male || '');
-                    $('#testMaxMale').val(test.max_male || '');
-                    $('#testMinFemale').val(test.min_female || '');
-                    $('#testMaxFemale').val(test.max_female || '');
-                    $('#testMinChild').val(test.min_child || '');
-                    $('#testMaxChild').val(test.max_child || '');
-                    
-                    // Set units
-                    $('#generalUnit').val(test.unit || '');
-                    $('#maleUnit').val(test.male_unit || test.unit || '');
+                });
+                $('#mainCategorySelect').html(modalOptions);
+                
+                // Now get the test data
+                $.ajax({
+                    url: 'ajax/test_api.php',
+                    type: 'GET',
+                    data: {action: 'get', id: testId},
+                    dataType: 'json',
+                    timeout: 10000,
+                    success: function(response) {
+                        console.log('Edit test response:', response);
+                        
+                        if (response && response.success && response.data) {
+                            const test = response.data;
+                            
+                            // Reset form first
+                            $('#testForm')[0].reset();
+                            
+                            // Populate basic form fields
+                            $('#testId').val(test.id);
+                            $('#testName').val(test.name || '');
+                            $('#testPrice').val(test.price || '');
+                            $('#testUnit').val(test.unit || '');
+                            $('#testMethod').val(test.method || '');
+                            
+                            console.log('Setting main category to:', test.main_category_id);
+                            
+                            // Set main category (categories are now loaded)
+                            if (test.main_category_id) {
+                                $('#mainCategorySelect').val(test.main_category_id);
+                                console.log('Main category set, value is now:', $('#mainCategorySelect').val());
+                                
+                                // Load and set test categories
+                                loadTestCategoriesForEditSync(test.main_category_id, test.category_id);
+                            } else {
+                                $('#mainCategorySelect').val('');
+                                $('#testCategoryId').html('<option value="">Select Test Category</option>');
+                            }
+                            
+                            // Set range values
+                            $('#testMin').val(test.min || '');
+                            $('#testMax').val(test.max || '');
+                            $('#testMinMale').val(test.min_male || '');
+                            $('#testMaxMale').val(test.max_male || '');
+                            $('#testMinFemale').val(test.min_female || '');
+                            $('#testMaxFemale').val(test.max_female || '');
+                            $('#testMinChild').val(test.min_child || '');
+                            $('#testMaxChild').val(test.max_child || '');
+                            
+                            // Set units
+                            $('#generalUnit').val(test.unit || '');
+                            $('#maleUnit').val(test.male_unit || test.unit || '');
+                            $('#femaleUnit').val(test.female_unit || test.unit || '');
+                            $('#childUnit').val(test.child_unit || test.unit || '');
+                            
+                            // Set other fields with proper type conversion
+                            $('#testSubHeading').val(String(test.sub_heading || 0));
+                            $('#testPrintNewPage').val(String(test.print_new_page || 0));
+                            $('#testDescription').val(test.description || '');
+                            $('#testReferenceRange').val(test.reference_range || '');
+                            
+                            // Show modal
+                            $('#modalTitle').text('Edit Test');
+                            $('#testModal').modal('show');
+                            
+                            // Final verification after modal is shown
+                            setTimeout(function() {
+                                console.log('Final verification - select field values:', {
+                                    mainCategory: $('#mainCategorySelect').val(),
+                                    testCategory: $('#testCategoryId').val(),
+                                    expectedMain: test.main_category_id,
+                                    expectedTest: test.category_id
+                                });
+                                
+                                // Force set values one more time if they're not correct
+                                if (test.main_category_id && $('#mainCategorySelect').val() != test.main_category_id) {
+                                    console.log('Force setting main category');
+                                    $('#mainCategorySelect').val(test.main_category_id);
+                                }
+                                
+                                if (test.category_id && $('#testCategoryId').val() != test.category_id) {
+                                    console.log('Force setting test category');
+                                    $('#testCategoryId').val(test.category_id);
+                                }
+                            }, 200);
+                            
+                            console.log('Edit form populated and modal shown');
+                            
+                        } else {
+                            console.error('Invalid edit response:', response);
+                            toastr.error('Error loading test data: ' + (response.message || 'Invalid response'));
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Failed to load test for editing:', {xhr, status, error});
+                        toastr.error('Failed to load test data. Please try again.');
+                    }
+                });
+            } else {
+                console.error('Failed to load categories for edit');
+                toastr.error('Failed to load categories. Please try again.');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to load categories for edit:', {xhr, status, error});
+            toastr.error('Failed to load categories. Please try again.');
+        }
+    });
+}
                     $('#femaleUnit').val(test.female_unit || test.unit || '');
                     $('#childUnit').val(test.child_unit || test.unit || '');
                     
