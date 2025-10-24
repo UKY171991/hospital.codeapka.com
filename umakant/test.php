@@ -133,51 +133,66 @@ require_once 'inc/sidebar.php';
                                 </div>
                             </div>
                             
-                            <!-- Advanced Filters -->
-                            <div class="row mb-3">
-                                <div class="col-md-3">
-                                    <select id="mainCategoryFilter" class="form-control">
-                                        <option value="">All Main Categories</option>
-                                    </select>
+                            <!-- Enhanced Filters -->
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-filter mr-2"></i>
+                                        Advanced Filters
+                                        <button class="btn btn-sm btn-outline-secondary float-right" onclick="clearFilters()">
+                                            <i class="fas fa-times"></i> Clear All
+                                        </button>
+                                    </h6>
                                 </div>
-                                <div class="col-md-3">
-                                    <select id="categoryFilter" class="form-control">
-                                        <option value="">All Categories</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <select id="genderFilter" class="form-control">
-                                        <option value="">All Genders</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Both">Both</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <input type="number" id="priceFilter" class="form-control" placeholder="Max Price">
-                                </div>
-                                <div class="col-md-3">
-                                    <button class="btn btn-outline-secondary btn-block" onclick="clearFilters()">
-                                        <i class="fas fa-times"></i> Clear Filters
-                                    </button>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label class="form-label">Category</label>
+                                            <select id="categoryFilter" class="form-control">
+                                                <option value="">All Categories</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">Gender</label>
+                                            <select id="genderFilter" class="form-control">
+                                                <option value="">All Genders</option>
+                                                <option value="Male">Male</option>
+                                                <option value="Female">Female</option>
+                                                <option value="Both">Both</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">Max Price (₹)</label>
+                                            <input type="number" id="priceFilter" class="form-control" placeholder="Max Price">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Quick Search</label>
+                                            <input type="text" id="quickSearch" class="form-control" placeholder="Search tests...">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">&nbsp;</label>
+                                            <button class="btn btn-outline-secondary btn-block" onclick="clearFilters()">
+                                                <i class="fas fa-times"></i> Clear
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Tests DataTable -->
                             <div class="table-responsive">
-                                <table id="testsTable" class="table table-bordered table-striped table-hover table-enhanced">
+                                <table id="testsTable" class="table table-striped table-bordered table-hover">
                                     <thead class="thead-dark">
                                         <tr>
-                                            <th width="40"><input type="checkbox" id="selectAllTests"></th>
-                                            <th>ID</th>
+                                            <th width="30"><input type="checkbox" id="selectAll"></th>
+                                            <th width="50">ID</th>
                                             <th>Test Name</th>
-                                            <th>Main Category</th>
                                             <th>Category</th>
-                                            <th>Price</th>
+                                            <th>Price (₹)</th>
                                             <th>Gender</th>
                                             <th>Range</th>
                                             <th>Unit</th>
-                                            <th>Actions</th>
+                                            <th width="120">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -219,7 +234,7 @@ require_once 'inc/sidebar.php';
                     <input type="hidden" id="testId" name="id">
                     
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="testName">
                                     <i class="fas fa-flask mr-1"></i>
@@ -228,14 +243,25 @@ require_once 'inc/sidebar.php';
                                 <input type="text" class="form-control" id="testName" name="name" required>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
-                                <label for="testCategory">
+                                <label for="mainCategorySelect">
+                                    <i class="fas fa-layer-group mr-1"></i>
+                                    Main Category <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-control" id="mainCategorySelect" required>
+                                    <option value="">Select Main Category</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="testCategoryId">
                                     <i class="fas fa-tags mr-1"></i>
-                                    Category <span class="text-danger">*</span>
+                                    Test Category <span class="text-danger">*</span>
                                 </label>
                                 <select class="form-control" id="testCategoryId" name="category_id" required>
-                                    <option value="">Select Category</option>
+                                    <option value="">Select Test Category</option>
                                 </select>
                             </div>
                         </div>
@@ -465,7 +491,16 @@ require_once 'inc/sidebar.php';
                 <!-- Content will be populated by JavaScript -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" onclick="editTestFromView()">
+                    <i class="fas fa-edit mr-1"></i> Edit Test
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
 const TEST_CATEGORY_API = 'patho_api/test_category.php?action=';
 const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
@@ -585,6 +620,24 @@ function setupEventHandlers() {
     $(document).on('change', '.test-checkbox', function() {
         updateBulkActions();
     });
+
+    // Main category selection handler
+    $('#mainCategorySelect').on('change', function() {
+        const mainCategoryId = $(this).val();
+        loadTestCategoriesByMain(mainCategoryId);
+    });
+
+    // Quick search handler
+    $('#quickSearch').on('keyup', function() {
+        if (testsTable) {
+            testsTable.search($(this).val()).draw();
+        }
+    });
+
+    // Main category filter handler
+    $('#mainCategoryFilter').on('change', function() {
+        applyFilters();
+    });
 }
 
 function initializeDataTable() {
@@ -605,12 +658,6 @@ function initializeDataTable() {
                 dataSrc: function(json) {
                     console.log('DataTable AJAX response:', json);
                     if (json.success) {
-                        // Debug: log first few records to see what data we're getting
-                        if (json.data && json.data.length > 0) {
-                            console.log('First test record:', json.data[0]);
-                            console.log('Sample name field:', json.data[0].name);
-                            console.log('Sample category_name field:', json.data[0].category_name);
-                        }
                         return json.data || [];
                     } else {
                         console.error('Failed to load tests:', json.message);
@@ -619,18 +666,8 @@ function initializeDataTable() {
                     }
                 },
                 error: function(xhr, error, thrown) {
-                    console.error('DataTable AJAX Error:', error, thrown, 'status:', xhr.status, 'response:', xhr.responseText);
-                    var msg = 'Failed to load tests data';
-                    if (xhr.status === 0) msg = 'Network error or request aborted';
-                    else if (xhr.responseText) {
-                        try { 
-                            var j = JSON.parse(xhr.responseText); 
-                            if (j.message) msg = j.message; 
-                        } catch(e) { 
-                            msg = xhr.responseText.substring(0, 100); 
-                        }
-                    }
-                    toastr.error(msg);
+                    console.error('DataTable AJAX Error:', error, thrown);
+                    toastr.error('Failed to load tests data');
                 }
             },
         columns: [
@@ -638,84 +675,67 @@ function initializeDataTable() {
                 data: null,
                 orderable: false,
                 className: 'text-center',
-                width: '40px',
+                width: '30px',
                 render: function(data, type, row) {
                     return `<input type="checkbox" class="test-checkbox" value="${row.id}">`;
                 }
             },
             { 
                 data: 'id',
-                width: '60px'
+                width: '50px',
+                className: 'text-center'
             },
             { 
                 data: 'name',
                 render: function(data, type, row) {
-                    var testName = data || row.name || 'N/A';
-                    // Handle empty strings as well as null/undefined
-                    if (testName === '' || testName === null || testName === undefined) {
-                        testName = 'N/A';
-                    }
-                    return `<div class="font-weight-bold text-primary">${testName}</div>
-                            ${row.description ? `<small class="text-muted">${row.description}</small>` : ''}`;
-                }
-            },
-            { 
-                data: 'main_category_name',
-                render: function(data, type, row) {
-                    var mainCategoryName = data || row.main_category_name || '';
-                    if (mainCategoryName === '' || mainCategoryName === null || mainCategoryName === undefined) {
-                        return '-';
-                    }
-                    return `<span class="badge badge-secondary">${mainCategoryName}</span>`;
+                    return `<strong>${data || 'N/A'}</strong>`;
                 }
             },
             { 
                 data: 'category_name',
                 render: function(data, type, row) {
-                    var categoryName = data || row.category_name || '';
-                    // Handle empty strings as well as null/undefined
-                    if (categoryName === '' || categoryName === null || categoryName === undefined) {
-                        return '-';
-                    }
-                    return `<span class="badge badge-info">${categoryName}</span>`;
+                    return data ? `<span class="badge badge-info">${data}</span>` : '<span class="text-muted">-</span>';
                 }
             },
             { 
                 data: 'price',
+                className: 'text-right',
                 render: function(data, type, row) {
-                    return data ? `₹${parseFloat(data).toFixed(2)}` : '-';
+                    return data ? `₹${parseFloat(data).toFixed(0)}` : '<span class="text-muted">-</span>';
                 }
             },
             {
                 data: null,
+                className: 'text-center',
                 render: function(data, type, row) {
                     let genders = [];
-                    if (row.min_male !== null || row.max_male !== null) genders.push('<span class="badge badge-primary badge-sm">Male</span>');
-                    if (row.min_female !== null || row.max_female !== null) genders.push('<span class="badge badge-danger badge-sm">Female</span>');
-                    if (!genders.length && (row.min !== null || row.max !== null)) genders.push('<span class="badge badge-success badge-sm">Both</span>');
-                    return genders.length > 0 ? genders.join(' ') : '-';
+                    if (row.min_male !== null || row.max_male !== null) genders.push('Male');
+                    if (row.min_female !== null || row.max_female !== null) genders.push('Female');
+                    if (!genders.length && (row.min !== null || row.max !== null)) genders.push('Both');
+                    return genders.length > 0 ? genders.join(', ') : '<span class="text-muted">-</span>';
                 }
             },
             {
                 data: null,
                 render: function(data, type, row) {
                     let ranges = [];
-                    if (row.min_male !== null || row.max_male !== null) {
-                        ranges.push(`M: ${row.min_male || 0}-${row.max_male || '∞'}`);
+                    if (row.min !== null && row.max !== null) {
+                        ranges.push(`${row.min}-${row.max}`);
                     }
-                    if (row.min_female !== null || row.max_female !== null) {
-                        ranges.push(`F: ${row.min_female || 0}-${row.max_female || '∞'}`);
+                    if (row.min_male !== null && row.max_male !== null) {
+                        ranges.push(`M: ${row.min_male}-${row.max_male}`);
                     }
-                    if (!ranges.length && (row.min !== null || row.max !== null)) {
-                        ranges.push(`${row.min || 0}-${row.max || '∞'}`);
+                    if (row.min_female !== null && row.max_female !== null) {
+                        ranges.push(`F: ${row.min_female}-${row.max_female}`);
                     }
-                    return ranges.length > 0 ? ranges.join('<br>') : '-';
+                    return ranges.length > 0 ? ranges.join('<br>') : '<span class="text-muted">-</span>';
                 }
             },
             { 
                 data: 'unit',
+                className: 'text-center',
                 render: function(data, type, row) {
-                    return data || '-';
+                    return data ? `<code>${data}</code>` : '<span class="text-muted">-</span>';
                 }
             },
             {
@@ -726,13 +746,13 @@ function initializeDataTable() {
                 render: function(data, type, row) {
                     return `
                         <div class="btn-group btn-group-sm" role="group">
-                            <button class="btn btn-info btn-sm" onclick="viewTest(${data})" title="View">
+                            <button class="btn btn-outline-info btn-sm" onclick="viewTest(${data})" title="View Details">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="btn btn-warning btn-sm" onclick="editTest(${data})" title="Edit">
+                            <button class="btn btn-outline-warning btn-sm" onclick="editTest(${data})" title="Edit Test">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteTest(${data}, '${(row.name || '').replace(/'/g, '\\\'')}')" title="Delete">
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteTest(${data}, '${(row.name || '').replace(/'/g, '\\\'')}')" title="Delete Test">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -790,13 +810,24 @@ function initializeDataTable() {
     });
     
     // Checkbox selection handlers
-    $('#selectAllTests').on('change', function() {
+    $('#selectAll').on('change', function() {
         $('.test-checkbox').prop('checked', $(this).is(':checked'));
         updateBulkActions();
     });
     
     $(document).on('change', '.test-checkbox', function() {
         updateBulkActions();
+        // Update select all checkbox state
+        const totalCheckboxes = $('.test-checkbox').length;
+        const checkedCheckboxes = $('.test-checkbox:checked').length;
+        
+        if (checkedCheckboxes === 0) {
+            $('#selectAll').prop('indeterminate', false).prop('checked', false);
+        } else if (checkedCheckboxes === totalCheckboxes) {
+            $('#selectAll').prop('indeterminate', false).prop('checked', true);
+        } else {
+            $('#selectAll').prop('indeterminate', true);
+        }
     });
 
     // After DataTable ajax completes, refresh the stat cards so they reflect current data
@@ -818,6 +849,8 @@ function initializeDataTable() {
 }
 
 function applyFilters() {
+    if (!testsTable) return;
+    
     const mainCategory = $('#mainCategoryFilter').val();
     const category = $('#categoryFilter').val();
     const gender = $('#genderFilter').val();
@@ -827,26 +860,22 @@ function applyFilters() {
     testsTable.search('');
     testsTable.columns().search('');
     
-    // Apply main category filter
-    if (mainCategory) {
-        testsTable.column(3).search(mainCategory, false, false);
-    }
-
-    // Apply category filter
+    // Apply category filter (column 3)
     if (category) {
-        testsTable.column(4).search(category, false, false);
+        testsTable.column(3).search(category, false, false);
     }
     
-    // Apply gender filter
+    // Apply gender filter (column 5)
     if (gender) {
-        testsTable.column(6).search(gender, false, false);
+        testsTable.column(5).search(gender, false, false);
     }
     
-    // Apply price filter
+    // Apply price filter (column 4)
     if (maxPrice) {
-        testsTable.column(5).search(function(settings, data, dataIndex) {
-            const price = parseFloat(data[5].replace(/[₹,]/g, ''));
-            return price <= parseFloat(maxPrice);
+        testsTable.column(4).search(function(settings, data, dataIndex) {
+            const priceText = data[4] || '';
+            const price = parseFloat(priceText.replace(/[₹,]/g, ''));
+            return !isNaN(price) && price <= parseFloat(maxPrice);
         });
     }
     
@@ -854,11 +883,13 @@ function applyFilters() {
 }
 
 function clearFilters() {
-    $('#mainCategoryFilter').val('');
     $('#categoryFilter').val('');
     $('#genderFilter').val('');
     $('#priceFilter').val('');
-    testsTable.search('').columns().search('').draw();
+    $('#quickSearch').val('');
+    if (testsTable) {
+        testsTable.search('').columns().search('').draw();
+    }
 }
 
 function updateBulkActions() {
@@ -871,16 +902,6 @@ function updateBulkActions() {
         $('.selected-count').text(selectedCount);
     } else {
         bulkActionsDiv.hide();
-    }
-    
-    // Update select all checkbox
-    const totalCheckboxes = $('.test-checkbox').length;
-    if (selectedCount === 0) {
-        $('#selectAllTests').prop('indeterminate', false).prop('checked', false);
-    } else if (selectedCount === totalCheckboxes) {
-        $('#selectAllTests').prop('indeterminate', false).prop('checked', true);
-    } else {
-        $('#selectAllTests').prop('indeterminate', true);
     }
 }
 
@@ -950,6 +971,22 @@ function refreshTests() {
 
 
 function loadCategories() {
+    // Load main categories for modal
+    $.getJSON('ajax/main_test_category_api.php', { action: 'list' }, function(response) {
+        if (response && response.success) {
+            let modalOptions = '<option value="">Select Main Category</option>';
+            
+            (response.data || []).forEach(category => {
+                modalOptions += `<option value="${category.id}">${category.name}</option>`;
+            });
+            
+            $('#mainCategorySelect').html(modalOptions);
+        } else {
+            console.warn('Failed to load main categories', response && response.message);
+        }
+    }).fail(function(xhr){ console.warn('Failed to load main categories', xhr.status); });
+
+    // Load test categories for filter (all categories)
     const params = { action: 'list' };
     if (CURRENT_USER_ID) {
         params.user_id = CURRENT_USER_ID;
@@ -957,15 +994,12 @@ function loadCategories() {
 
     $.getJSON(TEST_CATEGORY_API, params, function(response) {
         if (response && response.success) {
-            let options = '<option value="">Select Category</option>';
             let filterOptions = '<option value="">All Categories</option>';
 
             (response.data || []).forEach(category => {
-                options += `<option value="${category.id}">${category.name}</option>`;
                 filterOptions += `<option value="${category.name}">${category.name}</option>`;
             });
 
-            $('#testCategoryId').html(options);
             $('#categoryFilter').html(filterOptions);
 
             // Populate categories table
@@ -974,18 +1008,34 @@ function loadCategories() {
             console.warn('Failed to load categories', response && response.message);
         }
     }).fail(function(xhr){ console.warn('Failed to load categories', xhr.status); });
+}
 
-    $.getJSON('ajax/main_test_category_api.php', { action: 'list' }, function(response) {
+// Handle main category selection to load corresponding test categories
+function loadTestCategoriesByMain(mainCategoryId) {
+    if (!mainCategoryId) {
+        $('#testCategoryId').html('<option value="">Select Test Category</option>');
+        return;
+    }
+
+    $.getJSON(TEST_CATEGORY_API, { action: 'list' }, function(response) {
         if (response && response.success) {
-            let filterOptions = '<option value="">All Main Categories</option>';
+            let options = '<option value="">Select Test Category</option>';
+            
             (response.data || []).forEach(category => {
-                filterOptions += `<option value="${category.name}">${category.name}</option>`;
+                if (category.main_category_id == mainCategoryId) {
+                    options += `<option value="${category.id}">${category.name}</option>`;
+                }
             });
-            $('#mainCategoryFilter').html(filterOptions);
+
+            $('#testCategoryId').html(options);
         } else {
-            console.warn('Failed to load main categories', response && response.message);
+            console.warn('Failed to load test categories', response && response.message);
+            $('#testCategoryId').html('<option value="">Error loading categories</option>');
         }
-    }).fail(function(xhr){ console.warn('Failed to load main categories', xhr.status); });
+    }).fail(function(xhr){ 
+        console.warn('Failed to load test categories', xhr.status);
+        $('#testCategoryId').html('<option value="">Error loading categories</option>');
+    });
 }
 
 function populateCategoriesTable(categories = []) {
@@ -1284,6 +1334,155 @@ function showAlert(message, type) {
 .btn-group .btn:last-child {
     margin-right: 0;
 }
+
+/* Enhanced table styling */
+#testsTable {
+    font-size: 0.9rem;
+}
+
+#testsTable thead th {
+    background-color: #343a40;
+    color: white;
+    border-color: #454d55;
+    font-weight: 600;
+    text-align: center;
+    vertical-align: middle;
+    padding: 12px 8px;
+}
+
+#testsTable tbody td {
+    vertical-align: middle;
+    padding: 10px 8px;
+    border-color: #dee2e6;
+}
+
+#testsTable tbody tr:hover {
+    background-color: rgba(0,123,255,0.05);
+}
+
+.btn-outline-info:hover {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.btn-outline-warning:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.table-responsive {
+    border-radius: 0.375rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.badge {
+    font-size: 0.75em;
+    padding: 0.375em 0.75em;
+}
+
+code {
+    background-color: #f8f9fa;
+    color: #e83e8c;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+}
+
+/* Filter card styling */
+.card-body .row {
+    margin-bottom: 0;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Bulk actions styling */
+.bulk-actions {
+    border-radius: 0.375rem;
+    border: 1px solid #b8daff;
+    background-color: #d1ecf1;
+}
+
+/* DataTables custom styling */
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 1rem;
+}
+
+.dataTables_wrapper .dataTables_info {
+    padding-top: 0.75rem;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    padding-top: 0.75rem;
+}
+
+/* Button styling improvements */
+.btn-group-sm > .btn, .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+}
+
+/* Modal improvements */
+.modal-header {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+    border-top: 1px solid #dee2e6;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    #testsTable {
+        font-size: 0.8rem;
+    }
+    
+    .btn-group-sm > .btn, .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table-responsive {
+        border: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .small-box .inner h3 {
+        font-size: 1.5rem;
+    }
+    
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 2px;
+        margin-right: 0;
+    }
+}
 </style>
 
 <?php require_once 'inc/footer.php'; ?>
@@ -1440,49 +1639,76 @@ window.viewTest = function(id){
                 var html = '';
                 html += '<div class="container-fluid">';
                 html += '<div class="row">';
+                
                 // Left column: main info
-                html += '<div class="col-md-7">';
-                html += '  <h4 class="mb-1">' + escapeHtml(d.name || '') + ' <small class="text-muted">#' + escapeHtml(d.id || '') + '</small></h4>';
-                if(d.description) html += '<p class="text-muted">' + escapeHtml(d.description) + '</p>';
-                html += '  <div class="row">';
-                html += '    <div class="col-sm-6"><strong>Category</strong><div>' + escapeHtml(d.category_name||'') + '</div></div>';
-                html += '    <div class="col-sm-6"><strong>Price</strong><div>' + escapeHtml(d.price||'') + '</div></div>';
-                html += '    <div class="col-sm-6 mt-2"><strong>Unit</strong><div>' + escapeHtml(d.unit||'') + '</div></div>';
-                html += '    <div class="col-sm-6 mt-2"><strong>Sub Heading</strong><div>' + (d.sub_heading? 'Yes':'No') + '</div></div>';
-                html += '  </div>'; // row
-                html += '</div>'; // col-md-7
-
-                // Right column: metadata and actions
-                html += '<div class="col-md-5">';
-                html += '  <div class="card border-0">';
-                html += '    <div class="card-body p-2">';
-                html += '      <p class="mb-1"><small class="text-muted">Added By</small><br><strong>' + escapeHtml(d.added_by_username||'') + '</strong></p>';
-                html += '      <p class="mb-1"><small class="text-muted">Print New Page</small><br><strong>' + (d.print_new_page? 'Yes':'No') + '</strong></p>';
-                html += '      <p class="mb-0"><small class="text-muted">Default Result</small><br>' + escapeHtml(d.default_result||'') + '</p>';
-                html += '    </div>'; 
+                html += '<div class="col-md-6">';
+                html += '  <h4 class="mb-3 text-primary">' + escapeHtml(d.name || '') + ' <small class="text-muted">#' + escapeHtml(d.id || '') + '</small></h4>';
+                if(d.description) html += '<p class="text-muted mb-3">' + escapeHtml(d.description) + '</p>';
+                
+                html += '  <div class="card border-0 bg-light">';
+                html += '    <div class="card-body p-3">';
+                html += '      <h6 class="card-title mb-3"><i class="fas fa-info-circle mr-2"></i>Test Information</h6>';
+                html += '      <div class="row">';
+                html += '        <div class="col-sm-6 mb-2"><strong>Category:</strong><br><span class="badge badge-info">' + escapeHtml(d.category_name||'N/A') + '</span></div>';
+                html += '        <div class="col-sm-6 mb-2"><strong>Price:</strong><br><span class="text-success font-weight-bold">₹' + escapeHtml(d.price||'0') + '</span></div>';
+                html += '        <div class="col-sm-6 mb-2"><strong>Unit:</strong><br><code>' + escapeHtml(d.unit||'N/A') + '</code></div>';
+                html += '        <div class="col-sm-6 mb-2"><strong>Method:</strong><br>' + escapeHtml(d.method||'N/A') + '</div>';
+                html += '      </div>';
+                html += '    </div>';
                 html += '  </div>';
-                html += '</div>'; // col-md-5
+                html += '</div>'; // col-md-6
+
+                // Right column: metadata and settings
+                html += '<div class="col-md-6">';
+                html += '  <div class="card border-0 bg-light">';
+                html += '    <div class="card-body p-3">';
+                html += '      <h6 class="card-title mb-3"><i class="fas fa-cogs mr-2"></i>Settings & Metadata</h6>';
+                html += '      <div class="row">';
+                html += '        <div class="col-sm-6 mb-2"><strong>Sub Heading:</strong><br><span class="badge ' + (d.sub_heading ? 'badge-success">Yes' : 'badge-secondary">No') + '</span></div>';
+                html += '        <div class="col-sm-6 mb-2"><strong>Print New Page:</strong><br><span class="badge ' + (d.print_new_page ? 'badge-success">Yes' : 'badge-secondary">No') + '</span></div>';
+                html += '        <div class="col-sm-6 mb-2"><strong>Added By:</strong><br>' + escapeHtml(d.added_by_username||'N/A') + '</div>';
+                html += '        <div class="col-sm-6 mb-2"><strong>Test Code:</strong><br><code>' + escapeHtml(d.test_code||'N/A') + '</code></div>';
+                html += '      </div>';
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>'; // col-md-6
 
                 html += '</div>'; // row
 
-                // Ranges table
-                html += '<hr/>';
-                html += '<h6 class="mb-2">Reference Ranges</h6>';
-                html += '<div class="table-responsive">';
-                html += '<table class="table table-sm table-bordered">';
-                html += '<thead class="thead-light"><tr><th>Scope</th><th>Min</th><th>Max</th></tr></thead>';
-                html += '<tbody>';
-                html += '<tr><td>General</td><td>' + escapeHtml(d.min||'') + '</td><td>' + escapeHtml(d.max||'') + '</td></tr>';
-                html += '<tr><td>Male</td><td>' + escapeHtml(d.min_male||'') + '</td><td>' + escapeHtml(d.max_male||'') + '</td></tr>';
-                html += '<tr><td>Female</td><td>' + escapeHtml(d.min_female||'') + '</td><td>' + escapeHtml(d.max_female||'') + '</td></tr>';
-                html += '<tr><td>Child</td><td>' + escapeHtml(d.min_child||'') + '</td><td>' + escapeHtml(d.max_child||'') + '</td></tr>';
-                html += '</tbody></table></div>';
+                // Reference Ranges
+                html += '<div class="row mt-3">';
+                html += '<div class="col-12">';
+                html += '  <h6 class="mb-3"><i class="fas fa-chart-line mr-2"></i>Reference Ranges</h6>';
+                html += '  <div class="table-responsive">';
+                html += '  <table class="table table-sm table-bordered">';
+                html += '    <thead class="thead-light">';
+                html += '      <tr><th>Scope</th><th>Min Value</th><th>Max Value</th><th>Unit</th></tr>';
+                html += '    </thead>';
+                html += '    <tbody>';
+                html += '      <tr><td><strong>General</strong></td><td>' + escapeHtml(d.min||'-') + '</td><td>' + escapeHtml(d.max||'-') + '</td><td>' + escapeHtml(d.unit||'-') + '</td></tr>';
+                html += '      <tr><td><strong class="text-primary">Male</strong></td><td>' + escapeHtml(d.min_male||'-') + '</td><td>' + escapeHtml(d.max_male||'-') + '</td><td>' + escapeHtml(d.male_unit||d.unit||'-') + '</td></tr>';
+                html += '      <tr><td><strong class="text-danger">Female</strong></td><td>' + escapeHtml(d.min_female||'-') + '</td><td>' + escapeHtml(d.max_female||'-') + '</td><td>' + escapeHtml(d.female_unit||d.unit||'-') + '</td></tr>';
+                html += '      <tr><td><strong class="text-warning">Child</strong></td><td>' + escapeHtml(d.min_child||'-') + '</td><td>' + escapeHtml(d.max_child||'-') + '</td><td>' + escapeHtml(d.child_unit||d.unit||'-') + '</td></tr>';
+                html += '    </tbody>';
+                html += '  </table>';
+                html += '  </div>';
 
-                if(d.reference_range){ html += '<p class="mt-2"><strong>Reference Note:</strong> ' + escapeHtml(d.reference_range) + '</p>'; }
+                if(d.reference_range){ 
+                    html += '<div class="alert alert-info mt-3">';
+                    html += '  <h6 class="alert-heading"><i class="fas fa-info-circle mr-2"></i>Reference Notes</h6>';
+                    html += '  <p class="mb-0">' + escapeHtml(d.reference_range) + '</p>';
+                    html += '</div>';
+                }
 
+                html += '</div>'; // col-12
+                html += '</div>'; // row
                 html += '</div>'; // container-fluid
 
                 $('#viewTestBody').html(html);
+                $('#viewTestModalLabel').text('Test Details: ' + escapeHtml(d.name || ''));
+                
+                // Store test ID for edit function
+                $('#viewTestModal').data('test-id', id);
                 $('#viewTestModal').modal('show');
             } else {
                 toastr.error('Test not found');
@@ -1497,6 +1723,15 @@ window.viewTest = function(id){
         });
     }catch(err){ 
         toastr.error('Error: '+(err.message||err)); 
+    }
+};
+
+// Function to edit test from view modal
+window.editTestFromView = function() {
+    const testId = $('#viewTestModal').data('test-id');
+    if (testId) {
+        $('#viewTestModal').modal('hide');
+        editTest(testId);
     }
 };
 </script>
