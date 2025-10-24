@@ -837,6 +837,66 @@ function loadTestCategoriesByMain(mainCategoryId) {
     });
 }
 
+// Load test categories by main category for edit (with callback to set selected value)
+function loadTestCategoriesByMainForEdit(mainCategoryId, selectedCategoryId) {
+    console.log('Loading test categories for edit - main category:', mainCategoryId, 'selected:', selectedCategoryId);
+    
+    if (!mainCategoryId) {
+        $('#testCategoryId').html('<option value="">Select Test Category</option>');
+        return;
+    }
+
+    // Show loading state
+    $('#testCategoryId').html('<option value="">Loading categories...</option>');
+
+    $.ajax({
+        url: TEST_CATEGORY_API + 'list',
+        type: 'GET',
+        dataType: 'json',
+        timeout: 10000,
+        success: function(response) {
+            console.log('Test categories for edit response:', response);
+            
+            if (response && response.success && Array.isArray(response.data)) {
+                let options = '<option value="">Select Test Category</option>';
+                let foundCategories = 0;
+                let categoryFound = false;
+                
+                response.data.forEach(category => {
+                    if (category && category.main_category_id == mainCategoryId && category.id && category.name) {
+                        const isSelected = selectedCategoryId && category.id == selectedCategoryId;
+                        options += `<option value="${category.id}"${isSelected ? ' selected' : ''}>${escapeHtml(category.name)}</option>`;
+                        foundCategories++;
+                        if (isSelected) {
+                            categoryFound = true;
+                        }
+                    }
+                });
+
+                $('#testCategoryId').html(options);
+                
+                // If we have a selected category ID but didn't find it, try setting it anyway
+                if (selectedCategoryId && !categoryFound) {
+                    $('#testCategoryId').val(selectedCategoryId);
+                }
+                
+                console.log(`Found ${foundCategories} categories for main category ${mainCategoryId}, selected: ${selectedCategoryId}, found: ${categoryFound}`);
+                
+                if (foundCategories === 0) {
+                    $('#testCategoryId').html('<option value="">No categories found</option>');
+                }
+            } else {
+                console.warn('Invalid response for test categories:', response);
+                $('#testCategoryId').html('<option value="">Error loading categories</option>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to load test categories for edit:', {xhr, status, error});
+            $('#testCategoryId').html('<option value="">Error loading categories</option>');
+        }
+    });
+}
+
 // Load stats
 function loadStats() {
     console.log('Loading statistics...');
@@ -922,17 +982,14 @@ function editTest(id) {
                     
                     // Set main category and load test categories
                     if (test.main_category_id) {
+                        // Set main category first
                         $('#mainCategorySelect').val(test.main_category_id);
                         
-                        // Load test categories and then set the selected category
-                        loadTestCategoriesByMain(test.main_category_id);
+                        // Trigger change event to ensure any listeners are notified
+                        $('#mainCategorySelect').trigger('change');
                         
-                        // Set test category after categories are loaded
-                        setTimeout(function() {
-                            if (test.category_id) {
-                                $('#testCategoryId').val(test.category_id);
-                            }
-                        }, 1000);
+                        // Load test categories and then set the selected category
+                        loadTestCategoriesByMainForEdit(test.main_category_id, test.category_id);
                     } else {
                         $('#mainCategorySelect').val('');
                         $('#testCategoryId').html('<option value="">Select Test Category</option>');
@@ -954,14 +1011,48 @@ function editTest(id) {
                     $('#femaleUnit').val(test.female_unit || test.unit || '');
                     $('#childUnit').val(test.child_unit || test.unit || '');
                     
-                    // Set other fields
-                    $('#testSubHeading').val(test.sub_heading || 0);
-                    $('#testPrintNewPage').val(test.print_new_page || 0);
+                    // Set other fields with proper type conversion
+                    $('#testSubHeading').val(String(test.sub_heading || 0));
+                    $('#testPrintNewPage').val(String(test.print_new_page || 0));
                     $('#testDescription').val(test.description || '');
                     $('#testReferenceRange').val(test.reference_range || '');
                     
+                    // Debug logging for select field values
+                    console.log('Setting select field values:', {
+                        main_category_id: test.main_category_id,
+                        category_id: test.category_id,
+                        sub_heading: test.sub_heading,
+                        print_new_page: test.print_new_page
+                    });
+                    
                     $('#modalTitle').text('Edit Test');
                     $('#testModal').modal('show');
+                    
+                    // Verify select field values after modal is shown
+                    setTimeout(function() {
+                        console.log('Verifying select field values:', {
+                            mainCategory: $('#mainCategorySelect').val(),
+                            testCategory: $('#testCategoryId').val(),
+                            subHeading: $('#testSubHeading').val(),
+                            printNewPage: $('#testPrintNewPage').val()
+                        });
+                        
+                        // Re-set values if they didn't stick
+                        if (test.main_category_id && $('#mainCategorySelect').val() != test.main_category_id) {
+                            console.log('Re-setting main category');
+                            $('#mainCategorySelect').val(test.main_category_id);
+                        }
+                        
+                        if (test.sub_heading !== null && $('#testSubHeading').val() != String(test.sub_heading)) {
+                            console.log('Re-setting sub heading');
+                            $('#testSubHeading').val(String(test.sub_heading || 0));
+                        }
+                        
+                        if (test.print_new_page !== null && $('#testPrintNewPage').val() != String(test.print_new_page)) {
+                            console.log('Re-setting print new page');
+                            $('#testPrintNewPage').val(String(test.print_new_page || 0));
+                        }
+                    }, 500);
                     
                     console.log('Edit form populated successfully');
                 } else {
@@ -1256,7 +1347,7 @@ function refreshTests() {
 
 // Show table error
 function showTableError(message) {
-    $('#testsTable tbody').html(`
+    $('#testManagementTable tbody').html(`
         <tr>
             <td colspan="6" class="text-center text-danger py-4">
                 <i class="fas fa-exclamation-triangle mr-2"></i>${message}
@@ -1311,11 +1402,11 @@ function escapeHtml(text) {
     margin-right: 0;
 }
 
-#testsTable {
+#testManagementTable {
     font-size: 0.9rem;
 }
 
-#testsTable thead th {
+#testManagementTable thead th {
     background-color: #343a40;
     color: white;
     border-color: #454d55;
@@ -1325,13 +1416,13 @@ function escapeHtml(text) {
     padding: 12px 8px;
 }
 
-#testsTable tbody td {
+#testManagementTable tbody td {
     vertical-align: middle;
     padding: 10px 8px;
     border-color: #dee2e6;
 }
 
-#testsTable tbody tr:hover {
+#testManagementTable tbody tr:hover {
     background-color: rgba(0,123,255,0.05);
 }
 
@@ -1401,7 +1492,7 @@ code {
 }
 
 @media (max-width: 768px) {
-    #testsTable {
+    #testManagementTable {
         font-size: 0.8rem;
     }
     

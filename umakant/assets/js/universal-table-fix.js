@@ -81,7 +81,7 @@ function fixTableIssues() {
     }
     
     // Fix test table if it exists
-    if ($('#testsTable').length > 0) {
+    if ($('#testManagementTable').length > 0) {
         fixTestTable();
     }
     
@@ -287,12 +287,12 @@ function fixDoctorTable() {
 }
 
 function fixTestTable() {
-    if ($.fn.DataTable.isDataTable('#testsTable')) {
-        $('#testsTable').DataTable().destroy();
+    if ($.fn.DataTable.isDataTable('#testManagementTable')) {
+        $('#testManagementTable').DataTable().destroy();
     }
     
     try {
-        $('#testsTable').DataTable({
+        $('#testManagementTable').DataTable({
             processing: true,
             ajax: {
                 url: 'ajax/test_api.php?action=list',

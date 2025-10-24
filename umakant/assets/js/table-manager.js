@@ -44,21 +44,15 @@ function initializeAllTables() {
         tryInit('doctorsTable', initializeDoctorTable);
     }
 
-    // Only initialize testsTable on the test.php page to avoid false positives on other pages
+    // Skip test table initialization - test.php handles its own table initialization
+    // This prevents conflicts between table-manager.js and test.php's custom table handling
     try {
         var path = window.location && window.location.pathname ? window.location.pathname : '';
         if (/\/test\.php$/i.test(path)) {
-            if ($('#testsTable').length > 0 && !window.initializedTables.has('testsTable')) {
-                tryInit('testsTable', initializeTestTable);
-            }
-        } else {
-            APP_LOG('Skipping testsTable init because current page is not test.php (path='+path+')');
+            APP_LOG('Skipping test table init on test.php - page handles its own table initialization');
         }
     } catch(e) {
-        // fallback: attempt initialization if detection fails
-        if ($('#testsTable').length > 0 && !window.initializedTables.has('testsTable')) {
-            tryInit('testsTable', initializeTestTable);
-        }
+        APP_LOG('Path detection failed, skipping test table initialization to prevent conflicts');
     }
 
     if ($('#usersTable').length > 0 && !window.initializedTables.has('usersTable')) {
@@ -67,6 +61,11 @@ function initializeAllTables() {
 
     if ($('#testCategoriesTable').length > 0 && !window.initializedTables.has('testCategoriesTable')) {
         tryInit('testCategoriesTable', initializeTestCategoryTable);
+    }
+    
+    // Validate that we're not accidentally trying to initialize test management table
+    if ($('#testManagementTable').length > 0) {
+        APP_LOG('Found #testManagementTable but skipping DataTables init - handled by test.php');
     }
     
     // Initialize any other table with specific class
@@ -389,30 +388,45 @@ function initializeUserTable() {
 }
 
 function initializeTestTable() {
-    APP_LOG('Initializing Test Table...');
-    destroyTableIfExists('testsTable');
+    APP_LOG('Test table initialization called - but test.php handles its own table');
     
+    // Check if we're on test.php page and skip initialization to prevent conflicts
     try {
-        // Guard: ensure testsTable element exists and is a table with headers
-        var $testsEl = $('#testsTable');
-        // Diagnostic logging to help trace stray table initializations
-        try {
-            console.debug('[table-manager] initializeTestTable called. #testsTable length:', $testsEl.length, 'isTable:', $testsEl.is('table'));
-            if ($testsEl.length) {
-                console.debug('[table-manager] #testsTable thead th count:', $testsEl.find('thead tr').first().find('th').length);
-                var outer = $testsEl.prop('outerHTML');
-                if (outer && outer.length > 1000) outer = outer.substr(0,1000) + '...';
-                console.debug('[table-manager] #testsTable snippet:', outer);
-            }
-        } catch(diagErr) { console.warn('[table-manager] diagnostic logging failed', diagErr); }
-        if (!$testsEl.length || !$testsEl.is('table')) {
-            APP_LOG('No #testsTable element found, skipping test table initialization');
+        var path = window.location && window.location.pathname ? window.location.pathname : '';
+        if (/\/test\.php$/i.test(path)) {
+            APP_LOG('Skipping DataTables initialization on test.php - page uses custom table management');
             return;
         }
+    } catch(e) {
+        APP_LOG('Path detection failed, proceeding with caution');
+    }
+    
+    // For other pages, try to initialize with correct selector
+    destroyTableIfExists('testManagementTable');
+    
+    try {
+        // Guard: ensure table element exists and is a table with headers
+        var $testsEl = $('#testManagementTable');
+        
+        // Diagnostic logging
+        try {
+            console.debug('[table-manager] initializeTestTable called. #testManagementTable length:', $testsEl.length, 'isTable:', $testsEl.is('table'));
+            if ($testsEl.length) {
+                console.debug('[table-manager] #testManagementTable thead th count:', $testsEl.find('thead tr').first().find('th').length);
+            }
+        } catch(diagErr) { 
+            console.warn('[table-manager] diagnostic logging failed', diagErr); 
+        }
+        
+        if (!$testsEl.length || !$testsEl.is('table')) {
+            APP_LOG('No #testManagementTable element found, skipping test table initialization');
+            return;
+        }
+        
         // Ensure there's a thead with at least one th (DataTables requires headers)
         var $ths = $testsEl.find('thead tr').first().find('th');
         if (!$ths.length) {
-            APP_LOG('Skipping testsTable init: no <th> found in thead for #testsTable');
+            APP_LOG('Skipping testManagementTable init: no <th> found in thead');
             return;
         }
         const config = $.extend(true, {}, getCommonTableConfig(), {
@@ -516,12 +530,12 @@ function initializeTestTable() {
         });
         
         try {
-            $('#testsTable').DataTable(config);
-            markTableAsInitialized('testsTable');
+            $('#testManagementTable').DataTable(config);
+            markTableAsInitialized('testManagementTable');
             showToast('success', 'Test table loaded successfully');
         } catch (dtError) {
-            console.error('DataTable initialization failed for #testsTable:', dtError);
-            APP_LOG('Failed to initialize #testsTable, skipping.');
+            console.error('DataTable initialization failed for #testManagementTable:', dtError);
+            APP_LOG('Failed to initialize #testManagementTable, skipping.');
         }
         
     } catch (error) {
