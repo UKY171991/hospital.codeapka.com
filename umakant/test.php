@@ -837,6 +837,58 @@ function loadTestCategoriesByMain(mainCategoryId) {
     });
 }
 
+// Load main categories for edit (with callback to set selected values)
+function loadMainCategoriesForEdit(selectedMainCategoryId, selectedCategoryId) {
+    console.log('Loading main categories for edit - main:', selectedMainCategoryId, 'category:', selectedCategoryId);
+    
+    $.ajax({
+        url: 'ajax/main_test_category_api.php',
+        type: 'GET',
+        data: { action: 'list' },
+        dataType: 'json',
+        timeout: 10000,
+        success: function(response) {
+            console.log('Main categories for edit response:', response);
+            
+            if (response && response.success && Array.isArray(response.data)) {
+                let modalOptions = '<option value="">Select Main Category</option>';
+                let mainCategoryFound = false;
+                
+                response.data.forEach(category => {
+                    if (category && category.id && category.name) {
+                        const isSelected = selectedMainCategoryId && category.id == selectedMainCategoryId;
+                        modalOptions += `<option value="${category.id}"${isSelected ? ' selected' : ''}>${escapeHtml(category.name)}</option>`;
+                        if (isSelected) {
+                            mainCategoryFound = true;
+                        }
+                    }
+                });
+                
+                $('#mainCategorySelect').html(modalOptions);
+                
+                // If we have a selected main category ID but didn't find it, try setting it anyway
+                if (selectedMainCategoryId && !mainCategoryFound) {
+                    $('#mainCategorySelect').val(selectedMainCategoryId);
+                }
+                
+                console.log('Main categories loaded for edit, found:', mainCategoryFound);
+                
+                // Now load test categories if we have a main category
+                if (selectedMainCategoryId) {
+                    loadTestCategoriesByMainForEdit(selectedMainCategoryId, selectedCategoryId);
+                }
+            } else {
+                console.warn('Invalid main categories response:', response);
+                $('#mainCategorySelect').html('<option value="">Error loading categories</option>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to load main categories for edit:', {xhr, status, error});
+            $('#mainCategorySelect').html('<option value="">Error loading categories</option>');
+        }
+    });
+}
+
 // Load test categories by main category for edit (with callback to set selected value)
 function loadTestCategoriesByMainForEdit(mainCategoryId, selectedCategoryId) {
     console.log('Loading test categories for edit - main category:', mainCategoryId, 'selected:', selectedCategoryId);
@@ -966,6 +1018,16 @@ function editTest(id) {
         success: function(response) {
             console.log('Edit test response:', response);
             
+            // Debug: Log the specific category data
+            if (response && response.data) {
+                console.log('Category data from API:', {
+                    main_category_id: response.data.main_category_id,
+                    main_category_name: response.data.main_category_name,
+                    category_id: response.data.category_id,
+                    category_name: response.data.category_name
+                });
+            }
+            
             try {
                 if (response && response.success && response.data) {
                     const test = response.data;
@@ -982,14 +1044,45 @@ function editTest(id) {
                     
                     // Set main category and load test categories
                     if (test.main_category_id) {
-                        // Set main category first
-                        $('#mainCategorySelect').val(test.main_category_id);
+                        console.log('Attempting to set main category to:', test.main_category_id);
                         
-                        // Trigger change event to ensure any listeners are notified
-                        $('#mainCategorySelect').trigger('change');
+                        // Function to set categories after ensuring they're loaded
+                        const setCategoriesWhenReady = function() {
+                            // Debug: Check if main categories are loaded
+                            console.log('Main category options available:', $('#mainCategorySelect option').length);
+                            
+                            // Check if we have more than just the default option
+                            if ($('#mainCategorySelect option').length <= 1) {
+                                console.log('Main categories not loaded yet, loading them first');
+                                loadMainCategoriesForEdit(test.main_category_id, test.category_id);
+                                return;
+                            }
+                            
+                            // Check if the option exists
+                            const mainCategoryOption = $('#mainCategorySelect option[value="' + test.main_category_id + '"]');
+                            if (mainCategoryOption.length > 0) {
+                                console.log('Main category option found, setting value');
+                                $('#mainCategorySelect').val(test.main_category_id);
+                                
+                                // Trigger change event to ensure any listeners are notified
+                                $('#mainCategorySelect').trigger('change');
+                                
+                                // Load test categories and then set the selected category
+                                loadTestCategoriesByMainForEdit(test.main_category_id, test.category_id);
+                            } else {
+                                console.warn('Main category option not found for ID:', test.main_category_id);
+                                console.log('Available options:');
+                                $('#mainCategorySelect option').each(function() {
+                                    console.log('  Option:', $(this).val(), $(this).text());
+                                });
+                                // Try to reload main categories and then set the value
+                                loadMainCategoriesForEdit(test.main_category_id, test.category_id);
+                            }
+                        };
                         
-                        // Load test categories and then set the selected category
-                        loadTestCategoriesByMainForEdit(test.main_category_id, test.category_id);
+                        // Try immediately, then with a small delay if needed
+                        setCategoriesWhenReady();
+                        
                     } else {
                         $('#mainCategorySelect').val('');
                         $('#testCategoryId').html('<option value="">Select Test Category</option>');
@@ -1039,8 +1132,17 @@ function editTest(id) {
                         
                         // Re-set values if they didn't stick
                         if (test.main_category_id && $('#mainCategorySelect').val() != test.main_category_id) {
-                            console.log('Re-setting main category');
+                            console.log('Re-setting main category - current options:');
+                            $('#mainCategorySelect option').each(function() {
+                                console.log('  Option:', $(this).val(), $(this).text());
+                            });
                             $('#mainCategorySelect').val(test.main_category_id);
+                            
+                            // If still not set, force reload categories
+                            if ($('#mainCategorySelect').val() != test.main_category_id) {
+                                console.log('Main category still not set, reloading categories');
+                                loadMainCategoriesForEdit(test.main_category_id, test.category_id);
+                            }
                         }
                         
                         if (test.sub_heading !== null && $('#testSubHeading').val() != String(test.sub_heading)) {
