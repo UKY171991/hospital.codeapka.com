@@ -814,7 +814,7 @@ function initializeDataTable() {
         toastr.error('Error initializing data table: ' + error.message);
         
         // Fallback: show a simple message in the table
-        $('#testsTable tbody').html('<tr><td colspan="9" class="text-center text-warning py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading table. Please refresh the page.</td></tr>');
+        $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-warning py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading table. Please refresh the page.</td></tr>');
     }
 }
 
@@ -1086,11 +1086,12 @@ function editTest(id) {
                 // Set main category first, then load test categories
                 if (test.main_category_id) {
                     $('#mainCategorySelect').val(test.main_category_id);
-                    // Load test categories for this main category
-                    loadTestCategoriesByMain(test.main_category_id, function() {
-                        // After categories are loaded, set the test category
+                    // Trigger change event to load test categories
+                    $('#mainCategorySelect').trigger('change');
+                    // Wait a bit for categories to load, then set test category
+                    setTimeout(function() {
                         $('#testCategoryId').val(test.category_id);
-                    });
+                    }, 500);
                 } else {
                     $('#testCategoryId').val(test.category_id);
                 }
@@ -1443,6 +1444,34 @@ code {
     border-top: 1px solid #dee2e6;
 }
 
+#viewTestModal .modal-dialog {
+    max-width: 900px;
+}
+
+#viewTestModal .card {
+    border: 1px solid #dee2e6;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+#viewTestModal .card-header {
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+#viewTestModal .table td {
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+#viewTestModal .table tr:last-child td {
+    border-bottom: none;
+}
+
+#viewTestModal .badge {
+    font-size: 0.75em;
+}
+
 /* Responsive improvements */
 @media (max-width: 768px) {
     #testsTable {
@@ -1525,31 +1554,43 @@ function loadTests(){
         if(resp && resp.success && Array.isArray(resp.data)){
             var t=''; 
             if(resp.data.length === 0) {
-                t = '<tr><td colspan="10" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
+                t = '<tr><td colspan="6" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
             } else {
-                resp.data.forEach(function(x, idx){ t += '<tr>'+
-                            '<td><input type="checkbox" class="test-checkbox" value="'+x.id+'"></td>'+
-                            '<td>'+x.id+'</td>'+
-                            '<td>'+ (x.name||'') +'</td>'+
-                            '<td>'+ (x.main_category_name||'') +'</td>'+
-                            '<td>'+ (x.category_name||'') +'</td>'+
-                            '<td>'+ (x.price||'') +'</td>'+
-                            '<td>'+ (x.gender||'') +'</td>'+
-                            '<td>'+ (x.range||'') +'</td>'+
-                            '<td>'+ (x.unit||'') +'</td>'+
-                            '<td><button class="btn btn-sm btn-info view-test" data-id="'+x.id+'" onclick="viewTest('+x.id+')">View</button> '+
-                                '<button class="btn btn-sm btn-warning edit-test" data-id="'+x.id+'">Edit</button> '+
-                                '<button class="btn btn-sm btn-danger delete-test" data-id="'+x.id+'">Delete</button></td>'+
-                        '</tr>'; });
+                resp.data.forEach(function(x, idx){ 
+                    var categoryHtml = '';
+                    if (x.main_category_name) {
+                        categoryHtml += '<span class="badge badge-secondary badge-sm">' + (x.main_category_name||'') + '</span><br>';
+                    }
+                    if (x.category_name) {
+                        categoryHtml += '<span class="badge badge-info">' + (x.category_name||'') + '</span>';
+                    } else {
+                        categoryHtml += '<span class="text-muted">No Category</span>';
+                    }
+                    
+                    t += '<tr>'+
+                        '<td><input type="checkbox" class="test-checkbox" value="'+x.id+'"></td>'+
+                        '<td class="text-center">'+x.id+'</td>'+
+                        '<td><strong class="text-primary">'+ (x.name||'') +'</strong></td>'+
+                        '<td>'+ categoryHtml +'</td>'+
+                        '<td class="text-right"><strong class="text-success">₹'+ (x.price||'0') +'</strong></td>'+
+                        '<td class="text-center">'+
+                            '<div class="btn-group btn-group-sm">'+
+                                '<button class="btn btn-outline-info btn-sm" onclick="viewTest('+x.id+')" title="View"><i class="fas fa-eye"></i></button> '+
+                                '<button class="btn btn-outline-warning btn-sm" onclick="editTest('+x.id+')" title="Edit"><i class="fas fa-edit"></i></button> '+
+                                '<button class="btn btn-outline-danger btn-sm" onclick="deleteTest('+x.id+', \''+(x.name||'').replace(/'/g, '\\\'')+'\')" title="Delete"><i class="fas fa-trash"></i></button>'+
+                            '</div>'+
+                        '</td>'+
+                    '</tr>'; 
+                });
             }
 
             $('#testsTable tbody').html(t);
         } else {
-            $('#testsTable tbody').html('<tr><td colspan="10" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load tests</td></tr>');
+            $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load tests</td></tr>');
             toastr.error('Failed to load tests');
         }
     },'json').fail(function(xhr){ 
-        $('#testsTable tbody').html('<tr><td colspan="10" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading tests</td></tr>');
+        $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading tests</td></tr>');
         var msg = xhr.responseText || 'Server error'; 
         try{ var j=JSON.parse(xhr.responseText||'{}'); if(j.message) msg=j.message;}catch(e){} 
         toastr.error(msg); 
@@ -1636,57 +1677,74 @@ window.viewTest = function(id){
             if(resp.success){
                 var d = resp.data || {};
                 var html = '';
-                html += '<div class="container-fluid">';
+                html += '<div class="container-fluid p-0">';
+                
+                // Test Header
+                html += '<div class="row mb-3">';
+                html += '<div class="col-12">';
+                html += '  <h4 class="mb-1 text-primary">' + escapeHtml(d.name || '') + ' <small class="text-muted">#' + escapeHtml(d.id || '') + '</small></h4>';
+                if(d.description) html += '<p class="text-muted mb-0">' + escapeHtml(d.description) + '</p>';
+                html += '</div>';
+                html += '</div>';
+                
+                // Main Information Cards
                 html += '<div class="row">';
                 
-                // Left column: main info
-                html += '<div class="col-md-6">';
-                html += '  <h4 class="mb-3 text-primary">' + escapeHtml(d.name || '') + ' <small class="text-muted">#' + escapeHtml(d.id || '') + '</small></h4>';
-                if(d.description) html += '<p class="text-muted mb-3">' + escapeHtml(d.description) + '</p>';
-                
-                html += '  <div class="card border-0 bg-light">';
-                html += '    <div class="card-body p-3">';
-                html += '      <h6 class="card-title mb-3"><i class="fas fa-info-circle mr-2"></i>Test Information</h6>';
-                html += '      <div class="row">';
-                html += '        <div class="col-sm-6 mb-2"><strong>Main Category:</strong><br><span class="badge badge-secondary">' + escapeHtml(d.main_category_name||'N/A') + '</span></div>';
-                html += '        <div class="col-sm-6 mb-2"><strong>Test Category:</strong><br><span class="badge badge-info">' + escapeHtml(d.category_name||'N/A') + '</span></div>';
-                html += '        <div class="col-sm-6 mb-2"><strong>Price:</strong><br><span class="text-success font-weight-bold">₹' + escapeHtml(d.price||'0') + '</span></div>';
-                html += '        <div class="col-sm-6 mb-2"><strong>Unit:</strong><br><code>' + escapeHtml(d.unit||'N/A') + '</code></div>';
-                html += '        <div class="col-sm-6 mb-2"><strong>Method:</strong><br>' + escapeHtml(d.method||'N/A') + '</div>';
-                html += '        <div class="col-sm-6 mb-2"><strong>Test Code:</strong><br><code>' + escapeHtml(d.test_code||'N/A') + '</code></div>';
-                html += '      </div>';
+                // Left column: Test Information
+                html += '<div class="col-md-6 mb-3">';
+                html += '  <div class="card h-100">';
+                html += '    <div class="card-header bg-primary text-white py-2">';
+                html += '      <h6 class="mb-0"><i class="fas fa-info-circle mr-2"></i>Test Information</h6>';
+                html += '    </div>';
+                html += '    <div class="card-body">';
+                html += '      <table class="table table-sm table-borderless mb-0">';
+                html += '        <tr><td class="font-weight-bold" width="40%">Main Category:</td><td><span class="badge badge-secondary">' + escapeHtml(d.main_category_name||'N/A') + '</span></td></tr>';
+                html += '        <tr><td class="font-weight-bold">Test Category:</td><td><span class="badge badge-info">' + escapeHtml(d.category_name||'N/A') + '</span></td></tr>';
+                html += '        <tr><td class="font-weight-bold">Price:</td><td><span class="text-success font-weight-bold">₹' + escapeHtml(d.price||'0') + '</span></td></tr>';
+                html += '        <tr><td class="font-weight-bold">Unit:</td><td><code>' + escapeHtml(d.unit||'N/A') + '</code></td></tr>';
+                html += '        <tr><td class="font-weight-bold">Method:</td><td>' + escapeHtml(d.method||'N/A') + '</td></tr>';
+                html += '        <tr><td class="font-weight-bold">Test Code:</td><td><code>' + escapeHtml(d.test_code||'N/A') + '</code></td></tr>';
+                html += '      </table>';
                 html += '    </div>';
                 html += '  </div>';
-                html += '</div>'; // col-md-6
+                html += '</div>';
 
-                // Right column: metadata and settings
-                html += '<div class="col-md-6">';
-                html += '  <div class="card border-0 bg-light">';
-                html += '    <div class="card-body p-3">';
-                html += '      <h6 class="card-title mb-3"><i class="fas fa-cogs mr-2"></i>Settings & Metadata</h6>';
-                html += '      <div class="row">';
-                html += '        <div class="col-sm-6 mb-2"><strong>Sub Heading:</strong><br><span class="badge ' + (d.sub_heading ? 'badge-success">Yes' : 'badge-secondary">No') + '</span></div>';
-                html += '        <div class="col-sm-6 mb-2"><strong>Print New Page:</strong><br><span class="badge ' + (d.print_new_page ? 'badge-success">Yes' : 'badge-secondary">No') + '</span></div>';
-                html += '        <div class="col-sm-6 mb-2"><strong>Added By:</strong><br>' + escapeHtml(d.added_by_username||'N/A') + '</div>';
-                html += '        <div class="col-sm-6 mb-2"><strong>Test Code:</strong><br><code>' + escapeHtml(d.test_code||'N/A') + '</code></div>';
-                html += '      </div>';
+                // Right column: Settings & Metadata
+                html += '<div class="col-md-6 mb-3">';
+                html += '  <div class="card h-100">';
+                html += '    <div class="card-header bg-secondary text-white py-2">';
+                html += '      <h6 class="mb-0"><i class="fas fa-cogs mr-2"></i>Settings & Metadata</h6>';
+                html += '    </div>';
+                html += '    <div class="card-body">';
+                html += '      <table class="table table-sm table-borderless mb-0">';
+                html += '        <tr><td class="font-weight-bold" width="40%">Sub Heading:</td><td><span class="badge ' + (d.sub_heading ? 'badge-success">Yes' : 'badge-secondary">No') + '</span></td></tr>';
+                html += '        <tr><td class="font-weight-bold">Print New Page:</td><td><span class="badge ' + (d.print_new_page ? 'badge-success">Yes' : 'badge-secondary">No') + '</span></td></tr>';
+                html += '        <tr><td class="font-weight-bold">Added By:</td><td>' + escapeHtml(d.added_by_username||'N/A') + '</td></tr>';
+                html += '        <tr><td class="font-weight-bold">Created:</td><td>' + escapeHtml(d.created_at||'N/A') + '</td></tr>';
+                html += '        <tr><td class="font-weight-bold">Updated:</td><td>' + escapeHtml(d.updated_at||'N/A') + '</td></tr>';
+                html += '        <tr><td class="font-weight-bold">Status:</td><td><span class="badge badge-success">Active</span></td></tr>';
+                html += '      </table>';
                 html += '    </div>';
                 html += '  </div>';
-                html += '</div>'; // col-md-6
+                html += '</div>';
 
                 html += '</div>'; // row
 
-                // Gender Applicability
-                html += '<div class="row mt-3">';
+                // Gender Applicability & Reference Ranges
+                html += '<div class="row">';
                 html += '<div class="col-12">';
-                html += '  <h6 class="mb-3"><i class="fas fa-venus-mars mr-2"></i>Gender Applicability</h6>';
-                html += '  <div class="mb-3">';
+                html += '  <div class="card">';
+                html += '    <div class="card-header bg-success text-white py-2">';
+                html += '      <h6 class="mb-0"><i class="fas fa-venus-mars mr-2"></i>Gender Applicability</h6>';
+                html += '    </div>';
+                html += '    <div class="card-body py-2">';
                 let genders = [];
                 if (d.min_male !== null || d.max_male !== null) genders.push('<span class="badge badge-primary mr-1">Male</span>');
                 if (d.min_female !== null || d.max_female !== null) genders.push('<span class="badge badge-danger mr-1">Female</span>');
                 if (d.min_child !== null || d.max_child !== null) genders.push('<span class="badge badge-warning mr-1">Child</span>');
                 if (!genders.length && (d.min !== null || d.max !== null)) genders.push('<span class="badge badge-success mr-1">All</span>');
                 html += genders.length > 0 ? genders.join('') : '<span class="text-muted">No specific gender requirements</span>';
+                html += '    </div>';
                 html += '  </div>';
                 html += '</div>';
                 html += '</div>';
@@ -1694,52 +1752,73 @@ window.viewTest = function(id){
                 // Reference Ranges
                 html += '<div class="row mt-3">';
                 html += '<div class="col-12">';
-                html += '  <h6 class="mb-3"><i class="fas fa-chart-line mr-2"></i>Reference Ranges</h6>';
-                html += '  <div class="table-responsive">';
-                html += '  <table class="table table-sm table-bordered">';
-                html += '    <thead class="thead-light">';
-                html += '      <tr><th>Scope</th><th>Min Value</th><th>Max Value</th><th>Unit</th><th>Range Display</th></tr>';
-                html += '    </thead>';
-                html += '    <tbody>';
+                html += '  <div class="card">';
+                html += '    <div class="card-header bg-info text-white py-2">';
+                html += '      <h6 class="mb-0"><i class="fas fa-chart-line mr-2"></i>Reference Ranges</h6>';
+                html += '    </div>';
+                html += '    <div class="card-body p-0">';
+                html += '      <div class="table-responsive">';
+                html += '      <table class="table table-sm table-hover mb-0">';
+                html += '        <thead class="thead-light">';
+                html += '          <tr><th>Scope</th><th>Min Value</th><th>Max Value</th><th>Unit</th><th>Range Display</th></tr>';
+                html += '        </thead>';
+                html += '        <tbody>';
+                
+                var hasRanges = false;
                 
                 // General range
                 if (d.min !== null || d.max !== null) {
-                    html += '      <tr><td><strong>General</strong></td><td>' + escapeHtml(d.min||'-') + '</td><td>' + escapeHtml(d.max||'-') + '</td><td>' + escapeHtml(d.unit||'-') + '</td><td>' + escapeHtml((d.min||'') + ' - ' + (d.max||'')) + '</td></tr>';
+                    html += '          <tr><td><strong>General</strong></td><td>' + escapeHtml(d.min||'-') + '</td><td>' + escapeHtml(d.max||'-') + '</td><td>' + escapeHtml(d.unit||'-') + '</td><td><span class="badge badge-light">' + escapeHtml((d.min||'') + ' - ' + (d.max||'')) + '</span></td></tr>';
+                    hasRanges = true;
                 }
                 
                 // Male range
                 if (d.min_male !== null || d.max_male !== null) {
-                    html += '      <tr><td><strong class="text-primary">Male</strong></td><td>' + escapeHtml(d.min_male||'-') + '</td><td>' + escapeHtml(d.max_male||'-') + '</td><td>' + escapeHtml(d.male_unit||d.unit||'-') + '</td><td>M: ' + escapeHtml((d.min_male||'') + ' - ' + (d.max_male||'')) + '</td></tr>';
+                    html += '          <tr><td><strong class="text-primary"><i class="fas fa-mars mr-1"></i>Male</strong></td><td>' + escapeHtml(d.min_male||'-') + '</td><td>' + escapeHtml(d.max_male||'-') + '</td><td>' + escapeHtml(d.male_unit||d.unit||'-') + '</td><td><span class="badge badge-primary">M: ' + escapeHtml((d.min_male||'') + ' - ' + (d.max_male||'')) + '</span></td></tr>';
+                    hasRanges = true;
                 }
                 
                 // Female range
                 if (d.min_female !== null || d.max_female !== null) {
-                    html += '      <tr><td><strong class="text-danger">Female</strong></td><td>' + escapeHtml(d.min_female||'-') + '</td><td>' + escapeHtml(d.max_female||'-') + '</td><td>' + escapeHtml(d.female_unit||d.unit||'-') + '</td><td>F: ' + escapeHtml((d.min_female||'') + ' - ' + (d.max_female||'')) + '</td></tr>';
+                    html += '          <tr><td><strong class="text-danger"><i class="fas fa-venus mr-1"></i>Female</strong></td><td>' + escapeHtml(d.min_female||'-') + '</td><td>' + escapeHtml(d.max_female||'-') + '</td><td>' + escapeHtml(d.female_unit||d.unit||'-') + '</td><td><span class="badge badge-danger">F: ' + escapeHtml((d.min_female||'') + ' - ' + (d.max_female||'')) + '</span></td></tr>';
+                    hasRanges = true;
                 }
                 
                 // Child range
                 if (d.min_child !== null || d.max_child !== null) {
-                    html += '      <tr><td><strong class="text-warning">Child</strong></td><td>' + escapeHtml(d.min_child||'-') + '</td><td>' + escapeHtml(d.max_child||'-') + '</td><td>' + escapeHtml(d.child_unit||d.unit||'-') + '</td><td>C: ' + escapeHtml((d.min_child||'') + ' - ' + (d.max_child||'')) + '</td></tr>';
+                    html += '          <tr><td><strong class="text-warning"><i class="fas fa-child mr-1"></i>Child</strong></td><td>' + escapeHtml(d.min_child||'-') + '</td><td>' + escapeHtml(d.max_child||'-') + '</td><td>' + escapeHtml(d.child_unit||d.unit||'-') + '</td><td><span class="badge badge-warning">C: ' + escapeHtml((d.min_child||'') + ' - ' + (d.max_child||'')) + '</span></td></tr>';
+                    hasRanges = true;
                 }
                 
                 // If no ranges defined
-                if (!d.min && !d.max && !d.min_male && !d.max_male && !d.min_female && !d.max_female && !d.min_child && !d.max_child) {
-                    html += '      <tr><td colspan="5" class="text-center text-muted">No reference ranges defined</td></tr>';
+                if (!hasRanges) {
+                    html += '          <tr><td colspan="5" class="text-center text-muted py-3"><i class="fas fa-info-circle mr-2"></i>No reference ranges defined</td></tr>';
                 }
                 
-                html += '    </tbody>';
-                html += '  </table>';
+                html += '        </tbody>';
+                html += '      </table>';
+                html += '      </div>';
+                html += '    </div>';
                 html += '  </div>';
+                html += '</div>';
+                html += '</div>';
 
+                // Reference Notes (if available)
                 if(d.reference_range){ 
-                    html += '<div class="alert alert-info mt-3">';
-                    html += '  <h6 class="alert-heading"><i class="fas fa-info-circle mr-2"></i>Reference Notes</h6>';
-                    html += '  <p class="mb-0">' + escapeHtml(d.reference_range) + '</p>';
+                    html += '<div class="row mt-3">';
+                    html += '<div class="col-12">';
+                    html += '  <div class="card">';
+                    html += '    <div class="card-header bg-warning text-dark py-2">';
+                    html += '      <h6 class="mb-0"><i class="fas fa-sticky-note mr-2"></i>Reference Notes</h6>';
+                    html += '    </div>';
+                    html += '    <div class="card-body">';
+                    html += '      <p class="mb-0">' + escapeHtml(d.reference_range) + '</p>';
+                    html += '    </div>';
+                    html += '  </div>';
+                    html += '</div>';
                     html += '</div>';
                 }
 
-                html += '</div>'; // col-12
-                html += '</div>'; // row
                 html += '</div>'; // container-fluid
 
                 $('#viewTestBody').html(html);
