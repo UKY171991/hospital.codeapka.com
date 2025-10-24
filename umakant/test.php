@@ -19,7 +19,7 @@ require_once 'inc/sidebar.php';
                     </ol>
                 </div>
             </div>
-        </div><!-- /.container-fluid -->
+        </div>
     </section>
 
     <!-- Main content -->
@@ -82,65 +82,24 @@ require_once 'inc/sidebar.php';
                                 Laboratory Tests
                             </h3>
                             <div class="card-tools">
-                                <!-- Group Action Buttons -->
-                                <div class="btn-group mr-2">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAllTests()">
-                                        <i class="fas fa-check-square"></i> Select All
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="deselectAllTests()">
-                                        <i class="fas fa-square"></i> Deselect All
-                                    </button>
-                                </div>
-                                <div class="btn-group mr-2">
-                                    <button type="button" class="btn btn-success btn-sm" onclick="exportTests()">
-                                        <i class="fas fa-download"></i> Export
-                                    </button>
-                                    <button type="button" class="btn btn-info btn-sm" onclick="refreshTests()">
-                                        <i class="fas fa-sync-alt"></i> Refresh
-                                    </button>
-                                </div>
-                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#testModal" onclick="openAddTestModal()">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="openAddTestModal()">
                                     <i class="fas fa-plus"></i> Add New Test
                                 </button>
-                                <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#categoryModal" onclick="openAddCategoryModal()">
-                                    <i class="fas fa-tags"></i> Manage Categories
-                                </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="maximize">
-                                    <i class="fas fa-expand"></i>
+                                <button type="button" class="btn btn-info btn-sm" onclick="refreshTests()">
+                                    <i class="fas fa-sync-alt"></i> Refresh
                                 </button>
                             </div>
                         </div>
-                        <!-- /.card-header -->
+                        
                         <div class="card-body">
-                            <!-- Bulk Actions Alert -->
-                            <div class="alert alert-info bulk-actions" style="display: none;">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span>
-                                        <i class="fas fa-info-circle mr-2"></i>
-                                        <span class="selected-count">0</span> tests selected
-                                    </span>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkExportTests()">
-                                            <i class="fas fa-download"></i> Export Selected
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="bulkDeleteTests()">
-                                            <i class="fas fa-trash"></i> Delete Selected
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Enhanced Filters -->
+                            <!-- Filters -->
                             <div class="card mb-3">
                                 <div class="card-header">
                                     <h6 class="mb-0">
                                         <i class="fas fa-filter mr-2"></i>
-                                        Advanced Filters
+                                        Filters
                                         <button class="btn btn-sm btn-outline-secondary float-right" onclick="clearFilters()">
-                                            <i class="fas fa-times"></i> Clear All
+                                            <i class="fas fa-times"></i> Clear
                                         </button>
                                     </h6>
                                 </div>
@@ -156,21 +115,15 @@ require_once 'inc/sidebar.php';
                                             <label class="form-label">Max Price (₹)</label>
                                             <input type="number" id="priceFilter" class="form-control" placeholder="Max Price">
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-5">
                                             <label class="form-label">Quick Search</label>
                                             <input type="text" id="quickSearch" class="form-control" placeholder="Search tests...">
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label">&nbsp;</label>
-                                            <button class="btn btn-outline-secondary btn-block" onclick="clearFilters()">
-                                                <i class="fas fa-times"></i> Clear
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Tests DataTable -->
+                            <!-- Tests Table -->
                             <div class="table-responsive">
                                 <table id="testsTable" class="table table-striped table-bordered table-hover">
                                     <thead class="thead-dark">
@@ -184,37 +137,33 @@ require_once 'inc/sidebar.php';
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Data will be populated by DataTables AJAX -->
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4">
+                                                <i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                        <!-- /.card-body -->
                     </div>
-                    <!-- /.card -->
                 </div>
-                <!-- /.col -->
             </div>
-            <!-- /.row -->
         </div>
-        <!-- /.container-fluid -->
     </section>
-    <!-- /.content -->
 </div>
-<!-- /.content-wrapper -->
-
 
 <!-- Test Modal -->
-<div class="modal fade" id="testModal" tabindex="-1" role="dialog" aria-labelledby="testModalLabel" aria-hidden="true" style="z-index: 9999;">
-    <div class="modal-dialog modal-xl" role="document" style="max-width: 90%; margin: 20px auto;">
-        <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+<div class="modal fade" id="testModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="testModalLabel">
                     <i class="fas fa-vial mr-2"></i>
                     <span id="modalTitle">Add New Test</span>
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
                 </button>
             </div>
             <form id="testForm">
@@ -285,7 +234,7 @@ require_once 'inc/sidebar.php';
                         </div>
                     </div>
 
-                    <!-- Gender-specific ranges -->
+                    <!-- Reference Ranges -->
                     <div class="card mt-3">
                         <div class="card-header">
                             <h6 class="mb-0">
@@ -401,8 +350,7 @@ require_once 'inc/sidebar.php';
                             <i class="fas fa-clipboard-list mr-1"></i>
                             Reference Range Note
                         </label>
-                        <textarea class="form-control" id="testReferenceRange" name="reference_range" rows="2" placeholder="e.g., Normal range: 70-100 mg/dL, Critical values: <50 or >200 mg/dL"></textarea>
-                        <small class="form-text text-muted">Additional notes or description about the reference ranges</small>
+                        <textarea class="form-control" id="testReferenceRange" name="reference_range" rows="2"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -418,52 +366,8 @@ require_once 'inc/sidebar.php';
     </div>
 </div>
 
-<!-- Category Modal -->
-<div class="modal fade" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="categoryModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title" id="categoryModalLabel">
-                    <i class="fas fa-tags mr-2"></i>
-                    Test Categories
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="row mb-3">
-                    <div class="col-md-8">
-                        <input type="text" class="form-control" id="newCategoryName" placeholder="Enter category name">
-                    </div>
-                    <div class="col-md-4">
-                        <button class="btn btn-success btn-block" onclick="addCategory()">
-                            <i class="fas fa-plus"></i> Add Category
-                        </button>
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table id="categoriesTable" class="table table-bordered table-sm">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Tests Count</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="categoriesTableBody">
-                            <!-- Categories will be loaded here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- View Test Modal -->
-<div class="modal fade" id="viewTestModal" tabindex="-1" role="dialog" aria-labelledby="viewTestModalLabel" aria-hidden="true">
+<div class="modal fade" id="viewTestModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
@@ -471,8 +375,8 @@ require_once 'inc/sidebar.php';
                     <i class="fas fa-eye mr-2"></i>
                     Test Details
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
                 </button>
             </div>
             <div class="modal-body" id="viewTestBody">
@@ -489,62 +393,117 @@ require_once 'inc/sidebar.php';
         </div>
     </div>
 </div>
+
 <script>
+// Constants
 const TEST_CATEGORY_API = 'patho_api/test_category.php?action=';
 const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
-const CACHE_BUSTER = Date.now(); // Prevent caching issues
 
 // Global variables
 let testsTable;
-let categoriesTable;
-
-// Debug function
-function debugTableState() {
-    console.log('=== TABLE DEBUG INFO ===');
-    console.log('testsTable exists:', !!testsTable);
-    console.log('DataTable initialized:', $.fn.dataTable.isDataTable('#testsTable'));
-    console.log('Table HTML:', $('#testsTable').length);
-    console.log('Table rows:', $('#testsTable tbody tr').length);
-    console.log('========================');
-}
-
-// Simple DataTable initialization function - DEPRECATED
-// Use initializeDataTable() instead
+let testsData = [];
 
 // Initialize page
 $(document).ready(function() {
     console.log('Initializing Test Management page...');
     
-    // Clear any cached DataTable instances
-    if ($.fn.DataTable) {
-        $.fn.dataTable.ext.errMode = 'none'; // Suppress DataTable errors
-    }
-    
     try {
-        // Small delay to ensure DOM is fully ready
-        setTimeout(function() {
-            initializeDataTable();
-            loadCategories();
-            loadStats();
-            initializeEventListeners();
-            
-            // Additional initialization
-            loadCategoriesForTests();
-            
-            // Event handlers
-            setupEventHandlers();
-            
-            console.log('Test Management page initialized successfully');
-        }, 100);
+        loadCategories();
+        loadStats();
+        initializeTable();
+        setupEventHandlers();
         
+        console.log('Test Management page initialized successfully');
     } catch (error) {
         console.error('Error initializing Test Management page:', error);
         toastr.error('Error initializing page: ' + error.message);
-        // Fallback to manual loading
-        setTimeout(loadTestsManually, 1000);
     }
 });
 
+// Initialize simple table without DataTables
+function initializeTable() {
+    loadTests();
+}
+
+// Load tests data
+function loadTests() {
+    console.log('Loading tests...');
+    
+    $.ajax({
+        url: 'ajax/test_api.php?action=list',
+        type: 'GET',
+        dataType: 'json',
+        timeout: 10000,
+        success: function(response) {
+            console.log('Tests loaded successfully:', response);
+            
+            if (response && response.success && Array.isArray(response.data)) {
+                testsData = response.data;
+                renderTable(testsData);
+                toastr.success('Tests loaded successfully');
+            } else {
+                console.error('Invalid response:', response);
+                showTableError('Invalid data received from server');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to load tests:', {xhr, status, error});
+            showTableError('Failed to load test data. Please check your connection and try again.');
+        }
+    });
+}
+
+// Render table with data
+function renderTable(data) {
+    let html = '';
+    
+    if (!data || data.length === 0) {
+        html = '<tr><td colspan="6" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
+    } else {
+        data.forEach(function(test) {
+            let categoryHtml = '';
+            if (test.main_category_name) {
+                categoryHtml += `<span class="badge badge-secondary badge-sm">${test.main_category_name}</span><br>`;
+            }
+            if (test.category_name) {
+                categoryHtml += `<span class="badge badge-info">${test.category_name}</span>`;
+            } else {
+                categoryHtml += '<span class="text-muted">No Category</span>';
+            }
+            
+            html += `
+                <tr>
+                    <td class="text-center"><input type="checkbox" class="test-checkbox" value="${test.id}"></td>
+                    <td class="text-center">${test.id}</td>
+                    <td>
+                        <strong class="text-primary">${test.name || 'N/A'}</strong>
+                        ${test.description ? `<br><small class="text-muted">${test.description.substring(0, 50)}${test.description.length > 50 ? '...' : ''}</small>` : ''}
+                    </td>
+                    <td>${categoryHtml}</td>
+                    <td class="text-right"><strong class="text-success">₹${test.price || '0'}</strong></td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-info btn-sm" onclick="viewTest(${test.id})" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-warning btn-sm" onclick="editTest(${test.id})" title="Edit Test">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteTest(${test.id}, '${(test.name || '').replace(/'/g, '\\\'')}')" title="Delete Test">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+    
+    $('#testsTable tbody').html(html);
+    setupCheckboxEvents();
+}
+
+// Setup event handlers
 function setupEventHandlers() {
     // Form submission
     $('#testForm').on('submit', function(e) {
@@ -552,365 +511,36 @@ function setupEventHandlers() {
         saveTestData();
     });
     
-    // Save button click (backup handler)
-    $('#saveTestBtn').off('click').on('click', function(e) {
-        e.preventDefault();
-        saveTestData();
-    });
-    
-    // Delegated edit handler
-    $(document).on('click', '.edit-test', function(){
-        try{
-            var id = $(this).data('id');
-            editTest(id);
-        } catch(err) { 
-            console.error('edit-test handler error', err); 
-            toastr.error('Error: '+(err.message||err)); 
-        }
-    });
-    
-    // Delegated delete handler
-    $(document).on('click', '.delete-test', function(){
-        try{
-            var id = $(this).data('id');
-            var name = $(this).closest('tr').find('td:nth-child(3)').text() || 'this test';
-            deleteTest(id, name);
-        } catch(err) { 
-            console.error('delete-test handler error', err); 
-            toastr.error('Error: '+(err.message||err)); 
-        }
-    });
-    
-    // Modal event handlers
-    $('#testModal').on('hidden.bs.modal', function(){
-        $('#testForm').find('input,textarea,select').prop('disabled', false);
-        $('#saveTestBtn').show();
-        $('#modalTitle').text('Add New Test');
-        // Clear any previous aria-hidden
-        $(this).removeAttr('aria-hidden');
-    });
-    
-    $('#testModal').on('show.bs.modal', function(){
-        // Remove aria-hidden when showing
-        $(this).removeAttr('aria-hidden');
-    });
-    
-    $('#testModal').on('shown.bs.modal', function(){
-        var $modal = $(this);
-        // Ensure aria-hidden is not set when modal is visible
-        $modal.removeAttr('aria-hidden');
-        
-        // Focus first input with a small delay
-        setTimeout(function(){
-            try{
-                var $input = $('#testName');
-                if ($input.length && $input.is(':visible')) {
-                    $input.trigger('focus');
-                }
-            }catch(e){
-                console.warn('Could not focus input:', e);
-            }
-        }, 100);
-    });
-    
-    // Checkbox handlers
-    $('#selectAllTests').on('change', function() {
-        $('.test-checkbox').prop('checked', this.checked);
-        updateBulkActions();
-    });
-    
-    $(document).on('change', '.test-checkbox', function() {
-        updateBulkActions();
-    });
-
-    // Main category selection handler
+    // Main category change
     $('#mainCategorySelect').on('change', function() {
         const mainCategoryId = $(this).val();
         loadTestCategoriesByMain(mainCategoryId);
     });
 
-    // Quick search handler
+    // Quick search
     $('#quickSearch').on('keyup', function() {
-        if (testsTable) {
-            testsTable.search($(this).val()).draw();
-        }
+        applyFilters();
     });
 
-    // Main category filter handler
-    $('#mainCategoryFilter').on('change', function() {
+    // Filter changes
+    $('#categoryFilter, #priceFilter').on('change keyup', function() {
         applyFilters();
     });
 }
 
-function initializeDataTable() {
-    try {
-        console.log('Initializing DataTable...');
-        
-        // Completely destroy and clear existing DataTable
-        if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
-            $('#testsTable').DataTable().clear().destroy();
-            $('#testsTable').empty();
-        }
-        
-        // Rebuild table structure completely
-        $('#testsTable').html(`
-            <thead class="thead-dark">
-                <tr>
-                    <th width="30"><input type="checkbox" id="selectAll"></th>
-                    <th width="50">ID</th>
-                    <th>Test Name</th>
-                    <th>Category</th>
-                    <th width="100">Price (₹)</th>
-                    <th width="120">Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        `);
-        
-        // Initialize fresh DataTable
-        testsTable = $('#testsTable').DataTable({
-            processing: true,
-            serverSide: false,
-            destroy: true,
-            deferRender: true,
-            ajax: {
-                url: 'ajax/test_api.php?action=list',
-                type: 'GET',
-                cache: false,
-                timeout: 10000, // 10 second timeout
-                dataSrc: function(json) {
-                    console.log('DataTable AJAX response:', json);
-                    try {
-                        if (json && json.success && Array.isArray(json.data)) {
-                            return json.data;
-                        } else {
-                            console.error('Invalid response format:', json);
-                            toastr.error('Invalid data format received');
-                            return [];
-                        }
-                    } catch (e) {
-                        console.error('Error processing response:', e);
-                        toastr.error('Error processing data');
-                        return [];
-                    }
-                },
-                error: function(xhr, error, thrown) {
-                    console.error('DataTable AJAX Error:', {
-                        status: xhr.status,
-                        statusText: xhr.statusText,
-                        error: error,
-                        thrown: thrown,
-                        responseText: xhr.responseText
-                    });
-                    
-                    let errorMsg = 'Failed to load tests data';
-                    if (xhr.status === 0) {
-                        errorMsg = 'Network connection error';
-                    } else if (xhr.status === 404) {
-                        errorMsg = 'API endpoint not found';
-                    } else if (xhr.status === 500) {
-                        errorMsg = 'Server error occurred';
-                    }
-                    
-                    toastr.error(errorMsg);
-                }
-            },
-        columns: [
-            {
-                data: null,
-                orderable: false,
-                className: 'text-center',
-                width: '30px',
-                render: function(data, type, row) {
-                    return `<input type="checkbox" class="test-checkbox" value="${row.id}">`;
-                }
-            },
-            { 
-                data: 'id',
-                width: '50px',
-                className: 'text-center'
-            },
-            { 
-                data: 'name',
-                render: function(data, type, row) {
-                    let html = `<div class="test-name-cell">`;
-                    html += `<strong class="text-primary">${data || 'N/A'}</strong>`;
-                    if (row.description) {
-                        html += `<br><small class="text-muted">${row.description.substring(0, 50)}${row.description.length > 50 ? '...' : ''}</small>`;
-                    }
-                    html += `</div>`;
-                    return html;
-                }
-            },
-            { 
-                data: 'category_name',
-                render: function(data, type, row) {
-                    let html = '';
-                    if (row.main_category_name) {
-                        html += `<span class="badge badge-secondary badge-sm">${row.main_category_name}</span><br>`;
-                    }
-                    if (data) {
-                        html += `<span class="badge badge-info">${data}</span>`;
-                    } else {
-                        html += '<span class="text-muted">No Category</span>';
-                    }
-                    return html;
-                }
-            },
-            { 
-                data: 'price',
-                className: 'text-right',
-                width: '100px',
-                render: function(data, type, row) {
-                    return data ? `<strong class="text-success">₹${parseFloat(data).toFixed(0)}</strong>` : '<span class="text-muted">-</span>';
-                }
-            },
-            {
-                data: 'id',
-                orderable: false,
-                className: 'text-center',
-                width: '120px',
-                render: function(data, type, row) {
-                    return `
-                        <div class="btn-group btn-group-sm" role="group">
-                            <button class="btn btn-outline-info btn-sm" onclick="viewTest(${data})" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-outline-warning btn-sm" onclick="editTest(${data})" title="Edit Test">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-outline-danger btn-sm" onclick="deleteTest(${data}, '${(row.name || '').replace(/'/g, '\\\'')}')" title="Delete Test">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    `;
-                }
-            }
-        ],
-        order: [[1, 'desc']],
-        pageLength: 25,
-        responsive: true,
-        dom: 'Bfrtip',
-        buttons: [
-            {
-                extend: 'copy',
-                className: 'btn btn-secondary btn-sm'
-            },
-            {
-                extend: 'csv',
-                className: 'btn btn-success btn-sm'
-            },
-            {
-                extend: 'excel',
-                className: 'btn btn-primary btn-sm'
-            },
-            {
-                extend: 'pdf',
-                className: 'btn btn-danger btn-sm'
-            },
-            {
-                extend: 'print',
-                className: 'btn btn-info btn-sm'
-            }
-        ],
-        language: {
-            processing: '<div class="text-center py-3"><i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...</div>',
-            emptyTable: '<div class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found. <a href="#" onclick="refreshTests()" class="btn btn-link btn-sm">Refresh</a></div>',
-            zeroRecords: '<div class="text-center py-4"><i class="fas fa-search text-muted mr-2"></i>No matching tests found. <a href="#" onclick="clearFilters()" class="btn btn-link btn-sm">Clear Filters</a></div>',
-            search: 'Search tests:',
-            lengthMenu: 'Show _MENU_ tests per page',
-            info: 'Showing _START_ to _END_ of _TOTAL_ tests',
-            infoEmpty: 'No tests available',
-            infoFiltered: '(filtered from _MAX_ total tests)',
-            loadingRecords: '<div class="text-center py-3"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</div>'
-        },
-        columnDefs: [
-            {
-                targets: [0, -1],
-                orderable: false
-            }
-        ]
-    });
-
-    // Custom filters
-    $('#categoryFilter, #genderFilter, #priceFilter').on('change keyup', function() {
-        applyFilters();
-    });
-    
-    // Checkbox events are now handled by initializeCheckboxEvents()
-
-    // After DataTable ajax completes, refresh the stat cards and reinitialize events
-    testsTable.on('xhr.dt', function(e, settings, json, xhr){
-        try{ 
-            if(typeof loadStats === 'function') loadStats(); 
-            // Reinitialize checkbox events after table reload
-            setTimeout(function() {
-                initializeCheckboxEvents();
-            }, 100);
-        }catch(e){}
-    });
-
-    // Handle draw event to ensure proper rendering
-    testsTable.on('draw.dt', function() {
-        initializeCheckboxEvents();
-        // Hide any lingering processing indicators
-        $('.dataTables_processing').hide();
-    });
-    
-    // Handle processing state
-    testsTable.on('processing.dt', function(e, settings, processing) {
-        if (processing) {
-            console.log('DataTable processing started');
-        } else {
-            console.log('DataTable processing completed');
-            // Ensure processing indicator is hidden
-            setTimeout(function() {
-                $('.dataTables_processing').hide();
-            }, 100);
-        }
-    });
-
-    // Initialize checkbox events
-    initializeCheckboxEvents();
-
-    console.log('DataTable initialized successfully');
-    
-    // Fallback: if DataTable fails to load after 3 seconds, try manual load
-    setTimeout(function() {
-        try {
-            if (testsTable && testsTable.data().count() === 0) {
-                console.log('DataTable appears empty, trying fallback load...');
-                loadTestsManually();
-            }
-        } catch (e) {
-            console.log('DataTable check failed, trying fallback load...');
-            loadTestsManually();
-        }
-    }, 3000);
-    
-    } catch (error) {
-        console.error('Error initializing DataTable:', error);
-        toastr.error('Error initializing data table: ' + error.message);
-        
-        // Fallback: show a simple message in the table
-        $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-warning py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading table. Please refresh the page.</td></tr>');
-    }
-}
-
-function initializeCheckboxEvents() {
-    // Remove existing event handlers to avoid duplicates
+// Setup checkbox events
+function setupCheckboxEvents() {
+    // Remove existing handlers
     $('#selectAll').off('change.testTable');
     $(document).off('change.testTable', '.test-checkbox');
     
-    // Checkbox selection handlers
+    // Select all handler
     $('#selectAll').on('change.testTable', function() {
         $('.test-checkbox').prop('checked', $(this).is(':checked'));
-        updateBulkActions();
     });
     
+    // Individual checkbox handler
     $(document).on('change.testTable', '.test-checkbox', function() {
-        updateBulkActions();
-        // Update select all checkbox state
         const totalCheckboxes = $('.test-checkbox').length;
         const checkedCheckboxes = $('.test-checkbox:checked').length;
         
@@ -924,122 +554,48 @@ function initializeCheckboxEvents() {
     });
 }
 
+// Apply filters
 function applyFilters() {
-    if (!testsTable) return;
+    const categoryFilter = $('#categoryFilter').val().toLowerCase();
+    const priceFilter = parseFloat($('#priceFilter').val()) || 0;
+    const searchFilter = $('#quickSearch').val().toLowerCase();
     
-    const category = $('#categoryFilter').val();
-    const gender = $('#genderFilter').val();
-    const maxPrice = $('#priceFilter').val();
-
-    // Clear all filters first
-    testsTable.search('');
-    testsTable.columns().search('');
+    let filteredData = testsData.filter(function(test) {
+        // Category filter
+        if (categoryFilter && test.category_name && !test.category_name.toLowerCase().includes(categoryFilter)) {
+            return false;
+        }
+        
+        // Price filter
+        if (priceFilter > 0 && parseFloat(test.price || 0) > priceFilter) {
+            return false;
+        }
+        
+        // Search filter
+        if (searchFilter) {
+            const searchText = (test.name || '').toLowerCase() + ' ' + (test.description || '').toLowerCase();
+            if (!searchText.includes(searchFilter)) {
+                return false;
+            }
+        }
+        
+        return true;
+    });
     
-    // Apply category filter (column 3)
-    if (category) {
-        testsTable.column(3).search(category, false, false);
-    }
-    
-    // Apply price filter (column 4)
-    if (maxPrice) {
-        testsTable.column(4).search(function(settings, data, dataIndex) {
-            const priceText = data[4] || '';
-            const price = parseFloat(priceText.replace(/[₹,]/g, ''));
-            return !isNaN(price) && price <= parseFloat(maxPrice);
-        });
-    }
-    
-    testsTable.draw();
+    renderTable(filteredData);
 }
 
+// Clear filters
 function clearFilters() {
     $('#categoryFilter').val('');
     $('#priceFilter').val('');
     $('#quickSearch').val('');
-    if (testsTable) {
-        testsTable.search('').columns().search('').draw();
-    }
+    renderTable(testsData);
 }
 
-function updateBulkActions() {
-    const checkedBoxes = $('.test-checkbox:checked');
-    const bulkActionsDiv = $('.bulk-actions');
-    const selectedCount = checkedBoxes.length;
-    
-    if (selectedCount > 0) {
-        bulkActionsDiv.show();
-        $('.selected-count').text(selectedCount);
-    } else {
-        bulkActionsDiv.hide();
-    }
-}
-
-function bulkExportTests() {
-    const selectedIds = $('.test-checkbox:checked').map(function() {
-        return $(this).val();
-    }).get();
-    
-    if (selectedIds.length === 0) {
-        toastr.warning('Please select tests to export');
-        return;
-    }
-    
-    // Export functionality - for now just show selected IDs
-    toastr.info(`Exporting ${selectedIds.length} selected tests...`);
-    console.log('Selected test IDs:', selectedIds);
-}
-
-function bulkDeleteTests() {
-    const selectedIds = $('.test-checkbox:checked').map(function() {
-        return $(this).val();
-    }).get();
-    
-    if (selectedIds.length === 0) {
-        toastr.warning('Please select tests to delete');
-        return;
-    }
-    
-    if (confirm(`Are you sure you want to delete ${selectedIds.length} selected tests?`)) {
-        // Bulk delete functionality
-        toastr.info(`Deleting ${selectedIds.length} selected tests...`);
-        console.log('Deleting test IDs:', selectedIds);
-    }
-}
-
-// Small helper stubs to avoid ReferenceError from inline onclick handlers
-function selectAllTests() {
-    $('.test-checkbox').prop('checked', true);
-    updateBulkActions();
-}
-
-function deselectAllTests() {
-    $('.test-checkbox').prop('checked', false);
-    updateBulkActions();
-}
-
-function exportTests() {
-    // Prefer DataTables export buttons if available
-    try {
-        if ($.fn.DataTable && $.fn.dataTable.isDataTable('#testsTable')) {
-            var table = $('#testsTable').DataTable();
-            table.button('.buttons-csv').trigger();
-            return;
-        }
-    } catch(e){}
-    toastr.info('Export not available');
-}
-
-function refreshTests() {
-    if (testsTable && testsTable.ajax) {
-        testsTable.ajax.reload(null, false);
-    } else {
-        initializeDataTable();
-    }
-}
-
-
+// Load categories
 function loadCategories() {
-    // Load main categories for modal
+    // Load main categories
     $.getJSON('ajax/main_test_category_api.php', { action: 'list' }, function(response) {
         if (response && response.success) {
             let modalOptions = '<option value="">Select Main Category</option>';
@@ -1049,18 +605,11 @@ function loadCategories() {
             });
             
             $('#mainCategorySelect').html(modalOptions);
-        } else {
-            console.warn('Failed to load main categories', response && response.message);
         }
-    }).fail(function(xhr){ console.warn('Failed to load main categories', xhr.status); });
+    });
 
-    // Load test categories for filter (all categories)
-    const params = { action: 'list' };
-    if (CURRENT_USER_ID) {
-        params.user_id = CURRENT_USER_ID;
-    }
-
-    $.getJSON(TEST_CATEGORY_API, params, function(response) {
+    // Load test categories for filter
+    $.getJSON(TEST_CATEGORY_API + 'list', function(response) {
         if (response && response.success) {
             let filterOptions = '<option value="">All Categories</option>';
 
@@ -1069,24 +618,18 @@ function loadCategories() {
             });
 
             $('#categoryFilter').html(filterOptions);
-
-            // Populate categories table
-            populateCategoriesTable(response.data || []);
-        } else {
-            console.warn('Failed to load categories', response && response.message);
         }
-    }).fail(function(xhr){ console.warn('Failed to load categories', xhr.status); });
+    });
 }
 
-// Handle main category selection to load corresponding test categories
-function loadTestCategoriesByMain(mainCategoryId, callback) {
+// Load test categories by main category
+function loadTestCategoriesByMain(mainCategoryId) {
     if (!mainCategoryId) {
         $('#testCategoryId').html('<option value="">Select Test Category</option>');
-        if (callback) callback();
         return;
     }
 
-    $.getJSON(TEST_CATEGORY_API, { action: 'list' }, function(response) {
+    $.getJSON(TEST_CATEGORY_API + 'list', function(response) {
         if (response && response.success) {
             let options = '<option value="">Select Test Category</option>';
             
@@ -1097,44 +640,11 @@ function loadTestCategoriesByMain(mainCategoryId, callback) {
             });
 
             $('#testCategoryId').html(options);
-            if (callback) callback();
-        } else {
-            console.warn('Failed to load test categories', response && response.message);
-            $('#testCategoryId').html('<option value="">Error loading categories</option>');
-            if (callback) callback();
         }
-    }).fail(function(xhr){ 
-        console.warn('Failed to load test categories', xhr.status);
-        $('#testCategoryId').html('<option value="">Error loading categories</option>');
-        if (callback) callback();
     });
 }
 
-function populateCategoriesTable(categories = []) {
-    let html = '';
-
-    categories.forEach(category => {
-        const safeName = escapeHtml(category.name || '');
-        html += `
-            <tr>
-                <td>${category.id}</td>
-                <td>${safeName}</td>
-                <td><span class="badge badge-primary">${category.test_count ?? 0}</span></td>
-                <td>
-                    <button class="btn btn-warning btn-sm" onclick="editCategory(${category.id}, '${safeName}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id}, '${safeName}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-
-    $('#categoriesTableBody').html(html);
-}
-
+// Load stats
 function loadStats() {
     $.get('ajax/test_api.php?action=stats')
         .done(function(response) {
@@ -1143,18 +653,9 @@ function loadStats() {
                 $('#activeTests').text(response.data.active || 0);
                 $('#totalCategories').text(response.data.categories || 0);
                 $('#testEntries').text(response.data.entries || 0);
-            } else {
-                console.warn('Failed to load stats:', response.message);
-                // Set default values if stats fail
-                $('#totalTests').text('0');
-                $('#activeTests').text('0');
-                $('#totalCategories').text('0');
-                $('#testEntries').text('0');
             }
         })
-        .fail(function(xhr) {
-            console.error('Stats AJAX error:', xhr.status, xhr.responseText);
-            // Set default values if AJAX fails
+        .fail(function() {
             $('#totalTests').text('0');
             $('#activeTests').text('0');
             $('#totalCategories').text('0');
@@ -1162,13 +663,7 @@ function loadStats() {
         });
 }
 
-function initializeEventListeners() {
-    $('#testForm').on('submit', function(e) {
-        e.preventDefault();
-        saveTestData();
-    });
-}
-
+// Open add test modal
 function openAddTestModal() {
     $('#testForm')[0].reset();
     $('#testId').val('');
@@ -1176,40 +671,30 @@ function openAddTestModal() {
     $('#testModal').modal('show');
 }
 
-function openAddCategoryModal() {
-    $('#categoryModal').modal('show');
-}
-
+// Edit test
 function editTest(id) {
     $.get('ajax/test_api.php', {action: 'get', id: id})
         .done(function(response) {
             if (response.success) {
                 const test = response.data;
+                
+                // Populate form fields
                 $('#testId').val(test.id);
                 $('#testName').val(test.name);
-                
-                // Set main category first, then load test categories
-                if (test.main_category_id) {
-                    $('#mainCategorySelect').val(test.main_category_id);
-                    // Trigger change event to load test categories
-                    $('#mainCategorySelect').trigger('change');
-                    // Wait a bit for categories to load, then set test category
-                    setTimeout(function() {
-                        $('#testCategoryId').val(test.category_id);
-                    }, 500);
-                } else {
-                    $('#testCategoryId').val(test.category_id);
-                }
-                
                 $('#testPrice').val(test.price);
                 $('#testUnit').val(test.unit);
                 $('#testMethod').val(test.method);
                 
-                // Populate range-specific unit fields
-                $('#generalUnit').val(test.unit);
-                $('#maleUnit').val(test.male_unit || test.unit);
-                $('#femaleUnit').val(test.female_unit || test.unit);
-                $('#childUnit').val(test.child_unit || test.unit);
+                // Set main category and load test categories
+                if (test.main_category_id) {
+                    $('#mainCategorySelect').val(test.main_category_id);
+                    loadTestCategoriesByMain(test.main_category_id);
+                    
+                    // Set test category after a delay
+                    setTimeout(function() {
+                        $('#testCategoryId').val(test.category_id);
+                    }, 500);
+                }
                 
                 // Set range values
                 $('#testMin').val(test.min);
@@ -1220,6 +705,12 @@ function editTest(id) {
                 $('#testMaxFemale').val(test.max_female);
                 $('#testMinChild').val(test.min_child);
                 $('#testMaxChild').val(test.max_child);
+                
+                // Set units
+                $('#generalUnit').val(test.unit);
+                $('#maleUnit').val(test.male_unit || test.unit);
+                $('#femaleUnit').val(test.female_unit || test.unit);
+                $('#childUnit').val(test.child_unit || test.unit);
                 
                 // Set other fields
                 $('#testSubHeading').val(test.sub_heading || 0);
@@ -1238,41 +729,11 @@ function editTest(id) {
         });
 }
 
+// Save test data
 function saveTestData() {
-    // Validate min/max ranges before submitting
-    function validateTestRanges(){
-        var pairs = [
-            {min:'#testMin', max:'#testMax', label:'General'},
-            {min:'#testMinMale', max:'#testMaxMale', label:'Male'},
-            {min:'#testMinFemale', max:'#testMaxFemale', label:'Female'}
-        ];
-        for(var i=0;i<pairs.length;i++){
-            var p = pairs[i];
-            var vMin = $(p.min).val().trim();
-            var vMax = $(p.max).val().trim();
-            if(vMin === '' || vMax === '') continue; // nothing to validate
-            var nMin = parseFloat(vMin);
-            var nMax = parseFloat(vMax);
-            if(isNaN(nMin) || isNaN(nMax)){
-                toastr.error(p.label + ' range must be numeric');
-                $(p.min).focus();
-                return false;
-            }
-            if(nMax < nMin){
-                toastr.error('Max Value ('+p.label+') cannot be less than Min Value ('+p.label+').');
-                $(p.max).focus();
-                return false;
-            }
-        }
-        return true;
-    }
-
-    if(!validateTestRanges()) return; // abort save if invalid
-
     const formData = new FormData($('#testForm')[0]);
     const id = $('#testId').val();
     formData.append('action', 'save');
-    formData.append('ajax', '1');
     
     const submitBtn = $('#saveTestBtn');
     const originalText = submitBtn.html();
@@ -1288,31 +749,14 @@ function saveTestData() {
             if (response.success) {
                 toastr.success(id ? 'Test updated successfully!' : 'Test added successfully!');
                 $('#testModal').modal('hide');
-                
-                // Reload the DataTable
-                if (testsTable && testsTable.ajax) {
-                    testsTable.ajax.reload(null, false);
-                } else {
-                    // Reinitialize if needed
-                    initializeDataTable();
-                }
-                
-                loadStats();
-                
-                // Reset form after successful save
-                $('#testForm')[0].reset(); 
-                $('#testId').val(''); 
+                loadTests(); // Reload table
+                loadStats(); // Reload stats
             } else {
                 toastr.error('Error: ' + (response.message || 'Unknown error'));
             }
         },
         error: function(xhr) {
-            var msg = xhr.responseText || 'Server error'; 
-            try{ 
-                var j=JSON.parse(xhr.responseText||'{}'); 
-                if(j.message) msg=j.message;
-            }catch(e){} 
-            toastr.error('Failed to save test: ' + msg);
+            toastr.error('Failed to save test');
         },
         complete: function() {
             submitBtn.html(originalText).prop('disabled', false);
@@ -1320,6 +764,7 @@ function saveTestData() {
     });
 }
 
+// Delete test
 function deleteTest(id, name) {
     if (confirm(`Are you sure you want to delete test "${name || 'this test'}"?`)) {
         $.ajax({
@@ -1329,12 +774,8 @@ function deleteTest(id, name) {
             success: function(response) {
                 if (response.success) {
                     toastr.success('Test deleted successfully!');
-                    if (testsTable && testsTable.ajax) {
-                        testsTable.ajax.reload(null, false);
-                    } else {
-                        initializeDataTable();
-                    }
-                    loadStats();
+                    loadTests(); // Reload table
+                    loadStats(); // Reload stats
                 } else {
                     toastr.error('Error deleting test: ' + (response.message || 'Unknown error'));
                 }
@@ -1346,51 +787,195 @@ function deleteTest(id, name) {
     }
 }
 
-function addCategory() {
-    const name = $('#newCategoryName').val().trim();
-    if (!name) {
-        showAlert('Please enter category name', 'error');
-        return;
-    }
+// View test
+function viewTest(id) {
+    $.get('ajax/test_api.php', {action: 'get', id: id})
+        .done(function(response) {
+            if (response.success) {
+                const d = response.data;
+                let html = '';
+                
+                html += '<div class="container-fluid p-0">';
+                
+                // Test Header
+                html += '<div class="row mb-3">';
+                html += '<div class="col-12">';
+                html += `  <h4 class="mb-1 text-primary">${d.name || ''} <small class="text-muted">#${d.id || ''}</small></h4>`;
+                if(d.description) html += `<p class="text-muted mb-0">${d.description}</p>`;
+                html += '</div>';
+                html += '</div>';
+                
+                // Main Information Cards
+                html += '<div class="row">';
+                
+                // Left column: Test Information
+                html += '<div class="col-md-6 mb-3">';
+                html += '  <div class="card h-100">';
+                html += '    <div class="card-header bg-primary text-white py-2">';
+                html += '      <h6 class="mb-0"><i class="fas fa-info-circle mr-2"></i>Test Information</h6>';
+                html += '    </div>';
+                html += '    <div class="card-body">';
+                html += '      <table class="table table-sm table-borderless mb-0">';
+                html += `        <tr><td class="font-weight-bold" width="40%">Main Category:</td><td><span class="badge badge-secondary">${d.main_category_name||'N/A'}</span></td></tr>`;
+                html += `        <tr><td class="font-weight-bold">Test Category:</td><td><span class="badge badge-info">${d.category_name||'N/A'}</span></td></tr>`;
+                html += `        <tr><td class="font-weight-bold">Price:</td><td><span class="text-success font-weight-bold">₹${d.price||'0'}</span></td></tr>`;
+                html += `        <tr><td class="font-weight-bold">Unit:</td><td><code>${d.unit||'N/A'}</code></td></tr>`;
+                html += `        <tr><td class="font-weight-bold">Method:</td><td>${d.method||'N/A'}</td></tr>`;
+                html += `        <tr><td class="font-weight-bold">Test Code:</td><td><code>${d.test_code||'N/A'}</code></td></tr>`;
+                html += '      </table>';
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>';
 
-    $.ajax({
-    url: 'ajax/test_category_api.php',
-        type: 'POST',
-        data: { name: name },
-        success: function(response) {
-            if (response.status === 'success') {
-                showAlert('Category added successfully!', 'success');
-                $('#newCategoryName').val('');
-                loadCategories();
+                // Right column: Settings & Metadata
+                html += '<div class="col-md-6 mb-3">';
+                html += '  <div class="card h-100">';
+                html += '    <div class="card-header bg-secondary text-white py-2">';
+                html += '      <h6 class="mb-0"><i class="fas fa-cogs mr-2"></i>Settings & Metadata</h6>';
+                html += '    </div>';
+                html += '    <div class="card-body">';
+                html += '      <table class="table table-sm table-borderless mb-0">';
+                html += `        <tr><td class="font-weight-bold" width="40%">Sub Heading:</td><td><span class="badge ${d.sub_heading ? 'badge-success">Yes' : 'badge-secondary">No'}</span></td></tr>`;
+                html += `        <tr><td class="font-weight-bold">Print New Page:</td><td><span class="badge ${d.print_new_page ? 'badge-success">Yes' : 'badge-secondary">No'}</span></td></tr>`;
+                html += `        <tr><td class="font-weight-bold">Added By:</td><td>${d.added_by_username||'N/A'}</td></tr>`;
+                html += `        <tr><td class="font-weight-bold">Created:</td><td>${d.created_at||'N/A'}</td></tr>`;
+                html += `        <tr><td class="font-weight-bold">Updated:</td><td>${d.updated_at||'N/A'}</td></tr>`;
+                html += '        <tr><td class="font-weight-bold">Status:</td><td><span class="badge badge-success">Active</span></td></tr>';
+                html += '      </table>';
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>';
+
+                html += '</div>'; // row
+
+                // Reference Ranges
+                html += '<div class="row">';
+                html += '<div class="col-12">';
+                html += '  <div class="card">';
+                html += '    <div class="card-header bg-info text-white py-2">';
+                html += '      <h6 class="mb-0"><i class="fas fa-chart-line mr-2"></i>Reference Ranges</h6>';
+                html += '    </div>';
+                html += '    <div class="card-body p-0">';
+                html += '      <div class="table-responsive">';
+                html += '      <table class="table table-sm table-hover mb-0">';
+                html += '        <thead class="thead-light">';
+                html += '          <tr><th>Scope</th><th>Min Value</th><th>Max Value</th><th>Unit</th></tr>';
+                html += '        </thead>';
+                html += '        <tbody>';
+                
+                let hasRanges = false;
+                
+                // General range
+                if (d.min !== null || d.max !== null) {
+                    html += `          <tr><td><strong>General</strong></td><td>${d.min||'-'}</td><td>${d.max||'-'}</td><td>${d.unit||'-'}</td></tr>`;
+                    hasRanges = true;
+                }
+                
+                // Male range
+                if (d.min_male !== null || d.max_male !== null) {
+                    html += `          <tr><td><strong class="text-primary"><i class="fas fa-mars mr-1"></i>Male</strong></td><td>${d.min_male||'-'}</td><td>${d.max_male||'-'}</td><td>${d.male_unit||d.unit||'-'}</td></tr>`;
+                    hasRanges = true;
+                }
+                
+                // Female range
+                if (d.min_female !== null || d.max_female !== null) {
+                    html += `          <tr><td><strong class="text-danger"><i class="fas fa-venus mr-1"></i>Female</strong></td><td>${d.min_female||'-'}</td><td>${d.max_female||'-'}</td><td>${d.female_unit||d.unit||'-'}</td></tr>`;
+                    hasRanges = true;
+                }
+                
+                // Child range
+                if (d.min_child !== null || d.max_child !== null) {
+                    html += `          <tr><td><strong class="text-warning"><i class="fas fa-child mr-1"></i>Child</strong></td><td>${d.min_child||'-'}</td><td>${d.max_child||'-'}</td><td>${d.child_unit||d.unit||'-'}</td></tr>`;
+                    hasRanges = true;
+                }
+                
+                // If no ranges defined
+                if (!hasRanges) {
+                    html += '          <tr><td colspan="4" class="text-center text-muted py-3"><i class="fas fa-info-circle mr-2"></i>No reference ranges defined</td></tr>';
+                }
+                
+                html += '        </tbody>';
+                html += '      </table>';
+                html += '      </div>';
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>';
+                html += '</div>';
+
+                // Reference Notes (if available)
+                if(d.reference_range){ 
+                    html += '<div class="row mt-3">';
+                    html += '<div class="col-12">';
+                    html += '  <div class="card">';
+                    html += '    <div class="card-header bg-warning text-dark py-2">';
+                    html += '      <h6 class="mb-0"><i class="fas fa-sticky-note mr-2"></i>Reference Notes</h6>';
+                    html += '    </div>';
+                    html += '    <div class="card-body">';
+                    html += `      <p class="mb-0">${d.reference_range}</p>`;
+                    html += '    </div>';
+                    html += '  </div>';
+                    html += '</div>';
+                    html += '</div>';
+                }
+
+                html += '</div>'; // container-fluid
+
+                $('#viewTestBody').html(html);
+                $('#viewTestModalLabel').text(`Test Details: ${d.name || ''}`);
+                
+                // Store test ID for edit function
+                $('#viewTestModal').data('test-id', id);
+                $('#viewTestModal').modal('show');
             } else {
-                showAlert('Error: ' + response.message, 'error');
+                toastr.error('Test not found');
             }
-        },
-        error: function() {
-            showAlert('Failed to add category', 'error');
-        }
-    });
+        })
+        .fail(function() {
+            toastr.error('Failed to load test details');
+        });
 }
 
-function showAlert(message, type) {
-    const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
-    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-    
-    const alert = `
-        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-            <i class="${icon} mr-2"></i>${message}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    `;
-    
-    $('.alert').remove();
-    $('.content-wrapper .content').prepend(alert);
-    
-    setTimeout(() => {
-        $('.alert').fadeOut();
-    }, 5000);
+// Edit test from view modal
+function editTestFromView() {
+    const testId = $('#viewTestModal').data('test-id');
+    if (testId) {
+        $('#viewTestModal').modal('hide');
+        editTest(testId);
+    }
+}
+
+// Refresh tests
+function refreshTests() {
+    loadTests();
+}
+
+// Show table error
+function showTableError(message) {
+    $('#testsTable tbody').html(`
+        <tr>
+            <td colspan="6" class="text-center text-danger py-4">
+                <i class="fas fa-exclamation-triangle mr-2"></i>${message}
+                <br><br>
+                <button class="btn btn-primary btn-sm" onclick="refreshTests()">
+                    <i class="fas fa-refresh mr-1"></i>Try Again
+                </button>
+            </td>
+        </tr>
+    `);
+}
+
+// HTML escape function
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    var s = String(text);
+    var map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return s.replace(/[&<>\"']/g, function(m) { return map[m]; });
 }
 </script>
 
@@ -1421,7 +1006,6 @@ function showAlert(message, type) {
     margin-right: 0;
 }
 
-/* Enhanced table styling */
 #testsTable {
     font-size: 0.9rem;
 }
@@ -1444,20 +1028,6 @@ function showAlert(message, type) {
 
 #testsTable tbody tr:hover {
     background-color: rgba(0,123,255,0.05);
-}
-
-.test-name-cell {
-    max-width: 250px;
-}
-
-.test-name-cell strong {
-    display: block;
-    margin-bottom: 2px;
-}
-
-.badge-sm {
-    font-size: 0.7em;
-    padding: 0.25em 0.5em;
 }
 
 .btn-outline-info:hover {
@@ -1494,54 +1064,11 @@ code {
     font-size: 0.875em;
 }
 
-/* Filter card styling */
-.card-body .row {
-    margin-bottom: 0;
-}
-
 .form-label {
     font-weight: 600;
     color: #495057;
     margin-bottom: 0.5rem;
     font-size: 0.875rem;
-}
-
-/* Bulk actions styling */
-.bulk-actions {
-    border-radius: 0.375rem;
-    border: 1px solid #b8daff;
-    background-color: #d1ecf1;
-}
-
-/* DataTables custom styling */
-.dataTables_wrapper .dataTables_length,
-.dataTables_wrapper .dataTables_filter {
-    margin-bottom: 1rem;
-}
-
-.dataTables_wrapper .dataTables_info {
-    padding-top: 0.75rem;
-}
-
-.dataTables_wrapper .dataTables_paginate {
-    padding-top: 0.75rem;
-}
-
-/* Button styling improvements */
-.btn-group-sm > .btn, .btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    border-radius: 0.2rem;
-}
-
-/* Modal improvements */
-.modal-header {
-    border-bottom: 1px solid #dee2e6;
-}
-
-.modal-footer {
-    border-top: 1px solid #dee2e6;
 }
 
 #viewTestModal .modal-dialog {
@@ -1568,11 +1095,6 @@ code {
     border-bottom: none;
 }
 
-#viewTestModal .badge {
-    font-size: 0.75em;
-}
-
-/* Responsive improvements */
 @media (max-width: 768px) {
     #testsTable {
         font-size: 0.8rem;
@@ -1585,10 +1107,6 @@ code {
     
     .card-body {
         padding: 1rem;
-    }
-    
-    .table-responsive {
-        border: 0;
     }
 }
 
@@ -1614,351 +1132,3 @@ code {
 </style>
 
 <?php require_once 'inc/footer.php'; ?>
-
-<script>
-// Removed addTestToTable manual DOM manipulations to avoid column mismatch.
-
-function updateSerialNumbers() {
-    $('#testsTable tbody tr').each(function(index) {
-        $(this).find('td:first').text(index + 1);
-    });
-}
-
-function loadCategoriesForTests(){
-    $.get('ajax/test_category_api.php',{action:'list',ajax:1},function(resp){
-        if(resp.success){ 
-            var s=''; 
-            resp.data.forEach(function(c){ 
-                s += '<option value="'+c.id+'">'+(c.name||'')+'</option>'; 
-            }); 
-            $('#testCategoryId').html(s); 
-        } else {
-            toastr.error('Failed to load categories');
-        }
-    },'json');
-}
-
-function loadTests(){
-    // Use DataTable reload if available
-    if (testsTable && testsTable.ajax) {
-        testsTable.ajax.reload(null, false);
-    } else {
-        // Reinitialize DataTable
-        initializeDataTable();
-    }
-}
-
-function loadTestsManually() {
-    console.log('Loading tests manually...');
-    $.ajax({
-        url: 'ajax/test_api.php?action=list&v=' + Date.now(),
-        type: 'GET',
-        dataType: 'json',
-        success: function(response) {
-            if (response && response.success) {
-                const data = response.data || [];
-                let html = '';
-                
-                if (data.length === 0) {
-                    html = '<tr><td colspan="6" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
-                } else {
-                    data.forEach(function(test) {
-                        let categoryHtml = '';
-                        if (test.main_category_name) {
-                            categoryHtml += `<span class="badge badge-secondary badge-sm">${test.main_category_name}</span><br>`;
-                        }
-                        if (test.category_name) {
-                            categoryHtml += `<span class="badge badge-info">${test.category_name}</span>`;
-                        } else {
-                            categoryHtml += '<span class="text-muted">No Category</span>';
-                        }
-                        
-                        html += `
-                            <tr>
-                                <td class="text-center"><input type="checkbox" class="test-checkbox" value="${test.id}"></td>
-                                <td class="text-center">${test.id}</td>
-                                <td><strong class="text-primary">${test.name || 'N/A'}</strong></td>
-                                <td>${categoryHtml}</td>
-                                <td class="text-right"><strong class="text-success">₹${test.price || '0'}</strong></td>
-                                <td class="text-center">
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-info btn-sm" onclick="viewTest(${test.id})" title="View"><i class="fas fa-eye"></i></button>
-                                        <button class="btn btn-outline-warning btn-sm" onclick="editTest(${test.id})" title="Edit"><i class="fas fa-edit"></i></button>
-                                        <button class="btn btn-outline-danger btn-sm" onclick="deleteTest(${test.id}, '${(test.name || '').replace(/'/g, '\\\'')}')" title="Delete"><i class="fas fa-trash"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                }
-                
-                $('#testsTable tbody').html(html);
-                initializeCheckboxEvents();
-                console.log('Manual load completed');
-            } else {
-                $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load tests</td></tr>');
-                toastr.error('Failed to load tests: ' + (response ? response.message : 'Unknown error'));
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Manual load failed:', error);
-            $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading tests</td></tr>');
-            toastr.error('Error loading tests');
-        }
-    });
-}
-
-// Debounced reload to avoid concurrent AJAX requests causing aborts
-var _reloadTimer = null;
-function reloadTestsDebounced(delay){
-    delay = typeof delay === 'number' ? delay : 200;
-    if (_reloadTimer) clearTimeout(_reloadTimer);
-    _reloadTimer = setTimeout(function(){
-        loadTests();
-    }, delay);
-}
-
-// Unified simple reload alias used across CRUD handlers
-window.reloadTests = function(){
-    if (testsTable && testsTable.ajax) {
-        testsTable.ajax.reload(null, false);
-    } else {
-        initializeDataTable();
-    }
-};
-
-function applyTestsFilters(){
-    var q = $('#testsSearch').val().toLowerCase().trim();
-    var per = parseInt($('#testsPerPage').val()||10,10);
-    var shown = 0;
-    $('#testsTable tbody tr').each(function(){
-        var row = $(this);
-        var text = row.text().toLowerCase();
-        var matches = !q || text.indexOf(q) !== -1;
-        if(matches && shown < per){ row.show(); shown++; } else { row.toggle(matches && shown < per); }
-    });
-}
-
-function openAddTestModal(){ 
-    $('#testForm')[0].reset(); 
-    $('#testId').val(''); 
-    $('#modalTitle').text('Add New Test');
-    $('#testModal').modal('show'); 
-}
-
-function loadCategoriesForTests(){
-    $.get('ajax/test_category_api.php',{action:'list',ajax:1},function(resp){
-        if(resp.success){ 
-            var s='<option value="">Select Category</option>'; 
-            resp.data.forEach(function(c){ 
-                s += '<option value="'+c.id+'">'+(c.name||'')+'</option>'; 
-            }); 
-            $('#testCategory').html(s); 
-        } else {
-            toastr.error('Failed to load categories');
-        }
-    },'json');
-}
-
-// HTML escape function
-function escapeHtml(text) {
-    // Return empty string for null/undefined explicitly
-    if (text === null || text === undefined) return '';
-    // Coerce to string safely (handles numbers, booleans, objects with toString)
-    var s = String(text);
-    var map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return s.replace(/[&<>\"']/g, function(m) { return map[m]; });
-}
-
-// Global view test function
-window.viewTest = function(id){
-    try{
-        $.get('ajax/test_api.php',{action:'get',id:id,ajax:1}, function(resp){
-            if(resp.success){
-                var d = resp.data || {};
-                var html = '';
-                html += '<div class="container-fluid p-0">';
-                
-                // Test Header
-                html += '<div class="row mb-3">';
-                html += '<div class="col-12">';
-                html += '  <h4 class="mb-1 text-primary">' + escapeHtml(d.name || '') + ' <small class="text-muted">#' + escapeHtml(d.id || '') + '</small></h4>';
-                if(d.description) html += '<p class="text-muted mb-0">' + escapeHtml(d.description) + '</p>';
-                html += '</div>';
-                html += '</div>';
-                
-                // Main Information Cards
-                html += '<div class="row">';
-                
-                // Left column: Test Information
-                html += '<div class="col-md-6 mb-3">';
-                html += '  <div class="card h-100">';
-                html += '    <div class="card-header bg-primary text-white py-2">';
-                html += '      <h6 class="mb-0"><i class="fas fa-info-circle mr-2"></i>Test Information</h6>';
-                html += '    </div>';
-                html += '    <div class="card-body">';
-                html += '      <table class="table table-sm table-borderless mb-0">';
-                html += '        <tr><td class="font-weight-bold" width="40%">Main Category:</td><td><span class="badge badge-secondary">' + escapeHtml(d.main_category_name||'N/A') + '</span></td></tr>';
-                html += '        <tr><td class="font-weight-bold">Test Category:</td><td><span class="badge badge-info">' + escapeHtml(d.category_name||'N/A') + '</span></td></tr>';
-                html += '        <tr><td class="font-weight-bold">Price:</td><td><span class="text-success font-weight-bold">₹' + escapeHtml(d.price||'0') + '</span></td></tr>';
-                html += '        <tr><td class="font-weight-bold">Unit:</td><td><code>' + escapeHtml(d.unit||'N/A') + '</code></td></tr>';
-                html += '        <tr><td class="font-weight-bold">Method:</td><td>' + escapeHtml(d.method||'N/A') + '</td></tr>';
-                html += '        <tr><td class="font-weight-bold">Test Code:</td><td><code>' + escapeHtml(d.test_code||'N/A') + '</code></td></tr>';
-                html += '      </table>';
-                html += '    </div>';
-                html += '  </div>';
-                html += '</div>';
-
-                // Right column: Settings & Metadata
-                html += '<div class="col-md-6 mb-3">';
-                html += '  <div class="card h-100">';
-                html += '    <div class="card-header bg-secondary text-white py-2">';
-                html += '      <h6 class="mb-0"><i class="fas fa-cogs mr-2"></i>Settings & Metadata</h6>';
-                html += '    </div>';
-                html += '    <div class="card-body">';
-                html += '      <table class="table table-sm table-borderless mb-0">';
-                html += '        <tr><td class="font-weight-bold" width="40%">Sub Heading:</td><td><span class="badge ' + (d.sub_heading ? 'badge-success">Yes' : 'badge-secondary">No') + '</span></td></tr>';
-                html += '        <tr><td class="font-weight-bold">Print New Page:</td><td><span class="badge ' + (d.print_new_page ? 'badge-success">Yes' : 'badge-secondary">No') + '</span></td></tr>';
-                html += '        <tr><td class="font-weight-bold">Added By:</td><td>' + escapeHtml(d.added_by_username||'N/A') + '</td></tr>';
-                html += '        <tr><td class="font-weight-bold">Created:</td><td>' + escapeHtml(d.created_at||'N/A') + '</td></tr>';
-                html += '        <tr><td class="font-weight-bold">Updated:</td><td>' + escapeHtml(d.updated_at||'N/A') + '</td></tr>';
-                html += '        <tr><td class="font-weight-bold">Status:</td><td><span class="badge badge-success">Active</span></td></tr>';
-                html += '      </table>';
-                html += '    </div>';
-                html += '  </div>';
-                html += '</div>';
-
-                html += '</div>'; // row
-
-                // Gender Applicability & Reference Ranges
-                html += '<div class="row">';
-                html += '<div class="col-12">';
-                html += '  <div class="card">';
-                html += '    <div class="card-header bg-success text-white py-2">';
-                html += '      <h6 class="mb-0"><i class="fas fa-venus-mars mr-2"></i>Gender Applicability</h6>';
-                html += '    </div>';
-                html += '    <div class="card-body py-2">';
-                let genders = [];
-                if (d.min_male !== null || d.max_male !== null) genders.push('<span class="badge badge-primary mr-1">Male</span>');
-                if (d.min_female !== null || d.max_female !== null) genders.push('<span class="badge badge-danger mr-1">Female</span>');
-                if (d.min_child !== null || d.max_child !== null) genders.push('<span class="badge badge-warning mr-1">Child</span>');
-                if (!genders.length && (d.min !== null || d.max !== null)) genders.push('<span class="badge badge-success mr-1">All</span>');
-                html += genders.length > 0 ? genders.join('') : '<span class="text-muted">No specific gender requirements</span>';
-                html += '    </div>';
-                html += '  </div>';
-                html += '</div>';
-                html += '</div>';
-
-                // Reference Ranges
-                html += '<div class="row mt-3">';
-                html += '<div class="col-12">';
-                html += '  <div class="card">';
-                html += '    <div class="card-header bg-info text-white py-2">';
-                html += '      <h6 class="mb-0"><i class="fas fa-chart-line mr-2"></i>Reference Ranges</h6>';
-                html += '    </div>';
-                html += '    <div class="card-body p-0">';
-                html += '      <div class="table-responsive">';
-                html += '      <table class="table table-sm table-hover mb-0">';
-                html += '        <thead class="thead-light">';
-                html += '          <tr><th>Scope</th><th>Min Value</th><th>Max Value</th><th>Unit</th><th>Range Display</th></tr>';
-                html += '        </thead>';
-                html += '        <tbody>';
-                
-                var hasRanges = false;
-                
-                // General range
-                if (d.min !== null || d.max !== null) {
-                    html += '          <tr><td><strong>General</strong></td><td>' + escapeHtml(d.min||'-') + '</td><td>' + escapeHtml(d.max||'-') + '</td><td>' + escapeHtml(d.unit||'-') + '</td><td><span class="badge badge-light">' + escapeHtml((d.min||'') + ' - ' + (d.max||'')) + '</span></td></tr>';
-                    hasRanges = true;
-                }
-                
-                // Male range
-                if (d.min_male !== null || d.max_male !== null) {
-                    html += '          <tr><td><strong class="text-primary"><i class="fas fa-mars mr-1"></i>Male</strong></td><td>' + escapeHtml(d.min_male||'-') + '</td><td>' + escapeHtml(d.max_male||'-') + '</td><td>' + escapeHtml(d.male_unit||d.unit||'-') + '</td><td><span class="badge badge-primary">M: ' + escapeHtml((d.min_male||'') + ' - ' + (d.max_male||'')) + '</span></td></tr>';
-                    hasRanges = true;
-                }
-                
-                // Female range
-                if (d.min_female !== null || d.max_female !== null) {
-                    html += '          <tr><td><strong class="text-danger"><i class="fas fa-venus mr-1"></i>Female</strong></td><td>' + escapeHtml(d.min_female||'-') + '</td><td>' + escapeHtml(d.max_female||'-') + '</td><td>' + escapeHtml(d.female_unit||d.unit||'-') + '</td><td><span class="badge badge-danger">F: ' + escapeHtml((d.min_female||'') + ' - ' + (d.max_female||'')) + '</span></td></tr>';
-                    hasRanges = true;
-                }
-                
-                // Child range
-                if (d.min_child !== null || d.max_child !== null) {
-                    html += '          <tr><td><strong class="text-warning"><i class="fas fa-child mr-1"></i>Child</strong></td><td>' + escapeHtml(d.min_child||'-') + '</td><td>' + escapeHtml(d.max_child||'-') + '</td><td>' + escapeHtml(d.child_unit||d.unit||'-') + '</td><td><span class="badge badge-warning">C: ' + escapeHtml((d.min_child||'') + ' - ' + (d.max_child||'')) + '</span></td></tr>';
-                    hasRanges = true;
-                }
-                
-                // If no ranges defined
-                if (!hasRanges) {
-                    html += '          <tr><td colspan="5" class="text-center text-muted py-3"><i class="fas fa-info-circle mr-2"></i>No reference ranges defined</td></tr>';
-                }
-                
-                html += '        </tbody>';
-                html += '      </table>';
-                html += '      </div>';
-                html += '    </div>';
-                html += '  </div>';
-                html += '</div>';
-                html += '</div>';
-
-                // Reference Notes (if available)
-                if(d.reference_range){ 
-                    html += '<div class="row mt-3">';
-                    html += '<div class="col-12">';
-                    html += '  <div class="card">';
-                    html += '    <div class="card-header bg-warning text-dark py-2">';
-                    html += '      <h6 class="mb-0"><i class="fas fa-sticky-note mr-2"></i>Reference Notes</h6>';
-                    html += '    </div>';
-                    html += '    <div class="card-body">';
-                    html += '      <p class="mb-0">' + escapeHtml(d.reference_range) + '</p>';
-                    html += '    </div>';
-                    html += '  </div>';
-                    html += '</div>';
-                    html += '</div>';
-                }
-
-                html += '</div>'; // container-fluid
-
-                $('#viewTestBody').html(html);
-                $('#viewTestModalLabel').text('Test Details: ' + escapeHtml(d.name || ''));
-                
-                // Store test ID for edit function
-                $('#viewTestModal').data('test-id', id);
-                $('#viewTestModal').modal('show');
-            } else {
-                toastr.error('Test not found');
-            }
-        }, 'json').fail(function(xhr){ 
-            var msg = xhr.responseText || 'Server error'; 
-            try{ 
-                var j=JSON.parse(xhr.responseText||'{}'); 
-                if(j.message) msg=j.message;
-            }catch(e){} 
-            toastr.error(msg); 
-        });
-    }catch(err){ 
-        toastr.error('Error: '+(err.message||err)); 
-    }
-};
-
-// Function to edit test from view modal
-window.editTestFromView = function() {
-    const testId = $('#viewTestModal').data('test-id');
-    if (testId) {
-        $('#viewTestModal').modal('hide');
-        editTest(testId);
-    }
-};
-</script>
-
-<!-- Enhanced table scripts commented out to avoid conflicts -->
-<!-- <script src="assets/js/enhanced-table.js?v=<?php echo time(); ?>"></script>
-<script src="assets/js/test-enhanced.js?v=<?php echo time(); ?>"></script> -->
