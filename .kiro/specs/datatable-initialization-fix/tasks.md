@@ -8,6 +8,9 @@ This document outlines the specific coding tasks required to fix the DataTable i
 
 
 
+
+
+
   - Update table-manager.js to use correct table ID `#testManagementTable` instead of `#testsTable`
   - Add validation to ensure table element exists before initialization attempts
   - Remove conflicting DataTables initialization for test management table
