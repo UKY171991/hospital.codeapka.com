@@ -1,0 +1,266 @@
+{
+  "info": {
+    "name": "Doctor API - Fixed Delete",
+    "description": "Test collection for the fixed doctor delete API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Debug - Check API Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-Api-Key",
+            "value": "hospital-api-secret-2024",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/umakant/patho_api/doctor.php?action=debug&secret_key={{secret_key}}",
+          "host": ["{{base_url}}"],
+          "path": ["umakant", "patho_api", "doctor.php"],
+          "query": [
+            {
+              "key": "action",
+              "value": "debug"
+            },
+            {
+              "key": "secret_key",
+              "value": "{{secret_key}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "List Doctors",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Api-Key",
+            "value": "hospital-api-secret-2024",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "action",
+              "value": "list",
+              "type": "text"
+            },
+            {
+              "key": "secret_key",
+              "value": "hospital-api-secret-2024",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/umakant/patho_api/doctor.php",
+          "host": ["{{base_url}}"],
+          "path": ["umakant", "patho_api", "doctor.php"]
+        }
+      }
+    },
+    {
+      "name": "Create Test Doctor",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Api-Key",
+            "value": "hospital-api-secret-2024",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "action",
+              "value": "save",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Test Doctor for Delete",
+              "type": "text"
+            },
+            {
+              "key": "specialization",
+              "value": "General Medicine",
+              "type": "text"
+            },
+            {
+              "key": "hospital",
+              "value": "Test Hospital",
+              "type": "text"
+            },
+            {
+              "key": "contact_no",
+              "value": "9876543210",
+              "type": "text"
+            },
+            {
+              "key": "secret_key",
+              "value": "hospital-api-secret-2024",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/umakant/patho_api/doctor.php",
+          "host": ["{{base_url}}"],
+          "path": ["umakant", "patho_api", "doctor.php"]
+        }
+      }
+    },
+    {
+      "name": "Delete Doctor - FIXED",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Api-Key",
+            "value": "hospital-api-secret-2024",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "action",
+              "value": "delete",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "{{doctor_id}}",
+              "type": "text",
+              "description": "Replace with actual doctor ID"
+            },
+            {
+              "key": "secret_key",
+              "value": "hospital-api-secret-2024",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/umakant/patho_api/doctor.php",
+          "host": ["{{base_url}}"],
+          "path": ["umakant", "patho_api", "doctor.php"]
+        }
+      }
+    },
+    {
+      "name": "Delete Doctor - Header Auth Only",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Api-Key",
+            "value": "hospital-api-secret-2024",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "action",
+              "value": "delete",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "{{doctor_id}}",
+              "type": "text",
+              "description": "Replace with actual doctor ID"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/umakant/patho_api/doctor.php",
+          "host": ["{{base_url}}"],
+          "path": ["umakant", "patho_api", "doctor.php"]
+        }
+      }
+    },
+    {
+      "name": "Delete Doctor - GET Method",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-Api-Key",
+            "value": "hospital-api-secret-2024",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/umakant/patho_api/doctor.php?action=delete&id={{doctor_id}}&secret_key={{secret_key}}",
+          "host": ["{{base_url}}"],
+          "path": ["umakant", "patho_api", "doctor.php"],
+          "query": [
+            {
+              "key": "action",
+              "value": "delete"
+            },
+            {
+              "key": "id",
+              "value": "{{doctor_id}}"
+            },
+            {
+              "key": "secret_key",
+              "value": "{{secret_key}}"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://hospital.codeapka.com",
+      "type": "string"
+    },
+    {
+      "key": "secret_key",
+      "value": "hospital-api-secret-2024",
+      "type": "string"
+    },
+    {
+      "key": "doctor_id",
+      "value": "1",
+      "type": "string",
+      "description": "Replace with actual doctor ID to delete"
+    }
+  ]
+}
