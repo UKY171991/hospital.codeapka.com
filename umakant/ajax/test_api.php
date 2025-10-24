@@ -37,62 +37,93 @@ try {
             $categories_table = 'categories';
         }
         
-        // Support DataTables server-side processing
-        $draw = $_POST['draw'] ?? 1;
-        $start = $_POST['start'] ?? 0;
-        $length = $_POST['length'] ?? 25;
-        $search = $_POST['search']['value'] ?? '';
+        // Support DataTables server-side processing - validate and sanitize parameters
+        $draw = (int)($_REQUEST['draw'] ?? 1);
+        $start = max(0, (int)($_REQUEST['start'] ?? 0));
+        $length = max(1, min(100, (int)($_REQUEST['length'] ?? 25))); // Limit between 1-100 records
+        $search = trim($_REQUEST['search']['value'] ?? '');
         
         // Base query for counting
         $countBaseQuery = "FROM tests t LEFT JOIN {$categories_table} tc ON t.category_id = tc.id LEFT JOIN users u ON t.added_by = u.id";
         
-        // Add search conditions
+        // Add search conditions - search across all relevant text fields
         if (!empty($search)) {
-            $whereClause = " WHERE (t.name LIKE ? OR tc.name LIKE ? OR t.description LIKE ?)";
+            $whereClause = " WHERE (t.name LIKE ? OR tc.name LIKE ? OR mc.name LIKE ? OR t.description LIKE ? OR t.test_code LIKE ? OR t.method LIKE ? OR t.specimen LIKE ? OR t.unit LIKE ? OR u.username LIKE ?)";
             $searchTerm = "%$search%";
-            $params = [$searchTerm, $searchTerm, $searchTerm];
+            $params = [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm];
         }
         
-        // Get total records
-        $totalStmt = $pdo->prepare("SELECT COUNT(*) " . $countBaseQuery . $whereClause);
-        $totalStmt->execute($params);
-        $totalRecords = $totalStmt->fetchColumn();
+        // Get total records with error handling
+        try {
+            // Use simple count without JOIN for better performance when no filters
+            if (empty($whereClause)) {
+                $totalStmt = $pdo->query("SELECT COUNT(*) FROM tests");
+            } else {
+                $totalStmt = $pdo->prepare("SELECT COUNT(*) " . $countBaseQuery);
+            }
+            $totalRecords = $totalStmt->fetchColumn();
+        } catch (PDOException $e) {
+            json_response(['success' => false, 'message' => 'Error counting total records: ' . $e->getMessage()], 500);
+        }
+
+        // Get filtered records with error handling
+        try {
+            $filteredStmt = $pdo->prepare("SELECT COUNT(*) " . $countBaseQuery . $whereClause);
+            $filteredStmt->execute($params);
+            $filteredRecords = $filteredStmt->fetchColumn();
+        } catch (PDOException $e) {
+            json_response(['success' => false, 'message' => 'Error counting filtered records: ' . $e->getMessage()], 500);
+        }
         
         // Get filtered records
         $orderBy = " ORDER BY t.id DESC";
         $limit = " LIMIT $start, $length";
         
-        // Build the complete query with explicit table names
+        // Build the complete query with ALL tests table fields
         $dataQuery = "SELECT 
             t.id,
             COALESCE(t.name, '') AS name,
-            COALESCE(mc.name, '') AS main_category_name,
-            COALESCE(tc.name, '') AS category_name,
             t.category_id,
-            COALESCE(t.description, '') AS description,
+            t.main_category_id,
             COALESCE(t.price, 0) AS price,
             COALESCE(t.unit, '') AS unit,
+            COALESCE(t.specimen, '') AS specimen,
+            t.default_result,
             COALESCE(t.reference_range, '') AS reference_range,
             t.min,
             t.max,
+            COALESCE(t.description, '') AS description,
             t.min_male,
             t.max_male,
             t.min_female,
             t.max_female,
             t.min_child,
             t.max_child,
-            t.child_unit,
+            COALESCE(t.child_unit, '') AS child_unit,
             COALESCE(t.sub_heading, 0) AS sub_heading,
+            COALESCE(t.test_code, '') AS test_code,
+            COALESCE(t.method, '') AS method,
             COALESCE(t.print_new_page, 0) AS print_new_page,
+            COALESCE(t.shortcut, '') AS shortcut,
+            t.added_by,
+            t.created_at,
+            t.updated_at,
+            COALESCE(mc.name, '') AS main_category_name,
+            COALESCE(tc.name, '') AS category_name,
             COALESCE(u.username, '') AS added_by_username
             FROM tests t 
             LEFT JOIN {$categories_table} tc ON t.category_id = tc.id 
             LEFT JOIN main_test_categories mc ON tc.main_category_id = mc.id
             LEFT JOIN users u ON t.added_by = u.id" . $whereClause . $orderBy . $limit;
         
-        $dataStmt = $pdo->prepare($dataQuery);
-        $dataStmt->execute($params);
-        $data = $dataStmt->fetchAll();
+        // Get data records with error handling
+        try {
+            $dataStmt = $pdo->prepare($dataQuery);
+            $dataStmt->execute($params);
+            $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            json_response(['success' => false, 'message' => 'Error fetching data records: ' . $e->getMessage()], 500);
+        }
         
         // Add debug info when no data or data issues detected
         $debug_info = [];
@@ -114,8 +145,8 @@ try {
         // Return DataTables format
         $response = [
             'draw' => intval($draw),
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $totalRecords,
+            'recordsTotal' => intval($totalRecords),
+            'recordsFiltered' => intval($filteredRecords),
             'success' => true,
             'data' => $data,
             'categories_table_used' => $categories_table
@@ -147,14 +178,19 @@ try {
             $categories_table = 'categories';
         }
         
-        // return full record for edit/view with joined names
-        $stmt = $pdo->prepare("SELECT t.*, tc.name as category_name, u.username as added_by_username
+        // return full record for edit/view with ALL fields and joined names
+        $stmt = $pdo->prepare("SELECT t.id, t.name, t.category_id, t.main_category_id, t.price, t.unit, t.specimen, 
+                              t.default_result, t.reference_range, t.min, t.max, t.description, t.min_male, t.max_male, 
+                              t.min_female, t.max_female, t.min_child, t.max_child, t.child_unit, t.sub_heading, 
+                              t.test_code, t.method, t.print_new_page, t.shortcut, t.added_by, t.created_at, t.updated_at,
+                              tc.name as category_name, mc.name as main_category_name, u.username as added_by_username
             FROM tests t
             LEFT JOIN {$categories_table} tc ON t.category_id = tc.id
+            LEFT JOIN main_test_categories mc ON tc.main_category_id = mc.id
             LEFT JOIN users u ON t.added_by = u.id
             WHERE t.id = ?");
         $stmt->execute([$_GET['id']]);
-        $row = $stmt->fetch();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         json_response(['success'=>true,'data'=>$row]);
     }
 
@@ -179,20 +215,22 @@ try {
             $categories_table = 'categories';
         }
         $name = trim($_POST['name'] ?? '');
+        $main_category_id = $_POST['main_category_id'] ?? null;
         $description = trim($_POST['description'] ?? '');
         $price = $_POST['price'] ?? 0;
-    $unit = trim($_POST['unit'] ?? '');
+        $unit = trim($_POST['unit'] ?? '');
+        $specimen = trim($_POST['specimen'] ?? '');
         $default_result = trim($_POST['default_result'] ?? '');
         $reference_range = trim($_POST['reference_range'] ?? '');
-    $min = $_POST['min'] ?? null;
-    $max = $_POST['max'] ?? null;
-    $min_male = $_POST['min_male'] ?? null;
-    $max_male = $_POST['max_male'] ?? null;
-    $min_female = $_POST['min_female'] ?? null;
-    $max_female = $_POST['max_female'] ?? null;
-    $min_child = $_POST['min_child'] ?? null;
-    $max_child = $_POST['max_child'] ?? null;
-    $child_unit = trim($_POST['child_unit'] ?? '');
+        $min = $_POST['min'] ?? null;
+        $max = $_POST['max'] ?? null;
+        $min_male = $_POST['min_male'] ?? null;
+        $max_male = $_POST['max_male'] ?? null;
+        $min_female = $_POST['min_female'] ?? null;
+        $max_female = $_POST['max_female'] ?? null;
+        $min_child = $_POST['min_child'] ?? null;
+        $max_child = $_POST['max_child'] ?? null;
+        $child_unit = trim($_POST['child_unit'] ?? '');
         $sub_heading = $_POST['sub_heading'] ?? 0;
         $test_code = trim($_POST['test_code'] ?? '');
         $method = trim($_POST['method'] ?? '');
@@ -243,7 +281,7 @@ try {
 
         if ($id) {
             try {
-                $stmt = $pdo->prepare('UPDATE tests SET category_id=?, name=?, description=?, price=?, unit=?, default_result=?, reference_range=?, min=?, max=?, min_male=?, max_male=?, min_female=?, max_female=?, min_child=?, max_child=?, child_unit=?, sub_heading=?, test_code=?, method=?, print_new_page=?, shortcut=? WHERE id=?');
+                $stmt = $pdo->prepare('UPDATE tests SET category_id=?, main_category_id=?, name=?, description=?, price=?, unit=?, specimen=?, default_result=?, reference_range=?, min=?, max=?, min_male=?, max_male=?, min_female=?, max_female=?, min_child=?, max_child=?, child_unit=?, sub_heading=?, test_code=?, method=?, print_new_page=?, shortcut=?, updated_at=NOW() WHERE id=?');
                 // Bind explicitly to ensure NULLs are preserved
                 $b = 1;
                 if ($category_id === null) {
@@ -251,10 +289,16 @@ try {
                 } else {
                     $stmt->bindValue($b++, $category_id, PDO::PARAM_INT);
                 }
+                if ($main_category_id === null) {
+                    $stmt->bindValue($b++, null, PDO::PARAM_NULL);
+                } else {
+                    $stmt->bindValue($b++, $main_category_id, PDO::PARAM_INT);
+                }
                 $stmt->bindValue($b++, $name, PDO::PARAM_STR);
                 $stmt->bindValue($b++, $description, PDO::PARAM_STR);
                 $stmt->bindValue($b++, $price, PDO::PARAM_STR);
                 $stmt->bindValue($b++, $unit, PDO::PARAM_STR);
+                $stmt->bindValue($b++, $specimen, PDO::PARAM_STR);
                 $stmt->bindValue($b++, $default_result, PDO::PARAM_STR);
                 $stmt->bindValue($b++, $reference_range, PDO::PARAM_STR);
                 $stmt->bindValue($b++, $min, PDO::PARAM_STR);
@@ -280,7 +324,7 @@ try {
         } else {
             $added_by = $_SESSION['user_id'] ?? null;
             try {
-                $stmt = $pdo->prepare('INSERT INTO tests (category_id, name, description, price, unit, default_result, reference_range, min, max, min_male, max_male, min_female, max_female, min_child, max_child, child_unit, sub_heading, test_code, method, print_new_page, shortcut, added_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+                $stmt = $pdo->prepare('INSERT INTO tests (category_id, main_category_id, name, description, price, unit, specimen, default_result, reference_range, min, max, min_male, max_male, min_female, max_female, min_child, max_child, child_unit, sub_heading, test_code, method, print_new_page, shortcut, added_by, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
                 // Bind parameters explicitly to ensure NULL values are sent as NULL (not empty string)
                 $bindIndex = 1;
                 if ($category_id === null) {
@@ -288,10 +332,16 @@ try {
                 } else {
                     $stmt->bindValue($bindIndex++, $category_id, PDO::PARAM_INT);
                 }
+                if ($main_category_id === null) {
+                    $stmt->bindValue($bindIndex++, null, PDO::PARAM_NULL);
+                } else {
+                    $stmt->bindValue($bindIndex++, $main_category_id, PDO::PARAM_INT);
+                }
                 $stmt->bindValue($bindIndex++, $name, PDO::PARAM_STR);
                 $stmt->bindValue($bindIndex++, $description, PDO::PARAM_STR);
                 $stmt->bindValue($bindIndex++, $price, PDO::PARAM_STR);
                 $stmt->bindValue($bindIndex++, $unit, PDO::PARAM_STR);
+                $stmt->bindValue($bindIndex++, $specimen, PDO::PARAM_STR);
                 $stmt->bindValue($bindIndex++, $default_result, PDO::PARAM_STR);
                 $stmt->bindValue($bindIndex++, $reference_range, PDO::PARAM_STR);
                 $stmt->bindValue($bindIndex++, $min, PDO::PARAM_STR);
@@ -334,29 +384,18 @@ try {
                 $categories_table = 'categories';
             }
             
-            $stmt = $pdo->prepare("SELECT t.id,
-                tc.name as category_name,
-                t.category_id,
-                t.name,
-                t.description,
-                t.price,
-                t.unit,
-                t.min,
-                t.max,
-                t.min_male,
-                t.max_male,
-                t.min_female,
-                t.max_female,
-                t.sub_heading,
-                t.print_new_page,
-                t.added_by,
-                u.username as added_by_username
+            $stmt = $pdo->prepare("SELECT t.id, t.name, t.category_id, t.main_category_id, t.price, t.unit, t.specimen, 
+                              t.default_result, t.reference_range, t.min, t.max, t.description, t.min_male, t.max_male, 
+                              t.min_female, t.max_female, t.min_child, t.max_child, t.child_unit, t.sub_heading, 
+                              t.test_code, t.method, t.print_new_page, t.shortcut, t.added_by, t.created_at, t.updated_at,
+                              tc.name as category_name, mc.name as main_category_name, u.username as added_by_username
                 FROM tests t
                 LEFT JOIN {$categories_table} tc ON t.category_id = tc.id
+                LEFT JOIN main_test_categories mc ON tc.main_category_id = mc.id
                 LEFT JOIN users u ON t.added_by = u.id
                 WHERE t.id = ?");
             $stmt->execute([$newId]);
-            $newRecord = $stmt->fetch();
+            $newRecord = $stmt->fetch(PDO::FETCH_ASSOC);
             
             json_response(['success'=>true,'message'=>'Test created', 'data'=>$newRecord]);
         }
@@ -418,11 +457,15 @@ try {
     } else if ($action === 'simple_list') {
         // Simple list action for dropdowns
         try {
-            $stmt = $pdo->query("SELECT t.id, t.name, t.unit, t.reference_range, t.price, 
-                                       t.min, t.max, t.min_male, t.max_male, t.min_female, t.max_female,
-                                       tc.name as category_name, t.category_id
+            $stmt = $pdo->query("SELECT t.id, t.name, t.category_id, t.main_category_id, t.price, t.unit, t.specimen, 
+                                       t.default_result, t.reference_range, t.min, t.max, t.description, t.min_male, t.max_male, 
+                                       t.min_female, t.max_female, t.min_child, t.max_child, t.child_unit, t.sub_heading, 
+                                       t.test_code, t.method, t.print_new_page, t.shortcut, t.added_by, t.created_at, t.updated_at,
+                                       tc.name as category_name, mc.name as main_category_name, u.username as added_by_username
                                 FROM tests t 
                                 LEFT JOIN categories tc ON t.category_id = tc.id 
+                                LEFT JOIN main_test_categories mc ON tc.main_category_id = mc.id
+                                LEFT JOIN users u ON t.added_by = u.id
                                 ORDER BY t.name ASC");
             $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
