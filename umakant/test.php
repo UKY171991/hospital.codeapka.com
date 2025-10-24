@@ -407,100 +407,225 @@ let testsData = [];
 $(document).ready(function() {
     console.log('Initializing Test Management page...');
     
+    // Check if required libraries are loaded
+    if (typeof $ === 'undefined') {
+        console.error('jQuery is not loaded');
+        return;
+    }
+    
+    if (typeof toastr === 'undefined') {
+        console.warn('Toastr is not loaded, using alert fallback');
+        window.toastr = {
+            success: function(msg) { alert('Success: ' + msg); },
+            error: function(msg) { alert('Error: ' + msg); },
+            warning: function(msg) { alert('Warning: ' + msg); },
+            info: function(msg) { alert('Info: ' + msg); }
+        };
+    }
+    
     try {
+        // Initialize components in order
+        console.log('Loading categories...');
         loadCategories();
+        
+        console.log('Loading statistics...');
         loadStats();
+        
+        console.log('Initializing table...');
         initializeTable();
+        
+        console.log('Setting up event handlers...');
         setupEventHandlers();
         
         console.log('Test Management page initialized successfully');
     } catch (error) {
         console.error('Error initializing Test Management page:', error);
-        toastr.error('Error initializing page: ' + error.message);
+        if (window.toastr) {
+            toastr.error('Error initializing page: ' + error.message);
+        } else {
+            alert('Error initializing page: ' + error.message);
+        }
     }
 });
 
 // Initialize simple table without DataTables
 function initializeTable() {
+    console.log('Initializing table...');
+    
+    // Check if table has correct structure
+    const tableHeaders = $('#testsTable thead th').length;
+    console.log('Table headers count:', tableHeaders);
+    
+    if (tableHeaders !== 6) {
+        console.warn('Table structure mismatch, fixing...');
+        fixTableStructure();
+    }
+    
     loadTests();
+}
+
+// Fix table structure if needed
+function fixTableStructure() {
+    console.log('Fixing table structure...');
+    
+    const correctHeaders = `
+        <thead class="thead-dark">
+            <tr>
+                <th width="30"><input type="checkbox" id="selectAll"></th>
+                <th width="50">ID</th>
+                <th>Test Name</th>
+                <th>Category</th>
+                <th width="100">Price (₹)</th>
+                <th width="120">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="6" class="text-center py-4">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...
+                </td>
+            </tr>
+        </tbody>
+    `;
+    
+    $('#testsTable').html(correctHeaders);
+    console.log('Table structure fixed');
 }
 
 // Load tests data
 function loadTests() {
     console.log('Loading tests...');
     
+    // Show loading state
+    $('#testsTable tbody').html('<tr><td colspan="6" class="text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...</td></tr>');
+    
     $.ajax({
         url: 'ajax/test_api.php?action=list',
         type: 'GET',
         dataType: 'json',
-        timeout: 10000,
+        timeout: 15000,
         success: function(response) {
-            console.log('Tests loaded successfully:', response);
+            console.log('Tests API response:', response);
             
-            if (response && response.success && Array.isArray(response.data)) {
-                testsData = response.data;
-                renderTable(testsData);
-                toastr.success('Tests loaded successfully');
-            } else {
-                console.error('Invalid response:', response);
-                showTableError('Invalid data received from server');
+            try {
+                if (response && response.success === true && Array.isArray(response.data)) {
+                    testsData = response.data;
+                    renderTable(testsData);
+                    console.log('Tests loaded successfully, count:', testsData.length);
+                } else if (response && response.success === false) {
+                    console.error('API returned error:', response.message);
+                    showTableError('Server error: ' + (response.message || 'Unknown error'));
+                } else {
+                    console.error('Invalid response format:', response);
+                    showTableError('Invalid data format received from server');
+                }
+            } catch (e) {
+                console.error('Error processing response:', e);
+                showTableError('Error processing server response');
             }
         },
         error: function(xhr, status, error) {
-            console.error('Failed to load tests:', {xhr, status, error});
-            showTableError('Failed to load test data. Please check your connection and try again.');
+            console.error('AJAX Error Details:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText,
+                error: error,
+                readyState: xhr.readyState
+            });
+            
+            let errorMessage = 'Failed to load test data';
+            
+            if (xhr.status === 0) {
+                errorMessage = 'Network connection error. Please check your internet connection.';
+            } else if (xhr.status === 404) {
+                errorMessage = 'API endpoint not found. Please contact administrator.';
+            } else if (xhr.status === 500) {
+                errorMessage = 'Server error occurred. Please try again later.';
+            } else if (xhr.status === 403) {
+                errorMessage = 'Access denied. Please check your permissions.';
+            } else if (status === 'timeout') {
+                errorMessage = 'Request timed out. Please try again.';
+            } else if (xhr.responseText) {
+                try {
+                    const errorResponse = JSON.parse(xhr.responseText);
+                    errorMessage = errorResponse.message || errorMessage;
+                } catch (e) {
+                    // Response is not JSON, use default message
+                }
+            }
+            
+            showTableError(errorMessage);
         }
     });
 }
 
 // Render table with data
 function renderTable(data) {
+    console.log('Rendering table with data:', data);
+    
     let html = '';
     
-    if (!data || data.length === 0) {
-        html = '<tr><td colspan="6" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
-    } else {
-        data.forEach(function(test) {
-            let categoryHtml = '';
-            if (test.main_category_name) {
-                categoryHtml += `<span class="badge badge-secondary badge-sm">${test.main_category_name}</span><br>`;
-            }
-            if (test.category_name) {
-                categoryHtml += `<span class="badge badge-info">${test.category_name}</span>`;
-            } else {
-                categoryHtml += '<span class="text-muted">No Category</span>';
-            }
-            
-            html += `
-                <tr>
-                    <td class="text-center"><input type="checkbox" class="test-checkbox" value="${test.id}"></td>
-                    <td class="text-center">${test.id}</td>
-                    <td>
-                        <strong class="text-primary">${test.name || 'N/A'}</strong>
-                        ${test.description ? `<br><small class="text-muted">${test.description.substring(0, 50)}${test.description.length > 50 ? '...' : ''}</small>` : ''}
-                    </td>
-                    <td>${categoryHtml}</td>
-                    <td class="text-right"><strong class="text-success">₹${test.price || '0'}</strong></td>
-                    <td class="text-center">
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-info btn-sm" onclick="viewTest(${test.id})" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-outline-warning btn-sm" onclick="editTest(${test.id})" title="Edit Test">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-outline-danger btn-sm" onclick="deleteTest(${test.id}, '${(test.name || '').replace(/'/g, '\\\'')}')" title="Delete Test">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        });
+    try {
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            html = '<tr><td colspan="6" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
+        } else {
+            data.forEach(function(test, index) {
+                if (!test || !test.id) {
+                    console.warn('Invalid test data at index', index, test);
+                    return;
+                }
+                
+                let categoryHtml = '';
+                if (test.main_category_name) {
+                    categoryHtml += `<span class="badge badge-secondary badge-sm">${escapeHtml(test.main_category_name)}</span><br>`;
+                }
+                if (test.category_name) {
+                    categoryHtml += `<span class="badge badge-info">${escapeHtml(test.category_name)}</span>`;
+                } else {
+                    categoryHtml += '<span class="text-muted">No Category</span>';
+                }
+                
+                const testName = escapeHtml(test.name || 'N/A');
+                const testDescription = test.description ? escapeHtml(test.description.substring(0, 50)) + (test.description.length > 50 ? '...' : '') : '';
+                const testPrice = test.price ? parseFloat(test.price).toFixed(0) : '0';
+                const safeName = (test.name || '').replace(/'/g, '\\\'');
+                
+                html += `
+                    <tr data-test-id="${test.id}">
+                        <td class="text-center"><input type="checkbox" class="test-checkbox" value="${test.id}"></td>
+                        <td class="text-center">${test.id}</td>
+                        <td>
+                            <strong class="text-primary">${testName}</strong>
+                            ${testDescription ? `<br><small class="text-muted">${testDescription}</small>` : ''}
+                        </td>
+                        <td>${categoryHtml}</td>
+                        <td class="text-right"><strong class="text-success">₹${testPrice}</strong></td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-info btn-sm" onclick="viewTest(${test.id})" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-warning btn-sm" onclick="editTest(${test.id})" title="Edit Test">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm" onclick="deleteTest(${test.id}, '${safeName}')" title="Delete Test">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        $('#testsTable tbody').html(html);
+        setupCheckboxEvents();
+        console.log('Table rendered successfully with', data ? data.length : 0, 'rows');
+        
+    } catch (error) {
+        console.error('Error rendering table:', error);
+        $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error rendering table data</td></tr>');
     }
-    
-    $('#testsTable tbody').html(html);
-    setupCheckboxEvents();
 }
 
 // Setup event handlers
@@ -595,72 +720,164 @@ function clearFilters() {
 
 // Load categories
 function loadCategories() {
+    console.log('Loading main categories...');
+    
     // Load main categories
-    $.getJSON('ajax/main_test_category_api.php', { action: 'list' }, function(response) {
-        if (response && response.success) {
-            let modalOptions = '<option value="">Select Main Category</option>';
+    $.ajax({
+        url: 'ajax/main_test_category_api.php',
+        type: 'GET',
+        data: { action: 'list' },
+        dataType: 'json',
+        timeout: 10000,
+        success: function(response) {
+            console.log('Main categories response:', response);
             
-            (response.data || []).forEach(category => {
-                modalOptions += `<option value="${category.id}">${category.name}</option>`;
-            });
-            
-            $('#mainCategorySelect').html(modalOptions);
+            if (response && response.success && Array.isArray(response.data)) {
+                let modalOptions = '<option value="">Select Main Category</option>';
+                
+                response.data.forEach(category => {
+                    if (category && category.id && category.name) {
+                        modalOptions += `<option value="${category.id}">${escapeHtml(category.name)}</option>`;
+                    }
+                });
+                
+                $('#mainCategorySelect').html(modalOptions);
+                console.log('Main categories loaded successfully');
+            } else {
+                console.warn('Invalid main categories response:', response);
+                $('#mainCategorySelect').html('<option value="">Error loading categories</option>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to load main categories:', {xhr, status, error});
+            $('#mainCategorySelect').html('<option value="">Error loading categories</option>');
         }
     });
 
+    console.log('Loading test categories...');
+    
     // Load test categories for filter
-    $.getJSON(TEST_CATEGORY_API + 'list', function(response) {
-        if (response && response.success) {
-            let filterOptions = '<option value="">All Categories</option>';
+    $.ajax({
+        url: TEST_CATEGORY_API + 'list',
+        type: 'GET',
+        dataType: 'json',
+        timeout: 10000,
+        success: function(response) {
+            console.log('Test categories response:', response);
+            
+            if (response && response.success && Array.isArray(response.data)) {
+                let filterOptions = '<option value="">All Categories</option>';
 
-            (response.data || []).forEach(category => {
-                filterOptions += `<option value="${category.name}">${category.name}</option>`;
-            });
+                response.data.forEach(category => {
+                    if (category && category.name) {
+                        filterOptions += `<option value="${escapeHtml(category.name)}">${escapeHtml(category.name)}</option>`;
+                    }
+                });
 
-            $('#categoryFilter').html(filterOptions);
+                $('#categoryFilter').html(filterOptions);
+                console.log('Test categories loaded successfully');
+            } else {
+                console.warn('Invalid test categories response:', response);
+                $('#categoryFilter').html('<option value="">Error loading categories</option>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to load test categories:', {xhr, status, error});
+            $('#categoryFilter').html('<option value="">Error loading categories</option>');
         }
     });
 }
 
 // Load test categories by main category
 function loadTestCategoriesByMain(mainCategoryId) {
+    console.log('Loading test categories for main category:', mainCategoryId);
+    
     if (!mainCategoryId) {
         $('#testCategoryId').html('<option value="">Select Test Category</option>');
         return;
     }
 
-    $.getJSON(TEST_CATEGORY_API + 'list', function(response) {
-        if (response && response.success) {
-            let options = '<option value="">Select Test Category</option>';
-            
-            (response.data || []).forEach(category => {
-                if (category.main_category_id == mainCategoryId) {
-                    options += `<option value="${category.id}">${category.name}</option>`;
-                }
-            });
+    // Show loading state
+    $('#testCategoryId').html('<option value="">Loading categories...</option>');
 
-            $('#testCategoryId').html(options);
+    $.ajax({
+        url: TEST_CATEGORY_API + 'list',
+        type: 'GET',
+        dataType: 'json',
+        timeout: 10000,
+        success: function(response) {
+            console.log('Test categories by main category response:', response);
+            
+            if (response && response.success && Array.isArray(response.data)) {
+                let options = '<option value="">Select Test Category</option>';
+                let foundCategories = 0;
+                
+                response.data.forEach(category => {
+                    if (category && category.main_category_id == mainCategoryId && category.id && category.name) {
+                        options += `<option value="${category.id}">${escapeHtml(category.name)}</option>`;
+                        foundCategories++;
+                    }
+                });
+
+                $('#testCategoryId').html(options);
+                console.log(`Found ${foundCategories} categories for main category ${mainCategoryId}`);
+                
+                if (foundCategories === 0) {
+                    $('#testCategoryId').html('<option value="">No categories found</option>');
+                }
+            } else {
+                console.warn('Invalid response for test categories:', response);
+                $('#testCategoryId').html('<option value="">Error loading categories</option>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to load test categories by main category:', {xhr, status, error});
+            $('#testCategoryId').html('<option value="">Error loading categories</option>');
         }
     });
 }
 
 // Load stats
 function loadStats() {
-    $.get('ajax/test_api.php?action=stats')
-        .done(function(response) {
-            if (response.success) {
-                $('#totalTests').text(response.data.total || 0);
-                $('#activeTests').text(response.data.active || 0);
-                $('#totalCategories').text(response.data.categories || 0);
-                $('#testEntries').text(response.data.entries || 0);
+    console.log('Loading statistics...');
+    
+    $.ajax({
+        url: 'ajax/test_api.php?action=stats',
+        type: 'GET',
+        dataType: 'json',
+        timeout: 10000,
+        success: function(response) {
+            console.log('Stats response:', response);
+            
+            try {
+                if (response && response.success && response.data) {
+                    $('#totalTests').text(response.data.total || 0);
+                    $('#activeTests').text(response.data.active || 0);
+                    $('#totalCategories').text(response.data.categories || 0);
+                    $('#testEntries').text(response.data.entries || 0);
+                    console.log('Statistics loaded successfully');
+                } else {
+                    console.warn('Invalid stats response:', response);
+                    setDefaultStats();
+                }
+            } catch (e) {
+                console.error('Error processing stats:', e);
+                setDefaultStats();
             }
-        })
-        .fail(function() {
-            $('#totalTests').text('0');
-            $('#activeTests').text('0');
-            $('#totalCategories').text('0');
-            $('#testEntries').text('0');
-        });
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to load stats:', {xhr, status, error});
+            setDefaultStats();
+        }
+    });
+}
+
+// Set default stats values
+function setDefaultStats() {
+    $('#totalTests').text('0');
+    $('#activeTests').text('0');
+    $('#totalCategories').text('0');
+    $('#testEntries').text('0');
 }
 
 // Open add test modal
@@ -673,64 +890,123 @@ function openAddTestModal() {
 
 // Edit test
 function editTest(id) {
-    $.get('ajax/test_api.php', {action: 'get', id: id})
-        .done(function(response) {
-            if (response.success) {
-                const test = response.data;
-                
-                // Populate form fields
-                $('#testId').val(test.id);
-                $('#testName').val(test.name);
-                $('#testPrice').val(test.price);
-                $('#testUnit').val(test.unit);
-                $('#testMethod').val(test.method);
-                
-                // Set main category and load test categories
-                if (test.main_category_id) {
-                    $('#mainCategorySelect').val(test.main_category_id);
-                    loadTestCategoriesByMain(test.main_category_id);
+    console.log('Editing test with ID:', id);
+    
+    if (!id) {
+        toastr.error('Invalid test ID');
+        return;
+    }
+    
+    $.ajax({
+        url: 'ajax/test_api.php',
+        type: 'GET',
+        data: {action: 'get', id: id},
+        dataType: 'json',
+        timeout: 10000,
+        success: function(response) {
+            console.log('Edit test response:', response);
+            
+            try {
+                if (response && response.success && response.data) {
+                    const test = response.data;
                     
-                    // Set test category after a delay
-                    setTimeout(function() {
-                        $('#testCategoryId').val(test.category_id);
-                    }, 500);
+                    // Reset form first
+                    $('#testForm')[0].reset();
+                    
+                    // Populate basic form fields
+                    $('#testId').val(test.id);
+                    $('#testName').val(test.name || '');
+                    $('#testPrice').val(test.price || '');
+                    $('#testUnit').val(test.unit || '');
+                    $('#testMethod').val(test.method || '');
+                    
+                    // Set main category and load test categories
+                    if (test.main_category_id) {
+                        $('#mainCategorySelect').val(test.main_category_id);
+                        
+                        // Load test categories and then set the selected category
+                        loadTestCategoriesByMain(test.main_category_id);
+                        
+                        // Set test category after categories are loaded
+                        setTimeout(function() {
+                            if (test.category_id) {
+                                $('#testCategoryId').val(test.category_id);
+                            }
+                        }, 1000);
+                    } else {
+                        $('#mainCategorySelect').val('');
+                        $('#testCategoryId').html('<option value="">Select Test Category</option>');
+                    }
+                    
+                    // Set range values
+                    $('#testMin').val(test.min || '');
+                    $('#testMax').val(test.max || '');
+                    $('#testMinMale').val(test.min_male || '');
+                    $('#testMaxMale').val(test.max_male || '');
+                    $('#testMinFemale').val(test.min_female || '');
+                    $('#testMaxFemale').val(test.max_female || '');
+                    $('#testMinChild').val(test.min_child || '');
+                    $('#testMaxChild').val(test.max_child || '');
+                    
+                    // Set units
+                    $('#generalUnit').val(test.unit || '');
+                    $('#maleUnit').val(test.male_unit || test.unit || '');
+                    $('#femaleUnit').val(test.female_unit || test.unit || '');
+                    $('#childUnit').val(test.child_unit || test.unit || '');
+                    
+                    // Set other fields
+                    $('#testSubHeading').val(test.sub_heading || 0);
+                    $('#testPrintNewPage').val(test.print_new_page || 0);
+                    $('#testDescription').val(test.description || '');
+                    $('#testReferenceRange').val(test.reference_range || '');
+                    
+                    $('#modalTitle').text('Edit Test');
+                    $('#testModal').modal('show');
+                    
+                    console.log('Edit form populated successfully');
+                } else {
+                    console.error('Invalid edit response:', response);
+                    toastr.error('Error loading test data: ' + (response.message || 'Invalid response'));
                 }
-                
-                // Set range values
-                $('#testMin').val(test.min);
-                $('#testMax').val(test.max);
-                $('#testMinMale').val(test.min_male);
-                $('#testMaxMale').val(test.max_male);
-                $('#testMinFemale').val(test.min_female);
-                $('#testMaxFemale').val(test.max_female);
-                $('#testMinChild').val(test.min_child);
-                $('#testMaxChild').val(test.max_child);
-                
-                // Set units
-                $('#generalUnit').val(test.unit);
-                $('#maleUnit').val(test.male_unit || test.unit);
-                $('#femaleUnit').val(test.female_unit || test.unit);
-                $('#childUnit').val(test.child_unit || test.unit);
-                
-                // Set other fields
-                $('#testSubHeading').val(test.sub_heading || 0);
-                $('#testPrintNewPage').val(test.print_new_page || 0);
-                $('#testDescription').val(test.description);
-                $('#testReferenceRange').val(test.reference_range);
-                
-                $('#modalTitle').text('Edit Test');
-                $('#testModal').modal('show');
-            } else {
-                toastr.error('Error loading test data: ' + (response.message || 'Unknown error'));
+            } catch (error) {
+                console.error('Error processing edit response:', error);
+                toastr.error('Error processing test data');
             }
-        })
-        .fail(function() {
-            toastr.error('Failed to load test data');
-        });
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to load test for editing:', {xhr, status, error});
+            toastr.error('Failed to load test data. Please try again.');
+        }
+    });
 }
 
 // Save test data
 function saveTestData() {
+    console.log('Saving test data...');
+    
+    // Validate required fields
+    const testName = $('#testName').val().trim();
+    const mainCategory = $('#mainCategorySelect').val();
+    const testCategory = $('#testCategoryId').val();
+    
+    if (!testName) {
+        toastr.error('Test name is required');
+        $('#testName').focus();
+        return;
+    }
+    
+    if (!mainCategory) {
+        toastr.error('Main category is required');
+        $('#mainCategorySelect').focus();
+        return;
+    }
+    
+    if (!testCategory) {
+        toastr.error('Test category is required');
+        $('#testCategoryId').focus();
+        return;
+    }
+    
     const formData = new FormData($('#testForm')[0]);
     const id = $('#testId').val();
     formData.append('action', 'save');
@@ -745,18 +1021,47 @@ function saveTestData() {
         data: formData,
         processData: false,
         contentType: false,
+        timeout: 15000,
         success: function(response) {
-            if (response.success) {
-                toastr.success(id ? 'Test updated successfully!' : 'Test added successfully!');
-                $('#testModal').modal('hide');
-                loadTests(); // Reload table
-                loadStats(); // Reload stats
-            } else {
-                toastr.error('Error: ' + (response.message || 'Unknown error'));
+            console.log('Save response:', response);
+            
+            try {
+                if (response && response.success) {
+                    toastr.success(id ? 'Test updated successfully!' : 'Test added successfully!');
+                    $('#testModal').modal('hide');
+                    loadTests(); // Reload table
+                    loadStats(); // Reload stats
+                    console.log('Test saved successfully');
+                } else {
+                    console.error('Save failed:', response);
+                    toastr.error('Error: ' + (response.message || 'Unknown error occurred'));
+                }
+            } catch (error) {
+                console.error('Error processing save response:', error);
+                toastr.error('Error processing server response');
             }
         },
-        error: function(xhr) {
-            toastr.error('Failed to save test');
+        error: function(xhr, status, error) {
+            console.error('Save request failed:', {xhr, status, error});
+            
+            let errorMessage = 'Failed to save test';
+            
+            if (xhr.status === 0) {
+                errorMessage = 'Network connection error';
+            } else if (xhr.status === 500) {
+                errorMessage = 'Server error occurred';
+            } else if (status === 'timeout') {
+                errorMessage = 'Request timed out';
+            } else if (xhr.responseText) {
+                try {
+                    const errorResponse = JSON.parse(xhr.responseText);
+                    errorMessage = errorResponse.message || errorMessage;
+                } catch (e) {
+                    // Response is not JSON
+                }
+            }
+            
+            toastr.error(errorMessage);
         },
         complete: function() {
             submitBtn.html(originalText).prop('disabled', false);
