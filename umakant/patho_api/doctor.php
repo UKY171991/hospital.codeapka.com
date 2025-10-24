@@ -74,6 +74,9 @@ try {
         case 'stats':
             handleStats($pdo, $user_data);
             break;
+        case 'debug':
+            handleDebug($pdo, $user_data);
+            break;
         default:
             json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
     }
@@ -220,32 +223,181 @@ function handleSave($pdo, $config, $user_data) {
 }
 
 function handleDelete($pdo, $config, $user_data) {
+    // Enhanced permission check
     if (!simpleCheckPermission($user_data, 'delete')) {
-        json_response(['success' => false, 'message' => 'Permission denied to delete doctors'], 403);
+        json_response([
+            'success' => false, 
+            'message' => 'Permission denied to delete doctors',
+            'debug' => [
+                'user_role' => $user_data['role'] ?? 'unknown',
+                'user_id' => $user_data['user_id'] ?? 'unknown',
+                'auth_method' => $user_data['auth_method'] ?? 'unknown'
+            ]
+        ], 403);
     }
 
-    $id = $_REQUEST['id'] ?? null;
-    if (!$id) {
-        json_response(['success' => false, 'message' => 'Doctor ID is required'], 400);
+    // Get and validate doctor ID
+    $id = $_REQUEST['id'] ?? $_GET['id'] ?? $_POST['id'] ?? null;
+    if (!$id || !is_numeric($id)) {
+        json_response([
+            'success' => false, 
+            'message' => 'Valid doctor ID is required',
+            'debug' => [
+                'provided_id' => $id,
+                'request_method' => $_SERVER['REQUEST_METHOD'],
+                'available_params' => array_keys($_REQUEST)
+            ]
+        ], 400);
     }
 
-    $stmt = $pdo->prepare("SELECT added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
-    $stmt->execute([$id]);
-    $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+    $id = (int)$id;
 
-    if (!$doctor) {
-        json_response(['success' => false, 'message' => 'Doctor not found'], 404);
+    // Check if doctor exists and get details
+    try {
+        $stmt = $pdo->prepare("SELECT id, name, added_by, created_at FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $stmt->execute([$id]);
+        $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$doctor) {
+            json_response([
+                'success' => false, 
+                'message' => 'Doctor not found',
+                'debug' => [
+                    'searched_id' => $id,
+                    'table' => $config['table_name']
+                ]
+            ], 404);
+        }
+
+        // Check ownership permissions (unless master role)
+        $scopeIds = getScopedUserIds($pdo, $user_data);
+        if (is_array($scopeIds) && !in_array((int)$doctor['added_by'], $scopeIds, true)) {
+            json_response([
+                'success' => false, 
+                'message' => 'Permission denied to delete this doctor',
+                'debug' => [
+                    'doctor_owner' => $doctor['added_by'],
+                    'allowed_owners' => $scopeIds,
+                    'user_role' => $user_data['role']
+                ]
+            ], 403);
+        }
+
+        // Check for foreign key constraints before deletion
+        $constraintCheck = checkDoctorConstraints($pdo, $id);
+        if (!$constraintCheck['can_delete']) {
+            json_response([
+                'success' => false,
+                'message' => 'Cannot delete doctor: ' . $constraintCheck['reason'],
+                'debug' => [
+                    'constraints' => $constraintCheck['constraints'],
+                    'doctor_name' => $doctor['name']
+                ]
+            ], 409);
+        }
+
+        // Perform the deletion
+        $stmt = $pdo->prepare("DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $result = $stmt->execute([$id]);
+        $rowsAffected = $stmt->rowCount();
+
+        if ($result && $rowsAffected > 0) {
+            json_response([
+                'success' => true, 
+                'message' => 'Doctor deleted successfully',
+                'data' => [
+                    'deleted_id' => $id,
+                    'deleted_name' => $doctor['name'],
+                    'rows_affected' => $rowsAffected
+                ]
+            ]);
+        } else {
+            json_response([
+                'success' => false, 
+                'message' => 'Failed to delete doctor - no rows affected',
+                'debug' => [
+                    'sql_result' => $result,
+                    'rows_affected' => $rowsAffected,
+                    'doctor_id' => $id
+                ]
+            ], 500);
+        }
+
+    } catch (PDOException $e) {
+        error_log("Doctor Delete Error: " . $e->getMessage());
+        json_response([
+            'success' => false, 
+            'message' => 'Database error occurred while deleting doctor',
+            'debug' => [
+                'error_code' => $e->getCode(),
+                'sql_state' => $e->errorInfo[0] ?? 'unknown'
+            ]
+        ], 500);
+    } catch (Exception $e) {
+        error_log("Doctor Delete Unexpected Error: " . $e->getMessage());
+        json_response([
+            'success' => false, 
+            'message' => 'An unexpected error occurred',
+            'debug' => [
+                'error_type' => get_class($e)
+            ]
+        ], 500);
+    }
+}
+
+/**
+ * Check if a doctor can be safely deleted (no foreign key constraints)
+ */
+function checkDoctorConstraints($pdo, $doctorId) {
+    $constraints = [];
+    $canDelete = true;
+    $reason = '';
+
+    try {
+        // Check common tables that might reference doctors
+        $tablesToCheck = [
+            'patients' => 'doctor_id',
+            'appointments' => 'doctor_id', 
+            'prescriptions' => 'doctor_id',
+            'consultations' => 'doctor_id',
+            'reports' => 'doctor_id'
+        ];
+
+        foreach ($tablesToCheck as $table => $column) {
+            try {
+                $stmt = $pdo->prepare("SELECT COUNT(*) FROM $table WHERE $column = ?");
+                $stmt->execute([$doctorId]);
+                $count = $stmt->fetchColumn();
+                
+                if ($count > 0) {
+                    $constraints[] = [
+                        'table' => $table,
+                        'column' => $column,
+                        'count' => $count
+                    ];
+                    $canDelete = false;
+                    $reason .= "$count records in $table; ";
+                }
+            } catch (PDOException $e) {
+                // Table might not exist, which is fine
+                continue;
+            }
+        }
+
+        if (!$canDelete) {
+            $reason = "Referenced by: " . rtrim($reason, '; ');
+        }
+
+    } catch (Exception $e) {
+        // If we can't check constraints, allow deletion but log the issue
+        error_log("Warning: Could not check doctor constraints: " . $e->getMessage());
     }
 
-    $scopeIds = getScopedUserIds($pdo, $user_data);
-    if (is_array($scopeIds) && !in_array((int)$doctor['added_by'], $scopeIds, true)) {
-        json_response(['success' => false, 'message' => 'Permission denied to delete this doctor'], 403);
-    }
-
-    $stmt = $pdo->prepare("DELETE FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
-    $result = $stmt->execute([$id]);
-
-    json_response(['success' => $result, 'message' => $result ? 'Doctor deleted successfully' : 'Failed to delete doctor']);
+    return [
+        'can_delete' => $canDelete,
+        'reason' => $reason,
+        'constraints' => $constraints
+    ];
 }
 
 function handleStats($pdo, $user_data) {
@@ -296,5 +448,55 @@ function handleHospitals($pdo, $user_data) {
     $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
     $data = array_values(array_filter(array_map('trim', $rows), fn($v) => $v !== ''));
     json_response(['success' => true, 'data' => $data]);
+}
+
+/**
+ * Debug endpoint to help troubleshoot API issues
+ */
+function handleDebug($pdo, $user_data) {
+    $debugInfo = [
+        'success' => true,
+        'message' => 'Debug information',
+        'authentication' => [
+            'authenticated' => !empty($user_data),
+            'user_data' => $user_data,
+            'auth_method' => $user_data['auth_method'] ?? 'none'
+        ],
+        'request_info' => [
+            'method' => $_SERVER['REQUEST_METHOD'],
+            'query_params' => $_GET,
+            'post_params' => $_POST,
+            'request_params' => $_REQUEST,
+            'headers' => getallheaders() ?: 'not available'
+        ],
+        'database_info' => [
+            'connected' => !empty($pdo),
+            'doctors_table_exists' => false,
+            'sample_doctors' => []
+        ],
+        'permissions' => [
+            'can_list' => simpleCheckPermission($user_data, 'list'),
+            'can_save' => simpleCheckPermission($user_data, 'save'),
+            'can_delete' => simpleCheckPermission($user_data, 'delete')
+        ]
+    ];
+
+    // Check database info
+    try {
+        $stmt = $pdo->query("SHOW TABLES LIKE 'doctors'");
+        $debugInfo['database_info']['doctors_table_exists'] = $stmt->rowCount() > 0;
+        
+        if ($debugInfo['database_info']['doctors_table_exists']) {
+            $stmt = $pdo->query("SELECT id, name, added_by FROM doctors LIMIT 3");
+            $debugInfo['database_info']['sample_doctors'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $stmt = $pdo->query("SELECT COUNT(*) FROM doctors");
+            $debugInfo['database_info']['total_doctors'] = $stmt->fetchColumn();
+        }
+    } catch (Exception $e) {
+        $debugInfo['database_info']['error'] = $e->getMessage();
+    }
+
+    json_response($debugInfo);
 }
 ?>

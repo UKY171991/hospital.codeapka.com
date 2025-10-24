@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor API Tester</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .test-section h3 { margin-top: 0; color: #333; }
+        .form-group { margin: 10px 0; }
+        label { display: inline-block; width: 120px; font-weight: bold; }
+        input, select, textarea { width: 300px; padding: 5px; }
+        button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #005a87; }
+        .response { margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 3px; white-space: pre-wrap; font-family: monospace; }
+        .success { background: #d4edda; border-left: 4px solid #28a745; }
+        .error { background: #f8d7da; border-left: 4px solid #dc3545; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .info { background: #d1ecf1; border-left: 4px solid #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Doctor API Tester</h1>
+        <p>Test all doctor API endpoints including the delete functionality.</p>
+
+        <!-- Authentication Settings -->
+        <div class="test-section">
+            <h3>🔐 Authentication Settings</h3>
+            <div class="form-group">
+                <label>API Base URL:</label>
+                <input type="text" id="apiUrl" value="/umakant/patho_api/doctor.php">
+            </div>
+            <div class="form-group">
+                <label>Secret Key:</label>
+                <input type="text" id="secretKey" value="hospital-api-secret-2024">
+            </div>
+            <div class="form-group">
+                <label>Auth Method:</label>
+                <select id="authMethod">
+                    <option value="secret_key">Secret Key Parameter</option>
+                    <option value="header">X-Api-Key Header</option>
+                    <option value="both">Both Methods</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Debug Test -->
+        <div class="test-section">
+            <h3>🔍 Debug Test</h3>
+            <p>Test authentication and get system information.</p>
+            <button onclick="testDebug()">Run Debug Test</button>
+            <div id="debugResponse" class="response" style="display: none;"></div>
+        </div>
+
+        <!-- List Doctors -->
+        <div class="test-section">
+            <h3>📋 List Doctors</h3>
+            <p>Get list of all doctors to find IDs for testing.</p>
+            <button onclick="testList()">Get Doctors List</button>
+            <div id="listResponse" class="response" style="display: none;"></div>
+        </div>
+
+        <!-- Get Single Doctor -->
+        <div class="test-section">
+            <h3>👨‍⚕️ Get Single Doctor</h3>
+            <div class="form-group">
+                <label>Doctor ID:</label>
+                <input type="number" id="getDoctorId" placeholder="Enter doctor ID">
+            </div>
+            <button onclick="testGet()">Get Doctor</button>
+            <div id="getResponse" class="response" style="display: none;"></div>
+        </div>
+
+        <!-- Create Doctor -->
+        <div class="test-section">
+            <h3>➕ Create Doctor</h3>
+            <div class="form-group">
+                <label>Name:</label>
+                <input type="text" id="createName" value="Test Doctor">
+            </div>
+            <div class="form-group">
+                <label>Specialization:</label>
+                <input type="text" id="createSpec" value="General Medicine">
+            </div>
+            <div class="form-group">
+                <label>Hospital:</label>
+                <input type="text" id="createHospital" value="Test Hospital">
+            </div>
+            <div class="form-group">
+                <label>Contact:</label>
+                <input type="text" id="createContact" value="9876543210">
+            </div>
+            <button onclick="testCreate()">Create Doctor</button>
+            <div id="createResponse" class="response" style="display: none;"></div>
+        </div>
+
+        <!-- Delete Doctor -->
+        <div class="test-section">
+            <h3>🗑️ Delete Doctor</h3>
+            <div class="form-group">
+                <label>Doctor ID:</label>
+                <input type="number" id="deleteDoctorId" placeholder="Enter doctor ID to delete">
+            </div>
+            <button onclick="testDelete()" style="background: #dc3545;">Delete Doctor</button>
+            <div id="deleteResponse" class="response" style="display: none;"></div>
+            <p class="warning" style="margin-top: 10px; padding: 10px;">
+                ⚠️ <strong>Warning:</strong> This will permanently delete the doctor record!
+            </p>
+        </div>
+
+        <!-- Stats -->
+        <div class="test-section">
+            <h3>📊 Statistics</h3>
+            <button onclick="testStats()">Get Statistics</button>
+            <div id="statsResponse" class="response" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        function getApiUrl() {
+            return document.getElementById('apiUrl').value;
+        }
+
+        function getSecretKey() {
+            return document.getElementById('secretKey').value;
+        }
+
+        function getAuthMethod() {
+            return document.getElementById('authMethod').value;
+        }
+
+        function makeApiCall(action, data = {}, method = 'POST') {
+            const url = getApiUrl();
+            const secretKey = getSecretKey();
+            const authMethod = getAuthMethod();
+
+            // Add action and authentication to data
+            data.action = action;
+            
+            if (authMethod === 'secret_key' || authMethod === 'both') {
+                data.secret_key = secretKey;
+            }
+
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            };
+
+            if (authMethod === 'header' || authMethod === 'both') {
+                headers['X-Api-Key'] = secretKey;
+            }
+
+            const formData = new URLSearchParams(data);
+
+            return fetch(url, {
+                method: method,
+                headers: headers,
+                body: formData
+            })
+            .then(response => response.json())
+            .catch(error => ({
+                success: false,
+                message: 'Network error: ' + error.message,
+                error: error
+            }));
+        }
+
+        function displayResponse(elementId, response) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.textContent = JSON.stringify(response, null, 2);
+            
+            // Add appropriate class based on response
+            element.className = 'response';
+            if (response.success) {
+                element.classList.add('success');
+            } else {
+                element.classList.add('error');
+            }
+        }
+
+        function testDebug() {
+            makeApiCall('debug')
+                .then(response => displayResponse('debugResponse', response));
+        }
+
+        function testList() {
+            makeApiCall('list')
+                .then(response => displayResponse('listResponse', response));
+        }
+
+        function testGet() {
+            const doctorId = document.getElementById('getDoctorId').value;
+            if (!doctorId) {
+                alert('Please enter a doctor ID');
+                return;
+            }
+            
+            makeApiCall('get', { id: doctorId })
+                .then(response => displayResponse('getResponse', response));
+        }
+
+        function testCreate() {
+            const data = {
+                name: document.getElementById('createName').value,
+                specialization: document.getElementById('createSpec').value,
+                hospital: document.getElementById('createHospital').value,
+                contact_no: document.getElementById('createContact').value
+            };
+
+            makeApiCall('save', data)
+                .then(response => {
+                    displayResponse('createResponse', response);
+                    if (response.success && response.id) {
+                        // Auto-fill the delete field with the new doctor ID
+                        document.getElementById('deleteDoctorId').value = response.id;
+                    }
+                });
+        }
+
+        function testDelete() {
+            const doctorId = document.getElementById('deleteDoctorId').value;
+            if (!doctorId) {
+                alert('Please enter a doctor ID to delete');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete doctor ID ${doctorId}? This action cannot be undone.`)) {
+                return;
+            }
+
+            makeApiCall('delete', { id: doctorId })
+                .then(response => displayResponse('deleteResponse', response));
+        }
+
+        function testStats() {
+            makeApiCall('stats')
+                .then(response => displayResponse('statsResponse', response));
+        }
+
+        // Auto-load debug info on page load
+        window.onload = function() {
+            testDebug();
+        };
+    </script>
+</body>
+</html>
