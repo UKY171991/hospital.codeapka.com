@@ -669,28 +669,50 @@ function initializeDataTable() {
         
         // Initialize fresh DataTable
         testsTable = $('#testsTable').DataTable({
-            processing: false, // Disable processing indicator to avoid loading issues
+            processing: true,
             serverSide: false,
             destroy: true,
             deferRender: true,
             ajax: {
-                url: 'ajax/test_api.php?action=list&cb=' + CACHE_BUSTER,
+                url: 'ajax/test_api.php?action=list',
                 type: 'GET',
-                cache: false, // Prevent caching issues
+                cache: false,
+                timeout: 10000, // 10 second timeout
                 dataSrc: function(json) {
                     console.log('DataTable AJAX response:', json);
-                    if (json && json.success) {
-                        return json.data || [];
-                    } else {
-                        console.error('Failed to load tests:', json ? json.message : 'No response');
-                        toastr.error('Failed to load tests: ' + (json ? json.message : 'No response'));
+                    try {
+                        if (json && json.success && Array.isArray(json.data)) {
+                            return json.data;
+                        } else {
+                            console.error('Invalid response format:', json);
+                            toastr.error('Invalid data format received');
+                            return [];
+                        }
+                    } catch (e) {
+                        console.error('Error processing response:', e);
+                        toastr.error('Error processing data');
                         return [];
                     }
                 },
                 error: function(xhr, error, thrown) {
-                    console.error('DataTable AJAX Error:', error, thrown);
-                    toastr.error('Failed to load tests data');
-                    return [];
+                    console.error('DataTable AJAX Error:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        error: error,
+                        thrown: thrown,
+                        responseText: xhr.responseText
+                    });
+                    
+                    let errorMsg = 'Failed to load tests data';
+                    if (xhr.status === 0) {
+                        errorMsg = 'Network connection error';
+                    } else if (xhr.status === 404) {
+                        errorMsg = 'API endpoint not found';
+                    } else if (xhr.status === 500) {
+                        errorMsg = 'Server error occurred';
+                    }
+                    
+                    toastr.error(errorMsg);
                 }
             },
         columns: [
@@ -792,14 +814,15 @@ function initializeDataTable() {
             }
         ],
         language: {
-            processing: '<i class="fas fa-spinner fa-spin"></i> Loading tests...',
-            emptyTable: 'No tests found',
-            zeroRecords: 'No matching tests found',
+            processing: '<div class="text-center py-3"><i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...</div>',
+            emptyTable: '<div class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found. <a href="#" onclick="refreshTests()" class="btn btn-link btn-sm">Refresh</a></div>',
+            zeroRecords: '<div class="text-center py-4"><i class="fas fa-search text-muted mr-2"></i>No matching tests found. <a href="#" onclick="clearFilters()" class="btn btn-link btn-sm">Clear Filters</a></div>',
             search: 'Search tests:',
             lengthMenu: 'Show _MENU_ tests per page',
             info: 'Showing _START_ to _END_ of _TOTAL_ tests',
             infoEmpty: 'No tests available',
-            infoFiltered: '(filtered from _MAX_ total tests)'
+            infoFiltered: '(filtered from _MAX_ total tests)',
+            loadingRecords: '<div class="text-center py-3"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</div>'
         },
         columnDefs: [
             {
@@ -830,6 +853,21 @@ function initializeDataTable() {
     // Handle draw event to ensure proper rendering
     testsTable.on('draw.dt', function() {
         initializeCheckboxEvents();
+        // Hide any lingering processing indicators
+        $('.dataTables_processing').hide();
+    });
+    
+    // Handle processing state
+    testsTable.on('processing.dt', function(e, settings, processing) {
+        if (processing) {
+            console.log('DataTable processing started');
+        } else {
+            console.log('DataTable processing completed');
+            // Ensure processing indicator is hidden
+            setTimeout(function() {
+                $('.dataTables_processing').hide();
+            }, 100);
+        }
     });
 
     // Initialize checkbox events
@@ -837,13 +875,18 @@ function initializeDataTable() {
 
     console.log('DataTable initialized successfully');
     
-    // Fallback: if DataTable fails to load after 5 seconds, try manual load
+    // Fallback: if DataTable fails to load after 3 seconds, try manual load
     setTimeout(function() {
-        if (testsTable.data().count() === 0) {
-            console.log('DataTable appears empty, trying fallback load...');
+        try {
+            if (testsTable && testsTable.data().count() === 0) {
+                console.log('DataTable appears empty, trying fallback load...');
+                loadTestsManually();
+            }
+        } catch (e) {
+            console.log('DataTable check failed, trying fallback load...');
             loadTestsManually();
         }
-    }, 5000);
+    }, 3000);
     
     } catch (error) {
         console.error('Error initializing DataTable:', error);
