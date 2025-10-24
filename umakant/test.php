@@ -125,7 +125,7 @@ require_once 'inc/sidebar.php';
 
                             <!-- Tests Table -->
                             <div class="table-responsive">
-                                <table id="testsTable" class="table table-striped table-bordered table-hover">
+                                <table id="testManagementTable" class="table table-striped table-bordered table-hover" data-no-datatables="true">
                                     <thead class="thead-dark">
                                         <tr>
                                             <th width="30"><input type="checkbox" id="selectAll"></th>
@@ -453,7 +453,7 @@ function initializeTable() {
     console.log('Initializing table...');
     
     // Check if table has correct structure
-    const tableHeaders = $('#testsTable thead th').length;
+    const tableHeaders = $('#testManagementTable thead th').length;
     console.log('Table headers count:', tableHeaders);
     
     if (tableHeaders !== 6) {
@@ -488,7 +488,7 @@ function fixTableStructure() {
         </tbody>
     `;
     
-    $('#testsTable').html(correctHeaders);
+    $('#testManagementTable').html(correctHeaders);
     console.log('Table structure fixed');
 }
 
@@ -497,7 +497,7 @@ function loadTests() {
     console.log('Loading tests...');
     
     // Show loading state
-    $('#testsTable tbody').html('<tr><td colspan="6" class="text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...</td></tr>');
+    $('#testManagementTable tbody').html('<tr><td colspan="6" class="text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...</td></tr>');
     
     $.ajax({
         url: 'ajax/test_api.php?action=list',
@@ -618,13 +618,13 @@ function renderTable(data) {
             });
         }
         
-        $('#testsTable tbody').html(html);
+        $('#testManagementTable tbody').html(html);
         setupCheckboxEvents();
         console.log('Table rendered successfully with', data ? data.length : 0, 'rows');
         
     } catch (error) {
         console.error('Error rendering table:', error);
-        $('#testsTable tbody').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error rendering table data</td></tr>');
+        $('#testManagementTable tbody').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error rendering table data</td></tr>');
     }
 }
 
