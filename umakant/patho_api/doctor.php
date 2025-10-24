@@ -41,14 +41,28 @@ if (!$user_data) {
     json_response(['success' => false, 'message' => 'Authentication required', 'debug_info' => getAuthDebugInfo()], 401);
 }
 
-// Determine action
+// Determine action - Fixed to properly handle explicit action parameters
 $requestMethod = $_SERVER['REQUEST_METHOD'];
-$action = $_REQUEST['action'] ?? $requestMethod;
+$action = $_REQUEST['action'] ?? null;
 
-if ($requestMethod === 'GET' && isset($_GET['id'])) $action = 'get';
-if ($requestMethod === 'GET' && !isset($_GET['id'])) $action = 'list';
-if ($requestMethod === 'POST' || $requestMethod === 'PUT') $action = 'save';
-if ($requestMethod === 'DELETE') $action = 'delete';
+// If no explicit action is provided, determine from HTTP method and parameters
+if (!$action) {
+    if ($requestMethod === 'GET' && isset($_GET['id'])) {
+        $action = 'get';
+    } elseif ($requestMethod === 'GET' && !isset($_GET['id'])) {
+        $action = 'list';
+    } elseif ($requestMethod === 'POST' || $requestMethod === 'PUT') {
+        $action = 'save';
+    } elseif ($requestMethod === 'DELETE') {
+        $action = 'delete';
+    } else {
+        $action = 'list'; // default fallback
+    }
+}
+
+// Debug: Log the determined action and store for debug endpoint
+error_log("Doctor API: Processing action '$action' for method '$requestMethod'");
+$GLOBALS['current_action'] = $action;
 
 try {
     switch($action) {
@@ -464,6 +478,8 @@ function handleDebug($pdo, $user_data) {
         ],
         'request_info' => [
             'method' => $_SERVER['REQUEST_METHOD'],
+            'determined_action' => $GLOBALS['current_action'] ?? 'not set',
+            'explicit_action_param' => $_REQUEST['action'] ?? 'not provided',
             'query_params' => $_GET,
             'post_params' => $_POST,
             'request_params' => $_REQUEST,
