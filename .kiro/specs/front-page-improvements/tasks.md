@@ -79,11 +79,12 @@
   - Include API access and integration capabilities comparison
   - _Requirements: 3.2, 3.3, 3.5_
 
-- [ ] 3.4 ROI Calculator Implementation
-  - Create interactive calculator for potential savings
-  - Add input validation and real-time calculations
-  - Implement results visualization with charts
-  - _Requirements: 3.4_
+- [ ] 3.4 Test Database Explorer
+  - Create interactive explorer showing comprehensive test management capabilities
+  - Display actual database schema with all 27 fields
+  - Show reference ranges, demographics, and quality control features
+  - Implement search and filtering of test categories and methods
+  - _Requirements: 3.1, 3.3, 3.4_
 
 - [ ] 4. Enhanced Social Proof and Trust Elements
   - Create client logo carousel with real logos
