@@ -219,11 +219,12 @@
   - Show real database schema and field relationships
   - _Requirements: 6.3, 3.3_
 
-- [ ] 9.2 Industry-Specific Content
-  - Update copy to use healthcare-specific terminology
-  - Add use cases for different types of healthcare facilities
-  - Create specialty-specific landing sections
-  - _Requirements: 6.5_
+- [ ] 9.2 Pathology-Specific Content
+  - Update copy to use pathology and laboratory-specific terminology
+  - Add use cases for pathology labs, hospital labs, and diagnostic centers
+  - Create sections highlighting test management, reference ranges, and quality control
+  - Show actual test categories and specimen types from the system
+  - _Requirements: 6.5, 6.1, 6.4_
 
 - [ ] 10. Final Optimization and Testing
   - Conduct comprehensive cross-browser testing
