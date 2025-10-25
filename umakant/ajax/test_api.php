@@ -119,7 +119,7 @@ try {
             COALESCE(u.username, '') AS added_by_username
             FROM tests t 
             LEFT JOIN {$categories_table} tc ON t.category_id = tc.id 
-            LEFT JOIN main_test_categories mc ON tc.main_category_id = mc.id
+            LEFT JOIN main_test_categories mc ON t.main_category_id = mc.id
             LEFT JOIN users u ON t.added_by = u.id" . $whereClause . $orderBy . $limit;
         
         // Get data records with error handling
@@ -207,7 +207,7 @@ try {
                               tc.name as category_name, mc.name as main_category_name, u.username as added_by_username
             FROM tests t
             LEFT JOIN {$categories_table} tc ON t.category_id = tc.id
-            LEFT JOIN main_test_categories mc ON tc.main_category_id = mc.id
+            LEFT JOIN main_test_categories mc ON t.main_category_id = mc.id
             LEFT JOIN users u ON t.added_by = u.id
             WHERE t.id = ?");
         $stmt->execute([$_GET['id']]);
@@ -485,7 +485,7 @@ try {
                                        tc.name as category_name, mc.name as main_category_name, u.username as added_by_username
                                 FROM tests t 
                                 LEFT JOIN categories tc ON t.category_id = tc.id 
-                                LEFT JOIN main_test_categories mc ON tc.main_category_id = mc.id
+                                LEFT JOIN main_test_categories mc ON t.main_category_id = mc.id
                                 LEFT JOIN users u ON t.added_by = u.id
                                 ORDER BY t.name ASC");
             $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
