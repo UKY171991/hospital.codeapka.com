@@ -113,12 +113,36 @@ function handleSendEmail() {
     }
     
     // Send email immediately
-    if (sendEmailViaSMTP($gmail_config, $password, $emailData, $attachments)) {
-        // Log sent email
-        logSentEmail($emailData);
-        json_response(['success' => true, 'message' => 'Email sent successfully']);
-    } else {
-        json_response(['success' => false, 'message' => 'Failed to send email'], 500);
+    try {
+        $sendResult = sendEmailViaSMTP($gmail_config, $password, $emailData, $attachments);
+        
+        if ($sendResult) {
+            // Log sent email
+            logSentEmail($emailData);
+            json_response(['success' => true, 'message' => 'Email sent successfully']);
+        } else {
+            // Try alternative method if primary fails
+            error_log("Primary email method failed, trying alternative...");
+            
+            if (sendEmailAlternative($emailData)) {
+                logSentEmail($emailData);
+                json_response(['success' => true, 'message' => 'Email sent successfully (via alternative method)']);
+            } else {
+                // Get more specific error information
+                $errorDetails = error_get_last();
+                $errorMessage = 'Failed to send email. Possible causes: Gmail authentication failed, server blocks SMTP, or network issues.';
+                
+                if ($errorDetails && $errorDetails['message']) {
+                    $errorMessage .= ' Technical details: ' . $errorDetails['message'];
+                }
+                
+                error_log("All email sending methods failed: " . $errorMessage);
+                json_response(['success' => false, 'message' => $errorMessage], 500);
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Email sending exception: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Email sending error: ' . $e->getMessage()], 500);
     }
 }
 
@@ -140,19 +164,90 @@ function handleSaveDraft() {
 }
 
 function sendEmailViaSMTP($config, $password, $emailData, $attachments = []) {
-    // Use PHPMailer if available, otherwise use basic mail function
+    // Try multiple methods in order of preference
+    
+    // Method 1: Try PHPMailer if available
     if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+        error_log("Using PHPMailer for email sending");
         return sendWithPHPMailer($config, $password, $emailData, $attachments);
-    } else {
-        return sendWithBasicSMTP($config, $password, $emailData, $attachments);
+    }
+    
+    // Method 2: Try simple PHP mail with SMTP headers
+    error_log("Using simple PHP mail for email sending");
+    if (sendWithSimpleMail($config, $password, $emailData, $attachments)) {
+        return true;
+    }
+    
+    // Method 3: Try basic SMTP implementation
+    error_log("Using basic SMTP for email sending");
+    if (sendWithBasicSMTP($config, $password, $emailData, $attachments)) {
+        return true;
+    }
+    
+    // Method 4: Fallback to local mail server (if available)
+    error_log("Trying fallback email method");
+    return sendWithFallback($config, $password, $emailData, $attachments);
+}
+
+function sendWithSimpleMail($config, $password, $emailData, $attachments = []) {
+    // Simple PHP mail function with Gmail SMTP configuration
+    try {
+        // Set SMTP configuration for Gmail
+        ini_set('SMTP', $config['smtp_server']);
+        ini_set('smtp_port', $config['smtp_port']);
+        ini_set('sendmail_from', $config['email']);
+        
+        // Prepare email headers
+        $headers = [];
+        $headers[] = "From: " . $config['email'];
+        $headers[] = "Reply-To: " . $config['email'];
+        $headers[] = "MIME-Version: 1.0";
+        $headers[] = "Content-Type: text/html; charset=UTF-8";
+        $headers[] = "X-Mailer: Hospital Management System";
+        
+        if (!empty($emailData['cc'])) {
+            $headers[] = "Cc: " . $emailData['cc'];
+        }
+        
+        if (!empty($emailData['bcc'])) {
+            $headers[] = "Bcc: " . $emailData['bcc'];
+        }
+        
+        if ($emailData['priority'] === 'high') {
+            $headers[] = "X-Priority: 1";
+            $headers[] = "X-MSMail-Priority: High";
+        } elseif ($emailData['priority'] === 'low') {
+            $headers[] = "X-Priority: 5";
+            $headers[] = "X-MSMail-Priority: Low";
+        }
+        
+        $headerString = implode("\r\n", $headers);
+        
+        // Send email
+        $result = mail($emailData['to'], $emailData['subject'], $emailData['body'], $headerString);
+        
+        if ($result) {
+            error_log("Email sent successfully using PHP mail function");
+            return true;
+        } else {
+            error_log("PHP mail function failed");
+            return false;
+        }
+        
+    } catch (Exception $e) {
+        error_log("Simple mail error: " . $e->getMessage());
+        return false;
     }
 }
 
 function sendWithBasicSMTP($config, $password, $emailData, $attachments = []) {
-    // Basic SMTP implementation
+    // Enhanced SMTP implementation with better error handling
     $smtp_server = $config['smtp_server'];
     $smtp_port = $config['smtp_port'];
     $username = $config['email'];
+    
+    // Log attempt
+    error_log("Attempting SMTP connection to $smtp_server:$smtp_port for user $username");
     
     // Create socket connection
     $socket = fsockopen($smtp_server, $smtp_port, $errno, $errstr, 30);
@@ -198,6 +293,16 @@ function sendWithBasicSMTP($config, $password, $emailData, $attachments = []) {
         // Send username
         fwrite($socket, base64_encode($username) . "\r\n");
         $response = fgets($socket, 512);
+        if (substr($response, 0, 3) != '334') {
+            throw new Exception("Username authentication failed: $response");
+        }
+        
+        // Send password
+        fwrite($socket, base64_encode($password) . "\r\n");
+        $response = fgets($socket, 512);
+        if (substr($response, 0, 3) != '235') {
+            throw new Exception("Password authentication failed: $response");
+        }
         if (substr($response, 0, 3) != '334') {
             throw new Exception("Username authentication failed: $response");
         }
@@ -488,4 +593,87 @@ function getStoredGmailPassword() {
         return null;
     }
 }
-?>
+?>fu
+nction sendWithFallback($config, $password, $emailData, $attachments = []) {
+    // Fallback method using local server mail or alternative service
+    try {
+        // Reset mail configuration to use local server
+        ini_restore('SMTP');
+        ini_restore('smtp_port');
+        ini_restore('sendmail_from');
+        
+        // Simple headers for local mail
+        $headers = [
+            "From: Hospital System <noreply@hospital.local>",
+            "Reply-To: " . $config['email'],
+            "MIME-Version: 1.0",
+            "Content-Type: text/html; charset=UTF-8",
+            "X-Mailer: Hospital Management System"
+        ];
+        
+        if (!empty($emailData['cc'])) {
+            $headers[] = "Cc: " . $emailData['cc'];
+        }
+        
+        $headerString = implode("\r\n", $headers);
+        
+        // Add note about Gmail delivery
+        $body = $emailData['body'] . "\n\n---\nNote: This email was sent through the Hospital Management System.\nOriginal sender: " . $config['email'];
+        
+        // Try to send via local mail server
+        $result = mail($emailData['to'], $emailData['subject'], $body, $headerString);
+        
+        if ($result) {
+            error_log("Email sent successfully using fallback method");
+            return true;
+        } else {
+            error_log("Fallback email method also failed");
+            return false;
+        }
+        
+    } catch (Exception $e) {
+        error_log("Fallback email error: " . $e->getMessage());
+        return false;
+    }
+}function s
+endEmailAlternative($emailData) {
+    // Alternative email sending method using local server or webhook
+    try {
+        // Method 1: Try local server mail
+        $headers = [
+            "From: Hospital System <noreply@" . $_SERVER['HTTP_HOST'] . ">",
+            "Reply-To: umakant171991@gmail.com",
+            "MIME-Version: 1.0",
+            "Content-Type: text/html; charset=UTF-8",
+            "X-Mailer: Hospital Management System"
+        ];
+        
+        if (!empty($emailData['cc'])) {
+            $headers[] = "Cc: " . $emailData['cc'];
+        }
+        
+        $headerString = implode("\r\n", $headers);
+        
+        // Add system note to body
+        $body = $emailData['body'] . "\n\n---\nSent via Hospital Management System\nOriginal sender: umakant171991@gmail.com";
+        
+        if (mail($emailData['to'], $emailData['subject'], $body, $headerString)) {
+            error_log("Email sent successfully using local mail server");
+            return true;
+        }
+        
+        // Method 2: Try with different mail configuration
+        ini_set('sendmail_from', 'umakant171991@gmail.com');
+        
+        if (mail($emailData['to'], $emailData['subject'], $body, $headerString)) {
+            error_log("Email sent successfully using configured sendmail_from");
+            return true;
+        }
+        
+        return false;
+        
+    } catch (Exception $e) {
+        error_log("Alternative email method failed: " . $e->getMessage());
+        return false;
+    }
+}
