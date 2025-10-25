@@ -200,6 +200,47 @@ $role = $_SESSION['role'] ?? 'user';
         </li>
         <?php endif; ?>
 
+        <?php
+        // Email menu pages
+        $emailPages = ['email.php', 'email_compose.php', 'email_inbox.php', 'email_sent.php'];
+        $isEmailActive = in_array($activePage, $emailPages);
+        ?>
+        <li class="nav-item has-treeview <?php echo $isEmailActive ? 'menu-open' : ''; ?>">
+          <a href="#" class="nav-link <?php echo $isEmailActive ? 'active' : ''; ?>">
+            <i class="nav-icon fas fa-envelope"></i>
+            <p>
+              Email
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="email_inbox.php" class="nav-link <?php echo ($activePage == 'email_inbox.php') ? 'active' : ''; ?>">
+                <i class="fas fa-inbox nav-icon"></i>
+                <p>Inbox</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="email_compose.php" class="nav-link <?php echo ($activePage == 'email_compose.php') ? 'active' : ''; ?>">
+                <i class="fas fa-edit nav-icon"></i>
+                <p>Compose</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="email_sent.php" class="nav-link <?php echo ($activePage == 'email_sent.php') ? 'active' : ''; ?>">
+                <i class="fas fa-paper-plane nav-icon"></i>
+                <p>Sent</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="email.php" class="nav-link <?php echo ($activePage == 'email.php') ? 'active' : ''; ?>">
+                <i class="fas fa-cog nav-icon"></i>
+                <p>Settings</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
   <!-- Admins menu removed -->
 
   <!-- Logout moved to top navbar for easier access -->
