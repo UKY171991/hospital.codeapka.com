@@ -101,7 +101,7 @@ try {
         $search = trim($_REQUEST['search']['value'] ?? '');
         
         // Base query for counting
-        $countBaseQuery = "FROM tests t LEFT JOIN {$categories_table} tc ON t.category_id = tc.id LEFT JOIN users u ON t.added_by = u.id";
+        $countBaseQuery = "FROM tests t LEFT JOIN {$categories_table} tc ON t.category_id = tc.id LEFT JOIN main_test_categories mc ON t.main_category_id = mc.id LEFT JOIN users u ON t.added_by = u.id";
         
         // Add search conditions - search across all relevant text fields
         $whereClause = "";
@@ -201,9 +201,7 @@ try {
             'recordsFiltered' => intval($filteredRecords),
             'success' => true,
             'data' => $data,
-            'categories_table_used' => $categories_table,
-            'timestamp' => date('Y-m-d H:i:s'),
-            'query_used' => $dataQuery
+            'categories_table_used' => $categories_table
         ];
         
         // Add debug info if present
