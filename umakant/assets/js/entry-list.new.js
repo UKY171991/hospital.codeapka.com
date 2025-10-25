@@ -800,54 +800,7 @@ $(function() {
     });
 });
 
-// Add test row
-function addTestRow() {
-    const newRow = `
-        <div class="test-row row mb-2">
-            <div class="col-md-3">
-                <select class="form-control test-select select2" name="tests[${testRowCount}][test_id]" required>
-                    <option value="">Select Test</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <input type="text" class="form-control test-category" name="tests[${testRowCount}][category_name]" placeholder="Category" readonly>
-                <input type="hidden" name="tests[${testRowCount}][category_id]" class="test-category-id">
-            </div>
-            <div class="col-md-2">
-                <input type="text" class="form-control test-result" name="tests[${testRowCount}][result_value]" placeholder="Result">
-            </div>
-            <div class="col-md-1">
-                <input type="text" class="form-control test-min" name="tests[${testRowCount}][min]" placeholder="Min" readonly>
-            </div>
-            <div class="col-md-1">
-                <input type="text" class="form-control test-max" name="tests[${testRowCount}][max]" placeholder="Max" readonly>
-            </div>
-            <div class="col-md-2">
-                <input type="text" class="form-control test-unit" name="tests[${testRowCount}][unit]" placeholder="Unit" readonly>
-            </div>
-            <div class="col-md-1">
-                <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </div>
-    `;
-    $('#testsContainer').append(newRow);
-    testRowCount++;
-    loadTests();
-    // Enable the result input for the newly added row
-    setTimeout(function() {
-        const $newRow = $('#testsContainer').find('.test-row').last();
-        $newRow.find('.test-result').prop('readonly', false).prop('disabled', false);
-        $newRow.find('.test-unit, .test-category, .test-min, .test-max').prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
-    }, 50);
-}
-
-// Remove test row
-function removeTestRow(button) {
-    $(button).closest('.test-row').remove();
-    updatePricingFields();
-}
+// Duplicate function removed - using the complete implementation below
 
 // Update pricing fields based on selected tests
 function updatePricingFields() {
@@ -2071,7 +2024,28 @@ setTimeout(function() {
 
 // Add new test row
 function addTestRow() {
+    console.log('=== ADD TEST ROW CALLED ===');
+    console.log('Current testRowCount:', testRowCount);
+    
     const testsContainer = $('#testsContainer');
+    console.log('Tests container found:', testsContainer.length > 0);
+    
+    if (testsContainer.length === 0) {
+        console.error('Tests container not found!');
+        if (typeof toastr !== 'undefined') {
+            toastr.error('Tests container not found. Please refresh the page.');
+        } else {
+            alert('Tests container not found. Please refresh the page.');
+        }
+        return;
+    }
+    
+    // Ensure testRowCount is a valid number
+    if (typeof testRowCount !== 'number' || isNaN(testRowCount)) {
+        console.warn('testRowCount is not a valid number, resetting to current row count');
+        testRowCount = testsContainer.find('.test-row').length;
+    }
+    
     const newRowHTML = `
         <div class="test-row row mb-2">
             <div class="col-md-3">
@@ -2109,20 +2083,50 @@ function addTestRow() {
     // Load tests for the new row
     loadTests();
     
-    // Initialize Select2 for the new row if modal is visible
-    if ($('#entryModal').hasClass('show')) {
+    // Initialize Select2 for the new row
+    setTimeout(function() {
         const newRow = testsContainer.find('.test-row').last();
         const newSelect = newRow.find('.test-select');
-        if (typeof $.fn.select2 !== 'undefined') {
-            newSelect.select2({
-                dropdownParent: $('#entryModal'),
-                width: '100%'
-            });
+        
+        console.log('Initializing Select2 for new row:', newRow.length > 0);
+        
+        if (typeof $.fn.select2 !== 'undefined' && newSelect.length > 0) {
+            try {
+                // Initialize Select2 with proper parent
+                if ($('#entryModal').hasClass('show') || $('#entryModal').is(':visible')) {
+                    newSelect.select2({
+                        dropdownParent: $('#entryModal'),
+                        width: '100%'
+                    });
+                } else {
+                    newSelect.select2({
+                        width: '100%'
+                    });
+                }
+                console.log('Select2 initialized successfully');
+            } catch (e) {
+                console.error('Error initializing Select2:', e);
+            }
         }
-    }
+        
+        // Ensure the new row is visible and properly styled
+        newRow.find('.test-unit, .test-category, .test-min, .test-max').prop('readonly', true).show();
+        newRow.find('.test-result').prop('readonly', false).prop('disabled', false);
+        
+    }, 100);
     
     console.log('Added new test row, total rows:', testRowCount);
+    
+    // Show success message
+    if (typeof toastr !== 'undefined') {
+        toastr.success(`Test row added successfully! Total rows: ${testRowCount}`);
+    }
 }
+
+// Make functions globally accessible
+window.addTestRow = addTestRow;
+window.removeTestRow = removeTestRow;
+window.openAddEntryModal = openAddEntryModal;
 
 // Remove test row
 function removeTestRow(button) {
