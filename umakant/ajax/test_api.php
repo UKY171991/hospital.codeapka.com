@@ -143,13 +143,23 @@ try {
             $debug_info['query'] = $dataQuery;
             $debug_info['table'] = $categories_table;
         } else {
-            // Check first record for null names
+            // Check first record for field completeness
             $first = $data[0] ?? null;
-            if ($first && (empty($first['name']) || $first['name'] === null || $first['name'] === '')) {
-                $debug_info['warning'] = 'Test names are null/empty';
-                $debug_info['sample'] = $first;
-                $debug_info['table'] = $categories_table;
-                $debug_info['query'] = $dataQuery;
+            if ($first) {
+                $debug_info['field_count'] = count($first);
+                $debug_info['fields_returned'] = array_keys($first);
+                $debug_info['sample_data'] = $first;
+                
+                // Check if all expected fields are present
+                $expected_fields = ['id', 'name', 'category_id', 'main_category_id', 'price', 'unit', 'specimen', 
+                                  'default_result', 'reference_range', 'min', 'max', 'description', 'min_male', 
+                                  'max_male', 'min_female', 'max_female', 'min_child', 'max_child', 'child_unit', 
+                                  'sub_heading', 'test_code', 'method', 'print_new_page', 'shortcut', 'added_by', 
+                                  'created_at', 'updated_at', 'category_name', 'main_category_name', 'added_by_username'];
+                $missing_fields = array_diff($expected_fields, array_keys($first));
+                if (!empty($missing_fields)) {
+                    $debug_info['missing_fields'] = $missing_fields;
+                }
             }
         }
         
