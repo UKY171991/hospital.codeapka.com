@@ -429,6 +429,79 @@ try {
         json_response(['success'=>true,'message'=>'Test deleted']);
     }
 
+    if ($action === 'debug') {
+        // Debug endpoint - show query and field information
+        $categories_table = 'categories';
+        try{
+            $stmt = $pdo->query("SHOW TABLES LIKE 'categories'");
+            if($stmt->fetch()){
+                $categories_table = 'categories';
+            } else {
+                $stmt2 = $pdo->query("SHOW TABLES LIKE 'test_categories'");
+                if($stmt2->fetch()) {
+                    $categories_table = 'test_categories';
+                }
+            }
+        }catch(Throwable $e){
+            $categories_table = 'categories';
+        }
+        
+        $dataQuery = "SELECT 
+            t.id,
+            COALESCE(t.name, '') AS name,
+            t.category_id,
+            t.main_category_id,
+            COALESCE(t.price, 0) AS price,
+            COALESCE(t.unit, '') AS unit,
+            COALESCE(t.specimen, '') AS specimen,
+            t.default_result,
+            COALESCE(t.reference_range, '') AS reference_range,
+            t.min,
+            t.max,
+            COALESCE(t.description, '') AS description,
+            t.min_male,
+            t.max_male,
+            t.min_female,
+            t.max_female,
+            t.min_child,
+            t.max_child,
+            COALESCE(t.child_unit, '') AS child_unit,
+            COALESCE(t.sub_heading, 0) AS sub_heading,
+            COALESCE(t.test_code, '') AS test_code,
+            COALESCE(t.method, '') AS method,
+            COALESCE(t.print_new_page, 0) AS print_new_page,
+            COALESCE(t.shortcut, '') AS shortcut,
+            t.added_by,
+            t.created_at,
+            t.updated_at,
+            COALESCE(mc.name, '') AS main_category_name,
+            COALESCE(tc.name, '') AS category_name,
+            COALESCE(u.username, '') AS added_by_username
+            FROM tests t 
+            LEFT JOIN {$categories_table} tc ON t.category_id = tc.id 
+            LEFT JOIN main_test_categories mc ON t.main_category_id = mc.id
+            LEFT JOIN users u ON t.added_by = u.id
+            LIMIT 1";
+            
+        try {
+            $stmt = $pdo->query($dataQuery);
+            $sample = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            json_response([
+                'success' => true,
+                'debug_info' => [
+                    'categories_table' => $categories_table,
+                    'query' => $dataQuery,
+                    'field_count' => $sample ? count($sample) : 0,
+                    'fields' => $sample ? array_keys($sample) : [],
+                    'sample_data' => $sample
+                ]
+            ]);
+        } catch (Exception $e) {
+            json_response(['success' => false, 'message' => 'Debug error: ' . $e->getMessage()]);
+        }
+    }
+
     if ($action === 'stats') {
         // Get test statistics
         try {
