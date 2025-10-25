@@ -212,11 +212,12 @@
   - Add laboratory compliance and quality control information prominently
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-- [ ] 9.1 Healthcare Integration Showcase
-  - Create visual representation of EMR/EHR integrations
-  - Add API documentation links and integration guides
-  - Implement interactive integration flow diagrams
-  - _Requirements: 6.3_
+- [ ] 9.1 Pathology API Integration Showcase
+  - Create visual representation of the actual test management API endpoints
+  - Add live API documentation and testing interface
+  - Implement interactive demonstration of test CRUD operations
+  - Show real database schema and field relationships
+  - _Requirements: 6.3, 3.3_
 
 - [ ] 9.2 Industry-Specific Content
   - Update copy to use healthcare-specific terminology
