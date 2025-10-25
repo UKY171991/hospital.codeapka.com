@@ -226,23 +226,59 @@ function handleSetupCredentials() {
     global $gmail_config;
     
     $password = $_POST['password'] ?? '';
+    $passwordType = $_POST['password_type'] ?? 'app';
+    $testConnection = $_POST['test_connection'] ?? true;
+    
     if (!$password) {
         json_response(['success' => false, 'message' => 'Password is required'], 400);
         return;
     }
     
-    // Test connection
-    $connection = connectToGmail($gmail_config['email'], $password);
-    if (!$connection) {
-        json_response(['success' => false, 'message' => 'Failed to connect to Gmail. Please check your App Password.'], 401);
-        return;
+    // Clean app password (remove spaces)
+    if ($passwordType === 'app') {
+        $password = str_replace(' ', '', $password);
     }
     
-    imap_close($connection);
+    // Test connection if requested
+    if ($testConnection) {
+        $connection = connectToGmail($gmail_config['email'], $password);
+        if (!$connection) {
+            $errorMsg = 'Authentication failed. ';
+            
+            if ($passwordType === 'app') {
+                $errorMsg .= 'Please check your App Password. Make sure it\'s 16 characters and generated correctly.';
+            } else {
+                $errorMsg .= 'Please check your password and ensure "Less secure app access" is enabled in your Google Account Security settings.';
+            }
+            
+            json_response(['success' => false, 'message' => $errorMsg], 401);
+            return;
+        }
+        
+        // Test basic operations
+        try {
+            if (!imap_reopen($connection, '{' . $gmail_config['imap_server'] . ':' . $gmail_config['imap_port'] . '/imap/ssl}INBOX')) {
+                throw new Exception('Failed to access INBOX');
+            }
+            
+            // Try to get mailbox info
+            $mailbox_info = imap_mailboxmsginfo($connection);
+            if (!$mailbox_info) {
+                throw new Exception('Failed to read mailbox information');
+            }
+            
+            imap_close($connection);
+            
+        } catch (Exception $e) {
+            imap_close($connection);
+            json_response(['success' => false, 'message' => 'Connection test failed: ' . $e->getMessage()], 500);
+            return;
+        }
+    }
     
     // Store password securely
-    if (storeGmailPassword($password)) {
-        json_response(['success' => true, 'message' => 'Gmail credentials saved successfully']);
+    if (storeGmailPassword($password, $passwordType)) {
+        json_response(['success' => true, 'message' => 'Gmail credentials saved and tested successfully']);
     } else {
         json_response(['success' => false, 'message' => 'Failed to save credentials'], 500);
     }
@@ -455,7 +491,7 @@ function formatAddresses($addresses) {
     return implode(', ', $formatted);
 }
 
-function storeGmailPassword($password) {
+function storeGmailPassword($password, $passwordType = 'app') {
     global $pdo;
     
     try {
@@ -465,6 +501,7 @@ function storeGmailPassword($password) {
             user_id INT NOT NULL,
             setting_key VARCHAR(255) NOT NULL,
             setting_value TEXT,
+            metadata JSON,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             UNIQUE KEY unique_user_setting (user_id, setting_key)
@@ -472,12 +509,13 @@ function storeGmailPassword($password) {
         
         // Encrypt password (basic encryption - in production use proper encryption)
         $encrypted_password = base64_encode($password);
+        $metadata = json_encode(['type' => $passwordType, 'created' => date('Y-m-d H:i:s')]);
         
-        $stmt = $pdo->prepare("INSERT INTO user_settings (user_id, setting_key, setting_value) 
-                              VALUES (?, 'gmail_password', ?) 
-                              ON DUPLICATE KEY UPDATE setting_value = ?, updated_at = NOW()");
+        $stmt = $pdo->prepare("INSERT INTO user_settings (user_id, setting_key, setting_value, metadata) 
+                              VALUES (?, 'gmail_password', ?, ?) 
+                              ON DUPLICATE KEY UPDATE setting_value = ?, metadata = ?, updated_at = NOW()");
         
-        return $stmt->execute([$_SESSION['user_id'], $encrypted_password, $encrypted_password]);
+        return $stmt->execute([$_SESSION['user_id'], $encrypted_password, $metadata, $encrypted_password, $metadata]);
         
     } catch (Exception $e) {
         error_log("Failed to store Gmail password: " . $e->getMessage());

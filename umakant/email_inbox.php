@@ -5,7 +5,7 @@ require_once 'inc/sidebar.php';
 // Gmail IMAP configuration
 $gmail_config = [
     'email' => 'umakant171991@gmail.com',
-    'password' => '', // This should be set via environment variable or config file
+    'password' => 'jnim iuiy njno pvkt', // This should be set via environment variable or config file
     'imap_server' => 'imap.gmail.com',
     'imap_port' => 993,
     'imap_encryption' => 'ssl'
@@ -228,8 +228,10 @@ $gmail_config = [
                 <div class="modal-body">
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle mr-2"></i>
-                        To access Gmail, you need to use an App Password. 
-                        <a href="https://support.google.com/accounts/answer/185833" target="_blank">Learn how to create one</a>.
+                        <strong>Setup Options:</strong><br>
+                        1. <strong>App Password (Recommended):</strong> Create an App Password in Google Account Security<br>
+                        2. <strong>Regular Password:</strong> Enable "Less secure app access" in Google Account Security<br>
+                        3. <strong>OAuth2:</strong> Contact admin for OAuth2 setup
                     </div>
                     
                     <div class="form-group">
@@ -238,9 +240,28 @@ $gmail_config = [
                     </div>
                     
                     <div class="form-group">
-                        <label for="gmailPassword">App Password</label>
-                        <input type="password" class="form-control" id="gmailPassword" placeholder="Enter your Gmail App Password">
-                        <small class="form-text text-muted">This will be stored securely on the server.</small>
+                        <label for="passwordType">Authentication Type</label>
+                        <select class="form-control" id="passwordType">
+                            <option value="app">App Password (16 characters, no spaces)</option>
+                            <option value="regular">Regular Gmail Password</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gmailPassword">Password</label>
+                        <input type="password" class="form-control" id="gmailPassword" placeholder="Enter your Gmail password">
+                        <small class="form-text text-muted">
+                            <span id="passwordHelp">Enter your App Password (16 characters without spaces)</span>
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="testConnection">
+                            <label class="custom-control-label" for="testConnection">
+                                Test connection before saving
+                            </label>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -289,6 +310,18 @@ function setupEventHandlers() {
     $('#setupForm').on('submit', function(e) {
         e.preventDefault();
         saveGmailCredentials();
+    });
+
+    // Password type change handler
+    $('#passwordType').on('change', function() {
+        const type = $(this).val();
+        if (type === 'app') {
+            $('#passwordHelp').text('Enter your App Password (16 characters without spaces)');
+            $('#gmailPassword').attr('placeholder', 'Enter your Gmail App Password');
+        } else {
+            $('#passwordHelp').text('Enter your regular Gmail password (requires "Less secure app access" enabled)');
+            $('#gmailPassword').attr('placeholder', 'Enter your regular Gmail password');
+        }
     });
 
     // Select all checkbox
@@ -510,10 +543,21 @@ function setupGmailConnection() {
 // Save Gmail credentials
 function saveGmailCredentials() {
     const password = $('#gmailPassword').val().trim();
+    const passwordType = $('#passwordType').val();
+    const testConnection = $('#testConnection').is(':checked');
     
     if (!password) {
-        toastr.error('Please enter your Gmail App Password');
+        toastr.error('Please enter your Gmail password');
         return;
+    }
+    
+    // Validate App Password format
+    if (passwordType === 'app') {
+        const cleanPassword = password.replace(/\s/g, '');
+        if (cleanPassword.length !== 16) {
+            toastr.error('App Password should be 16 characters long');
+            return;
+        }
     }
     
     const submitBtn = $('#setupForm button[type="submit"]');
@@ -525,7 +569,9 @@ function saveGmailCredentials() {
         type: 'POST',
         data: {
             action: 'setup',
-            password: password
+            password: password,
+            password_type: passwordType,
+            test_connection: testConnection
         },
         dataType: 'json',
         success: function(response) {
@@ -536,11 +582,31 @@ function saveGmailCredentials() {
                 checkGmailConnection();
                 loadEmails();
             } else {
-                toastr.error(response.message || 'Failed to configure Gmail connection');
+                let errorMsg = response.message || 'Failed to configure Gmail connection';
+                
+                // Provide specific help based on error
+                if (errorMsg.includes('authentication') || errorMsg.includes('login')) {
+                    if (passwordType === 'regular') {
+                        errorMsg += '<br><br><strong>Try this:</strong><br>1. Enable "Less secure app access" in Google Account Security<br>2. Or use an App Password instead';
+                    } else {
+                        errorMsg += '<br><br><strong>Try this:</strong><br>1. Generate a new App Password<br>2. Or try your regular password with "Less secure app access" enabled';
+                    }
+                }
+                
+                toastr.error(errorMsg, '', {
+                    allowHtml: true,
+                    timeOut: 10000
+                });
             }
         },
-        error: function() {
-            toastr.error('Failed to test Gmail connection');
+        error: function(xhr) {
+            let errorMsg = 'Failed to test Gmail connection';
+            
+            if (xhr.status === 401) {
+                errorMsg = 'Authentication failed. Please check your password and Gmail security settings.';
+            }
+            
+            toastr.error(errorMsg);
         },
         complete: function() {
             submitBtn.html(originalText).prop('disabled', false);
