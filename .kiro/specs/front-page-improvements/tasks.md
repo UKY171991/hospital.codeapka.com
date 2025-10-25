@@ -65,17 +65,19 @@
   - Add pathology-specific workflow demonstrations
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ] 3.2 Interactive Screenshots and Annotations
-  - Add platform screenshots with clickable hotspots
-  - Implement tooltip system for feature explanations
-  - Create zoom and pan functionality for detailed views
-  - _Requirements: 3.1, 3.2_
+- [ ] 3.2 Pathology Workflow Visualization
+  - Add real system screenshots showing test management interface
+  - Implement interactive hotspots explaining pathology-specific features
+  - Create step-by-step workflow visualization for laboratory processes
+  - Show actual test entry forms with all 27 database fields
+  - _Requirements: 3.1, 3.2, 3.4_
 
-- [ ] 3.3 Feature Comparison Matrix
-  - Build interactive comparison table for different plans
-  - Add filtering and sorting capabilities
-  - Implement responsive design for mobile viewing
-  - _Requirements: 3.2, 3.5_
+- [ ] 3.3 Laboratory Feature Comparison Matrix
+  - Build interactive comparison table highlighting pathology-specific features
+  - Add filtering for laboratory vs general hospital features
+  - Show test management capabilities across different plan tiers
+  - Include API access and integration capabilities comparison
+  - _Requirements: 3.2, 3.3, 3.5_
 
 - [ ] 3.4 ROI Calculator Implementation
   - Create interactive calculator for potential savings
