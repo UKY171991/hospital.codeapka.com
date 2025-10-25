@@ -127,7 +127,7 @@ if ($action === 'list') {
                 // Check if all expected fields are present
                 $expected_fields = ['id', 'name', 'category_id', 'main_category_id', 'price', 'unit', 'specimen', 
                                   'default_result', 'reference_range', 'min', 'max', 'description', 'min_male', 
-                                  'max_male', 'min_female', 'max_female', 'min_child', 'max_child', 'child_unit', 
+                                  'max_male', 'min_female', 'max_female', 'min_child', 'max_child', 
                                   'sub_heading', 'test_code', 'method', 'print_new_page', 'shortcut', 'added_by', 
                                   'created_at', 'updated_at', 'category_name', 'main_category_name', 'added_by_username'];
                 $missing_fields = array_diff($expected_fields, array_keys($first));
@@ -176,7 +176,7 @@ if ($action === 'list') {
         // return full record for edit/view with ALL fields and joined names
         $stmt = $pdo->prepare("SELECT t.id, t.name, t.category_id, t.main_category_id, t.price, t.unit, t.specimen, 
                               t.default_result, t.reference_range, t.min, t.max, t.description, t.min_male, t.max_male, 
-                              t.min_female, t.max_female, t.min_child, t.max_child, t.child_unit, t.sub_heading, 
+                              t.min_female, t.max_female, t.min_child, t.max_child, t.sub_heading, 
                               t.test_code, t.method, t.print_new_page, t.shortcut, t.added_by, t.created_at, t.updated_at,
                               tc.name as category_name, mc.name as main_category_name, u.username as added_by_username
             FROM tests t
@@ -233,7 +233,7 @@ if ($action === 'list') {
         $max_female = $_POST['max_female'] ?? null;
         $min_child = $_POST['min_child'] ?? null;
         $max_child = $_POST['max_child'] ?? null;
-        $child_unit = trim($_POST['child_unit'] ?? '');
+        // child_unit removed - using main unit field for all ranges
         $sub_heading = $_POST['sub_heading'] ?? 0;
         $test_code = trim($_POST['test_code'] ?? '');
         $method = trim($_POST['method'] ?? '');
@@ -305,7 +305,7 @@ if ($action === 'list') {
 
         if ($id) {
             try {
-                $stmt = $pdo->prepare('UPDATE tests SET category_id=?, main_category_id=?, name=?, description=?, price=?, unit=?, specimen=?, default_result=?, reference_range=?, min=?, max=?, min_male=?, max_male=?, min_female=?, max_female=?, min_child=?, max_child=?, child_unit=?, sub_heading=?, test_code=?, method=?, print_new_page=?, shortcut=?, updated_at=NOW() WHERE id=?');
+                $stmt = $pdo->prepare('UPDATE tests SET category_id=?, main_category_id=?, name=?, description=?, price=?, unit=?, specimen=?, default_result=?, reference_range=?, min=?, max=?, min_male=?, max_male=?, min_female=?, max_female=?, min_child=?, max_child=?, sub_heading=?, test_code=?, method=?, print_new_page=?, shortcut=?, updated_at=NOW() WHERE id=?');
                 // Bind explicitly to ensure NULLs are preserved
                 $b = 1;
                 if ($category_id === null) {
@@ -333,7 +333,7 @@ if ($action === 'list') {
                 $stmt->bindValue($b++, $max_female, PDO::PARAM_STR);
                 $stmt->bindValue($b++, $min_child, PDO::PARAM_STR);
                 $stmt->bindValue($b++, $max_child, PDO::PARAM_STR);
-                $stmt->bindValue($b++, $child_unit, PDO::PARAM_STR);
+                // child_unit removed
                 $stmt->bindValue($b++, $sub_heading, PDO::PARAM_INT);
                 $stmt->bindValue($b++, $test_code, PDO::PARAM_STR);
                 $stmt->bindValue($b++, $method, PDO::PARAM_STR);
@@ -348,7 +348,7 @@ if ($action === 'list') {
         } else {
             $added_by = $_SESSION['user_id'] ?? null;
             try {
-                $stmt = $pdo->prepare('INSERT INTO tests (category_id, main_category_id, name, description, price, unit, specimen, default_result, reference_range, min, max, min_male, max_male, min_female, max_female, min_child, max_child, child_unit, sub_heading, test_code, method, print_new_page, shortcut, added_by, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
+                $stmt = $pdo->prepare('INSERT INTO tests (category_id, main_category_id, name, description, price, unit, specimen, default_result, reference_range, min, max, min_male, max_male, min_female, max_female, min_child, max_child, sub_heading, test_code, method, print_new_page, shortcut, added_by, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
                 // Bind parameters explicitly to ensure NULL values are sent as NULL (not empty string)
                 $bindIndex = 1;
                 if ($category_id === null) {
@@ -376,7 +376,7 @@ if ($action === 'list') {
                 $stmt->bindValue($bindIndex++, $max_female, PDO::PARAM_STR);
                 $stmt->bindValue($bindIndex++, $min_child, PDO::PARAM_STR);
                 $stmt->bindValue($bindIndex++, $max_child, PDO::PARAM_STR);
-                $stmt->bindValue($bindIndex++, $child_unit, PDO::PARAM_STR);
+                // child_unit removed
                 $stmt->bindValue($bindIndex++, $sub_heading, PDO::PARAM_INT);
                 $stmt->bindValue($bindIndex++, $test_code, PDO::PARAM_STR);
                 $stmt->bindValue($bindIndex++, $method, PDO::PARAM_STR);
@@ -410,7 +410,7 @@ if ($action === 'list') {
             
             $stmt = $pdo->prepare("SELECT t.id, t.name, t.category_id, t.main_category_id, t.price, t.unit, t.specimen, 
                               t.default_result, t.reference_range, t.min, t.max, t.description, t.min_male, t.max_male, 
-                              t.min_female, t.max_female, t.min_child, t.max_child, t.child_unit, t.sub_heading, 
+                              t.min_female, t.max_female, t.min_child, t.max_child, t.sub_heading, 
                               t.test_code, t.method, t.print_new_page, t.shortcut, t.added_by, t.created_at, t.updated_at,
                               tc.name as category_name, mc.name as main_category_name, u.username as added_by_username
                 FROM tests t
@@ -483,7 +483,7 @@ if ($action === 'stats') {
         try {
             $stmt = $pdo->query("SELECT t.id, t.name, t.category_id, t.main_category_id, t.price, t.unit, t.specimen, 
                                        t.default_result, t.reference_range, t.min, t.max, t.description, t.min_male, t.max_male, 
-                                       t.min_female, t.max_female, t.min_child, t.max_child, t.child_unit, t.sub_heading, 
+                                       t.min_female, t.max_female, t.min_child, t.max_child, t.sub_heading, 
                                        t.test_code, t.method, t.print_new_page, t.shortcut, t.added_by, t.created_at, t.updated_at,
                                        tc.name as category_name, mc.name as main_category_name, u.username as added_by_username
                                 FROM tests t 

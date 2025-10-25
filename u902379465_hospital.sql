@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 24, 2025 at 07:09 AM
+-- Generation Time: Oct 25, 2025 at 11:28 PM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -42,10 +42,12 @@ CREATE TABLE `categories` (
 --
 
 INSERT INTO `categories` (`id`, `name`, `description`, `main_category_id`, `added_by`, `created_at`, `updated_at`) VALUES
-(3, 'asd', 'qw', NULL, 1, '2025-09-27 10:14:02', '2025-10-15 11:02:41'),
+(3, 'AAAA', 'qw', 2, 1, '2025-09-27 10:14:02', '2025-10-25 23:20:42'),
 (5, 'erfg  hh', 'qws', 1, 1, '2025-09-27 10:30:03', '2025-10-15 11:19:16'),
 (6, 'Sydnee Levine hh', 'Eos et in lorem non', 1, 1, '2025-09-28 10:02:38', '2025-10-15 11:19:10'),
-(8, 'ttt', '', 1, 1, '2025-10-15 11:19:03', '2025-10-15 11:19:03');
+(8, 'ttt', '', 1, 1, '2025-10-15 11:19:03', '2025-10-15 11:19:03'),
+(9, 'sdfgfgb', 'derfg', 3, 1, '2025-10-24 07:21:52', '2025-10-25 23:20:31'),
+(10, 'gggg', '', 3, 1, '2025-10-25 10:16:00', '2025-10-25 23:20:23');
 
 -- --------------------------------------------------------
 
@@ -411,10 +413,6 @@ INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specializati
 (339, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
 (340, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
 (341, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(342, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(343, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(344, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(345, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
 (346, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, '', NULL, 9.00, 1, NULL, '2025-10-24 07:41:56'),
 (347, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
 (348, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
@@ -428,17 +426,7 @@ INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specializati
 (359, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
 (360, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
 (361, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(362, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(363, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(364, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(365, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(366, NULL, 'Laura Bond', NULL, NULL, 'Aliqua Nulla ipsum', 'Officia magni ipsum', NULL, NULL, NULL, NULL, 16.00, 1, NULL, NULL),
-(367, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(368, NULL, 'Elijah Mayo', NULL, NULL, 'Eius veritatis ullam', 'Sed sed eiusmod sequ', NULL, NULL, NULL, NULL, 77.00, 1, NULL, NULL),
-(369, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(370, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(374, NULL, 'uuufgns', NULL, 'wertg', NULL, NULL, '45545454', '', '', NULL, 0.00, 1, NULL, '2025-10-23 12:50:30'),
-(375, NULL, 'AAAAA', NULL, 'BBBB jj', 'BBBB jj', '5454545454', '5454545454', '', '', NULL, 10.00, 2, NULL, '2025-10-24 11:07:06');
+(362, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -488,7 +476,7 @@ INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`,
 (14, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-09 08:15:35', NULL),
 (15, 1, NULL, 3, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 1080.00, 0.00, 1080.00, 'pending', NULL, 1, '2025-10-09 08:16:19', NULL),
 (16, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 1080.00, 50.00, 1030.00, 'pending', NULL, 1, '2025-10-09 08:21:40', NULL),
-(17, 1, NULL, 3, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 100.00, 20.00, 80.00, 'pending', NULL, 1, '2025-10-09 08:30:36', NULL);
+(17, 1, NULL, 27, 362, '2025-10-09 00:00:00', 'pending', 'normal', '', '5454545445', '', 'Male', 54, 1380.00, 20.00, 1360.00, 'pending', '', 1, '2025-10-09 08:30:36', '2025-10-25 23:08:31');
 
 -- --------------------------------------------------------
 
@@ -509,39 +497,6 @@ CREATE TABLE `entry_tests` (
   `total_price` decimal(10,2) DEFAULT 0.00,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `entry_tests`
---
-
-INSERT INTO `entry_tests` (`id`, `entry_id`, `test_id`, `result_value`, `unit`, `remarks`, `status`, `price`, `discount_amount`, `total_price`, `created_at`) VALUES
-(1, 1, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 14:13:29'),
-(8, 5, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 16:21:47'),
-(9, 5, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 16:21:47'),
-(12, 7, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 17:12:12'),
-(13, 7, 1, '50', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-06 17:12:12'),
-(14, 8, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-07 07:20:16'),
-(15, 8, 1, '50', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-07 07:20:16'),
-(18, 2, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 11:09:43'),
-(19, 2, 1, '50', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 11:09:43'),
-(20, 9, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 11:21:38'),
-(21, 9, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 11:21:38'),
-(34, 10, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 17:50:21'),
-(35, 10, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-08 17:50:21'),
-(56, 12, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 04:53:46'),
-(57, 12, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 04:53:46'),
-(58, 11, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 08:00:55'),
-(59, 11, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 08:00:55'),
-(60, 13, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 08:15:03'),
-(61, 14, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 08:15:35'),
-(62, 14, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-09 08:15:35'),
-(70, 15, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 980.00, '2025-10-09 15:01:48'),
-(71, 15, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 100.00, '2025-10-09 15:01:48'),
-(73, 16, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 100.00, '2025-10-09 15:18:15'),
-(74, 16, 1, '50', 'abc', NULL, 'pending', 0.00, 0.00, 980.00, '2025-10-09 15:18:15'),
-(78, 17, 2, '40', 'etc', NULL, 'pending', 0.00, 0.00, 100.00, '2025-10-09 16:01:41'),
-(79, 6, 1, NULL, 'abc', NULL, 'pending', 0.00, 0.00, 980.00, '2025-10-10 06:44:42'),
-(80, 6, 2, NULL, 'etc', NULL, 'pending', 0.00, 0.00, 100.00, '2025-10-10 06:44:42');
 
 -- --------------------------------------------------------
 
@@ -565,7 +520,7 @@ CREATE TABLE `main_test_categories` (
 INSERT INTO `main_test_categories` (`id`, `name`, `description`, `added_by`, `created_at`, `updated_at`) VALUES
 (1, 'qwer', '', 1, '2025-10-15 11:18:44', '2025-10-15 11:18:44'),
 (2, 'Second main', '', 1, '2025-10-17 11:15:22', '2025-10-17 11:15:22'),
-(3, 'sdfv', 'sdf', 1, '2025-10-23 07:22:34', '2025-10-23 07:22:34');
+(3, 'wwwww', 'sdf', 1, '2025-10-23 07:22:34', '2025-10-24 11:29:38');
 
 -- --------------------------------------------------------
 
@@ -746,6 +701,56 @@ CREATE TABLE `reports` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `scheduled_emails`
+--
+
+CREATE TABLE `scheduled_emails` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `to_email` text NOT NULL,
+  `cc_email` text DEFAULT NULL,
+  `bcc_email` text DEFAULT NULL,
+  `subject` varchar(500) DEFAULT NULL,
+  `body` text DEFAULT NULL,
+  `priority` varchar(20) DEFAULT 'normal',
+  `schedule_date` datetime NOT NULL,
+  `attachments` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`attachments`)),
+  `status` enum('pending','sent','failed','cancelled') DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `sent_at` timestamp NULL DEFAULT NULL,
+  `error_message` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sent_emails`
+--
+
+CREATE TABLE `sent_emails` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `to_email` text NOT NULL,
+  `cc_email` text DEFAULT NULL,
+  `bcc_email` text DEFAULT NULL,
+  `subject` varchar(500) DEFAULT NULL,
+  `body` text DEFAULT NULL,
+  `priority` varchar(20) DEFAULT 'normal',
+  `sent_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `sent_emails`
+--
+
+INSERT INTO `sent_emails` (`id`, `user_id`, `to_email`, `cc_email`, `bcc_email`, `subject`, `body`, `priority`, `sent_at`) VALUES
+(1, 1, 'mailer@angelbroking.in', '', '', 'Re: 🚀 Uma Kant Yadav, Nifty Holds Strong, Infy, TCS & HCL Shine, Oil Climbs', '\r\n\r\n--- Original Message ---\r\nFrom: mailer@angelbroking.in\r\nDate: Thu, 23 Oct 2025 12:26:28 +0000\r\nSubject: 🚀 Uma Kant Yadav, Nifty Holds Strong, Infy, TCS & HCL Shine, Oil Climbs\r\n\r\n<!DOCTYPE html> <html lang=\"en\"> <head> <meta charset=\"UTF-8\" /> <meta http-equiv=\"Content-Type\" content=\"text/html charset=UTF-8\" /> </head> <body> <table style=\"width: 100%; max-width: 800px; margin-left: auto; margin-right: auto;\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"> <tbody> <tr> <td colspan=\"100\" style=\"font-family: sans-serif; font-size: 12px; text-align: center; padding-bottom: 5px; color: #1b2559; font-weight: 600;\">23 October, 2025</td> </tr> <tr> <td align=\"center\" style=\"font-family: sans-serif; font-size: 11px; text-align: center; padding-bottom: 25px; height: 40px;\"> <img src=\"https://mf.angelmf.com/Content/MarketSnapshot/images/MarketCharchaLogo.png\" style=\"height: 30px;\" /> </td> </tr> <tr> <td colspan=\"100\" style=\"background: #f9fbfe; padding: 10px; border-radius: 8px; font-weight: 600;\"> <img src=\"https://mf.angelmf.com/Content/MarketSnapshot/images/Key_Takeaway.png\" style=\"width: 24px; height: 24px;\" /> Key Takeaways </td> </tr> <tr> <td colspan=\"100\" style=\"padding-left: 10px; padding-right: 10px; font-size: 14px; color: #5c7597; width: 100%;\"> <p>• <span style=\"font-weight: 600;\">Sensex and Nifty</span> : Nifty opened nearly 200 points higher and maintained momentum to reach an intraday peak of 26104. However, profit-taking occurred in the latter half of the trading session, which subsequently exacerbated the situation, resulting in the reduction of most intraday gains. Ultimately, the Nifty50 index concluded the day near 25900.</p> <p>• <span style=\"font-weight: 600;\">Sector Performance</span> : Nifty IT witnessed broad-based buying, with momentum sustained throughout the session. Considering the current price structure, the positive trend is likely to continue in this space.</p> <p>• <span style=\"font-weight: 600;\">Global Market Impact</span> : Global cues remained mixed, with no clear directional trend visible across either Asian or European markets.</p> </td> </tr> <tr> <td colspan=\"100\"> <table width=\"100%\" cellspacing=\"10\" cellpadding=\"0\" border=\"0\" style=\"margin-bottom: 20px;\"> <tbody> <tr> <td style=\"padding: 10px; border-radius: 8px; background: #2FAA491A; width: 33%;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%2Fmarkets%3Findices=SENSEX/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/n4bzbsdecpzWXx4dbGFLTYWINtA=230\" style=\"color: inherit; text-decoration: none;\"> <table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"> <tbody> <tr> <td style=\"width: 100%; font-weight: 600; color: #343434; font-family: sans-serif;\">Sensex</td> </tr> <tr> <td style=\"font-size: 11px;\">84556.40</td> <td style=\"font-size: 11px;\"> <div style=\"font-size: 11px; font-family: Barlow, sans-serif; font-weight: 500; color: #258D52;\">&#9650;&nbsp;0.15%</div> </td> </tr> </tbody> </table> </a> </td> <td style=\"padding: 10px; border-radius: 8px; background: #2FAA491A; width: 33%;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%2Fmarkets%3Findices=NIFTY/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/291SBJXSXER5SuHslxrDHwPQJA0=230\" style=\"color: inherit; text-decoration: none;\"> <table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"> <tbody> <tr> <td style=\"width: 100%; font-weight: 600; color: #343434; font-family: sans-serif;\">Nifty</td> </tr> <tr> <td style=\"font-size: 11px;\">25891.40</td> <td style=\"font-size: 11px;\"> <div style=\"font-size: 11px; font-family: Barlow, sans-serif; font-weight: 500; color: #258D52;\">&#9650;&nbsp;0.09%</div> </td> </tr> </tbody> </table> </a> </td> <td style=\"padding: 10px; border-radius: 8px; background: #2FAA491A; width: 33%;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%2Fmarkets%3Findices=BANKNIFTY/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/gkI4FWYHNxUIKwzZ_9LMosTcIuE=230\" style=\"color: inherit; text-decoration: none;\"> <table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"> <tbody> <tr> <td style=\"width: 100%; font-weight: 600; color: #343434; font-family: sans-serif;\">Banknifty</td> </tr> <tr> <td style=\"font-size: 11px;\">58078.05</td> <td style=\"font-size: 11px;\"> <div style=\"font-size: 11px; font-family: Barlow, sans-serif; font-weight: 500; color: #258D52;\">&#9650;&nbsp;0.12%</div> </td> </tr> </tbody> </table> </a> </td> </tr> </tbody> <tbody></tbody> </table> </td> </tr> <tr> <td colspan=\"100\" style=\"padding-left: 10px; padding-right: 10px; font-weight: 600; width: 100%; font-size: 14px; font-family: sans-serif; padding-bottom: 5px;\">NIFTY 50</td> </tr> <tr> <td colspan=\"100\" style=\"padding-left: 10px; padding-right: 10px; font-size: 16px; text-align: left;\"> 25891.40 <span style=\"color: #258D52; font-size: 12px;\">+22.80 </span> <span style=\"color: #5c7597; font-size: 12px;\"> [1-day] </span> </td> </tr> <tr> <td colspan=\"100\" style=\"width: 100%; padding-top: 20px; padding-bottom: 20px;\"><img class=\"w-full\" src=\"https://d14kmd90dujuk0.cloudfront.net/market-charcha/mc_oct232025.png\" style=\"max-width: 100%; border-radius: 10px;\" /></td> </tr> <tr> <td colspan=\"100\" style=\"background: #f9fbfe; padding: 10px; border-radius: 8px; font-weight: 600;\"> <img src=\"https://mf.angelmf.com/Content/MarketSnapshot/images/Pie_Chart.png\" style=\"width: 24px; height: 24px;\" /> Chart Insight </td> </tr> <tr> <td colspan=\"100\" style=\"padding-left: 10px; padding-right: 10px; font-size: 14px; color: #5c7597; width: 100%;\"> <p><p>&bull; Sharp Reversal & Bearish Candle: The Nifty index suffered a significant midday reversal, plummeting from a high of 26,104 to close lower at 25,891, resulting in a bearish candle formation.</p><p>&bull; Sectoral Divide: The market saw high divergence, with the IT sector closing as the top gainer with over 2% growth, while the Infrastructure sector emerged as the session\'s biggest loser.</p><p>&bull; Key Stock Performance: Infosys, HCLTech, and TCS were the leading gainers in the Nifty 50, contrasting sharply with top losers like IndiGo.</p><p>&bull; Technical (RSI) View: Despite the late sell-off, the index\'s RSI is above 72, suggesting a mild overbought condition but confirming the general underlying strength of the trend.</p><p>&bull; Derivatives Positioning: The options data shows a slightly cautious sentiment with the Put-Call Ratio (PCR) at 0.87, while the Max Pain point at 25,900 indicated a high concentration of options contracts near the closing level.</p></p> </td> </tr> <tr> <td colspan=\"100\" style=\"background: #f9fbfe; padding: 10px; border-radius: 8px; font-weight: 600;\"> <img src=\"https://mf.angelmf.com/Content/MarketSnapshot/images/Technical_Output.png\" style=\"width: 24px; height: 24px;\" /> Technical Outlook </td> </tr> <tr> <td colspan=\"100\" style=\"padding-left: 10px; padding-right: 10px; font-size: 14px; color: #5c7597; width: 100%;\"> <p>• As far as levels are concerned, the runaway gap around 25800-25750 is expected to cushion the upcoming blips, while the sacrosanct support is placed around 25600-25500. On the flip side, the intermediate high of 26100-26150 is likely to be seen as a potential hurdle, followed by the lifetime high zone of 26277 in the comparable period.</p> </td> </tr> <tr> <td colspan=\"100\" style=\"padding-left: 10px; padding-right: 10px;\"> <table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background: rgba(47, 170, 73, 0.1); border-radius: 8px; font-family: sans-serif;\"> <tbody> <tr> <td colspan=\"100\" style=\"text-align: left; padding-top: 20px; font-weight: 600;\"> <img src=\"https://mf.angelmf.com/Content/MarketSnapshot/images/Top_Gainers.png\" style=\"margin-left: 25px;\" /> Top Gainers </td> </tr> <tr> <td colspan=\"100\" style=\"padding-top: 20px; text-align: center; padding: 20px;\"> <table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background: #fff; border-radius: 8px;\"> <thead style=\"background-color: #f7f8f8;\"> <tr> <th style=\"padding: 10px 12px; font-size: 14px; font-weight: 700; color: #4f5157; text-align: left; width: 60%;\">Company</th> <th style=\"padding: 10px 12px; font-size: 14px; font-weight: 700; color: #4f5157; text-align: left; width: 20%;\">Price</th> <th style=\"padding: 10px 12px; font-size: 14px; font-weight: 700; color: #4f5157; text-align: left; width: 20%;\">Gains</th> </tr> </thead> <tbody> <tr style=\"border-top: 1px solid #f7f8f8;\"><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">INFY</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">1528.50</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #258d52;\">&#9650;&nbsp;3.81%</td></tr><tr style=\"border-top: 1px solid #f7f8f8;\"><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">HCLTECH</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">1523.90</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #258d52;\">&#9650;&nbsp;2.55%</td></tr><tr style=\"border-top: 1px solid #f7f8f8;\"><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">TCS</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">3073.20</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #258d52;\">&#9650;&nbsp;2.21%</td></tr><tr style=\"border-top: 1px solid #f7f8f8;\"><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">SHRIRAMFIN</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">709.65</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #258d52;\">&#9650;&nbsp;2.07%</td></tr><tr style=\"border-top: 1px solid #f7f8f8;\"><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">AXISBANK</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">1258.80</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #258d52;\">&#9650;&nbsp;1.74%</td></tr> </tbody> </table> </td> </tr> </tbody> </table> </td> </tr> <tr> <td colspan=\"100\" style=\"padding-left: 10px; padding-right: 10px; padding-top: 20px; padding-bottom: 20px;\"> <table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background: rgba(237, 26, 77, 0.09); border-radius: 8px; font-family: sans-serif;\"> <tbody> <tr> <td colspan=\"100\" style=\"text-align: left; padding-top: 20px; font-weight: 600;\"> <img src=\"https://mf.angelmf.com/Content/MarketSnapshot/images/Top_Losers.png\" style=\"margin-left: 25px;\" /> Top Losers </td> </tr> <tr> <td colspan=\"100\" style=\"padding-top: 20px; text-align: center; padding: 20px;\"> <table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background: #fff; border-radius: 8px;\"> <thead style=\"background-color: #f7f8f8;\"> <tr> <th style=\"padding: 10px 12px; font-size: 14px; font-weight: 700; color: #4f5157; text-align: left; width: 60%;\">Company</th> <th style=\"padding: 10px 12px; font-size: 14px; font-weight: 700; color: #4f5157; text-align: left; width: 20%;\">Price</th> <th style=\"padding: 10px 12px; font-size: 14px; font-weight: 700; color: #4f5157; text-align: left; width: 20%;\">Loss</th> </tr> </thead> <tbody> <tr style=\"border-top: 1px solid #f7f8f8;\"><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">ETERNAL</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">328.35</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #eb4336;\">&#9660;&nbsp;2.88%</td></tr><tr style=\"border-top: 1px solid #f7f8f8;\"><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">INDIGO</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">5789.00</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #eb4336;\">&#9660;&nbsp;2.10%</td></tr><tr style=\"border-top: 1px solid #f7f8f8;\"><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">EICHERMOT</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">6884.50</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #eb4336;\">&#9660;&nbsp;1.91%</td></tr><tr style=\"border-top: 1px solid #f7f8f8;\"><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">BHARTIARTL</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">2007.90</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #eb4336;\">&#9660;&nbsp;1.74%</td></tr><tr style=\"border-top: 1px solid #f7f8f8;\"><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">ULTRACEMCO</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #4f5157;\">12145.00</td><td style=\"text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 500; color: #eb4336;\">&#9660;&nbsp;1.60%</td></tr> </tbody> </table> </td> </tr> </tbody> </table> </td> </tr>   <tr> <td colspan=\"100\" style=\"padding: 10px; border-radius: 8px; font-weight: 600; padding-bottom: 20px; background: #f9fbfe;\"> <img src=\"https://mf.angelmf.com/Content/MarketSnapshot/images/FNO_Logo.png\" alt=\"Hot Or Not\" /> Hot Or Not </td> </tr> <tr> <td colspan=\"100\" style=\"padding-left: 10px; padding-top: 10px;\"> <table width=\"100%\" cellspacing=\"8\" cellpadding=\"0\" border=\"1px solid;\" style=\"padding: 8px; border-collapse: collapse; border-color: #5c7597;\"> <thead style=\"background-color: #5a9fd7; color: #ffffff; border-style: hidden;\"> <tr> <th style=\"border-style: hidden; padding-top: 8px; padding-bottom: 8px; font-size: 15px; width: 25%;\"> Stock </th> <th style=\"border-style: hidden; padding-top: 8px; padding-bottom: 8px; font-size: 14px; width: 15%;\"> % Gain / Loss </th> <th style=\"border-style: hidden; padding-top: 8px; padding-bottom: 8px; font-size: 14px; width: 60%;\"> What\'s Happening </th> </tr> </thead> <tbody> <tr border=\"1px solid #5C7597;\"><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 25%;\">BHARAT FORGE</td><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 15%;\">4.56%</td><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 60%;\">Bags a ₹2,770 crore contract from the Indian Army to supply carbines, in partnership with PLR Systems.&nbsp;<a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%3Faf_xp=custom%26pid=overview%26c=overview%26tokenID=422%26symbolName=BHARATFORG%26expirydate=01Jan1980%26strkPrice%26regularLot=1%26instrumenttype=CASH%26priceTick=0.001%26segmentID=1%26SecurityDesc=BHARATFORGELTD%26nseCashToken=422%26bseCashToken=%26curFutToken=%26isin=INE465A01025%26isCashWithFno=false%26instrumentName=%26tradeSymbol=BHARATFORG-EQ/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/QrECqN51OyaeJDAwy0sgfpXDtus=230\" style=\"text-decoration: none;\"><div style=\"color: #2D7969; font-size: 11px; font-family: sans-serif; font-weight: 500; text-decoration: underline; word-wrap: break-word; display: inline;\">Learn More</div> &nbsp;</a></td> </tr><tr border=\"1px solid #5C7597;\"><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 25%;\">RELIANCE</td><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 15%;\">-1.15%</td><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 60%;\">Shares trade flat to weak amid concerns that US sanctions on Russian oil could disrupt Rosneft supplies and raise import costs.&nbsp;<a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%3Faf_xp=custom%26pid=overview%26c=overview%26tokenID=2885%26symbolName=RELIANCE%26expirydate=01Jan1980%26strkPrice%26regularLot=1%26instrumenttype=CASH%26priceTick=0.001%26segmentID=1%26SecurityDesc=RELIANCEINDUSTRIESLTD%26nseCashToken=2885%26bseCashToken=%26curFutToken=%26isin=INE002A01018%26isCashWithFno=false%26instrumentName=%26tradeSymbol=RELIANCE-EQ/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/YXTJEL_RW6Vs4zFMRchp1ygZt2g=230\" style=\"text-decoration: none;\"><div style=\"color: #9B2F26; font-size: 11px; font-family: sans-serif; font-weight: 500; text-decoration: underline; word-wrap: break-word; display: inline;\">Learn More</div> &nbsp;</a></td> </tr><tr border=\"1px solid #5C7597;\"><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 25%;\">KPIL</td><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 15%;\">-0.54%</td><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 60%;\">Wins ₹2,332 crore worth of new T&D and building contracts, including overseas orders.&nbsp;<a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%3Faf_xp=custom%26pid=overview%26c=overview%26tokenID=1814%26symbolName=KPIL%26expirydate=01Jan1980%26strkPrice%26regularLot=1%26instrumenttype=CASH%26priceTick=0.0005%26segmentID=1%26SecurityDesc=KALPATARUPROJECTINTLTD%26nseCashToken=1814%26bseCashToken=%26curFutToken=%26isin=INE220B01022%26isCashWithFno=false%26instrumentName=%26tradeSymbol=KPIL-EQ/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/9z8cn2rbq2YhcurFmgw0meHGdlQ=230\" style=\"text-decoration: none;\"><div style=\"color: #9B2F26; font-size: 11px; font-family: sans-serif; font-weight: 500; text-decoration: underline; word-wrap: break-word; display: inline;\">Learn More</div> &nbsp;</a></td> </tr><tr border=\"1px solid #5C7597;\"><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 25%;\">TORRENTPHARMA</td><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 15%;\">0.65%</td><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 60%;\">Gets CCI nod to acquire a controlling stake in J B Chemicals for about $3 billion.&nbsp;<a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%3Faf_xp=custom%26pid=overview%26c=overview%26tokenID=3518%26symbolName=TORNTPHARM%26expirydate=01Jan1980%26strkPrice%26regularLot=1%26instrumenttype=CASH%26priceTick=0.001%26segmentID=1%26SecurityDesc=TORRENTPHARMACEUTICALSL%26nseCashToken=3518%26bseCashToken=%26curFutToken=%26isin=INE685A01028%26isCashWithFno=false%26instrumentName=%26tradeSymbol=TORNTPHARM-EQ/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/rH7MfcJd82pqUT76jgkiRpL8HyM=230\" style=\"text-decoration: none;\"><div style=\"color: #2D7969; font-size: 11px; font-family: sans-serif; font-weight: 500; text-decoration: underline; word-wrap: break-word; display: inline;\">Learn More</div> &nbsp;</a></td> </tr><tr border=\"1px solid #5C7597;\"><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 25%;\">BEL</td><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 15%;\">0.23%</td><td style=\"padding: 10px 10px; font-size: 14px; color: #5c7597; text-align: left; width: 60%;\">Secures a ₹633 crore order from Cochin Shipyard for sensors, weapons, and communication systems.&nbsp;<a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%3Faf_xp=custom%26pid=overview%26c=overview%26tokenID=383%26symbolName=BEL%26expirydate=01Jan1980%26strkPrice%26regularLot=1%26instrumenttype=CASH%26priceTick=0.0005%26segmentID=1%26SecurityDesc=BHARATELECTRONICSLTD%26nseCashToken=383%26bseCashToken=%26curFutToken=%26isin=INE263A01024%26isCashWithFno=false%26instrumentName=%26tradeSymbol=BEL-EQ/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/6ioqkK94w0MSUzLfl1GQ6jhhpdY=230\" style=\"text-decoration: none;\"><div style=\"color: #2D7969; font-size: 11px; font-family: sans-serif; font-weight: 500; text-decoration: underline; word-wrap: break-word; display: inline;\">Learn More</div> &nbsp;</a></td> </tr> </tbody> </table> </td> </tr> <tr> <td style=\"padding-top: 20px;\" ;></td> </tr>    <tr> <td colspan=\"100\" style=\"background: #f9fbfe; padding: 10px; border-radius: 8px; font-weight: 600;\"> <img src=\"https://mf.angelmf.com/Content/MarketSnapshot/images/News_And_Update.png\" style=\"width: 24px; height: 24px;\" /> News & Updates </td> </tr> <tr> <td colspan=\"100\" style=\"padding-left: 10px; padding-right: 10px; padding-bottom: 10px; font-size: 14px; color: #5c7597; width: 100%;\"><p>&bull; Laurus Labs: Q2 profit jumped 875% YoY to ₹195 cr on strong CDMO and generics growth; revenue up 35% to ₹1,653 cr.</p><a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%3Faf_xp=custom%26pid=overview%26c=overview%26tokenID=19234%26symbolName=LAURUSLABS%26expirydate=01Jan1980%26strkPrice%26regularLot=1%26instrumenttype=CASH%26priceTick=0.0005%26segmentID=1%26SecurityDesc=LAURUSLABSLIMITED%26nseCashToken=19234%26bseCashToken=%26curFutToken=%26isin=INE947Q01028%26isCashWithFno=false%26instrumentName=%26tradeSymbol=LAURUSLABS-EQ/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/xwWoDf4jeZGLNjxpWVtLsQYTE_E=230\" style=\"text-decoration: none;\"><div style=\"height: 100%; padding-left: 1px; padding-right: 4px; padding-top: 1.60px; padding-bottom: 1.60px; background: #EAF6ED; border-radius: 13px; border: 1px #D1EDDF solid; justify-content: center; align-items: center; gap: 6.41px; display: inline-flex\"> <div style=\"justify-content: center; align-items: flex-end; gap: 6.43px; display: flex\"> <div style=\"color: #035A44; font-size: 12px; font-family: sans-serif; font-weight: 500; word-wrap: break-word; padding-top: 3px;\"> &nbsp;&nbsp;LAURUSLABS-EQ</div> <div style=\"justify-content: flex-start; align-items: center; gap: 6px; display: flex\"> <div style=\"color: #2D7969; font-size: 11px; font-family: sans-serif; font-weight: 500; word-wrap: break-word; padding-top: 3px;\">&nbsp;&nbsp;+2.07%&nbsp;&nbsp;</div> </div> </div> <div style=\"color: #2D7969; font-size: 11px; font-family: sans-serif; font-weight: 500; text-decoration: underline; word-wrap: break-word; padding-top: 3px;\">Learn More</div>  &nbsp;</div> &nbsp;</a><p>&bull; Epack Prefab Tech: Shares soared 20% after Q2 profit doubled to ₹29.5 cr.</p><a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%3Faf_xp=custom%26pid=overview%26c=overview%26tokenID=22463%26symbolName=EPACK%26expirydate=01Jan1980%26strkPrice%26regularLot=1%26instrumenttype=CASH%26priceTick=0.0005%26segmentID=1%26SecurityDesc=EPACKDURABLELIMITED%26nseCashToken=22463%26bseCashToken=%26curFutToken=%26isin=INE0G5901015%26isCashWithFno=false%26instrumentName=%26tradeSymbol=EPACK-EQ/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/xYS_onPHE3uY5OrVzCvGtWgOMqU=230\" style=\"text-decoration: none;\"><div style=\"height: 100%; padding-left: 1px; padding-right: 4px; padding-top: 1.60px; padding-bottom: 1.60px; background: #EAF6ED; border-radius: 13px; border: 1px #D1EDDF solid; justify-content: center; align-items: center; gap: 6.41px; display: inline-flex\"> <div style=\"justify-content: center; align-items: flex-end; gap: 6.43px; display: flex\"> <div style=\"color: #035A44; font-size: 12px; font-family: sans-serif; font-weight: 500; word-wrap: break-word; padding-top: 3px;\"> &nbsp;&nbsp;EPACK-EQ</div> <div style=\"justify-content: flex-start; align-items: center; gap: 6px; display: flex\"> <div style=\"color: #2D7969; font-size: 11px; font-family: sans-serif; font-weight: 500; word-wrap: break-word; padding-top: 3px;\">&nbsp;&nbsp;+13.01%&nbsp;&nbsp;</div> </div> </div> <div style=\"color: #2D7969; font-size: 11px; font-family: sans-serif; font-weight: 500; text-decoration: underline; word-wrap: break-word; padding-top: 3px;\">Learn More</div>  &nbsp;</div> &nbsp;</a><p>&bull; HUL: Stock gained 3% as Q2 profit rose 4% YoY to ₹2,694 cr, aided by a one-off tax gain; revenue flat amid GST transition.</p><a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%3Faf_xp=custom%26pid=overview%26c=overview%26tokenID=1394%26symbolName=HINDUNILVR%26expirydate=01Jan1980%26strkPrice%26regularLot=1%26instrumenttype=CASH%26priceTick=0.001%26segmentID=1%26SecurityDesc=HINDUSTANUNILEVERLTD.%26nseCashToken=1394%26bseCashToken=%26curFutToken=%26isin=INE030A01027%26isCashWithFno=false%26instrumentName=%26tradeSymbol=HINDUNILVR-EQ/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/0lxQqZs6w3EWm5acVs8Fz733yQ4=230\" style=\"text-decoration: none;\"><div style=\"height: 100%; padding-left: 1px; padding-right: 4px; padding-top: 1.60px; padding-bottom: 1.60px; background: #EAF6ED; border-radius: 13px; border: 1px #D1EDDF solid; justify-content: center; align-items: center; gap: 6.41px; display: inline-flex\"> <div style=\"justify-content: center; align-items: flex-end; gap: 6.43px; display: flex\"> <div style=\"color: #035A44; font-size: 12px; font-family: sans-serif; font-weight: 500; word-wrap: break-word; padding-top: 3px;\"> &nbsp;&nbsp;HINDUNILVR-EQ</div> <div style=\"justify-content: flex-start; align-items: center; gap: 6px; display: flex\"> <div style=\"color: #2D7969; font-size: 11px; font-family: sans-serif; font-weight: 500; word-wrap: break-word; padding-top: 3px;\">&nbsp;&nbsp;+0.36%&nbsp;&nbsp;</div> </div> </div> <div style=\"color: #2D7969; font-size: 11px; font-family: sans-serif; font-weight: 500; text-decoration: underline; word-wrap: break-word; padding-top: 3px;\">Learn More</div>  &nbsp;</div> &nbsp;</a><p>&bull; Hindalco: $125 mn AluChem deal delayed due to US govt shutdown, awaiting approval.</p><p>&bull; Caplin Point: Subsidiary gets USFDA nod for Nicardipine Hydrochloride injection, tapping a $68 mn U.S. market.</p><p>&bull; Bondada Engineering: Bags a ₹1,050 cr order from Adani Group to build a 650 MW solar project in Gujarat.</p><p>&bull; Vikram Solar: Wins major order from Sunsure Energy to supply 148.9 MW of high-efficiency solar modules, strengthening its role in India’s renewable energy expansion.</p><p>&bull; Eternal (Zomato parent): Receives ₹128.4 crore GST demand & penalty from UP authorities for Apr 2023–Mar 2024; company plans to appeal, citing a strong case.</p><p>&bull; Oil prices surged over 4% as the U.S. imposed sanctions on Russian oil majors Rosneft and Lukoil, tightening global supply and pushing Brent above $65 a barrel.</p></td> </tr> <tr> <td align=\"center\" ; style=\"padding: 10px; text-align: center; background: #f9fbfe;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%3Faf_web_dp=https:%2F%2Fwww.angelone.in%2Ftwa-news-app%2F%26af_xp=custom%26pid=twaRedirection%26c=twaRedirection/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/GH4hlldey_Qy-JRx0WvWDEGy-eE=230\" style=\"color: #0060ff; font-size: 14px; font-family: sans-serif; font-weight: 600; line-height: 15.54px; text-decoration: none;\" > Explore Full Update > </a> </td> </tr> <tr> <td style=\"padding-top: 20px;\"></td> </tr>  <tr> <td colspan=\"100\" style=\"padding-left: 10px; padding-right: 10px; padding-top: 20px; padding-bottom: 20px;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%3Faf_xp=custom%26pid=topCommodity%26c=topCommodity%26TradeSymbol=Overview%26widget=CommodityWidget/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/VU3-kGHCNQM1G1GZ9Ke_tiV7mx4=230\" style=\"color: inherit; text-decoration: none;\"> <table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background: #f9fbfe; border-radius: 8px; font-family: sans-serif;\"> <tbody> <tr> <td colspan=\"100\" style=\"text-align: left; padding-top: 20px; padding-left: 20px; font-weight: 600;\"> <img src=\"https://mf.angelmf.com/Content/MarketSnapshot/images/Commodity_Market_Watch.png\" style=\"width: 24px; height: 24px;\" /> Commodity Market Watch <span style=\"font-weight: 400; font-size: 12px; color: #5c7597;\"> 1 Day Change</span> </td> </tr> <tr> <td colspan=\"100\" style=\"padding-top: 20px; text-align: center; padding: 20px;\"> <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background: white; border-radius: 11px; padding: 14px;\"> <tr> <td style=\"padding-bottom: 11px; border-bottom: 1px dotted #d2d2d2;\"> <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border-collapse: collapse;\"> <tr> <td style=\"text-align: left; color: #1b2559; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 600; width: 65%;\">Crude Oil</td> <td style=\"text-align: left; color: #5c7597; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 500; margin-right: 12px; width: 15%;\">5442.00</td> <td style=\"text-align: right; width: 20%;\"> <span style=\"color: #258D52; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 500;\">&#9650;</span> <span style=\"color: #258D52; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 600; margin-left: 5px;\">5.69%</span> </td> </tr> </table> </td> </tr> <tr> <td style=\"padding-bottom: 11px; border-bottom: 1px dotted #d2d2d2;\"> <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border-collapse: collapse;\"> <tr> <td style=\"text-align: left; color: #1b2559; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 600; width: 65%;\">Natural Gas</td> <td style=\"text-align: left; color: #5c7597; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 500; margin-right: 11px; width: 15%;\">304.70</td> <td style=\"text-align: right; width: 20%;\"> <span style=\"color: #EB4336;; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 500;\">&#9660;</span> <span style=\"color: #EB4336;; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 600; margin-left: 5px;\">0.26%</span> </td> </tr> </table> </td> </tr> <tr> <td style=\"padding-bottom: 11px; border-bottom: 1px dotted #d2d2d2;\"> <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border-collapse: collapse;\"> <tr> <td style=\"text-align: left; color: #1b2559; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 600; width: 65%;\">Gold</td> <td style=\"text-align: left; color: #5c7597; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 500; margin-right: 12px; width: 15%;\">122663.00</td> <td style=\"text-align: right; width: 20%;\"> <span style=\"color: #258D52; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 500;\">&#9650;</span> <span style=\"color: #258D52; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 600; margin-left: 5px;\">1.30%</span> </td> </tr> </table> </td> </tr> <tr> <td> <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border-collapse: collapse;\"> <tr> <td style=\"text-align: left; color: #1b2559; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 600; width: 65%;\">Silver</td> <td style=\"text-align: left; color: #5c7597; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 500; margin-right: 11px; width: 15%;\">150192.00</td> <td style=\"text-align: right; width: 20%;\"> <span style=\"color: #258D52; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 500;\">&#9650;</span> <span style=\"color: #258D52; font-size: 11px; font-family: Barlow, sans-serif; font-weight: 600; margin-left: 5px;\">1.77%</span> </td> </tr> </table> </td> </tr> </table> </td> </tr> <tr> <td colspan=\"100\" style=\"font-size: 12px; padding: 10px;\"> Note: The commodity market is open until 11:30 PM. The prices shown above reflect the upcoming futures expiry of the respective commodities as of 6 PM today </td> </tr> </tbody> </table> </a> </td> </tr> <tr><td style=\"padding: 0 15px;\"><table style=\"width: 100%; background: #f9fbfe; border-radius: 8px; margin-bottom: 20px;\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"><tr><td style=\"font-family: Arial, sans-serif; padding: 15px 20px; font-weight: 600; color: #1b2559; font-size: 16px;\"><img src=\"https://mf.angelmf.com/Content/MarketSnapshot/images/Quiz_Icon.png\" alt=\"Quiz\" style=\"height: 20px; vertical-align: middle; margin-right: 8px;\"/>Quiz of the Day</td></tr></table></td></tr><tr><td style=\"padding: 0 15px;\"><table class=\"question-table\" style=\"width: 100%; margin-bottom: 25px; border-radius: 8px; overflow: hidden; background: #ffffff; border: 1px solid #e2e8f0;\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"><tr><td style=\"background: #f9fbfe; font-family: Arial, sans-serif; padding: 18px 20px; font-weight: 600; color: #1b2559; font-size: 15px; border-bottom: 1px solid #e2e8f0;\">1. What does “index rebalancing” mean?</td></tr><tr> <td style=\"padding: 15px;\">  <table style=\"width: 100%; margin-bottom: 10px;\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"> <tr> <td class=\"option-cell\" style=\"width: 48%; padding-right: 2%; vertical-align: top;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fmf.angelmf.com%2FCustomerComplaints%2FSaveClientResponseForMCQuiz%3Fid=QUFBTzQ5NTQ2Nw==%26quizId=388%26response=A/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/XSxLrxZuXnKVgeBb85Vga5BydDc=230\" target=\"_blank\" class=\"option-button button-hover\" style=\"display: block; width: 100%; padding: 12px 16px; background-color: #ffffff; border: 2px solid #cbd5e1; border-radius: 8px; color: #475569; text-decoration: none; font-family: Arial, sans-serif; font-size: 14px; text-align: center; font-weight: 500; min-height: 20px; box-sizing: border-box;\"> Stock Change </a> </td> <td class=\"option-cell\" style=\"width: 48%; padding-left: 2%; vertical-align: top;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fmf.angelmf.com%2FCustomerComplaints%2FSaveClientResponseForMCQuiz%3Fid=QUFBTzQ5NTQ2Nw==%26quizId=388%26response=B/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/fvA2iWrnbEhNy4etjht4i7MlD3o=230\" target=\"_blank\" class=\"option-button button-hover\" style=\"display: block; width: 100%; padding: 12px 16px; background-color: #ffffff; border: 2px solid #cbd5e1; border-radius: 8px; color: #475569; text-decoration: none; font-family: Arial, sans-serif; font-size: 14px; text-align: center; font-weight: 500; min-height: 20px; box-sizing: border-box;\"> Dividend Day </a> </td> </tr> </table>  <table style=\"width: 100%;\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"> <tr> <td class=\"option-cell\" style=\"width: 48%; padding-right: 2%; vertical-align: top;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fmf.angelmf.com%2FCustomerComplaints%2FSaveClientResponseForMCQuiz%3Fid=QUFBTzQ5NTQ2Nw==%26quizId=388%26response=C/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/s4Az9_qKTtYNtDCJfItTl34Z36U=230\" target=\"_blank\" class=\"option-button button-hover\" style=\"display: block; width: 100%; padding: 12px 16px; background-color: #ffffff; border: 2px solid #cbd5e1; border-radius: 8px; color: #475569; text-decoration: none; font-family: Arial, sans-serif; font-size: 14px; text-align: center; font-weight: 500; min-height: 20px; box-sizing: border-box;\"> IPO Listing </a> </td> <td class=\"option-cell\" style=\"width: 48%; padding-left: 2%; vertical-align: top;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fmf.angelmf.com%2FCustomerComplaints%2FSaveClientResponseForMCQuiz%3Fid=QUFBTzQ5NTQ2Nw==%26quizId=388%26response=D/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/A1kN-iIe20x8j5IFjUrfFvALiFY=230\" target=\"_blank\" class=\"option-button button-hover\" style=\"display: block; width: 100%; padding: 12px 16px; background-color: #ffffff; border: 2px solid #cbd5e1; border-radius: 8px; color: #475569; text-decoration: none; font-family: Arial, sans-serif; font-size: 14px; text-align: center; font-weight: 500; min-height: 20px; box-sizing: border-box;\"> Market Holiday </a> </td> </tr> </table> </td> </tr> </table><table class=\"question-table\" style=\"width: 100%; margin-bottom: 25px; border-radius: 8px; overflow: hidden; background: #ffffff; border: 1px solid #e2e8f0;\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"><tr><td style=\"background: #f9fbfe; font-family: Arial, sans-serif; padding: 18px 20px; font-weight: 600; color: #1b2559; font-size: 15px; border-bottom: 1px solid #e2e8f0;\">2. Global oil prices surged over 4% after the U.S. imposed sanctions on which Russian oil companies?</td></tr><tr> <td style=\"padding: 15px;\">  <table style=\"width: 100%; margin-bottom: 10px;\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"> <tr> <td class=\"option-cell\" style=\"width: 48%; padding-right: 2%; vertical-align: top;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fmf.angelmf.com%2FCustomerComplaints%2FSaveClientResponseForMCQuiz%3Fid=QUFBTzQ5NTQ2Nw==%26quizId=389%26response=A/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/oJFoQAyOIc_dNY8GyMYIoQKu7Ms=230\" target=\"_blank\" class=\"option-button button-hover\" style=\"display: block; width: 100%; padding: 12px 16px; background-color: #ffffff; border: 2px solid #cbd5e1; border-radius: 8px; color: #475569; text-decoration: none; font-family: Arial, sans-serif; font-size: 14px; text-align: center; font-weight: 500; min-height: 20px; box-sizing: border-box;\"> Gazprom & Rosneft </a> </td> <td class=\"option-cell\" style=\"width: 48%; padding-left: 2%; vertical-align: top;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fmf.angelmf.com%2FCustomerComplaints%2FSaveClientResponseForMCQuiz%3Fid=QUFBTzQ5NTQ2Nw==%26quizId=389%26response=B/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/cossloYULJ_bn-IOjMZrMbhRhys=230\" target=\"_blank\" class=\"option-button button-hover\" style=\"display: block; width: 100%; padding: 12px 16px; background-color: #ffffff; border: 2px solid #cbd5e1; border-radius: 8px; color: #475569; text-decoration: none; font-family: Arial, sans-serif; font-size: 14px; text-align: center; font-weight: 500; min-height: 20px; box-sizing: border-box;\"> Rosneft & Lukoil </a> </td> </tr> </table>  <table style=\"width: 100%;\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"> <tr> <td class=\"option-cell\" style=\"width: 48%; padding-right: 2%; vertical-align: top;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fmf.angelmf.com%2FCustomerComplaints%2FSaveClientResponseForMCQuiz%3Fid=QUFBTzQ5NTQ2Nw==%26quizId=389%26response=C/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/iSSQzkZKUoLW1Ny-ioLB-vzyM-8=230\" target=\"_blank\" class=\"option-button button-hover\" style=\"display: block; width: 100%; padding: 12px 16px; background-color: #ffffff; border: 2px solid #cbd5e1; border-radius: 8px; color: #475569; text-decoration: none; font-family: Arial, sans-serif; font-size: 14px; text-align: center; font-weight: 500; min-height: 20px; box-sizing: border-box;\"> Transneft & Surgutneftegas </a> </td> <td class=\"option-cell\" style=\"width: 48%; padding-left: 2%; vertical-align: top;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fmf.angelmf.com%2FCustomerComplaints%2FSaveClientResponseForMCQuiz%3Fid=QUFBTzQ5NTQ2Nw==%26quizId=389%26response=D/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/7z00844XlNDNMr1pBsgqAPf-C2A=230\" target=\"_blank\" class=\"option-button button-hover\" style=\"display: block; width: 100%; padding: 12px 16px; background-color: #ffffff; border: 2px solid #cbd5e1; border-radius: 8px; color: #475569; text-decoration: none; font-family: Arial, sans-serif; font-size: 14px; text-align: center; font-weight: 500; min-height: 20px; box-sizing: border-box;\"> Bashneft & Tatneft </a> </td> </tr> </table> </td> </tr> </table></td> </tr> <tr> <td style=\"text-align: center; color: #5C7597; font-size: 16px; font-weight: 700; word-wrap: break-word; font-family: \'Barlow\', sans-serif;\"> We would love to hear your feedback! </td> </tr> <tr> <td style=\"padding-top: 20px;\"></td> </tr> <tr> <td style=\"width: 100%; text-align: center; font-family: \'Barlow\', sans-serif;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fmf.angelmf.com%2FCustomerComplaints%2FGetPRPMailerClientsSuggestion%3Fid=QUFBTzQ5NTQ2Nw==%26Tag=23102025_MCNormalMailer/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/yLOrPXY8zkXOR8yaygTxYS4HurA=230\" style=\"color: #2E51FF; font-size: 14px; font-weight: 500; text-decoration: underline; line-height: 21.60px; word-wrap: break-word\"> Click here </a> <span style=\"color: #40505F; font-size: 14px; font-weight: 500; line-height: 21.60px; word-wrap: break-word;font-family: \'Barlow\', sans-serif;\"> to share your suggestions.</span> </td> </tr> <tr> <td style=\"padding-top: 20px;\"></td> </tr> <tr> <td colspan=\"100\" style=\"text-align: center;\"> <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fangel-one.onelink.me%2FJAAb%2FadvisoryForYou/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/ykO3OjyLKa31xEodrwM1IVgrmCs=230\" style=\"display: inline-block; text-decoration: none; background: #2e51ff; color: white; padding-left: 24px; padding-right: 24px; padding-top: 12px; padding-bottom: 12px; border-radius: 8px;\" > AngelOne Research </a> </td> </tr> <tr> <td colspan=\"100\" style=\"text-align: center; font-size: 11px; padding-top: 20px;\"> <span>Disclaimer</span> - Investments in securities market are subject to market risks, read all related documents carefully before investing. <a href=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/L0/https:%2F%2Fwww.angelone.in%2Fresearch-disclaimer/1/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/5qk5NcP0zdNJPUuX3ks4sZ01KnY=230\"> Read More </a> <p>Quizzes are for engagement purpose only.</p> <p> You\'re getting this email because you\'re a Angel One user and we believe you deserve great finance content and the latest updates from us.</a> </p> <p>News summaries are generated by an LLM. Please report discrepancies to help us improve.</p> </td> </tr> </tbody> </table> <img alt=\"\" src=\"https://vk9ebk5e.r.ap-south-1.awstrack.me/I0/0109019a1108eade-3d9d8644-1587-4726-a788-4bdbb6bb2c30-000000/YBKGL4qmFVuR53aGjw60skaw3zM=230\" style=\"display: none; width: 1px; height: 1px;\">\r\n</body> </html>\r\nhi', 'normal', '2025-10-25 10:07:14'),
+(2, 1, 'uky171991@gmail.com', '', '', 'Lab Report Ready - Hospital', 'Dear Patient,\r\n\r\nYour lab report is ready for collection.\r\n\r\nReport Details:\r\nTest Date: [DATE]\r\nReport ID: [REPORT_ID]\r\n\r\nYou can collect your report from the reception or download it from our patient portal.\r\n\r\nBest regards,\r\nLab Department', 'normal', '2025-10-25 10:08:03'),
+(3, 1, 'uky171991@gmail.com', '', '', 'Appointment Reminder - Hospital', 'Dear Patient,\r\n\r\nThis is a reminder for your upcoming appointment.\r\n\r\nAppointment Details:\r\nDate: [DATE]\r\nTime: [TIME]\r\nDoctor: [DOCTOR]\r\n\r\nPlease arrive 15 minutes early.\r\n\r\nBest regards,\r\nHospital Team', 'high', '2025-10-25 10:10:31');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tests`
 --
 
@@ -768,26 +773,26 @@ CREATE TABLE `tests` (
   `max_female` decimal(10,2) DEFAULT NULL,
   `min_child` decimal(10,2) DEFAULT NULL,
   `max_child` decimal(10,2) DEFAULT NULL,
-  `child_unit` varchar(50) DEFAULT NULL,
   `sub_heading` tinyint(1) NOT NULL DEFAULT 0,
   `test_code` varchar(100) DEFAULT NULL,
   `method` varchar(255) DEFAULT NULL,
   `print_new_page` tinyint(1) NOT NULL DEFAULT 0,
   `shortcut` varchar(50) DEFAULT NULL,
   `added_by` int(11) DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 --
 -- Dumping data for table `tests`
 --
 
-INSERT INTO `tests` (`id`, `name`, `category_id`, `main_category_id`, `price`, `unit`, `specimen`, `default_result`, `reference_range`, `min`, `max`, `description`, `min_male`, `max_male`, `min_female`, `max_female`, `min_child`, `max_child`, `child_unit`, `sub_heading`, `test_code`, `method`, `print_new_page`, `shortcut`, `added_by`, `created_at`, `updated_at`) VALUES
-(1, 'Aubrey Reyes g', 3, 0, 980.00, 'abc', NULL, '', '', 20.00, 24.00, 'Aliquid labore place', 30.00, 31.00, 72.00, 78.00, NULL, NULL, NULL, 1, '', '', 1, '', 1, NULL, NULL),
-(2, 'New test', 6, 0, 100.00, 'etc', NULL, '', '', 10.00, 20.00, '', 11.00, 21.00, 12.00, 22.00, 5.00, 8.00, 'etc', 0, '', '', 0, '', 1, NULL, NULL),
-(3, 'New test', 6, 0, 100.00, 'etc', NULL, '', '', NULL, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, '', 0, NULL, 1, NULL, NULL),
-(4, 'Aubrey Reyes g', 3, 0, 980.00, 'abc', NULL, '', '', NULL, NULL, 'Aliquid labore place', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, '', 0, NULL, 1, NULL, NULL);
+INSERT INTO `tests` (`id`, `name`, `category_id`, `main_category_id`, `price`, `unit`, `specimen`, `default_result`, `reference_range`, `min`, `max`, `description`, `min_male`, `max_male`, `min_female`, `max_female`, `min_child`, `max_child`, `sub_heading`, `test_code`, `method`, `print_new_page`, `shortcut`, `added_by`, `created_at`, `updated_at`) VALUES
+(2, 'New test', 6, 1, 100.00, 'etc', NULL, '', '', 10.00, 20.00, '', 11.00, 21.00, 12.00, 22.00, 5.00, 8.00, 0, '', '', 1, '', 1, NULL, NULL),
+(4, 'Aubrey Reyes g', 5, 1, 980.00, 'abc', '', '', '', 100.00, 200.00, 'Aliquid labore place', 80.00, 190.00, 50.00, 60.00, 5.00, 30.00, 0, '', '', 0, '', 1, NULL, '2025-10-26 04:54:19'),
+(5, 'sdf', 6, 1, 100.00, 'aaa', '', '', '', 45.00, 50.00, '', 45.00, 50.00, 14.00, 20.00, 22.00, 25.00, 0, '', '', 0, '', 2, NULL, '2025-10-25 15:10:33'),
+(6, 'yyy', 5, 1, 300.00, 'ttt', '', '', '', 30.00, 50.00, '', 44.00, 55.00, 66.00, 69.00, 33.00, 44.00, 0, '', '', 0, '', 2, '2025-10-25 15:28:26', '2025-10-25 15:28:26'),
+(7, 'Test new', 10, 3, 300.00, 'ggrr', '', '', '', 10.00, 20.00, '', 20.00, 30.00, 22.00, 44.00, 10.00, 14.00, 0, '', '', 0, '', 1, '2025-10-26 04:53:13', '2025-10-26 04:53:13');
 
 -- --------------------------------------------------------
 
@@ -817,8 +822,31 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `api_token`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-10-24 06:32:55', '2025-10-26 10:12:00', '', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-10-26 04:02:13', '2025-10-26 10:12:00', '', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
 (2, 'uma', '$2y$12$auavnwTI5hbfkyqCoavijO/i3diGYgDZqt58EzkY6ZkB6M9jTmD9e', 'Uma Yadav', 'umakant171992@gmail.com', 'user', 1, 'Pathology', '2025-09-26 10:13:58', NULL, '2025-12-30 23:59:00', '6dad141b199e8c2ae3021462459c23135244d408778939a4c33c4a969726fde7', '0000-00-00 00:00:00', '2025-10-18 05:36:53');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_settings`
+--
+
+CREATE TABLE `user_settings` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `setting_key` varchar(255) NOT NULL,
+  `setting_value` text DEFAULT NULL,
+  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`metadata`)),
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `user_settings`
+--
+
+INSERT INTO `user_settings` (`id`, `user_id`, `setting_key`, `setting_value`, `metadata`, `created_at`, `updated_at`) VALUES
+(1, 1, 'gmail_password', 'am5pbWl1aXluam5vcHZrdA==', '{\"type\":\"app\",\"created\":\"2025-10-25 09:22:07\"}', '2025-10-25 09:22:07', '2025-10-25 09:22:07');
 
 -- --------------------------------------------------------
 
@@ -951,6 +979,24 @@ ALTER TABLE `reports`
   ADD KEY `idx_reports_added_by` (`added_by`);
 
 --
+-- Indexes for table `scheduled_emails`
+--
+ALTER TABLE `scheduled_emails`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_schedule_date` (`schedule_date`),
+  ADD KEY `idx_status` (`status`);
+
+--
+-- Indexes for table `sent_emails`
+--
+ALTER TABLE `sent_emails`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_sent_at` (`sent_at`),
+  ADD KEY `idx_priority` (`priority`);
+
+--
 -- Indexes for table `tests`
 --
 ALTER TABLE `tests`
@@ -965,6 +1011,13 @@ ALTER TABLE `tests`
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `username` (`username`);
+
+--
+-- Indexes for table `user_settings`
+--
+ALTER TABLE `user_settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_user_setting` (`user_id`,`setting_key`);
 
 --
 -- Indexes for table `zip_uploads`
@@ -982,7 +1035,7 @@ ALTER TABLE `zip_uploads`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `doctors`
@@ -1000,7 +1053,7 @@ ALTER TABLE `entries`
 -- AUTO_INCREMENT for table `entry_tests`
 --
 ALTER TABLE `entry_tests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `main_test_categories`
@@ -1045,16 +1098,34 @@ ALTER TABLE `reports`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `scheduled_emails`
+--
+ALTER TABLE `scheduled_emails`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `sent_emails`
+--
+ALTER TABLE `sent_emails`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `tests`
 --
 ALTER TABLE `tests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `user_settings`
+--
+ALTER TABLE `user_settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `zip_uploads`

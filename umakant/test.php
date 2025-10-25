@@ -253,14 +253,11 @@ require_once 'inc/sidebar.php';
                                 <div class="col-md-2">
                                     <label class="font-weight-bold text-info">General Range:</label>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <input type="number" class="form-control" id="testMin" name="min" placeholder="Min" step="0.01">
                                 </div>
-                                <div class="col-md-3">
-                                    <input type="number" class="form-control" id="testMax" name="max" placeholder="Max" step="0.01">
-                                </div>
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" id="generalUnit" name="general_unit" placeholder="Unit">
+                                    <input type="number" class="form-control" id="testMax" name="max" placeholder="Max" step="0.01">
                                 </div>
                             </div>
 
@@ -269,14 +266,11 @@ require_once 'inc/sidebar.php';
                                 <div class="col-md-2">
                                     <label class="font-weight-bold text-primary">Male Range:</label>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <input type="number" class="form-control" id="testMinMale" name="min_male" placeholder="Min" step="0.01">
                                 </div>
-                                <div class="col-md-3">
-                                    <input type="number" class="form-control" id="testMaxMale" name="max_male" placeholder="Max" step="0.01">
-                                </div>
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" id="maleUnit" name="male_unit" placeholder="Unit">
+                                    <input type="number" class="form-control" id="testMaxMale" name="max_male" placeholder="Max" step="0.01">
                                 </div>
                             </div>
 
@@ -285,14 +279,11 @@ require_once 'inc/sidebar.php';
                                 <div class="col-md-2">
                                     <label class="font-weight-bold text-danger">Female Range:</label>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <input type="number" class="form-control" id="testMinFemale" name="min_female" placeholder="Min" step="0.01">
                                 </div>
-                                <div class="col-md-3">
-                                    <input type="number" class="form-control" id="testMaxFemale" name="max_female" placeholder="Max" step="0.01">
-                                </div>
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" id="femaleUnit" name="female_unit" placeholder="Unit">
+                                    <input type="number" class="form-control" id="testMaxFemale" name="max_female" placeholder="Max" step="0.01">
                                 </div>
                             </div>
 
@@ -301,14 +292,11 @@ require_once 'inc/sidebar.php';
                                 <div class="col-md-2">
                                     <label class="font-weight-bold text-warning">Child Range:</label>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <input type="number" class="form-control" id="testMinChild" name="min_child" placeholder="Min" step="0.01">
                                 </div>
-                                <div class="col-md-3">
-                                    <input type="number" class="form-control" id="testMaxChild" name="max_child" placeholder="Max" step="0.01">
-                                </div>
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" id="childUnit" name="child_unit" placeholder="Unit">
+                                    <input type="number" class="form-control" id="testMaxChild" name="max_child" placeholder="Max" step="0.01">
                                 </div>
                             </div>
                         </div>
@@ -1215,11 +1203,7 @@ function ensureCategoriesLoadedThenEdit(testId) {
                             $('#testMinChild').val(test.min_child || '');
                             $('#testMaxChild').val(test.max_child || '');
                             
-                            // Set units
-                            $('#generalUnit').val(test.unit || '');
-                            $('#maleUnit').val(test.male_unit || test.unit || '');
-                            $('#femaleUnit').val(test.female_unit || test.unit || '');
-                            $('#childUnit').val(test.child_unit || test.unit || '');
+                            // Unit is set in the main unit field at the top
                             
                             // Set other fields with proper type conversion
                             $('#testSubHeading').val(String(test.sub_heading || 0));

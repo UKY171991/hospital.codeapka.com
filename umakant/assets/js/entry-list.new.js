@@ -536,9 +536,42 @@ function setupEventHandlers() {
         }
     });
 
-    // Test price auto-fill
+    // Test price auto-fill with duplicate prevention
     $(document).on('change', '.test-select', function () {
-        const $opt = $(this).find('option:selected');
+        const $currentSelect = $(this);
+        const selectedTestId = $currentSelect.val();
+        const $opt = $currentSelect.find('option:selected');
+        const $row = $currentSelect.closest('.test-row');
+
+        // Check for duplicate test selection
+        if (selectedTestId) {
+            let isDuplicate = false;
+            $('.test-select').not($currentSelect).each(function () {
+                if ($(this).val() === selectedTestId) {
+                    isDuplicate = true;
+                    return false; // break the loop
+                }
+            });
+
+            if (isDuplicate) {
+                // Show error message
+                toastr.error('This test is already selected in another row. Please choose a different test.');
+
+                // Reset the selection
+                $currentSelect.val('').trigger('change.select2');
+
+                // Clear the row fields
+                $row.find('.test-category').val('');
+                $row.find('.test-category-id').val('');
+                $row.find('.test-unit').val('');
+                $row.find('.test-min').val('');
+                $row.find('.test-max').val('');
+                $row.find('.test-result').val('');
+
+                return; // Exit early
+            }
+        }
+
         const price = $opt.data('price');
         const unit = $opt.data('unit') || '';
         const min = $opt.data('min') || '';
@@ -546,7 +579,6 @@ function setupEventHandlers() {
         const categoryName = $opt.data('category-name') || '';
         const categoryId = $opt.data('category-id') || '';
 
-        const $row = $(this).closest('.test-row');
         // sanitize incoming values
         const safePrice = (typeof price !== 'undefined' && price !== null) ? price : '';
         const safeUnit = unit || '';
@@ -584,6 +616,9 @@ function setupEventHandlers() {
 
         // Update pricing fields
         updatePricingFields();
+
+        // Update other dropdowns to show/hide already selected tests
+        updateTestDropdownOptions();
     });
 
     // Owner/User selection change - filter patients and doctors
@@ -754,6 +789,14 @@ function openAddEntryModal() {
     $('#entryModal').modal('show');
 }
 
+// Update dropdown options when modal is shown
+$(document).on('shown.bs.modal', '#entryModal', function () {
+    // Update dropdown options to reflect current selections
+    setTimeout(function () {
+        updateTestDropdownOptions();
+    }, 500);
+});
+
 // Ensure result inputs are enabled when Add/Edit Entry modals are shown (handles initial and reopened modals)
 $(document).on('shown.bs.modal', '#entryModal, #addEntryModal', function () {
     $('#testsContainer').find('.test-result').each(function () {
@@ -844,10 +887,71 @@ $(document).on('input', '#discountAmount', function () {
     updatePricingFields();
 });
 
+// Update test dropdown options to disable already selected tests
+function updateTestDropdownOptions() {
+    // Get all currently selected test IDs
+    const selectedTestIds = [];
+    $('.test-select').each(function () {
+        const testId = $(this).val();
+        if (testId) {
+            selectedTestIds.push(testId);
+        }
+    });
+
+    // Update each dropdown
+    $('.test-select').each(function () {
+        const $currentSelect = $(this);
+        const currentValue = $currentSelect.val();
+
+        // Enable all options first
+        $currentSelect.find('option').prop('disabled', false).removeClass('text-muted');
+
+        // Disable options that are selected in other dropdowns
+        selectedTestIds.forEach(function (testId) {
+            if (testId !== currentValue) {
+                $currentSelect.find(`option[value="${testId}"]`)
+                    .prop('disabled', true)
+                    .addClass('text-muted')
+                    .attr('title', 'This test is already selected in another row');
+            }
+        });
+
+        // Refresh Select2 if it's initialized
+        if ($currentSelect.hasClass('select2-hidden-accessible')) {
+            try {
+                $currentSelect.trigger('change.select2');
+            } catch (e) {
+                // Ignore Select2 errors
+            }
+        }
+    });
+}
+
 // Save entry
 function saveEntry(formElement) {
     // Accept either a form element reference or default to #entryForm
     const $form = formElement ? $(formElement) : $('#entryForm');
+
+    // Validate for duplicate test selections before saving
+    const selectedTestIds = [];
+    const duplicateTests = [];
+
+    $('.test-select').each(function (index) {
+        const testId = $(this).val();
+        if (testId) {
+            if (selectedTestIds.includes(testId)) {
+                const testName = $(this).find('option:selected').text();
+                duplicateTests.push(testName);
+            } else {
+                selectedTestIds.push(testId);
+            }
+        }
+    });
+
+    if (duplicateTests.length > 0) {
+        toastr.error(`Duplicate tests found: ${duplicateTests.join(', ')}. Please remove duplicate tests before saving.`);
+        return; // Stop the save process
+    }
 
     // IMPORTANT: Calculate pricing FIRST before creating FormData
     // This ensures the fields have values before we serialize the form
@@ -2145,6 +2249,9 @@ function addTestRow() {
         newRow.find('.test-unit, .test-category, .test-min, .test-max').prop('readonly', true).show();
         newRow.find('.test-result').prop('readonly', false).prop('disabled', false);
 
+        // Update dropdown options for all rows
+        updateTestDropdownOptions();
+
     }, 100);
 
     console.log('Added new test row, total rows:', testRowCount);
@@ -2185,6 +2292,9 @@ function removeTestRow(button) {
 
         testRowCount = testsContainer.find('.test-row').length;
         console.log('Removed test row, remaining rows:', testRowCount);
+
+        // Update dropdown options after removing a test
+        updateTestDropdownOptions();
     } else {
         toastr.warning('At least one test is required');
     }
