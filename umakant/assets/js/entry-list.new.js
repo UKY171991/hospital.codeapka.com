@@ -6,12 +6,12 @@ let testRowCount = 1;
 // Safety check for required libraries
 function checkDependencies() {
     const missing = [];
-    
+
     if (typeof $ === 'undefined') missing.push('jQuery');
     if (typeof $.fn.dataTable === 'undefined') missing.push('DataTables');
     if (typeof $.fn.select2 === 'undefined') missing.push('Select2');
     if (typeof toastr === 'undefined') missing.push('Toastr');
-    
+
     if (missing.length > 0) {
         console.error('Missing required libraries:', missing.join(', '));
         alert('Error: Missing required libraries. Please refresh the page.');
@@ -21,12 +21,12 @@ function checkDependencies() {
 }
 
 // Initialize page when document is ready
-$(document).ready(function() {
+$(document).ready(function () {
     // Check dependencies first
     if (!checkDependencies()) {
         return;
     }
-    
+
     try {
         initializePage();
     } catch (error) {
@@ -64,7 +64,7 @@ function loadStatistics() {
         method: 'GET',
         data: { action: 'stats' },
         dataType: 'json',
-        success: function(response) {
+        success: function (response) {
             if (response.success) {
                 $('#totalEntries').text(response.data.total || 0);
                 $('#pendingEntries').text(response.data.pending || 0);
@@ -72,7 +72,7 @@ function loadStatistics() {
                 $('#todayEntries').text(response.data.today || 0);
             }
         },
-        error: function() {
+        error: function () {
             console.error('Failed to load statistics');
         }
     });
@@ -86,19 +86,19 @@ function initializeDataTable() {
             console.error('Entries table element not found');
             return;
         }
-        
+
         // Avoid re-initializing DataTable if another script already initialized it.
         if (window._entriesTableInitialized || (typeof $.fn.dataTable !== 'undefined' && $.fn.dataTable.isDataTable && $.fn.dataTable.isDataTable('#entriesTable'))) {
-            try { 
-                entriesTable = $('#entriesTable').DataTable(); 
+            try {
+                entriesTable = $('#entriesTable').DataTable();
                 console.log('DataTable already initialized, reusing existing instance');
-            } catch(e) { 
+            } catch (e) {
                 console.warn('Failed to get existing DataTable instance:', e);
             }
             window._entriesTableInitialized = true;
             return;
         }
-        
+
         console.log('Initializing new DataTable...');
     } catch (error) {
         console.error('Error in initializeDataTable setup:', error);
@@ -107,113 +107,113 @@ function initializeDataTable() {
 
     try {
         entriesTable = $('#entriesTable').DataTable({
-        processing: true,
-        serverSide: false,
-        ajax: {
-            url: 'ajax/entry_api_fixed.php',
-            type: 'GET',
-            dataType: 'json',
-            data: { action: 'list' },
-            dataSrc: function(response) {
-                try {
-                    if (response && response.success) {
-                        return response.data || [];
+            processing: true,
+            serverSide: false,
+            ajax: {
+                url: 'ajax/entry_api_fixed.php',
+                type: 'GET',
+                dataType: 'json',
+                data: { action: 'list' },
+                dataSrc: function (response) {
+                    try {
+                        if (response && response.success) {
+                            return response.data || [];
+                        }
+                        console.error('Entries list returned an error payload:', response);
+                        return [];
+                    } catch (e) {
+                        console.error('Failed to parse entries list response', e, response);
+                        return [];
                     }
-                    console.error('Entries list returned an error payload:', response);
-                    return [];
-                } catch (e) {
-                    console.error('Failed to parse entries list response', e, response);
-                    return [];
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    // Ignore aborted requests (status 0) which commonly happen on navigation or duplicate inits
+                    if (textStatus === 'abort' || xhr.status === 0) {
+                        console.info('Entries list AJAX aborted (likely duplicate init or navigation)');
+                        return;
+                    }
+                    console.error('Entries list AJAX error:', textStatus, errorThrown, 'HTTP status:', xhr.status, 'response:', xhr.responseText);
+                    try { toastr.error('Failed to load entries: ' + (xhr.status || textStatus)); } catch (e) { }
+                },
+                complete: function () {
+                    // You can add any UI cleanup here if needed
                 }
             },
-            error: function(xhr, textStatus, errorThrown) {
-                // Ignore aborted requests (status 0) which commonly happen on navigation or duplicate inits
-                if (textStatus === 'abort' || xhr.status === 0) {
-                    console.info('Entries list AJAX aborted (likely duplicate init or navigation)');
-                    return;
-                }
-                console.error('Entries list AJAX error:', textStatus, errorThrown, 'HTTP status:', xhr.status, 'response:', xhr.responseText);
-                try { toastr.error('Failed to load entries: ' + (xhr.status || textStatus)); } catch(e) {}
-            },
-            complete: function() {
-                // You can add any UI cleanup here if needed
-            }
-        },
-        columns: [
-            { 
-                data: 'id',
-                render: function(data, type, row) {
-                    return `<span class="badge badge-primary">#${data}</span>`;
-                }
-            },
-            { 
-                data: 'patient_name',
-                render: function(data, type, row) {
-                    return `<div>
+            columns: [
+                {
+                    data: 'id',
+                    render: function (data, type, row) {
+                        return `<span class="badge badge-primary">#${data}</span>`;
+                    }
+                },
+                {
+                    data: 'patient_name',
+                    render: function (data, type, row) {
+                        return `<div>
                         <strong>${data || 'N/A'}</strong>
                         ${row.uhid ? `<br><small class="text-muted">UHID: ${row.uhid}</small>` : ''}
                         ${row.age ? `<br><small class="text-muted">Age: ${row.age} ${row.gender || ''}</small>` : ''}
                     </div>`;
-                }
-            },
-            { 
-                data: 'doctor_name',
-                render: function(data, type, row) {
-                    return data || '<span class="text-muted">Not assigned</span>';
-                }
-            },
-            {
-                data: 'priority',
-                render: function(data, type, row) {
-                    const priority = data || 'normal';
-                    const priorityClass = {
-                        'urgent': 'danger',
-                        'emergency': 'warning',
-                        'routine': 'info',
-                        'normal': 'secondary'
-                    }[priority] || 'secondary';
-                    return `<span class="badge badge-${priorityClass}">${priority}</span>`;
-                }
-            },
-            {
-                data: 'status',
-                render: function(data, type, row) {
-                    const statusClass = {
-                        'pending': 'warning',
-                        'completed': 'success',
-                        'cancelled': 'danger'
-                    }[data] || 'secondary';
-                    return `<span class="badge badge-${statusClass}">${data}</span>`;
-                }
-            },
-            {
-                data: 'final_amount',
-                render: function(data, type, row) {
-                    const amount = parseFloat(data || 0);
-                    return `₹${amount.toFixed(2)}`;
-                }
-            },
-            {
-                data: 'entry_date',
-                render: function(data, type, row) {
-                    if (data) {
-                        const date = new Date(data);
-                        return date.toLocaleDateString('en-IN');
                     }
-                    return '<span class="text-muted">N/A</span>';
-                }
-            },
-            { 
-                data: 'added_by_full_name',
-                render: function(data, type, row) {
-                    return data || row.added_by_username || '<span class="text-muted">Unknown</span>';
-                }
-            },
-            {
-                data: null,
-                orderable: false,
-                render: function(data, type, row) {
-                    return `<div class="btn-group" role="group">
+                },
+                {
+                    data: 'doctor_name',
+                    render: function (data, type, row) {
+                        return data || '<span class="text-muted">Not assigned</span>';
+                    }
+                },
+                {
+                    data: 'priority',
+                    render: function (data, type, row) {
+                        const priority = data || 'normal';
+                        const priorityClass = {
+                            'urgent': 'danger',
+                            'emergency': 'warning',
+                            'routine': 'info',
+                            'normal': 'secondary'
+                        }[priority] || 'secondary';
+                        return `<span class="badge badge-${priorityClass}">${priority}</span>`;
+                    }
+                },
+                {
+                    data: 'status',
+                    render: function (data, type, row) {
+                        const statusClass = {
+                            'pending': 'warning',
+                            'completed': 'success',
+                            'cancelled': 'danger'
+                        }[data] || 'secondary';
+                        return `<span class="badge badge-${statusClass}">${data}</span>`;
+                    }
+                },
+                {
+                    data: 'final_amount',
+                    render: function (data, type, row) {
+                        const amount = parseFloat(data || 0);
+                        return `₹${amount.toFixed(2)}`;
+                    }
+                },
+                {
+                    data: 'entry_date',
+                    render: function (data, type, row) {
+                        if (data) {
+                            const date = new Date(data);
+                            return date.toLocaleDateString('en-IN');
+                        }
+                        return '<span class="text-muted">N/A</span>';
+                    }
+                },
+                {
+                    data: 'added_by_full_name',
+                    render: function (data, type, row) {
+                        return data || row.added_by_username || '<span class="text-muted">Unknown</span>';
+                    }
+                },
+                {
+                    data: null,
+                    orderable: false,
+                    render: function (data, type, row) {
+                        return `<div class="btn-group" role="group">
                         <button class="btn btn-info btn-sm" onclick="viewEntry(${row.id})" title="View">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -224,32 +224,32 @@ function initializeDataTable() {
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>`;
+                    }
                 }
+            ],
+            order: [[6, 'desc']], // Sort by date descending (column 6 is Date)
+            pageLength: 25,
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+            responsive: true,
+            language: {
+                processing: "Loading entries...",
+                emptyTable: "No entries found",
+                zeroRecords: "No matching entries found"
             }
-        ],
-        order: [[6, 'desc']], // Sort by date descending (column 6 is Date)
-        pageLength: 25,
-        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-        responsive: true,
-        language: {
-            processing: "Loading entries...",
-            emptyTable: "No entries found",
-            zeroRecords: "No matching entries found"
-        }
-    });
+        });
         window._entriesTableInitialized = true;
         console.log('DataTable initialized successfully');
     } catch (error) {
         console.error('Error initializing DataTable:', error);
         window._entriesTableInitialized = false;
-        
+
         // Show user-friendly error
         if (typeof toastr !== 'undefined') {
             toastr.error('Failed to initialize data table. Please refresh the page.');
         } else {
             alert('Failed to initialize data table. Please refresh the page.');
         }
-        
+
         // Try to show a basic table without DataTable features
         try {
             $('#entriesTable').show();
@@ -266,11 +266,11 @@ function loadPatients() {
         method: 'GET',
         data: { action: 'list' },
         dataType: 'json',
-        success: function(response) {
+        success: function (response) {
             if (response.success) {
                 const patientSelect = $('#patientSelect');
                 patientSelect.empty().append('<option value="">Select Patient</option>');
-                response.data.forEach(function(patient) {
+                response.data.forEach(function (patient) {
                     // include gender, contact and address data attributes so we can auto-populate fields on selection/edit
                     const genderVal = patient.gender || patient.sex || '';
                     const contactVal = (patient.contact || patient.phone || patient.mobile || '');
@@ -291,11 +291,11 @@ function loadDoctors() {
         method: 'GET',
         data: { action: 'list' },
         dataType: 'json',
-        success: function(response) {
+        success: function (response) {
             if (response.success) {
                 const doctorSelect = $('#doctorSelect');
                 doctorSelect.empty().append('<option value="">Select Doctor</option>');
-                response.data.forEach(function(doctor) {
+                response.data.forEach(function (doctor) {
                     doctorSelect.append(`<option value="${doctor.id}">Dr. ${doctor.name}</option>`);
                 });
                 // modal-enhancements will initialize Select2 on modal show
@@ -309,38 +309,38 @@ function loadDoctors() {
 function loadOwnerUsers() {
     const ownerUserSelect = $('#ownerAddedBySelect');
     ownerUserSelect.empty().append('<option value="">Select Owner/User</option>');
-    
+
     // Load owners
     $.ajax({
         url: 'ajax/owner_api.php',
         method: 'GET',
         data: { action: 'list' },
         dataType: 'json',
-        success: function(ownerResponse) {
+        success: function (ownerResponse) {
             console.log('Owner response:', ownerResponse);
-            
+
             // Add owners first
             if (ownerResponse.success && ownerResponse.data && ownerResponse.data.length > 0) {
-                ownerResponse.data.forEach(function(owner) {
+                ownerResponse.data.forEach(function (owner) {
                     ownerUserSelect.append(`<option value="owner_${owner.id}" data-type="owner" data-owner-id="${owner.id}">🏢 ${owner.name} (Owner)</option>`);
                 });
             } else {
                 // If no owners, add a placeholder
                 ownerUserSelect.append(`<option value="" disabled>No owners available</option>`);
             }
-            
+
             // Load users
             $.ajax({
                 url: 'ajax/user_api.php',
                 method: 'GET',
                 data: { action: 'list_simple' },
                 dataType: 'json',
-                success: function(userResponse) {
+                success: function (userResponse) {
                     console.log('User response:', userResponse);
-                    
+
                     // Add users
                     if (userResponse.success && userResponse.data && userResponse.data.length > 0) {
-                        userResponse.data.forEach(function(user) {
+                        userResponse.data.forEach(function (user) {
                             const displayName = user.full_name || user.username || user.email || `User ${user.id}`;
                             ownerUserSelect.append(`<option value="user_${user.id}" data-type="user" data-user-id="${user.id}">👤 ${displayName} (${user.role || 'user'})</option>`);
                         });
@@ -348,27 +348,27 @@ function loadOwnerUsers() {
                         // If no users, add a placeholder
                         ownerUserSelect.append(`<option value="" disabled>No users available</option>`);
                     }
-                    
+
                     // modal-enhancements will initialize Select2 on modal show
                     ownerUserSelect.addClass('select2');
 
                     // Notify listeners that owner/user options are loaded
-                    try { ownerUserSelect.trigger('ownerUsers:loaded'); } catch(e) { /* ignore */ }
-                    
+                    try { ownerUserSelect.trigger('ownerUsers:loaded'); } catch (e) { /* ignore */ }
+
                     // Set current user as default if not editing
                     if (!currentEntryId && currentUserId) {
-                        setTimeout(function() {
+                        setTimeout(function () {
                             ownerUserSelect.val(`user_${currentUserId}`).trigger('change');
                         }, 100);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('Error loading users:', error);
                     ownerUserSelect.append(`<option value="" disabled>Error loading users</option>`);
                 }
             });
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             console.error('Error loading owners:', error);
             ownerUserSelect.append(`<option value="" disabled>Error loading owners</option>`);
         }
@@ -383,17 +383,17 @@ function loadPatientsByOwner(ownerId, callback) {
         method: 'GET',
         data: { action: 'list', owner_id: ownerId },
         dataType: 'json',
-        success: function(response) {
+        success: function (response) {
             const patientSelect = $('#patientSelect');
             patientSelect.empty().append('<option value="">Select Patient</option>');
-            
-                if (response.success && response.data) {
-                response.data.forEach(function(patient) {
+
+            if (response.success && response.data) {
+                response.data.forEach(function (patient) {
                     const genderVal = patient.gender || patient.sex || '';
                     const contactVal = (patient.contact || patient.phone || patient.mobile || '');
                     const addressVal = (patient.address || patient.address_line || '');
                     const ageVal = patient.age || '';
-                    
+
                     // Create option with proper data attributes
                     const option = $('<option>', {
                         value: patient.id,
@@ -403,24 +403,24 @@ function loadPatientsByOwner(ownerId, callback) {
                         'data-address': addressVal,
                         'data-age': ageVal
                     });
-                    
+
                     patientSelect.append(option);
                 });
                 $('#patientHelpText').text(`${response.data.length} patients available`);
             } else {
                 $('#patientHelpText').text('No patients found for this owner/user');
             }
-            
+
             patientSelect.addClass('select2');
-            
+
             // Execute callback if provided
             if (typeof callback === 'function') {
                 callback();
             }
         },
-        error: function() {
+        error: function () {
             $('#patientHelpText').text('Error loading patients');
-            
+
             // Execute callback even on error
             if (typeof callback === 'function') {
                 callback();
@@ -437,29 +437,29 @@ function loadDoctorsByOwner(ownerId, callback) {
         method: 'GET',
         data: { action: 'list', added_by: ownerId },
         dataType: 'json',
-        success: function(response) {
+        success: function (response) {
             const doctorSelect = $('#doctorSelect');
             doctorSelect.empty().append('<option value="">Select Doctor</option>');
-            
+
             if (response.success && response.data) {
-                response.data.forEach(function(doctor) {
+                response.data.forEach(function (doctor) {
                     doctorSelect.append(`<option value="${doctor.id}">Dr. ${doctor.name}</option>`);
                 });
                 $('#doctorHelpText').text(`${response.data.length} doctors available`);
             } else {
                 $('#doctorHelpText').text('No doctors found for this owner/user');
             }
-            
+
             doctorSelect.addClass('select2');
-            
+
             // Execute callback if provided
             if (typeof callback === 'function') {
                 callback();
             }
         },
-        error: function() {
+        error: function () {
             $('#doctorHelpText').text('Error loading doctors');
-            
+
             // Execute callback even on error
             if (typeof callback === 'function') {
                 callback();
@@ -475,13 +475,13 @@ function loadTests(callback) {
         method: 'GET',
         data: { action: 'simple_list' },
         dataType: 'json',
-        success: function(response) {
+        success: function (response) {
             if (response.success) {
                 console.log('Tests loaded successfully:', response.data.length, 'tests');
                 if (response.data.length > 0) {
                     console.log('First test sample:', response.data[0]);
                     console.log('First test price:', response.data[0].price);
-                    
+
                     // Check if ANY tests have prices
                     const testsWithPrices = response.data.filter(t => t.price && t.price > 0);
                     console.log('Tests with prices > 0:', testsWithPrices.length);
@@ -490,21 +490,21 @@ function loadTests(callback) {
                         alert('WARNING: Tests do not have prices set in the database. Please add prices to tests first.');
                     }
                 }
-                
+
                 const testSelects = $('.test-select');
-                testSelects.each(function() {
+                testSelects.each(function () {
                     const $this = $(this);
                     const currentVal = $this.val();
                     $this.empty().append('<option value="">Select Test</option>');
-                    response.data.forEach(function(test) {
+                    response.data.forEach(function (test) {
                         // include category, unit, reference range, and min/max as data attributes for easy population
                         // Properly escape HTML attributes to handle special characters
                         const escapedUnit = (test.unit || '').replace(/"/g, '&quot;');
                         const escapedRefRange = (test.reference_range || '').replace(/"/g, '&quot;');
                         const escapedCategoryName = (test.category_name || '').replace(/"/g, '&quot;');
                         const escapedTestName = (test.name || '').replace(/"/g, '&quot;');
-                        
-                        const opt = $(`<option value="${test.id}" data-price="${test.price || 0}" data-unit="${escapedUnit}" data-reference-range="${escapedRefRange}" data-min="${test.min || ''}" data-max="${test.max || ''}" data-category-id="${test.category_id||''}" data-category-name="${escapedCategoryName}">${escapedTestName} - ₹${test.price || 0}</option>`);
+
+                        const opt = $(`<option value="${test.id}" data-price="${test.price || 0}" data-unit="${escapedUnit}" data-reference-range="${escapedRefRange}" data-min="${test.min || ''}" data-max="${test.max || ''}" data-category-id="${test.category_id || ''}" data-category-name="${escapedCategoryName}">${escapedTestName} - ₹${test.price || 0}</option>`);
                         $this.append(opt);
                     });
                     // restore previously selected value if still present
@@ -523,21 +523,21 @@ function setupEventHandlers() {
     // Note: form submit handling and validation is handled centrally in
     // umakant/assets/js/entry-form.js which performs validation then calls
     // the page-level saveEntry(form) function. Avoid double-binding here.
-    
-    $('#entryForm').on('submit', function(e) {
+
+    $('#entryForm').on('submit', function (e) {
         e.preventDefault();
         saveEntry(this);
     });
 
     // Delete confirmation
-    $('#confirmDelete').on('click', function() {
+    $('#confirmDelete').on('click', function () {
         if (currentEntryId) {
             performDelete(currentEntryId);
         }
     });
-    
+
     // Test price auto-fill
-    $(document).on('change', '.test-select', function() {
+    $(document).on('change', '.test-select', function () {
         const $opt = $(this).find('option:selected');
         const price = $opt.data('price');
         const unit = $opt.data('unit') || '';
@@ -571,31 +571,31 @@ function setupEventHandlers() {
         if (!currentResult) {
             $row.find('.test-result').val('');
         }
-        
+
         // Populate fields and ensure they're visible
         $row.find('.test-unit').val(safeUnit).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
         $row.find('.test-min').val(safeMin).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
         $row.find('.test-max').val(safeMax).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
         $row.find('.test-category').val(safeCategoryName).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
         $row.find('.test-category-id').val(safeCategoryId);
-        
+
         // Enable result input
         $row.find('.test-result').prop('readonly', false).prop('disabled', false);
-        
+
         // Update pricing fields
         updatePricingFields();
     });
-    
+
     // Owner/User selection change - filter patients and doctors
-    $(document).on('change', '#ownerAddedBySelect', function() {
+    $(document).on('change', '#ownerAddedBySelect', function () {
         const selectedValue = $(this).val();
         const selectedOption = $(this).find('option:selected');
         const selectedText = selectedOption.text();
-        
+
         if (selectedValue) {
             const type = selectedOption.data('type');
             let ownerId = null;
-            
+
             if (type === 'owner') {
                 ownerId = selectedOption.data('owner-id');
             } else if (type === 'user') {
@@ -603,21 +603,21 @@ function setupEventHandlers() {
                 // For now, we'll use the user ID as owner ID
                 ownerId = selectedOption.data('user-id');
             }
-            
+
             if (ownerId) {
                 // Enable dropdowns and show loading
                 $('#patientSelect, #doctorSelect').prop('disabled', false);
                 $('#patientHelpText').text(`Loading patients for: ${selectedText}`);
                 $('#doctorHelpText').text(`Loading doctors for: ${selectedText}`);
-                
+
                 // Clear current selections
                 $('#patientSelect').val('').trigger('change');
                 $('#doctorSelect').val('').trigger('change');
-                
+
                 // Show loading message
                 $('#patientSelect').empty().append('<option value="" disabled>Loading patients...</option>');
                 $('#doctorSelect').empty().append('<option value="" disabled>Loading doctors...</option>');
-                
+
                 // Load filtered data
                 loadPatientsByOwner(ownerId);
                 loadDoctorsByOwner(ownerId);
@@ -633,23 +633,23 @@ function setupEventHandlers() {
     });
 
     // When patient selection changes, auto-fill age, gender, contact and address from patient data
-    $(document).on('change', '#patientSelect', function() {
+    $(document).on('change', '#patientSelect', function () {
         const selected = $(this).find('option:selected');
         const age = selected.data('age') || '';
         const gender = selected.data('gender') || '';
         const contact = selected.data('contact') || '';
         const address = selected.data('address') || '';
-        
+
         // Populate age field
         $('#patientAge').val(age);
-        
+
         // Populate gender field
         if (gender) {
             $('#patientGender').val(gender).trigger('change');
         } else {
             $('#patientGender').val('');
         }
-        
+
         // Populate contact and address
         $('#patientContact').val(contact);
         $('#patientAddress').val(address);
@@ -661,33 +661,33 @@ function openAddEntryModal() {
     currentEntryId = null;
     $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
     // Reset both forms to be safe
-    try { if ($('#entryForm').length) { $('#entryForm')[0].reset(); } } catch(e) {}
-    try { if ($('#addEntryForm').length) { $('#addEntryForm')[0].reset(); } } catch(e) {}
+    try { if ($('#entryForm').length) { $('#entryForm')[0].reset(); } } catch (e) { }
+    try { if ($('#addEntryForm').length) { $('#addEntryForm')[0].reset(); } } catch (e) { }
     $('#entryId').val('');
     $('#entryDate').val(new Date().toISOString().split('T')[0]);
     $('#priority').val('normal');
     // Reset gender
-    try { $('#patientGender').val('').trigger('change'); } catch(e) { $('#patientGender').val(''); }
-    
+    try { $('#patientGender').val('').trigger('change'); } catch (e) { $('#patientGender').val(''); }
+
     // Reset select2 dropdowns; keep owner selection if already present so
     // patients/doctors can be loaded based on owner. Set default owner to
     // the current user if none is selected.
     $('#patientSelect').val('').trigger('change');
     $('#doctorSelect').val('').trigger('change');
     $('#entryStatus').val('pending').trigger('change');
-    
+
     // Reset additional fields
     $('#patientAge').val('');
     $('#patientContact').val('');
     $('#patientAddress').val('');
     $('#referralSource').val('');
     $('#entryNotes').val('');
-    
+
     // Reset pricing fields
     $('#subtotal').val('');
     $('#discountAmount').val('');
     $('#totalPrice').val('');
-    
+
     // Reset tests container
     $('#testsContainer').html(`
         <div class="test-row row mb-2">
@@ -720,21 +720,21 @@ function openAddEntryModal() {
         </div>
     `);
     testRowCount = 1;
-    
+
     // Load dropdowns
     loadTests();
     loadOwnerUsers();
-    
+
     // Select2 initialization for modal-contained selects is handled by modal-enhancements.js
     // on modal show. Avoid initializing here to prevent double-init and wrong dropdownParent.
-    
+
     // Set current user as default
-    setTimeout(function() {
+    setTimeout(function () {
         if (currentUserId) {
             $('#ownerAddedBySelect').val(`user_${currentUserId}`).trigger('change');
         }
     }, 800);
-    
+
     // If no owner is selected, try to set current user as owner.
     const currentOwnerVal = $('#ownerAddedBySelect').val();
     if (!currentOwnerVal && currentUserId) {
@@ -744,7 +744,7 @@ function openAddEntryModal() {
     // If owner options are not yet loaded, wait for the event, otherwise trigger immediately
     const ownerSelect = $('#ownerAddedBySelect');
     if (ownerSelect.find('option').length <= 1) {
-        ownerSelect.one('ownerUsers:loaded', function() {
+        ownerSelect.one('ownerUsers:loaded', function () {
             ownerSelect.trigger('change');
         });
     } else {
@@ -755,16 +755,16 @@ function openAddEntryModal() {
 }
 
 // Ensure result inputs are enabled when Add/Edit Entry modals are shown (handles initial and reopened modals)
-$(document).on('shown.bs.modal', '#entryModal, #addEntryModal', function() {
-    $('#testsContainer').find('.test-result').each(function() {
+$(document).on('shown.bs.modal', '#entryModal, #addEntryModal', function () {
+    $('#testsContainer').find('.test-result').each(function () {
         $(this).prop('disabled', false).prop('readonly', false);
         $(this).removeClass('disabled');
     });
     // ensure units, categories, and min/max are readonly and not editable
-    $('#testsContainer').find('.test-unit, .test-category, .test-min, .test-max').each(function() {
+    $('#testsContainer').find('.test-unit, .test-category, .test-min, .test-max').each(function () {
         $(this).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
     });
-    
+
     // Debug: Check if pricing fields exist
     console.log('Modal shown - pricing fields check:', {
         subtotal: $('#subtotal').length,
@@ -776,9 +776,9 @@ $(document).on('shown.bs.modal', '#entryModal, #addEntryModal', function() {
             total: $('#totalPrice').val()
         }
     });
-    
+
     // Force calculate pricing when modal is shown
-    setTimeout(function() {
+    setTimeout(function () {
         updatePricingFields();
         console.log('Pricing fields after modal shown:', {
             subtotal: $('#subtotal').val(),
@@ -789,13 +789,13 @@ $(document).on('shown.bs.modal', '#entryModal, #addEntryModal', function() {
 });
 
 // Fallback: on page ready ensure any test-result inputs are visible and enabled
-$(function() {
-    $('#testsContainer').find('.test-result').each(function() {
+$(function () {
+    $('#testsContainer').find('.test-result').each(function () {
         $(this).show().css({ 'display': 'block', 'visibility': 'visible' });
         $(this).prop('disabled', false).prop('readonly', false);
     });
     // ensure units, categories, and min/max keep readonly but visible
-    $('#testsContainer').find('.test-unit, .test-category, .test-min, .test-max').each(function() {
+    $('#testsContainer').find('.test-unit, .test-category, .test-min, .test-max').each(function () {
         $(this).prop('readonly', true).show().css({ 'display': 'block', 'visibility': 'visible' });
     });
 });
@@ -806,9 +806,9 @@ $(function() {
 function updatePricingFields() {
     let subtotal = 0;
     let discount = 0;
-    
+
     // Calculate subtotal from test prices
-    $('.test-select').each(function() {
+    $('.test-select').each(function () {
         const $opt = $(this).find('option:selected');
         const price = parseFloat($opt.data('price') || 0);
         if (price > 0) {
@@ -816,29 +816,29 @@ function updatePricingFields() {
         }
         subtotal += price;
     });
-    
+
     // Get discount amount
     discount = parseFloat($('#discountAmount').val() || 0);
-    
+
     // Calculate total
     const total = Math.max(subtotal - discount, 0);
-    
+
     console.log('Pricing calculated:', {
         subtotal: subtotal.toFixed(2),
         discount: discount.toFixed(2),
         total: total.toFixed(2)
     });
-    
+
     // Update fields
     $('#subtotal').val(subtotal.toFixed(2));
     $('#totalPrice').val(total.toFixed(2));
-    
+
     // Force trigger change event so any listeners know the values changed
     $('#subtotal, #totalPrice').trigger('change');
 }
 
 // Handle discount amount change
-$(document).on('input', '#discountAmount', function() {
+$(document).on('input', '#discountAmount', function () {
     updatePricingFields();
 });
 
@@ -846,20 +846,20 @@ $(document).on('input', '#discountAmount', function() {
 function saveEntry(formElement) {
     // Accept either a form element reference or default to #entryForm
     const $form = formElement ? $(formElement) : $('#entryForm');
-    
+
     // IMPORTANT: Calculate pricing FIRST before creating FormData
     // This ensures the fields have values before we serialize the form
     updatePricingFields();
-    
+
     // Give the DOM a moment to update the field values
-    setTimeout(function() {
+    setTimeout(function () {
         continueWithSave($form);
     }, 50);
 }
 
 function continueWithSave($form) {
     const formData = new FormData($form[0]);
-    
+
     // Process owner/added by field - prefer form-local field, fallback to global selector
     let ownerAddedByValue = $form.find('[name="owner_added_by"]').val();
     if (!ownerAddedByValue) { ownerAddedByValue = $('#ownerAddedBySelect').val(); }
@@ -878,13 +878,13 @@ function continueWithSave($form) {
             formData.set('owner_id', userId);
         }
     }
-    
+
     // Convert tests data to JSON (only rows within this form)
     const tests = [];
     // gather test rows: prefer rows inside submitted form; fallback to global testsContainer
     let $testRows = $form.find('.test-row');
     if (!$testRows || $testRows.length === 0) { $testRows = $('#testsContainer').find('.test-row'); }
-    $testRows.each(function() {
+    $testRows.each(function () {
         const testId = $(this).find('.test-select').val();
         const resultVal = $(this).find('.test-result').val();
         const unitVal = $(this).find('.test-unit').val() || '';
@@ -907,7 +907,7 @@ function continueWithSave($form) {
             });
         }
     });
-    
+
     // Only send tests if we have any
     if (tests.length > 0) {
         formData.set('tests', JSON.stringify(tests));
@@ -921,29 +921,29 @@ function continueWithSave($form) {
         $('.btn-save-entry').prop('disabled', false).removeClass('disabled');
         return;
     }
-    
+
     // FORCE read pricing field values directly from DOM to ensure we have the latest values
     const subtotalVal = parseFloat($('#subtotal').val() || 0).toFixed(2);
     const discountVal = parseFloat($('#discountAmount').val() || 0).toFixed(2);
     const totalVal = parseFloat($('#totalPrice').val() || 0).toFixed(2);
-    
+
     console.log('=== SAVING ENTRY - PRICING DEBUG ===');
     console.log('Pricing field values from DOM:', {
         subtotal: subtotalVal,
         discount: discountVal,
         total: totalVal
     });
-    
+
     // WARNING if pricing is 0
     if (parseFloat(subtotalVal) === 0 && tests.length > 0) {
         console.error('⚠️ WARNING: Saving entry with ZERO subtotal despite having tests!');
         console.error('Tests selected:', tests.length);
         console.error('Test prices:', tests.map(t => ({ id: t.test_id, name: t.test_name, price: t.price })));
-        
+
         // Check if tests actually have prices
         const totalTestPrices = tests.reduce((sum, t) => sum + (parseFloat(t.price) || 0), 0);
         console.error('Sum of test prices:', totalTestPrices);
-        
+
         if (totalTestPrices === 0) {
             alert('⚠️ ERROR: Tests do not have prices!\n\nThe tests you selected have price = 0 in the database.\nPlease set prices for tests before creating entries.');
             window.entrySaving = false;
@@ -951,7 +951,7 @@ function continueWithSave($form) {
             return;
         }
     }
-    
+
     // Ensure pricing fields are explicitly included with correct values
     formData.set('subtotal', subtotalVal);
     formData.set('discount_amount', discountVal);
@@ -969,7 +969,7 @@ function continueWithSave($form) {
     console.log('  subtotal:', formData.get('subtotal'));
     console.log('  discount_amount:', formData.get('discount_amount'));
     console.log('  total_price:', formData.get('total_price'));
-    
+
     // Prevent duplicate submissions
     if (window.entrySaving) {
         toastr.info('Save in progress, please wait...');
@@ -985,11 +985,11 @@ function continueWithSave($form) {
         processData: false,
         contentType: false,
         dataType: 'json',
-        success: function(response) {
+        success: function (response) {
             if (response.success) {
                 console.log('✅ Entry saved successfully!');
                 console.log('Server response:', response);
-                
+
                 // Check if pricing was actually saved
                 if (response.data && response.data.saved_pricing) {
                     const saved = response.data.saved_pricing;
@@ -998,7 +998,7 @@ function continueWithSave($form) {
                         discount: saved.discount_amount,
                         total: saved.total_price
                     });
-                    
+
                     if (saved.subtotal == 0 && saved.total_price == 0) {
                         console.error('⚠️ WARNING: Database shows ZERO pricing despite saving!');
                         console.error('This means the data reached the server but was not saved correctly.');
@@ -1006,7 +1006,7 @@ function continueWithSave($form) {
                         console.log('✅ Pricing verified in database!');
                     }
                 }
-                
+
                 toastr.success(response.message || 'Entry saved successfully');
                 $('#entryModal').modal('hide');
                 refreshTable();
@@ -1016,13 +1016,13 @@ function continueWithSave($form) {
                 console.error('Save failed:', response);
             }
         },
-        error: function(xhr) {
+        error: function (xhr) {
             var msg = 'An error occurred while saving the entry';
-            try { if (xhr && xhr.responseText) msg += ': ' + xhr.responseText; } catch(e) {}
+            try { if (xhr && xhr.responseText) msg += ': ' + xhr.responseText; } catch (e) { }
             toastr.error(msg);
-            try { console.error('Save entry error', xhr); } catch(e) {}
+            try { console.error('Save entry error', xhr); } catch (e) { }
         },
-        complete: function() {
+        complete: function () {
             window.entrySaving = false;
             $('.btn-save-entry').prop('disabled', false).removeClass('disabled');
         }
@@ -1036,23 +1036,23 @@ function viewEntry(id) {
         toastr.error('Invalid entry ID');
         return;
     }
-    
+
     // Check if modal exists
     if ($('#viewEntryModal').length === 0) {
         console.error('View entry modal not found in DOM');
         toastr.error('Modal element not found. Please refresh the page.');
         return;
     }
-    
+
     // Show loading indicator
-    toastr.info('Loading entry details...', '', {timeOut: 1000});
-    
+    toastr.info('Loading entry details...', '', { timeOut: 1000 });
+
     $.ajax({
         url: 'ajax/entry_api_fixed.php',
         method: 'GET',
         data: { action: 'get', id: id },
         dataType: 'json',
-        success: function(response) {
+        success: function (response) {
             if (response.success) {
                 displayEntryDetails(response.data);
                 $('#viewEntryModal').modal('show');
@@ -1060,7 +1060,7 @@ function viewEntry(id) {
                 toastr.error(response.message || 'Failed to load entry details');
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             console.error('View entry error:', xhr, status, error);
             let errorMsg = 'Failed to load entry details. ';
             if (xhr.status === 401 || xhr.status === 403) {
@@ -1083,7 +1083,7 @@ function displayEntryDetails(entry) {
         toastr.error('No entry data received');
         return;
     }
-    
+
     // Format date safely
     let entryDate = 'N/A';
     try {
@@ -1097,7 +1097,7 @@ function displayEntryDetails(entry) {
     } catch (e) {
         console.error('Error formatting entry date:', e);
     }
-    
+
     // Format created date safely
     let createdDate = 'N/A';
     try {
@@ -1113,7 +1113,7 @@ function displayEntryDetails(entry) {
     } catch (e) {
         console.error('Error formatting created date:', e);
     }
-    
+
     // Format updated date if available
     let updatedDate = '';
     try {
@@ -1129,7 +1129,7 @@ function displayEntryDetails(entry) {
     } catch (e) {
         console.error('Error formatting updated date:', e);
     }
-    
+
     // Build individual tests table if available
     let testsTable = '';
     if (entry.tests && Array.isArray(entry.tests) && entry.tests.length > 0) {
@@ -1151,26 +1151,26 @@ function displayEntryDetails(entry) {
                             </thead>
                         <tbody>
         `;
-        
-            entry.tests.forEach(function(test) {
-                const testStatus = test.status || 'pending';
-                const statusBadge = testStatus === 'completed' ? 'success' : (testStatus === 'pending' ? 'warning' : 'secondary');
-                
-                // Get patient gender to determine which min/max values to use
-                const patientGender = entry.gender || entry.sex;
-                let minValue = test.min || '-';
-                let maxValue = test.max || '-';
-                
-                // If patient has gender and gender-specific values exist, use them
-                if (patientGender && patientGender.toLowerCase() === 'male' && test.min_male !== null && test.max_male !== null) {
-                    minValue = test.min_male || '-';
-                    maxValue = test.max_male || '-';
-                } else if (patientGender && patientGender.toLowerCase() === 'female' && test.min_female !== null && test.max_female !== null) {
-                    minValue = test.min_female || '-';
-                    maxValue = test.max_female || '-';
-                }
-                
-                testsTable += `
+
+        entry.tests.forEach(function (test) {
+            const testStatus = test.status || 'pending';
+            const statusBadge = testStatus === 'completed' ? 'success' : (testStatus === 'pending' ? 'warning' : 'secondary');
+
+            // Get patient gender to determine which min/max values to use
+            const patientGender = entry.gender || entry.sex;
+            let minValue = test.min || '-';
+            let maxValue = test.max || '-';
+
+            // If patient has gender and gender-specific values exist, use them
+            if (patientGender && patientGender.toLowerCase() === 'male' && test.min_male !== null && test.max_male !== null) {
+                minValue = test.min_male || '-';
+                maxValue = test.max_male || '-';
+            } else if (patientGender && patientGender.toLowerCase() === 'female' && test.min_female !== null && test.max_female !== null) {
+                minValue = test.min_female || '-';
+                maxValue = test.max_female || '-';
+            }
+
+            testsTable += `
                     <tr>
                         <td>${test.test_name || 'N/A'}</td>
                         <td>${test.category_name || 'N/A'}</td>
@@ -1181,8 +1181,8 @@ function displayEntryDetails(entry) {
                         <td><span class="badge badge-${statusBadge}">${testStatus}</span></td>
                     </tr>
                 `;
-            });
-        
+        });
+
         testsTable += `
                         </tbody>
                     </table>
@@ -1198,7 +1198,7 @@ function displayEntryDetails(entry) {
             </div>
         `;
     }
-    
+
     const details = `
         <div class="row">
             <div class="col-md-6">
@@ -1247,18 +1247,18 @@ function displayEntryDetails(entry) {
                         <td><strong>Age/Gender:</strong></td>
                         <td>
                             ${(() => {
-                                const age = entry.patient_age || entry.age;
-                                const gender = entry.gender || entry.sex;
-                                if (age && gender) {
-                                    return `${age} years / ${gender}`;
-                                } else if (age) {
-                                    return `${age} years`;
-                                } else if (gender) {
-                                    return gender;
-                                } else {
-                                    return 'N/A';
-                                }
-                            })()}
+            const age = entry.patient_age || entry.age;
+            const gender = entry.gender || entry.sex;
+            if (age && gender) {
+                return `${age} years / ${gender}`;
+            } else if (age) {
+                return `${age} years`;
+            } else if (gender) {
+                return gender;
+            } else {
+                return 'N/A';
+            }
+        })()}
                         </td>
                     </tr>
                     ${entry.patient_contact ? `
@@ -1342,7 +1342,7 @@ function displayEntryDetails(entry) {
             </div>
         </div>
     `;
-    
+
     const detailsElement = $('#entryDetails');
     if (detailsElement.length) {
         detailsElement.html(details);
@@ -1356,32 +1356,32 @@ function displayEntryDetails(entry) {
 function editEntry(id) {
     console.log('=== EDIT ENTRY CALLED ===');
     console.log('Entry ID:', id);
-    
+
     if (!id) {
         toastr.error('Invalid entry ID');
         return;
     }
-    
+
     // Show loading
-    toastr.info('Loading entry for editing...', '', {timeOut: 1000});
-    
+    toastr.info('Loading entry for editing...', '', { timeOut: 1000 });
+
     $.ajax({
         url: 'ajax/entry_api_fixed.php',
         method: 'GET',
         data: { action: 'get', id: id },
         dataType: 'json',
-        success: function(response) {
+        success: function (response) {
             console.log('=== EDIT ENTRY API RESPONSE ===');
             console.log('Full response:', response);
-            
+
             if (response.success) {
                 console.log('Entry data received:', response.data);
                 console.log('Tests in entry:', response.data.tests ? response.data.tests.length : 0);
-                
+
                 if (response.data.tests && response.data.tests.length > 0) {
                     console.log('Test details:', response.data.tests);
                 }
-                
+
                 populateEditForm(response.data);
                 $('#entryModal').modal('show');
             } else {
@@ -1389,7 +1389,7 @@ function editEntry(id) {
                 toastr.error(response.message || 'Failed to load entry for editing');
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             console.error('Edit entry AJAX error:', xhr, status, error);
             let errorMsg = 'Failed to load entry for editing. ';
             if (xhr.status === 401 || xhr.status === 403) {
@@ -1408,7 +1408,7 @@ function editEntry(id) {
 function populateEditForm(entry) {
     console.log('=== POPULATING EDIT FORM ===');
     console.log('Entry data:', entry);
-    
+
     currentEntryId = entry.id;
     $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
     $('#entryId').val(entry.id);
@@ -1454,10 +1454,10 @@ function populateEditForm(entry) {
         } else {
             optionText = `User ${entry.added_by}`;
         }
-        
+
         const dataType = entry.owner_id ? 'owner' : 'user';
         const dataId = entry.owner_id || entry.added_by;
-        
+
         ownerSelect.append(`<option value="${ownerAddedByValue}" data-type="${dataType}" data-${dataType}-id="${dataId}">${optionText}</option>`);
     }
 
@@ -1468,22 +1468,22 @@ function populateEditForm(entry) {
     const ownerId = entry.owner_id || entry.added_by;
     if (ownerId) {
         console.log('Loading patients and doctors for owner ID:', ownerId);
-        
+
         // Load patients first
-        loadPatientsByOwner(ownerId, function() {
+        loadPatientsByOwner(ownerId, function () {
             console.log('Patients loaded, setting patient selection to:', entry.patient_id);
-            
+
             // Check if patient option exists, if not add it
             const patientSelect = $('#patientSelect');
             if (entry.patient_id && patientSelect.find(`option[value="${entry.patient_id}"]`).length === 0) {
                 const patientText = `${entry.patient_name || 'Unknown Patient'} (${entry.uhid || 'No UHID'})`;
                 patientSelect.append(`<option value="${entry.patient_id}" data-gender="${entry.gender || ''}" data-contact="${entry.patient_contact || ''}" data-address="${entry.patient_address || ''}">${patientText}</option>`);
             }
-            
+
             patientSelect.val(entry.patient_id).trigger('change');
-            
+
             // Manually populate patient fields if auto-fill doesn't work
-            setTimeout(function() {
+            setTimeout(function () {
                 if (entry.patient_age || entry.age) {
                     $('#patientAge').val(entry.patient_age || entry.age);
                 }
@@ -1491,26 +1491,26 @@ function populateEditForm(entry) {
                     $('#patientGender').val(entry.gender || entry.sex);
                 }
             }, 100);
-            
+
             // Load doctors
-            loadDoctorsByOwner(ownerId, function() {
+            loadDoctorsByOwner(ownerId, function () {
                 console.log('Doctors loaded, setting doctor selection to:', entry.doctor_id);
-                
+
                 // Check if doctor option exists, if not add it
                 const doctorSelect = $('#doctorSelect');
                 if (entry.doctor_id && doctorSelect.find(`option[value="${entry.doctor_id}"]`).length === 0) {
                     const doctorText = `Dr. ${entry.doctor_name || 'Unknown Doctor'}`;
                     doctorSelect.append(`<option value="${entry.doctor_id}">${doctorText}</option>`);
                 }
-                
+
                 doctorSelect.val(entry.doctor_id);
-                
+
                 console.log('All dropdowns populated successfully');
             });
         });
     } else {
         console.warn('No owner ID found, cannot load patients/doctors');
-        
+
         // Fallback: try to add patient and doctor options directly if we have the data
         if (entry.patient_id && entry.patient_name) {
             const patientSelect = $('#patientSelect');
@@ -1519,7 +1519,7 @@ function populateEditForm(entry) {
             patientSelect.append(`<option value="${entry.patient_id}" data-gender="${entry.gender || ''}" data-contact="${entry.patient_contact || ''}" data-address="${entry.patient_address || ''}" selected>${patientText}</option>`);
             patientSelect.prop('disabled', false);
         }
-        
+
         if (entry.doctor_id && entry.doctor_name) {
             const doctorSelect = $('#doctorSelect');
             doctorSelect.empty().append('<option value="">Select Doctor</option>');
@@ -1528,7 +1528,7 @@ function populateEditForm(entry) {
             doctorSelect.prop('disabled', false);
         }
     }
-    
+
     // Populate pricing fields - handle both direct fields and aggregated fields
     console.log('=== EDIT ENTRY DEBUG ===');
     console.log('Complete entry object:', JSON.stringify(entry, null, 2));
@@ -1544,10 +1544,10 @@ function populateEditForm(entry) {
         agg_total_price: entry.agg_total_price,
         agg_total_discount: entry.agg_total_discount
     });
-    
+
     // Use direct fields if available (check for null/undefined, not falsy), otherwise use aggregated fields
     // Check ALL possible field name variations from the API response
-    const subtotalValue = (entry.subtotal !== null && entry.subtotal !== undefined) 
+    const subtotalValue = (entry.subtotal !== null && entry.subtotal !== undefined)
         ? parseFloat(entry.subtotal)
         : (entry.aggregated_total_price !== null && entry.aggregated_total_price !== undefined)
             ? parseFloat(entry.aggregated_total_price)
@@ -1556,7 +1556,7 @@ function populateEditForm(entry) {
                 : (entry.price !== null && entry.price !== undefined)
                     ? parseFloat(entry.price)
                     : 0;
-    
+
     const discountValue = (entry.discount_amount !== null && entry.discount_amount !== undefined)
         ? parseFloat(entry.discount_amount)
         : (entry.aggregated_total_discount !== null && entry.aggregated_total_discount !== undefined)
@@ -1566,34 +1566,34 @@ function populateEditForm(entry) {
                 : (entry.total_discount !== null && entry.total_discount !== undefined)
                     ? parseFloat(entry.total_discount)
                     : 0;
-    
+
     const totalValue = (entry.total_price !== null && entry.total_price !== undefined)
         ? parseFloat(entry.total_price)
         : (entry.final_amount !== null && entry.final_amount !== undefined)
             ? parseFloat(entry.final_amount)
             : Math.max(subtotalValue - discountValue, 0);
-    
+
     console.log('Calculated pricing values:', {
         subtotalValue: subtotalValue,
         discountValue: discountValue,
         totalValue: totalValue
     });
-    
+
     // Format pricing values properly - always show 2 decimal places
     const subtotal = parseFloat(subtotalValue).toFixed(2);
     const discountAmount = parseFloat(discountValue).toFixed(2);
     const totalPrice = parseFloat(totalValue).toFixed(2);
-    
+
     console.log('Formatted pricing values:', {
         subtotal: subtotal,
         discountAmount: discountAmount,
         totalPrice: totalPrice
     });
-    
+
     $('#subtotal').val(subtotal);
     $('#discountAmount').val(discountAmount);
     $('#totalPrice').val(totalPrice);
-    
+
     console.log('Pricing fields populated:', {
         subtotal: $('#subtotal').val(),
         discountAmount: $('#discountAmount').val(),
@@ -1601,7 +1601,7 @@ function populateEditForm(entry) {
     });
 
     // Set patient and doctor after a delay to ensure owner selection is processed
-    setTimeout(function() {
+    setTimeout(function () {
         $('#patientSelect').val(entry.patient_id).trigger('change');
         $('#doctorSelect').val(entry.doctor_id).trigger('change');
     }, 1000);
@@ -1614,9 +1614,9 @@ function populateEditForm(entry) {
     console.log('Populating tests section with', entry.tests ? entry.tests.length : 0, 'tests');
 
     if (entry.tests && entry.tests.length > 0) {
-        entry.tests.forEach(function(test, index) {
+        entry.tests.forEach(function (test, index) {
             console.log(`Adding test row ${index}:`, test);
-            
+
             const newRowHTML = `
                 <div class="test-row row mb-2">
                     <div class="col-md-3">
@@ -1657,38 +1657,56 @@ function populateEditForm(entry) {
     }
 
     // Load dropdowns
-    loadTests(function() {
+    loadTests(function () {
         console.log('Tests loaded, now populating test selections...');
-        
+
         if (entry.tests && entry.tests.length > 0) {
-            entry.tests.forEach(function(test, index) {
+            entry.tests.forEach(function (test, index) {
                 console.log(`Setting test ${index}:`, test);
-                
+
                 const testRow = testsContainer.find('.test-row').eq(index);
                 const testSelect = testRow.find('.test-select');
-                
+
                 if (test.test_id && testRow.length > 0) {
                     // Set the test selection
                     testSelect.val(test.test_id);
-                    
+
+                    // If Select2 is initialized, update it properly
+                    if (testSelect.hasClass('select2-hidden-accessible')) {
+                        testSelect.trigger('change.select2');
+                    } else {
+                        testSelect.trigger('change');
+                    }
+
                     console.log(`Test ${index} selection set to:`, test.test_id, 'Row found:', testRow.length > 0);
-                    
-                    // Get test data from the selected option
-                    const $opt = testSelect.find('option:selected');
-                    const unit = $opt.data('unit') || test.unit || '';
-                    const min = $opt.data('min') || test.min || '';
-                    const max = $opt.data('max') || test.max || '';
-                    const categoryName = $opt.data('category-name') || test.category_name || '';
-                    const categoryId = $opt.data('category-id') || test.category_id || '';
-                    
-                    // Populate fields directly with fallback to test data
-                    testRow.find('.test-unit').val(unit).prop('readonly', true).show();
-                    testRow.find('.test-min').val(min).prop('readonly', true).show();
-                    testRow.find('.test-max').val(max).prop('readonly', true).show();
-                    testRow.find('.test-category').val(categoryName).prop('readonly', true).show();
-                    testRow.find('.test-category-id').val(categoryId);
-                    testRow.find('.test-result').val(test.result_value || '').prop('readonly', false).prop('disabled', false);
-                    
+
+                    // Wait a moment for the change event to process, then populate fields
+                    setTimeout(function () {
+                        // Get test data from the selected option
+                        const $opt = testSelect.find('option:selected');
+                        const unit = $opt.data('unit') || test.unit || '';
+                        const min = $opt.data('min') || test.min || '';
+                        const max = $opt.data('max') || test.max || '';
+                        const categoryName = $opt.data('category-name') || test.category_name || '';
+                        const categoryId = $opt.data('category-id') || test.category_id || '';
+
+                        // Populate fields directly with fallback to test data
+                        testRow.find('.test-unit').val(unit).prop('readonly', true).show();
+                        testRow.find('.test-min').val(min).prop('readonly', true).show();
+                        testRow.find('.test-max').val(max).prop('readonly', true).show();
+                        testRow.find('.test-category').val(categoryName).prop('readonly', true).show();
+                        testRow.find('.test-category-id').val(categoryId);
+                        testRow.find('.test-result').val(test.result_value || '').prop('readonly', false).prop('disabled', false);
+
+                        console.log(`Test ${index} fields populated:`, {
+                            unit: unit,
+                            min: min,
+                            max: max,
+                            category: categoryName,
+                            result: test.result_value || ''
+                        });
+                    }, 100);
+
                     console.log(`Test ${index} fields populated:`, {
                         unit: unit,
                         min: min,
@@ -1703,18 +1721,37 @@ function populateEditForm(entry) {
                     });
                 }
             });
-            
+
             console.log('All test selections completed');
+
+            // Force refresh all Select2 dropdowns to ensure proper display
+            setTimeout(function () {
+                testsContainer.find('.test-select').each(function () {
+                    const $select = $(this);
+                    if ($select.hasClass('select2-hidden-accessible')) {
+                        try {
+                            // Force Select2 to refresh its display
+                            $select.select2('destroy').select2({
+                                dropdownParent: $('#entryModal'),
+                                width: '100%',
+                                theme: 'bootstrap4'
+                            });
+                        } catch (e) {
+                            console.warn('Could not refresh Select2 for test dropdown:', e);
+                        }
+                    }
+                });
+            }, 200);
         } else {
             console.log('No tests to populate');
         }
-        
+
         // After tests are loaded, re-populate pricing fields to ensure they're visible
         // This handles cases where the fields might have been cleared or reset
-        setTimeout(function() {
+        setTimeout(function () {
             // Recalculate subtotal from entry data (not from test selections)
             // Check ALL possible field name variations
-            const finalSubtotal = (entry.subtotal !== null && entry.subtotal !== undefined) 
+            const finalSubtotal = (entry.subtotal !== null && entry.subtotal !== undefined)
                 ? parseFloat(entry.subtotal)
                 : (entry.aggregated_total_price !== null && entry.aggregated_total_price !== undefined)
                     ? parseFloat(entry.aggregated_total_price)
@@ -1723,7 +1760,7 @@ function populateEditForm(entry) {
                         : (entry.price !== null && entry.price !== undefined)
                             ? parseFloat(entry.price)
                             : 0;
-            
+
             const finalDiscount = (entry.discount_amount !== null && entry.discount_amount !== undefined)
                 ? parseFloat(entry.discount_amount)
                 : (entry.aggregated_total_discount !== null && entry.aggregated_total_discount !== undefined)
@@ -1733,17 +1770,17 @@ function populateEditForm(entry) {
                         : (entry.total_discount !== null && entry.total_discount !== undefined)
                             ? parseFloat(entry.total_discount)
                             : 0;
-            
+
             const finalTotal = (entry.total_price !== null && entry.total_price !== undefined)
                 ? parseFloat(entry.total_price)
                 : (entry.final_amount !== null && entry.final_amount !== undefined)
                     ? parseFloat(entry.final_amount)
                     : Math.max(finalSubtotal - finalDiscount, 0);
-            
+
             $('#subtotal').val(parseFloat(finalSubtotal).toFixed(2));
             $('#discountAmount').val(parseFloat(finalDiscount).toFixed(2));
             $('#totalPrice').val(parseFloat(finalTotal).toFixed(2));
-            
+
             console.log('Pricing fields re-populated after tests loaded:', {
                 subtotal: $('#subtotal').val(),
                 discountAmount: $('#discountAmount').val(),
@@ -1771,7 +1808,7 @@ function performDelete(id) {
         method: 'POST',
         data: { action: 'delete', id: id },
         dataType: 'json',
-        success: function(response) {
+        success: function (response) {
             if (response.success) {
                 toastr.success(response.message || 'Entry deleted successfully');
                 $('#deleteModal').modal('hide');
@@ -1781,7 +1818,7 @@ function performDelete(id) {
                 toastr.error(response.message || 'Failed to delete entry');
             }
         },
-        error: function() {
+        error: function () {
             toastr.error('An error occurred while deleting the entry');
         }
     });
@@ -1793,13 +1830,13 @@ function applyFilters() {
     const dateFilter = $('#dateFilter').val();
     const patient = $('#patientFilter').val();
     const doctor = $('#doctorFilter').val();
-    
+
     // Add custom filtering logic here
     // For now, we'll use DataTables built-in search
     let searchTerm = '';
     if (patient) searchTerm += patient + ' ';
     if (doctor) searchTerm += doctor + ' ';
-    
+
     entriesTable.search(searchTerm).draw();
 }
 
@@ -1820,7 +1857,7 @@ function exportEntries() {
     // Show export options modal
     const status = $('#statusFilter').val();
     const dateFilter = $('#dateFilter').val();
-    
+
     const exportModal = `
         <div class="modal fade" id="exportModal" tabindex="-1" role="dialog">
             <div class="modal-dialog" role="document">
@@ -1873,13 +1910,13 @@ function exportEntries() {
             </div>
         </div>
     `;
-    
+
     // Remove existing modal if any
     $('#exportModal').remove();
-    
+
     // Add modal to body
     $('body').append(exportModal);
-    
+
     // Show modal
     $('#exportModal').modal('show');
 }
@@ -1888,20 +1925,20 @@ function exportEntries() {
 function performExport(status, dateFilter) {
     const format = $('input[name="exportFormat"]:checked').val();
     const includeFilters = $('#includeFilters').is(':checked');
-    
+
     let exportUrl = `ajax/entry_api_fixed.php?action=export&format=${format}`;
-    
+
     if (includeFilters) {
         if (status) exportUrl += `&status=${status}`;
         if (dateFilter) exportUrl += `&date=${dateFilter}`;
     }
-    
+
     // Close modal
     $('#exportModal').modal('hide');
-    
+
     // Show loading
-    toastr.info('Preparing export...', 'Export', {timeOut: 2000});
-    
+    toastr.info('Preparing export...', 'Export', { timeOut: 2000 });
+
     if (format === 'csv') {
         // Direct download for CSV
         window.open(exportUrl, '_blank');
@@ -1911,15 +1948,15 @@ function performExport(status, dateFilter) {
             url: exportUrl,
             method: 'GET',
             dataType: 'json',
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     if (format === 'json') {
                         // Download JSON file
-                        const blob = new Blob([JSON.stringify(response.data, null, 2)], {type: 'application/json'});
+                        const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = `entries_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
+                        a.download = `entries_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
@@ -1933,7 +1970,7 @@ function performExport(status, dateFilter) {
                     toastr.error(response.message || 'Export failed');
                 }
             },
-            error: function() {
+            error: function () {
                 toastr.error('Export failed. Please try again.');
             }
         });
@@ -1944,14 +1981,14 @@ function performExport(status, dateFilter) {
 function exportToExcel(data) {
     // Create HTML table for Excel
     let html = '<table border="1"><tr>';
-    
+
     // Headers
     if (data.length > 0) {
         Object.keys(data[0]).forEach(key => {
             html += `<th>${key}</th>`;
         });
         html += '</tr>';
-        
+
         // Data rows
         data.forEach(row => {
             html += '<tr>';
@@ -1961,15 +1998,15 @@ function exportToExcel(data) {
             html += '</tr>';
         });
     }
-    
+
     html += '</table>';
-    
+
     // Create and download file
-    const blob = new Blob([html], {type: 'application/vnd.ms-excel'});
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `entries_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xls`;
+    a.download = `entries_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.xls`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1985,7 +2022,7 @@ function refreshTable() {
 function printEntryDetails() {
     const printContent = document.getElementById('entryDetails').innerHTML;
     const originalContent = document.body.innerHTML;
-    
+
     // Create print-friendly version
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
@@ -2026,7 +2063,7 @@ function printEntryDetails() {
 }
 
 // Add fallback for owner/users if API fails (kept separate from Select2 init)
-setTimeout(function() {
+setTimeout(function () {
     const ownerSelect = $('#ownerAddedBySelect');
     if (ownerSelect.find('option').length <= 1) {
         // If no options loaded, add current user as fallback
@@ -2041,10 +2078,10 @@ setTimeout(function() {
 function addTestRow() {
     console.log('=== ADD TEST ROW CALLED ===');
     console.log('Current testRowCount:', testRowCount);
-    
+
     const testsContainer = $('#testsContainer');
     console.log('Tests container found:', testsContainer.length > 0);
-    
+
     if (testsContainer.length === 0) {
         console.error('Tests container not found!');
         if (typeof toastr !== 'undefined') {
@@ -2054,13 +2091,13 @@ function addTestRow() {
         }
         return;
     }
-    
+
     // Ensure testRowCount is a valid number
     if (typeof testRowCount !== 'number' || isNaN(testRowCount)) {
         console.warn('testRowCount is not a valid number, resetting to current row count');
         testRowCount = testsContainer.find('.test-row').length;
     }
-    
+
     const newRowHTML = `
         <div class="test-row row mb-2">
             <div class="col-md-3">
@@ -2091,20 +2128,20 @@ function addTestRow() {
             </div>
         </div>
     `;
-    
+
     testsContainer.append(newRowHTML);
     testRowCount++;
-    
+
     // Load tests for the new row
     loadTests();
-    
+
     // Initialize Select2 for the new row
-    setTimeout(function() {
+    setTimeout(function () {
         const newRow = testsContainer.find('.test-row').last();
         const newSelect = newRow.find('.test-select');
-        
+
         console.log('Initializing Select2 for new row:', newRow.length > 0);
-        
+
         if (typeof $.fn.select2 !== 'undefined' && newSelect.length > 0) {
             try {
                 // Initialize Select2 with proper parent
@@ -2123,15 +2160,15 @@ function addTestRow() {
                 console.error('Error initializing Select2:', e);
             }
         }
-        
+
         // Ensure the new row is visible and properly styled
         newRow.find('.test-unit, .test-category, .test-min, .test-max').prop('readonly', true).show();
         newRow.find('.test-result').prop('readonly', false).prop('disabled', false);
-        
+
     }, 100);
-    
+
     console.log('Added new test row, total rows:', testRowCount);
-    
+
     // Show success message
     if (typeof toastr !== 'undefined') {
         toastr.success(`Test row added successfully! Total rows: ${testRowCount}`);
@@ -2147,17 +2184,17 @@ window.openAddEntryModal = openAddEntryModal;
 function removeTestRow(button) {
     const testRow = $(button).closest('.test-row');
     const testsContainer = $('#testsContainer');
-    
+
     // Don't allow removing the last row
     if (testsContainer.find('.test-row').length > 1) {
         testRow.remove();
-        
+
         // Recalculate pricing after removing test
         updatePricingFields();
-        
+
         // Re-index remaining test rows
-        testsContainer.find('.test-row').each(function(index) {
-            $(this).find('select, input').each(function() {
+        testsContainer.find('.test-row').each(function (index) {
+            $(this).find('select, input').each(function () {
                 const name = $(this).attr('name');
                 if (name) {
                     const newName = name.replace(/tests\[\d+\]/, `tests[${index}]`);
@@ -2165,7 +2202,7 @@ function removeTestRow(button) {
                 }
             });
         });
-        
+
         testRowCount = testsContainer.find('.test-row').length;
         console.log('Removed test row, remaining rows:', testRowCount);
     } else {
@@ -2176,20 +2213,20 @@ function removeTestRow(button) {
 // Update pricing fields based on selected tests
 function updatePricingFields() {
     let subtotal = 0;
-    
-    $('#testsContainer .test-row').each(function() {
+
+    $('#testsContainer .test-row').each(function () {
         const testSelect = $(this).find('.test-select');
         const selectedOption = testSelect.find('option:selected');
         const price = parseFloat(selectedOption.data('price') || 0);
         subtotal += price;
     });
-    
+
     const discount = parseFloat($('#discountAmount').val() || 0);
     const total = Math.max(subtotal - discount, 0);
-    
+
     $('#subtotal').val(subtotal.toFixed(2));
     $('#totalPrice').val(total.toFixed(2));
-    
+
     console.log('Pricing updated:', {
         subtotal: subtotal.toFixed(2),
         discount: discount.toFixed(2),
@@ -2198,7 +2235,7 @@ function updatePricingFields() {
 }
 
 // Handle discount amount changes
-$(document).on('input', '#discountAmount', function() {
+$(document).on('input', '#discountAmount', function () {
     updatePricingFields();
 });
 
@@ -2207,26 +2244,26 @@ function fixEditFormTestsDisplay() {
     // This function ensures all tests are properly displayed in edit mode
     const testsContainer = $('#testsContainer');
     const testRows = testsContainer.find('.test-row');
-    
+
     console.log('Fixing edit form tests display, found rows:', testRows.length);
-    
+
     // Ensure all test rows are visible and properly configured
-    testRows.each(function(index) {
+    testRows.each(function (index) {
         const $row = $(this);
-        
+
         // Make sure all fields are visible
-        $row.find('.test-unit, .test-category, .test-min, .test-max').each(function() {
-            $(this).prop('readonly', true).show().css({ 
-                'display': 'block', 
-                'visibility': 'visible' 
+        $row.find('.test-unit, .test-category, .test-min, .test-max').each(function () {
+            $(this).prop('readonly', true).show().css({
+                'display': 'block',
+                'visibility': 'visible'
             });
         });
-        
+
         // Enable result inputs
         $row.find('.test-result').prop('disabled', false).prop('readonly', false);
-        
+
         // Ensure proper name attributes
-        $row.find('select, input').each(function() {
+        $row.find('select, input').each(function () {
             const name = $(this).attr('name');
             if (name && !name.includes(`[${index}]`)) {
                 const newName = name.replace(/tests\[\d+\]/, `tests[${index}]`);
@@ -2234,53 +2271,53 @@ function fixEditFormTestsDisplay() {
             }
         });
     });
-    
+
     // Update the test row counter
     testRowCount = testRows.length;
     console.log('Fixed test rows, total count:', testRowCount);
 }
 
 // Enhanced modal show handler to fix tests display
-$(document).on('shown.bs.modal', '#entryModal', function() {
+$(document).on('shown.bs.modal', '#entryModal', function () {
     console.log('=== ENTRY MODAL SHOWN ===');
-    
+
     // Check current state
     const testsContainer = $('#testsContainer');
     const testRows = testsContainer.find('.test-row');
-    
+
     console.log('Tests container found:', testsContainer.length > 0);
     console.log('Test rows found:', testRows.length);
-    
-    testRows.each(function(index) {
+
+    testRows.each(function (index) {
         const $row = $(this);
         const testSelect = $row.find('.test-select');
         const selectedValue = testSelect.val();
         const resultValue = $row.find('.test-result').val();
-        
+
         console.log(`Test row ${index}:`, {
             selectedTest: selectedValue,
             resultValue: resultValue,
             selectOptions: testSelect.find('option').length
         });
     });
-    
+
     // Fix tests display
     fixEditFormTestsDisplay();
-    
+
     // Ensure pricing fields are visible and calculated
-    setTimeout(function() {
+    setTimeout(function () {
         updatePricingFields();
         console.log('Modal shown - pricing fields updated');
-        
+
         // Final verification
         const finalTestRows = testsContainer.find('.test-row');
         console.log('Final test rows count:', finalTestRows.length);
-        
-        finalTestRows.each(function(index) {
+
+        finalTestRows.each(function (index) {
             const $row = $(this);
             const testSelect = $row.find('.test-select');
             const selectedValue = testSelect.val();
-            
+
             if (selectedValue) {
                 console.log(`Test row ${index} has selection:`, selectedValue);
             } else {
