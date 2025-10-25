@@ -1614,31 +1614,32 @@ function populateEditForm(entry) {
     console.log('Populating tests section with', entry.tests ? entry.tests.length : 0, 'tests');
 
     if (entry.tests && entry.tests.length > 0) {
+        // Create empty test rows first (without pre-filled values)
         entry.tests.forEach(function (test, index) {
-            console.log(`Adding test row ${index}:`, test);
+            console.log(`Adding empty test row ${index} for:`, test.test_name);
 
             const newRowHTML = `
-                <div class="test-row row mb-2">
+                <div class="test-row row mb-2" data-test-id="${test.test_id}" data-test-index="${index}">
                     <div class="col-md-3">
                         <select class="form-control test-select select2" name="tests[${index}][test_id]" required>
                             <option value="">Select Test</option>
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <input type="text" class="form-control test-category" name="tests[${index}][category_name]" placeholder="Category" readonly value="${test.category_name || ''}">
-                        <input type="hidden" name="tests[${index}][category_id]" class="test-category-id" value="${test.category_id || ''}">
+                        <input type="text" class="form-control test-category" name="tests[${index}][category_name]" placeholder="Category" readonly>
+                        <input type="hidden" name="tests[${index}][category_id]" class="test-category-id">
                     </div>
                     <div class="col-md-2">
-                        <input type="text" class="form-control test-result" name="tests[${index}][result_value]" placeholder="Result" value="${test.result_value || ''}">
+                        <input type="text" class="form-control test-result" name="tests[${index}][result_value]" placeholder="Result">
                     </div>
                     <div class="col-md-1">
-                        <input type="text" class="form-control test-min" name="tests[${index}][min]" placeholder="Min" readonly value="${test.min || ''}">
+                        <input type="text" class="form-control test-min" name="tests[${index}][min]" placeholder="Min" readonly>
                     </div>
                     <div class="col-md-1">
-                        <input type="text" class="form-control test-max" name="tests[${index}][max]" placeholder="Max" readonly value="${test.max || ''}">
+                        <input type="text" class="form-control test-max" name="tests[${index}][max]" placeholder="Max" readonly>
                     </div>
                     <div class="col-md-2">
-                        <input type="text" class="form-control test-unit" name="tests[${index}][unit]" placeholder="Unit" readonly value="${test.unit || ''}">
+                        <input type="text" class="form-control test-unit" name="tests[${index}][unit]" placeholder="Unit" readonly>
                     </div>
                     <div class="col-md-1">
                         <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
@@ -1650,98 +1651,65 @@ function populateEditForm(entry) {
             testsContainer.append(newRowHTML);
         });
         testRowCount = entry.tests.length;
-        console.log('Added', testRowCount, 'test rows to form');
+        console.log('Added', testRowCount, 'empty test rows to form');
     } else {
         console.log('No tests found, adding blank row');
         addTestRow(); // Add a blank row if no tests
     }
 
-    // Load dropdowns
+    // Load dropdowns first, then populate individual selections
     loadTests(function () {
-        console.log('Tests loaded, now populating test selections...');
+        console.log('Tests loaded, now populating individual test selections...');
 
         if (entry.tests && entry.tests.length > 0) {
-            entry.tests.forEach(function (test, index) {
-                console.log(`Setting test ${index}:`, test);
+            // Wait a moment for all dropdowns to be fully populated
+            setTimeout(function() {
+                entry.tests.forEach(function (test, index) {
+                    console.log(`Setting test ${index}: ${test.test_name} (ID: ${test.test_id})`);
 
-                const testRow = testsContainer.find('.test-row').eq(index);
-                const testSelect = testRow.find('.test-select');
+                    const testRow = testsContainer.find('.test-row').eq(index);
+                    const testSelect = testRow.find('.test-select');
 
-                if (test.test_id && testRow.length > 0) {
-                    // Set the test selection
-                    testSelect.val(test.test_id);
-
-                    // If Select2 is initialized, update it properly
-                    if (testSelect.hasClass('select2-hidden-accessible')) {
-                        testSelect.trigger('change.select2');
-                    } else {
-                        testSelect.trigger('change');
-                    }
-
-                    console.log(`Test ${index} selection set to:`, test.test_id, 'Row found:', testRow.length > 0);
-
-                    // Wait a moment for the change event to process, then populate fields
-                    setTimeout(function () {
-                        // Get test data from the selected option
-                        const $opt = testSelect.find('option:selected');
-                        const unit = $opt.data('unit') || test.unit || '';
-                        const min = $opt.data('min') || test.min || '';
-                        const max = $opt.data('max') || test.max || '';
-                        const categoryName = $opt.data('category-name') || test.category_name || '';
-                        const categoryId = $opt.data('category-id') || test.category_id || '';
-
-                        // Populate fields directly with fallback to test data
-                        testRow.find('.test-unit').val(unit).prop('readonly', true).show();
-                        testRow.find('.test-min').val(min).prop('readonly', true).show();
-                        testRow.find('.test-max').val(max).prop('readonly', true).show();
-                        testRow.find('.test-category').val(categoryName).prop('readonly', true).show();
-                        testRow.find('.test-category-id').val(categoryId);
-                        testRow.find('.test-result').val(test.result_value || '').prop('readonly', false).prop('disabled', false);
-
-                        console.log(`Test ${index} fields populated:`, {
-                            unit: unit,
-                            min: min,
-                            max: max,
-                            category: categoryName,
-                            result: test.result_value || ''
-                        });
-                    }, 100);
-
-                    console.log(`Test ${index} fields populated:`, {
-                        unit: unit,
-                        min: min,
-                        max: max,
-                        category: categoryName,
-                        result: test.result_value || ''
-                    });
-                } else {
-                    console.warn(`Test ${index} missing test_id or row not found:`, {
-                        test_id: test.test_id,
-                        rowFound: testRow.length > 0
-                    });
-                }
-            });
-
-            console.log('All test selections completed');
-
-            // Force refresh all Select2 dropdowns to ensure proper display
-            setTimeout(function () {
-                testsContainer.find('.test-select').each(function () {
-                    const $select = $(this);
-                    if ($select.hasClass('select2-hidden-accessible')) {
-                        try {
-                            // Force Select2 to refresh its display
-                            $select.select2('destroy').select2({
-                                dropdownParent: $('#entryModal'),
-                                width: '100%',
-                                theme: 'bootstrap4'
-                            });
-                        } catch (e) {
-                            console.warn('Could not refresh Select2 for test dropdown:', e);
+                    if (test.test_id && testRow.length > 0) {
+                        // Verify the option exists
+                        const targetOption = testSelect.find(`option[value="${test.test_id}"]`);
+                        console.log(`Option exists for test_id ${test.test_id}:`, targetOption.length > 0);
+                        
+                        if (targetOption.length > 0) {
+                            // Set the value directly
+                            testSelect.val(test.test_id);
+                            
+                            // Update Select2 display if it's initialized
+                            if (testSelect.hasClass('select2-hidden-accessible')) {
+                                testSelect.trigger('change.select2');
+                            }
+                            
+                            console.log(`✓ Test ${index} set to: ${testSelect.find('option:selected').text()}`);
+                            
+                            // Populate the form fields with the actual test data from the entry
+                            testRow.find('.test-category').val(test.category_name || '');
+                            testRow.find('.test-category-id').val(test.category_id || '');
+                            testRow.find('.test-unit').val(test.unit || '');
+                            testRow.find('.test-min').val(test.min || '');
+                            testRow.find('.test-max').val(test.max || '');
+                            testRow.find('.test-result').val(test.result_value || '');
+                            
+                            // Trigger change to update pricing
+                            testSelect.trigger('change');
+                            
+                        } else {
+                            console.error(`✗ Test option not found for: ${test.test_name} (ID: ${test.test_id})`);
+                            console.log('Available options:', testSelect.find('option').map(function() { 
+                                return { value: $(this).val(), text: $(this).text() }; 
+                            }).get().slice(0, 5)); // Show first 5 options
                         }
+                    } else {
+                        console.warn(`Test ${index} missing test_id or row not found`);
                     }
                 });
-            }, 200);
+                
+                console.log('✓ All test selections completed');
+            }, 300); // Give more time for loadTests to complete
         } else {
             console.log('No tests to populate');
         }
