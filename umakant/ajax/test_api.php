@@ -429,7 +429,7 @@ try {
         json_response(['success'=>true,'message'=>'Test deleted']);
     }
 
-    if ($action === 'debug') {
+    if ($action === 'debug_fields') {
         // Debug endpoint - show query and field information
         $categories_table = 'categories';
         try{
