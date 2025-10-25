@@ -87,33 +87,7 @@ try {
         
         // Build the complete query with ALL tests table fields
         $dataQuery = "SELECT 
-            t.id,
-            COALESCE(t.name, '') AS name,
-            t.category_id,
-            t.main_category_id,
-            COALESCE(t.price, 0) AS price,
-            COALESCE(t.unit, '') AS unit,
-            COALESCE(t.specimen, '') AS specimen,
-            t.default_result,
-            COALESCE(t.reference_range, '') AS reference_range,
-            t.min,
-            t.max,
-            COALESCE(t.description, '') AS description,
-            t.min_male,
-            t.max_male,
-            t.min_female,
-            t.max_female,
-            t.min_child,
-            t.max_child,
-            COALESCE(t.child_unit, '') AS child_unit,
-            COALESCE(t.sub_heading, 0) AS sub_heading,
-            COALESCE(t.test_code, '') AS test_code,
-            COALESCE(t.method, '') AS method,
-            COALESCE(t.print_new_page, 0) AS print_new_page,
-            COALESCE(t.shortcut, '') AS shortcut,
-            t.added_by,
-            t.created_at,
-            t.updated_at,
+            t.*,
             COALESCE(mc.name, '') AS main_category_name,
             COALESCE(tc.name, '') AS category_name,
             COALESCE(u.username, '') AS added_by_username
@@ -133,7 +107,7 @@ try {
                 $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
             }
         } catch (PDOException $e) {
-            json_response(['success' => false, 'message' => 'Error fetching data records: ' . $e->getMessage()], 500);
+            json_response(['success' => false, 'message' => 'Error fetching data records: ' . $e->getMessage(), 'query' => $dataQuery], 500);
         }
         
         // Add debug info when no data or data issues detected
@@ -170,7 +144,9 @@ try {
             'recordsFiltered' => intval($filteredRecords),
             'success' => true,
             'data' => $data,
-            'categories_table_used' => $categories_table
+            'categories_table_used' => $categories_table,
+            'timestamp' => date('Y-m-d H:i:s'),
+            'query_used' => $dataQuery
         ];
         
         // Add debug info if present
