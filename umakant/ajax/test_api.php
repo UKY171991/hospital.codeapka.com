@@ -19,6 +19,63 @@ session_start();
 try {
     $action = $_REQUEST['action'] ?? 'list';
 
+    if ($action === 'list_full') {
+        // New action that definitely returns all 27 fields
+        $categories_table = 'categories';
+        try{
+            $stmt = $pdo->query("SHOW TABLES LIKE 'categories'");
+            if($stmt->fetch()){
+                $categories_table = 'categories';
+            } else {
+                $stmt2 = $pdo->query("SHOW TABLES LIKE 'test_categories'");
+                if($stmt2->fetch()) {
+                    $categories_table = 'test_categories';
+                }
+            }
+        }catch(Throwable $e){
+            $categories_table = 'categories';
+        }
+        
+        $draw = (int)($_REQUEST['draw'] ?? 1);
+        $start = max(0, (int)($_REQUEST['start'] ?? 0));
+        $length = max(1, min(100, (int)($_REQUEST['length'] ?? 25)));
+        
+        // Get total count
+        $totalStmt = $pdo->query("SELECT COUNT(*) FROM tests");
+        $totalRecords = $totalStmt->fetchColumn();
+        
+        // Get all data with all fields
+        $dataQuery = "SELECT 
+            t.id, t.name, t.category_id, t.main_category_id, t.price, t.unit, t.specimen, 
+            t.default_result, t.reference_range, t.min, t.max, t.description, 
+            t.min_male, t.max_male, t.min_female, t.max_female, t.min_child, t.max_child, 
+            t.child_unit, t.sub_heading, t.test_code, t.method, t.print_new_page, t.shortcut, 
+            t.added_by, t.created_at, t.updated_at,
+            COALESCE(tc.name, '') AS category_name,
+            COALESCE(mc.name, '') AS main_category_name,
+            COALESCE(u.username, '') AS added_by_username
+            FROM tests t 
+            LEFT JOIN {$categories_table} tc ON t.category_id = tc.id 
+            LEFT JOIN main_test_categories mc ON t.main_category_id = mc.id
+            LEFT JOIN users u ON t.added_by = u.id
+            ORDER BY t.id DESC 
+            LIMIT $start, $length";
+            
+        $dataStmt = $pdo->query($dataQuery);
+        $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        json_response([
+            'draw' => $draw,
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalRecords,
+            'success' => true,
+            'data' => $data,
+            'message' => 'All 27 fields returned',
+            'field_count' => count($data) > 0 ? count($data[0]) : 0,
+            'timestamp' => date('Y-m-d H:i:s')
+        ]);
+    }
+
     if ($action === 'list') {
         // Check which categories table exists - Default to 'categories' based on schema
         $categories_table = 'categories';
