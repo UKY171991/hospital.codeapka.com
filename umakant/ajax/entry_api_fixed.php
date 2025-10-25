@@ -629,9 +629,204 @@ try {
             ]);
             exit;
         }
+    } else if ($action === 'save') {
+        // Handle both create and update operations
+        error_log("Entry API: SAVE action called");
+        
+        // Check permission
+        $entryId = (int)($_POST['id'] ?? 0);
+        $isUpdate = $entryId > 0;
+        
+        if ($isUpdate) {
+            if (!simpleCheckPermission($user_data, 'update', $_POST['added_by'] ?? null)) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Permission denied to update entry']);
+                exit;
+            }
+        } else {
+            if (!simpleCheckPermission($user_data, 'create')) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Permission denied to create entry']);
+                exit;
+            }
+        }
+        
+        try {
+            // Validate required fields
+            $patientId = (int)($_POST['patient_id'] ?? 0);
+            $entryDate = $_POST['entry_date'] ?? date('Y-m-d');
+            $status = $_POST['status'] ?? 'pending';
+            $priority = $_POST['priority'] ?? 'normal';
+            
+            if (!$patientId) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Patient is required']);
+                exit;
+            }
+            
+            // Prepare entry data
+            $entryData = [
+                'patient_id' => $patientId,
+                'doctor_id' => (int)($_POST['doctor_id'] ?? 0) ?: null,
+                'entry_date' => $entryDate,
+                'status' => $status,
+                'priority' => $priority,
+                'referral_source' => $_POST['referral_source'] ?? null,
+                'patient_contact' => $_POST['patient_contact'] ?? null,
+                'patient_address' => $_POST['patient_address'] ?? null,
+                'gender' => $_POST['gender'] ?? null,
+                'age' => (int)($_POST['age'] ?? 0) ?: null,
+                'subtotal' => (float)($_POST['subtotal'] ?? 0),
+                'discount_amount' => (float)($_POST['discount_amount'] ?? 0),
+                'total_price' => (float)($_POST['total_price'] ?? 0),
+                'notes' => $_POST['notes'] ?? null,
+                'added_by' => $user_data['user_id']
+            ];
+            
+            if ($isUpdate) {
+                // Update existing entry
+                $entryData['updated_at'] = date('Y-m-d H:i:s');
+                
+                $fields = [];
+                $params = ['id' => $entryId];
+                
+                foreach ($entryData as $key => $value) {
+                    if ($key !== 'added_by') { // Don't change the original creator
+                        $fields[] = "`$key` = :$key";
+                        $params[$key] = $value;
+                    }
+                }
+                
+                $sql = "UPDATE entries SET " . implode(', ', $fields) . " WHERE id = :id";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($params);
+                
+                $savedEntryId = $entryId;
+            } else {
+                // Create new entry
+                $fields = array_keys($entryData);
+                $placeholders = ':' . implode(', :', $fields);
+                
+                $sql = "INSERT INTO entries (`" . implode('`, `', $fields) . "`) VALUES ($placeholders)";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($entryData);
+                
+                $savedEntryId = $pdo->lastInsertId();
+            }
+            
+            // Handle tests if provided
+            if (isset($_POST['tests']) && is_array($_POST['tests'])) {
+                // Delete existing tests for this entry
+                if ($isUpdate) {
+                    $stmt = $pdo->prepare("DELETE FROM entry_tests WHERE entry_id = ?");
+                    $stmt->execute([$savedEntryId]);
+                }
+                
+                // Insert new tests
+                foreach ($_POST['tests'] as $test) {
+                    if (!empty($test['test_id'])) {
+                        $testData = [
+                            'entry_id' => $savedEntryId,
+                            'test_id' => (int)$test['test_id'],
+                            'result_value' => $test['result_value'] ?? null,
+                            'unit' => $test['unit'] ?? null,
+                            'remarks' => $test['remarks'] ?? null,
+                            'status' => $test['status'] ?? 'pending',
+                            'price' => (float)($test['price'] ?? 0),
+                            'discount_amount' => (float)($test['discount_amount'] ?? 0),
+                            'total_price' => (float)($test['price'] ?? 0) - (float)($test['discount_amount'] ?? 0)
+                        ];
+                        
+                        $testFields = array_keys($testData);
+                        $testPlaceholders = ':' . implode(', :', $testFields);
+                        
+                        $testSql = "INSERT INTO entry_tests (`" . implode('`, `', $testFields) . "`) VALUES ($testPlaceholders)";
+                        $testStmt = $pdo->prepare($testSql);
+                        $testStmt->execute($testData);
+                    }
+                }
+            }
+            
+            // Refresh aggregated data
+            refresh_entry_aggregates($pdo, $savedEntryId);
+            
+            echo json_encode([
+                'success' => true,
+                'message' => $isUpdate ? 'Entry updated successfully' : 'Entry created successfully',
+                'data' => ['id' => $savedEntryId]
+            ]);
+            exit;
+            
+        } catch (Exception $e) {
+            error_log('Error saving entry: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to save entry',
+                'error' => $e->getMessage()
+            ]);
+            exit;
+        }
+        
+    } else if ($action === 'delete') {
+        // Handle entry deletion
+        error_log("Entry API: DELETE action called");
+        
+        $id = (int)($_POST['id'] ?? $_GET['id'] ?? 0);
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Entry ID is required']);
+            exit;
+        }
+        
+        try {
+            // Check if entry exists and get owner info
+            $stmt = $pdo->prepare("SELECT added_by FROM entries WHERE id = ?");
+            $stmt->execute([$id]);
+            $entry = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$entry) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Entry not found']);
+                exit;
+            }
+            
+            // Check permission
+            if (!simpleCheckPermission($user_data, 'delete', $entry['added_by'])) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Permission denied to delete entry']);
+                exit;
+            }
+            
+            // Delete associated tests first
+            $stmt = $pdo->prepare("DELETE FROM entry_tests WHERE entry_id = ?");
+            $stmt->execute([$id]);
+            
+            // Delete the entry
+            $stmt = $pdo->prepare("DELETE FROM entries WHERE id = ?");
+            $stmt->execute([$id]);
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Entry deleted successfully'
+            ]);
+            exit;
+            
+        } catch (Exception $e) {
+            error_log('Error deleting entry: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to delete entry',
+                'error' => $e->getMessage()
+            ]);
+            exit;
+        }
+        
     } else {
+        error_log("Entry API: Invalid action received: $action");
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Invalid action']);
+        echo json_encode(['success' => false, 'message' => 'Invalid action: ' . $action]);
         exit;
     }
 
