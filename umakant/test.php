@@ -136,12 +136,14 @@ require_once 'inc/sidebar.php';
                                             <th>Test Name</th>
                                             <th>Category</th>
                                             <th width="100">Price (₹)</th>
+                                            <th width="120">Added By</th>
+                                            <th width="120">Created At</th>
                                             <th width="120">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td colspan="6" class="text-center py-4">
+                                            <td colspan="8" class="text-center py-4">
                                                 <i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...
                                             </td>
                                         </tr>
@@ -472,7 +474,7 @@ function initializeTable() {
     const tableHeaders = $('#testManagementTable thead th').length;
     console.log('Table headers count:', tableHeaders);
     
-    if (tableHeaders !== 6) {
+    if (tableHeaders !== 8) {
         console.warn('Table structure mismatch, fixing...');
         fixTableStructure();
     }
@@ -492,12 +494,14 @@ function fixTableStructure() {
                 <th>Test Name</th>
                 <th>Category</th>
                 <th width="100">Price (₹)</th>
+                <th width="120">Added By</th>
+                <th width="120">Created At</th>
                 <th width="120">Actions</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td colspan="6" class="text-center py-4">
+                <td colspan="8" class="text-center py-4">
                     <i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...
                 </td>
             </tr>
@@ -513,7 +517,7 @@ function loadTests() {
     console.log('Loading tests...');
     
     // Show loading state
-    $('#testManagementTable tbody').html('<tr><td colspan="6" class="text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...</td></tr>');
+    $('#testManagementTable tbody').html('<tr><td colspan="8" class="text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading tests...</td></tr>');
     
     // Ensure we have a valid table element
     if (!$('#testManagementTable').length) {
@@ -589,7 +593,7 @@ function renderTable(data) {
     
     try {
         if (!data || !Array.isArray(data) || data.length === 0) {
-            html = '<tr><td colspan="6" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
+            html = '<tr><td colspan="8" class="text-center py-4"><i class="fas fa-info-circle text-muted mr-2"></i>No tests found</td></tr>';
         } else {
             data.forEach(function(test, index) {
                 if (!test || !test.id) {
@@ -612,6 +616,10 @@ function renderTable(data) {
                 const testPrice = test.price ? parseFloat(test.price).toFixed(0) : '0';
                 const safeName = (test.name || '').replace(/'/g, '\\\'');
                 
+                // Format added by and created at
+                const addedBy = test.added_by_username ? escapeHtml(test.added_by_username) : '<span class="text-muted">Unknown</span>';
+                const createdAt = test.created_at ? formatDateTime(test.created_at) : '<span class="text-muted">N/A</span>';
+                
                 html += `
                     <tr data-test-id="${test.id}">
                         <td class="text-center"><input type="checkbox" class="test-checkbox" value="${test.id}"></td>
@@ -622,6 +630,8 @@ function renderTable(data) {
                         </td>
                         <td>${categoryHtml}</td>
                         <td class="text-right"><strong class="text-success">₹${testPrice}</strong></td>
+                        <td class="text-center">${addedBy}</td>
+                        <td class="text-center">${createdAt}</td>
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
                                 <button class="btn btn-outline-info btn-sm" onclick="viewTest(${test.id})" title="View Details">
@@ -646,7 +656,7 @@ function renderTable(data) {
         
     } catch (error) {
         console.error('Error rendering table:', error);
-        $('#testManagementTable tbody').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error rendering table data</td></tr>');
+        $('#testManagementTable tbody').html('<tr><td colspan="8" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Error rendering table data</td></tr>');
     }
 }
 
@@ -1557,7 +1567,7 @@ function refreshTests() {
 function showTableError(message) {
     $('#testManagementTable tbody').html(`
         <tr>
-            <td colspan="6" class="text-center text-danger py-4">
+            <td colspan="8" class="text-center text-danger py-4">
                 <i class="fas fa-exclamation-triangle mr-2"></i>${message}
                 <br><br>
                 <button class="btn btn-primary btn-sm" onclick="refreshTests()">
@@ -1580,6 +1590,29 @@ function escapeHtml(text) {
         "'": '&#039;'
     };
     return s.replace(/[&<>\"']/g, function(m) { return map[m]; });
+}
+
+// Format datetime function
+function formatDateTime(dateTimeString) {
+    if (!dateTimeString) return 'N/A';
+    
+    try {
+        const date = new Date(dateTimeString);
+        if (isNaN(date.getTime())) return 'Invalid Date';
+        
+        const options = {
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        
+        return date.toLocaleDateString('en-US', options);
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return 'Invalid Date';
+    }
 }
 
 // Debug function to test API calls manually
@@ -1749,6 +1782,13 @@ code {
 @media (max-width: 768px) {
     #testManagementTable {
         font-size: 0.8rem;
+    }
+    
+    #testManagementTable th:nth-child(6),
+    #testManagementTable td:nth-child(6),
+    #testManagementTable th:nth-child(7),
+    #testManagementTable td:nth-child(7) {
+        display: none;
     }
     
     .btn-group-sm > .btn, .btn-sm {
