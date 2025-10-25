@@ -88,6 +88,9 @@ require_once 'inc/sidebar.php';
                                 <button type="button" class="btn btn-info btn-sm" onclick="refreshTests()">
                                     <i class="fas fa-sync-alt"></i> Refresh
                                 </button>
+                                <button type="button" class="btn btn-warning btn-sm" onclick="testCategoryAPIs()" title="Debug: Test Category APIs">
+                                    <i class="fas fa-bug"></i> Debug
+                                </button>
                             </div>
                         </div>
                         
@@ -746,9 +749,11 @@ function loadCategories() {
     console.log('Loading main categories...');
     
     // Ensure required elements exist
-    if (!$('#mainCategorySelect').length || !$('#categoryFilter').length) {
-        console.error('Required category select elements not found');
-        return;
+    if (!$('#mainCategorySelect').length) {
+        console.warn('Main category select element not found, will retry when modal opens');
+    }
+    if (!$('#categoryFilter').length) {
+        console.warn('Category filter element not found');
     }
     
     // Load main categories
@@ -765,13 +770,18 @@ function loadCategories() {
                 let modalOptions = '<option value="">Select Main Category</option>';
                 
                 response.data.forEach(category => {
+                    console.log('Main category found:', category.name, 'ID:', category.id);
                     if (category && category.id && category.name) {
                         modalOptions += `<option value="${category.id}">${escapeHtml(category.name)}</option>`;
                     }
                 });
                 
-                $('#mainCategorySelect').html(modalOptions);
-                console.log('Main categories loaded successfully');
+                if ($('#mainCategorySelect').length) {
+                    $('#mainCategorySelect').html(modalOptions);
+                    console.log('Main categories loaded successfully');
+                } else {
+                    console.warn('Main category select element not found when trying to populate');
+                }
             } else {
                 console.warn('Invalid main categories response:', response);
                 $('#mainCategorySelect').html('<option value="">Error loading categories</option>');
@@ -787,7 +797,7 @@ function loadCategories() {
     
     // Load test categories for filter
     $.ajax({
-        url: TEST_CATEGORY_API + 'list',
+        url: TEST_CATEGORY_API + 'list&secret_key=hospital-api-secret-2024',
         type: 'GET',
         dataType: 'json',
         timeout: 10000,
@@ -803,8 +813,12 @@ function loadCategories() {
                     }
                 });
 
-                $('#categoryFilter').html(filterOptions);
-                console.log('Test categories loaded successfully');
+                if ($('#categoryFilter').length) {
+                    $('#categoryFilter').html(filterOptions);
+                    console.log('Test categories loaded successfully');
+                } else {
+                    console.warn('Category filter element not found when trying to populate');
+                }
             } else {
                 console.warn('Invalid test categories response:', response);
                 $('#categoryFilter').html('<option value="">Error loading categories</option>');
@@ -830,7 +844,7 @@ function loadTestCategoriesByMain(mainCategoryId) {
     $('#testCategoryId').html('<option value="">Loading categories...</option>');
 
     $.ajax({
-        url: TEST_CATEGORY_API + 'list',
+        url: TEST_CATEGORY_API + 'list&secret_key=hospital-api-secret-2024',
         type: 'GET',
         dataType: 'json',
         timeout: 10000,
@@ -842,14 +856,20 @@ function loadTestCategoriesByMain(mainCategoryId) {
                 let foundCategories = 0;
                 
                 response.data.forEach(category => {
+                    console.log('Checking category:', category.name, 'main_category_id:', category.main_category_id, 'vs selected:', mainCategoryId);
                     if (category && category.main_category_id == mainCategoryId && category.id && category.name) {
                         options += `<option value="${category.id}">${escapeHtml(category.name)}</option>`;
                         foundCategories++;
+                        console.log('Added category:', category.name);
                     }
                 });
 
-                $('#testCategoryId').html(options);
-                console.log(`Found ${foundCategories} categories for main category ${mainCategoryId}`);
+                if ($('#testCategoryId').length) {
+                    $('#testCategoryId').html(options);
+                    console.log(`Found ${foundCategories} categories for main category ${mainCategoryId}`);
+                } else {
+                    console.warn('Test category select element not found when trying to populate');
+                }
                 
                 if (foundCategories === 0) {
                     $('#testCategoryId').html('<option value="">No categories found</option>');
@@ -931,7 +951,7 @@ function loadTestCategoriesForEditSync(mainCategoryId, selectedCategoryId) {
     $('#testCategoryId').html('<option value="">Loading categories...</option>');
 
     $.ajax({
-        url: TEST_CATEGORY_API + 'list',
+        url: TEST_CATEGORY_API + 'list&secret_key=hospital-api-secret-2024',
         type: 'GET',
         dataType: 'json',
         timeout: 10000,
@@ -992,7 +1012,7 @@ function loadTestCategoriesByMainForEdit(mainCategoryId, selectedCategoryId) {
     $('#testCategoryId').html('<option value="">Loading categories...</option>');
 
     $.ajax({
-        url: TEST_CATEGORY_API + 'list',
+        url: TEST_CATEGORY_API + 'list&secret_key=hospital-api-secret-2024',
         type: 'GET',
         dataType: 'json',
         timeout: 10000,
@@ -1093,6 +1113,11 @@ function openAddTestModal() {
     $('#testForm')[0].reset();
     $('#testId').val('');
     $('#modalTitle').text('Add New Test');
+    
+    // Ensure categories are loaded before showing modal
+    console.log('Loading categories for new test modal...');
+    loadCategories();
+    
     $('#testModal').modal('show');
 }
 
@@ -1542,6 +1567,53 @@ function escapeHtml(text) {
         "'": '&#039;'
     };
     return s.replace(/[&<>\"']/g, function(m) { return map[m]; });
+}
+
+// Debug function to test API calls manually
+function testCategoryAPIs() {
+    console.log('=== Testing Category APIs ===');
+    
+    // Test main categories
+    $.ajax({
+        url: 'ajax/main_test_category_api.php?action=list',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            console.log('Main Categories API Response:', response);
+        },
+        error: function(xhr, status, error) {
+            console.error('Main Categories API Error:', {xhr, status, error});
+        }
+    });
+    
+    // Test test categories
+    $.ajax({
+        url: 'patho_api/test_category.php?action=list&secret_key=hospital-api-secret-2024',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            console.log('Test Categories API Response:', response);
+        },
+        error: function(xhr, status, error) {
+            console.error('Test Categories API Error:', {xhr, status, error});
+        }
+    });
+}
+
+// Debug function to manually populate dropdowns
+function testPopulateDropdowns() {
+    console.log('=== Testing Dropdown Population ===');
+    
+    // Check if elements exist
+    console.log('Main category select exists:', $('#mainCategorySelect').length > 0);
+    console.log('Test category select exists:', $('#testCategoryId').length > 0);
+    console.log('Category filter exists:', $('#categoryFilter').length > 0);
+    
+    // Try to populate with test data
+    $('#mainCategorySelect').html('<option value="">Select Main Category</option><option value="1">Test Main Category</option>');
+    $('#testCategoryId').html('<option value="">Select Test Category</option><option value="1">Test Category</option>');
+    
+    console.log('Test data populated');
 }
 </script>
 
