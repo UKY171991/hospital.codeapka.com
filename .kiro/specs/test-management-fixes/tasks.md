@@ -5,6 +5,8 @@
 
 
 
+
+
   - Fix the main category loading API call and dropdown population
   - Implement proper test category loading based on main category selection
   - Add error handling and loading states for category dropdowns

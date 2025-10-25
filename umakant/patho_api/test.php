@@ -26,11 +26,11 @@ require_once __DIR__ . '/../inc/simple_auth.php';
 $entity_config = [
     'table_name' => 'tests',
     'id_field' => 'id',
-    'required_fields' => ['name', 'category_id'],
+    'required_fields' => ['name', 'main_category_id'],
     'allowed_fields' => [
-        'name', 'category_id', 'method', 'price', 'description',
-        'min_male', 'max_male', 'min_female', 'max_female',
-        'min', 'max', 'unit', 'default_result', 'reference_range',
+        'name', 'category_id', 'main_category_id', 'method', 'price', 'description',
+        'min_male', 'max_male', 'min_female', 'max_female', 'min_child', 'max_child',
+        'min', 'max', 'unit', 'child_unit', 'default_result', 'reference_range',
         'test_code', 'shortcut', 'sub_heading', 'print_new_page', 'specimen', 'added_by'
     ],
     'list_fields' => 't.id, t.name, t.category_id, t.main_category_id, t.price, t.unit, t.specimen, t.default_result, t.reference_range, t.min, t.max, t.description, t.min_male, t.max_male, t.min_female, t.max_female, t.min_child, t.max_child, t.child_unit, t.sub_heading, t.test_code, t.method, t.print_new_page, t.shortcut, t.added_by, t.created_at, t.updated_at, u.username as added_by_username, c.name as category_name, mc.name as main_category_name',
@@ -113,7 +113,7 @@ function handleList($pdo, $config, $user_data, $isSimpleList = false) {
         $stmt = $pdo->query("SELECT t.id, t.name, t.category_id, t.main_category_id, t.price, t.unit, t.specimen, t.default_result, t.reference_range, t.min, t.max, t.description, t.min_male, t.max_male, t.min_female, t.max_female, t.min_child, t.max_child, t.child_unit, t.sub_heading, t.test_code, t.method, t.print_new_page, t.shortcut, t.added_by, t.created_at, t.updated_at, c.name as category_name, mc.name as main_category_name 
                             FROM {$config['table_name']} t 
                             LEFT JOIN categories c ON t.category_id = c.id 
-                            LEFT JOIN main_test_categories mc ON c.main_category_id = mc.id 
+                            LEFT JOIN main_test_categories mc ON t.main_category_id = mc.id 
                             ORDER BY mc.name, c.name, t.name");
         $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
         json_response(['success' => true, 'data' => $tests]);
@@ -141,7 +141,7 @@ function handleList($pdo, $config, $user_data, $isSimpleList = false) {
     // Enhanced base query with main categories
     $baseQuery = "{$config['table_name']} t 
                   LEFT JOIN categories c ON t.category_id = c.id 
-                  LEFT JOIN main_test_categories mc ON c.main_category_id = mc.id 
+                  LEFT JOIN main_test_categories mc ON t.main_category_id = mc.id 
                   LEFT JOIN users u ON t.added_by = u.id";
     $whereClause = $where;
 
@@ -226,6 +226,15 @@ function handleSave($pdo, $config, $user_data) {
     foreach ($config['required_fields'] as $field) {
         if (empty($input[$field])) {
             json_response(['success' => false, 'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'], 400);
+        }
+    }
+
+    // Validate main category exists (required)
+    if (!empty($input['main_category_id'])) {
+        $stmt = $pdo->prepare("SELECT id FROM main_test_categories WHERE id = ?");
+        $stmt->execute([$input['main_category_id']]);
+        if (!$stmt->fetch()) {
+            json_response(['success' => false, 'message' => 'Invalid main category selected'], 400);
         }
     }
 
@@ -516,10 +525,10 @@ function handleDebug($pdo, $user_data) {
         $debugInfo['database_info']['main_categories_table_exists'] = $stmt->rowCount() > 0;
         
         if ($debugInfo['database_info']['tests_table_exists']) {
-            $stmt = $pdo->query("SELECT t.id, t.name, c.name as category_name, mc.name as main_category_name 
+            $stmt = $pdo->query("SELECT t.id, t.name, t.main_category_id, c.name as category_name, mc.name as main_category_name 
                                 FROM tests t 
                                 LEFT JOIN categories c ON t.category_id = c.id 
-                                LEFT JOIN main_test_categories mc ON c.main_category_id = mc.id 
+                                LEFT JOIN main_test_categories mc ON t.main_category_id = mc.id 
                                 LIMIT 3");
             $debugInfo['database_info']['sample_tests'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
