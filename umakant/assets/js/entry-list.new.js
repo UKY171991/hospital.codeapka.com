@@ -777,6 +777,8 @@ $(document).on('shown.bs.modal', '#entryModal, #addEntryModal', function () {
         }
     });
 
+
+
     // Force calculate pricing when modal is shown
     setTimeout(function () {
         updatePricingFields();
@@ -1663,7 +1665,7 @@ function populateEditForm(entry) {
 
         if (entry.tests && entry.tests.length > 0) {
             // Wait a moment for all dropdowns to be fully populated
-            setTimeout(function() {
+            setTimeout(function () {
                 entry.tests.forEach(function (test, index) {
                     console.log(`Setting test ${index}: ${test.test_name} (ID: ${test.test_id})`);
 
@@ -1674,18 +1676,31 @@ function populateEditForm(entry) {
                         // Verify the option exists
                         const targetOption = testSelect.find(`option[value="${test.test_id}"]`);
                         console.log(`Option exists for test_id ${test.test_id}:`, targetOption.length > 0);
-                        
+
                         if (targetOption.length > 0) {
                             // Set the value directly
                             testSelect.val(test.test_id);
-                            
-                            // Update Select2 display if it's initialized
+
+                            // Force Select2 to update its display by destroying and recreating
                             if (testSelect.hasClass('select2-hidden-accessible')) {
-                                testSelect.trigger('change.select2');
+                                try {
+                                    testSelect.select2('destroy');
+                                    testSelect.select2({
+                                        dropdownParent: $('#entryModal'),
+                                        width: '100%',
+                                        theme: 'bootstrap4'
+                                    });
+                                    testSelect.val(test.test_id);
+                                } catch (e) {
+                                    console.warn('Select2 refresh failed:', e);
+                                }
                             }
-                            
+
+                            // Trigger change event
+                            testSelect.trigger('change');
+
                             console.log(`✓ Test ${index} set to: ${testSelect.find('option:selected').text()}`);
-                            
+
                             // Populate the form fields with the actual test data from the entry
                             testRow.find('.test-category').val(test.category_name || '');
                             testRow.find('.test-category-id').val(test.category_id || '');
@@ -1693,74 +1708,71 @@ function populateEditForm(entry) {
                             testRow.find('.test-min').val(test.min || '');
                             testRow.find('.test-max').val(test.max || '');
                             testRow.find('.test-result').val(test.result_value || '');
-                            
-                            // Trigger change to update pricing
-                            testSelect.trigger('change');
-                            
+
                         } else {
                             console.error(`✗ Test option not found for: ${test.test_name} (ID: ${test.test_id})`);
-                            console.log('Available options:', testSelect.find('option').map(function() { 
-                                return { value: $(this).val(), text: $(this).text() }; 
+                            console.log('Available options:', testSelect.find('option').map(function () {
+                                return { value: $(this).val(), text: $(this).text() };
                             }).get().slice(0, 5)); // Show first 5 options
                         }
                     } else {
                         console.warn(`Test ${index} missing test_id or row not found`);
                     }
                 });
-                
+
                 console.log('✓ All test selections completed');
-            }, 300); // Give more time for loadTests to complete
+            }, 500); // Give more time for loadTests to complete
         } else {
             console.log('No tests to populate');
         }
-
-        // After tests are loaded, re-populate pricing fields to ensure they're visible
-        // This handles cases where the fields might have been cleared or reset
-        setTimeout(function () {
-            // Recalculate subtotal from entry data (not from test selections)
-            // Check ALL possible field name variations
-            const finalSubtotal = (entry.subtotal !== null && entry.subtotal !== undefined)
-                ? parseFloat(entry.subtotal)
-                : (entry.aggregated_total_price !== null && entry.aggregated_total_price !== undefined)
-                    ? parseFloat(entry.aggregated_total_price)
-                    : (entry.agg_total_price !== null && entry.agg_total_price !== undefined)
-                        ? parseFloat(entry.agg_total_price)
-                        : (entry.price !== null && entry.price !== undefined)
-                            ? parseFloat(entry.price)
-                            : 0;
-
-            const finalDiscount = (entry.discount_amount !== null && entry.discount_amount !== undefined)
-                ? parseFloat(entry.discount_amount)
-                : (entry.aggregated_total_discount !== null && entry.aggregated_total_discount !== undefined)
-                    ? parseFloat(entry.aggregated_total_discount)
-                    : (entry.agg_total_discount !== null && entry.agg_total_discount !== undefined)
-                        ? parseFloat(entry.agg_total_discount)
-                        : (entry.total_discount !== null && entry.total_discount !== undefined)
-                            ? parseFloat(entry.total_discount)
-                            : 0;
-
-            const finalTotal = (entry.total_price !== null && entry.total_price !== undefined)
-                ? parseFloat(entry.total_price)
-                : (entry.final_amount !== null && entry.final_amount !== undefined)
-                    ? parseFloat(entry.final_amount)
-                    : Math.max(finalSubtotal - finalDiscount, 0);
-
-            $('#subtotal').val(parseFloat(finalSubtotal).toFixed(2));
-            $('#discountAmount').val(parseFloat(finalDiscount).toFixed(2));
-            $('#totalPrice').val(parseFloat(finalTotal).toFixed(2));
-
-            console.log('Pricing fields re-populated after tests loaded:', {
-                subtotal: $('#subtotal').val(),
-                discountAmount: $('#discountAmount').val(),
-                totalPrice: $('#totalPrice').val(),
-                rawValues: {
-                    finalSubtotal: finalSubtotal,
-                    finalDiscount: finalDiscount,
-                    finalTotal: finalTotal
-                }
-            });
-        }, 200);
     });
+
+    // After tests are loaded, re-populate pricing fields to ensure they're visible
+    // This handles cases where the fields might have been cleared or reset
+    setTimeout(function () {
+        // Recalculate subtotal from entry data (not from test selections)
+        // Check ALL possible field name variations
+        const finalSubtotal = (entry.subtotal !== null && entry.subtotal !== undefined)
+            ? parseFloat(entry.subtotal)
+            : (entry.aggregated_total_price !== null && entry.aggregated_total_price !== undefined)
+                ? parseFloat(entry.aggregated_total_price)
+                : (entry.agg_total_price !== null && entry.agg_total_price !== undefined)
+                    ? parseFloat(entry.agg_total_price)
+                    : (entry.price !== null && entry.price !== undefined)
+                        ? parseFloat(entry.price)
+                        : 0;
+
+        const finalDiscount = (entry.discount_amount !== null && entry.discount_amount !== undefined)
+            ? parseFloat(entry.discount_amount)
+            : (entry.aggregated_total_discount !== null && entry.aggregated_total_discount !== undefined)
+                ? parseFloat(entry.aggregated_total_discount)
+                : (entry.agg_total_discount !== null && entry.agg_total_discount !== undefined)
+                    ? parseFloat(entry.agg_total_discount)
+                    : (entry.total_discount !== null && entry.total_discount !== undefined)
+                        ? parseFloat(entry.total_discount)
+                        : 0;
+
+        const finalTotal = (entry.total_price !== null && entry.total_price !== undefined)
+            ? parseFloat(entry.total_price)
+            : (entry.final_amount !== null && entry.final_amount !== undefined)
+                ? parseFloat(entry.final_amount)
+                : Math.max(finalSubtotal - finalDiscount, 0);
+
+        $('#subtotal').val(parseFloat(finalSubtotal).toFixed(2));
+        $('#discountAmount').val(parseFloat(finalDiscount).toFixed(2));
+        $('#totalPrice').val(parseFloat(finalTotal).toFixed(2));
+
+        console.log('Pricing fields re-populated after tests loaded:', {
+            subtotal: $('#subtotal').val(),
+            discountAmount: $('#discountAmount').val(),
+            totalPrice: $('#totalPrice').val(),
+            rawValues: {
+                finalSubtotal: finalSubtotal,
+                finalDiscount: finalDiscount,
+                finalTotal: finalTotal
+            }
+        });
+    }, 200);
 }
 
 // Delete entry
