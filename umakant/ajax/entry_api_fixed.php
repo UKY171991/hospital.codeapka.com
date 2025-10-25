@@ -1,10 +1,18 @@
 <?php
 // ajax/entry_api.php - CRUD for entries
+
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't display errors in output
+ini_set('log_errors', 1);
+
+// Set content type early
+header('Content-Type: application/json; charset=utf-8');
+
 try {
     require_once __DIR__ . '/../inc/connection.php';
 } catch (Exception $e) {
     // If database connection fails, provide fallback response
-    header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
         'message' => 'Database connection error. Please ensure MySQL is running.',
@@ -28,11 +36,13 @@ $action = $_REQUEST['action'] ?? 'list';
 // Authenticate user
 $user_data = simpleAuthenticate($pdo);
 if (!$user_data) {
-    json_response([
+    http_response_code(401);
+    echo json_encode([
         'success' => false, 
         'message' => 'Authentication required',
         'debug_info' => getAuthDebugInfo()
-    ], 401);
+    ]);
+    exit;
 }
 
 function db_table_exists($pdo, $table) {
@@ -183,7 +193,9 @@ try {
     if ($action === 'stats') {
         // Check permission
         if (!simpleCheckPermission($user_data, 'list')) {
-            json_response(['success' => false, 'message' => 'Permission denied to view statistics'], 403);
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Permission denied to view statistics']);
+            exit;
         }
         
         // Get statistics for dashboard
@@ -223,11 +235,14 @@ try {
             $stats = ['total' => 0, 'pending' => 0, 'completed' => 0, 'today' => 0];
         }
         
-        json_response(['success' => true, 'status' => 'success', 'data' => $stats]);
+        echo json_encode(['success' => true, 'status' => 'success', 'data' => $stats]);
+        exit;
     } else if ($action === 'list') {
         // Check permission
         if (!simpleCheckPermission($user_data, 'list')) {
-            json_response(['success' => false, 'message' => 'Permission denied to list entries'], 403);
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Permission denied to list entries']);
+            exit;
         }
         
         // Updated to match new schema with comprehensive data
@@ -271,7 +286,9 @@ try {
             $stmt->execute($params);
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
-            json_response(['success' => false, 'message' => 'Database error while listing entries', 'error' => $e->getMessage()], 500);
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Database error while listing entries', 'error' => $e->getMessage()]);
+            exit;
         }
         
         // Format data for frontend compatibility
@@ -323,11 +340,14 @@ try {
         }
         
         // Return the formatted data
-        json_response(['success' => true, 'data' => $rows]);
+        echo json_encode(['success' => true, 'data' => $rows]);
+        exit;
         
     } else if ($action === 'report_list') {
         if (!simpleCheckPermission($user_data, 'list')) {
-            json_response(['success' => false, 'message' => 'Permission denied to list reports'], 403);
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Permission denied to list reports']);
+            exit;
         }
 
         try {
@@ -424,7 +444,7 @@ try {
                 $total_amount += $test_total;
             }
 
-            json_response([
+            echo json_encode([
                 'success' => true,
                 'data' => $reports,
                 'summary' => [
@@ -433,25 +453,207 @@ try {
                     'total_amount_formatted' => number_format($total_amount, 2)
                 ]
             ]);
+            exit;
 
         } catch (Exception $e) {
             error_log('Error in report_list: ' . $e->getMessage());
-            json_response([
+            http_response_code(500);
+            echo json_encode([
                 'success' => false,
                 'message' => 'Failed to fetch reports',
                 'error' => $e->getMessage()
-            ], 500);
+            ]);
+            exit;
         }
+    } else if ($action === 'get') {
+        // Debug logging
+        error_log("Entry API: GET action called with ID: " . ($_GET['id'] ?? 'none'));
+        error_log("Entry API: User data: " . print_r($user_data, true));
+        
+        // Check permission
+        if (!simpleCheckPermission($user_data, 'get')) {
+            error_log("Entry API: Permission denied for user: " . ($user_data['user_id'] ?? 'unknown'));
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Permission denied to view entry details']);
+            exit;
+        }
+        
+        $id = (int)($_GET['id'] ?? 0);
+        if (!$id) {
+            error_log("Entry API: No ID provided");
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Entry ID is required']);
+            exit;
+        }
+        
+        error_log("Entry API: Processing entry ID: $id");
+        
+        try {
+            // Check if user has permission to view this entry
+            $viewerRole = $user_data['role'] ?? 'user';
+            $viewerId = (int)($user_data['user_id'] ?? 0);
+            
+            // Build the main entry query with all related data
+            $entriesCaps = get_entries_schema_capabilities($pdo);
+            $ownerSelect = '';
+            $ownerJoin = '';
+            if (!empty($entriesCaps['has_owner_id'])) {
+                $ownerSelect = "o.name AS owner_name,";
+                $ownerJoin = " LEFT JOIN owners o ON e.owner_id = o.id";
+            }
+            
+            $sql = "SELECT e.*, 
+                           p.name AS patient_name, p.uhid, p.age, p.sex AS gender, p.contact AS patient_contact, p.address AS patient_address,
+                           d.name AS doctor_name, d.specialization AS doctor_specialization,
+                           {$ownerSelect}
+                           u.username AS added_by_username, u.full_name AS added_by_full_name
+                    FROM entries e 
+                    LEFT JOIN patients p ON e.patient_id = p.id 
+                    LEFT JOIN doctors d ON e.doctor_id = d.id " .
+                    $ownerJoin .
+                    " LEFT JOIN users u ON e.added_by = u.id
+                    WHERE e.id = ?";
+            
+            // Add scope restriction for non-master users
+            if ($viewerRole !== 'master') {
+                $sql .= " AND e.added_by = ?";
+                $params = [$id, $viewerId];
+            } else {
+                $params = [$id];
+            }
+            
+            error_log("Entry API: SQL Query: $sql");
+            error_log("Entry API: SQL Params: " . print_r($params, true));
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $entry = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            error_log("Entry API: Query result: " . ($entry ? 'Found entry' : 'No entry found'));
+            
+            if (!$entry) {
+                error_log("Entry API: Entry not found for ID $id");
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Entry not found or access denied']);
+                exit;
+            }
+            
+            // Get associated tests for this entry
+            $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
+            $tests = [];
+            
+            if ($entryTestsCaps['table_exists']) {
+                $testSql = "SELECT et.*, 
+                                   t.name AS test_name, 
+                                   t.unit, 
+                                   t.min, 
+                                   t.max,
+                                   t.min_male,
+                                   t.max_male,
+                                   t.min_female,
+                                   t.max_female,
+                                   t.reference_range,
+                                   c.name AS category_name
+                            FROM entry_tests et
+                            LEFT JOIN tests t ON et.test_id = t.id
+                            LEFT JOIN categories c ON t.category_id = c.id
+                            WHERE et.entry_id = ?
+                            ORDER BY t.name";
+                
+                $testStmt = $pdo->prepare($testSql);
+                $testStmt->execute([$id]);
+                $tests = $testStmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Format test data
+                foreach ($tests as &$test) {
+                    $test['price'] = (float)($test['price'] ?? 0);
+                    $test['discount_amount'] = (float)($test['discount_amount'] ?? 0);
+                    $test['total_price'] = $test['price'] - $test['discount_amount'];
+                    $test['result_value'] = $test['result_value'] ?? '';
+                    $test['status'] = $test['status'] ?? 'pending';
+                }
+            }
+            
+            // Format entry data
+            $entry['tests'] = $tests;
+            $entry['tests_count'] = count($tests);
+            
+            // Calculate totals from tests
+            $subtotal = 0;
+            $totalDiscount = 0;
+            foreach ($tests as $test) {
+                $subtotal += (float)($test['price'] ?? 0);
+                $totalDiscount += (float)($test['discount_amount'] ?? 0);
+            }
+            
+            $entry['subtotal'] = $subtotal;
+            $entry['total_discount'] = $totalDiscount;
+            $entry['final_amount'] = $subtotal - $totalDiscount;
+            
+            // Format dates
+            if ($entry['entry_date']) {
+                $entry['entry_date_formatted'] = date('d M Y', strtotime($entry['entry_date']));
+            }
+            if ($entry['created_at']) {
+                $entry['created_at_formatted'] = date('d M Y H:i', strtotime($entry['created_at']));
+            }
+            if ($entry['updated_at']) {
+                $entry['updated_at_formatted'] = date('d M Y H:i', strtotime($entry['updated_at']));
+            }
+            
+            // Format pricing fields
+            $entry['price'] = (float)($entry['price'] ?? 0);
+            $entry['discount_amount'] = (float)($entry['discount_amount'] ?? 0);
+            $entry['total_price'] = (float)($entry['total_price'] ?? 0);
+            
+            // Ensure all expected fields exist
+            $entry['priority'] = $entry['priority'] ?? 'normal';
+            $entry['status'] = $entry['status'] ?? 'pending';
+            $entry['notes'] = $entry['notes'] ?? '';
+            $entry['referral_source'] = $entry['referral_source'] ?? '';
+            
+            error_log("Entry API: Returning successful response for entry ID: $id");
+            $response = ['success' => true, 'data' => $entry];
+            $json = json_encode($response);
+            error_log("Entry API: JSON response length: " . strlen($json));
+            echo $json;
+            exit;
+            
+        } catch (Exception $e) {
+            error_log('Error getting entry details: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to get entry details',
+                'error' => $e->getMessage()
+            ]);
+            exit;
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid action']);
+        exit;
     }
 
 } catch (PDOException $e) {
     error_log('Entry API PDO error: ' . $e->getMessage());
     http_response_code(500);
-    json_response(['success' => false, 'message' => 'Database error', 'error' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Database error', 'error' => $e->getMessage()]);
 } catch (Exception $e) {
     error_log('Entry API error: ' . $e->getMessage());
     http_response_code(500);
-    json_response(['success' => false, 'message' => 'Server error', 'error' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Server error', 'error' => $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log('Entry API fatal error: ' . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Fatal error occurred', 'error' => $e->getMessage()]);
+}
+
+// Ensure we always output something
+if (!headers_sent()) {
+    // If we reach here without any output, something went wrong
+    error_log('Entry API: No response generated for action: ' . ($_REQUEST['action'] ?? 'unknown'));
+    echo json_encode(['success' => false, 'message' => 'No response generated']);
 }
 
 
