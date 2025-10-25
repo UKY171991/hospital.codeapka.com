@@ -913,12 +913,12 @@
             {
                 name: 'Tests',
                 file: 'test.php',
-                description: 'Enhanced API for managing laboratory tests with complete field support. Returns all 27 fields from tests table: id, name, category_id, main_category_id, price, unit, specimen, default_result, reference_range, min, max, description, min_male, max_male, min_female, max_female, min_child, max_child, child_unit, sub_heading, test_code, method, print_new_page, shortcut, added_by, created_at, updated_at. Includes reference ranges for different demographics (general, male, female, child), category relationships, and metadata.',
+                description: 'Enhanced API for managing laboratory tests with complete field support. Returns all 26 fields from tests table: id, name, category_id, main_category_id, price, unit, specimen, default_result, reference_range, min, max, description, min_male, max_male, min_female, max_female, min_child, max_child, sub_heading, test_code, method, print_new_page, shortcut, added_by, created_at, updated_at. Includes reference ranges for different demographics (general, male, female, child), category relationships, and metadata.',
                 endpoints: [
                     { 
                         action: 'list', 
                         method: 'GET', 
-                        description: 'Get all tests with server-side pagination, search, and filtering. Returns complete test data with all 27 fields including: Basic Info (id, name, description, test_code, shortcut), Categories (category_id, main_category_id, category_name, main_category_name), Pricing (price), Specimen & Method (unit, specimen, method), Reference Ranges (reference_range, min, max, min_male, max_male, min_female, max_female, min_child, max_child, child_unit), Settings (sub_heading, print_new_page), Metadata (added_by, added_by_username, created_at, updated_at), Default Results (default_result). Supports DataTables server-side processing with draw, start, length, search parameters.' 
+                        description: 'Get all tests with server-side pagination, search, and filtering. Returns complete test data with all 26 fields including: Basic Info (id, name, description, test_code, shortcut), Categories (category_id, main_category_id, category_name, main_category_name), Pricing (price), Specimen & Method (unit, specimen, method), Reference Ranges (reference_range, min, max, min_male, max_male, min_female, max_female, min_child, max_child), Settings (sub_heading, print_new_page), Metadata (added_by, added_by_username, created_at, updated_at), Default Results (default_result). Supports DataTables server-side processing with draw, start, length, search parameters.' 
                     },
                     { 
                         action: 'simple_list', 

@@ -30,10 +30,10 @@ $entity_config = [
     'allowed_fields' => [
         'name', 'category_id', 'main_category_id', 'method', 'price', 'description',
         'min_male', 'max_male', 'min_female', 'max_female', 'min_child', 'max_child',
-        'min', 'max', 'unit', 'child_unit', 'default_result', 'reference_range',
+        'min', 'max', 'unit', 'default_result', 'reference_range',
         'test_code', 'shortcut', 'sub_heading', 'print_new_page', 'specimen', 'added_by'
     ],
-    'list_fields' => 't.id, t.name, t.category_id, t.main_category_id, t.price, t.unit, t.specimen, t.default_result, t.reference_range, t.min, t.max, t.description, t.min_male, t.max_male, t.min_female, t.max_female, t.min_child, t.max_child, t.child_unit, t.sub_heading, t.test_code, t.method, t.print_new_page, t.shortcut, t.added_by, t.created_at, t.updated_at, u.username as added_by_username, c.name as category_name, mc.name as main_category_name',
+    'list_fields' => 't.id, t.name, t.category_id, t.main_category_id, t.price, t.unit, t.specimen, t.default_result, t.reference_range, t.min, t.max, t.description, t.min_male, t.max_male, t.min_female, t.max_female, t.min_child, t.max_child, t.sub_heading, t.test_code, t.method, t.print_new_page, t.shortcut, t.added_by, t.created_at, t.updated_at, u.username as added_by_username, c.name as category_name, mc.name as main_category_name',
     'get_fields' => 't.*, u.username as added_by_username, c.name as category_name, c.main_category_id, mc.name as main_category_name'
 ];
 
@@ -110,7 +110,7 @@ function handleList($pdo, $config, $user_data, $isSimpleList = false) {
     }
 
     if ($isSimpleList) {
-        $stmt = $pdo->query("SELECT t.id, t.name, t.category_id, t.main_category_id, t.price, t.unit, t.specimen, t.default_result, t.reference_range, t.min, t.max, t.description, t.min_male, t.max_male, t.min_female, t.max_female, t.min_child, t.max_child, t.child_unit, t.sub_heading, t.test_code, t.method, t.print_new_page, t.shortcut, t.added_by, t.created_at, t.updated_at, c.name as category_name, mc.name as main_category_name 
+        $stmt = $pdo->query("SELECT t.id, t.name, t.category_id, t.main_category_id, t.price, t.unit, t.specimen, t.default_result, t.reference_range, t.min, t.max, t.description, t.min_male, t.max_male, t.min_female, t.max_female, t.min_child, t.max_child, t.sub_heading, t.test_code, t.method, t.print_new_page, t.shortcut, t.added_by, t.created_at, t.updated_at, c.name as category_name, mc.name as main_category_name 
                             FROM {$config['table_name']} t 
                             LEFT JOIN categories c ON t.category_id = c.id 
                             LEFT JOIN main_test_categories mc ON t.main_category_id = mc.id 
