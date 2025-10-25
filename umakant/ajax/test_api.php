@@ -47,6 +47,8 @@ try {
         $countBaseQuery = "FROM tests t LEFT JOIN {$categories_table} tc ON t.category_id = tc.id LEFT JOIN users u ON t.added_by = u.id";
         
         // Add search conditions - search across all relevant text fields
+        $whereClause = "";
+        $params = [];
         if (!empty($search)) {
             $whereClause = " WHERE (t.name LIKE ? OR tc.name LIKE ? OR mc.name LIKE ? OR t.description LIKE ? OR t.test_code LIKE ? OR t.method LIKE ? OR t.specimen LIKE ? OR t.unit LIKE ? OR u.username LIKE ?)";
             $searchTerm = "%$search%";
@@ -68,9 +70,13 @@ try {
 
         // Get filtered records with error handling
         try {
-            $filteredStmt = $pdo->prepare("SELECT COUNT(*) " . $countBaseQuery . $whereClause);
-            $filteredStmt->execute($params);
-            $filteredRecords = $filteredStmt->fetchColumn();
+            if (empty($whereClause)) {
+                $filteredRecords = $totalRecords; // No filtering, so filtered count = total count
+            } else {
+                $filteredStmt = $pdo->prepare("SELECT COUNT(*) " . $countBaseQuery . $whereClause);
+                $filteredStmt->execute($params);
+                $filteredRecords = $filteredStmt->fetchColumn();
+            }
         } catch (PDOException $e) {
             json_response(['success' => false, 'message' => 'Error counting filtered records: ' . $e->getMessage()], 500);
         }
@@ -118,9 +124,14 @@ try {
         
         // Get data records with error handling
         try {
-            $dataStmt = $pdo->prepare($dataQuery);
-            $dataStmt->execute($params);
-            $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
+            if (empty($params)) {
+                $dataStmt = $pdo->query($dataQuery);
+                $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
+            } else {
+                $dataStmt = $pdo->prepare($dataQuery);
+                $dataStmt->execute($params);
+                $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
+            }
         } catch (PDOException $e) {
             json_response(['success' => false, 'message' => 'Error fetching data records: ' . $e->getMessage()], 500);
         }
