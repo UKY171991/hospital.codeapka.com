@@ -376,7 +376,8 @@ function loadOwnerUsers() {
 }
 
 // Load patients based on selected owner
-function loadPatientsByOwner(ownerId) {
+function loadPatientsByOwner(ownerId, callback) {
+    console.log('Loading patients for owner ID:', ownerId);
     $.ajax({
         url: 'ajax/patient_api.php',
         method: 'GET',
@@ -411,15 +412,26 @@ function loadPatientsByOwner(ownerId) {
             }
             
             patientSelect.addClass('select2');
+            
+            // Execute callback if provided
+            if (typeof callback === 'function') {
+                callback();
+            }
         },
         error: function() {
             $('#patientHelpText').text('Error loading patients');
+            
+            // Execute callback even on error
+            if (typeof callback === 'function') {
+                callback();
+            }
         }
     });
 }
 
 // Load doctors based on selected owner
-function loadDoctorsByOwner(ownerId) {
+function loadDoctorsByOwner(ownerId, callback) {
+    console.log('Loading doctors for owner ID:', ownerId);
     $.ajax({
         url: 'ajax/doctor_api.php',
         method: 'GET',
@@ -439,9 +451,19 @@ function loadDoctorsByOwner(ownerId) {
             }
             
             doctorSelect.addClass('select2');
+            
+            // Execute callback if provided
+            if (typeof callback === 'function') {
+                callback();
+            }
         },
         error: function() {
             $('#doctorHelpText').text('Error loading doctors');
+            
+            // Execute callback even on error
+            if (typeof callback === 'function') {
+                callback();
+            }
         }
     });
 }
@@ -1416,11 +1438,33 @@ function editEntry(id) {
 
 // Populate edit form
 function populateEditForm(entry) {
+    console.log('=== POPULATING EDIT FORM ===');
+    console.log('Entry data:', entry);
+    
     currentEntryId = entry.id;
     $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
     $('#entryId').val(entry.id);
 
-    // Set owner/added by first, then load patients and doctors
+    // Set basic fields first
+    let entryDateValue = '';
+    if (entry.entry_date) {
+        entryDateValue = entry.entry_date.split(' ')[0];
+    }
+    $('#entryDate').val(entryDateValue);
+    $('#entryStatus').val(entry.status || 'pending');
+    $('#entryNotes').val(entry.notes || entry.remarks || '');
+    $('#patientContact').val(entry.patient_contact || '');
+    $('#patientAddress').val(entry.patient_address || '');
+    $('#referralSource').val(entry.referral_source || '');
+    $('#priority').val(entry.priority || 'normal');
+
+    // Store entry data for later use
+    window.editingEntry = entry;
+
+    // Enable all dropdowns for editing
+    $('#patientSelect, #doctorSelect').prop('disabled', false);
+
+    // Step 1: Set owner/added by and wait for it to load patients/doctors
     let ownerAddedByValue = '';
     if (entry.owner_id) {
         ownerAddedByValue = `owner_${entry.owner_id}`;
@@ -1428,24 +1472,94 @@ function populateEditForm(entry) {
         ownerAddedByValue = `user_${entry.added_by}`;
     }
 
-    $('#ownerAddedBySelect').val(ownerAddedByValue).trigger('change');
+    console.log('Setting owner/added by to:', ownerAddedByValue);
 
-    // Set other fields - Format entry_date properly for date input (YYYY-MM-DD)
-    let entryDateValue = '';
-    if (entry.entry_date) {
-        // Handle both date and datetime formats
-        entryDateValue = entry.entry_date.split(' ')[0]; // Get just the date part if it's a datetime
+    // Check if owner option exists, if not, add it
+    const ownerSelect = $('#ownerAddedBySelect');
+    if (ownerAddedByValue && ownerSelect.find(`option[value="${ownerAddedByValue}"]`).length === 0) {
+        // Add the option if it doesn't exist
+        let optionText = '';
+        if (entry.owner_name) {
+            optionText = `🏢 ${entry.owner_name} (Owner)`;
+        } else if (entry.added_by_full_name || entry.added_by_username) {
+            optionText = `👤 ${entry.added_by_full_name || entry.added_by_username} (User)`;
+        } else {
+            optionText = `User ${entry.added_by}`;
+        }
+        
+        const dataType = entry.owner_id ? 'owner' : 'user';
+        const dataId = entry.owner_id || entry.added_by;
+        
+        ownerSelect.append(`<option value="${ownerAddedByValue}" data-type="${dataType}" data-${dataType}-id="${dataId}">${optionText}</option>`);
     }
-    $('#entryDate').val(entryDateValue);
-    $('#entryStatus').val(entry.status);
-    $('#entryNotes').val(entry.notes || entry.remarks || '');
 
-    // Populate additional fields
-    // Age and gender will be populated automatically when patient is selected
-    $('#patientContact').val(entry.patient_contact || '');
-    $('#patientAddress').val(entry.patient_address || '');
-    $('#referralSource').val(entry.referral_source || '');
-    $('#priority').val(entry.priority || 'normal');
+    // Set the owner/added by value
+    ownerSelect.val(ownerAddedByValue);
+
+    // Step 2: Load patients and doctors for this owner, then set selections
+    const ownerId = entry.owner_id || entry.added_by;
+    if (ownerId) {
+        console.log('Loading patients and doctors for owner ID:', ownerId);
+        
+        // Load patients first
+        loadPatientsByOwner(ownerId, function() {
+            console.log('Patients loaded, setting patient selection to:', entry.patient_id);
+            
+            // Check if patient option exists, if not add it
+            const patientSelect = $('#patientSelect');
+            if (entry.patient_id && patientSelect.find(`option[value="${entry.patient_id}"]`).length === 0) {
+                const patientText = `${entry.patient_name || 'Unknown Patient'} (${entry.uhid || 'No UHID'})`;
+                patientSelect.append(`<option value="${entry.patient_id}" data-gender="${entry.gender || ''}" data-contact="${entry.patient_contact || ''}" data-address="${entry.patient_address || ''}">${patientText}</option>`);
+            }
+            
+            patientSelect.val(entry.patient_id).trigger('change');
+            
+            // Manually populate patient fields if auto-fill doesn't work
+            setTimeout(function() {
+                if (entry.patient_age || entry.age) {
+                    $('#patientAge').val(entry.patient_age || entry.age);
+                }
+                if (entry.gender || entry.sex) {
+                    $('#patientGender').val(entry.gender || entry.sex);
+                }
+            }, 100);
+            
+            // Load doctors
+            loadDoctorsByOwner(ownerId, function() {
+                console.log('Doctors loaded, setting doctor selection to:', entry.doctor_id);
+                
+                // Check if doctor option exists, if not add it
+                const doctorSelect = $('#doctorSelect');
+                if (entry.doctor_id && doctorSelect.find(`option[value="${entry.doctor_id}"]`).length === 0) {
+                    const doctorText = `Dr. ${entry.doctor_name || 'Unknown Doctor'}`;
+                    doctorSelect.append(`<option value="${entry.doctor_id}">${doctorText}</option>`);
+                }
+                
+                doctorSelect.val(entry.doctor_id);
+                
+                console.log('All dropdowns populated successfully');
+            });
+        });
+    } else {
+        console.warn('No owner ID found, cannot load patients/doctors');
+        
+        // Fallback: try to add patient and doctor options directly if we have the data
+        if (entry.patient_id && entry.patient_name) {
+            const patientSelect = $('#patientSelect');
+            patientSelect.empty().append('<option value="">Select Patient</option>');
+            const patientText = `${entry.patient_name} (${entry.uhid || 'No UHID'})`;
+            patientSelect.append(`<option value="${entry.patient_id}" data-gender="${entry.gender || ''}" data-contact="${entry.patient_contact || ''}" data-address="${entry.patient_address || ''}" selected>${patientText}</option>`);
+            patientSelect.prop('disabled', false);
+        }
+        
+        if (entry.doctor_id && entry.doctor_name) {
+            const doctorSelect = $('#doctorSelect');
+            doctorSelect.empty().append('<option value="">Select Doctor</option>');
+            const doctorText = `Dr. ${entry.doctor_name}`;
+            doctorSelect.append(`<option value="${entry.doctor_id}" selected>${doctorText}</option>`);
+            doctorSelect.prop('disabled', false);
+        }
+    }
     
     // Populate pricing fields - handle both direct fields and aggregated fields
     console.log('=== EDIT ENTRY DEBUG ===');
