@@ -212,6 +212,14 @@ if ($action === 'list') {
         $name = trim($_POST['name'] ?? '');
         $main_category_id = $_POST['main_category_id'] ?? null;
         $description = trim($_POST['description'] ?? '');
+        
+        // Debug: Log received POST data
+        error_log('Test API Save - Received POST data: ' . json_encode([
+            'name' => $name,
+            'main_category_id' => $main_category_id,
+            'category_id' => $category_id,
+            'raw_main_category_id' => $_POST['main_category_id'] ?? 'NOT_SET'
+        ]));
         $price = $_POST['price'] ?? 0;
         $unit = trim($_POST['unit'] ?? '');
         $specimen = trim($_POST['specimen'] ?? '');
@@ -244,6 +252,27 @@ if ($action === 'list') {
                 if(!is_numeric($r['min']) || !is_numeric($r['max'])) json_response(['success'=>false,'message'=>$r['label'].' range must be numeric'],400);
                 if(floatval($r['max']) < floatval($r['min'])) json_response(['success'=>false,'message'=>'Max Value ('.$r['label'].') cannot be less than Min Value ('.$r['label'].')'],400);
             }
+        }
+
+        // Validate main_category_id: it's required (NOT NULL in database)
+        if ($main_category_id === '' || $main_category_id === null || !is_numeric($main_category_id)) {
+            json_response(['success' => false, 'message' => 'Main category is required'], 400);
+        }
+        
+        $main_category_id = intval($main_category_id);
+        if ($main_category_id <= 0) {
+            json_response(['success' => false, 'message' => 'Invalid main category selected'], 400);
+        }
+        
+        // Verify main category exists
+        try {
+            $chk = $pdo->prepare("SELECT id FROM main_test_categories WHERE id = ?");
+            $chk->execute([$main_category_id]);
+            if (!$chk->fetch()) {
+                json_response(['success' => false, 'message' => 'Selected main category does not exist'], 400);
+            }
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => 'Error validating main category: ' . $e->getMessage()], 500);
         }
 
         // Normalize/validate category_id: convert empty or invalid to NULL and ensure it exists

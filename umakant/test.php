@@ -189,7 +189,7 @@ require_once 'inc/sidebar.php';
                                     <i class="fas fa-layer-group mr-1"></i>
                                     Main Category <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-control" id="mainCategorySelect" required>
+                                <select class="form-control" id="mainCategorySelect" name="main_category_id" required>
                                     <option value="">Select Main Category</option>
                                 </select>
                             </div>
@@ -1281,7 +1281,7 @@ function saveTestData() {
         return;
     }
     
-    if (!mainCategory) {
+    if (!mainCategory || mainCategory === '' || mainCategory === '0') {
         toastr.error('Main category is required');
         $('#mainCategorySelect').focus();
         return;
@@ -1296,6 +1296,19 @@ function saveTestData() {
     const formData = new FormData($('#testForm')[0]);
     const id = $('#testId').val();
     formData.append('action', 'save');
+    
+    // Debug: Log form data being sent
+    console.log('Form data being sent:', {
+        testName: testName,
+        mainCategory: mainCategory,
+        testCategory: testCategory,
+        id: id
+    });
+    
+    // Debug: Log all form data entries
+    for (let [key, value] of formData.entries()) {
+        console.log('FormData:', key, '=', value);
+    }
     
     const submitBtn = $('#saveTestBtn');
     const originalText = submitBtn.html();
