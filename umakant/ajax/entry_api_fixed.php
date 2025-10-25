@@ -578,6 +578,13 @@ try {
             $entry['tests'] = $tests;
             $entry['tests_count'] = count($tests);
             
+            // Debug logging for tests
+            error_log("Entry API: Found " . count($tests) . " tests for entry ID: $id");
+            if (count($tests) > 0) {
+                error_log("Entry API: First test data: " . json_encode($tests[0]));
+                error_log("Entry API: All test IDs: " . implode(', ', array_column($tests, 'test_id')));
+            }
+            
             // Calculate totals from tests
             $subtotal = 0;
             $totalDiscount = 0;

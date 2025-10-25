@@ -1286,19 +1286,52 @@ function displayEntryDetails(entry) {
 
 // Edit entry
 function editEntry(id) {
-    // Similar to view but populate form for editing
+    console.log('=== EDIT ENTRY CALLED ===');
+    console.log('Entry ID:', id);
+    
+    if (!id) {
+        toastr.error('Invalid entry ID');
+        return;
+    }
+    
+    // Show loading
+    toastr.info('Loading entry for editing...', '', {timeOut: 1000});
+    
     $.ajax({
         url: 'ajax/entry_api_fixed.php',
         method: 'GET',
         data: { action: 'get', id: id },
         dataType: 'json',
         success: function(response) {
+            console.log('=== EDIT ENTRY API RESPONSE ===');
+            console.log('Full response:', response);
+            
             if (response.success) {
+                console.log('Entry data received:', response.data);
+                console.log('Tests in entry:', response.data.tests ? response.data.tests.length : 0);
+                
+                if (response.data.tests && response.data.tests.length > 0) {
+                    console.log('Test details:', response.data.tests);
+                }
+                
                 populateEditForm(response.data);
                 $('#entryModal').modal('show');
             } else {
+                console.error('Edit entry failed:', response.message);
                 toastr.error(response.message || 'Failed to load entry for editing');
             }
+        },
+        error: function(xhr, status, error) {
+            console.error('Edit entry AJAX error:', xhr, status, error);
+            let errorMsg = 'Failed to load entry for editing. ';
+            if (xhr.status === 401 || xhr.status === 403) {
+                errorMsg += 'Permission denied.';
+            } else if (xhr.status === 404) {
+                errorMsg += 'Entry not found.';
+            } else {
+                errorMsg += 'Please try again.';
+            }
+            toastr.error(errorMsg);
         }
     });
 }
@@ -1418,8 +1451,12 @@ function populateEditForm(entry) {
     testsContainer.empty();
     testRowCount = 0;
 
+    console.log('Populating tests section with', entry.tests ? entry.tests.length : 0, 'tests');
+
     if (entry.tests && entry.tests.length > 0) {
         entry.tests.forEach(function(test, index) {
+            console.log(`Adding test row ${index}:`, test);
+            
             const newRowHTML = `
                 <div class="test-row row mb-2">
                     <div class="col-md-3">
@@ -1453,40 +1490,63 @@ function populateEditForm(entry) {
             testsContainer.append(newRowHTML);
         });
         testRowCount = entry.tests.length;
+        console.log('Added', testRowCount, 'test rows to form');
     } else {
+        console.log('No tests found, adding blank row');
         addTestRow(); // Add a blank row if no tests
     }
 
     // Load dropdowns
     loadTests(function() {
+        console.log('Tests loaded, now populating test selections...');
+        
         if (entry.tests && entry.tests.length > 0) {
             entry.tests.forEach(function(test, index) {
+                console.log(`Setting test ${index}:`, test);
+                
                 const testRow = testsContainer.find('.test-row').eq(index);
                 const testSelect = testRow.find('.test-select');
-                if (test.test_id) {
-                    // Set the test selection without triggering change to avoid clearing fields
+                
+                if (test.test_id && testRow.length > 0) {
+                    // Set the test selection
                     testSelect.val(test.test_id);
                     
-                    // Manually populate all fields from the test data
+                    console.log(`Test ${index} selection set to:`, test.test_id, 'Row found:', testRow.length > 0);
+                    
+                    // Get test data from the selected option
                     const $opt = testSelect.find('option:selected');
-                    const unit = $opt.data('unit') || '';
-                    const min = $opt.data('min') || '';
-                    const max = $opt.data('max') || '';
-                    const categoryName = $opt.data('category-name') || '';
-                    const categoryId = $opt.data('category-id') || '';
+                    const unit = $opt.data('unit') || test.unit || '';
+                    const min = $opt.data('min') || test.min || '';
+                    const max = $opt.data('max') || test.max || '';
+                    const categoryName = $opt.data('category-name') || test.category_name || '';
+                    const categoryId = $opt.data('category-id') || test.category_id || '';
                     
-                    // Populate fields directly
-                    testRow.find('.test-unit').val(unit);
-                    testRow.find('.test-min').val(min);
-                    testRow.find('.test-max').val(max);
-                    testRow.find('.test-category').val(categoryName);
+                    // Populate fields directly with fallback to test data
+                    testRow.find('.test-unit').val(unit).prop('readonly', true).show();
+                    testRow.find('.test-min').val(min).prop('readonly', true).show();
+                    testRow.find('.test-max').val(max).prop('readonly', true).show();
+                    testRow.find('.test-category').val(categoryName).prop('readonly', true).show();
                     testRow.find('.test-category-id').val(categoryId);
-                    testRow.find('.test-result').val(test.result_value || '');
+                    testRow.find('.test-result').val(test.result_value || '').prop('readonly', false).prop('disabled', false);
                     
-                    // Enable result input
-                    testRow.find('.test-result').prop('readonly', false).prop('disabled', false);
+                    console.log(`Test ${index} fields populated:`, {
+                        unit: unit,
+                        min: min,
+                        max: max,
+                        category: categoryName,
+                        result: test.result_value || ''
+                    });
+                } else {
+                    console.warn(`Test ${index} missing test_id or row not found:`, {
+                        test_id: test.test_id,
+                        rowFound: testRow.length > 0
+                    });
                 }
             });
+            
+            console.log('All test selections completed');
+        } else {
+            console.log('No tests to populate');
         }
         
         // After tests are loaded, re-populate pricing fields to ensure they're visible
@@ -1816,3 +1876,205 @@ setTimeout(function() {
         }
     }
 }, 2000);
+// Add
+ new test row
+function addTestRow() {
+    const testsContainer = $('#testsContainer');
+    const newRowHTML = `
+        <div class="test-row row mb-2">
+            <div class="col-md-3">
+                <select class="form-control test-select select2" name="tests[${testRowCount}][test_id]" required>
+                    <option value="">Select Test</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control test-category" name="tests[${testRowCount}][category_name]" placeholder="Category" readonly>
+                <input type="hidden" name="tests[${testRowCount}][category_id]" class="test-category-id">
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control test-result" name="tests[${testRowCount}][result_value]" placeholder="Result">
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control test-min" name="tests[${testRowCount}][min]" placeholder="Min" readonly>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control test-max" name="tests[${testRowCount}][max]" placeholder="Max" readonly>
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control test-unit" name="tests[${testRowCount}][unit]" placeholder="Unit" readonly>
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    testsContainer.append(newRowHTML);
+    testRowCount++;
+    
+    // Load tests for the new row
+    loadTests();
+    
+    // Initialize Select2 for the new row if modal is visible
+    if ($('#entryModal').hasClass('show')) {
+        const newRow = testsContainer.find('.test-row').last();
+        const newSelect = newRow.find('.test-select');
+        if (typeof $.fn.select2 !== 'undefined') {
+            newSelect.select2({
+                dropdownParent: $('#entryModal'),
+                width: '100%'
+            });
+        }
+    }
+    
+    console.log('Added new test row, total rows:', testRowCount);
+}
+
+// Remove test row
+function removeTestRow(button) {
+    const testRow = $(button).closest('.test-row');
+    const testsContainer = $('#testsContainer');
+    
+    // Don't allow removing the last row
+    if (testsContainer.find('.test-row').length > 1) {
+        testRow.remove();
+        
+        // Recalculate pricing after removing test
+        updatePricingFields();
+        
+        // Re-index remaining test rows
+        testsContainer.find('.test-row').each(function(index) {
+            $(this).find('select, input').each(function() {
+                const name = $(this).attr('name');
+                if (name) {
+                    const newName = name.replace(/tests\[\d+\]/, `tests[${index}]`);
+                    $(this).attr('name', newName);
+                }
+            });
+        });
+        
+        testRowCount = testsContainer.find('.test-row').length;
+        console.log('Removed test row, remaining rows:', testRowCount);
+    } else {
+        toastr.warning('At least one test is required');
+    }
+}
+
+// Update pricing fields based on selected tests
+function updatePricingFields() {
+    let subtotal = 0;
+    
+    $('#testsContainer .test-row').each(function() {
+        const testSelect = $(this).find('.test-select');
+        const selectedOption = testSelect.find('option:selected');
+        const price = parseFloat(selectedOption.data('price') || 0);
+        subtotal += price;
+    });
+    
+    const discount = parseFloat($('#discountAmount').val() || 0);
+    const total = Math.max(subtotal - discount, 0);
+    
+    $('#subtotal').val(subtotal.toFixed(2));
+    $('#totalPrice').val(total.toFixed(2));
+    
+    console.log('Pricing updated:', {
+        subtotal: subtotal.toFixed(2),
+        discount: discount.toFixed(2),
+        total: total.toFixed(2)
+    });
+}
+
+// Handle discount amount changes
+$(document).on('input', '#discountAmount', function() {
+    updatePricingFields();
+});
+
+// Fix the populateEditForm function to properly handle multiple tests
+function fixEditFormTestsDisplay() {
+    // This function ensures all tests are properly displayed in edit mode
+    const testsContainer = $('#testsContainer');
+    const testRows = testsContainer.find('.test-row');
+    
+    console.log('Fixing edit form tests display, found rows:', testRows.length);
+    
+    // Ensure all test rows are visible and properly configured
+    testRows.each(function(index) {
+        const $row = $(this);
+        
+        // Make sure all fields are visible
+        $row.find('.test-unit, .test-category, .test-min, .test-max').each(function() {
+            $(this).prop('readonly', true).show().css({ 
+                'display': 'block', 
+                'visibility': 'visible' 
+            });
+        });
+        
+        // Enable result inputs
+        $row.find('.test-result').prop('disabled', false).prop('readonly', false);
+        
+        // Ensure proper name attributes
+        $row.find('select, input').each(function() {
+            const name = $(this).attr('name');
+            if (name && !name.includes(`[${index}]`)) {
+                const newName = name.replace(/tests\[\d+\]/, `tests[${index}]`);
+                $(this).attr('name', newName);
+            }
+        });
+    });
+    
+    // Update the test row counter
+    testRowCount = testRows.length;
+    console.log('Fixed test rows, total count:', testRowCount);
+}
+
+// Enhanced modal show handler to fix tests display
+$(document).on('shown.bs.modal', '#entryModal', function() {
+    console.log('=== ENTRY MODAL SHOWN ===');
+    
+    // Check current state
+    const testsContainer = $('#testsContainer');
+    const testRows = testsContainer.find('.test-row');
+    
+    console.log('Tests container found:', testsContainer.length > 0);
+    console.log('Test rows found:', testRows.length);
+    
+    testRows.each(function(index) {
+        const $row = $(this);
+        const testSelect = $row.find('.test-select');
+        const selectedValue = testSelect.val();
+        const resultValue = $row.find('.test-result').val();
+        
+        console.log(`Test row ${index}:`, {
+            selectedTest: selectedValue,
+            resultValue: resultValue,
+            selectOptions: testSelect.find('option').length
+        });
+    });
+    
+    // Fix tests display
+    fixEditFormTestsDisplay();
+    
+    // Ensure pricing fields are visible and calculated
+    setTimeout(function() {
+        updatePricingFields();
+        console.log('Modal shown - pricing fields updated');
+        
+        // Final verification
+        const finalTestRows = testsContainer.find('.test-row');
+        console.log('Final test rows count:', finalTestRows.length);
+        
+        finalTestRows.each(function(index) {
+            const $row = $(this);
+            const testSelect = $row.find('.test-select');
+            const selectedValue = testSelect.val();
+            
+            if (selectedValue) {
+                console.log(`Test row ${index} has selection:`, selectedValue);
+            } else {
+                console.warn(`Test row ${index} has no selection`);
+            }
+        });
+    }, 200);
+});
