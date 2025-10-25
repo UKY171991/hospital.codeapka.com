@@ -3,18 +3,58 @@ let entriesTable;
 let currentEntryId = null;
 let testRowCount = 1;
 
+// Safety check for required libraries
+function checkDependencies() {
+    const missing = [];
+    
+    if (typeof $ === 'undefined') missing.push('jQuery');
+    if (typeof $.fn.dataTable === 'undefined') missing.push('DataTables');
+    if (typeof $.fn.select2 === 'undefined') missing.push('Select2');
+    if (typeof toastr === 'undefined') missing.push('Toastr');
+    
+    if (missing.length > 0) {
+        console.error('Missing required libraries:', missing.join(', '));
+        alert('Error: Missing required libraries. Please refresh the page.');
+        return false;
+    }
+    return true;
+}
+
 // Initialize page when document is ready
 $(document).ready(function() {
-    initializePage();
+    // Check dependencies first
+    if (!checkDependencies()) {
+        return;
+    }
+    
+    try {
+        initializePage();
+    } catch (error) {
+        console.error('Error initializing page:', error);
+        if (typeof toastr !== 'undefined') {
+            toastr.error('Error initializing page. Please refresh and try again.');
+        } else {
+            alert('Error initializing page. Please refresh and try again.');
+        }
+    }
 });
 
 // Initialize page components
 function initializePage() {
-    loadStatistics();
-    initializeDataTable();
-    loadOwnerUsers();
-    loadTests();
-    setupEventHandlers();
+    try {
+        console.log('Initializing entry list page...');
+        loadStatistics();
+        initializeDataTable();
+        loadOwnerUsers();
+        loadTests();
+        setupEventHandlers();
+        console.log('Entry list page initialized successfully');
+    } catch (error) {
+        console.error('Error in initializePage:', error);
+        if (typeof toastr !== 'undefined') {
+            toastr.error('Failed to initialize page components');
+        }
+    }
 }
 
 // Load statistics
@@ -40,14 +80,33 @@ function loadStatistics() {
 
 // Initialize DataTable
 function initializeDataTable() {
-    // Avoid re-initializing DataTable if another script already initialized it.
-    if (window._entriesTableInitialized || (typeof $.fn.dataTable !== 'undefined' && $.fn.dataTable.isDataTable && $.fn.dataTable.isDataTable('#entriesTable'))) {
-        try { entriesTable = $('#entriesTable').DataTable(); } catch(e) { /* fallback */ }
-        window._entriesTableInitialized = true;
+    try {
+        // Check if table element exists
+        if ($('#entriesTable').length === 0) {
+            console.error('Entries table element not found');
+            return;
+        }
+        
+        // Avoid re-initializing DataTable if another script already initialized it.
+        if (window._entriesTableInitialized || (typeof $.fn.dataTable !== 'undefined' && $.fn.dataTable.isDataTable && $.fn.dataTable.isDataTable('#entriesTable'))) {
+            try { 
+                entriesTable = $('#entriesTable').DataTable(); 
+                console.log('DataTable already initialized, reusing existing instance');
+            } catch(e) { 
+                console.warn('Failed to get existing DataTable instance:', e);
+            }
+            window._entriesTableInitialized = true;
+            return;
+        }
+        
+        console.log('Initializing new DataTable...');
+    } catch (error) {
+        console.error('Error in initializeDataTable setup:', error);
         return;
     }
 
-    entriesTable = $('#entriesTable').DataTable({
+    try {
+        entriesTable = $('#entriesTable').DataTable({
         processing: true,
         serverSide: false,
         ajax: {
@@ -178,7 +237,26 @@ function initializeDataTable() {
             zeroRecords: "No matching entries found"
         }
     });
-    window._entriesTableInitialized = true;
+        window._entriesTableInitialized = true;
+        console.log('DataTable initialized successfully');
+    } catch (error) {
+        console.error('Error initializing DataTable:', error);
+        window._entriesTableInitialized = false;
+        
+        // Show user-friendly error
+        if (typeof toastr !== 'undefined') {
+            toastr.error('Failed to initialize data table. Please refresh the page.');
+        } else {
+            alert('Failed to initialize data table. Please refresh the page.');
+        }
+        
+        // Try to show a basic table without DataTable features
+        try {
+            $('#entriesTable').show();
+        } catch (e) {
+            console.error('Failed to show basic table:', e);
+        }
+    }
 }
 
 // Load patients for dropdown
@@ -1876,8 +1954,8 @@ setTimeout(function() {
         }
     }
 }, 2000);
-// Add
- new test row
+
+// Add new test row
 function addTestRow() {
     const testsContainer = $('#testsContainer');
     const newRowHTML = `
