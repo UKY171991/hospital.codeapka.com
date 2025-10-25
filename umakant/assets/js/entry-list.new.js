@@ -908,7 +908,19 @@ function continueWithSave($form) {
         }
     });
     
-    formData.set('tests', JSON.stringify(tests));
+    // Only send tests if we have any
+    if (tests.length > 0) {
+        formData.set('tests', JSON.stringify(tests));
+        console.log('Setting tests data:', JSON.stringify(tests));
+    } else {
+        console.warn('No tests to save!');
+        if (typeof toastr !== 'undefined') {
+            toastr.warning('No tests selected. Please add at least one test.');
+        }
+        window.entrySaving = false;
+        $('.btn-save-entry').prop('disabled', false).removeClass('disabled');
+        return;
+    }
     
     // FORCE read pricing field values directly from DOM to ensure we have the latest values
     const subtotalVal = parseFloat($('#subtotal').val() || 0).toFixed(2);
@@ -949,7 +961,10 @@ function continueWithSave($form) {
     formData.set('action', 'save');
 
     // Debug: log the outgoing payload
-    console.log('Saving entry - tests count:', tests.length);
+    console.log('=== SAVING ENTRY - TESTS DEBUG ===');
+    console.log('Tests count:', tests.length);
+    console.log('Tests data:', tests);
+    console.log('Tests JSON:', formData.get('tests'));
     console.log('FormData pricing being sent:');
     console.log('  subtotal:', formData.get('subtotal'));
     console.log('  discount_amount:', formData.get('discount_amount'));

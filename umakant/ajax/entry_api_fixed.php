@@ -722,7 +722,22 @@ try {
             }
             
             // Handle tests if provided
-            if (isset($_POST['tests']) && is_array($_POST['tests'])) {
+            $tests = null;
+            if (isset($_POST['tests'])) {
+                if (is_array($_POST['tests'])) {
+                    $tests = $_POST['tests'];
+                } else if (is_string($_POST['tests'])) {
+                    // Decode JSON string
+                    $tests = json_decode($_POST['tests'], true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        error_log('Error decoding tests JSON: ' . json_last_error_msg());
+                        $tests = null;
+                    }
+                }
+            }
+            
+            if ($tests && is_array($tests)) {
+                error_log('Processing ' . count($tests) . ' tests for entry ID: ' . $savedEntryId);
                 // Delete existing tests for this entry
                 if ($isUpdate) {
                     $stmt = $pdo->prepare("DELETE FROM entry_tests WHERE entry_id = ?");
@@ -730,7 +745,8 @@ try {
                 }
                 
                 // Insert new tests
-                foreach ($_POST['tests'] as $test) {
+                foreach ($tests as $index => $test) {
+                    error_log("Processing test $index: " . json_encode($test));
                     if (!empty($test['test_id'])) {
                         $testData = [
                             'entry_id' => $savedEntryId,
@@ -750,8 +766,15 @@ try {
                         $testSql = "INSERT INTO entry_tests (`" . implode('`, `', $testFields) . "`) VALUES ($testPlaceholders)";
                         $testStmt = $pdo->prepare($testSql);
                         $testStmt->execute($testData);
+                        
+                        $insertedTestId = $pdo->lastInsertId();
+                        error_log("Inserted test with ID: $insertedTestId for entry: $savedEntryId");
+                    } else {
+                        error_log("Skipping test $index - no test_id provided");
                     }
                 }
+            } else {
+                error_log('No tests provided or tests data is invalid');
             }
             
             // Refresh aggregated data
