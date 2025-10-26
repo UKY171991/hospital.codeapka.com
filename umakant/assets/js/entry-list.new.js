@@ -949,6 +949,9 @@ function getPatientDataSource() {
 
 // Open add entry modal
 function openAddEntryModal() {
+    // Prevent body scroll and fix modal positioning
+    $('body').addClass('modal-open');
+    
     currentEntryId = null;
     $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
     // Reset both forms to be safe
@@ -1052,11 +1055,61 @@ function openAddEntryModal() {
 
 // Update dropdown options when modal is shown
 $(document).on('shown.bs.modal', '#entryModal', function () {
+    // Fix modal positioning and prevent jumping
+    const modal = $(this);
+    const dialog = modal.find('.modal-dialog');
+    
+    // Ensure modal is properly centered
+    dialog.css({
+        'margin': '20px auto',
+        'transform': 'none',
+        'transition': 'none'
+    });
+    
+    // Prevent body scroll
+    $('body').css({
+        'overflow': 'hidden',
+        'padding-right': '0'
+    });
+    
     // Update dropdown options to reflect current selections
     setTimeout(function () {
         updateTestDropdownOptions();
         console.log('Test dropdown options updated on modal show');
     }, 500);
+});
+
+// Handle modal hide event
+$(document).on('hidden.bs.modal', '#entryModal, #viewEntryModal, #deleteModal', function () {
+    // Restore body scroll
+    $('body').css({
+        'overflow': '',
+        'padding-right': ''
+    }).removeClass('modal-open');
+});
+
+// Handle modal show event for all modals
+$(document).on('show.bs.modal', '.modal', function () {
+    const modal = $(this);
+    const dialog = modal.find('.modal-dialog');
+    
+    // Fix positioning immediately
+    setTimeout(function() {
+        dialog.css({
+            'margin': dialog.hasClass('modal-xl') ? '20px auto' : '1.75rem auto',
+            'transform': 'none',
+            'transition': 'none'
+        });
+        
+        // Ensure backdrop doesn't interfere
+        $('.modal-backdrop').css({
+            'position': 'fixed',
+            'top': '0',
+            'left': '0',
+            'width': '100vw',
+            'height': '100vh'
+        });
+    }, 10);
 });
 
 // Ensure result inputs are enabled when Add/Edit Entry modals are shown (handles initial and reopened modals)
