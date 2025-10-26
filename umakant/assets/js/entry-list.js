@@ -1140,7 +1140,7 @@ class EntryManager {
                 data: { action: 'get', id: entryId },
                 dataType: 'json'
             });
-
+            console.log('Editing entry response:', response);
             if (response.success && response.data) {
                 $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
                 $('#entryModal').modal('show');
