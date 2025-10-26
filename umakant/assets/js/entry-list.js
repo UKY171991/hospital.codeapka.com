@@ -316,8 +316,6 @@ class EntryManager {
                 dataType: 'json'
             });
 
-            console.log('Test API response:', response);
-
             if (response && response.success) {
                 this.testsData = response.data || [];
                 //console.log('Loaded tests data:', this.testsData.length, 'tests');
