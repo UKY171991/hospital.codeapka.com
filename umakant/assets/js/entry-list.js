@@ -145,7 +145,7 @@ class EntryManager {
                                 if (testCount === 0) {
                                     return '<span class="text-muted">No tests</span>';
                                 } else if (testCount === 1) {
-                                    return `<span class="badge badge-info">${testCount} hi</span> ${testNames}`;
+                                    return `<span class="badge badge-info">${testCount}</span> ${testNames}`;
                                 } else {
                                     return `<span class="badge badge-primary">${testCount}</span> ${testNames}`;
                                 }
@@ -316,16 +316,22 @@ class EntryManager {
                 dataType: 'json'
             });
 
-            if (response.success) {
+            console.log('Test API response:', response);
+
+            if (response && response.success) {
                 this.testsData = response.data || [];
                 console.log('Loaded tests data:', this.testsData.length, 'tests');
 
                 // Debug: show first few tests
                 if (this.testsData.length > 0) {
                     console.log('Sample tests:', this.testsData.slice(0, 3));
+                    console.log('Test data structure:', Object.keys(this.testsData[0]));
+                } else {
+                    console.warn('Tests data is empty');
                 }
             } else {
-                console.error('Failed to load tests:', response.message);
+                console.error('Failed to load tests:', response ? response.message : 'Invalid response');
+                console.error('Full response:', response);
                 this.testsData = [];
             }
         } catch (error) {
@@ -335,6 +341,17 @@ class EntryManager {
                 statusText: error.statusText,
                 responseText: error.responseText
             });
+            
+            // Try to parse error response
+            if (error.responseText) {
+                try {
+                    const errorData = JSON.parse(error.responseText);
+                    console.error('Parsed error response:', errorData);
+                } catch (parseError) {
+                    console.error('Could not parse error response:', error.responseText);
+                }
+            }
+            
             this.testsData = [];
         }
     }
@@ -612,24 +629,25 @@ class EntryManager {
         // If testData is provided, populate the row
         if (testData) {
             console.log('Populating test row with data:', testData);
+            console.log('Available tests in testsData:', this.testsData.length);
 
             // Find the test in our testsData to get the correct information
             const foundTest = this.testsData.find(t => t.id == testData.test_id);
             if (foundTest) {
                 console.log('Found matching test:', foundTest);
 
-                // Set the value and trigger Select2 update
-                const $testSelect = $newRow.find('.test-select');
-                $testSelect.val(testData.test_id);
-
-                // Reinitialize Select2 with the selected value
-                $testSelect.select2('destroy').select2({
-                    theme: 'bootstrap4',
-                    width: '100%'
-                });
-
-                // Populate all the fields with the correct data
+                // Populate all the fields with the correct data first
                 setTimeout(() => {
+                    // Set the select value
+                    $testSelect.val(testData.test_id);
+                    
+                    // Destroy and reinitialize Select2 to ensure proper display
+                    $testSelect.select2('destroy').select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        placeholder: 'Select Test'
+                    });
+
                     // Populate test details from the found test data
                     $newRow.find('.test-category').val(foundTest.category_name || testData.category_name || '');
                     $newRow.find('.test-category-id').val(foundTest.category_id || testData.category_id || '');
@@ -643,28 +661,31 @@ class EntryManager {
                     $testSelect.trigger('change');
 
                     console.log('Test row populated with test ID:', testData.test_id, 'Name:', foundTest.name);
-                }, 100);
+                }, 200); // Increased timeout to ensure DOM is ready
             } else {
                 console.warn('Test not found in testsData for ID:', testData.test_id);
+                console.log('Looking for test with ID:', testData.test_id, 'in', this.testsData.map(t => ({id: t.id, name: t.name})));
 
                 // If test not found in our data, try to populate with what we have
-                const $testSelect = $newRow.find('.test-select');
+                const testName = testData.test_name || `Test ${testData.test_id}`;
+                console.log('Adding missing test option:', testData.test_id, testName);
 
                 // Add the missing test option if it doesn't exist
                 if ($testSelect.find(`option[value="${testData.test_id}"]`).length === 0) {
-                    const testName = testData.test_name || `Test ${testData.test_id}`;
-                    console.log('Adding missing test option:', testData.test_id, testName);
                     $testSelect.append(`<option value="${testData.test_id}">${testName}</option>`);
                 }
 
-                $testSelect.val(testData.test_id);
-                $testSelect.select2('destroy').select2({
-                    theme: 'bootstrap4',
-                    width: '100%'
-                });
-
                 // Populate with available data
                 setTimeout(() => {
+                    $testSelect.val(testData.test_id);
+                    
+                    // Reinitialize Select2
+                    $testSelect.select2('destroy').select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        placeholder: 'Select Test'
+                    });
+
                     $newRow.find('.test-category').val(testData.category_name || '');
                     $newRow.find('.test-unit').val(testData.unit || '');
                     $newRow.find('.test-min').val(testData.min || '');
@@ -672,8 +693,8 @@ class EntryManager {
                     $newRow.find('.test-price').val(testData.price || 0);
                     $newRow.find('.test-result').val(testData.result_value || '');
 
-                    console.log('Test row populated with fallback data for ID:', testData.test_id);
-                }, 100);
+                    console.log('Test row populated with fallback data for ID:', testData.test_id, 'Name:', testName);
+                }, 200);
             }
         }
     }
@@ -1154,8 +1175,15 @@ class EntryManager {
         if (this.testsData.length === 0) {
             console.log('Tests data not loaded, loading now...');
             await this.loadTestsData();
+            console.log('Tests data loaded:', this.testsData.length, 'tests');
         } else {
             console.log('Tests data already loaded:', this.testsData.length, 'tests available');
+        }
+        
+        // Double-check that we have tests data
+        if (this.testsData.length === 0) {
+            console.error('No tests data available! This will cause issues with test selection.');
+            toastr.warning('Tests data could not be loaded. Test selection may not work properly.');
         }
 
         // Clear and populate tests
@@ -1165,6 +1193,13 @@ class EntryManager {
         if (entry.tests && entry.tests.length > 0) {
             console.log('Populating', entry.tests.length, 'tests:', entry.tests);
             console.log('Available tests data:', this.testsData.length, 'tests');
+            
+            // Debug: show what test IDs we're looking for vs what we have
+            const entryTestIds = entry.tests.map(t => t.test_id);
+            const availableTestIds = this.testsData.map(t => t.id);
+            console.log('Entry test IDs:', entryTestIds);
+            console.log('Available test IDs:', availableTestIds);
+            console.log('Missing test IDs:', entryTestIds.filter(id => !availableTestIds.includes(parseInt(id))));
 
             entry.tests.forEach((test, index) => {
                 console.log(`Test ${index + 1}:`, test);
