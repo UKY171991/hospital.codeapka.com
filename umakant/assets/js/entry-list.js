@@ -978,6 +978,23 @@ class EntryManager {
      * Display entry details in modal
      */
     displayEntryDetails(entry) {
+        console.log('Displaying entry details:', entry);
+        console.log('Entry tests data:', entry.tests);
+        
+        // Debug each test
+        if (entry.tests && entry.tests.length > 0) {
+            entry.tests.forEach((test, index) => {
+                console.log(`Test ${index + 1}:`, {
+                    test_id: test.test_id,
+                    test_name: test.test_name,
+                    category_name: test.category_name,
+                    min: test.min,
+                    max: test.max,
+                    unit: test.unit,
+                    result_value: test.result_value
+                });
+            });
+        }
         const detailsHtml = `
             <div class="row">
                 <div class="col-md-6">
