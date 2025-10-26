@@ -1,725 +1,326 @@
-/* Entry List page specific styles */
-.entry-id-badge {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.375rem;
-    font-weight: 600;
+/**
+ * Entry List Page Styles
+ * Clean, modern styling for the hospital test entries management page
+ */
+
+/* Page Layout */
+.content-wrapper {
+    background-color: #f4f6f9;
 }
 
-.status-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
-    font-weight: 600;
-    font-size: 0.85rem;
-}
-
-.multiple-tests-display .badge {
-    font-size: 0.85rem;
-}
-
-.action-buttons .btn {
-    margin-right: 0.25rem;
-}
-
-/* Prevent layout shift when modals open */
-body.modal-open {
-    padding-right: 0 !important;
-}
-
-/* Ensure modals on this page can scroll internally even if global styles set overflow:hidden */
-.entry-page-modal-override .modal-dialog.modal-xl.modal-dialog-scrollable,
-.entry-page-modal-override .modal-dialog.modal-dialog-scrollable {
-    max-width: 1140px; /* keep modal-xl sizing */
-}
-
-/* Force the modal body to allow vertical scrolling and smooth scrolling on touch devices.
-   Use high specificity and !important so this page's modal can scroll even if other CSS
-   has overflow:hidden rules. This targets Bootstrap modal-scrollable dialogs used
-   by entry-list modals. */
-.entry-page-modal-override .modal-dialog.modal-xl .modal-body,
-.entry-page-modal-override .modal-dialog .modal-body {
-    max-height: calc(100vh - 160px) !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-}
-
-/* If body.modal-open elsewhere sets overflow:hidden, make sure our modal still receives
-   pointer events and can be scrolled. */
-.entry-page-modal-override body.modal-open,
-.entry-page-modal-override .modal-open {
-    overflow: visible !important;
-}
-
-/* Ensure Select2 dropdowns inside our modals render above other overlays */
-.entry-page-modal-override .select2-container--open .select2-dropdown {
-    z-index: 2100 !important; /* above Bootstrap modal (1050) and other UI */
-}
-
-/* Ensure smooth scrolling for modal - Enhanced */
-.modal-body {
-    scroll-behavior: smooth !important;
-    overflow-y: auto !important;
-    max-height: calc(100vh - 200px) !important;
-}
-
-/* Force scrolling on entry modal specifically */
-#entryModal.modal.show {
-    display: block !important;
-}
-
-#entryModal .modal-dialog-scrollable .modal-body {
-    overflow-y: scroll !important;
-    -webkit-overflow-scrolling: touch !important;
-    scrollbar-width: thin !important;
-}
-
-/* Webkit scrollbar styling for better visibility */
-#entryModal .modal-body::-webkit-scrollbar {
-    width: 8px !important;
-}
-
-#entryModal .modal-body::-webkit-scrollbar-track {
-    background: #f1f1f1 !important;
-    border-radius: 4px !important;
-}
-
-#entryModal .modal-body::-webkit-scrollbar-thumb {
-    background: #888 !important;
-    border-radius: 4px !important;
-}
-
-#entryModal .modal-body::-webkit-scrollbar-thumb:hover {
-    background: #555 !important;
-}
-
-/* Override any conflicting styles - highest specificity */
-.entry-page-modal-override #entryModal.modal.show .modal-dialog.modal-xl.modal-dialog-scrollable .modal-body {
-    overflow-y: scroll !important;
-    max-height: calc(100vh - 200px) !important;
-    height: auto !important;
-    flex: 1 1 auto !important;
-    -webkit-overflow-scrolling: touch !important;
-}
-
-.entry-page-modal-override #entryModal.modal.show .modal-dialog.modal-xl.modal-dialog-scrollable {
-    height: calc(100vh - 40px) !important;
-    max-height: calc(100vh - 40px) !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-
-.entry-page-modal-override #entryModal.modal.show .modal-dialog.modal-xl.modal-dialog-scrollable .modal-content {
-    height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-}
-
-/* Enhanced Entry List Styles */
-.card-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.card-header .card-title {
-    color: white;
-    font-weight: 600;
-}
-
+/* Statistics Cards */
 .small-box {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-radius: 10px;
-    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .small-box:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .small-box .inner h3 {
+    font-size: 2.2rem;
     font-weight: 700;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .small-box .icon {
+    font-size: 70px;
     opacity: 0.8;
-    transition: opacity 0.3s ease;
 }
 
-.small-box:hover .icon {
-    opacity: 1;
-}
-
-/* Table Enhancements */
-.table {
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 0 20px rgba(0,0,0,0.1);
-}
-
-.table thead th {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+/* Main Card */
+.card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     border: none;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border-radius: 8px 8px 0 0 !important;
+    border-bottom: none;
+}
+
+.card-header .card-title {
     font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
+    margin-bottom: 0;
 }
 
-.table tbody tr {
-    transition: all 0.3s ease;
+/* Filter Controls */
+.form-group label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
 }
 
-.table tbody tr:hover {
-    background-color: rgba(102, 126, 234, 0.1);
-    transform: scale(1.01);
+.form-control-sm {
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-.table tbody td {
+.form-control-sm:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* DataTable Styling */
+#entriesTable {
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+#entriesTable thead th {
+    background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+    color: white;
+    font-weight: 600;
+    border: none;
+    padding: 12px 8px;
+    font-size: 0.875rem;
+}
+
+#entriesTable tbody td {
+    padding: 10px 8px;
     vertical-align: middle;
-    border-color: rgba(0,0,0,0.05);
+    border-bottom: 1px solid #e9ecef;
 }
 
-/* Badge Styles */
+#entriesTable tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Status and Priority Badges */
 .badge {
-    font-weight: 600;
-    padding: 0.5em 0.75em;
-    border-radius: 20px;
-    font-size: 0.8rem;
-}
-
-.badge-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.badge-success {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
 }
 
 .badge-warning {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-success {
+    background-color: #28a745;
+    color: white;
 }
 
 .badge-danger {
-    background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+    background-color: #dc3545;
+    color: white;
 }
 
 .badge-info {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-color: #17a2b8;
+    color: white;
 }
 
-/* Button Styles */
-.btn {
-    border-radius: 25px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    border: none;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+.badge-primary {
+    background-color: #007bff;
+    color: white;
 }
 
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+.badge-secondary {
+    background-color: #6c757d;
+    color: white;
 }
 
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-}
-
-.btn-warning {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.btn-danger {
-    background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
-}
-
-.btn-info {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* Action Buttons */
+.btn-group-sm > .btn {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    border-radius: 3px;
+    margin: 0 1px;
 }
 
 .btn-sm {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
-/* Modal Enhancements */
+.btn-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Modal Styling */
+.modal-xl {
+    max-width: 95%;
+}
+
 .modal-content {
-    border-radius: 15px;
+    border-radius: 8px;
     border: none;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 .modal-header {
-    border-radius: 15px 15px 0 0;
-    border-bottom: none;
-    padding: 1.5rem;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid #e9ecef;
+    padding: 15px 20px;
 }
 
 .modal-header.bg-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
 }
 
 .modal-header.bg-info {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
 }
 
 .modal-header.bg-danger {
-    background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%) !important;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
 }
 
 .modal-body {
-    padding: 2rem;
-}
-
-.modal-footer {
-    border-top: none;
-    padding: 1.5rem 2rem;
-    background-color: #f8f9fa;
-    border-radius: 0 0 15px 15px;
-}
-
-/* Fix Modal Scrolling Issue - Simplified Solution */
-.modal {
-    padding-right: 0 !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-}
-
-.modal-dialog {
-    margin: 20px auto !important;
-    pointer-events: none !important;
-}
-
-.modal-dialog.modal-xl {
-    max-width: 95% !important;
-    margin: 20px auto !important;
-}
-
-.modal-content {
-    pointer-events: auto !important;
-    position: relative !important;
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    background-color: #fff !important;
-    background-clip: padding-box !important;
-    border: 1px solid rgba(0,0,0,.2) !important;
-    border-radius: 15px !important;
-    outline: 0 !important;
-}
-
-/* Prevent body scroll when modal is open - but allow modal to scroll */
-body.modal-open {
-    overflow: hidden !important;
-    padding-right: 0 !important;
-}
-
-/* Fixed height modal with proper scrolling */
-.modal-dialog-scrollable {
-    height: calc(100vh - 40px) !important;
-    max-height: calc(100vh - 40px) !important;
-}
-
-.modal-dialog-scrollable .modal-content {
-    max-height: 100% !important;
-    overflow: hidden !important;
-    height: 100% !important;
-}
-
-.modal-dialog-scrollable .modal-body {
-    overflow-y: auto !important;
-    flex: 1 1 auto !important;
-    padding: 1rem !important;
-    -webkit-overflow-scrolling: touch !important;
-}
-
-/* Specific fixes for entry modal */
-#entryModal .modal-dialog {
-    height: calc(100vh - 40px) !important;
-    max-height: calc(100vh - 40px) !important;
-}
-
-#entryModal .modal-content {
-    height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-
-#entryModal .modal-body {
-    flex: 1 !important;
-    overflow-y: auto !important;
-    padding: 1.5rem !important;
-}
-
-#entryModal .modal-header {
-    flex-shrink: 0 !important;
-}
-
-#entryModal .modal-footer {
-    flex-shrink: 0 !important;
-}
-
-/* Modal backdrop styling */
-.modal-backdrop {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    z-index: 1040 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    background-color: #000 !important;
-}
-
-/* Test container specific fixes */
-#testsContainer {
-    min-height: 100px !important;
-}
-
-.test-row {
-    margin-bottom: 1rem !important;
-    padding: 1rem !important;
-    background-color: #f8f9fa !important;
-    border-radius: 8px !important;
-    border: 1px solid #dee2e6 !important;
-}
-
-/* Prevent Select2 from causing modal jumps */
-.modal .select2-container {
-    z-index: 9999 !important;
-}
-
-.modal .select2-dropdown {
-    z-index: 9999 !important;
-    position: absolute !important;
-}
-
-/* Force modal to stay in place during content changes */
-.modal.show {
-    display: block !important;
-    padding-right: 0 !important;
-}
-
-.modal.show .modal-dialog {
-    transform: none !important;
-    margin: 20px auto !important;
-}
-
-/* Form Enhancements */
-.form-control {
-    border-radius: 10px;
-    border: 2px solid #e9ecef;
-    transition: all 0.3s ease;
-}
-
-.form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
-.form-group label {
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 0.5rem;
-}
-
-/* Test Row Styles */
-.test-row {
-    background-color: #f8f9fa;
-    padding: 1rem;
-    border-radius: 10px;
-    margin-bottom: 1rem;
-    border: 1px solid #e9ecef;
-    transition: all 0.3s ease;
-}
-
-.test-row:hover {
-    background-color: #e9ecef;
-    border-color: #667eea;
-}
-
-/* User Fields Styles */
-.form-group label {
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-}
-
-.form-group label .text-danger {
-    margin-left: 0.25rem;
-}
-
-/* Priority Badge Styles */
-.badge-priority-urgent {
-    background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
-    animation: pulse 2s infinite;
-}
-
-.badge-priority-emergency {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    animation: pulse 1s infinite;
-}
-
-.badge-priority-routine {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.badge-priority-normal {
-    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-/* Owner/Added By Field Styling */
-#ownerAddedBySelect {
-    background-color: #f8f9fa;
-    border: 2px solid #e9ecef;
-    transition: all 0.3s ease;
-}
-
-#ownerAddedBySelect:focus {
-    background-color: #fff;
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
-/* Enhanced dropdown styling for combined field */
-.select2-container--default .select2-selection--single {
-    height: calc(2.25rem + 4px) !important;
-    line-height: calc(2.25rem + 2px) !important;
-}
-
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: calc(2.25rem + 2px) !important;
-    padding-left: 12px !important;
-}
-
-/* Fix Select2 dropdown display issues in modals */
-.modal .select2-container {
-    z-index: 9999 !important;
-}
-
-.modal .select2-dropdown {
-    z-index: 9999 !important;
-}
-
-/* Ensure Select2 control containers inside modals fill the available width */
-.modal .select2-container {
-    width: 100% !important;
-    display: block !important;
-}
-
-.modal .select2-container .select2-selection--single {
-    height: auto !important;
-}
-
-/* Test section styling */
-.test-row {
-    background-color: #f8f9fa;
-    padding: 1rem;
-    border-radius: 10px;
-    margin-bottom: 1rem;
-    border: 1px solid #e9ecef;
-    transition: all 0.3s ease;
-}
-
-.test-row:hover {
-    background-color: #e9ecef;
-    border-color: #667eea;
-}
-
-/* Test field labels */
-.test-row .col-md-5 small,
-.test-row .col-md-3 small,
-.test-row .col-md-1 small {
-    font-weight: 600;
-    color: #6c757d;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-}
-
-/* Form field improvements */
-.form-control:disabled {
-    background-color: #e9ecef;
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.form-control:disabled::placeholder {
-    color: #6c757d;
-}
-
-/* Validation feedback styles */
-.is-invalid {
-    border-color: #dc3545 !important;
-    box-shadow: 0 0 0 0.2rem rgba(220,53,69,0.12) !important;
-}
-.invalid-feedback {
-    color: #dc3545;
-    display: block;
-    margin-top: 0.25rem;
-}
-
-.modal .alert {
-    z-index: 2200; /* ensure form error messages in modal appear above other overlays */
-}
-
-/* Help text styling */
-.form-text.text-muted {
-    font-size: 0.875rem;
-    font-style: italic;
-    margin-top: 0.25rem;
-}
-
-/* Make test-result inputs clearly editable inside test rows */
-.test-row .test-result {
-    background-color: #ffffff !important;
-    opacity: 1 !important;
-    cursor: text !important;
-    border: 1px solid #ced4da !important;
-    width: 100%;
-}
-
-/* Ensure readonly but non-disabled fields like .test-unit and .test-category look neutral */
-.test-row .test-unit[readonly],
-.test-row .test-category[readonly] {
-    background-color: #f8f9fa;
-    opacity: 1;
-    cursor: default;
-}
-
-/* Ensure Select2 inside test rows fills the column width */
-.test-row .select2-container {
-    width: 100% !important;
-    display: block !important;
-}
-
-/* Limit height of modal body for extra-large modal so content scrolls inside modal */
-.modal-dialog.modal-xl .modal-body {
-    max-height: calc(100vh - 220px);
+    padding: 20px;
+    max-height: 70vh;
     overflow-y: auto;
 }
 
-/* Make Select2 in form groups fill the column and align with inputs */
-.form-group .select2-container,
-.row .select2-container {
-    width: 100% !important;
-    display: block !important;
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 15px 20px;
 }
 
-/* Status dropdown fix */
-#entryStatus {
-    min-width: 120px;
-}
-
-/* Priority and referral source styling */
-#priority, #referralSource {
-    background-color: #f8f9fa;
-    transition: all 0.3s ease;
-}
-
-#priority:focus, #referralSource:focus {
-    background-color: #fff;
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
-/* Contact and Address Fields */
-#patientContact, #patientAddress {
-    background-color: #f8f9fa;
-    transition: all 0.3s ease;
-}
-
-#patientContact:focus, #patientAddress:focus {
-    background-color: #fff;
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
-/* Referral Source and Priority Styling */
-#referralSource, #priority {
-    background-color: #f8f9fa;
-    transition: all 0.3s ease;
-}
-
-#referralSource:focus, #priority:focus {
-    background-color: #fff;
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
-/* Enhanced Modal Form Layout */
-.modal-body .row {
+/* Form Styling */
+.form-group {
     margin-bottom: 1rem;
 }
 
-.modal-body .form-group {
-    margin-bottom: 1.5rem;
+.form-control {
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-/* User Information Section */
-.user-info-section {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 10px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    border: 1px solid #dee2e6;
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
-.user-info-section h6 {
-    color: #495057;
+.form-control[readonly] {
+    background-color: #f8f9fa;
+    opacity: 1;
+}
+
+/* Patient Info Card */
+.patient-info-card .card-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+#patientModeIndicator {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+}
+
+/* Test Rows */
+.test-row {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.test-row:hover {
+    background-color: #e9ecef;
+}
+
+.test-row .form-control {
+    font-size: 0.875rem;
+}
+
+.test-row .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.test-row .btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* Pricing Card */
+.card .card-header h6 {
+    margin-bottom: 0;
     font-weight: 600;
-    margin-bottom: 1rem;
-    border-bottom: 2px solid #667eea;
-    padding-bottom: 0.5rem;
 }
 
-/* Filter Section */
-.card-body .row.mb-3 {
-    background-color: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 10px;
-    margin-bottom: 2rem;
+/* Select2 Styling */
+.select2-container--bootstrap4 .select2-selection {
+    border-radius: 4px;
 }
 
-/* DataTables Customization */
-.dataTables_wrapper .dataTables_length,
-.dataTables_wrapper .dataTables_filter,
-.dataTables_wrapper .dataTables_info,
-.dataTables_wrapper .dataTables_processing,
-.dataTables_wrapper .dataTables_paginate {
-    margin: 1rem 0;
+.select2-container--bootstrap4 .select2-selection--single {
+    height: calc(1.5em + 0.75rem + 2px);
 }
 
-.dataTables_wrapper .dataTables_filter input {
-    border-radius: 25px;
-    border: 2px solid #e9ecef;
-    padding: 0.5rem 1rem;
-    margin-left: 0.5rem;
+.select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+    padding-left: 12px;
+    padding-right: 20px;
+    line-height: calc(1.5em + 0.75rem);
 }
 
-.dataTables_wrapper .dataTables_filter input:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+/* Responsive Design */
+@media (max-width: 768px) {
+    .modal-xl {
+        max-width: 95%;
+        margin: 10px;
+    }
+    
+    .small-box .inner h3 {
+        font-size: 1.8rem;
+    }
+    
+    .small-box .icon {
+        font-size: 50px;
+    }
+    
+    .test-row {
+        padding: 8px;
+    }
+    
+    .test-row .col-md-1,
+    .test-row .col-md-2 {
+        margin-bottom: 10px;
+    }
+    
+    .btn-group-sm > .btn {
+        margin-bottom: 2px;
+    }
 }
 
-/* Loading Animation */
+@media (max-width: 576px) {
+    .card-tools .btn-group {
+        flex-direction: column;
+    }
+    
+    .card-tools .btn-group .btn {
+        margin-bottom: 5px;
+        border-radius: 4px;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+}
+
+/* Loading States */
 .loading {
-    position: relative;
+    opacity: 0.6;
+    pointer-events: none;
 }
 
 .loading::after {
@@ -730,278 +331,86 @@ body.modal-open {
     width: 20px;
     height: 20px;
     margin: -10px 0 0 -10px;
-    border: 2px solid #f3f3f3;
-    border-top: 2px solid #667eea;
+    border: 2px solid #007bff;
     border-radius: 50%;
+    border-top-color: transparent;
     animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .card-header .card-tools {
-        margin-top: 1rem;
-    }
-    
-    .card-header .card-tools .btn-group {
-        width: 100%;
-    }
-    
-    .card-header .card-tools .btn {
-        flex: 1;
-        margin: 0.25rem;
-    }
-    
-    .table-responsive {
-        font-size: 0.875rem;
-    }
-    
-    .btn-group .btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
+    to {
+        transform: rotate(360deg);
     }
 }
 
-/* Animation Classes */
-.fade-in {
-    animation: fadeIn 0.5s ease-in;
+/* Custom Scrollbar */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
 }
 
-.slide-in {
-    animation: slideIn 0.3s ease-out;
+.modal-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
 }
 
-@keyframes slideIn {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(0); }
-}
-
-/* Toastr Customization */
-.toastr {
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-}
-
-/* Select2 Customization */
-.select2-container--default .select2-selection--single {
-    border-radius: 10px;
-    border: 2px solid #e9ecef;
-    height: calc(2.25rem + 4px);
-}
-
-.select2-container--default .select2-selection--single:focus {
-    border-color: #667eea;
-}
-
-.select2-dropdown {
-    border-radius: 10px;
-    border: 2px solid #e9ecef;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
 
 /* Print Styles */
 @media print {
-    .card-tools,
-    .btn,
-    .modal,
-    .dataTables_filter,
-    .dataTables_length,
-    .dataTables_paginate {
+    .no-print {
         display: none !important;
     }
     
-    .table {
+    .card {
         box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    .badge {
+        border: 1px solid #000;
+        color: #000 !important;
+        background: transparent !important;
+    }
+}
+
+/* Accessibility Improvements */
+.btn:focus,
+.form-control:focus,
+.select2-container--bootstrap4.select2-container--focus .select2-selection {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .card {
+        border: 2px solid #000;
+    }
+    
+    .badge {
         border: 1px solid #000;
     }
     
-    .small-box {
-        border: 1px solid #000;
-        box-shadow: none;
+    .btn {
+        border-width: 2px;
     }
 }
-/* Patient Information Field States */
-.patient-info-field.editable-field {
-    background-color: #ffffff !important;
-    border-color: #28a745 !important;
-    border-width: 2px !important;
-    box-shadow: 0 0 0 0.1rem rgba(40, 167, 69, 0.15) !important;
-}
 
-.patient-info-field.editable-field:focus {
-    border-color: #28a745 !important;
-    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
-}
-
-.patient-info-field.readonly-field {
-    background-color: #f8f9fa !important;
-    border-color: #6c757d !important;
-    border-width: 1px !important;
-    color: #495057 !important;
-    cursor: not-allowed !important;
-}
-
-.patient-info-field.readonly-field:focus {
-    background-color: #f8f9fa !important;
-    border-color: #6c757d !important;
-    box-shadow: none !important;
-}
-
-/* Patient Selection Dropdown Enhancement */
-#patientSelect option[value="add_new_patient"] {
-    background-color: #e8f5e8 !important;
-    color: #155724 !important;
-    font-weight: 600 !important;
-}
-
-/* Patient Information Section Header Enhancement */
-.patient-info-mode-indicator {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
-    border-radius: 15px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-left: 0.5rem;
-}
-
-.patient-info-mode-indicator.new-patient {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.patient-info-mode-indicator.existing-patient {
-    background-color: #d1ecf1;
-    color: #0c5460;
-    border: 1px solid #bee5eb;
-}
-
-/* Enhanced Patient Information Card */
-.patient-info-card {
-    transition: all 0.3s ease;
-    border-left: 4px solid #667eea;
-}
-
-.patient-info-card.new-patient-mode {
-    border-left-color: #28a745;
-    background: linear-gradient(135deg, #f8fff9 0%, #e8f5e8 100%);
-}
-
-.patient-info-card.existing-patient-mode {
-    border-left-color: #17a2b8;
-    background: linear-gradient(135deg, #f8fdff 0%, #e1f7fe 100%);
-}
-
-/* Form Field Labels Enhancement */
-.patient-info-field-label {
-    position: relative;
-}
-
-.patient-info-field-label::after {
-    content: '';
-    position: absolute;
-    right: -15px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: #6c757d;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.patient-info-field.editable-field + .patient-info-field-label::after {
-    background-color: #28a745;
-    opacity: 1;
-}
-
-.patient-info-field.readonly-field + .patient-info-field-label::after {
-    background-color: #6c757d;
-    opacity: 0.5;
-}
-
-/* Tooltip for Patient Mode */
-.patient-mode-tooltip {
-    position: relative;
-    cursor: help;
-}
-
-.patient-mode-tooltip:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #333;
-    color: white;
-    padding: 0.5rem;
-    border-radius: 5px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    z-index: 1000;
-    margin-bottom: 5px;
-}
-
-.patient-mode-tooltip:hover::before {
-    content: '';
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: #333;
-    z-index: 1000;
-}/
-* Patient Name Field Styling */
-#patientName {
-    font-weight: 600;
-    border-left: 3px solid #667eea;
-}
-
-#patientName:focus {
-    border-left-color: #28a745;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
-#patientName.editable-field {
-    border-left-color: #28a745 !important;
-}
-
-#patientName.readonly-field {
-    border-left-color: #6c757d !important;
-    font-weight: 500;
-}
-
-/* Patient Information Row Layout Enhancement */
-.patient-info-card .card-body .row {
-    align-items: end;
-}
-
-.patient-info-card .form-group {
-    margin-bottom: 1rem;
-}
-
-/* Patient Name Field Priority Styling */
-.patient-info-card .col-md-3:first-child .form-group {
-    position: relative;
-}
-
-.patient-info-card .col-md-3:first-child .form-group::before {
-    content: '👤';
-    position: absolute;
-    left: -25px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.2rem;
-    opacity: 0.7;
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .small-box,
+    .btn-sm {
+        transition: none;
+    }
+    
+    .loading::after {
+        animation: none;
+    }
 }

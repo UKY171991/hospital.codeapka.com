@@ -15,15 +15,11 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
 $currentUserId = $_SESSION['user_id'] ?? '';
 $currentUserDisplayName = $_SESSION['full_name'] ?? $_SESSION['username'] ?? 'Unknown User';
 $currentUserRole = $_SESSION['role'] ?? 'user';
-
-// Ensure variables are properly set for JavaScript
-$currentUserId = $currentUserId ?: '';
-$currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
 ?>
 
-<!-- Content Wrapper. Contains page content -->
-<div class="content-wrapper entry-page-modal-override">
-    <!-- Content Header (Page header) -->
+<!-- Content Wrapper -->
+<div class="content-wrapper">
+    <!-- Content Header -->
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
@@ -55,7 +51,7 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                         <div class="icon">
                             <i class="fas fa-clipboard-list"></i>
                         </div>
-                        <a href="#" class="small-box-footer" onclick="filterByStatus('all')">
+                        <a href="#" class="small-box-footer" onclick="EntryManager.filterByStatus('all')">
                             More info <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
@@ -70,7 +66,7 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                         <div class="icon">
                             <i class="fas fa-clock"></i>
                         </div>
-                        <a href="#" class="small-box-footer" onclick="filterByStatus('pending')">
+                        <a href="#" class="small-box-footer" onclick="EntryManager.filterByStatus('pending')">
                             More info <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
@@ -85,7 +81,7 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                         <div class="icon">
                             <i class="fas fa-check-circle"></i>
                         </div>
-                        <a href="#" class="small-box-footer" onclick="filterByStatus('completed')">
+                        <a href="#" class="small-box-footer" onclick="EntryManager.filterByStatus('completed')">
                             More info <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
@@ -100,7 +96,7 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                         <div class="icon">
                             <i class="fas fa-calendar-day"></i>
                         </div>
-                        <a href="#" class="small-box-footer" onclick="filterByDate('today')">
+                        <a href="#" class="small-box-footer" onclick="EntryManager.filterByDate('today')">
                             More info <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
@@ -118,16 +114,13 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                             </h3>
                             <div class="card-tools">
                                 <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-primary btn-sm" onclick="openAddEntryModal()">
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="EntryManager.openAddModal()">
                                         <i class="fas fa-plus"></i> Add Entry
                                     </button>
-                                    <button type="button" class="btn btn-warning btn-sm" onclick="cleanupDuplicates()" title="Remove duplicate test entries">
-                                        <i class="fas fa-broom"></i> Clean Duplicates
-                                    </button>
-                                    <button type="button" class="btn btn-success btn-sm" onclick="exportEntries()">
+                                    <button type="button" class="btn btn-success btn-sm" onclick="EntryManager.exportEntries()">
                                         <i class="fas fa-download"></i> Export
                                     </button>
-                                    <button type="button" class="btn btn-info btn-sm" onclick="refreshTable()">
+                                    <button type="button" class="btn btn-info btn-sm" onclick="EntryManager.refreshTable()">
                                         <i class="fas fa-sync-alt"></i> Refresh
                                     </button>
                                 </div>
@@ -140,7 +133,7 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label for="statusFilter">Status Filter:</label>
-                                        <select class="form-control form-control-sm" id="statusFilter" onchange="applyFilters()">
+                                        <select class="form-control form-control-sm" id="statusFilter">
                                             <option value="">All Status</option>
                                             <option value="pending">Pending</option>
                                             <option value="completed">Completed</option>
@@ -151,7 +144,7 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label for="dateFilter">Date Range:</label>
-                                        <select class="form-control form-control-sm" id="dateFilter" onchange="applyFilters()">
+                                        <select class="form-control form-control-sm" id="dateFilter">
                                             <option value="">All Dates</option>
                                             <option value="today">Today</option>
                                             <option value="yesterday">Yesterday</option>
@@ -164,14 +157,14 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                                     <div class="form-group">
                                         <label for="patientFilter">Patient:</label>
                                         <input type="text" class="form-control form-control-sm" id="patientFilter" 
-                                               placeholder="Search by patient name..." onkeyup="applyFilters()">
+                                               placeholder="Search by patient name...">
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label for="doctorFilter">Doctor:</label>
                                         <input type="text" class="form-control form-control-sm" id="doctorFilter" 
-                                               placeholder="Search by doctor name..." onkeyup="applyFilters()">
+                                               placeholder="Search by doctor name...">
                                     </div>
                                 </div>
                             </div>
@@ -199,20 +192,6 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                                 </table>
                             </div>
                         </div>
-                        
-                        <div class="card-footer">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="dataTables_info" id="entriesTable_info" role="status" aria-live="polite">
-                                        Showing entries
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="dataTables_paginate paging_simple_numbers" id="entriesTable_paginate">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -235,8 +214,8 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
             <form id="entryForm">
                 <div class="modal-body">
                     <input type="hidden" id="entryId" name="id">
-                    <input type="hidden" id="isNewPatient" name="is_new_patient" value="false">
                     
+                    <!-- Basic Information Row -->
                     <div class="row">
                         <div class="col-md-3">
                             <div class="form-group">
@@ -244,7 +223,6 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                                 <select class="form-control select2" id="ownerAddedBySelect" name="owner_added_by" required>
                                     <option value="">Select Owner/User</option>
                                 </select>
-                                <small class="form-text text-muted">Select the owner/user to filter patients and doctors</small>
                             </div>
                         </div>
 
@@ -252,9 +230,8 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                             <div class="form-group">
                                 <label for="patientSelect">Patient <span class="text-danger">*</span></label>
                                 <select class="form-control select2" id="patientSelect" name="patient_id" required disabled>
-                                    <option value="">Select Owner/User first to load patients</option>
+                                    <option value="">Select Owner/User first</option>
                                 </select>
-                                <small class="form-text text-muted" id="patientHelpText">Select an owner/user above to load patients</small>
                             </div>
                         </div>
 
@@ -262,9 +239,8 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                             <div class="form-group">
                                 <label for="doctorSelect">Doctor</label>
                                 <select class="form-control select2" id="doctorSelect" name="doctor_id" disabled>
-                                    <option value="">Select Owner/User first to load doctors</option>
+                                    <option value="">Select Owner/User first</option>
                                 </select>
-                                <small class="form-text text-muted" id="doctorHelpText">Select an owner/user above to load doctors</small>
                             </div>
                         </div>
                     
@@ -275,6 +251,7 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                                        value="<?php echo date('Y-m-d'); ?>" required>
                             </div>
                         </div>
+                        
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label for="entryStatus">Status</label>
@@ -288,12 +265,12 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                     </div>
                     
                     <!-- Patient Information Section -->
-                    <div class="card mt-3 mb-3 patient-info-card" id="patientInfoCard">
+                    <div class="card mt-3 mb-3" id="patientInfoCard">
                         <div class="card-header">
                             <h6 class="mb-0">
                                 <i class="fas fa-user mr-1"></i>
                                 Patient Information
-                                <span id="patientModeIndicator" class="patient-info-mode-indicator new-patient">New Patient Mode</span>
+                                <span id="patientModeIndicator" class="badge badge-info ml-2">Existing Patient</span>
                             </h6>
                         </div>
                         <div class="card-body">
@@ -301,28 +278,28 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label for="patientName">Patient Name</label>
-                                        <input type="text" class="form-control patient-info-field" id="patientName" name="patient_name" 
-                                               placeholder="Enter patient name...">
+                                        <input type="text" class="form-control" id="patientName" name="patient_name" 
+                                               placeholder="Enter patient name..." readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label for="patientContact">Patient Contact</label>
-                                        <input type="text" class="form-control patient-info-field" id="patientContact" name="patient_contact" 
-                                               placeholder="Phone number or email...">
+                                        <input type="text" class="form-control" id="patientContact" name="patient_contact" 
+                                               placeholder="Phone number or email..." readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="patientAge">Age</label>
-                                        <input type="number" class="form-control patient-info-field" id="patientAge" name="age" 
-                                               placeholder="Age" min="0" max="150">
+                                        <input type="number" class="form-control" id="patientAge" name="age" 
+                                               placeholder="Age" min="0" max="150" readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="patientGender">Gender</label>
-                                        <select class="form-control select2 patient-info-field" id="patientGender" name="gender">
+                                        <select class="form-control select2" id="patientGender" name="gender" disabled>
                                             <option value="">Select Gender</option>
                                             <option value="Male">Male</option>
                                             <option value="Female">Female</option>
@@ -332,9 +309,9 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label for="patientAddress">Patient Address</label>
-                                        <textarea class="form-control patient-info-field" id="patientAddress" name="patient_address" rows="2" 
-                                                  placeholder="Patient address..."></textarea>
+                                        <label for="patientAddress">Address</label>
+                                        <textarea class="form-control" id="patientAddress" name="patient_address" rows="2" 
+                                                  placeholder="Patient address..." readonly></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -368,36 +345,9 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                             </div>
                         </div>
                         <div id="testsContainer">
-                            <div class="test-row row mb-2">
-                                <div class="col-md-3">
-                                    <select class="form-control test-select select2" name="tests[0][test_id]" required>
-                                        <option value="">Select Test</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control test-category" name="tests[0][category_name]" placeholder="Category" readonly>
-                                    <input type="hidden" name="tests[0][category_id]" class="test-category-id">
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control test-result" name="tests[0][result_value]" placeholder="Result">
-                                </div>
-                                <div class="col-md-1">
-                                    <input type="text" class="form-control test-min" name="tests[0][min]" placeholder="Min" readonly>
-                                </div>
-                                <div class="col-md-1">
-                                    <input type="text" class="form-control test-max" name="tests[0][max]" placeholder="Max" readonly>
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control test-unit" name="tests[0][unit]" placeholder="Unit" readonly>
-                                </div>
-                                <div class="col-md-1">
-                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
+                            <!-- Test rows will be added dynamically -->
                         </div>
-                        <button type="button" class="btn btn-success btn-sm" onclick="addTestRow()">
+                        <button type="button" class="btn btn-success btn-sm" onclick="EntryManager.addTestRow()">
                             <i class="fas fa-plus"></i> Add Test
                         </button>
                     </div>
@@ -487,17 +437,17 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
 
 <!-- View Entry Modal --> 
 <div class="modal fade" id="viewEntryModal" tabindex="-1" role="dialog" aria-labelledby="viewEntryModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document" style="max-width: 90%;">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
                 <h5 class="modal-title" id="viewEntryModalLabel">
-                    <i class="fas fa-eye mr-2"></i>Entry Details - Complete Information
+                    <i class="fas fa-eye mr-2"></i>Entry Details
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body" id="entryDetails" style="max-height: 70vh; overflow-y: auto;">
+            <div class="modal-body" id="entryDetails">
                 <!-- Entry details will be loaded here -->
                 <div class="text-center p-5">
                     <i class="fas fa-spinner fa-spin fa-3x text-muted"></i>
@@ -508,7 +458,7 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">
                     <i class="fas fa-times mr-1"></i> Close
                 </button>
-                <button type="button" class="btn btn-primary" onclick="printEntryDetails()">
+                <button type="button" class="btn btn-primary" onclick="EntryManager.printEntryDetails()">
                     <i class="fas fa-print mr-1"></i> Print
                 </button>
             </div>
@@ -545,254 +495,11 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
 <!-- Include footer -->
 <?php include 'inc/footer.php'; ?>
 
-<!-- Page-specific CSS -->
-<link rel="stylesheet" href="assets/css/entry-list.css">
-
+<!-- Page-specific JavaScript -->
 <script>
-    console.log('Setting global variables...');
+    // Set global variables for JavaScript
     const currentUserId = <?php echo json_encode($currentUserId); ?>;
     const currentUserDisplayName = <?php echo json_encode($currentUserDisplayName); ?>;
-    console.log('Global variables set:', { currentUserId, currentUserDisplayName });
+    const currentUserRole = <?php echo json_encode($currentUserRole); ?>;
 </script>
-<script src="assets/js/entry-list.new.js?v=<?php echo time(); ?>"></script>
-<script>
-// Fallback error handling if main script fails to load
-setTimeout(function() {
-    if (typeof checkDependencies === 'undefined') {
-        console.error('Main JavaScript file failed to load');
-        alert('JavaScript files failed to load. Please refresh the page.');
-    }
-}, 1000);
-
-// Debug function to test API response
-function debugTestData() {
-    console.log('Testing API response...');
-    $.ajax({
-        url: 'ajax/entry_api_fixed.php',
-        method: 'GET',
-        data: { action: 'list' },
-        dataType: 'json',
-        success: function(response) {
-            console.log('API Response:', response);
-            if (response.success && response.data) {
-                console.log('First entry data:', response.data[0]);
-                response.data.forEach(function(entry, index) {
-                    if (entry.tests_count > 1) {
-                        console.log(`Entry ${entry.id} has ${entry.tests_count} tests: ${entry.test_names}`);
-                    }
-                });
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('API Error:', error);
-        }
-    });
-}
-
-// Function to refresh aggregates for a specific entry
-function refreshAggregates(entryId) {
-    if (!entryId) {
-        entryId = prompt('Enter Entry ID to refresh aggregates:');
-        if (!entryId) return;
-    }
-    
-    console.log('Refreshing aggregates for entry:', entryId);
-    $.ajax({
-        url: 'ajax/entry_api_fixed.php',
-        method: 'GET',
-        data: { action: 'refresh_aggregates', entry_id: entryId },
-        dataType: 'json',
-        success: function(response) {
-            console.log('Refresh response:', response);
-            if (response.success) {
-                alert('Aggregates refreshed for entry ' + entryId + '\nTests count: ' + (response.entry_data.tests_count || 0) + '\nTest names: ' + (response.entry_data.test_names || 'None'));
-                // Refresh the table
-                if (typeof entriesTable !== 'undefined' && entriesTable) {
-                    entriesTable.ajax.reload();
-                }
-            } else {
-                alert('Error: ' + response.message);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Refresh error:', error);
-            alert('Error refreshing aggregates: ' + error);
-        }
-    });
-}
-
-// Function to debug all entries with multiple tests
-function debugAllEntries() {
-    console.log('Debugging all entries with multiple tests...');
-    $.ajax({
-        url: 'ajax/entry_api_fixed.php',
-        method: 'GET',
-        data: { action: 'debug_all_entries' },
-        dataType: 'json',
-        success: function(response) {
-            console.log('Debug all entries response:', response);
-            if (response.success) {
-                console.table(response.entries_with_multiple_tests);
-                alert('Found ' + response.count + ' entries with multiple tests. Check console for details.');
-            } else {
-                alert('Error: ' + response.message);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Debug error:', error);
-            alert('Error debugging entries: ' + error);
-        }
-    });
-}
-
-// Function to test aggregation SQL
-function testAggregationSQL() {
-    console.log('Testing aggregation SQL...');
-    $.ajax({
-        url: 'ajax/entry_api_fixed.php',
-        method: 'GET',
-        data: { action: 'test_aggregation_sql' },
-        dataType: 'json',
-        success: function(response) {
-            console.log('Aggregation SQL test response:', response);
-            if (response.success) {
-                console.log('SQL:', response.sql);
-                console.table(response.results);
-                alert('Aggregation SQL test completed. Found ' + response.count + ' aggregated entries. Check console for details.');
-            } else {
-                alert('Error testing aggregation SQL: ' + response.error);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Aggregation SQL test error:', error);
-            alert('Error testing aggregation SQL: ' + error);
-        }
-    });
-}
-
-// Function to refresh all aggregates
-function refreshAllAggregates() {
-    if (!confirm('This will refresh aggregates for all entries with tests. Continue?')) {
-        return;
-    }
-    
-    console.log('Refreshing all aggregates...');
-    $.ajax({
-        url: 'ajax/entry_api_fixed.php',
-        method: 'GET',
-        data: { action: 'refresh_all_aggregates' },
-        dataType: 'json',
-        success: function(response) {
-            console.log('Refresh all aggregates response:', response);
-            if (response.success) {
-                alert('Successfully refreshed aggregates for ' + response.refreshed_count + ' entries.');
-                // Refresh the table
-                if (typeof entriesTable !== 'undefined' && entriesTable) {
-                    entriesTable.ajax.reload();
-                }
-            } else {
-                alert('Error refreshing all aggregates: ' + response.error);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Refresh all aggregates error:', error);
-            alert('Error refreshing all aggregates: ' + error);
-        }
-    });
-}
-
-// Function to test auto-population of test data
-function testAutoPopulation() {
-    console.log('Testing auto-population of test data...');
-    
-    // Open the add entry modal
-    openAddEntryModal();
-    
-    // Wait a bit for the modal to open and tests to load
-    setTimeout(function() {
-        if (window.testsData && window.testsData.length > 0) {
-            // Get the first test row
-            const firstTestRow = $('.test-row').first();
-            const testSelect = firstTestRow.find('.test-select');
-            
-            // Select the first available test
-            const firstTest = window.testsData[0];
-            testSelect.val(firstTest.id).trigger('change');
-            
-            console.log('Auto-populated test data for test:', firstTest.name);
-            console.log('Category:', firstTestRow.find('.test-category').val());
-            console.log('Unit:', firstTestRow.find('.test-unit').val());
-            console.log('Min:', firstTestRow.find('.test-min').val());
-            console.log('Max:', firstTestRow.find('.test-max').val());
-            console.log('Price:', firstTestRow.find('.test-price').val());
-            
-            alert('Test auto-population completed. Check console for details.');
-        } else {
-            alert('No test data available for testing.');
-        }
-    }, 1000);
-}
-
-// Function to debug entry 17 specifically
-function debugEntry17() {
-    console.log('Debugging entry 17...');
-    
-    // First check the API response
-    $.ajax({
-        url: 'ajax/entry_api_fixed.php',
-        method: 'GET',
-        data: { action: 'get', id: 17 },
-        dataType: 'json',
-        success: function(response) {
-            console.log('Entry 17 API response:', response);
-            if (response.success && response.data.tests) {
-                console.log('Entry 17 tests:', response.data.tests);
-                response.data.tests.forEach(function(test, index) {
-                    console.log(`Test ${index + 1}:`, {
-                        test_id: test.test_id,
-                        test_name: test.test_name,
-                        category_name: test.category_name,
-                        unit: test.unit,
-                        min: test.min,
-                        max: test.max,
-                        price: test.price
-                    });
-                });
-            }
-            
-            // Also check if testsData is loaded
-            console.log('Available testsData:', window.testsData ? window.testsData.length + ' tests' : 'Not loaded');
-            if (window.testsData) {
-                console.log('First few tests:', window.testsData.slice(0, 3));
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Error loading entry 17:', error);
-        }
-    });
-}
-
-// Add debug buttons to test
-$(document).ready(function() {
-    setTimeout(function() {
-        if ($('.card-tools .btn-group').length > 0) {
-            $('.card-tools .btn-group').append(
-                '<button type="button" class="btn btn-secondary btn-sm" onclick="debugTestData()" title="Debug Test Data">' +
-                '<i class="fas fa-bug"></i> Debug</button>' +
-                '<button type="button" class="btn btn-warning btn-sm" onclick="refreshAggregates()" title="Refresh Aggregates">' +
-                '<i class="fas fa-sync"></i> Refresh Agg</button>' +
-                '<button type="button" class="btn btn-info btn-sm" onclick="debugAllEntries()" title="Debug All Entries">' +
-                '<i class="fas fa-search"></i> Debug All</button>' +
-                '<button type="button" class="btn btn-primary btn-sm" onclick="testAggregationSQL()" title="Test Aggregation SQL">' +
-                '<i class="fas fa-database"></i> Test SQL</button>' +
-                '<button type="button" class="btn btn-success btn-sm" onclick="refreshAllAggregates()" title="Refresh All Aggregates">' +
-                '<i class="fas fa-sync-alt"></i> Refresh All</button>' +
-                '<button type="button" class="btn btn-purple btn-sm" onclick="testAutoPopulation()" title="Test Auto-Population">' +
-                '<i class="fas fa-magic"></i> Test Auto</button>' +
-                '<button type="button" class="btn btn-dark btn-sm" onclick="debugEntry17()" title="Debug Entry 17">' +
-                '<i class="fas fa-bug"></i> Debug 17</button>'
-            );
-        }
-    }, 1000);
-});
-</script>
+<script src="assets/js/entry-list.js?v=<?php echo time(); ?>"></script>
