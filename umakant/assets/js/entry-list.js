@@ -532,11 +532,19 @@ class EntryManager {
     addTestRow(testData = null) {
         const rowIndex = this.testRowCounter++;
 
+        console.log('Creating test row with', this.testsData.length, 'available tests');
+
         const testOptions = this.testsData.map(test =>
             `<option value="${test.id}" data-category="${test.category_name || ''}" data-unit="${test.unit || ''}" data-min="${test.min || ''}" data-max="${test.max || ''}" data-price="${test.price || 0}">
                 ${test.name}
             </option>`
         ).join('');
+
+        if (testData) {
+            console.log('Looking for test with ID:', testData.test_id);
+            const foundTest = this.testsData.find(t => t.id == testData.test_id);
+            console.log('Found test:', foundTest);
+        }
 
         const rowHtml = `
             <div class="test-row row mb-2" data-row-index="${rowIndex}">
@@ -573,24 +581,42 @@ class EntryManager {
 
         $('#testsContainer').append(rowHtml);
 
-        // Initialize Select2 for the new row
+        // Get the new row
         const $newRow = $(`.test-row[data-row-index="${rowIndex}"]`);
-        $newRow.find('.test-select').select2({
-            theme: 'bootstrap4',
-            width: '100%'
+        const $testSelect = $newRow.find('.test-select');
+
+        // Bind test selection change event first
+        $testSelect.on('change', (e) => {
+            this.onTestChange(e.target, $newRow);
         });
 
-        // Bind test selection change event
-        $newRow.find('.test-select').on('change', (e) => {
-            this.onTestChange(e.target, $newRow);
+        // Initialize Select2 for the new row
+        $testSelect.select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            placeholder: 'Select Test'
         });
 
         // If testData is provided, populate the row
         if (testData) {
+            console.log('Populating test row with data:', testData);
+
+            // Set the value first, then initialize Select2
+            const $testSelect = $newRow.find('.test-select');
+            $testSelect.val(testData.test_id);
+
+            // Reinitialize Select2 with the selected value
+            $testSelect.select2('destroy').select2({
+                theme: 'bootstrap4',
+                width: '100%'
+            });
+
+            // Trigger change to populate other fields
             setTimeout(() => {
-                $newRow.find('.test-select').val(testData.test_id).trigger('change');
+                $testSelect.trigger('change');
                 $newRow.find('.test-result').val(testData.result_value || '');
-            }, 100);
+                console.log('Test row populated with test ID:', testData.test_id);
+            }, 50);
         }
     }
 
@@ -1047,15 +1073,26 @@ class EntryManager {
             console.warn('No owner/added_by found in entry data:', entry);
         }
 
+        // Ensure tests data is loaded before populating test rows
+        if (this.testsData.length === 0) {
+            console.log('Tests data not loaded, loading now...');
+            await this.loadTestsData();
+        }
+
         // Clear and populate tests
         $('#testsContainer').empty();
         this.testRowCounter = 0;
 
         if (entry.tests && entry.tests.length > 0) {
-            entry.tests.forEach(test => {
+            console.log('Populating', entry.tests.length, 'tests:', entry.tests);
+            console.log('Available tests data:', this.testsData.length, 'tests');
+
+            entry.tests.forEach((test, index) => {
+                console.log(`Test ${index + 1}:`, test);
                 this.addTestRow(test);
             });
         } else {
+            console.log('No tests found, adding empty test row');
             this.addTestRow();
         }
 
