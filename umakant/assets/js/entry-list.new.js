@@ -332,7 +332,7 @@ function loadTests(callback) {
                 testSelects.each(function () {
                     const $this = $(this);
                     const currentVal = $this.val();
-                    populateTestSelect($this, response.data, currentVal);
+                    populateTestSelect($this, response.data, currentVal, null);
                 });
             }
             if (typeof callback === 'function') {
@@ -346,9 +346,34 @@ function loadTests(callback) {
 }
 
 // Helper function to populate a single test select dropdown
-function populateTestSelect($testSelect, testsData, currentVal) {
+function populateTestSelect($testSelect, testsData, currentVal, existingTestData) {
     $testSelect.empty().append('<option value="">Select Test</option>');
+    
+    // If we have existing test data, add it first to ensure it's available
+    if (existingTestData && existingTestData.test_id) {
+        const testName = existingTestData.test_name || 'Test #' + existingTestData.test_id;
+        const testPrice = existingTestData.price || 0;
+        const escapedTestName = testName.replace(/"/g, '&quot;');
+        
+        const existingOpt = $('<option value="' + existingTestData.test_id + '" ' +
+            'data-price="' + testPrice + '" ' +
+            'data-category="' + (existingTestData.category_name || '').replace(/"/g, '&quot;') + '" ' +
+            'data-category-id="' + (existingTestData.category_id || '') + '" ' +
+            'data-unit="' + (existingTestData.unit || '').replace(/"/g, '&quot;') + '" ' +
+            'data-min="' + (existingTestData.min || '') + '" ' +
+            'data-max="' + (existingTestData.max || '') + '" ' +
+            'data-reference-range="' + (existingTestData.reference_range || '').replace(/"/g, '&quot;') + '">' + 
+            escapedTestName + ' - ₹' + testPrice + '</option>');
+        $testSelect.append(existingOpt);
+    }
+    
+    // Add all available tests
     testsData.forEach(function (test) {
+        // Skip if this test is already added as existing test data
+        if (existingTestData && existingTestData.test_id == test.id) {
+            return;
+        }
+        
         const escapedTestName = (test.name || '').replace(/"/g, '&quot;');
         const escapedCategory = (test.category_name || '').replace(/"/g, '&quot;');
         const escapedUnit = (test.unit || '').replace(/"/g, '&quot;');
@@ -487,7 +512,7 @@ function addTestRow() {
     
     // Load tests for the new row
     if (window.testsData) {
-        populateTestSelect(newRow.find('.test-select'), window.testsData);
+        populateTestSelect(newRow.find('.test-select'), window.testsData, null, null);
     }
     
     console.log('Added new test row with index:', newIndex);
@@ -950,6 +975,14 @@ function populateEntryForm(data, viewMode = false) {
     // Add test rows
     if (data.tests && data.tests.length > 0) {
         data.tests.forEach(function(test, index) {
+            console.log('Processing test for edit mode:', {
+                index: index,
+                test_id: test.test_id,
+                test_name: test.test_name,
+                price: test.price,
+                category_name: test.category_name
+            });
+            
             const newRow = $('<div class="test-row row mb-2">' +
                 '<div class="col-md-3">' +
                 '<select class="form-control test-select select2" name="tests[' + index + '][test_id]" required>' +
@@ -980,58 +1013,25 @@ function populateEntryForm(data, viewMode = false) {
             
             $('#testsContainer').append(newRow);
             
-            // Populate test select with all available tests
+            // Populate test select with the existing test data
             const testSelect = newRow.find('.test-select');
+            
+            // Use the new populateTestSelect function with existing test data
             if (window.testsData) {
-                populateTestSelect(testSelect, window.testsData);
-                
-                // Set the test selection after populating all options
-                if (test.test_id) {
-                    testSelect.val(test.test_id);
-                    
-                    // If the test is not in the dropdown (maybe it was deleted), add it manually
-                    if (testSelect.val() !== test.test_id.toString()) {
-                        const testPrice = test.price || 0;
-                        const testName = test.test_name || 'Unknown Test #' + test.test_id;
-                        testSelect.append('<option value="' + test.test_id + '" selected>' + 
-                            testName + ' - ₹' + testPrice + '</option>');
-                        testSelect.val(test.test_id);
-                        console.log('Added missing test to dropdown:', test.test_id, testName);
-                    }
-                    
-                    console.log('Set test selection to:', test.test_id, 'Test name:', test.test_name);
-                }
+                populateTestSelect(testSelect, window.testsData, test.test_id, test);
             } else {
-                // If testsData is not available, add the current test manually
-                if (test.test_id) {
+                // If testsData is not available, add only the current test
+                if (test.test_id && test.test_name) {
                     const testPrice = test.price || 0;
-                    const testName = test.test_name || 'Unknown Test #' + test.test_id;
+                    const escapedTestName = test.test_name.replace(/"/g, '&quot;');
                     testSelect.append('<option value="' + test.test_id + '" selected>' + 
-                        testName + ' - ₹' + testPrice + '</option>');
+                        escapedTestName + ' - ₹' + testPrice + '</option>');
                     testSelect.val(test.test_id);
-                    console.log('Added test without testsData:', test.test_id, testName);
+                    console.log('Added test without testsData:', test.test_id, test.test_name);
                 }
             }
             
-            // Manually populate the fields with the existing data
-            newRow.find('.test-category').val(test.category_name || '');
-            newRow.find('.test-category-id').val(test.category_id || '');
-            newRow.find('.test-unit').val(test.unit || '');
-            newRow.find('.test-min').val(test.min || '');
-            newRow.find('.test-max').val(test.max || '');
-            newRow.find('.test-price').val(test.price || 0);
-            newRow.find('.test-discount').val(test.discount_amount || 0);
-            newRow.find('.test-total').val(test.total_price || 0);
-            
-            console.log('Populated test data for edit mode:', {
-                test_id: test.test_id,
-                test_name: test.test_name,
-                category: test.category_name,
-                unit: test.unit,
-                min: test.min,
-                max: test.max,
-                price: test.price
-            });
+            console.log('Final test selection value:', testSelect.val(), 'for test:', test.test_name);
         });
     } else {
         // Add at least one empty row
