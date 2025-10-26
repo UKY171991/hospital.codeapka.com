@@ -116,12 +116,23 @@ function build_entry_tests_aggregation_sql($pdo) {
         error_log("Entry tests table does not exist, returning empty aggregation");
         return "SELECT NULL AS entry_id, 0 AS tests_count, '' AS test_names, '' AS test_ids, 0 AS total_price, 0 AS total_discount FROM dual WHERE 1 = 0";
     }
-    $sumPrice = $caps['has_price'] ? 'SUM(et.price)' : 'SUM(0)';
-    $sumDiscount = $caps['has_discount_amount'] ? 'SUM(et.discount_amount)' : 'SUM(0)';
-
-    $sql = "SELECT et.entry_id,\n               COUNT(*) as tests_count,\n               GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,\n               GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,\n               {$sumPrice} as total_price,\n               {$sumDiscount} as total_discount\n        FROM entry_tests et\n        LEFT JOIN tests t ON et.test_id = t.id\n        GROUP BY et.entry_id";
     
-    error_log("Built aggregation SQL: " . $sql);
+    // Use COALESCE to handle NULL values properly
+    $sumPrice = $caps['has_price'] ? 'SUM(COALESCE(et.price, 0))' : 'SUM(0)';
+    $sumDiscount = $caps['has_discount_amount'] ? 'SUM(COALESCE(et.discount_amount, 0))' : 'SUM(0)';
+
+    $sql = "SELECT et.entry_id,
+                   COUNT(DISTINCT et.test_id) as tests_count,
+                   GROUP_CONCAT(DISTINCT COALESCE(t.name, CONCAT('Test_', et.test_id)) ORDER BY t.name SEPARATOR ', ') as test_names,
+                   GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,
+                   {$sumPrice} as total_price,
+                   {$sumDiscount} as total_discount
+            FROM entry_tests et
+            LEFT JOIN tests t ON et.test_id = t.id
+            WHERE et.entry_id IS NOT NULL AND et.test_id IS NOT NULL
+            GROUP BY et.entry_id";
+    
+    error_log("Built improved aggregation SQL: " . $sql);
     return $sql;
 }
 
@@ -134,6 +145,14 @@ function refresh_entry_aggregates($pdo, $entryId) {
         return;
     }
 
+    // First, verify the entry exists
+    $entryCheckStmt = $pdo->prepare("SELECT id FROM entries WHERE id = ?");
+    $entryCheckStmt->execute([$entryId]);
+    if (!$entryCheckStmt->fetch()) {
+        error_log("Entry ID $entryId does not exist, skipping aggregate refresh");
+        return;
+    }
+
     $aggSql = build_entry_tests_aggregation_sql($pdo);
     $fullQuery = "SELECT tests_count, test_ids, test_names, total_price, total_discount FROM (" . $aggSql . ") agg WHERE entry_id = ?";
     error_log("Aggregate refresh query: " . $fullQuery);
@@ -142,13 +161,32 @@ function refresh_entry_aggregates($pdo, $entryId) {
     $stmt->execute([$entryId]);
     $aggRow = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    error_log("Aggregate query result: " . json_encode($aggRow));
+    error_log("Aggregate query result for entry $entryId: " . json_encode($aggRow));
 
-    $testsCount = $aggRow ? (int)($aggRow['tests_count'] ?? 0) : 0;
-    $testIds = $aggRow ? ($aggRow['test_ids'] ?? '') : '';
-    $testNames = $aggRow ? ($aggRow['test_names'] ?? '') : '';
-    $totalPrice = $aggRow ? (float)($aggRow['total_price'] ?? 0) : 0;
-    $totalDiscount = $aggRow ? (float)($aggRow['total_discount'] ?? 0) : 0;
+    // If no aggregation data found, check if there are any tests for this entry
+    if (!$aggRow) {
+        $testCheckStmt = $pdo->prepare("SELECT COUNT(*) FROM entry_tests WHERE entry_id = ?");
+        $testCheckStmt->execute([$entryId]);
+        $testCount = $testCheckStmt->fetchColumn();
+        
+        if ($testCount > 0) {
+            error_log("Warning: Entry $entryId has $testCount tests but no aggregation data returned");
+        }
+        
+        // Set default values for entries with no tests
+        $testsCount = 0;
+        $testIds = '';
+        $testNames = '';
+        $totalPrice = 0;
+        $totalDiscount = 0;
+    } else {
+        $testsCount = (int)($aggRow['tests_count'] ?? 0);
+        $testIds = $aggRow['test_ids'] ?? '';
+        $testNames = $aggRow['test_names'] ?? '';
+        $totalPrice = (float)($aggRow['total_price'] ?? 0);
+        $totalDiscount = (float)($aggRow['total_discount'] ?? 0);
+    }
+    
     $netAmount = max($totalPrice - $totalDiscount, 0);
 
     $fields = [];
@@ -191,20 +229,26 @@ function refresh_entry_aggregates($pdo, $entryId) {
     }
 
     if (!$fields) {
-        error_log("No fields to update for entry ID: $entryId");
+        error_log("No fields to update for entry ID: $entryId (no matching columns in entries table)");
         return;
     }
 
     $sql = "UPDATE entries SET " . implode(', ', $fields) . " WHERE id = :entry_id";
     error_log("Updating entry aggregates with SQL: " . $sql);
     error_log("Update parameters: " . json_encode($params));
-    $stmt = $pdo->prepare($sql);
-    $result = $stmt->execute($params);
     
-    if ($result) {
-        error_log("Successfully updated aggregates for entry ID: $entryId");
-    } else {
-        error_log("Failed to update aggregates for entry ID: $entryId - " . json_encode($stmt->errorInfo()));
+    try {
+        $stmt = $pdo->prepare($sql);
+        $result = $stmt->execute($params);
+        
+        if ($result) {
+            $rowsAffected = $stmt->rowCount();
+            error_log("Successfully updated aggregates for entry ID: $entryId (rows affected: $rowsAffected)");
+        } else {
+            error_log("Failed to update aggregates for entry ID: $entryId - " . json_encode($stmt->errorInfo()));
+        }
+    } catch (Exception $e) {
+        error_log("Exception updating aggregates for entry ID: $entryId - " . $e->getMessage());
     }
 }
 
@@ -578,10 +622,22 @@ try {
             $tests = [];
             
             if ($entryTestsCaps['table_exists']) {
-                $testSql = "SELECT et.*, 
+                // Enhanced test SQL with better error handling and logging
+                $testSql = "SELECT et.id as entry_test_id,
+                                   et.entry_id,
+                                   et.test_id,
+                                   et.result_value,
+                                   et.unit as et_unit,
+                                   et.remarks,
+                                   et.status,
+                                   et.price,
+                                   et.discount_amount,
+                                   et.total_price,
+                                   et.created_at as et_created_at,
+                                   t.id as test_table_id,
                                    t.name AS test_name, 
                                    t.category_id,
-                                   t.unit, 
+                                   t.unit as test_unit, 
                                    t.min, 
                                    t.max,
                                    t.min_male,
@@ -589,24 +645,40 @@ try {
                                    t.min_female,
                                    t.max_female,
                                    t.reference_range,
+                                   t.price as test_default_price,
+                                   c.id as category_table_id,
                                    c.name AS category_name
                             FROM entry_tests et
                             LEFT JOIN tests t ON et.test_id = t.id
                             LEFT JOIN categories c ON t.category_id = c.id
                             WHERE et.entry_id = ?
-                            ORDER BY t.name";
+                            ORDER BY et.id, t.name";
+                
+                error_log("Entry API: Executing test query: $testSql with entry_id: $id");
                 
                 $testStmt = $pdo->prepare($testSql);
                 $testStmt->execute([$id]);
                 $tests = $testStmt->fetchAll(PDO::FETCH_ASSOC);
                 
-                // Format test data
+                error_log("Entry API: Raw test query results: " . json_encode($tests));
+                
+                // Format test data with better field handling
                 foreach ($tests as &$test) {
-                    $test['price'] = (float)($test['price'] ?? 0);
+                    // Use entry_tests price if available, otherwise use test default price
+                    $test['price'] = (float)($test['price'] ?? $test['test_default_price'] ?? 0);
                     $test['discount_amount'] = (float)($test['discount_amount'] ?? 0);
                     $test['total_price'] = $test['price'] - $test['discount_amount'];
                     $test['result_value'] = $test['result_value'] ?? '';
                     $test['status'] = $test['status'] ?? 'pending';
+                    
+                    // Use entry_tests unit if available, otherwise use test unit
+                    $test['unit'] = $test['et_unit'] ?? $test['test_unit'] ?? '';
+                    
+                    // Clean up duplicate fields
+                    unset($test['et_unit'], $test['test_unit'], $test['test_default_price']);
+                    unset($test['test_table_id'], $test['category_table_id']);
+                    
+                    error_log("Entry API: Formatted test data: " . json_encode($test));
                 }
             }
             
@@ -1066,9 +1138,19 @@ try {
         error_log("Debug: Checking entry 17 data");
         
         // Check entry_tests table directly
-        $stmt = $pdo->prepare("SELECT * FROM entry_tests WHERE entry_id = 17");
+        $stmt = $pdo->prepare("SELECT * FROM entry_tests WHERE entry_id = 17 ORDER BY id");
         $stmt->execute();
         $directTests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Check with JOIN to tests table
+        $stmt = $pdo->prepare("SELECT et.*, t.name as test_name, t.category_id, c.name as category_name 
+                               FROM entry_tests et 
+                               LEFT JOIN tests t ON et.test_id = t.id 
+                               LEFT JOIN categories c ON t.category_id = c.id 
+                               WHERE et.entry_id = 17 
+                               ORDER BY et.id");
+        $stmt->execute();
+        $joinedTests = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Check aggregation
         $aggSql = build_entry_tests_aggregation_sql($pdo);
@@ -1076,11 +1158,46 @@ try {
         $stmt->execute();
         $aggData = $stmt->fetch(PDO::FETCH_ASSOC);
         
+        // Test the new get API logic
+        $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
+        $testSql = "SELECT et.id as entry_test_id,
+                           et.entry_id,
+                           et.test_id,
+                           et.result_value,
+                           et.unit as et_unit,
+                           et.remarks,
+                           et.status,
+                           et.price,
+                           et.discount_amount,
+                           et.total_price,
+                           et.created_at as et_created_at,
+                           t.id as test_table_id,
+                           t.name AS test_name, 
+                           t.category_id,
+                           t.unit as test_unit, 
+                           t.min, 
+                           t.max,
+                           c.id as category_table_id,
+                           c.name AS category_name
+                    FROM entry_tests et
+                    LEFT JOIN tests t ON et.test_id = t.id
+                    LEFT JOIN categories c ON t.category_id = c.id
+                    WHERE et.entry_id = 17
+                    ORDER BY et.id, t.name";
+        
+        $stmt = $pdo->prepare($testSql);
+        $stmt->execute();
+        $newApiTests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
         echo json_encode([
             'success' => true,
             'direct_tests' => $directTests,
+            'joined_tests' => $joinedTests,
+            'new_api_tests' => $newApiTests,
             'aggregation_data' => $aggData,
-            'direct_count' => count($directTests)
+            'direct_count' => count($directTests),
+            'joined_count' => count($joinedTests),
+            'new_api_count' => count($newApiTests)
         ]);
         exit;
         

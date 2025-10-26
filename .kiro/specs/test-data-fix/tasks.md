@@ -7,7 +7,9 @@
   - _Requirements: 1.1, 1.3, 2.1, 2.3_
 
 - [ ] 2. Fix the entry API get action test data retrieval
-  - [ ] 2.1 Simplify and fix the SQL query in the get action
+  - [x] 2.1 Simplify and fix the SQL query in the get action
+
+
     - Replace complex JOIN logic with dedicated function calls
     - Ensure proper relationship between entry_tests and tests tables
     - Add comprehensive logging of SQL queries and parameters
@@ -25,11 +27,14 @@
     - Include debug information in API responses when needed
     - _Requirements: 3.1, 3.2, 3.4, 3.5_
 
+
 - [ ] 3. Fix the test data aggregation logic
   - [ ] 3.1 Repair build_entry_tests_aggregation_sql() function
     - Fix GROUP BY clauses and JOIN conditions
     - Ensure proper handling of test categories and names
     - Add validation of aggregated results
+
+
     - _Requirements: 2.2, 2.3_
 
   - [ ] 3.2 Update refresh_entry_aggregates() function
