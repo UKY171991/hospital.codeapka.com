@@ -851,13 +851,34 @@ try {
                     error_log("Deleted existing tests for entry ID: $savedEntryId");
                 }
                 
+                // Track inserted test IDs to prevent duplicates
+                $insertedTestIds = [];
+                
                 // Insert new tests
                 foreach ($tests as $index => $test) {
                     error_log("Processing test $index: " . json_encode($test));
                     if (!empty($test['test_id'])) {
+                        $testId = (int)$test['test_id'];
+                        
+                        // Check for duplicate test ID in this entry
+                        if (in_array($testId, $insertedTestIds)) {
+                            error_log("Skipping duplicate test ID $testId for entry $savedEntryId");
+                            continue;
+                        }
+                        
+                        // Check if this test already exists for this entry in the database
+                        $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM entry_tests WHERE entry_id = ? AND test_id = ?");
+                        $checkStmt->execute([$savedEntryId, $testId]);
+                        $existingCount = $checkStmt->fetchColumn();
+                        
+                        if ($existingCount > 0) {
+                            error_log("Test ID $testId already exists for entry $savedEntryId, skipping");
+                            continue;
+                        }
+                        
                         $testData = [
                             'entry_id' => $savedEntryId,
-                            'test_id' => (int)$test['test_id'],
+                            'test_id' => $testId,
                             'result_value' => $test['result_value'] ?? null,
                             'unit' => $test['unit'] ?? null,
                             'remarks' => $test['remarks'] ?? null,
@@ -879,6 +900,7 @@ try {
                         
                         if ($result) {
                             $insertedTestId = $pdo->lastInsertId();
+                            $insertedTestIds[] = $testId; // Track this test ID
                             error_log("Successfully inserted test with ID: $insertedTestId for entry: $savedEntryId");
                         } else {
                             error_log("Failed to insert test $index: " . json_encode($testStmt->errorInfo()));
@@ -968,6 +990,71 @@ try {
             echo json_encode([
                 'success' => false,
                 'message' => 'Failed to delete entry',
+                'error' => $e->getMessage()
+            ]);
+            exit;
+        }
+        
+    } else if ($action === 'cleanup_duplicates') {
+        // Clean up duplicate test entries
+        error_log("Cleaning up duplicate test entries");
+        
+        try {
+            // Find duplicate test entries
+            $stmt = $pdo->query("
+                SELECT entry_id, test_id, COUNT(*) as count, GROUP_CONCAT(id ORDER BY id) as ids
+                FROM entry_tests 
+                GROUP BY entry_id, test_id 
+                HAVING count > 1 
+                ORDER BY entry_id, test_id
+            ");
+            
+            $duplicates = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $cleanedCount = 0;
+            $affectedEntries = [];
+            
+            foreach ($duplicates as $duplicate) {
+                $entryId = $duplicate['entry_id'];
+                $testId = $duplicate['test_id'];
+                $ids = explode(',', $duplicate['ids']);
+                
+                // Keep the first record, delete the rest
+                $keepId = array_shift($ids);
+                $deleteIds = $ids;
+                
+                if (!empty($deleteIds)) {
+                    $placeholders = implode(',', array_fill(0, count($deleteIds), '?'));
+                    $deleteStmt = $pdo->prepare("DELETE FROM entry_tests WHERE id IN ($placeholders)");
+                    $deleteStmt->execute($deleteIds);
+                    
+                    $cleanedCount += count($deleteIds);
+                    $affectedEntries[] = $entryId;
+                    
+                    error_log("Cleaned duplicates for entry $entryId, test $testId: kept ID $keepId, deleted " . count($deleteIds) . " duplicates");
+                }
+            }
+            
+            // Refresh aggregates for affected entries
+            $affectedEntries = array_unique($affectedEntries);
+            foreach ($affectedEntries as $entryId) {
+                refresh_entry_aggregates($pdo, $entryId);
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'message' => "Cleaned up $cleanedCount duplicate test entries",
+                'duplicates_found' => count($duplicates),
+                'records_cleaned' => $cleanedCount,
+                'affected_entries' => $affectedEntries
+            ]);
+            exit;
+            
+        } catch (Exception $e) {
+            error_log('Error cleaning duplicates: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to clean duplicates',
                 'error' => $e->getMessage()
             ]);
             exit;

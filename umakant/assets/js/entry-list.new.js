@@ -738,6 +738,110 @@ function setupEventHandlers() {
             $('.test-select').not($currentSelect).each(function (index) {
                 if ($(this).val() === selectedTestId) {
                     isDuplicate = true;
+                    duplicateRowIndex = index;
+                    return false; // Break the loop
+                }
+            });
+
+            if (isDuplicate) {
+                // Show error message
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('This test is already selected in another row. Please choose a different test.');
+                } else {
+                    alert('This test is already selected in another row. Please choose a different test.');
+                }
+                
+                // Reset the current selection
+                $currentSelect.val('').trigger('change');
+                
+                // Clear the row data
+                $row.find('.test-category').val('');
+                $row.find('.test-category-id').val('');
+                $row.find('.test-min').val('');
+                $row.find('.test-max').val('');
+                $row.find('.test-unit').val('');
+                $row.find('.test-price').val('');
+                $row.find('.test-discount').val('');
+                $row.find('.test-total').val('');
+                
+                return;
+            }
+        }
+
+        // Auto-fill test information if not duplicate
+        if (selectedTestId && $opt.length) {
+            const price = parseFloat($opt.data('price') || 0);
+            const unit = $opt.data('unit') || '';
+            const categoryName = $opt.data('category-name') || '';
+            const categoryId = $opt.data('category-id') || '';
+            const min = $opt.data('min') || '';
+            const max = $opt.data('max') || '';
+            const minMale = $opt.data('min-male') || '';
+            const maxMale = $opt.data('max-male') || '';
+            const minFemale = $opt.data('min-female') || '';
+            const maxFemale = $opt.data('max-female') || '';
+            const minChild = $opt.data('min-child') || '';
+            const maxChild = $opt.data('max-child') || '';
+
+            // Fill in the test information
+            $row.find('.test-category').val(categoryName);
+            $row.find('.test-category-id').val(categoryId);
+            $row.find('.test-unit').val(unit);
+            
+            // Set appropriate min/max based on patient gender and age
+            const patientGender = $('#patientGender').val();
+            const patientAge = parseInt($('#patientAge').val() || 0);
+            
+            let displayMin = min;
+            let displayMax = max;
+            
+            if (patientAge < 18 && minChild && maxChild) {
+                displayMin = minChild;
+                displayMax = maxChild;
+            } else if (patientGender === 'Male' && minMale && maxMale) {
+                displayMin = minMale;
+                displayMax = maxMale;
+            } else if (patientGender === 'Female' && minFemale && maxFemale) {
+                displayMin = minFemale;
+                displayMax = maxFemale;
+            }
+            
+            $row.find('.test-min').val(displayMin);
+            $row.find('.test-max').val(displayMax);
+            
+            // Fill price information if price fields exist
+            if ($row.find('.test-price').length) {
+                $row.find('.test-price').val(price.toFixed(2));
+                $row.find('.test-discount').val('0.00');
+                $row.find('.test-total').val(price.toFixed(2));
+            }
+            
+            console.log('Auto-filled test information:', {
+                testId: selectedTestId,
+                price: price,
+                unit: unit,
+                category: categoryName,
+                min: displayMin,
+                max: displayMax
+            });
+        } else {
+            // Clear fields if no test selected
+            $row.find('.test-category').val('');
+            $row.find('.test-category-id').val('');
+            $row.find('.test-min').val('');
+            $row.find('.test-max').val('');
+            $row.find('.test-unit').val('');
+            if ($row.find('.test-price').length) {
+                $row.find('.test-price').val('');
+                $row.find('.test-discount').val('');
+                $row.find('.test-total').val('');
+            }
+        }
+        
+        // Recalculate totals
+        calculateTotals();
+    }); ($(this).val() === selectedTestId) {
+                    isDuplicate = true;
                     duplicateRowIndex = index + 1;
                     return false; // break the loop
                 }
@@ -3136,3 +3240,489 @@ $(document).on('shown.bs.modal', '#entryModal', function () {
         });
     }, 200);
 });
+//
+ Add new test row
+function addTestRow() {
+    const container = $('#testsContainer');
+    const currentRows = container.find('.test-row').length;
+    const newIndex = currentRows;
+    
+    const newRow = $(`
+        <div class="test-row row mb-2">
+            <div class="col-md-3">
+                <select class="form-control test-select select2" name="tests[${newIndex}][test_id]" required>
+                    <option value="">Select Test</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control test-category" name="tests[${newIndex}][category_name]" placeholder="Category" readonly>
+                <input type="hidden" name="tests[${newIndex}][category_id]" class="test-category-id">
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control test-result" name="tests[${newIndex}][result_value]" placeholder="Result">
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control test-min" name="tests[${newIndex}][min]" placeholder="Min" readonly>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control test-max" name="tests[${newIndex}][max]" placeholder="Max" readonly>
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control test-unit" name="tests[${newIndex}][unit]" placeholder="Unit" readonly>
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `);
+    
+    container.append(newRow);
+    
+    // Load tests for the new row
+    loadTestsForNewRow(newRow);
+    
+    // Initialize Select2 for the new test select
+    newRow.find('.test-select').select2({
+        placeholder: 'Select Test',
+        allowClear: true,
+        width: '100%'
+    });
+    
+    console.log('Added new test row with index:', newIndex);
+}
+
+// Remove test row
+function removeTestRow(button) {
+    const $row = $(button).closest('.test-row');
+    const container = $('#testsContainer');
+    
+    // Don't allow removing the last row
+    if (container.find('.test-row').length <= 1) {
+        if (typeof toastr !== 'undefined') {
+            toastr.warning('At least one test row is required.');
+        } else {
+            alert('At least one test row is required.');
+        }
+        return;
+    }
+    
+    $row.remove();
+    
+    // Recalculate totals after removing row
+    calculateTotals();
+    
+    console.log('Removed test row');
+}
+
+// Calculate totals
+function calculateTotals() {
+    let subtotal = 0;
+    let totalDiscount = 0;
+    
+    $('.test-row').each(function() {
+        const $row = $(this);
+        const price = parseFloat($row.find('.test-price').val() || 0);
+        const discount = parseFloat($row.find('.test-discount').val() || 0);
+        
+        subtotal += price;
+        totalDiscount += discount;
+        
+        // Update row total
+        const rowTotal = price - discount;
+        $row.find('.test-total').val(rowTotal.toFixed(2));
+    });
+    
+    const finalAmount = subtotal - totalDiscount;
+    
+    // Update form totals if fields exist
+    $('#subtotal').val(subtotal.toFixed(2));
+    $('#totalDiscount').val(totalDiscount.toFixed(2));
+    $('#finalAmount').val(finalAmount.toFixed(2));
+    
+    console.log('Calculated totals:', {
+        subtotal: subtotal,
+        totalDiscount: totalDiscount,
+        finalAmount: finalAmount
+    });
+}
+
+// View entry details
+function viewEntry(id) {
+    currentEntryId = id;
+    
+    // Load entry data
+    $.ajax({
+        url: 'ajax/entry_api_fixed.php',
+        method: 'GET',
+        data: { action: 'get', id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                populateEntryForm(response.data, true); // true = view mode
+                $('#entryModalLabel').html('<i class="fas fa-eye mr-1"></i>View Entry #' + id);
+                $('#entryModal').modal('show');
+            } else {
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(response.message || 'Failed to load entry details');
+                } else {
+                    alert(response.message || 'Failed to load entry details');
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading entry:', error);
+            if (typeof toastr !== 'undefined') {
+                toastr.error('Failed to load entry details');
+            } else {
+                alert('Failed to load entry details');
+            }
+        }
+    });
+}
+
+// Edit entry
+function editEntry(id) {
+    currentEntryId = id;
+    
+    // Load entry data
+    $.ajax({
+        url: 'ajax/entry_api_fixed.php',
+        method: 'GET',
+        data: { action: 'get', id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                populateEntryForm(response.data, false); // false = edit mode
+                $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry #' + id);
+                $('#entryModal').modal('show');
+            } else {
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(response.message || 'Failed to load entry details');
+                } else {
+                    alert(response.message || 'Failed to load entry details');
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading entry:', error);
+            if (typeof toastr !== 'undefined') {
+                toastr.error('Failed to load entry details');
+            } else {
+                alert('Failed to load entry details');
+            }
+        }
+    });
+}
+
+// Delete entry
+function deleteEntry(id) {
+    if (confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
+        performDelete(id);
+    }
+}
+
+// Perform delete operation
+function performDelete(id) {
+    $.ajax({
+        url: 'ajax/entry_api_fixed.php',
+        method: 'POST',
+        data: { action: 'delete', id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Entry deleted successfully');
+                } else {
+                    alert('Entry deleted successfully');
+                }
+                
+                // Refresh the table
+                if (entriesTable) {
+                    entriesTable.ajax.reload();
+                }
+                
+                // Refresh statistics
+                loadStatistics();
+            } else {
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(response.message || 'Failed to delete entry');
+                } else {
+                    alert(response.message || 'Failed to delete entry');
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error deleting entry:', error);
+            if (typeof toastr !== 'undefined') {
+                toastr.error('Failed to delete entry');
+            } else {
+                alert('Failed to delete entry');
+            }
+        }
+    });
+}
+
+// Populate entry form with data
+function populateEntryForm(data, viewMode = false) {
+    console.log('Populating form with data:', data);
+    
+    // Set form fields
+    $('#entryId').val(data.id || '');
+    $('#patientSelect').val(data.patient_id || '').trigger('change');
+    $('#doctorSelect').val(data.doctor_id || '').trigger('change');
+    $('#entryDate').val(data.entry_date || '');
+    $('#entryStatus').val(data.status || 'pending').trigger('change');
+    
+    // Set patient information
+    $('#patientName').val(data.patient_name || '');
+    $('#patientContact').val(data.patient_contact || '');
+    $('#patientAge').val(data.age || '');
+    $('#patientGender').val(data.gender || '').trigger('change');
+    $('#patientAddress').val(data.patient_address || '');
+    
+    // Clear existing test rows
+    $('#testsContainer').empty();
+    
+    // Add test rows
+    if (data.tests && data.tests.length > 0) {
+        data.tests.forEach(function(test, index) {
+            const newRow = $(`
+                <div class="test-row row mb-2">
+                    <div class="col-md-3">
+                        <select class="form-control test-select select2" name="tests[${index}][test_id]" required>
+                            <option value="">Select Test</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control test-category" name="tests[${index}][category_name]" placeholder="Category" readonly>
+                        <input type="hidden" name="tests[${index}][category_id]" class="test-category-id">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control test-result" name="tests[${index}][result_value]" placeholder="Result" value="${test.result_value || ''}">
+                    </div>
+                    <div class="col-md-1">
+                        <input type="text" class="form-control test-min" name="tests[${index}][min]" placeholder="Min" readonly value="${test.min || ''}">
+                    </div>
+                    <div class="col-md-1">
+                        <input type="text" class="form-control test-max" name="tests[${index}][max]" placeholder="Max" readonly value="${test.max || ''}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control test-unit" name="tests[${index}][unit]" placeholder="Unit" readonly value="${test.unit || ''}">
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `);
+            
+            $('#testsContainer').append(newRow);
+            
+            // Load tests and set the selected value
+            loadTestsForNewRow(newRow);
+            
+            // Set the test selection after a short delay to ensure options are loaded
+            setTimeout(function() {
+                newRow.find('.test-select').val(test.test_id).trigger('change');
+            }, 100);
+        });
+    } else {
+        // Add at least one empty row
+        addTestRow();
+    }
+    
+    // Set form to view mode if requested
+    if (viewMode) {
+        $('#entryForm input, #entryForm select, #entryForm textarea').prop('disabled', true);
+        $('#entryForm button[type="submit"]').hide();
+        $('.btn-danger').hide(); // Hide remove buttons
+    } else {
+        $('#entryForm input, #entryForm select, #entryForm textarea').prop('disabled', false);
+        $('#entryForm button[type="submit"]').show();
+        $('.btn-danger').show(); // Show remove buttons
+    }
+}
+
+// Save entry
+function saveEntry(form) {
+    console.log('Saving entry...');
+    
+    // Collect form data
+    const formData = new FormData(form);
+    formData.append('action', 'save');
+    
+    // Collect tests data
+    const tests = [];
+    $('.test-row').each(function(index) {
+        const $row = $(this);
+        const testId = $row.find('.test-select').val();
+        
+        if (testId) {
+            tests.push({
+                test_id: testId,
+                result_value: $row.find('.test-result').val() || '',
+                unit: $row.find('.test-unit').val() || '',
+                price: parseFloat($row.find('.test-price').val() || 0),
+                discount_amount: parseFloat($row.find('.test-discount').val() || 0),
+                status: 'pending'
+            });
+        }
+    });
+    
+    // Add tests to form data
+    formData.append('tests', JSON.stringify(tests));
+    
+    console.log('Collected tests data:', tests);
+    
+    // Submit form
+    $.ajax({
+        url: 'ajax/entry_api_fixed.php',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.success(response.message || 'Entry saved successfully');
+                } else {
+                    alert(response.message || 'Entry saved successfully');
+                }
+                
+                // Close modal
+                $('#entryModal').modal('hide');
+                
+                // Refresh table
+                if (entriesTable) {
+                    entriesTable.ajax.reload();
+                }
+                
+                // Refresh statistics
+                loadStatistics();
+                
+                // Reset form
+                resetEntryForm();
+            } else {
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(response.message || 'Failed to save entry');
+                } else {
+                    alert(response.message || 'Failed to save entry');
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error saving entry:', error);
+            if (typeof toastr !== 'undefined') {
+                toastr.error('Failed to save entry');
+            } else {
+                alert('Failed to save entry');
+            }
+        }
+    });
+}
+
+// Reset entry form
+function resetEntryForm() {
+    currentEntryId = null;
+    $('#entryForm')[0].reset();
+    $('#testsContainer').empty();
+    addTestRow(); // Add one empty test row
+    $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
+}
+
+// Show add entry modal
+function showAddEntryModal() {
+    resetEntryForm();
+    $('#entryModal').modal('show');
+}
+
+// Filter entries by status
+function filterByStatus(status) {
+    if (entriesTable) {
+        if (status === 'all') {
+            entriesTable.search('').draw();
+        } else {
+            entriesTable.search(status).draw();
+        }
+    }
+}
+// Clean u
+p duplicate test entries
+function cleanupDuplicates() {
+    if (confirm('This will remove duplicate test entries from the database. Are you sure you want to continue?')) {
+        $.ajax({
+            url: 'ajax/entry_api_fixed.php',
+            method: 'POST',
+            data: { action: 'cleanup_duplicates' },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success(response.message);
+                    } else {
+                        alert(response.message);
+                    }
+                    
+                    // Refresh the table
+                    if (entriesTable) {
+                        entriesTable.ajax.reload();
+                    }
+                    
+                    // Refresh statistics
+                    loadStatistics();
+                } else {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error(response.message || 'Failed to clean duplicates');
+                    } else {
+                        alert(response.message || 'Failed to clean duplicates');
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error cleaning duplicates:', error);
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('Failed to clean duplicates');
+                } else {
+                    alert('Failed to clean duplicates');
+                }
+            }
+        });
+    }
+}
+
+// Open add entry modal
+function openAddEntryModal() {
+    showAddEntryModal();
+}
+
+// Refresh table
+function refreshTable() {
+    if (entriesTable) {
+        entriesTable.ajax.reload();
+    }
+    loadStatistics();
+}
+
+// Export entries (placeholder)
+function exportEntries() {
+    if (typeof toastr !== 'undefined') {
+        toastr.info('Export functionality coming soon');
+    } else {
+        alert('Export functionality coming soon');
+    }
+}
+
+// Apply filters (placeholder)
+function applyFilters() {
+    // This would implement filtering logic
+    console.log('Applying filters...');
+}
+
+// Filter by date (placeholder)
+function filterByDate(period) {
+    console.log('Filtering by date:', period);
+}

@@ -121,6 +121,9 @@ $currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
                                     <button type="button" class="btn btn-primary btn-sm" onclick="openAddEntryModal()">
                                         <i class="fas fa-plus"></i> Add Entry
                                     </button>
+                                    <button type="button" class="btn btn-warning btn-sm" onclick="cleanupDuplicates()" title="Remove duplicate test entries">
+                                        <i class="fas fa-broom"></i> Clean Duplicates
+                                    </button>
                                     <button type="button" class="btn btn-success btn-sm" onclick="exportEntries()">
                                         <i class="fas fa-download"></i> Export
                                     </button>
