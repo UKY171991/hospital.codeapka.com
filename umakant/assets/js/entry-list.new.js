@@ -3,6 +3,22 @@ let entriesTable;
 let currentEntryId = null;
 let testRowCount = 1;
 
+// Global error handler
+window.addEventListener('error', function(e) {
+    console.error('Global JavaScript error:', {
+        message: e.message,
+        filename: e.filename,
+        lineno: e.lineno,
+        colno: e.colno,
+        error: e.error
+    });
+});
+
+// Unhandled promise rejection handler
+window.addEventListener('unhandledrejection', function(e) {
+    console.error('Unhandled promise rejection:', e.reason);
+});
+
 // Safety check for required libraries
 function checkDependencies() {
     const missing = [];
@@ -22,12 +38,20 @@ function checkDependencies() {
 
 // Initialize page when document is ready
 $(document).ready(function () {
+    console.log('Document ready - starting initialization');
+    console.log('Global variables:', {
+        currentUserId: typeof currentUserId !== 'undefined' ? currentUserId : 'undefined',
+        currentUserDisplayName: typeof currentUserDisplayName !== 'undefined' ? currentUserDisplayName : 'undefined'
+    });
+    
     // Check dependencies first
     if (!checkDependencies()) {
+        console.error('Dependencies check failed');
         return;
     }
 
     try {
+        console.log('Dependencies OK, initializing page...');
         initializePage();
     } catch (error) {
         console.error('Error initializing page:', error);
@@ -70,10 +94,17 @@ function loadStatistics() {
                 $('#pendingEntries').text(response.data.pending || 0);
                 $('#completedEntries').text(response.data.completed || 0);
                 $('#todayEntries').text(response.data.today || 0);
+            } else {
+                console.error('Statistics API returned error:', response);
             }
         },
-        error: function () {
-            console.error('Failed to load statistics');
+        error: function (xhr, status, error) {
+            console.error('Failed to load statistics:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText,
+                error: error
+            });
         }
     });
 }
@@ -132,8 +163,19 @@ function initializeDataTable() {
                         console.info('Entries list AJAX aborted (likely duplicate init or navigation)');
                         return;
                     }
-                    console.error('Entries list AJAX error:', textStatus, errorThrown, 'HTTP status:', xhr.status, 'response:', xhr.responseText);
-                    try { toastr.error('Failed to load entries: ' + (xhr.status || textStatus)); } catch (e) { }
+                    console.error('Entries list AJAX error:', {
+                        textStatus: textStatus,
+                        errorThrown: errorThrown,
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText,
+                        url: 'ajax/entry_api_fixed.php'
+                    });
+                    try { 
+                        toastr.error('Failed to load entries: ' + (xhr.status || textStatus)); 
+                    } catch (e) { 
+                        console.error('Toastr error:', e);
+                    }
                 },
                 complete: function () {
                     // You can add any UI cleanup here if needed
@@ -1083,10 +1125,9 @@ $(document).on('show.bs.modal', '.modal', function () {
         'overflow': 'hidden',
         'padding-right': '0'
     });
-            'transition': 'none'
-        });
-        
-        // Ensure backdrop doesn't interfere
+    
+    // Ensure backdrop doesn't interfere
+    setTimeout(function() {
         $('.modal-backdrop').css({
             'position': 'fixed',
             'top': '0',
