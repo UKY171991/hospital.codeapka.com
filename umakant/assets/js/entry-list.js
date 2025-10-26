@@ -650,17 +650,17 @@ class EntryManager {
                         placeholder: 'Select Test'
                     });
 
-                    // Populate test details from the found test data
-                    $newRow.find('.test-category').val(foundTest.category_name || testData.category_name || '');
-                    $newRow.find('.test-category-id').val(foundTest.category_id || testData.category_id || '');
-                    $newRow.find('.test-unit').val(foundTest.unit || testData.unit || '');
-                    $newRow.find('.test-min').val(foundTest.min || testData.min || '');
-                    $newRow.find('.test-max').val(foundTest.max || testData.max || '');
-                    $newRow.find('.test-price').val(foundTest.price || testData.price || 0);
+                    // Populate test details - prioritize entry data over testsData
+                    $newRow.find('.test-category').val(testData.category_name || foundTest.category_name || '');
+                    $newRow.find('.test-category-id').val(testData.category_id || foundTest.category_id || '');
+                    $newRow.find('.test-unit').val(testData.unit || foundTest.unit || '');
+                    $newRow.find('.test-min').val(testData.min || foundTest.min || '');
+                    $newRow.find('.test-max').val(testData.max || foundTest.max || '');
+                    $newRow.find('.test-price').val(testData.price || foundTest.price || 0);
                     $newRow.find('.test-result').val(testData.result_value || '');
 
-                    // Trigger change to ensure everything is updated
-                    $testSelect.trigger('change');
+                    // Don't trigger change event to avoid overwriting entry-specific data
+                    // $testSelect.trigger('change');
 
                     console.log('Test row populated with test ID:', testData.test_id, 'Name:', foundTest.name);
                 }, 200); // Increased timeout to ensure DOM is ready
@@ -689,6 +689,7 @@ class EntryManager {
                     });
 
                     $newRow.find('.test-category').val(testData.category_name || '');
+                    $newRow.find('.test-category-id').val(testData.category_id || '');
                     $newRow.find('.test-unit').val(testData.unit || '');
                     $newRow.find('.test-min').val(testData.min || '');
                     $newRow.find('.test-max').val(testData.max || '');
