@@ -2694,6 +2694,18 @@ function addTestRow() {
     testsContainer.append(newRowHTML);
     testRowCount++;
 
+    // Prevent modal jumping during content addition
+    const modal = $('#entryModal');
+    const modalDialog = modal.find('.modal-dialog');
+    const currentScrollTop = modal.find('.modal-body').scrollTop();
+    
+    // Lock modal position
+    modalDialog.css({
+        'transform': 'none',
+        'margin': '20px auto',
+        'transition': 'none'
+    });
+
     // Load tests for the new row only
     loadTestsForNewRow(testsContainer.find('.test-row').last());
 
@@ -2710,11 +2722,13 @@ function addTestRow() {
                 if ($('#entryModal').hasClass('show') || $('#entryModal').is(':visible')) {
                     newSelect.select2({
                         dropdownParent: $('#entryModal'),
-                        width: '100%'
+                        width: '100%',
+                        theme: 'bootstrap4'
                     });
                 } else {
                     newSelect.select2({
-                        width: '100%'
+                        width: '100%',
+                        theme: 'bootstrap4'
                     });
                 }
                 console.log('Select2 initialized successfully');
@@ -2729,6 +2743,14 @@ function addTestRow() {
 
         // Update dropdown options for all rows
         updateTestDropdownOptions();
+        
+        // Restore scroll position and ensure modal stays in place
+        modal.find('.modal-body').scrollTop(currentScrollTop);
+        modalDialog.css({
+            'transform': 'none',
+            'margin': '20px auto',
+            'transition': 'none'
+        });
 
     }, 100);
 
@@ -2740,6 +2762,33 @@ function addTestRow() {
     }
 }
 
+// Function to stabilize modal position
+function stabilizeModal() {
+    const modal = $('#entryModal');
+    if (modal.hasClass('show')) {
+        const modalDialog = modal.find('.modal-dialog');
+        modalDialog.css({
+            'transform': 'none',
+            'margin': '20px auto',
+            'transition': 'none',
+            'position': 'relative'
+        });
+        
+        // Ensure body stays locked
+        $('body').css({
+            'overflow': 'hidden',
+            'padding-right': '0',
+            'position': 'fixed',
+            'width': '100%'
+        });
+    }
+}
+
+// Call stabilize function whenever modal content changes
+$(document).on('DOMNodeInserted DOMNodeRemoved', '#testsContainer', function() {
+    setTimeout(stabilizeModal, 10);
+});
+
 // Make functions globally accessible
 window.addTestRow = addTestRow;
 window.removeTestRow = removeTestRow;
@@ -2747,6 +2796,7 @@ window.openAddEntryModal = openAddEntryModal;
 window.viewEntry = viewEntry;
 window.editEntry = editEntry;
 window.deleteEntry = deleteEntry;
+window.stabilizeModal = stabilizeModal;
 
 // Remove test row
 function removeTestRow(button) {
@@ -2755,10 +2805,31 @@ function removeTestRow(button) {
 
     // Don't allow removing the last row
     if (testsContainer.find('.test-row').length > 1) {
+        // Prevent modal jumping during removal
+        const modal = $('#entryModal');
+        const modalDialog = modal.find('.modal-dialog');
+        const currentScrollTop = modal.find('.modal-body').scrollTop();
+        
+        // Lock modal position
+        modalDialog.css({
+            'transform': 'none',
+            'margin': '20px auto',
+            'transition': 'none'
+        });
+        
         testRow.remove();
 
         // Recalculate pricing after removing test
         updatePricingFields();
+        
+        // Update dropdown options after removal
+        updateTestDropdownOptions();
+        
+        // Restore scroll position and stabilize modal
+        setTimeout(function() {
+            modal.find('.modal-body').scrollTop(currentScrollTop);
+            stabilizeModal();
+        }, 10);
 
         // Re-index remaining test rows
         testsContainer.find('.test-row').each(function (index) {
