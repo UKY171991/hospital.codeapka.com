@@ -99,5 +99,6 @@ require_once 'inc/sidebar.php';
 </div>
 
 <link rel="stylesheet" href="assets/css/upload.css">
+<script src="assets/js/upload.js"></script>
 
 <?php require_once 'inc/footer.php'; ?>

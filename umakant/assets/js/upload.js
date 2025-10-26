@@ -206,6 +206,9 @@ function handleUploadComplete() {
             const fileName = response.original_name || response.file_name || 'file';
             const filePath = response.relative_path || '';
             showMessage(`Upload successful: <a href="${filePath}" target="_blank">${fileName}</a>`, 'success');
+            
+            // Trigger upload complete event to refresh the table
+            $(document).trigger('uploadComplete');
         } else {
             showMessage(`Upload failed: ${response.message || 'Server error'}`, 'danger');
         }
