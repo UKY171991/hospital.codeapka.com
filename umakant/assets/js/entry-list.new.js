@@ -163,6 +163,29 @@ function initializeDataTable() {
                     }
                 },
                 {
+                    data: 'test_names',
+                    render: function (data, type, row) {
+                        const testsCount = parseInt(row.tests_count || 0);
+                        const testNames = data || '';
+                        
+                        if (testsCount === 0) {
+                            return '<span class="text-muted">No tests</span>';
+                        } else if (testsCount === 1) {
+                            return `<div class="test-info">
+                                <span class="badge badge-info">${testsCount} test</span>
+                                <br><small class="text-muted">${testNames}</small>
+                            </div>`;
+                        } else {
+                            // For multiple tests, show count and truncated names
+                            const truncatedNames = testNames.length > 50 ? testNames.substring(0, 50) + '...' : testNames;
+                            return `<div class="test-info">
+                                <span class="badge badge-success">${testsCount} tests</span>
+                                <br><small class="text-muted" title="${testNames}">${truncatedNames}</small>
+                            </div>`;
+                        }
+                    }
+                },
+                {
                     data: 'priority',
                     render: function (data, type, row) {
                         const priority = data || 'normal';
@@ -227,7 +250,7 @@ function initializeDataTable() {
                     }
                 }
             ],
-            order: [[6, 'desc']], // Sort by date descending (column 6 is Date)
+            order: [[7, 'desc']], // Sort by date descending (column 7 is Date)
             pageLength: 25,
             lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
             responsive: true,
