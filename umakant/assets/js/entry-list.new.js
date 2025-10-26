@@ -595,8 +595,55 @@ function performDelete(id) {
 function saveEntry(form) {
     console.log('Saving entry...');
     
+    // Validate required fields
+    const patientId = $('#patientSelect').val();
+    const ownerAddedBy = $('#ownerAddedBySelect').val();
+    
+    if (!ownerAddedBy) {
+        if (typeof toastr !== 'undefined') {
+            toastr.error('Please select an Owner/User');
+        } else {
+            alert('Please select an Owner/User');
+        }
+        return;
+    }
+    
+    if (!patientId) {
+        if (typeof toastr !== 'undefined') {
+            toastr.error('Please select a patient');
+        } else {
+            alert('Please select a patient');
+        }
+        return;
+    }
+    
+    // Check if at least one test is selected
+    let hasTests = false;
+    $('.test-row').each(function() {
+        if ($(this).find('.test-select').val()) {
+            hasTests = true;
+            return false;
+        }
+    });
+    
+    if (!hasTests) {
+        if (typeof toastr !== 'undefined') {
+            toastr.error('Please select at least one test');
+        } else {
+            alert('Please select at least one test');
+        }
+        return;
+    }
+    
     const formData = new FormData(form);
     formData.append('action', 'save');
+    
+    // Extract owner/user information
+    if (ownerAddedBy.startsWith('user_')) {
+        formData.append('added_by', ownerAddedBy.replace('user_', ''));
+    } else if (ownerAddedBy.startsWith('owner_')) {
+        formData.append('owner_id', ownerAddedBy.replace('owner_', ''));
+    }
     
     const tests = [];
     $('.test-row').each(function() {
@@ -607,6 +654,7 @@ function saveEntry(form) {
             tests.push({
                 test_id: testId,
                 result_value: $row.find('.test-result').val() || '',
+                unit: $row.find('.test-unit').val() || '',
                 price: parseFloat($row.find('.test-price').val() || 0),
                 discount_amount: parseFloat($row.find('.test-discount').val() || 0),
                 status: 'pending'
@@ -615,6 +663,8 @@ function saveEntry(form) {
     });
     
     formData.append('tests', JSON.stringify(tests));
+    
+    console.log('Submitting form with tests:', tests);
     
     $.ajax({
         url: 'ajax/entry_api_fixed.php',
@@ -637,6 +687,7 @@ function saveEntry(form) {
                     entriesTable.ajax.reload();
                 }
                 loadStatistics();
+                resetEntryForm();
             } else {
                 if (typeof toastr !== 'undefined') {
                     toastr.error(response.message || 'Failed to save entry');
@@ -645,11 +696,12 @@ function saveEntry(form) {
                 }
             }
         },
-        error: function() {
+        error: function(xhr, status, error) {
+            console.error('Save error:', error);
             if (typeof toastr !== 'undefined') {
-                toastr.error('Failed to save entry');
+                toastr.error('Failed to save entry: ' + error);
             } else {
-                alert('Failed to save entry');
+                alert('Failed to save entry: ' + error);
             }
         }
     });
@@ -696,7 +748,7 @@ function cleanupDuplicates() {
 
 // Open add entry modal
 function openAddEntryModal() {
-    $('#entryModal').modal('show');
+    showAddEntryModal();
 }
 
 // Refresh table
