@@ -17,7 +17,7 @@ require_once 'inc/sidebar.php';
         <div class="col-lg-4">
           <div class="card" id="uploadCard">
             <div class="card-header bg-primary text-white">
-              <h3 class="card-title mb-0"><i class="fas fa-file-upload mr-2"></i>Upload ZIP / EXE</h3>
+              <h3 class="card-title mb-0"><i class="fas fa-file-upload mr-2"></i>Upload Files</h3>
             </div>
             <div class="card-body">
               <div id="uploadMessage" class="mb-3"></div>
@@ -26,9 +26,9 @@ require_once 'inc/sidebar.php';
                   <label for="file_input">Choose file</label>
                   <div class="upload-area" id="uploadArea">
                     <div class="upload-area__icon mb-2"><i class="fas fa-cloud-upload-alt fa-2x"></i></div>
-                    <p class="mb-1">Drag &amp; drop ZIP/EXE here</p>
+                    <p class="mb-1">Drag &amp; drop any file here</p>
                     <p class="text-muted">or click below</p>
-                    <input type="file" class="form-control-file" id="file_input" name="file" accept=".zip,.exe" required>
+                    <input type="file" class="form-control-file" id="file_input" name="file" required>
                   </div>
                 </div>
                 <div class="form-group">
@@ -44,7 +44,7 @@ require_once 'inc/sidebar.php';
               </form>
             </div>
             <div class="card-footer text-muted">
-              <small>Allowed types: ZIP, EXE • Max size 100MB</small>
+              <small>All file types allowed • Max size 100MB</small>
             </div>
           </div>
         </div>
