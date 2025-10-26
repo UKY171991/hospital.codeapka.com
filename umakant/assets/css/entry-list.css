@@ -643,3 +643,136 @@ body.modal-open {
         box-shadow: none;
     }
 }
+/* Patient Information Field States */
+.patient-info-field.editable-field {
+    background-color: #ffffff !important;
+    border-color: #28a745 !important;
+    border-width: 2px !important;
+    box-shadow: 0 0 0 0.1rem rgba(40, 167, 69, 0.15) !important;
+}
+
+.patient-info-field.editable-field:focus {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+}
+
+.patient-info-field.readonly-field {
+    background-color: #f8f9fa !important;
+    border-color: #6c757d !important;
+    border-width: 1px !important;
+    color: #495057 !important;
+    cursor: not-allowed !important;
+}
+
+.patient-info-field.readonly-field:focus {
+    background-color: #f8f9fa !important;
+    border-color: #6c757d !important;
+    box-shadow: none !important;
+}
+
+/* Patient Selection Dropdown Enhancement */
+#patientSelect option[value="add_new_patient"] {
+    background-color: #e8f5e8 !important;
+    color: #155724 !important;
+    font-weight: 600 !important;
+}
+
+/* Patient Information Section Header Enhancement */
+.patient-info-mode-indicator {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.patient-info-mode-indicator.new-patient {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.patient-info-mode-indicator.existing-patient {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* Enhanced Patient Information Card */
+.patient-info-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid #667eea;
+}
+
+.patient-info-card.new-patient-mode {
+    border-left-color: #28a745;
+    background: linear-gradient(135deg, #f8fff9 0%, #e8f5e8 100%);
+}
+
+.patient-info-card.existing-patient-mode {
+    border-left-color: #17a2b8;
+    background: linear-gradient(135deg, #f8fdff 0%, #e1f7fe 100%);
+}
+
+/* Form Field Labels Enhancement */
+.patient-info-field-label {
+    position: relative;
+}
+
+.patient-info-field-label::after {
+    content: '';
+    position: absolute;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #6c757d;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.patient-info-field.editable-field + .patient-info-field-label::after {
+    background-color: #28a745;
+    opacity: 1;
+}
+
+.patient-info-field.readonly-field + .patient-info-field-label::after {
+    background-color: #6c757d;
+    opacity: 0.5;
+}
+
+/* Tooltip for Patient Mode */
+.patient-mode-tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.patient-mode-tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 5px;
+}
+
+.patient-mode-tooltip:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    z-index: 1000;
+}

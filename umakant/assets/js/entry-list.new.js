@@ -386,6 +386,9 @@ function loadPatientsByOwner(ownerId, callback) {
         success: function (response) {
             const patientSelect = $('#patientSelect');
             patientSelect.empty().append('<option value="">Select Patient</option>');
+            
+            // Add "Add New Patient" option
+            patientSelect.append('<option value="add_new_patient" data-new-patient="true">➕ Add New Patient</option>');
 
             if (response.success && response.data) {
                 response.data.forEach(function (patient) {
@@ -406,9 +409,9 @@ function loadPatientsByOwner(ownerId, callback) {
 
                     patientSelect.append(option);
                 });
-                $('#patientHelpText').text(`${response.data.length} patients available`);
+                $('#patientHelpText').text(`${response.data.length} patients available + Add New Patient option`);
             } else {
-                $('#patientHelpText').text('No patients found for this owner/user');
+                $('#patientHelpText').text('No patients found for this owner/user - but you can add a new patient');
             }
 
             patientSelect.addClass('select2');
@@ -670,25 +673,100 @@ function setupEventHandlers() {
     // When patient selection changes, auto-fill age, gender, contact and address from patient data
     $(document).on('change', '#patientSelect', function () {
         const selected = $(this).find('option:selected');
-        const age = selected.data('age') || '';
-        const gender = selected.data('gender') || '';
-        const contact = selected.data('contact') || '';
-        const address = selected.data('address') || '';
-
-        // Populate age field
-        $('#patientAge').val(age);
-
-        // Populate gender field
-        if (gender) {
-            $('#patientGender').val(gender).trigger('change');
+        const selectedValue = $(this).val();
+        const isNewPatient = selected.data('new-patient') === true || selectedValue === 'add_new_patient';
+        
+        if (isNewPatient) {
+            // Enable new patient mode - make fields editable and clear them
+            enableNewPatientMode();
+        } else if (selectedValue) {
+            // Existing patient selected - populate fields and make them read-only
+            const age = selected.data('age') || '';
+            const gender = selected.data('gender') || '';
+            const contact = selected.data('contact') || '';
+            const address = selected.data('address') || '';
+            
+            enableExistingPatientMode(age, gender, contact, address);
         } else {
-            $('#patientGender').val('');
+            // No patient selected - enable manual entry
+            enableNewPatientMode();
         }
-
-        // Populate contact and address
-        $('#patientContact').val(contact);
-        $('#patientAddress').val(address);
     });
+}
+
+// Enable new patient mode - make patient information fields editable
+function enableNewPatientMode() {
+    console.log('Enabling new patient mode');
+    
+    // Clear all patient information fields
+    $('#patientContact').val('');
+    $('#patientAge').val('');
+    $('#patientGender').val('').trigger('change');
+    $('#patientAddress').val('');
+    
+    // Make all patient information fields editable
+    $('#patientContact').prop('readonly', false).prop('disabled', false);
+    $('#patientAge').prop('readonly', false).prop('disabled', false);
+    $('#patientGender').prop('disabled', false);
+    $('#patientAddress').prop('readonly', false).prop('disabled', false);
+    
+    // Add visual indicators for editable fields
+    $('.patient-info-field').removeClass('readonly-field').addClass('editable-field');
+    
+    // Update card styling and mode indicator
+    $('#patientInfoCard').removeClass('existing-patient-mode').addClass('new-patient-mode');
+    $('#patientModeIndicator').removeClass('existing-patient').addClass('new-patient').text('New Patient Mode');
+    
+    console.log('New patient mode enabled - fields are now editable');
+}
+
+// Enable existing patient mode - populate fields and make them read-only
+function enableExistingPatientMode(age, gender, contact, address) {
+    console.log('Enabling existing patient mode with data:', { age, gender, contact, address });
+    
+    // Populate fields with patient data
+    $('#patientAge').val(age);
+    $('#patientContact').val(contact);
+    $('#patientAddress').val(address);
+    
+    // Set gender field
+    if (gender) {
+        $('#patientGender').val(gender).trigger('change');
+    } else {
+        $('#patientGender').val('');
+    }
+    
+    // Make patient information fields read-only to prevent accidental modification
+    $('#patientContact').prop('readonly', true);
+    $('#patientAge').prop('readonly', true);
+    $('#patientGender').prop('disabled', true);
+    $('#patientAddress').prop('readonly', true);
+    
+    // Add visual indicators for read-only fields
+    $('.patient-info-field').removeClass('editable-field').addClass('readonly-field');
+    
+    // Update card styling and mode indicator
+    $('#patientInfoCard').removeClass('new-patient-mode').addClass('existing-patient-mode');
+    $('#patientModeIndicator').removeClass('new-patient').addClass('existing-patient').text('Existing Patient');
+    
+    console.log('Existing patient mode enabled - fields are now read-only');
+}
+
+// Track patient data source for form submission
+function getPatientDataSource() {
+    const patientSelected = $('#patientSelect').val();
+    const isNewPatient = patientSelected === 'add_new_patient' || !patientSelected;
+    
+    return {
+        isNewPatient: isNewPatient,
+        patientId: isNewPatient ? null : patientSelected,
+        patientData: {
+            contact: $('#patientContact').val(),
+            age: $('#patientAge').val(),
+            gender: $('#patientGender').val(),
+            address: $('#patientAddress').val()
+        }
+    };
 }
 
 // Open add entry modal
@@ -785,6 +863,9 @@ function openAddEntryModal() {
     } else {
         ownerSelect.trigger('change');
     }
+
+    // Initialize in new patient mode by default
+    enableNewPatientMode();
 
     $('#entryModal').modal('show');
 }
@@ -931,6 +1012,25 @@ function updateTestDropdownOptions() {
 function saveEntry(formElement) {
     // Accept either a form element reference or default to #entryForm
     const $form = formElement ? $(formElement) : $('#entryForm');
+
+    // Validate patient information - either patient selected OR manual data entered
+    const patientSelected = $('#patientSelect').val() && $('#patientSelect').val() !== 'add_new_patient';
+    const patientContact = $('#patientContact').val().trim();
+    const patientAge = $('#patientAge').val();
+    
+    if (!patientSelected) {
+        // If no patient selected, validate that required patient information is provided
+        if (!patientContact) {
+            toastr.error('Please either select a patient or enter patient contact information.');
+            $('#patientContact').focus();
+            return;
+        }
+        
+        // Optional: Add more validation for manual patient entry
+        if (!patientAge) {
+            toastr.warning('Patient age is recommended for better record keeping.');
+        }
+    }
 
     // Validate for duplicate test selections before saving
     const selectedTestIds = [];
