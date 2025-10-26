@@ -545,6 +545,8 @@ try {
             exit;
         }
     } else if ($action === 'get') {
+        
+        echo json_encode(['success' => false, 'message' => 'Entry ID is required']); die;
         // Debug logging
         error_log("Entry API: GET action called with ID: " . ($_GET['id'] ?? 'none'));
         error_log("Entry API: User data: " . print_r($user_data, true));
@@ -556,7 +558,7 @@ try {
             echo json_encode(['success' => false, 'message' => 'Permission denied to view entry details']);
             exit;
         }
-        echo "Hello";die;
+        
         $id = (int)($_GET['id'] ?? 0);
         if (!$id) {
             error_log("Entry API: No ID provided");
