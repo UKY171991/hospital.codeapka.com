@@ -1295,7 +1295,7 @@ class EntryManager {
                     result_value: test.result_value,
                     price: test.price
                 });
-                
+
                 // Check if this test has unique data
                 if (index > 0) {
                     const prevTest = entry.tests[index - 1];
@@ -1311,7 +1311,7 @@ class EntryManager {
                         console.warn('Previous test:', prevTest);
                     }
                 }
-                
+
                 this.addTestRow(test);
             });
         } else {
