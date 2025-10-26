@@ -12,7 +12,7 @@ class EntryManager {
         this.ownersData = [];
         this.currentEditId = null;
         this.testRowCounter = 0;
-        
+
         this.init();
     }
 
@@ -20,14 +20,20 @@ class EntryManager {
      * Initialize the Entry Manager
      */
     init() {
-        // console.log('Initializing Entry Manager...');
-        
+        console.log('Initializing Entry Manager...');
+
         // Wait for DOM to be ready
         $(document).ready(() => {
-            this.initializeDataTable();
-            this.loadInitialData();
-            this.bindEvents();
-            this.loadStatistics();
+            console.log('DOM ready, starting initialization...');
+            try {
+                this.initializeDataTable();
+                this.loadInitialData();
+                this.bindEvents();
+                this.loadStatistics();
+                console.log('Entry Manager initialization complete');
+            } catch (error) {
+                console.error('Error during Entry Manager initialization:', error);
+            }
         });
     }
 
@@ -35,156 +41,195 @@ class EntryManager {
      * Initialize DataTable with proper configuration
      */
     initializeDataTable() {
-        // console.log('Initializing DataTable...');
-        
-        this.entriesTable = $('#entriesTable').DataTable({
-            processing: true,
-            serverSide: false,
-            ajax: {
-                url: 'ajax/entry_api_fixed.php',
-                type: 'GET',
-                data: { action: 'list' },
-                dataSrc: function(json) {
-                    console.log('DataTable received data:', json);
-                    if (json.success) {
-                        return json.data || [];
-                    } else {
-                        console.error('API Error:', json.message);
-                        toastr.error(json.message || 'Failed to load entries');
-                        return [];
-                    }
-                },
-                error: function(xhr, error, thrown) {
-                    console.error('DataTable AJAX Error:', error, thrown);
-                    toastr.error('Failed to load entries. Please refresh the page.');
-                }
-            },
-            columns: [
-                { 
-                    data: 'id',
-                    title: 'ID',
-                    width: '5%'
-                },
-                { 
-                    data: 'patient_name',
-                    title: 'Patient',
-                    width: '12%',
-                    render: function(data, type, row) {
-                        if (type === 'display') {
-                            let html = `<strong>${data || 'N/A'}</strong>`;
-                            if (row.patient_contact) {
-                                html += `<br><small class="text-muted">${row.patient_contact}</small>`;
-                            }
-                            return html;
-                        }
-                        return data || '';
-                    }
-                },
-                { 
-                    data: 'doctor_name',
-                    title: 'Doctor',
-                    width: '10%',
-                    render: function(data, type, row) {
-                        return data || '<span class="text-muted">Not assigned</span>';
-                    }
-                },
-                { 
-                    data: 'test_names',
-                    title: 'Tests',
-                    width: '15%',
-                    render: function(data, type, row) {
-                        if (type === 'display') {
-                            const testCount = parseInt(row.tests_count) || 0;
-                            const testNames = data || '';
-                            
-                            if (testCount === 0) {
-                                return '<span class="text-muted">No tests</span>';
-                            } else if (testCount === 1) {
-                                return `<span class="badge badge-info">${testCount}</span> ${testNames}`;
+        console.log('Initializing DataTable...');
+
+        // Check if the table element exists
+        if ($('#entriesTable').length === 0) {
+            console.error('DataTable element #entriesTable not found');
+            return;
+        }
+
+        // Check if DataTable is available
+        if (typeof $.fn.DataTable === 'undefined') {
+            console.error('DataTables library not loaded');
+            return;
+        }
+
+        try {
+            this.entriesTable = $('#entriesTable').DataTable({
+                processing: true,
+                serverSide: false,
+                ajax: {
+                    url: 'ajax/entry_api_fixed.php',
+                    type: 'GET',
+                    data: { action: 'list' },
+                    dataSrc: function (json) {
+                        console.log('DataTable received data:', json);
+                        if (json && json.success) {
+                            return json.data || [];
+                        } else {
+                            console.error('API Error:', json ? json.message : 'Invalid response');
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(json ? json.message : 'Failed to load entries - invalid response');
                             } else {
-                                return `<span class="badge badge-primary">${testCount}</span> ${testNames}`;
+                                alert('Failed to load entries: ' + (json ? json.message : 'Invalid response'));
                             }
+                            return [];
                         }
-                        return data || '';
-                    }
-                },
-                { 
-                    data: 'status',
-                    title: 'Status',
-                    width: '7%',
-                    render: function(data, type, row) {
-                        if (type === 'display') {
-                            const status = data || 'pending';
-                            const badgeClass = {
-                                'pending': 'badge-warning',
-                                'completed': 'badge-success',
-                                'cancelled': 'badge-danger'
-                            }[status] || 'badge-secondary';
-                            
-                            return `<span class="badge ${badgeClass}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+                    },
+                    error: function (xhr, error, thrown) {
+                        console.error('DataTable AJAX Error:', {
+                            error: error,
+                            thrown: thrown,
+                            status: xhr.status,
+                            statusText: xhr.statusText,
+                            responseText: xhr.responseText
+                        });
+
+                        let errorMessage = 'Failed to load entries. ';
+                        if (xhr.status === 404) {
+                            errorMessage += 'API endpoint not found.';
+                        } else if (xhr.status === 500) {
+                            errorMessage += 'Server error occurred.';
+                        } else if (xhr.status === 0) {
+                            errorMessage += 'Network connection failed.';
+                        } else {
+                            errorMessage += 'Please refresh the page.';
                         }
-                        return data || 'pending';
-                    }
-                },
-                { 
-                    data: 'priority',
-                    title: 'Priority',
-                    width: '7%',
-                    render: function(data, type, row) {
-                        if (type === 'display') {
-                            const priority = data || 'normal';
-                            const badgeClass = {
-                                'emergency': 'badge-danger',
-                                'urgent': 'badge-warning',
-                                'normal': 'badge-info',
-                                'routine': 'badge-secondary'
-                            }[priority] || 'badge-secondary';
-                            
-                            return `<span class="badge ${badgeClass}">${priority.charAt(0).toUpperCase() + priority.slice(1)}</span>`;
+
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(errorMessage);
+                        } else {
+                            alert(errorMessage);
                         }
-                        return data || 'normal';
                     }
                 },
-                { 
-                    data: 'total_price',
-                    title: 'Amount',
-                    width: '8%',
-                    render: function(data, type, row) {
-                        if (type === 'display') {
-                            const amount = parseFloat(data) || 0;
-                            return `₹${amount.toFixed(2)}`;
+                columns: [
+                    {
+                        data: 'id',
+                        title: 'ID',
+                        width: '5%'
+                    },
+                    {
+                        data: 'patient_name',
+                        title: 'Patient',
+                        width: '12%',
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                let html = `<strong>${data || 'N/A'}</strong>`;
+                                if (row.patient_contact) {
+                                    html += `<br><small class="text-muted">${row.patient_contact}</small>`;
+                                }
+                                return html;
+                            }
+                            return data || '';
                         }
-                        return data || 0;
-                    }
-                },
-                { 
-                    data: 'entry_date',
-                    title: 'Date',
-                    width: '8%',
-                    render: function(data, type, row) {
-                        if (type === 'display' && data) {
-                            const date = new Date(data);
-                            return date.toLocaleDateString('en-IN');
+                    },
+                    {
+                        data: 'doctor_name',
+                        title: 'Doctor',
+                        width: '10%',
+                        render: function (data, type, row) {
+                            return data || '<span class="text-muted">Not assigned</span>';
                         }
-                        return data || '';
-                    }
-                },
-                { 
-                    data: 'added_by_full_name',
-                    title: 'Added By',
-                    width: '7%',
-                    render: function(data, type, row) {
-                        return data || row.added_by_username || 'Unknown';
-                    }
-                },
-                { 
-                    data: null,
-                    title: 'Actions',
-                    width: '9%',
-                    orderable: false,
-                    render: function(data, type, row) {
-                        if (type === 'display') {
-                            return `
+                    },
+                    {
+                        data: 'test_names',
+                        title: 'Tests',
+                        width: '15%',
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                const testCount = parseInt(row.tests_count) || 0;
+                                const testNames = data || '';
+
+                                if (testCount === 0) {
+                                    return '<span class="text-muted">No tests</span>';
+                                } else if (testCount === 1) {
+                                    return `<span class="badge badge-info">${testCount}</span> ${testNames}`;
+                                } else {
+                                    return `<span class="badge badge-primary">${testCount}</span> ${testNames}`;
+                                }
+                            }
+                            return data || '';
+                        }
+                    },
+                    {
+                        data: 'status',
+                        title: 'Status',
+                        width: '7%',
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                const status = data || 'pending';
+                                const badgeClass = {
+                                    'pending': 'badge-warning',
+                                    'completed': 'badge-success',
+                                    'cancelled': 'badge-danger'
+                                }[status] || 'badge-secondary';
+
+                                return `<span class="badge ${badgeClass}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+                            }
+                            return data || 'pending';
+                        }
+                    },
+                    {
+                        data: 'priority',
+                        title: 'Priority',
+                        width: '7%',
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                const priority = data || 'normal';
+                                const badgeClass = {
+                                    'emergency': 'badge-danger',
+                                    'urgent': 'badge-warning',
+                                    'normal': 'badge-info',
+                                    'routine': 'badge-secondary'
+                                }[priority] || 'badge-secondary';
+
+                                return `<span class="badge ${badgeClass}">${priority.charAt(0).toUpperCase() + priority.slice(1)}</span>`;
+                            }
+                            return data || 'normal';
+                        }
+                    },
+                    {
+                        data: 'total_price',
+                        title: 'Amount',
+                        width: '8%',
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                const amount = parseFloat(data) || 0;
+                                return `₹${amount.toFixed(2)}`;
+                            }
+                            return data || 0;
+                        }
+                    },
+                    {
+                        data: 'entry_date',
+                        title: 'Date',
+                        width: '8%',
+                        render: function (data, type, row) {
+                            if (type === 'display' && data) {
+                                const date = new Date(data);
+                                return date.toLocaleDateString('en-IN');
+                            }
+                            return data || '';
+                        }
+                    },
+                    {
+                        data: 'added_by_full_name',
+                        title: 'Added By',
+                        width: '7%',
+                        render: function (data, type, row) {
+                            return data || row.added_by_username || 'Unknown';
+                        }
+                    },
+                    {
+                        data: null,
+                        title: 'Actions',
+                        width: '9%',
+                        orderable: false,
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                return `
                                 <div class="btn-group btn-group-sm" role="group">
                                     <button type="button" class="btn btn-info btn-sm" onclick="window.entryManager.viewEntry(${row.id})" title="View Details">
                                         <i class="fas fa-eye"></i>
@@ -197,40 +242,45 @@ class EntryManager {
                                     </button>
                                 </div>
                             `;
+                            }
+                            return '';
                         }
-                        return '';
                     }
+                ],
+                order: [[0, 'desc']], // Order by ID descending (newest first)
+                pageLength: 25,
+                responsive: true,
+                dom: 'Bfrtip',
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        className: 'btn btn-success btn-sm'
+                    },
+                    {
+                        extend: 'pdf',
+                        text: '<i class="fas fa-file-pdf"></i> PDF',
+                        className: 'btn btn-danger btn-sm'
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print"></i> Print',
+                        className: 'btn btn-info btn-sm'
+                    }
+                ],
+                language: {
+                    processing: '<i class="fas fa-spinner fa-spin"></i> Loading entries...',
+                    emptyTable: 'No entries found',
+                    zeroRecords: 'No matching entries found'
                 }
-            ],
-            order: [[0, 'desc']], // Order by ID descending (newest first)
-            pageLength: 25,
-            responsive: true,
-            dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excel',
-                    text: '<i class="fas fa-file-excel"></i> Excel',
-                    className: 'btn btn-success btn-sm'
-                },
-                {
-                    extend: 'pdf',
-                    text: '<i class="fas fa-file-pdf"></i> PDF',
-                    className: 'btn btn-danger btn-sm'
-                },
-                {
-                    extend: 'print',
-                    text: '<i class="fas fa-print"></i> Print',
-                    className: 'btn btn-info btn-sm'
-                }
-            ],
-            language: {
-                processing: '<i class="fas fa-spinner fa-spin"></i> Loading entries...',
-                emptyTable: 'No entries found',
-                zeroRecords: 'No matching entries found'
-            }
-        });
+            });
 
-        // console.log('DataTable initialized successfully');
+            console.log('DataTable initialized successfully');
+        } catch (error) {
+            console.error('Error initializing DataTable:', error);
+            // Show user-friendly error message
+            $('#entriesTable').html('<div class="alert alert-danger">Failed to initialize data table. Please refresh the page.</div>');
+        }
     }
 
     /**
@@ -238,14 +288,14 @@ class EntryManager {
      */
     async loadInitialData() {
         // console.log('Loading initial data...');
-        
+
         try {
             // Load tests data
             await this.loadTestsData();
-            
+
             // Load owners/users data
             await this.loadOwnersData();
-            
+
             // console.log('Initial data loaded successfully');
         } catch (error) {
             console.error('Error loading initial data:', error);
@@ -308,11 +358,11 @@ class EntryManager {
     populateOwnerSelect() {
         const $select = $('#ownerAddedBySelect');
         $select.empty().append('<option value="">Select Owner/User</option>');
-        
+
         this.ownersData.forEach(owner => {
             $select.append(`<option value="${owner.id}">${owner.name}</option>`);
         });
-        
+
         // Refresh Select2 if initialized
         if ($select.hasClass('select2-hidden-accessible')) {
             $select.trigger('change');
@@ -350,37 +400,37 @@ class EntryManager {
      */
     bindEvents() {
         // console.log('Binding events...');
-        
+
         // Filter change events
         $('#statusFilter, #dateFilter').on('change', () => {
             this.applyFilters();
         });
-        
+
         $('#patientFilter, #doctorFilter').on('keyup', this.debounce(() => {
             this.applyFilters();
         }, 300));
-        
+
         // Owner selection change
         $('#ownerAddedBySelect').on('change', (e) => {
             this.onOwnerChange(e.target.value);
         });
-        
+
         // Patient selection change
         $('#patientSelect').on('change', (e) => {
             this.onPatientChange(e.target.value);
         });
-        
+
         // Form submission
         $('#entryForm').on('submit', (e) => {
             e.preventDefault();
             this.saveEntry();
         });
-        
+
         // Discount amount change
         $('#discountAmount').on('input', () => {
             this.calculateTotals();
         });
-        
+
         // console.log('Events bound successfully');
     }
 
@@ -404,12 +454,11 @@ class EntryManager {
      */
     applyFilters() {
         if (!this.entriesTable) return;
-        
+
         const statusFilter = $('#statusFilter').val();
-        const dateFilter = $('#dateFilter').val();
         const patientFilter = $('#patientFilter').val();
         const doctorFilter = $('#doctorFilter').val();
-        
+
         // Apply column filters
         this.entriesTable
             .column(4).search(statusFilter) // Status column
@@ -458,19 +507,19 @@ class EntryManager {
      */
     openAddModal() {
         console.log('Opening add entry modal...');
-        
+
         this.currentEditId = null;
         this.resetForm();
-        
+
         // Update modal title
         $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
-        
+
         // Show modal
         $('#entryModal').modal('show');
-        
+
         // Initialize Select2 dropdowns
         this.initializeSelect2();
-        
+
         // Add first test row
         this.addTestRow();
     }
@@ -480,8 +529,8 @@ class EntryManager {
      */
     addTestRow(testData = null) {
         const rowIndex = this.testRowCounter++;
-        
-        const testOptions = this.testsData.map(test => 
+
+        const testOptions = this.testsData.map(test =>
             `<option value="${test.id}" data-category="${test.category_name || ''}" data-unit="${test.unit || ''}" data-min="${test.min || ''}" data-max="${test.max || ''}" data-price="${test.price || 0}">
                 ${test.name}
             </option>`
@@ -521,19 +570,19 @@ class EntryManager {
         `;
 
         $('#testsContainer').append(rowHtml);
-        
+
         // Initialize Select2 for the new row
         const $newRow = $(`.test-row[data-row-index="${rowIndex}"]`);
         $newRow.find('.test-select').select2({
             theme: 'bootstrap4',
             width: '100%'
         });
-        
+
         // Bind test selection change event
         $newRow.find('.test-select').on('change', (e) => {
             this.onTestChange(e.target, $newRow);
         });
-        
+
         // If testData is provided, populate the row
         if (testData) {
             setTimeout(() => {
@@ -550,7 +599,7 @@ class EntryManager {
         const $row = $(button).closest('.test-row');
         $row.remove();
         this.calculateTotals();
-        
+
         // Ensure at least one test row exists
         if ($('#testsContainer .test-row').length === 0) {
             this.addTestRow();
@@ -563,7 +612,7 @@ class EntryManager {
     onTestChange(selectElement, $row) {
         const $select = $(selectElement);
         const selectedOption = $select.find('option:selected');
-        
+
         if (selectedOption.val()) {
             // Populate test details
             $row.find('.test-category').val(selectedOption.data('category') || '');
@@ -576,7 +625,7 @@ class EntryManager {
             $row.find('.test-category, .test-unit, .test-min, .test-max').val('');
             $row.find('.test-price').val(0);
         }
-        
+
         this.calculateTotals();
     }
 
@@ -585,16 +634,16 @@ class EntryManager {
      */
     calculateTotals() {
         let subtotal = 0;
-        
+
         // Sum up all test prices
-        $('.test-price').each(function() {
+        $('.test-price').each(function () {
             const price = parseFloat($(this).val()) || 0;
             subtotal += price;
         });
-        
+
         const discount = parseFloat($('#discountAmount').val()) || 0;
         const total = Math.max(subtotal - discount, 0);
-        
+
         $('#subtotal').val(subtotal.toFixed(2));
         $('#totalPrice').val(total.toFixed(2));
     }
@@ -617,32 +666,420 @@ class EntryManager {
         $('#entryId').val('');
         $('#testsContainer').empty();
         this.testRowCounter = 0;
-        
+
         // Clear Select2 selections
         $('.select2').val(null).trigger('change');
-        
+
         // Reset pricing
         this.calculateTotals();
+    }
+
+    /**
+     * Handle owner selection change
+     */
+    onOwnerChange(ownerId) {
+        console.log('Owner changed:', ownerId);
+
+        if (ownerId) {
+            // Enable patient and doctor selects
+            $('#patientSelect, #doctorSelect').prop('disabled', false);
+
+            // Load patients and doctors for this owner
+            this.loadPatientsForOwner(ownerId);
+            this.loadDoctorsForOwner(ownerId);
+        } else {
+            // Disable and clear patient and doctor selects
+            $('#patientSelect, #doctorSelect').prop('disabled', true).val('').trigger('change');
+        }
+    }
+
+    /**
+     * Handle patient selection change
+     */
+    onPatientChange(patientId) {
+        console.log('Patient changed:', patientId);
+
+        if (patientId) {
+            // Load patient details
+            this.loadPatientDetails(patientId);
+        } else {
+            // Clear patient details
+            this.clearPatientDetails();
+        }
+    }
+
+    /**
+     * Load patients for selected owner
+     */
+    async loadPatientsForOwner(ownerId) {
+        try {
+            const response = await $.ajax({
+                url: 'ajax/patient_api.php',
+                method: 'GET',
+                data: { action: 'list', owner_id: ownerId },
+                dataType: 'json'
+            });
+
+            const $select = $('#patientSelect');
+            $select.empty().append('<option value="">Select Patient</option>');
+
+            if (response.success && response.data) {
+                response.data.forEach(patient => {
+                    $select.append(`<option value="${patient.id}">${patient.name}</option>`);
+                });
+            }
+
+            $select.trigger('change');
+        } catch (error) {
+            console.error('Error loading patients:', error);
+        }
+    }
+
+    /**
+     * Load doctors for selected owner
+     */
+    async loadDoctorsForOwner(ownerId) {
+        try {
+            const response = await $.ajax({
+                url: 'ajax/doctor_api.php',
+                method: 'GET',
+                data: { action: 'list', owner_id: ownerId },
+                dataType: 'json'
+            });
+
+            const $select = $('#doctorSelect');
+            $select.empty().append('<option value="">Select Doctor</option>');
+
+            if (response.success && response.data) {
+                response.data.forEach(doctor => {
+                    $select.append(`<option value="${doctor.id}">${doctor.name}</option>`);
+                });
+            }
+
+            $select.trigger('change');
+        } catch (error) {
+            console.error('Error loading doctors:', error);
+        }
+    }
+
+    /**
+     * Load patient details
+     */
+    async loadPatientDetails(patientId) {
+        try {
+            const response = await $.ajax({
+                url: 'ajax/patient_api.php',
+                method: 'GET',
+                data: { action: 'get', id: patientId },
+                dataType: 'json'
+            });
+
+            if (response.success && response.data) {
+                const patient = response.data;
+                $('#patientName').val(patient.name || '');
+                $('#patientContact').val(patient.contact || '');
+                $('#patientAge').val(patient.age || '');
+                $('#patientGender').val(patient.gender || '').trigger('change');
+                $('#patientAddress').val(patient.address || '');
+            }
+        } catch (error) {
+            console.error('Error loading patient details:', error);
+        }
+    }
+
+    /**
+     * Clear patient details
+     */
+    clearPatientDetails() {
+        $('#patientName, #patientContact, #patientAge, #patientAddress').val('');
+        $('#patientGender').val('').trigger('change');
+    }
+
+    /**
+     * View entry details
+     */
+    async viewEntry(entryId) {
+        console.log('Viewing entry:', entryId);
+
+        try {
+            const response = await $.ajax({
+                url: 'ajax/entry_api_fixed.php',
+                method: 'GET',
+                data: { action: 'get', id: entryId },
+                dataType: 'json'
+            });
+
+            if (response.success && response.data) {
+                this.displayEntryDetails(response.data);
+                $('#viewEntryModal').modal('show');
+            } else {
+                toastr.error(response.message || 'Failed to load entry details');
+            }
+        } catch (error) {
+            console.error('Error loading entry details:', error);
+            toastr.error('Failed to load entry details');
+        }
+    }
+
+    /**
+     * Display entry details in modal
+     */
+    displayEntryDetails(entry) {
+        const detailsHtml = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Patient Information</h6>
+                    <p><strong>Name:</strong> ${entry.patient_name || 'N/A'}</p>
+                    <p><strong>Contact:</strong> ${entry.patient_contact || 'N/A'}</p>
+                    <p><strong>Age:</strong> ${entry.age || 'N/A'}</p>
+                    <p><strong>Gender:</strong> ${entry.gender || 'N/A'}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Entry Information</h6>
+                    <p><strong>Entry ID:</strong> ${entry.id}</p>
+                    <p><strong>Date:</strong> ${entry.entry_date || 'N/A'}</p>
+                    <p><strong>Status:</strong> <span class="badge badge-info">${entry.status || 'pending'}</span></p>
+                    <p><strong>Priority:</strong> <span class="badge badge-secondary">${entry.priority || 'normal'}</span></p>
+                </div>
+            </div>
+            <hr>
+            <h6>Tests</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Test Name</th>
+                            <th>Category</th>
+                            <th>Result</th>
+                            <th>Range</th>
+                            <th>Unit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${entry.tests ? entry.tests.map(test => `
+                            <tr>
+                                <td>${test.test_name || 'N/A'}</td>
+                                <td>${test.category_name || 'N/A'}</td>
+                                <td>${test.result_value || 'Pending'}</td>
+                                <td>${test.min || ''} - ${test.max || ''}</td>
+                                <td>${test.unit || ''}</td>
+                            </tr>
+                        `).join('') : '<tr><td colspan="5">No tests found</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Pricing</h6>
+                    <p><strong>Subtotal:</strong> ₹${parseFloat(entry.subtotal || 0).toFixed(2)}</p>
+                    <p><strong>Discount:</strong> ₹${parseFloat(entry.discount_amount || 0).toFixed(2)}</p>
+                    <p><strong>Total:</strong> ₹${parseFloat(entry.total_price || 0).toFixed(2)}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Additional Information</h6>
+                    <p><strong>Doctor:</strong> ${entry.doctor_name || 'Not assigned'}</p>
+                    <p><strong>Added By:</strong> ${entry.added_by_full_name || 'Unknown'}</p>
+                    <p><strong>Notes:</strong> ${entry.notes || 'No notes'}</p>
+                </div>
+            </div>
+        `;
+
+        $('#entryDetails').html(detailsHtml);
+    }
+
+    /**
+     * Edit entry
+     */
+    async editEntry(entryId) {
+        console.log('Editing entry:', entryId);
+
+        try {
+            const response = await $.ajax({
+                url: 'ajax/entry_api_fixed.php',
+                method: 'GET',
+                data: { action: 'get', id: entryId },
+                dataType: 'json'
+            });
+
+            if (response.success && response.data) {
+                this.populateEditForm(response.data);
+                $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
+                $('#entryModal').modal('show');
+            } else {
+                toastr.error(response.message || 'Failed to load entry for editing');
+            }
+        } catch (error) {
+            console.error('Error loading entry for editing:', error);
+            toastr.error('Failed to load entry for editing');
+        }
+    }
+
+    /**
+     * Populate edit form with entry data
+     */
+    populateEditForm(entry) {
+        this.currentEditId = entry.id;
+
+        // Populate basic fields
+        $('#entryId').val(entry.id);
+        $('#ownerAddedBySelect').val(entry.owner_added_by).trigger('change');
+        $('#entryDate').val(entry.entry_date);
+        $('#entryStatus').val(entry.status).trigger('change');
+        $('#priority').val(entry.priority).trigger('change');
+        $('#referralSource').val(entry.referral_source).trigger('change');
+        $('#entryNotes').val(entry.notes);
+
+        // Populate pricing
+        $('#subtotal').val(entry.subtotal || 0);
+        $('#discountAmount').val(entry.discount_amount || 0);
+        $('#totalPrice').val(entry.total_price || 0);
+
+        // Clear and populate tests
+        $('#testsContainer').empty();
+        this.testRowCounter = 0;
+
+        if (entry.tests && entry.tests.length > 0) {
+            entry.tests.forEach(test => {
+                this.addTestRow(test);
+            });
+        } else {
+            this.addTestRow();
+        }
+
+        // Initialize Select2
+        this.initializeSelect2();
+    }
+
+    /**
+     * Delete entry
+     */
+    deleteEntry(entryId) {
+        console.log('Deleting entry:', entryId);
+
+        // Show confirmation modal
+        $('#deleteModal').modal('show');
+
+        // Handle confirmation
+        $('#confirmDelete').off('click').on('click', async () => {
+            try {
+                const response = await $.ajax({
+                    url: 'ajax/entry_api_fixed.php',
+                    method: 'POST',
+                    data: { action: 'delete', id: entryId },
+                    dataType: 'json'
+                });
+
+                if (response.success) {
+                    toastr.success('Entry deleted successfully');
+                    this.refreshTable();
+                    $('#deleteModal').modal('hide');
+                } else {
+                    toastr.error(response.message || 'Failed to delete entry');
+                }
+            } catch (error) {
+                console.error('Error deleting entry:', error);
+                toastr.error('Failed to delete entry');
+            }
+        });
+    }
+
+    /**
+     * Save entry (create or update)
+     */
+    async saveEntry() {
+        console.log('Saving entry...');
+
+        const formData = new FormData($('#entryForm')[0]);
+        const action = this.currentEditId ? 'update' : 'create';
+        formData.append('action', action);
+
+        try {
+            const response = await $.ajax({
+                url: 'ajax/entry_api_fixed.php',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json'
+            });
+
+            if (response.success) {
+                toastr.success(this.currentEditId ? 'Entry updated successfully' : 'Entry created successfully');
+                this.refreshTable();
+                $('#entryModal').modal('hide');
+                this.resetForm();
+            } else {
+                toastr.error(response.message || 'Failed to save entry');
+            }
+        } catch (error) {
+            console.error('Error saving entry:', error);
+            toastr.error('Failed to save entry');
+        }
+    }
+
+    /**
+     * Print entry details
+     */
+    printEntryDetails() {
+        const printContent = $('#entryDetails').html();
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Entry Details</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        .table { width: 100%; border-collapse: collapse; }
+                        .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        .table th { background-color: #f2f2f2; }
+                        .badge { padding: 2px 6px; border-radius: 3px; }
+                        .badge-info { background-color: #17a2b8; color: white; }
+                        .badge-secondary { background-color: #6c757d; color: white; }
+                    </style>
+                </head>
+                <body>
+                    <h2>Entry Details</h2>
+                    ${printContent}
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
     }
 }
 
 // Initialize Entry Manager when page loads
 let entryManager;
-$(document).ready(function() {
-    entryManager = new EntryManager();
-    window.entryManager = entryManager;
+$(document).ready(function () {
+    try {
+        console.log('Page ready, checking dependencies...');
+        console.log('jQuery version:', $.fn.jquery);
+        console.log('DataTables available:', typeof $.fn.DataTable !== 'undefined');
+        console.log('Select2 available:', typeof $.fn.select2 !== 'undefined');
+        console.log('Toastr available:', typeof toastr !== 'undefined');
+        console.log('Bootstrap available:', typeof $.fn.modal !== 'undefined');
+
+        console.log('Initializing Entry Manager...');
+        entryManager = new EntryManager();
+        window.entryManager = entryManager;
+        console.log('Entry Manager initialized successfully');
+    } catch (error) {
+        console.error('Error initializing Entry Manager:', error);
+        console.error('Error stack:', error.stack);
+    }
 });/*
 *
  * Accessibility and keyboard navigation enhancements
  */
-$(document).ready(function() {
+$(document).ready(function () {
     // Add keyboard navigation for modals
-    $(document).on('keydown', function(e) {
+    $(document).on('keydown', function (e) {
         // ESC key to close modals
         if (e.key === 'Escape') {
             $('.modal.show').modal('hide');
         }
-        
+
         // Enter key to submit forms in modals
         if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
             const $modal = $(e.target).closest('.modal');
@@ -652,24 +1089,24 @@ $(document).ready(function() {
             }
         }
     });
-    
+
     // Add ARIA labels and accessibility attributes
     $('#entriesTable').attr('aria-label', 'Test entries data table');
-    $('.btn').each(function() {
+    $('.btn').each(function () {
         if (!$(this).attr('aria-label') && $(this).attr('title')) {
             $(this).attr('aria-label', $(this).attr('title'));
         }
     });
-    
+
     // Focus management for modals
-    $('.modal').on('shown.bs.modal', function() {
+    $('.modal').on('shown.bs.modal', function () {
         $(this).find('input, select, textarea').filter(':visible').first().focus();
     });
-    
+
     // Add loading indicators
-    $(document).ajaxStart(function() {
+    $(document).ajaxStart(function () {
         $('body').addClass('loading');
-    }).ajaxStop(function() {
+    }).ajaxStop(function () {
         $('body').removeClass('loading');
     });
 });

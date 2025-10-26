@@ -51,7 +51,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="icon">
                             <i class="fas fa-clipboard-list"></i>
                         </div>
-                        <a href="#" class="small-box-footer" onclick="EntryManager.filterByStatus('all')">
+                        <a href="#" class="small-box-footer" onclick="window.entryManager.filterByStatus('all')">
                             More info <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
@@ -66,7 +66,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="icon">
                             <i class="fas fa-clock"></i>
                         </div>
-                        <a href="#" class="small-box-footer" onclick="EntryManager.filterByStatus('pending')">
+                        <a href="#" class="small-box-footer" onclick="window.entryManager.filterByStatus('pending')">
                             More info <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
@@ -81,7 +81,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="icon">
                             <i class="fas fa-check-circle"></i>
                         </div>
-                        <a href="#" class="small-box-footer" onclick="EntryManager.filterByStatus('completed')">
+                        <a href="#" class="small-box-footer" onclick="window.entryManager.filterByStatus('completed')">
                             More info <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
@@ -96,7 +96,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="icon">
                             <i class="fas fa-calendar-day"></i>
                         </div>
-                        <a href="#" class="small-box-footer" onclick="EntryManager.filterByDate('today')">
+                        <a href="#" class="small-box-footer" onclick="window.entryManager.filterByDate('today')">
                             More info <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
@@ -114,13 +114,13 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                             </h3>
                             <div class="card-tools">
                                 <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-primary btn-sm" onclick="EntryManager.openAddModal()">
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="window.entryManager.openAddModal()">
                                         <i class="fas fa-plus"></i> Add Entry
                                     </button>
-                                    <button type="button" class="btn btn-success btn-sm" onclick="EntryManager.exportEntries()">
+                                    <button type="button" class="btn btn-success btn-sm" onclick="window.entryManager.exportEntries()">
                                         <i class="fas fa-download"></i> Export
                                     </button>
-                                    <button type="button" class="btn btn-info btn-sm" onclick="EntryManager.refreshTable()">
+                                    <button type="button" class="btn btn-info btn-sm" onclick="window.entryManager.refreshTable()">
                                         <i class="fas fa-sync-alt"></i> Refresh
                                     </button>
                                 </div>
@@ -347,7 +347,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div id="testsContainer">
                             <!-- Test rows will be added dynamically -->
                         </div>
-                        <button type="button" class="btn btn-success btn-sm" onclick="EntryManager.addTestRow()">
+                        <button type="button" class="btn btn-success btn-sm" onclick="window.entryManager.addTestRow()">
                             <i class="fas fa-plus"></i> Add Test
                         </button>
                     </div>
@@ -458,7 +458,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">
                     <i class="fas fa-times mr-1"></i> Close
                 </button>
-                <button type="button" class="btn btn-primary" onclick="EntryManager.printEntryDetails()">
+                <button type="button" class="btn btn-primary" onclick="window.entryManager.printEntryDetails()">
                     <i class="fas fa-print mr-1"></i> Print
                 </button>
             </div>
