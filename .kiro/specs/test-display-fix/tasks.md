@@ -39,10 +39,16 @@
 
     - Ensure refresh_entry_aggregates is called after test insertion
     - Add logging to confirm aggregation is executed
+
+
+
+
     - Test with multiple test scenarios
     - _Requirements: 1.5, 2.3_
 
-- [ ] 3. Verify API response includes correct test data
+- [x] 3. Verify API response includes correct test data
+
+
   - [ ] 3.1 Check the list action returns proper test aggregation
     - Verify test_names and tests_count are included in response
     - Ensure aggregated data matches actual entry_tests records

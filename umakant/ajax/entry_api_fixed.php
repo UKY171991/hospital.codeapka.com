@@ -973,6 +973,29 @@ try {
             exit;
         }
         
+    } else if ($action === 'debug_entry_17') {
+        // Debug action to check entry 17 data
+        error_log("Debug: Checking entry 17 data");
+        
+        // Check entry_tests table directly
+        $stmt = $pdo->prepare("SELECT * FROM entry_tests WHERE entry_id = 17");
+        $stmt->execute();
+        $directTests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Check aggregation
+        $aggSql = build_entry_tests_aggregation_sql($pdo);
+        $stmt = $pdo->prepare("SELECT * FROM (" . $aggSql . ") agg WHERE entry_id = 17");
+        $stmt->execute();
+        $aggData = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        echo json_encode([
+            'success' => true,
+            'direct_tests' => $directTests,
+            'aggregation_data' => $aggData,
+            'direct_count' => count($directTests)
+        ]);
+        exit;
+        
     } else {
         error_log("Entry API: Invalid action received: $action");
         http_response_code(400);

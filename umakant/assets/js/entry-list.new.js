@@ -2326,6 +2326,7 @@ function populateEditForm(entry) {
     testRowCount = 0;
 
     console.log('Populating tests section with', entry.tests ? entry.tests.length : 0, 'tests');
+    console.log('Entry tests data:', entry.tests);
 
     if (entry.tests && entry.tests.length > 0) {
         // Create test rows for each unique test (prevent duplicates)
@@ -2375,15 +2376,21 @@ function populateEditForm(entry) {
                 </div>
             `;
             testsContainer.append(newRowHTML);
+            console.log(`✓ Added HTML for test row ${index}:`, test.test_name);
         });
         testRowCount = uniqueTests.length;
         console.log('Added', testRowCount, 'unique test rows to form');
+        
+        // Verify the rows were actually added to the DOM
+        const actualRowsInDOM = testsContainer.find('.test-row').length;
+        console.log('Actual test rows in DOM:', actualRowsInDOM);
         
         // Store the unique tests for later population
         window.editingEntryTests = uniqueTests;
     } else {
         console.log('No tests found, adding blank row');
-        addTestRow(); // Add a blank row if no tests
+        // Don't add a blank row immediately, let loadTests handle it
+        window.editingEntryTests = [];
     }
 
     // Load dropdowns first, then populate individual selections
@@ -2456,7 +2463,8 @@ function populateEditForm(entry) {
 
             }, 500); // Give more time for loadTests to complete
         } else {
-            console.log('No tests to populate');
+            console.log('No tests to populate, adding blank row');
+            addTestRow(); // Add a blank row if no tests to populate
         }
     });
 
