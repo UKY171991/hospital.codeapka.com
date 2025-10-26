@@ -20,19 +20,19 @@ class EntryManager {
      * Initialize the Entry Manager
      */
     init() {
-        console.log('Initializing Entry Manager...');
+        //console.log('Initializing Entry Manager...');
 
         // Wait for DOM to be ready
         $(document).ready(() => {
-            console.log('DOM ready, starting initialization...');
+            //console.log('DOM ready, starting initialization...');
             try {
                 this.initializeDataTable();
                 this.loadInitialData();
                 this.bindEvents();
                 this.loadStatistics();
-                console.log('Entry Manager initialization complete');
+                //console.log('Entry Manager initialization complete');
             } catch (error) {
-                console.error('Error during Entry Manager initialization:', error);
+                //console.error('Error during Entry Manager initialization:', error);
             }
         });
     }
@@ -41,17 +41,17 @@ class EntryManager {
      * Initialize DataTable with proper configuration
      */
     initializeDataTable() {
-        console.log('Initializing DataTable...');
+        //console.log('Initializing DataTable...');
 
         // Check if the table element exists
         if ($('#entriesTable').length === 0) {
-            console.error('DataTable element #entriesTable not found');
+            //console.error('DataTable element #entriesTable not found');
             return;
         }
 
         // Check if DataTable is available
         if (typeof $.fn.DataTable === 'undefined') {
-            console.error('DataTables library not loaded');
+            //console.error('DataTables library not loaded');
             return;
         }
 
@@ -64,11 +64,11 @@ class EntryManager {
                     type: 'GET',
                     data: { action: 'list' },
                     dataSrc: function (json) {
-                        console.log('DataTable received data:', json);
+                        //console.log('DataTable received data:', json);
                         if (json && json.success) {
                             return json.data || [];
                         } else {
-                            console.error('API Error:', json ? json.message : 'Invalid response');
+                            //console.error('API Error:', json ? json.message : 'Invalid response');
                             if (typeof toastr !== 'undefined') {
                                 toastr.error(json ? json.message : 'Failed to load entries - invalid response');
                             } else {
@@ -275,9 +275,9 @@ class EntryManager {
                 }
             });
 
-            console.log('DataTable initialized successfully');
+            //console.log('DataTable initialized successfully');
         } catch (error) {
-            console.error('Error initializing DataTable:', error);
+            //console.error('Error initializing DataTable:', error);
             // Show user-friendly error message
             $('#entriesTable').html('<div class="alert alert-danger">Failed to initialize data table. Please refresh the page.</div>');
         }
@@ -298,7 +298,7 @@ class EntryManager {
 
             // console.log('Initial data loaded successfully');
         } catch (error) {
-            console.error('Error loading initial data:', error);
+            //console.error('Error loading initial data:', error);
             toastr.error('Failed to load initial data');
         }
     }
@@ -308,7 +308,7 @@ class EntryManager {
      */
     async loadTestsData() {
         try {
-            console.log('Loading tests data from API...');
+            //console.log('Loading tests data from API...');
             const response = await $.ajax({
                 url: 'ajax/test_api.php',
                 method: 'GET',
@@ -316,26 +316,26 @@ class EntryManager {
                 dataType: 'json'
             });
 
-            console.log('Test API response:', response);
+            //console.log('Test API response:', response);
 
             if (response && response.success) {
                 this.testsData = response.data || [];
-                console.log('Loaded tests data:', this.testsData.length, 'tests');
+                //console.log('Loaded tests data:', this.testsData.length, 'tests');
 
                 // Debug: show first few tests
                 if (this.testsData.length > 0) {
-                    console.log('Sample tests:', this.testsData.slice(0, 3));
-                    console.log('Test data structure:', Object.keys(this.testsData[0]));
+                    // console.log('Sample tests:', this.testsData.slice(0, 3));
+                    // console.log('Test data structure:', Object.keys(this.testsData[0]));
                 } else {
-                    console.warn('Tests data is empty');
+                    //console.warn('Tests data is empty');
                 }
             } else {
-                console.error('Failed to load tests:', response ? response.message : 'Invalid response');
-                console.error('Full response:', response);
+                // console.error('Failed to load tests:', response ? response.message : 'Invalid response');
+                // console.error('Full response:', response);
                 this.testsData = [];
             }
         } catch (error) {
-            console.error('Error loading tests data:', error);
+            //console.error('Error loading tests data:', error);
             console.error('Error details:', {
                 status: error.status,
                 statusText: error.statusText,
@@ -346,9 +346,9 @@ class EntryManager {
             if (error.responseText) {
                 try {
                     const errorData = JSON.parse(error.responseText);
-                    console.error('Parsed error response:', errorData);
+                    //console.error('Parsed error response:', errorData);
                 } catch (parseError) {
-                    console.error('Could not parse error response:', error.responseText);
+                    //console.error('Could not parse error response:', error.responseText);
                 }
             }
             
@@ -371,12 +371,12 @@ class EntryManager {
             if (response.success) {
                 this.ownersData = response.data || [];
                 this.populateOwnerSelect();
-                console.log('Loaded owners data:', this.ownersData.length, 'owners');
+                //console.log('Loaded owners data:', this.ownersData.length, 'owners');
             } else {
-                console.error('Failed to load owners:', response.message);
+                //console.error('Failed to load owners:', response.message);
             }
         } catch (error) {
-            console.error('Error loading owners data:', error);
+            //console.error('Error loading owners data:', error);
             this.ownersData = [];
         }
     }
@@ -392,7 +392,7 @@ class EntryManager {
             $select.append(`<option value="${owner.id}">${owner.name || owner.username || owner.full_name}</option>`);
         });
 
-        console.log('Populated owner select with', this.ownersData.length, 'owners');
+        //console.log('Populated owner select with', this.ownersData.length, 'owners');
 
         // Refresh Select2 if initialized
         if ($select.hasClass('select2-hidden-accessible')) {
@@ -419,10 +419,10 @@ class EntryManager {
                 $('#completedEntries').text(stats.completed || 0);
                 $('#todayEntries').text(stats.today || 0);
             } else {
-                console.error('Failed to load statistics:', response.message);
+                //console.error('Failed to load statistics:', response.message);
             }
         } catch (error) {
-            console.error('Error loading statistics:', error);
+            //console.error('Error loading statistics:', error);
         }
     }
 
@@ -537,7 +537,7 @@ class EntryManager {
      * Open Add Entry Modal
      */
     openAddModal() {
-        console.log('Opening add entry modal...');
+        //console.log('Opening add entry modal...');
 
         this.currentEditId = null;
         this.resetForm();
@@ -561,7 +561,7 @@ class EntryManager {
     addTestRow(testData = null) {
         const rowIndex = this.testRowCounter++;
 
-        console.log('Creating test row with', this.testsData.length, 'available tests');
+        //console.log('Creating test row with', this.testsData.length, 'available tests');
 
         const testOptions = this.testsData.map(test =>
             `<option value="${test.id}" data-category="${test.category_name || ''}" data-unit="${test.unit || ''}" data-min="${test.min || ''}" data-max="${test.max || ''}" data-price="${test.price || 0}">
@@ -570,9 +570,9 @@ class EntryManager {
         ).join('');
 
         if (testData) {
-            console.log('Looking for test with ID:', testData.test_id);
+            //console.log('Looking for test with ID:', testData.test_id);
             const foundTest = this.testsData.find(t => t.id == testData.test_id);
-            console.log('Found test:', foundTest);
+            //console.log('Found test:', foundTest);
         }
 
         const rowHtml = `
@@ -628,13 +628,13 @@ class EntryManager {
 
         // If testData is provided, populate the row
         if (testData) {
-            console.log('Populating test row with data:', testData);
-            console.log('Available tests in testsData:', this.testsData.length);
+            // console.log('Populating test row with data:', testData);
+            // console.log('Available tests in testsData:', this.testsData.length);
 
             // Find the test in our testsData to get the correct information
             const foundTest = this.testsData.find(t => t.id == testData.test_id);
             if (foundTest) {
-                console.log('Found matching test:', foundTest);
+                //console.log('Found matching test:', foundTest);
 
                 // Populate all the fields with the correct data first
                 setTimeout(() => {
@@ -660,15 +660,15 @@ class EntryManager {
                     // Trigger change to ensure everything is updated
                     $testSelect.trigger('change');
 
-                    console.log('Test row populated with test ID:', testData.test_id, 'Name:', foundTest.name);
+                    //console.log('Test row populated with test ID:', testData.test_id, 'Name:', foundTest.name);
                 }, 200); // Increased timeout to ensure DOM is ready
             } else {
-                console.warn('Test not found in testsData for ID:', testData.test_id);
-                console.log('Looking for test with ID:', testData.test_id, 'in', this.testsData.map(t => ({id: t.id, name: t.name})));
+                // console.warn('Test not found in testsData for ID:', testData.test_id);
+                // console.log('Looking for test with ID:', testData.test_id, 'in', this.testsData.map(t => ({id: t.id, name: t.name})));
 
                 // If test not found in our data, try to populate with what we have
                 const testName = testData.test_name || `Test ${testData.test_id}`;
-                console.log('Adding missing test option:', testData.test_id, testName);
+                //console.log('Adding missing test option:', testData.test_id, testName);
 
                 // Add the missing test option if it doesn't exist
                 if ($testSelect.find(`option[value="${testData.test_id}"]`).length === 0) {
@@ -693,7 +693,7 @@ class EntryManager {
                     $newRow.find('.test-price').val(testData.price || 0);
                     $newRow.find('.test-result').val(testData.result_value || '');
 
-                    console.log('Test row populated with fallback data for ID:', testData.test_id, 'Name:', testName);
+                    //console.log('Test row populated with fallback data for ID:', testData.test_id, 'Name:', testName);
                 }, 200);
             }
         }
@@ -721,14 +721,14 @@ class EntryManager {
         const selectedOption = $select.find('option:selected');
         const testId = selectedOption.val();
 
-        console.log('Test selection changed to:', testId);
+        //console.log('Test selection changed to:', testId);
 
         if (testId) {
             // Find the test in our testsData for accurate information
             const foundTest = this.testsData.find(t => t.id == testId);
 
             if (foundTest) {
-                console.log('Found test data:', foundTest);
+                //console.log('Found test data:', foundTest);
 
                 // Populate test details from testsData (more reliable than data attributes)
                 $row.find('.test-category').val(foundTest.category_name || '');
@@ -739,7 +739,7 @@ class EntryManager {
                 $row.find('.test-price').val(foundTest.price || 0);
             } else {
                 // Fallback to data attributes if test not found in testsData
-                console.warn('Test not found in testsData, using data attributes');
+                //console.warn('Test not found in testsData, using data attributes');
                 $row.find('.test-category').val(selectedOption.data('category') || '');
                 $row.find('.test-unit').val(selectedOption.data('unit') || '');
                 $row.find('.test-min').val(selectedOption.data('min') || '');
@@ -804,7 +804,7 @@ class EntryManager {
      * Handle owner selection change
      */
     onOwnerChange(ownerId) {
-        console.log('Owner changed:', ownerId);
+        //console.log('Owner changed:', ownerId);
 
         if (ownerId) {
             // Enable patient and doctor selects
@@ -826,7 +826,7 @@ class EntryManager {
      * Handle patient selection change
      */
     onPatientChange(patientId) {
-        console.log('Patient changed:', patientId);
+        //console.log('Patient changed:', patientId);
 
         if (patientId) {
             // Load patient details
@@ -842,7 +842,7 @@ class EntryManager {
      */
     async loadPatientsForOwner(ownerId) {
         try {
-            console.log('Loading patients for owner:', ownerId);
+            //console.log('Loading patients for owner:', ownerId);
 
             const response = await $.ajax({
                 url: 'ajax/patient_api.php',
@@ -859,9 +859,9 @@ class EntryManager {
                 response.data.forEach(patient => {
                     $select.append(`<option value="${patient.id}">${patient.name}</option>`);
                 });
-                console.log('Loaded', response.data.length, 'patients');
+                //console.log('Loaded', response.data.length, 'patients');
             } else {
-                console.warn('No patients found or API error:', response.message);
+                //console.warn('No patients found or API error:', response.message);
             }
 
             // Refresh Select2 if initialized
@@ -869,7 +869,7 @@ class EntryManager {
                 $select.trigger('change');
             }
         } catch (error) {
-            console.error('Error loading patients:', error);
+            //console.error('Error loading patients:', error);
         }
     }
 
@@ -878,7 +878,7 @@ class EntryManager {
      */
     async loadDoctorsForOwner(ownerId) {
         try {
-            console.log('Loading doctors for owner:', ownerId);
+            //console.log('Loading doctors for owner:', ownerId);
 
             const response = await $.ajax({
                 url: 'ajax/doctor_api.php',
@@ -895,9 +895,9 @@ class EntryManager {
                 response.data.forEach(doctor => {
                     $select.append(`<option value="${doctor.id}">${doctor.name}</option>`);
                 });
-                console.log('Loaded', response.data.length, 'doctors');
+                //console.log('Loaded', response.data.length, 'doctors');
             } else {
-                console.warn('No doctors found or API error:', response.message);
+                //console.warn('No doctors found or API error:', response.message);
             }
 
             // Refresh Select2 if initialized
@@ -905,7 +905,7 @@ class EntryManager {
                 $select.trigger('change');
             }
         } catch (error) {
-            console.error('Error loading doctors:', error);
+            //console.error('Error loading doctors:', error);
         }
     }
 
@@ -914,7 +914,7 @@ class EntryManager {
      */
     async loadPatientDetails(patientId) {
         try {
-            console.log('Loading patient details for ID:', patientId);
+            //console.log('Loading patient details for ID:', patientId);
 
             const response = await $.ajax({
                 url: 'ajax/patient_api.php',
@@ -925,7 +925,7 @@ class EntryManager {
 
             if (response.success && response.data) {
                 const patient = response.data;
-                console.log('Patient details loaded:', patient);
+                //console.log('Patient details loaded:', patient);
 
                 $('#patientName').val(patient.name || '');
                 $('#patientContact').val(patient.contact || '');
@@ -933,10 +933,10 @@ class EntryManager {
                 $('#patientGender').val(patient.gender || '').trigger('change');
                 $('#patientAddress').val(patient.address || '');
             } else {
-                console.warn('Failed to load patient details:', response.message);
+                //console.warn('Failed to load patient details:', response.message);
             }
         } catch (error) {
-            console.error('Error loading patient details:', error);
+            //console.error('Error loading patient details:', error);
         }
     }
 
@@ -952,7 +952,7 @@ class EntryManager {
      * View entry details
      */
     async viewEntry(entryId) {
-        console.log('Viewing entry:', entryId);
+        //console.log('Viewing entry:', entryId);
 
         try {
             const response = await $.ajax({
@@ -1120,13 +1120,13 @@ class EntryManager {
         // Handle owner/added_by selection and dependent dropdowns
         const ownerId = entry.added_by || entry.owner_id || entry.owner_added_by;
         if (ownerId) {
-            console.log('Setting owner/added_by to:', ownerId);
+            //console.log('Setting owner/added_by to:', ownerId);
 
             // Check if the owner exists in the dropdown, if not add it
             const $ownerSelect = $('#ownerAddedBySelect');
             if ($ownerSelect.find(`option[value="${ownerId}"]`).length === 0) {
                 const ownerName = entry.added_by_full_name || entry.added_by_username || `User ${ownerId}`;
-                console.log('Adding missing owner option:', ownerId, ownerName);
+                //console.log('Adding missing owner option:', ownerId, ownerName);
                 $ownerSelect.append(`<option value="${ownerId}">${ownerName}</option>`);
             }
 
@@ -1138,13 +1138,13 @@ class EntryManager {
 
             // Now set patient and doctor values
             if (entry.patient_id) {
-                console.log('Setting patient to:', entry.patient_id);
+                //console.log('Setting patient to:', entry.patient_id);
 
                 // Check if patient exists in dropdown, if not add it
                 const $patientSelect = $('#patientSelect');
                 if ($patientSelect.find(`option[value="${entry.patient_id}"]`).length === 0) {
                     const patientName = entry.patient_name || `Patient ${entry.patient_id}`;
-                    console.log('Adding missing patient option:', entry.patient_id, patientName);
+                    //console.log('Adding missing patient option:', entry.patient_id, patientName);
                     $patientSelect.append(`<option value="${entry.patient_id}">${patientName}</option>`);
                 }
 
@@ -1155,34 +1155,34 @@ class EntryManager {
             }
 
             if (entry.doctor_id) {
-                console.log('Setting doctor to:', entry.doctor_id);
+                //console.log('Setting doctor to:', entry.doctor_id);
 
                 // Check if doctor exists in dropdown, if not add it
                 const $doctorSelect = $('#doctorSelect');
                 if ($doctorSelect.find(`option[value="${entry.doctor_id}"]`).length === 0) {
                     const doctorName = entry.doctor_name || `Doctor ${entry.doctor_id}`;
-                    console.log('Adding missing doctor option:', entry.doctor_id, doctorName);
+                    //console.log('Adding missing doctor option:', entry.doctor_id, doctorName);
                     $doctorSelect.append(`<option value="${entry.doctor_id}">${doctorName}</option>`);
                 }
 
                 $doctorSelect.val(entry.doctor_id).trigger('change');
             }
         } else {
-            console.warn('No owner/added_by found in entry data:', entry);
+            //console.warn('No owner/added_by found in entry data:', entry);
         }
 
         // Ensure tests data is loaded before populating test rows
         if (this.testsData.length === 0) {
-            console.log('Tests data not loaded, loading now...');
+            //console.log('Tests data not loaded, loading now...');
             await this.loadTestsData();
-            console.log('Tests data loaded:', this.testsData.length, 'tests');
+            //console.log('Tests data loaded:', this.testsData.length, 'tests');
         } else {
-            console.log('Tests data already loaded:', this.testsData.length, 'tests available');
+            //console.log('Tests data already loaded:', this.testsData.length, 'tests available');
         }
         
         // Double-check that we have tests data
         if (this.testsData.length === 0) {
-            console.error('No tests data available! This will cause issues with test selection.');
+            //console.error('No tests data available! This will cause issues with test selection.');
             toastr.warning('Tests data could not be loaded. Test selection may not work properly.');
         }
 
@@ -1191,22 +1191,22 @@ class EntryManager {
         this.testRowCounter = 0;
 
         if (entry.tests && entry.tests.length > 0) {
-            console.log('Populating', entry.tests.length, 'tests:', entry.tests);
-            console.log('Available tests data:', this.testsData.length, 'tests');
+            //console.log('Populating', entry.tests.length, 'tests:', entry.tests);
+            //console.log('Available tests data:', this.testsData.length, 'tests');
             
             // Debug: show what test IDs we're looking for vs what we have
             const entryTestIds = entry.tests.map(t => t.test_id);
             const availableTestIds = this.testsData.map(t => t.id);
-            console.log('Entry test IDs:', entryTestIds);
-            console.log('Available test IDs:', availableTestIds);
-            console.log('Missing test IDs:', entryTestIds.filter(id => !availableTestIds.includes(parseInt(id))));
+            //console.log('Entry test IDs:', entryTestIds);
+            //console.log('Available test IDs:', availableTestIds);
+            //console.log('Missing test IDs:', entryTestIds.filter(id => !availableTestIds.includes(parseInt(id))));
 
             entry.tests.forEach((test, index) => {
-                console.log(`Test ${index + 1}:`, test);
+                //console.log(`Test ${index + 1}:`, test);
                 this.addTestRow(test);
             });
         } else {
-            console.log('No tests found, adding empty test row');
+            //console.log('No tests found, adding empty test row');
             this.addTestRow();
         }
 
@@ -1215,7 +1215,7 @@ class EntryManager {
             $('#entryStatus').trigger('change');
             $('#priority').trigger('change');
             $('#referralSource').trigger('change');
-            console.log('Edit form populated successfully');
+            //console.log('Edit form populated successfully');
         }, 100);
     }
 
@@ -1223,7 +1223,7 @@ class EntryManager {
      * Delete entry
      */
     deleteEntry(entryId) {
-        console.log('Deleting entry:', entryId);
+        //console.log('Deleting entry:', entryId);
 
         // Show confirmation modal
         $('#deleteModal').modal('show');
@@ -1246,7 +1246,7 @@ class EntryManager {
                     toastr.error(response.message || 'Failed to delete entry');
                 }
             } catch (error) {
-                console.error('Error deleting entry:', error);
+                //console.error('Error deleting entry:', error);
                 toastr.error('Failed to delete entry');
             }
         });
@@ -1292,8 +1292,8 @@ class EntryManager {
      * Save entry (create or update)
      */
     async saveEntry() {
-        console.log('Saving entry...');
-        console.log('Current edit ID:', this.currentEditId);
+        //console.log('Saving entry...');
+        //console.log('Current edit ID:', this.currentEditId);
 
         try {
             // Validate form
@@ -1320,9 +1320,9 @@ class EntryManager {
             }
 
             // Debug form data
-            console.log('Form data being sent:');
+            //console.log('Form data being sent:');
             for (let [key, value] of formData.entries()) {
-                console.log(key, ':', value);
+                //console.log(key, ':', value);
             }
 
             const response = await $.ajax({
@@ -1334,7 +1334,7 @@ class EntryManager {
                 dataType: 'json'
             });
 
-            console.log('Save response:', response);
+            //console.log('Save response:', response);
 
             if (response.success) {
                 toastr.success(this.currentEditId ? 'Entry updated successfully' : 'Entry created successfully');
@@ -1342,11 +1342,11 @@ class EntryManager {
                 $('#entryModal').modal('hide');
                 this.resetForm();
             } else {
-                console.error('Save failed:', response);
+                //console.error('Save failed:', response);
                 toastr.error(response.message || 'Failed to save entry');
             }
         } catch (error) {
-            console.error('Error saving entry:', error);
+            //console.error('Error saving entry:', error);
             console.error('Error details:', {
                 status: error.status,
                 statusText: error.statusText,
@@ -1409,20 +1409,20 @@ class EntryManager {
 let entryManager;
 $(document).ready(function () {
     try {
-        console.log('Page ready, checking dependencies...');
-        console.log('jQuery version:', $.fn.jquery);
-        console.log('DataTables available:', typeof $.fn.DataTable !== 'undefined');
-        console.log('Select2 available:', typeof $.fn.select2 !== 'undefined');
-        console.log('Toastr available:', typeof toastr !== 'undefined');
-        console.log('Bootstrap available:', typeof $.fn.modal !== 'undefined');
+        // console.log('Page ready, checking dependencies...');
+        // console.log('jQuery version:', $.fn.jquery);
+        // console.log('DataTables available:', typeof $.fn.DataTable !== 'undefined');
+        // console.log('Select2 available:', typeof $.fn.select2 !== 'undefined');
+        // console.log('Toastr available:', typeof toastr !== 'undefined');
+        // console.log('Bootstrap available:', typeof $.fn.modal !== 'undefined');
 
-        console.log('Initializing Entry Manager...');
+        // console.log('Initializing Entry Manager...');
         entryManager = new EntryManager();
         window.entryManager = entryManager;
-        console.log('Entry Manager initialized successfully');
+       // console.log('Entry Manager initialized successfully');
     } catch (error) {
-        console.error('Error initializing Entry Manager:', error);
-        console.error('Error stack:', error.stack);
+        // console.error('Error initializing Entry Manager:', error);
+        // console.error('Error stack:', error.stack);
     }
 });/*
 *
