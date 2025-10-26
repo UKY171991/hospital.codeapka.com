@@ -846,10 +846,10 @@ function enableExistingPatientMode(age, gender, contact, address, name) {
     }
 
     // Make patient information fields read-only to prevent accidental modification
+    // Note: Gender field remains editable for corrections
     $('#patientName').prop('readonly', true);
     $('#patientContact').prop('readonly', true);
     $('#patientAge').prop('readonly', true);
-    $('#patientGender').prop('disabled', true);
     $('#patientAddress').prop('readonly', true);
 
     // Add visual indicators for read-only fields
