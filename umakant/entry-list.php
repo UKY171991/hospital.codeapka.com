@@ -248,7 +248,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                             <div class="form-group">
                                 <label for="entryDate">Entry Date <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control" id="entryDate" name="entry_date" 
-                                       value="<?php echo date('d-m-Y'); ?>" required>
+                                       value="<?php echo date('Y-m-d'); ?>" required>
                             </div>
                         </div>
                         
