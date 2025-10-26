@@ -580,6 +580,7 @@ try {
             if ($entryTestsCaps['table_exists']) {
                 $testSql = "SELECT et.*, 
                                    t.name AS test_name, 
+                                   t.category_id,
                                    t.unit, 
                                    t.min, 
                                    t.max,

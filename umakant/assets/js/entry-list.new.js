@@ -350,18 +350,22 @@ function populateTestSelect($testSelect, testsData, currentVal) {
     $testSelect.empty().append('<option value="">Select Test</option>');
     testsData.forEach(function (test) {
         const escapedTestName = (test.name || '').replace(/"/g, '&quot;');
+        const escapedCategory = (test.category_name || '').replace(/"/g, '&quot;');
+        const escapedUnit = (test.unit || '').replace(/"/g, '&quot;');
+        const escapedRefRange = (test.reference_range || '').replace(/"/g, '&quot;');
+        
         const opt = $('<option value="' + test.id + '" ' +
             'data-price="' + (test.price || 0) + '" ' +
-            'data-category="' + (test.category_name || '') + '" ' +
+            'data-category="' + escapedCategory + '" ' +
             'data-category-id="' + (test.category_id || '') + '" ' +
-            'data-unit="' + (test.unit || '') + '" ' +
+            'data-unit="' + escapedUnit + '" ' +
             'data-min="' + (test.min || '') + '" ' +
             'data-max="' + (test.max || '') + '" ' +
             'data-min-male="' + (test.min_male || '') + '" ' +
             'data-max-male="' + (test.max_male || '') + '" ' +
             'data-min-female="' + (test.min_female || '') + '" ' +
             'data-max-female="' + (test.max_female || '') + '" ' +
-            'data-reference-range="' + (test.reference_range || '') + '">' + 
+            'data-reference-range="' + escapedRefRange + '">' + 
             escapedTestName + ' - ₹' + (test.price || 0) + '</option>');
         $testSelect.append(opt);
     });
@@ -384,6 +388,8 @@ function setupEventHandlers() {
         const selectedTestId = $currentSelect.val();
         const $row = $currentSelect.closest('.test-row');
 
+        console.log('Test selection changed to:', selectedTestId);
+
         // Auto-fill test information (no duplicate prevention - users can select same test multiple times)
         if (selectedTestId) {
             const $opt = $currentSelect.find('option:selected');
@@ -398,6 +404,15 @@ function setupEventHandlers() {
             const minFemale = $opt.data('min-female') || '';
             const maxFemale = $opt.data('max-female') || '';
             const referenceRange = $opt.data('reference-range') || '';
+            
+            console.log('Selected option data:', {
+                price: price,
+                category: category,
+                categoryId: categoryId,
+                unit: unit,
+                min: min,
+                max: max
+            });
             
             // Set test information fields
             $row.find('.test-category').val(category);
@@ -525,6 +540,19 @@ function calculateTotals() {
 function viewEntry(id) {
     currentEntryId = id;
     
+    // Ensure tests are loaded first, then load entry data
+    if (!window.testsData) {
+        console.log('Loading tests data before viewing entry...');
+        loadTests(function() {
+            loadAndViewEntry(id);
+        });
+    } else {
+        loadAndViewEntry(id);
+    }
+}
+
+// Helper function to load and view entry
+function loadAndViewEntry(id) {
     // Load entry data
     $.ajax({
         url: 'ajax/entry_api_fixed.php',
@@ -533,6 +561,7 @@ function viewEntry(id) {
         dataType: 'json',
         success: function(response) {
             if (response.success) {
+                console.log('Loaded entry data for viewing:', response.data);
                 populateEntryForm(response.data, true); // true = view mode
                 $('#entryModalLabel').html('<i class="fas fa-eye mr-1"></i>View Entry #' + id);
                 $('#entryModal').modal('show');
@@ -559,6 +588,19 @@ function viewEntry(id) {
 function editEntry(id) {
     currentEntryId = id;
     
+    // Ensure tests are loaded first, then load entry data
+    if (!window.testsData) {
+        console.log('Loading tests data before editing entry...');
+        loadTests(function() {
+            loadAndEditEntry(id);
+        });
+    } else {
+        loadAndEditEntry(id);
+    }
+}
+
+// Helper function to load and edit entry
+function loadAndEditEntry(id) {
     // Load entry data
     $.ajax({
         url: 'ajax/entry_api_fixed.php',
@@ -567,6 +609,7 @@ function editEntry(id) {
         dataType: 'json',
         success: function(response) {
             if (response.success) {
+                console.log('Loaded entry data for editing:', response.data);
                 populateEntryForm(response.data, false); // false = edit mode
                 $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry #' + id);
                 $('#entryModal').modal('show');
@@ -915,40 +958,54 @@ function populateEntryForm(data, viewMode = false) {
             
             $('#testsContainer').append(newRow);
             
-            // Populate test select with current test
+            // Populate test select with all available tests
             const testSelect = newRow.find('.test-select');
             if (window.testsData) {
                 populateTestSelect(testSelect, window.testsData);
+                
+                // Set the test selection after populating all options
+                if (test.test_id) {
+                    testSelect.val(test.test_id);
+                    
+                    // If the test is not in the dropdown (maybe it was deleted), add it manually
+                    if (testSelect.val() !== test.test_id.toString()) {
+                        const testPrice = test.price || 0;
+                        testSelect.append('<option value="' + test.test_id + '" selected>' + 
+                            (test.test_name || 'Test #' + test.test_id) + ' - ₹' + testPrice + '</option>');
+                        testSelect.val(test.test_id);
+                    }
+                    
+                    console.log('Set test selection to:', test.test_id, 'Test name:', test.test_name);
+                }
+            } else {
+                // If testsData is not available, add the current test manually
+                if (test.test_id) {
+                    const testPrice = test.price || 0;
+                    testSelect.append('<option value="' + test.test_id + '" selected>' + 
+                        (test.test_name || 'Test #' + test.test_id) + ' - ₹' + testPrice + '</option>');
+                    testSelect.val(test.test_id);
+                }
             }
             
-            // Set the test selection
-            if (test.test_id) {
-                // Add the current test as an option if not already present
-                if (testSelect.find('option[value="' + test.test_id + '"]').length === 0) {
-                    testSelect.append('<option value="' + test.test_id + '">' + (test.test_name || 'Test #' + test.test_id) + '</option>');
-                }
-                testSelect.val(test.test_id);
-                
-                // Manually populate the fields since we already have the data
-                newRow.find('.test-category').val(test.category_name || '');
-                newRow.find('.test-category-id').val(test.category_id || '');
-                newRow.find('.test-unit').val(test.unit || '');
-                newRow.find('.test-min').val(test.min || '');
-                newRow.find('.test-max').val(test.max || '');
-                newRow.find('.test-price').val(test.price || 0);
-                newRow.find('.test-discount').val(test.discount_amount || 0);
-                newRow.find('.test-total').val(test.total_price || 0);
-                
-                console.log('Populated test data for edit mode:', {
-                    test_id: test.test_id,
-                    test_name: test.test_name,
-                    category: test.category_name,
-                    unit: test.unit,
-                    min: test.min,
-                    max: test.max,
-                    price: test.price
-                });
-            }
+            // Manually populate the fields with the existing data
+            newRow.find('.test-category').val(test.category_name || '');
+            newRow.find('.test-category-id').val(test.category_id || '');
+            newRow.find('.test-unit').val(test.unit || '');
+            newRow.find('.test-min').val(test.min || '');
+            newRow.find('.test-max').val(test.max || '');
+            newRow.find('.test-price').val(test.price || 0);
+            newRow.find('.test-discount').val(test.discount_amount || 0);
+            newRow.find('.test-total').val(test.total_price || 0);
+            
+            console.log('Populated test data for edit mode:', {
+                test_id: test.test_id,
+                test_name: test.test_name,
+                category: test.category_name,
+                unit: test.unit,
+                min: test.min,
+                max: test.max,
+                price: test.price
+            });
         });
     } else {
         // Add at least one empty row

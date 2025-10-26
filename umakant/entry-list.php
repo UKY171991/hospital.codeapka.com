@@ -733,6 +733,45 @@ function testAutoPopulation() {
     }, 1000);
 }
 
+// Function to debug entry 17 specifically
+function debugEntry17() {
+    console.log('Debugging entry 17...');
+    
+    // First check the API response
+    $.ajax({
+        url: 'ajax/entry_api_fixed.php',
+        method: 'GET',
+        data: { action: 'get', id: 17 },
+        dataType: 'json',
+        success: function(response) {
+            console.log('Entry 17 API response:', response);
+            if (response.success && response.data.tests) {
+                console.log('Entry 17 tests:', response.data.tests);
+                response.data.tests.forEach(function(test, index) {
+                    console.log(`Test ${index + 1}:`, {
+                        test_id: test.test_id,
+                        test_name: test.test_name,
+                        category_name: test.category_name,
+                        unit: test.unit,
+                        min: test.min,
+                        max: test.max,
+                        price: test.price
+                    });
+                });
+            }
+            
+            // Also check if testsData is loaded
+            console.log('Available testsData:', window.testsData ? window.testsData.length + ' tests' : 'Not loaded');
+            if (window.testsData) {
+                console.log('First few tests:', window.testsData.slice(0, 3));
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading entry 17:', error);
+        }
+    });
+}
+
 // Add debug buttons to test
 $(document).ready(function() {
     setTimeout(function() {
@@ -749,7 +788,9 @@ $(document).ready(function() {
                 '<button type="button" class="btn btn-success btn-sm" onclick="refreshAllAggregates()" title="Refresh All Aggregates">' +
                 '<i class="fas fa-sync-alt"></i> Refresh All</button>' +
                 '<button type="button" class="btn btn-purple btn-sm" onclick="testAutoPopulation()" title="Test Auto-Population">' +
-                '<i class="fas fa-magic"></i> Test Auto</button>'
+                '<i class="fas fa-magic"></i> Test Auto</button>' +
+                '<button type="button" class="btn btn-dark btn-sm" onclick="debugEntry17()" title="Debug Entry 17">' +
+                '<i class="fas fa-bug"></i> Debug 17</button>'
             );
         }
     }, 1000);
