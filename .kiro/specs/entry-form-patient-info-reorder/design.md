@@ -39,13 +39,19 @@ The entry form modal follows a card-based layout structure with multiple section
 - **Structure**: Bootstrap card with form fields for contact, age, gender, and address
 - **Styling**: Maintains existing CSS classes and structure
 
-### Unchanged Components
+### Enhanced Components
+
+#### Patient Selection Interface
+- **Enhanced Patient Dropdown**: Add "Add New Patient" option to existing patient dropdown
+- **Field State Management**: Implement logic to toggle patient information fields between read-only and editable states
+- **Visual Indicators**: Add clear visual cues to indicate field editability status
 
 #### JavaScript Functionality
-- All existing JavaScript functions remain unchanged
-- Form validation logic preserved
-- Data binding and event handlers maintained
-- AJAX submission process unaffected
+- **Patient Selection Enhancement**: Improve existing patient selection auto-population
+- **New Patient Mode**: Add functionality to enable manual patient data entry with field state management
+- **Form Validation**: Extend validation to handle both selected and manually entered patient data
+- **Data Binding**: Enhance event handlers to manage patient selection vs manual entry modes
+- **State Management**: Track whether patient data is from selection or manual entry for proper form submission
 
 #### CSS Styling
 - No CSS changes required
@@ -93,10 +99,10 @@ No new error handling is required as this change only affects the visual layout.
 ## Implementation Notes
 
 ### Key Considerations
-1. **Minimal Impact**: This change only involves moving HTML sections, no logic changes
-2. **Backward Compatibility**: All existing functionality preserved
-3. **User Experience**: Improved logical flow for data entry
-4. **Maintenance**: No additional maintenance overhead
+1. **Enhanced Patient Management**: Combines layout reorganization with improved patient selection functionality
+2. **Backward Compatibility**: All existing functionality preserved and enhanced
+3. **User Experience**: Improved logical flow for data entry with flexible patient selection options
+4. **Data Integrity**: Ensure proper handling of both selected and manually entered patient data
 
 ### Risk Assessment
 - **Low Risk**: Only HTML structure changes
