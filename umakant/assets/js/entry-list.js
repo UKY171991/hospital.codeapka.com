@@ -1030,7 +1030,7 @@ class EntryManager {
                 data: { action: 'get', id: entryId },
                 dataType: 'json'
             });
-            console.log('Displaying entry response:', response.data);
+            console.log('Displaying entry response:', response);
             if (response.success && response.data) {
                 this.displayEntryDetails(response.data);
                 $('#viewEntryModal').modal('show');
