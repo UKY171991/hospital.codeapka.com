@@ -825,13 +825,20 @@ try {
                         $testPlaceholders = ':' . implode(', :', $testFields);
                         
                         $testSql = "INSERT INTO entry_tests (`" . implode('`, `', $testFields) . "`) VALUES ($testPlaceholders)";
-                        $testStmt = $pdo->prepare($testSql);
-                        $testStmt->execute($testData);
+                        error_log("Executing SQL: $testSql");
+                        error_log("With data: " . json_encode($testData));
                         
-                        $insertedTestId = $pdo->lastInsertId();
-                        error_log("Inserted test with ID: $insertedTestId for entry: $savedEntryId");
+                        $testStmt = $pdo->prepare($testSql);
+                        $result = $testStmt->execute($testData);
+                        
+                        if ($result) {
+                            $insertedTestId = $pdo->lastInsertId();
+                            error_log("Successfully inserted test with ID: $insertedTestId for entry: $savedEntryId");
+                        } else {
+                            error_log("Failed to insert test $index: " . json_encode($testStmt->errorInfo()));
+                        }
                     } else {
-                        error_log("Skipping test $index - no test_id provided");
+                        error_log("Skipping test $index - no test_id provided: " . json_encode($test));
                     }
                 }
             } else {

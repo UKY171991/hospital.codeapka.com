@@ -6,6 +6,30 @@ let testRowCount = 1;
 // Debug: Log that the file is loaded
 console.log('entry-list.new.js loaded successfully');
 
+// Function to debug test data collection
+function debugTestData() {
+    console.log('=== TEST DATA DEBUG ===');
+    const $testRows = $('#testsContainer .test-row');
+    console.log('Total test rows found:', $testRows.length);
+    
+    $testRows.each(function(index) {
+        const $row = $(this);
+        const testSelect = $row.find('.test-select');
+        const testId = testSelect.val();
+        const testName = testSelect.find('option:selected').text();
+        const resultValue = $row.find('.test-result').val();
+        
+        console.log(`Row ${index}:`, {
+            testId: testId,
+            testName: testName,
+            resultValue: resultValue,
+            selectElement: testSelect.length,
+            hasValue: !!testId
+        });
+    });
+    console.log('=== END TEST DATA DEBUG ===');
+}
+
 // Function to force modal scrolling
 function forceModalScrolling() {
     const modal = $('#entryModal');
@@ -2895,6 +2919,7 @@ window.editEntry = editEntry;
 window.deleteEntry = deleteEntry;
 window.stabilizeModal = stabilizeModal;
 window.forceModalScrolling = forceModalScrolling;
+window.debugTestData = debugTestData;
 
 // Remove test row
 function removeTestRow(button) {
