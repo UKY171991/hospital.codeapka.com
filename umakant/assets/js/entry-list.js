@@ -308,6 +308,7 @@ class EntryManager {
      */
     async loadTestsData() {
         try {
+            console.log('Loading tests data from API...');
             const response = await $.ajax({
                 url: 'ajax/test_api.php',
                 method: 'GET',
@@ -318,11 +319,22 @@ class EntryManager {
             if (response.success) {
                 this.testsData = response.data || [];
                 console.log('Loaded tests data:', this.testsData.length, 'tests');
+
+                // Debug: show first few tests
+                if (this.testsData.length > 0) {
+                    console.log('Sample tests:', this.testsData.slice(0, 3));
+                }
             } else {
                 console.error('Failed to load tests:', response.message);
+                this.testsData = [];
             }
         } catch (error) {
             console.error('Error loading tests data:', error);
+            console.error('Error details:', {
+                status: error.status,
+                statusText: error.statusText,
+                responseText: error.responseText
+            });
             this.testsData = [];
         }
     }
@@ -601,22 +613,68 @@ class EntryManager {
         if (testData) {
             console.log('Populating test row with data:', testData);
 
-            // Set the value first, then initialize Select2
-            const $testSelect = $newRow.find('.test-select');
-            $testSelect.val(testData.test_id);
+            // Find the test in our testsData to get the correct information
+            const foundTest = this.testsData.find(t => t.id == testData.test_id);
+            if (foundTest) {
+                console.log('Found matching test:', foundTest);
 
-            // Reinitialize Select2 with the selected value
-            $testSelect.select2('destroy').select2({
-                theme: 'bootstrap4',
-                width: '100%'
-            });
+                // Set the value and trigger Select2 update
+                const $testSelect = $newRow.find('.test-select');
+                $testSelect.val(testData.test_id);
 
-            // Trigger change to populate other fields
-            setTimeout(() => {
-                $testSelect.trigger('change');
-                $newRow.find('.test-result').val(testData.result_value || '');
-                console.log('Test row populated with test ID:', testData.test_id);
-            }, 50);
+                // Reinitialize Select2 with the selected value
+                $testSelect.select2('destroy').select2({
+                    theme: 'bootstrap4',
+                    width: '100%'
+                });
+
+                // Populate all the fields with the correct data
+                setTimeout(() => {
+                    // Populate test details from the found test data
+                    $newRow.find('.test-category').val(foundTest.category_name || testData.category_name || '');
+                    $newRow.find('.test-category-id').val(foundTest.category_id || testData.category_id || '');
+                    $newRow.find('.test-unit').val(foundTest.unit || testData.unit || '');
+                    $newRow.find('.test-min').val(foundTest.min || testData.min || '');
+                    $newRow.find('.test-max').val(foundTest.max || testData.max || '');
+                    $newRow.find('.test-price').val(foundTest.price || testData.price || 0);
+                    $newRow.find('.test-result').val(testData.result_value || '');
+
+                    // Trigger change to ensure everything is updated
+                    $testSelect.trigger('change');
+
+                    console.log('Test row populated with test ID:', testData.test_id, 'Name:', foundTest.name);
+                }, 100);
+            } else {
+                console.warn('Test not found in testsData for ID:', testData.test_id);
+
+                // If test not found in our data, try to populate with what we have
+                const $testSelect = $newRow.find('.test-select');
+
+                // Add the missing test option if it doesn't exist
+                if ($testSelect.find(`option[value="${testData.test_id}"]`).length === 0) {
+                    const testName = testData.test_name || `Test ${testData.test_id}`;
+                    console.log('Adding missing test option:', testData.test_id, testName);
+                    $testSelect.append(`<option value="${testData.test_id}">${testName}</option>`);
+                }
+
+                $testSelect.val(testData.test_id);
+                $testSelect.select2('destroy').select2({
+                    theme: 'bootstrap4',
+                    width: '100%'
+                });
+
+                // Populate with available data
+                setTimeout(() => {
+                    $newRow.find('.test-category').val(testData.category_name || '');
+                    $newRow.find('.test-unit').val(testData.unit || '');
+                    $newRow.find('.test-min').val(testData.min || '');
+                    $newRow.find('.test-max').val(testData.max || '');
+                    $newRow.find('.test-price').val(testData.price || 0);
+                    $newRow.find('.test-result').val(testData.result_value || '');
+
+                    console.log('Test row populated with fallback data for ID:', testData.test_id);
+                }, 100);
+            }
         }
     }
 
@@ -640,14 +698,33 @@ class EntryManager {
     onTestChange(selectElement, $row) {
         const $select = $(selectElement);
         const selectedOption = $select.find('option:selected');
+        const testId = selectedOption.val();
 
-        if (selectedOption.val()) {
-            // Populate test details
-            $row.find('.test-category').val(selectedOption.data('category') || '');
-            $row.find('.test-unit').val(selectedOption.data('unit') || '');
-            $row.find('.test-min').val(selectedOption.data('min') || '');
-            $row.find('.test-max').val(selectedOption.data('max') || '');
-            $row.find('.test-price').val(selectedOption.data('price') || 0);
+        console.log('Test selection changed to:', testId);
+
+        if (testId) {
+            // Find the test in our testsData for accurate information
+            const foundTest = this.testsData.find(t => t.id == testId);
+
+            if (foundTest) {
+                console.log('Found test data:', foundTest);
+
+                // Populate test details from testsData (more reliable than data attributes)
+                $row.find('.test-category').val(foundTest.category_name || '');
+                $row.find('.test-category-id').val(foundTest.category_id || '');
+                $row.find('.test-unit').val(foundTest.unit || '');
+                $row.find('.test-min').val(foundTest.min || '');
+                $row.find('.test-max').val(foundTest.max || '');
+                $row.find('.test-price').val(foundTest.price || 0);
+            } else {
+                // Fallback to data attributes if test not found in testsData
+                console.warn('Test not found in testsData, using data attributes');
+                $row.find('.test-category').val(selectedOption.data('category') || '');
+                $row.find('.test-unit').val(selectedOption.data('unit') || '');
+                $row.find('.test-min').val(selectedOption.data('min') || '');
+                $row.find('.test-max').val(selectedOption.data('max') || '');
+                $row.find('.test-price').val(selectedOption.data('price') || 0);
+            }
         } else {
             // Clear test details
             $row.find('.test-category, .test-unit, .test-min, .test-max').val('');
@@ -1077,6 +1154,8 @@ class EntryManager {
         if (this.testsData.length === 0) {
             console.log('Tests data not loaded, loading now...');
             await this.loadTestsData();
+        } else {
+            console.log('Tests data already loaded:', this.testsData.length, 'tests available');
         }
 
         // Clear and populate tests
