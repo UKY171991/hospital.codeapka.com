@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 25, 2025 at 11:28 PM
+-- Generation Time: Oct 26, 2025 at 12:39 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -444,10 +444,6 @@ CREATE TABLE `entries` (
   `status` varchar(50) NOT NULL DEFAULT 'pending',
   `priority` varchar(50) DEFAULT 'normal',
   `referral_source` varchar(100) DEFAULT NULL,
-  `patient_contact` varchar(100) DEFAULT NULL,
-  `patient_address` text DEFAULT NULL,
-  `gender` varchar(10) DEFAULT NULL,
-  `age` int(11) DEFAULT NULL COMMENT 'Patient age at time of entry',
   `subtotal` decimal(10,2) DEFAULT 0.00,
   `discount_amount` decimal(10,2) DEFAULT 0.00,
   `total_price` decimal(10,2) DEFAULT 0.00,
@@ -462,21 +458,21 @@ CREATE TABLE `entries` (
 -- Dumping data for table `entries`
 --
 
-INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`, `entry_date`, `status`, `priority`, `referral_source`, `patient_contact`, `patient_address`, `gender`, `age`, `subtotal`, `discount_amount`, `total_price`, `payment_status`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
-(1, 1, NULL, 3, NULL, '2025-10-06 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 100.00, 20.00, 100.00, 'pending', NULL, 1, '2025-10-06 14:13:29', NULL),
-(2, 2, NULL, 2, 15, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 100.00, 0.00, 60.00, 'pending', NULL, 2, '2025-10-06 15:53:42', NULL),
-(5, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, NULL, 200.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 16:21:47', NULL),
-(6, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, NULL, 1080.00, 100.00, 980.00, 'pending', NULL, 1, '2025-10-06 16:40:50', NULL),
-(7, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, NULL, NULL, NULL, NULL, 400.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 17:12:12', NULL),
-(9, 2, NULL, 2, 14, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 500.00, 0.00, 300.00, 'pending', NULL, 2, '2025-10-08 11:21:38', NULL),
-(10, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 600.00, 0.00, 340.00, 'pending', NULL, 1, '2025-10-08 17:09:55', NULL),
-(11, 1, NULL, NULL, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 300.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-08 17:51:17', NULL),
-(12, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-08 18:00:34', NULL),
-(13, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-09 08:15:03', NULL),
-(14, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-09 08:15:35', NULL),
-(15, 1, NULL, 3, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 1080.00, 0.00, 1080.00, 'pending', NULL, 1, '2025-10-09 08:16:19', NULL),
-(16, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, NULL, NULL, NULL, NULL, 1080.00, 50.00, 1030.00, 'pending', NULL, 1, '2025-10-09 08:21:40', NULL),
-(17, 1, NULL, 27, 362, '2025-10-09 00:00:00', 'pending', 'normal', '', '5454545445', '', 'Male', 54, 1380.00, 20.00, 1360.00, 'pending', '', 1, '2025-10-09 08:30:36', '2025-10-25 23:08:31');
+INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`, `entry_date`, `status`, `priority`, `referral_source`, `subtotal`, `discount_amount`, `total_price`, `payment_status`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
+(1, 1, NULL, 3, NULL, '2025-10-06 00:00:00', 'pending', 'normal', NULL, 100.00, 20.00, 100.00, 'pending', NULL, 1, '2025-10-06 14:13:29', NULL),
+(2, 2, NULL, 2, 15, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 100.00, 0.00, 60.00, 'pending', NULL, 2, '2025-10-06 15:53:42', NULL),
+(5, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, 200.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 16:21:47', NULL),
+(6, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, 1080.00, 100.00, 980.00, 'pending', NULL, 1, '2025-10-06 16:40:50', NULL),
+(7, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, 400.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 17:12:12', NULL),
+(9, 2, NULL, 2, 14, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 500.00, 0.00, 300.00, 'pending', NULL, 2, '2025-10-08 11:21:38', NULL),
+(10, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 600.00, 0.00, 340.00, 'pending', NULL, 1, '2025-10-08 17:09:55', NULL),
+(11, 1, NULL, NULL, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 300.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-08 17:51:17', NULL),
+(12, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-08 18:00:34', NULL),
+(13, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-09 08:15:03', NULL),
+(14, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-09 08:15:35', NULL),
+(15, 1, NULL, 3, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, 1080.00, 0.00, 1080.00, 'pending', NULL, 1, '2025-10-09 08:16:19', NULL),
+(16, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, 1080.00, 50.00, 1030.00, 'pending', NULL, 1, '2025-10-09 08:21:40', NULL),
+(17, 1, NULL, 27, 362, '2025-10-09 00:00:00', 'pending', 'normal', '', 1380.00, 20.00, 1360.00, 'pending', '', 1, '2025-10-09 08:30:36', '2025-10-25 23:08:31');
 
 -- --------------------------------------------------------
 
@@ -637,17 +633,12 @@ CREATE TABLE `patients` (
 INSERT INTO `patients` (`id`, `server_id`, `name`, `email`, `mobile`, `father_husband`, `address`, `sex`, `age`, `contact`, `age_unit`, `uhid`, `created_at`, `updated_at`, `added_by`) VALUES
 (2, NULL, 'James Sears', 'ciwi@mailinator.com', '5656565656', 'Arthur Oneal', 'Vel nobis error corr', 'female', 10, '', 'Years', 'P642622065', '2025-09-28 12:27:50', '2025-10-24 08:06:29', 2),
 (3, NULL, 'Indigo Cortez', 'feloz@mailinator.com', '5454545454', 'Odette Villarreal', 'newada Jaunpur', 'Female', 82, '', 'Days', 'P483791824', '2025-09-28 13:31:49', '2025-10-23 12:33:00', 1),
-(7, NULL, 'gfgfgf', '', '6556565656', 'wertg', '', NULL, 43, '', 'Years', 'P642622066', NULL, '2025-10-23 12:32:54', 1),
-(9, NULL, 'sdfgb', '', '4554545454', 'werty', '', NULL, 44, '', 'Years', 'P642622068', NULL, NULL, 1),
 (10, NULL, 'fgghnfds', '', '6767676767', 'fe', '', NULL, 66, '', 'Years', 'P642622069', NULL, NULL, 1),
 (11, NULL, 'drftgh', '', '6556565656', 'qwertyhj', '', NULL, 34, '', 'Years', 'P642622070', NULL, NULL, 1),
-(12, NULL, 'erty', '', '6767676767', 'rt', '', NULL, 6, '', 'Years', 'P642622071', NULL, NULL, 1),
-(13, NULL, 'ertyu', '', '6767676767', 'qwertg', '', NULL, 55, '', 'Years', 'P642622072', NULL, '2025-10-23 15:57:43', 1),
-(14, NULL, 'Karen Puckett', 'rejotocoha@mailinator.com', '5454545454', 'Rooney Hopkins', 'Culpa ratione nostru', 'Other', 8, 'Odit dolor elit asp', 'Years', 'P909868058', NULL, '2025-10-23 17:16:08', 1),
+(14, NULL, 'Karen Puckett', 'rejotocoha@mailinator.com', '5454545454', 'Rooney Hopkins', 'Culpa ratione nostru', 'Male', 8, '', 'Years', 'P909868058', NULL, '2025-10-26 05:56:19', 1),
 (15, NULL, 'ttt', '', '566565565656', 'ggg', '', NULL, 4, '', 'Years', 'P909868059', NULL, NULL, 1),
 (17, NULL, 'wert', '', '5656565656', 'werty', '', NULL, 54, '', 'Years', 'P909868060', NULL, NULL, 1),
-(18, NULL, 'erfedf', '', '555445455454', 'sdf', '', NULL, 4, '', 'Years', 'P909868061', NULL, NULL, 1),
-(19, NULL, 'werf', '', '5665565656', 'werf', '', NULL, 44, '', 'Years', 'P909868062', NULL, NULL, 1),
+(19, NULL, 'werf', '', '5665565656', 'werf', '', 'Male', 44, '', 'Years', 'P909868062', NULL, '2025-10-26 05:56:10', 1),
 (21, NULL, 'sdfg', '', '5545454545445', 'dfv', '', 'male', 44, '', 'Years', 'P909868063', NULL, NULL, 2),
 (22, NULL, 'asdf', '', '545454545454', 'werfg', '', 'male', 4, '', 'Years', 'P909868064', NULL, NULL, 2),
 (23, NULL, 'wertg', '', '4545545454', 'wedfg', '', 'male', 23, '', 'Years', 'P909868065', NULL, NULL, 2),
@@ -792,7 +783,7 @@ INSERT INTO `tests` (`id`, `name`, `category_id`, `main_category_id`, `price`, `
 (4, 'Aubrey Reyes g', 5, 1, 980.00, 'abc', '', '', '', 100.00, 200.00, 'Aliquid labore place', 80.00, 190.00, 50.00, 60.00, 5.00, 30.00, 0, '', '', 0, '', 1, NULL, '2025-10-26 04:54:19'),
 (5, 'sdf', 6, 1, 100.00, 'aaa', '', '', '', 45.00, 50.00, '', 45.00, 50.00, 14.00, 20.00, 22.00, 25.00, 0, '', '', 0, '', 2, NULL, '2025-10-25 15:10:33'),
 (6, 'yyy', 5, 1, 300.00, 'ttt', '', '', '', 30.00, 50.00, '', 44.00, 55.00, 66.00, 69.00, 33.00, 44.00, 0, '', '', 0, '', 2, '2025-10-25 15:28:26', '2025-10-25 15:28:26'),
-(7, 'Test new', 10, 3, 300.00, 'ggrr', '', '', '', 10.00, 20.00, '', 20.00, 30.00, 22.00, 44.00, 10.00, 14.00, 0, '', '', 0, '', 1, '2025-10-26 04:53:13', '2025-10-26 04:53:13');
+(7, 'Test new', 10, 3, 300.00, 'ggrr', '', '', '', 10.00, 20.00, '', 20.00, 30.00, 22.00, 44.00, 10.00, 14.00, 0, '', '', 0, '', 1, '2025-10-26 04:53:13', '2025-10-26 05:13:40');
 
 -- --------------------------------------------------------
 

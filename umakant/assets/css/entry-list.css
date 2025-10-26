@@ -775,4 +775,47 @@ body.modal-open {
     border: 5px solid transparent;
     border-top-color: #333;
     z-index: 1000;
+}/
+* Patient Name Field Styling */
+#patientName {
+    font-weight: 600;
+    border-left: 3px solid #667eea;
+}
+
+#patientName:focus {
+    border-left-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+#patientName.editable-field {
+    border-left-color: #28a745 !important;
+}
+
+#patientName.readonly-field {
+    border-left-color: #6c757d !important;
+    font-weight: 500;
+}
+
+/* Patient Information Row Layout Enhancement */
+.patient-info-card .card-body .row {
+    align-items: end;
+}
+
+.patient-info-card .form-group {
+    margin-bottom: 1rem;
+}
+
+/* Patient Name Field Priority Styling */
+.patient-info-card .col-md-3:first-child .form-group {
+    position: relative;
+}
+
+.patient-info-card .col-md-3:first-child .form-group::before {
+    content: '👤';
+    position: absolute;
+    left: -25px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    opacity: 0.7;
 }

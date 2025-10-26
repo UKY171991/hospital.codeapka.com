@@ -386,7 +386,7 @@ function loadPatientsByOwner(ownerId, callback) {
         success: function (response) {
             const patientSelect = $('#patientSelect');
             patientSelect.empty().append('<option value="">Select Patient</option>');
-            
+
             // Add "Add New Patient" option
             patientSelect.append('<option value="add_new_patient" data-new-patient="true">➕ Add New Patient</option>');
 
@@ -401,6 +401,7 @@ function loadPatientsByOwner(ownerId, callback) {
                     const option = $('<option>', {
                         value: patient.id,
                         text: `${patient.name} (${patient.uhid || 'No UHID'})`,
+                        'data-name': patient.name || '',
                         'data-gender': genderVal,
                         'data-contact': contactVal,
                         'data-address': addressVal,
@@ -675,7 +676,7 @@ function setupEventHandlers() {
         const selected = $(this).find('option:selected');
         const selectedValue = $(this).val();
         const isNewPatient = selected.data('new-patient') === true || selectedValue === 'add_new_patient';
-        
+
         if (isNewPatient) {
             // Enable new patient mode - make fields editable and clear them
             enableNewPatientMode();
@@ -685,8 +686,9 @@ function setupEventHandlers() {
             const gender = selected.data('gender') || '';
             const contact = selected.data('contact') || '';
             const address = selected.data('address') || '';
-            
-            enableExistingPatientMode(age, gender, contact, address);
+            const name = selected.data('name') || selected.text().split(' (')[0] || '';
+
+            enableExistingPatientMode(age, gender, contact, address, name);
         } else {
             // No patient selected - enable manual entry
             enableNewPatientMode();
@@ -697,58 +699,62 @@ function setupEventHandlers() {
 // Enable new patient mode - make patient information fields editable
 function enableNewPatientMode() {
     console.log('Enabling new patient mode');
-    
+
     // Clear all patient information fields
+    $('#patientName').val('');
     $('#patientContact').val('');
     $('#patientAge').val('');
     $('#patientGender').val('').trigger('change');
     $('#patientAddress').val('');
-    
+
     // Make all patient information fields editable
+    $('#patientName').prop('readonly', false).prop('disabled', false);
     $('#patientContact').prop('readonly', false).prop('disabled', false);
     $('#patientAge').prop('readonly', false).prop('disabled', false);
     $('#patientGender').prop('disabled', false);
     $('#patientAddress').prop('readonly', false).prop('disabled', false);
-    
+
     // Add visual indicators for editable fields
     $('.patient-info-field').removeClass('readonly-field').addClass('editable-field');
-    
+
     // Update card styling and mode indicator
     $('#patientInfoCard').removeClass('existing-patient-mode').addClass('new-patient-mode');
     $('#patientModeIndicator').removeClass('existing-patient').addClass('new-patient').text('New Patient Mode');
-    
+
     console.log('New patient mode enabled - fields are now editable');
 }
 
 // Enable existing patient mode - populate fields and make them read-only
-function enableExistingPatientMode(age, gender, contact, address) {
-    console.log('Enabling existing patient mode with data:', { age, gender, contact, address });
-    
+function enableExistingPatientMode(age, gender, contact, address, name) {
+    console.log('Enabling existing patient mode with data:', { name, age, gender, contact, address });
+
     // Populate fields with patient data
+    $('#patientName').val(name || '');
     $('#patientAge').val(age);
     $('#patientContact').val(contact);
     $('#patientAddress').val(address);
-    
+
     // Set gender field
     if (gender) {
         $('#patientGender').val(gender).trigger('change');
     } else {
         $('#patientGender').val('');
     }
-    
+
     // Make patient information fields read-only to prevent accidental modification
+    $('#patientName').prop('readonly', true);
     $('#patientContact').prop('readonly', true);
     $('#patientAge').prop('readonly', true);
     $('#patientGender').prop('disabled', true);
     $('#patientAddress').prop('readonly', true);
-    
+
     // Add visual indicators for read-only fields
     $('.patient-info-field').removeClass('editable-field').addClass('readonly-field');
-    
+
     // Update card styling and mode indicator
     $('#patientInfoCard').removeClass('new-patient-mode').addClass('existing-patient-mode');
     $('#patientModeIndicator').removeClass('new-patient').addClass('existing-patient').text('Existing Patient');
-    
+
     console.log('Existing patient mode enabled - fields are now read-only');
 }
 
@@ -756,11 +762,12 @@ function enableExistingPatientMode(age, gender, contact, address) {
 function getPatientDataSource() {
     const patientSelected = $('#patientSelect').val();
     const isNewPatient = patientSelected === 'add_new_patient' || !patientSelected;
-    
+
     return {
         isNewPatient: isNewPatient,
         patientId: isNewPatient ? null : patientSelected,
         patientData: {
+            name: $('#patientName').val(),
             contact: $('#patientContact').val(),
             age: $('#patientAge').val(),
             gender: $('#patientGender').val(),
@@ -790,6 +797,7 @@ function openAddEntryModal() {
     $('#entryStatus').val('pending').trigger('change');
 
     // Reset additional fields
+    $('#patientName').val('');
     $('#patientAge').val('');
     $('#patientContact').val('');
     $('#patientAddress').val('');
@@ -1015,17 +1023,24 @@ function saveEntry(formElement) {
 
     // Validate patient information - either patient selected OR manual data entered
     const patientSelected = $('#patientSelect').val() && $('#patientSelect').val() !== 'add_new_patient';
+    const patientName = $('#patientName').val().trim();
     const patientContact = $('#patientContact').val().trim();
     const patientAge = $('#patientAge').val();
-    
+
     if (!patientSelected) {
         // If no patient selected, validate that required patient information is provided
+        if (!patientName) {
+            toastr.error('Please either select a patient or enter patient name.');
+            $('#patientName').focus();
+            return;
+        }
+
         if (!patientContact) {
-            toastr.error('Please either select a patient or enter patient contact information.');
+            toastr.error('Please enter patient contact information.');
             $('#patientContact').focus();
             return;
         }
-        
+
         // Optional: Add more validation for manual patient entry
         if (!patientAge) {
             toastr.warning('Patient age is recommended for better record keeping.');
