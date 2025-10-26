@@ -630,8 +630,15 @@ class EntryManager {
         if (testData) {
             console.log('=== POPULATING TEST ROW ===');
             console.log('Test data received:', testData);
+            console.log('Test ID from data:', testData.test_id);
+            console.log('Test name from data:', testData.test_name);
             console.log('Available tests in testsData:', this.testsData.length);
             console.log('Looking for test ID:', testData.test_id);
+            
+            // Debug: show what test IDs are available
+            const availableIds = this.testsData.map(t => t.id);
+            console.log('Available test IDs in testsData:', availableIds);
+            console.log('Is test ID', testData.test_id, 'in available IDs?', availableIds.includes(parseInt(testData.test_id)));
 
             // Find the test in our testsData to get the correct information
             const foundTest = this.testsData.find(t => t.id == testData.test_id);
@@ -1141,6 +1148,25 @@ class EntryManager {
                 dataType: 'json'
             });
             console.log('Editing entry response:', response);
+            
+            // Special debugging for entry 17
+            if (entryId == 17) {
+                console.log('=== SPECIAL DEBUG FOR ENTRY 17 ===');
+                console.log('Response data:', response.data);
+                console.log('Tests in response:', response.data.tests);
+                if (response.data.tests) {
+                    response.data.tests.forEach((test, index) => {
+                        console.log(`Test ${index + 1}:`, {
+                            test_id: test.test_id,
+                            test_name: test.test_name,
+                            category_name: test.category_name,
+                            result_value: test.result_value
+                        });
+                    });
+                }
+                console.log('=== END SPECIAL DEBUG ===');
+            }
+            
             if (response.success && response.data) {
                 $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
                 $('#entryModal').modal('show');
@@ -1252,13 +1278,14 @@ class EntryManager {
             //console.warn('No owner/added_by found in entry data:', entry);
         }
 
-        // Ensure tests data is loaded before populating test rows
-        if (this.testsData.length === 0) {
-            console.log('Tests data not loaded, loading now...');
-            await this.loadTestsData();
-            console.log('Tests data loaded:', this.testsData.length, 'tests');
-        } else {
-            console.log('Tests data already loaded:', this.testsData.length, 'tests available');
+        // Always reload tests data to ensure we have the latest data
+        console.log('Reloading tests data to ensure accuracy...');
+        await this.loadTestsData();
+        console.log('Tests data loaded:', this.testsData.length, 'tests');
+        
+        // Debug: show first few tests
+        if (this.testsData.length > 0) {
+            console.log('First 5 tests in testsData:', this.testsData.slice(0, 5).map(t => ({id: t.id, name: t.name})));
         }
 
         // Double-check that we have tests data

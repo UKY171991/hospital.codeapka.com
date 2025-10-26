@@ -15,9 +15,13 @@
     - Add comprehensive logging of SQL queries and parameters
     - _Requirements: 1.1, 2.1, 3.1_
 
+
+
   - [ ] 2.2 Implement robust test data formatting
     - Create formatTestsForFrontend() function to standardize test data structure
     - Ensure all required fields are present in the response
+
+
     - Handle missing or null values gracefully
     - _Requirements: 1.2, 1.4, 2.4_
 

@@ -660,7 +660,22 @@ try {
                 $testStmt->execute([$id]);
                 $tests = $testStmt->fetchAll(PDO::FETCH_ASSOC);
                 
-                error_log("Entry API: Raw test query results: " . json_encode($tests));
+                error_log("Entry API: Raw test query results for entry $id: " . json_encode($tests));
+                
+                // Additional debugging for entry 17
+                if ($id == 17) {
+                    error_log("SPECIAL DEBUG for Entry 17:");
+                    error_log("- Number of tests found: " . count($tests));
+                    foreach ($tests as $index => $test) {
+                        error_log("- Test " . ($index + 1) . ": ID=" . $test['test_id'] . ", Name=" . $test['test_name'] . ", Category=" . $test['category_name']);
+                    }
+                    
+                    // Also check what's in entry_tests table directly
+                    $directStmt = $pdo->prepare("SELECT * FROM entry_tests WHERE entry_id = ? ORDER BY id");
+                    $directStmt->execute([$id]);
+                    $directTests = $directStmt->fetchAll(PDO::FETCH_ASSOC);
+                    error_log("- Direct entry_tests query results: " . json_encode($directTests));
+                }
                 
                 // Format test data with better field handling
                 foreach ($tests as &$test) {
@@ -1132,6 +1147,143 @@ try {
             ]);
             exit;
         }
+        
+    } else if ($action === 'debug_get_entry') {
+        // Debug action to check what the get action returns for any entry
+        $entryId = (int)($_GET['entry_id'] ?? $_GET['id'] ?? 0);
+        if (!$entryId) {
+            echo json_encode(['success' => false, 'message' => 'Entry ID required']);
+            exit;
+        }
+        
+        error_log("Debug: Checking get action for entry $entryId");
+        
+        // Call the actual get action logic
+        $_GET['id'] = $entryId;
+        $_GET['action'] = 'get';
+        
+        // Capture the get action output
+        ob_start();
+        
+        // Simulate the get action (copy the logic)
+        $viewerRole = $user_data['role'] ?? 'user';
+        $viewerId = (int)($user_data['user_id'] ?? 0);
+        
+        // Build the main entry query with all related data
+        $entriesCaps = get_entries_schema_capabilities($pdo);
+        $ownerSelect = '';
+        $ownerJoin = '';
+        if (!empty($entriesCaps['has_owner_id'])) {
+            $ownerSelect = "o.name AS owner_name,";
+            $ownerJoin = " LEFT JOIN owners o ON e.owner_id = o.id";
+        }
+        
+        $sql = "SELECT e.*, 
+                       p.name AS patient_name, p.uhid, p.age, p.sex AS gender, p.contact AS patient_contact, p.address AS patient_address,
+                       d.name AS doctor_name, d.specialization AS doctor_specialization,
+                       {$ownerSelect}
+                       u.username AS added_by_username, u.full_name AS added_by_full_name
+                FROM entries e 
+                LEFT JOIN patients p ON e.patient_id = p.id 
+                LEFT JOIN doctors d ON e.doctor_id = d.id " .
+                $ownerJoin .
+                " LEFT JOIN users u ON e.added_by = u.id
+                WHERE e.id = ?";
+        
+        // Add scope restriction for non-master users
+        if ($viewerRole !== 'master') {
+            $sql .= " AND e.added_by = ?";
+            $params = [$entryId, $viewerId];
+        } else {
+            $params = [$entryId];
+        }
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $entry = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$entry) {
+            echo json_encode(['success' => false, 'message' => 'Entry not found or access denied']);
+            exit;
+        }
+        
+        // Get associated tests for this entry
+        $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
+        $tests = [];
+        
+        if ($entryTestsCaps['table_exists']) {
+            $testSql = "SELECT et.id as entry_test_id,
+                               et.entry_id,
+                               et.test_id,
+                               et.result_value,
+                               et.unit as et_unit,
+                               et.remarks,
+                               et.status,
+                               et.price,
+                               et.discount_amount,
+                               et.total_price,
+                               et.created_at as et_created_at,
+                               t.id as test_table_id,
+                               t.name AS test_name, 
+                               t.category_id,
+                               t.unit as test_unit, 
+                               t.min, 
+                               t.max,
+                               t.min_male,
+                               t.max_male,
+                               t.min_female,
+                               t.max_female,
+                               t.reference_range,
+                               t.price as test_default_price,
+                               c.id as category_table_id,
+                               c.name AS category_name
+                        FROM entry_tests et
+                        LEFT JOIN tests t ON et.test_id = t.id
+                        LEFT JOIN categories c ON t.category_id = c.id
+                        WHERE et.entry_id = ?
+                        ORDER BY et.id, t.name";
+            
+            $testStmt = $pdo->prepare($testSql);
+            $testStmt->execute([$entryId]);
+            $tests = $testStmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Format test data with better field handling
+            foreach ($tests as &$test) {
+                // Use entry_tests price if available, otherwise use test default price
+                $test['price'] = (float)($test['price'] ?? $test['test_default_price'] ?? 0);
+                $test['discount_amount'] = (float)($test['discount_amount'] ?? 0);
+                $test['total_price'] = $test['price'] - $test['discount_amount'];
+                $test['result_value'] = $test['result_value'] ?? '';
+                $test['status'] = $test['status'] ?? 'pending';
+                
+                // Use entry_tests unit if available, otherwise use test unit
+                $test['unit'] = $test['et_unit'] ?? $test['test_unit'] ?? '';
+                
+                // Clean up duplicate fields
+                unset($test['et_unit'], $test['test_unit'], $test['test_default_price']);
+                unset($test['test_table_id'], $test['category_table_id']);
+            }
+        }
+        
+        // Format entry data
+        $entry['tests'] = $tests;
+        $entry['tests_count'] = count($tests);
+        
+        ob_end_clean();
+        
+        echo json_encode([
+            'success' => true,
+            'entry_id' => $entryId,
+            'entry_data' => $entry,
+            'tests_data' => $tests,
+            'tests_count' => count($tests),
+            'debug_info' => [
+                'sql_used' => $sql,
+                'test_sql_used' => $testSql ?? 'N/A',
+                'params_used' => $params
+            ]
+        ]);
+        exit;
         
     } else if ($action === 'debug_entry_17') {
         // Debug action to check entry 17 data
