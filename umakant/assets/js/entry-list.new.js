@@ -1047,20 +1047,20 @@ $(function () {
 // Update pricing fields based on selected tests
 function updatePricingFields() {
     let subtotal = 0;
-    let discount = 0;
 
-    // Calculate subtotal from test prices
-    $('.test-select').each(function () {
-        const $opt = $(this).find('option:selected');
-        const price = parseFloat($opt.data('price') || 0);
+    // Calculate subtotal from test prices - use consistent selector
+    $('#testsContainer .test-row').each(function () {
+        const testSelect = $(this).find('.test-select');
+        const selectedOption = testSelect.find('option:selected');
+        const price = parseFloat(selectedOption.data('price') || 0);
         if (price > 0) {
-            console.log('Test selected:', $opt.text(), 'Price:', price);
+            console.log('Test selected:', selectedOption.text(), 'Price:', price);
         }
         subtotal += price;
     });
 
     // Get discount amount
-    discount = parseFloat($('#discountAmount').val() || 0);
+    const discount = parseFloat($('#discountAmount').val() || 0);
 
     // Calculate total
     const total = Math.max(subtotal - discount, 0);
@@ -1288,6 +1288,11 @@ function continueWithSave($form) {
     // gather test rows: prefer rows inside submitted form; fallback to global testsContainer
     let $testRows = $form.find('.test-row');
     if (!$testRows || $testRows.length === 0) { $testRows = $('#testsContainer').find('.test-row'); }
+
+    // First pass: collect test data and calculate subtotal
+    let subtotalFromTests = 0;
+    const testData = [];
+
     $testRows.each(function () {
         const testId = $(this).find('.test-select').val();
         const resultVal = $(this).find('.test-result').val();
@@ -1299,17 +1304,40 @@ function continueWithSave($form) {
         const testPrice = parseFloat($selectedTest.data('price') || 0);
 
         if (testId) {
-            tests.push({
+            testData.push({
                 test_id: testId,
                 test_name: testName,
                 result_value: resultVal || null,
                 unit: unitVal,
                 category_id: categoryId,
                 category_name: categoryName,
-                price: testPrice,
-                discount_amount: 0 // Individual test discount is 0, we use global discount
+                price: testPrice
             });
+            subtotalFromTests += testPrice;
         }
+    });
+
+    // Get global discount and distribute proportionally
+    const globalDiscount = parseFloat($('#discountAmount').val() || 0);
+
+    // Second pass: distribute discount proportionally across tests
+    testData.forEach(function (test) {
+        let testDiscount = 0;
+        if (subtotalFromTests > 0 && globalDiscount > 0) {
+            // Distribute discount proportionally based on test price
+            testDiscount = (test.price / subtotalFromTests) * globalDiscount;
+        }
+
+        tests.push({
+            test_id: test.test_id,
+            test_name: test.test_name,
+            result_value: test.result_value,
+            unit: test.unit,
+            category_id: test.category_id,
+            category_name: test.category_name,
+            price: test.price,
+            discount_amount: testDiscount
+        });
     });
 
     // Only send tests if we have any
@@ -2602,33 +2630,7 @@ function removeTestRow(button) {
 }
 
 // Update pricing fields based on selected tests
-function updatePricingFields() {
-    let subtotal = 0;
-
-    $('#testsContainer .test-row').each(function () {
-        const testSelect = $(this).find('.test-select');
-        const selectedOption = testSelect.find('option:selected');
-        const price = parseFloat(selectedOption.data('price') || 0);
-        subtotal += price;
-    });
-
-    const discount = parseFloat($('#discountAmount').val() || 0);
-    const total = Math.max(subtotal - discount, 0);
-
-    $('#subtotal').val(subtotal.toFixed(2));
-    $('#totalPrice').val(total.toFixed(2));
-
-    console.log('Pricing updated:', {
-        subtotal: subtotal.toFixed(2),
-        discount: discount.toFixed(2),
-        total: total.toFixed(2)
-    });
-}
-
-// Handle discount amount changes
-$(document).on('input', '#discountAmount', function () {
-    updatePricingFields();
-});
+// Duplicate function removed - using the main updatePricingFields function above
 
 // Fix the populateEditForm function to properly handle multiple tests
 function fixEditFormTestsDisplay() {
