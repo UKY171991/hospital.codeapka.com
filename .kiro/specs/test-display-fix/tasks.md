@@ -105,6 +105,8 @@
 - [ ] 4. Verify frontend DataTable displays tests correctly
   - [ ] 4.1 Confirm DataTable column configuration
     - Verify test_names column renderer handles multiple tests
+
+
     - Ensure tests_count is properly displayed
     - Test rendering with various test count scenarios
     - _Requirements: 1.1, 1.2, 1.3, 3.4_
