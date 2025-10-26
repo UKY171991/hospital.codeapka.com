@@ -670,6 +670,8 @@ try {
                     $test['total_price'] = $test['price'] - $test['discount_amount'];
                     $test['result_value'] = $test['result_value'] ?? '';
                     $test['status'] = $test['status'] ?? 'pending';
+
+                    echo json_encode(['success' => false, 'message' => 'Entry Testing '.$test['status'] ]); die;
                     
                     // Use entry_tests unit if available, otherwise use test unit
                     
@@ -685,7 +687,7 @@ try {
             $entry['tests'] = $tests;
             $entry['tests_count'] = count($tests);
 
-             echo json_encode(['success' => false, 'message' => 'Entry Testing '.$entry['tests']]); die;
+             
             
             // Debug logging for tests
             error_log("Entry API: Found " . count($tests) . " tests for entry ID: $id");
