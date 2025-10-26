@@ -350,7 +350,19 @@ function populateTestSelect($testSelect, testsData, currentVal) {
     $testSelect.empty().append('<option value="">Select Test</option>');
     testsData.forEach(function (test) {
         const escapedTestName = (test.name || '').replace(/"/g, '&quot;');
-        const opt = $('<option value="' + test.id + '" data-price="' + (test.price || 0) + '">' + escapedTestName + ' - ₹' + (test.price || 0) + '</option>');
+        const opt = $('<option value="' + test.id + '" ' +
+            'data-price="' + (test.price || 0) + '" ' +
+            'data-category="' + (test.category_name || '') + '" ' +
+            'data-category-id="' + (test.category_id || '') + '" ' +
+            'data-unit="' + (test.unit || '') + '" ' +
+            'data-min="' + (test.min || '') + '" ' +
+            'data-max="' + (test.max || '') + '" ' +
+            'data-min-male="' + (test.min_male || '') + '" ' +
+            'data-max-male="' + (test.max_male || '') + '" ' +
+            'data-min-female="' + (test.min_female || '') + '" ' +
+            'data-max-female="' + (test.max_female || '') + '" ' +
+            'data-reference-range="' + (test.reference_range || '') + '">' + 
+            escapedTestName + ' - ₹' + (test.price || 0) + '</option>');
         $testSelect.append(opt);
     });
     
@@ -376,15 +388,43 @@ function setupEventHandlers() {
         if (selectedTestId) {
             const $opt = $currentSelect.find('option:selected');
             const price = parseFloat($opt.data('price') || 0);
+            const category = $opt.data('category') || '';
+            const categoryId = $opt.data('category-id') || '';
+            const unit = $opt.data('unit') || '';
+            const min = $opt.data('min') || '';
+            const max = $opt.data('max') || '';
+            const minMale = $opt.data('min-male') || '';
+            const maxMale = $opt.data('max-male') || '';
+            const minFemale = $opt.data('min-female') || '';
+            const maxFemale = $opt.data('max-female') || '';
+            const referenceRange = $opt.data('reference-range') || '';
+            
+            // Set test information fields
+            $row.find('.test-category').val(category);
+            $row.find('.test-category-id').val(categoryId);
+            $row.find('.test-unit').val(unit);
+            $row.find('.test-min').val(min);
+            $row.find('.test-max').val(max);
             
             // Set price information
             $row.find('.test-price').val(price);
             $row.find('.test-discount').val(0);
             $row.find('.test-total').val(price);
             
-            console.log('Set test price:', price, 'for test ID:', selectedTestId);
+            console.log('Auto-filled test data for test ID:', selectedTestId, {
+                category: category,
+                unit: unit,
+                min: min,
+                max: max,
+                price: price
+            });
         } else {
-            // Clear price information
+            // Clear all test information
+            $row.find('.test-category').val('');
+            $row.find('.test-category-id').val('');
+            $row.find('.test-unit').val('');
+            $row.find('.test-min').val('');
+            $row.find('.test-max').val('');
             $row.find('.test-price').val(0);
             $row.find('.test-discount').val(0);
             $row.find('.test-total').val(0);
@@ -407,6 +447,7 @@ function addTestRow() {
         '</select></div>' +
         '<div class="col-md-2">' +
         '<input type="text" class="form-control test-category" name="tests[' + newIndex + '][category_name]" placeholder="Category" readonly>' +
+        '<input type="hidden" name="tests[' + newIndex + '][category_id]" class="test-category-id">' +
         '<input type="hidden" class="test-price" name="tests[' + newIndex + '][price]" value="0">' +
         '<input type="hidden" class="test-discount" name="tests[' + newIndex + '][discount_amount]" value="0">' +
         '<input type="hidden" class="test-total" name="tests[' + newIndex + '][total_price]" value="0">' +
@@ -804,6 +845,16 @@ function populateEntryForm(data, viewMode = false) {
     $('#patientGender').val(data.gender || '').trigger('change');
     $('#patientAddress').val(data.patient_address || '');
     
+    // Set pricing information
+    $('#subtotal').val(data.subtotal || 0);
+    $('#discountAmount').val(data.total_discount || data.discount_amount || 0);
+    $('#totalPrice').val(data.final_amount || data.total_price || 0);
+    
+    // Set additional fields
+    $('#referralSource').val(data.referral_source || '').trigger('change');
+    $('#priority').val(data.priority || 'normal').trigger('change');
+    $('#entryNotes').val(data.notes || '');
+    
     // Set owner/user selection if available
     if (data.added_by) {
         $('#ownerAddedBySelect').val('user_' + data.added_by).trigger('change');
@@ -841,6 +892,10 @@ function populateEntryForm(data, viewMode = false) {
                 '</select></div>' +
                 '<div class="col-md-2">' +
                 '<input type="text" class="form-control test-category" name="tests[' + index + '][category_name]" placeholder="Category" readonly value="' + (test.category_name || '') + '">' +
+                '<input type="hidden" name="tests[' + index + '][category_id]" class="test-category-id" value="' + (test.category_id || '') + '">' +
+                '<input type="hidden" class="test-price" name="tests[' + index + '][price]" value="' + (test.price || 0) + '">' +
+                '<input type="hidden" class="test-discount" name="tests[' + index + '][discount_amount]" value="' + (test.discount_amount || 0) + '">' +
+                '<input type="hidden" class="test-total" name="tests[' + index + '][total_price]" value="' + (test.total_price || 0) + '">' +
                 '</div>' +
                 '<div class="col-md-2">' +
                 '<input type="text" class="form-control test-result" name="tests[' + index + '][result_value]" placeholder="Result" value="' + (test.result_value || '') + '">' +
@@ -872,13 +927,38 @@ function populateEntryForm(data, viewMode = false) {
                 if (testSelect.find('option[value="' + test.test_id + '"]').length === 0) {
                     testSelect.append('<option value="' + test.test_id + '">' + (test.test_name || 'Test #' + test.test_id) + '</option>');
                 }
-                testSelect.val(test.test_id).trigger('change');
+                testSelect.val(test.test_id);
+                
+                // Manually populate the fields since we already have the data
+                newRow.find('.test-category').val(test.category_name || '');
+                newRow.find('.test-category-id').val(test.category_id || '');
+                newRow.find('.test-unit').val(test.unit || '');
+                newRow.find('.test-min').val(test.min || '');
+                newRow.find('.test-max').val(test.max || '');
+                newRow.find('.test-price').val(test.price || 0);
+                newRow.find('.test-discount').val(test.discount_amount || 0);
+                newRow.find('.test-total').val(test.total_price || 0);
+                
+                console.log('Populated test data for edit mode:', {
+                    test_id: test.test_id,
+                    test_name: test.test_name,
+                    category: test.category_name,
+                    unit: test.unit,
+                    min: test.min,
+                    max: test.max,
+                    price: test.price
+                });
             }
         });
     } else {
         // Add at least one empty row
         addTestRow();
     }
+    
+    // Recalculate totals after populating all test data
+    setTimeout(function() {
+        calculateTotals();
+    }, 100);
     
     // Set form to view mode if requested
     if (viewMode) {

@@ -701,6 +701,38 @@ function refreshAllAggregates() {
     });
 }
 
+// Function to test auto-population of test data
+function testAutoPopulation() {
+    console.log('Testing auto-population of test data...');
+    
+    // Open the add entry modal
+    openAddEntryModal();
+    
+    // Wait a bit for the modal to open and tests to load
+    setTimeout(function() {
+        if (window.testsData && window.testsData.length > 0) {
+            // Get the first test row
+            const firstTestRow = $('.test-row').first();
+            const testSelect = firstTestRow.find('.test-select');
+            
+            // Select the first available test
+            const firstTest = window.testsData[0];
+            testSelect.val(firstTest.id).trigger('change');
+            
+            console.log('Auto-populated test data for test:', firstTest.name);
+            console.log('Category:', firstTestRow.find('.test-category').val());
+            console.log('Unit:', firstTestRow.find('.test-unit').val());
+            console.log('Min:', firstTestRow.find('.test-min').val());
+            console.log('Max:', firstTestRow.find('.test-max').val());
+            console.log('Price:', firstTestRow.find('.test-price').val());
+            
+            alert('Test auto-population completed. Check console for details.');
+        } else {
+            alert('No test data available for testing.');
+        }
+    }, 1000);
+}
+
 // Add debug buttons to test
 $(document).ready(function() {
     setTimeout(function() {
@@ -715,7 +747,9 @@ $(document).ready(function() {
                 '<button type="button" class="btn btn-primary btn-sm" onclick="testAggregationSQL()" title="Test Aggregation SQL">' +
                 '<i class="fas fa-database"></i> Test SQL</button>' +
                 '<button type="button" class="btn btn-success btn-sm" onclick="refreshAllAggregates()" title="Refresh All Aggregates">' +
-                '<i class="fas fa-sync-alt"></i> Refresh All</button>'
+                '<i class="fas fa-sync-alt"></i> Refresh All</button>' +
+                '<button type="button" class="btn btn-purple btn-sm" onclick="testAutoPopulation()" title="Test Auto-Population">' +
+                '<i class="fas fa-magic"></i> Test Auto</button>'
             );
         }
     }, 1000);
