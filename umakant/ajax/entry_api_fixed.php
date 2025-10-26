@@ -671,7 +671,7 @@ try {
                     $test['result_value'] = $test['result_value'] ?? '';
                     $test['status'] = $test['status'] ?? 'pending';
 
-                    echo json_encode(['success' => false, 'message' => 'Entry Testing '.$test['status'] ]); die;
+                    
                     
                     // Use entry_tests unit if available, otherwise use test unit
                     
