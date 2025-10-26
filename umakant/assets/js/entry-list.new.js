@@ -620,6 +620,7 @@ function loadTests(callback) {
                 if (response.data.length > 0) {
                     console.log('First test sample:', response.data[0]);
                     console.log('First test price:', response.data[0].price);
+                    console.log('Available test IDs:', response.data.map(t => ({ id: t.id, name: t.name })).slice(0, 5));
 
                     // Check if ANY tests have prices
                     const testsWithPrices = response.data.filter(t => t.price && t.price > 0);
@@ -2089,7 +2090,10 @@ function editEntry(id) {
                             test_id: test.test_id,
                             test_name: test.test_name,
                             result_value: test.result_value,
-                            category_name: test.category_name
+                            category_name: test.category_name,
+                            id: test.id, // Check if this field exists
+                            price: test.price,
+                            unit: test.unit
                         });
                     });
                 } else {
@@ -2399,9 +2403,31 @@ function populateEditForm(entry) {
                     const testSelect = testRow.find('.test-select');
 
                     if (test.test_id && testRow.length > 0) {
+                        console.log(`Processing test ${index}: test_id=${test.test_id}, test_name="${test.test_name}"`);
+                        
+                        // Debug: show all available options
+                        const allOptions = testSelect.find('option').map(function() {
+                            return { value: $(this).val(), text: $(this).text() };
+                        }).get();
+                        console.log(`Available options for row ${index}:`, allOptions.slice(0, 3)); // Show first 3
+                        
                         // Verify the option exists
                         const targetOption = testSelect.find(`option[value="${test.test_id}"]`);
                         console.log(`Option exists for test_id ${test.test_id}:`, targetOption.length > 0);
+                        
+                        if (targetOption.length === 0) {
+                            console.error(`❌ No option found with value="${test.test_id}" for test "${test.test_name}"`);
+                            console.log('Looking for alternative matches...');
+                            
+                            // Try to find by test name
+                            const nameMatch = testSelect.find('option').filter(function() {
+                                return $(this).text().includes(test.test_name);
+                            });
+                            console.log(`Found ${nameMatch.length} options matching name "${test.test_name}"`);
+                            if (nameMatch.length > 0) {
+                                console.log('Name match option:', nameMatch.first().val(), nameMatch.first().text());
+                            }
+                        }
 
                         if (targetOption.length > 0) {
                             // Set the value directly
