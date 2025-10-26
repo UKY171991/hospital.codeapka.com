@@ -385,11 +385,17 @@ function setupEventHandlers() {
             const $opt = $currentSelect.find('option:selected');
             const price = parseFloat($opt.data('price') || 0);
             
-            if ($row.find('.test-price').length) {
-                $row.find('.test-price').val(price.toFixed(2));
-                $row.find('.test-discount').val('0.00');
-                $row.find('.test-total').val(price.toFixed(2));
-            }
+            // Set price information
+            $row.find('.test-price').val(price);
+            $row.find('.test-discount').val(0);
+            $row.find('.test-total').val(price);
+            
+            console.log('Set test price:', price, 'for test ID:', selectedTestId);
+        } else {
+            // Clear price information
+            $row.find('.test-price').val(0);
+            $row.find('.test-discount').val(0);
+            $row.find('.test-total').val(0);
         }
         
         calculateTotals();
@@ -409,6 +415,9 @@ function addTestRow() {
         '</select></div>' +
         '<div class="col-md-2">' +
         '<input type="text" class="form-control test-category" name="tests[' + newIndex + '][category_name]" placeholder="Category" readonly>' +
+        '<input type="hidden" class="test-price" name="tests[' + newIndex + '][price]" value="0">' +
+        '<input type="hidden" class="test-discount" name="tests[' + newIndex + '][discount_amount]" value="0">' +
+        '<input type="hidden" class="test-total" name="tests[' + newIndex + '][total_price]" value="0">' +
         '</div>' +
         '<div class="col-md-2">' +
         '<input type="text" class="form-control test-result" name="tests[' + newIndex + '][result_value]" placeholder="Result">' +
