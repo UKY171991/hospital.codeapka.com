@@ -662,21 +662,6 @@ try {
                  
                 error_log("Entry API: Raw test query results for entry $id: " . json_encode($tests));
                 
-                // Additional debugging for entry 17
-                // if ($id == 17) {
-                //     error_log("SPECIAL DEBUG for Entry 17:");
-                //     error_log("- Number of tests found: " . count($tests));
-                //     foreach ($tests as $index => $test) {
-                //         error_log("- Test " . ($index + 1) . ": ID=" . $test['test_id'] . ", Name=" . $test['test_name'] . ", Category=" . $test['category_name']);
-                //     }
-                    
-                //     // Also check what's in entry_tests table directly
-                //     $directStmt = $pdo->prepare("SELECT * FROM entry_tests WHERE entry_id = ? ORDER BY id");
-                //     $directStmt->execute([$id]);
-                //     $directTests = $directStmt->fetchAll(PDO::FETCH_ASSOC);
-                //     error_log("- Direct entry_tests query results: " . json_encode($directTests));
-                // }
-                
                 // Format test data with better field handling
                 foreach ($tests as &$test) {
                     // Use entry_tests price if available, otherwise use test default price
@@ -688,6 +673,8 @@ try {
                     
                     // Use entry_tests unit if available, otherwise use test unit
                     $test['unit'] = $test['et_unit'] ?? $test['test_unit'] ?? '';
+
+                    echo json_encode(['success' => false, 'message' => 'Entry Testing '.$test]); die;
                     
                     // Clean up duplicate fields
                     unset($test['et_unit'], $test['test_unit'], $test['test_default_price']);
