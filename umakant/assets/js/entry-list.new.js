@@ -351,36 +351,13 @@ function setupEventHandlers() {
         saveEntry(this);
     });
 
-    // Test selection change handler with duplicate prevention
+    // Test selection change handler - allows multiple instances of same test
     $(document).on('change', '.test-select', function () {
         const $currentSelect = $(this);
         const selectedTestId = $currentSelect.val();
         const $row = $currentSelect.closest('.test-row');
 
-        // Check for duplicate test selection
-        if (selectedTestId) {
-            let isDuplicate = false;
-            
-            $('.test-select').not($currentSelect).each(function () {
-                if ($(this).val() === selectedTestId) {
-                    isDuplicate = true;
-                    return false;
-                }
-            });
-
-            if (isDuplicate) {
-                if (typeof toastr !== 'undefined') {
-                    toastr.error('This test is already selected in another row. Please choose a different test.');
-                } else {
-                    alert('This test is already selected in another row. Please choose a different test.');
-                }
-                
-                $currentSelect.val('').trigger('change');
-                return;
-            }
-        }
-
-        // Auto-fill test information
+        // Auto-fill test information (no duplicate prevention - users can select same test multiple times)
         if (selectedTestId) {
             const $opt = $currentSelect.find('option:selected');
             const price = parseFloat($opt.data('price') || 0);
