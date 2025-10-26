@@ -607,8 +607,6 @@ try {
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             $entry = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            echo json_encode(['success' => false, 'message' => 'Entry Testing '.$entry]); die;
 
             error_log("Entry API: Query result: " . ($entry ? 'Found entry' : 'No entry found'));
             
@@ -661,7 +659,7 @@ try {
                 $testStmt = $pdo->prepare($testSql);
                 $testStmt->execute([$id]);
                 $tests = $testStmt->fetchAll(PDO::FETCH_ASSOC);
-                
+                 echo json_encode(['success' => false, 'message' => 'Entry Testing '.$tests]); die;
                 error_log("Entry API: Raw test query results for entry $id: " . json_encode($tests));
                 
                 // Additional debugging for entry 17
