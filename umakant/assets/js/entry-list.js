@@ -628,13 +628,15 @@ class EntryManager {
 
         // If testData is provided, populate the row
         if (testData) {
-            // console.log('Populating test row with data:', testData);
-            // console.log('Available tests in testsData:', this.testsData.length);
+            console.log('=== POPULATING TEST ROW ===');
+            console.log('Test data received:', testData);
+            console.log('Available tests in testsData:', this.testsData.length);
+            console.log('Looking for test ID:', testData.test_id);
 
             // Find the test in our testsData to get the correct information
             const foundTest = this.testsData.find(t => t.id == testData.test_id);
             if (foundTest) {
-                //console.log('Found matching test:', foundTest);
+                console.log('Found matching test in testsData:', foundTest);
 
                 // Populate all the fields with the correct data first
                 setTimeout(() => {
@@ -660,15 +662,15 @@ class EntryManager {
                     // Trigger change to ensure everything is updated
                     $testSelect.trigger('change');
 
-                    //console.log('Test row populated with test ID:', testData.test_id, 'Name:', foundTest.name);
+                    console.log('Test row populated with test ID:', testData.test_id, 'Name:', foundTest.name);
                 }, 200); // Increased timeout to ensure DOM is ready
             } else {
-                // console.warn('Test not found in testsData for ID:', testData.test_id);
-                // console.log('Looking for test with ID:', testData.test_id, 'in', this.testsData.map(t => ({id: t.id, name: t.name})));
+                console.warn('Test not found in testsData for ID:', testData.test_id);
+                console.log('Looking for test with ID:', testData.test_id, 'in', this.testsData.map(t => ({id: t.id, name: t.name})));
 
                 // If test not found in our data, try to populate with what we have
                 const testName = testData.test_name || `Test ${testData.test_id}`;
-                //console.log('Adding missing test option:', testData.test_id, testName);
+                console.log('Adding missing test option:', testData.test_id, testName);
 
                 // Add the missing test option if it doesn't exist
                 if ($testSelect.find(`option[value="${testData.test_id}"]`).length === 0) {
