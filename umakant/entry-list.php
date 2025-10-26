@@ -563,4 +563,161 @@ setTimeout(function() {
         alert('JavaScript files failed to load. Please refresh the page.');
     }
 }, 1000);
+
+// Debug function to test API response
+function debugTestData() {
+    console.log('Testing API response...');
+    $.ajax({
+        url: 'ajax/entry_api_fixed.php',
+        method: 'GET',
+        data: { action: 'list' },
+        dataType: 'json',
+        success: function(response) {
+            console.log('API Response:', response);
+            if (response.success && response.data) {
+                console.log('First entry data:', response.data[0]);
+                response.data.forEach(function(entry, index) {
+                    if (entry.tests_count > 1) {
+                        console.log(`Entry ${entry.id} has ${entry.tests_count} tests: ${entry.test_names}`);
+                    }
+                });
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('API Error:', error);
+        }
+    });
+}
+
+// Function to refresh aggregates for a specific entry
+function refreshAggregates(entryId) {
+    if (!entryId) {
+        entryId = prompt('Enter Entry ID to refresh aggregates:');
+        if (!entryId) return;
+    }
+    
+    console.log('Refreshing aggregates for entry:', entryId);
+    $.ajax({
+        url: 'ajax/entry_api_fixed.php',
+        method: 'GET',
+        data: { action: 'refresh_aggregates', entry_id: entryId },
+        dataType: 'json',
+        success: function(response) {
+            console.log('Refresh response:', response);
+            if (response.success) {
+                alert('Aggregates refreshed for entry ' + entryId + '\nTests count: ' + (response.entry_data.tests_count || 0) + '\nTest names: ' + (response.entry_data.test_names || 'None'));
+                // Refresh the table
+                if (typeof entriesTable !== 'undefined' && entriesTable) {
+                    entriesTable.ajax.reload();
+                }
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Refresh error:', error);
+            alert('Error refreshing aggregates: ' + error);
+        }
+    });
+}
+
+// Function to debug all entries with multiple tests
+function debugAllEntries() {
+    console.log('Debugging all entries with multiple tests...');
+    $.ajax({
+        url: 'ajax/entry_api_fixed.php',
+        method: 'GET',
+        data: { action: 'debug_all_entries' },
+        dataType: 'json',
+        success: function(response) {
+            console.log('Debug all entries response:', response);
+            if (response.success) {
+                console.table(response.entries_with_multiple_tests);
+                alert('Found ' + response.count + ' entries with multiple tests. Check console for details.');
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Debug error:', error);
+            alert('Error debugging entries: ' + error);
+        }
+    });
+}
+
+// Function to test aggregation SQL
+function testAggregationSQL() {
+    console.log('Testing aggregation SQL...');
+    $.ajax({
+        url: 'ajax/entry_api_fixed.php',
+        method: 'GET',
+        data: { action: 'test_aggregation_sql' },
+        dataType: 'json',
+        success: function(response) {
+            console.log('Aggregation SQL test response:', response);
+            if (response.success) {
+                console.log('SQL:', response.sql);
+                console.table(response.results);
+                alert('Aggregation SQL test completed. Found ' + response.count + ' aggregated entries. Check console for details.');
+            } else {
+                alert('Error testing aggregation SQL: ' + response.error);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Aggregation SQL test error:', error);
+            alert('Error testing aggregation SQL: ' + error);
+        }
+    });
+}
+
+// Function to refresh all aggregates
+function refreshAllAggregates() {
+    if (!confirm('This will refresh aggregates for all entries with tests. Continue?')) {
+        return;
+    }
+    
+    console.log('Refreshing all aggregates...');
+    $.ajax({
+        url: 'ajax/entry_api_fixed.php',
+        method: 'GET',
+        data: { action: 'refresh_all_aggregates' },
+        dataType: 'json',
+        success: function(response) {
+            console.log('Refresh all aggregates response:', response);
+            if (response.success) {
+                alert('Successfully refreshed aggregates for ' + response.refreshed_count + ' entries.');
+                // Refresh the table
+                if (typeof entriesTable !== 'undefined' && entriesTable) {
+                    entriesTable.ajax.reload();
+                }
+            } else {
+                alert('Error refreshing all aggregates: ' + response.error);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Refresh all aggregates error:', error);
+            alert('Error refreshing all aggregates: ' + error);
+        }
+    });
+}
+
+// Add debug buttons to test
+$(document).ready(function() {
+    setTimeout(function() {
+        if ($('.card-tools .btn-group').length > 0) {
+            $('.card-tools .btn-group').append(
+                '<button type="button" class="btn btn-secondary btn-sm" onclick="debugTestData()" title="Debug Test Data">' +
+                '<i class="fas fa-bug"></i> Debug</button>' +
+                '<button type="button" class="btn btn-warning btn-sm" onclick="refreshAggregates()" title="Refresh Aggregates">' +
+                '<i class="fas fa-sync"></i> Refresh Agg</button>' +
+                '<button type="button" class="btn btn-info btn-sm" onclick="debugAllEntries()" title="Debug All Entries">' +
+                '<i class="fas fa-search"></i> Debug All</button>' +
+                '<button type="button" class="btn btn-primary btn-sm" onclick="testAggregationSQL()" title="Test Aggregation SQL">' +
+                '<i class="fas fa-database"></i> Test SQL</button>' +
+                '<button type="button" class="btn btn-success btn-sm" onclick="refreshAllAggregates()" title="Refresh All Aggregates">' +
+                '<i class="fas fa-sync-alt"></i> Refresh All</button>'
+            );
+        }
+    }, 1000);
+});
 </script>

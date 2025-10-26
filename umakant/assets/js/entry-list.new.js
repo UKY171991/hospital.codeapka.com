@@ -115,6 +115,16 @@ function initializeDataTable() {
                 data: { action: 'list' },
                 dataSrc: function (response) {
                     if (response && response.success) {
+                        console.log('DataTable received response:', response);
+                        if (response.data && response.data.length > 0) {
+                            console.log('First entry data:', response.data[0]);
+                            // Log entries with multiple tests
+                            response.data.forEach(function(entry, index) {
+                                if (entry.tests_count > 1) {
+                                    console.log(`Entry ${entry.id} has ${entry.tests_count} tests: "${entry.test_names}"`);
+                                }
+                            });
+                        }
                         return response.data || [];
                     }
                     console.error('Entries list returned an error:', response);
@@ -162,6 +172,11 @@ function initializeDataTable() {
                     render: function (data, type, row) {
                         const testsCount = parseInt(row.tests_count || 0);
                         const testNames = data || '';
+                        
+                        // Debug logging for this specific row
+                        if (testsCount > 1) {
+                            console.log(`Rendering tests for entry ${row.id}: count=${testsCount}, names="${testNames}"`);
+                        }
 
                         if (testsCount === 0) {
                             return '<span class="text-muted">No tests</span>';
@@ -739,8 +754,12 @@ function openAddEntryModal() {
 
 // Refresh table
 function refreshTable() {
+    console.log('Refreshing entries table...');
     if (entriesTable) {
-        entriesTable.ajax.reload();
+        entriesTable.ajax.reload(null, false); // false = don't reset paging
+        console.log('Table refreshed successfully');
+    } else {
+        console.error('Entries table not initialized');
     }
     loadStatistics();
 }

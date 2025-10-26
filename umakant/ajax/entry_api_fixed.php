@@ -1083,6 +1083,111 @@ try {
         ]);
         exit;
         
+    } else if ($action === 'refresh_aggregates') {
+        // Debug action to manually refresh aggregates for an entry
+        $entryId = (int)($_GET['entry_id'] ?? $_POST['entry_id'] ?? 0);
+        if (!$entryId) {
+            echo json_encode(['success' => false, 'message' => 'Entry ID required']);
+            exit;
+        }
+        
+        error_log("Manual refresh aggregates for entry ID: $entryId");
+        
+        // Get entry_tests data before refresh
+        $stmt = $pdo->prepare("SELECT et.*, t.name as test_name FROM entry_tests et LEFT JOIN tests t ON et.test_id = t.id WHERE et.entry_id = ?");
+        $stmt->execute([$entryId]);
+        $beforeTests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Refresh aggregates
+        refresh_entry_aggregates($pdo, $entryId);
+        
+        // Get updated entry data
+        $stmt = $pdo->prepare("SELECT id, tests_count, test_names, test_ids FROM entries WHERE id = ?");
+        $stmt->execute([$entryId]);
+        $entryData = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        echo json_encode([
+            'success' => true,
+            'message' => 'Aggregates refreshed',
+            'entry_data' => $entryData,
+            'entry_tests_data' => $beforeTests,
+            'entry_tests_count' => count($beforeTests)
+        ]);
+        exit;
+        
+    } else if ($action === 'debug_all_entries') {
+        // Debug action to check all entries with multiple tests
+        error_log("Debug: Checking all entries with multiple tests");
+        
+        // Get all entries with their aggregated data
+        $aggSql = build_entry_tests_aggregation_sql($pdo);
+        $stmt = $pdo->prepare("SELECT e.id, e.patient_id, e.tests_count as stored_tests_count, e.test_names as stored_test_names, agg.tests_count as agg_tests_count, agg.test_names as agg_test_names FROM entries e LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id WHERE agg.tests_count > 1 OR e.tests_count > 1 ORDER BY e.id");
+        $stmt->execute();
+        $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        echo json_encode([
+            'success' => true,
+            'entries_with_multiple_tests' => $entries,
+            'count' => count($entries)
+        ]);
+        exit;
+        
+    } else if ($action === 'test_aggregation_sql') {
+        // Test the aggregation SQL directly
+        error_log("Testing aggregation SQL directly");
+        
+        try {
+            $aggSql = build_entry_tests_aggregation_sql($pdo);
+            error_log("Aggregation SQL: " . $aggSql);
+            
+            $stmt = $pdo->prepare($aggSql);
+            $stmt->execute();
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode([
+                'success' => true,
+                'sql' => $aggSql,
+                'results' => $results,
+                'count' => count($results)
+            ]);
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'sql' => $aggSql ?? 'Failed to build SQL'
+            ]);
+        }
+        exit;
+        
+    } else if ($action === 'refresh_all_aggregates') {
+        // Refresh aggregates for all entries that have tests
+        error_log("Refreshing aggregates for all entries with tests");
+        
+        try {
+            // Get all entry IDs that have tests
+            $stmt = $pdo->query("SELECT DISTINCT entry_id FROM entry_tests ORDER BY entry_id");
+            $entryIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            $refreshed = 0;
+            foreach ($entryIds as $entryId) {
+                refresh_entry_aggregates($pdo, $entryId);
+                $refreshed++;
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'message' => "Refreshed aggregates for $refreshed entries",
+                'refreshed_count' => $refreshed,
+                'entry_ids' => $entryIds
+            ]);
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+        exit;
+        
     } else {
         error_log("Entry API: Invalid action received: $action");
         http_response_code(400);

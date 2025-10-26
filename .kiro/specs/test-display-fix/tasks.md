@@ -42,13 +42,21 @@
 
 
 
+
+
+
+
   - [x] 2.3 Verify entry saving process calls aggregation refresh
+
 
 
     - Ensure refresh_entry_aggregates is called after test insertion
 
 
     - Add logging to confirm aggregation is executed
+
+
+
 
 
 
