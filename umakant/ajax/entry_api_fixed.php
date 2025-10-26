@@ -684,6 +684,8 @@ try {
             // Format entry data
             $entry['tests'] = $tests;
             $entry['tests_count'] = count($tests);
+
+             echo json_encode(['success' => false, 'message' => 'Entry Testing '.$entry['tests']]); die;
             
             // Debug logging for tests
             error_log("Entry API: Found " . count($tests) . " tests for entry ID: $id");
