@@ -360,8 +360,10 @@ class EntryManager {
         $select.empty().append('<option value="">Select Owner/User</option>');
 
         this.ownersData.forEach(owner => {
-            $select.append(`<option value="${owner.id}">${owner.name}</option>`);
+            $select.append(`<option value="${owner.id}">${owner.name || owner.username || owner.full_name}</option>`);
         });
+
+        console.log('Populated owner select with', this.ownersData.length, 'owners');
 
         // Refresh Select2 if initialized
         if ($select.hasClass('select2-hidden-accessible')) {
@@ -688,8 +690,11 @@ class EntryManager {
             this.loadPatientsForOwner(ownerId);
             this.loadDoctorsForOwner(ownerId);
         } else {
-            // Disable and clear patient and doctor selects
-            $('#patientSelect, #doctorSelect').prop('disabled', true).val('').trigger('change');
+            // Disable and clear patient and doctor selects only if not in edit mode
+            if (!this.currentEditId) {
+                $('#patientSelect, #doctorSelect').prop('disabled', true).val('').trigger('change');
+                this.clearPatientDetails();
+            }
         }
     }
 
@@ -713,6 +718,8 @@ class EntryManager {
      */
     async loadPatientsForOwner(ownerId) {
         try {
+            console.log('Loading patients for owner:', ownerId);
+
             const response = await $.ajax({
                 url: 'ajax/patient_api.php',
                 method: 'GET',
@@ -721,15 +728,22 @@ class EntryManager {
             });
 
             const $select = $('#patientSelect');
+            $select.prop('disabled', false);
             $select.empty().append('<option value="">Select Patient</option>');
 
             if (response.success && response.data) {
                 response.data.forEach(patient => {
                     $select.append(`<option value="${patient.id}">${patient.name}</option>`);
                 });
+                console.log('Loaded', response.data.length, 'patients');
+            } else {
+                console.warn('No patients found or API error:', response.message);
             }
 
-            $select.trigger('change');
+            // Refresh Select2 if initialized
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.trigger('change');
+            }
         } catch (error) {
             console.error('Error loading patients:', error);
         }
@@ -740,6 +754,8 @@ class EntryManager {
      */
     async loadDoctorsForOwner(ownerId) {
         try {
+            console.log('Loading doctors for owner:', ownerId);
+
             const response = await $.ajax({
                 url: 'ajax/doctor_api.php',
                 method: 'GET',
@@ -748,15 +764,22 @@ class EntryManager {
             });
 
             const $select = $('#doctorSelect');
+            $select.prop('disabled', false);
             $select.empty().append('<option value="">Select Doctor</option>');
 
             if (response.success && response.data) {
                 response.data.forEach(doctor => {
                     $select.append(`<option value="${doctor.id}">${doctor.name}</option>`);
                 });
+                console.log('Loaded', response.data.length, 'doctors');
+            } else {
+                console.warn('No doctors found or API error:', response.message);
             }
 
-            $select.trigger('change');
+            // Refresh Select2 if initialized
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.trigger('change');
+            }
         } catch (error) {
             console.error('Error loading doctors:', error);
         }
@@ -767,6 +790,8 @@ class EntryManager {
      */
     async loadPatientDetails(patientId) {
         try {
+            console.log('Loading patient details for ID:', patientId);
+
             const response = await $.ajax({
                 url: 'ajax/patient_api.php',
                 method: 'GET',
@@ -776,11 +801,15 @@ class EntryManager {
 
             if (response.success && response.data) {
                 const patient = response.data;
+                console.log('Patient details loaded:', patient);
+
                 $('#patientName').val(patient.name || '');
                 $('#patientContact').val(patient.contact || '');
                 $('#patientAge').val(patient.age || '');
                 $('#patientGender').val(patient.gender || '').trigger('change');
                 $('#patientAddress').val(patient.address || '');
+            } else {
+                console.warn('Failed to load patient details:', response.message);
             }
         } catch (error) {
             console.error('Error loading patient details:', error);
@@ -895,6 +924,11 @@ class EntryManager {
         console.log('Editing entry:', entryId);
 
         try {
+            // Show loading state
+            if (typeof toastr !== 'undefined') {
+                toastr.info('Loading entry data...');
+            }
+
             const response = await $.ajax({
                 url: 'ajax/entry_api_fixed.php',
                 method: 'GET',
@@ -903,9 +937,21 @@ class EntryManager {
             });
 
             if (response.success && response.data) {
-                this.populateEditForm(response.data);
                 $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
                 $('#entryModal').modal('show');
+
+                // Ensure owner data is loaded before populating form
+                if (this.ownersData.length === 0) {
+                    console.log('Owner data not loaded, loading now...');
+                    await this.loadOwnersData();
+                }
+
+                // Populate form after modal is shown
+                await this.populateEditForm(response.data);
+
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Entry loaded successfully');
+                }
             } else {
                 toastr.error(response.message || 'Failed to load entry for editing');
             }
@@ -918,22 +964,88 @@ class EntryManager {
     /**
      * Populate edit form with entry data
      */
-    populateEditForm(entry) {
+    async populateEditForm(entry) {
+        console.log('Populating edit form with entry:', entry);
+        console.log('Entry keys:', Object.keys(entry));
+        console.log('Added by field:', entry.added_by);
+        console.log('Owner ID field:', entry.owner_id);
+        console.log('Patient ID field:', entry.patient_id);
+        console.log('Doctor ID field:', entry.doctor_id);
+
         this.currentEditId = entry.id;
+
+        // Reset form first
+        this.resetForm();
 
         // Populate basic fields
         $('#entryId').val(entry.id);
-        $('#ownerAddedBySelect').val(entry.owner_added_by).trigger('change');
         $('#entryDate').val(entry.entry_date);
-        $('#entryStatus').val(entry.status).trigger('change');
-        $('#priority').val(entry.priority).trigger('change');
-        $('#referralSource').val(entry.referral_source).trigger('change');
+        $('#entryStatus').val(entry.status);
+        $('#priority').val(entry.priority);
+        $('#referralSource').val(entry.referral_source);
         $('#entryNotes').val(entry.notes);
 
         // Populate pricing
         $('#subtotal').val(entry.subtotal || 0);
         $('#discountAmount').val(entry.discount_amount || 0);
         $('#totalPrice').val(entry.total_price || 0);
+
+        // Initialize Select2 first
+        this.initializeSelect2();
+
+        // Handle owner/added_by selection and dependent dropdowns
+        const ownerId = entry.added_by || entry.owner_id || entry.owner_added_by;
+        if (ownerId) {
+            console.log('Setting owner/added_by to:', ownerId);
+
+            // Check if the owner exists in the dropdown, if not add it
+            const $ownerSelect = $('#ownerAddedBySelect');
+            if ($ownerSelect.find(`option[value="${ownerId}"]`).length === 0) {
+                const ownerName = entry.added_by_full_name || entry.added_by_username || `User ${ownerId}`;
+                console.log('Adding missing owner option:', ownerId, ownerName);
+                $ownerSelect.append(`<option value="${ownerId}">${ownerName}</option>`);
+            }
+
+            $ownerSelect.val(ownerId).trigger('change');
+
+            // Wait for owner change to load patients and doctors
+            await this.loadPatientsForOwner(ownerId);
+            await this.loadDoctorsForOwner(ownerId);
+
+            // Now set patient and doctor values
+            if (entry.patient_id) {
+                console.log('Setting patient to:', entry.patient_id);
+
+                // Check if patient exists in dropdown, if not add it
+                const $patientSelect = $('#patientSelect');
+                if ($patientSelect.find(`option[value="${entry.patient_id}"]`).length === 0) {
+                    const patientName = entry.patient_name || `Patient ${entry.patient_id}`;
+                    console.log('Adding missing patient option:', entry.patient_id, patientName);
+                    $patientSelect.append(`<option value="${entry.patient_id}">${patientName}</option>`);
+                }
+
+                $patientSelect.val(entry.patient_id).trigger('change');
+
+                // Load patient details
+                await this.loadPatientDetails(entry.patient_id);
+            }
+
+            if (entry.doctor_id) {
+                console.log('Setting doctor to:', entry.doctor_id);
+
+                // Check if doctor exists in dropdown, if not add it
+                const $doctorSelect = $('#doctorSelect');
+                if ($doctorSelect.find(`option[value="${entry.doctor_id}"]`).length === 0) {
+                    const doctorName = entry.doctor_name || `Doctor ${entry.doctor_id}`;
+                    console.log('Adding missing doctor option:', entry.doctor_id, doctorName);
+                    $doctorSelect.append(`<option value="${entry.doctor_id}">${doctorName}</option>`);
+                }
+
+                $doctorSelect.val(entry.doctor_id).trigger('change');
+            }
+        } else {
+            console.warn('No owner/added_by found in entry data:', entry);
+        }
 
         // Clear and populate tests
         $('#testsContainer').empty();
@@ -947,8 +1059,13 @@ class EntryManager {
             this.addTestRow();
         }
 
-        // Initialize Select2
-        this.initializeSelect2();
+        // Trigger change events for Select2 dropdowns to update display
+        setTimeout(() => {
+            $('#entryStatus').trigger('change');
+            $('#priority').trigger('change');
+            $('#referralSource').trigger('change');
+            console.log('Edit form populated successfully');
+        }, 100);
     }
 
     /**
