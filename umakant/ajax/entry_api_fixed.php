@@ -673,8 +673,6 @@ try {
                     
                     // Use entry_tests unit if available, otherwise use test unit
                     
-                    echo json_encode(['success' => false, 'message' => 'Entry Testing '.$test]); die;
-                    
                     // Clean up duplicate fields
                     unset($test['et_unit'], $test['test_unit'], $test['test_default_price']);
                     unset($test['test_table_id'], $test['category_table_id']);
