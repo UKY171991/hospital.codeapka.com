@@ -546,6 +546,7 @@ try {
         }
     } else if ($action === 'get') {
         // Debug logging
+        echo "Hello";
         error_log("Entry API: GET action called with ID: " . ($_GET['id'] ?? 'none'));
         error_log("Entry API: User data: " . print_r($user_data, true));
         
