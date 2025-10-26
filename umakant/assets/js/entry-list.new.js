@@ -2329,20 +2329,12 @@ function populateEditForm(entry) {
     console.log('Entry tests data:', entry.tests);
 
     if (entry.tests && entry.tests.length > 0) {
-        // Create test rows for each unique test (prevent duplicates)
-        const uniqueTests = [];
-        const seenTestIds = new Set();
+        // Show all tests including duplicates (same test can be ordered multiple times)
+        const allTests = entry.tests;
         
-        entry.tests.forEach(function(test) {
-            if (!seenTestIds.has(test.test_id)) {
-                uniqueTests.push(test);
-                seenTestIds.add(test.test_id);
-            } else {
-                console.warn('Duplicate test found and skipped:', test.test_name, 'ID:', test.test_id);
-            }
-        });
+        console.log('Processing all tests (including duplicates):', allTests.length);
 
-        uniqueTests.forEach(function (test, index) {
+        allTests.forEach(function (test, index) {
             console.log(`Adding test row ${index} for:`, test.test_name);
 
             const newRowHTML = `
@@ -2378,15 +2370,15 @@ function populateEditForm(entry) {
             testsContainer.append(newRowHTML);
             console.log(`✓ Added HTML for test row ${index}:`, test.test_name);
         });
-        testRowCount = uniqueTests.length;
-        console.log('Added', testRowCount, 'unique test rows to form');
+        testRowCount = allTests.length;
+        console.log('Added', testRowCount, 'test rows to form (including duplicates)');
         
         // Verify the rows were actually added to the DOM
         const actualRowsInDOM = testsContainer.find('.test-row').length;
         console.log('Actual test rows in DOM:', actualRowsInDOM);
         
-        // Store the unique tests for later population
-        window.editingEntryTests = uniqueTests;
+        // Store all tests for later population
+        window.editingEntryTests = allTests;
     } else {
         console.log('No tests found, adding blank row');
         // Don't add a blank row immediately, let loadTests handle it
@@ -2457,9 +2449,10 @@ function populateEditForm(entry) {
                 console.log('✓ All test selections completed');
 
                 // Update dropdown options to disable already selected tests
-                setTimeout(function () {
-                    updateTestDropdownOptions();
-                }, 100);
+                // Note: updateTestDropdownOptions function doesn't exist, commenting out
+                // setTimeout(function () {
+                //     updateTestDropdownOptions();
+                // }, 100);
 
             }, 500); // Give more time for loadTests to complete
         } else {

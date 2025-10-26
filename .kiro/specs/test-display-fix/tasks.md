@@ -52,13 +52,20 @@
 
   - [ ] 3.1 Check the list action returns proper test aggregation
     - Verify test_names and tests_count are included in response
+
+
+
+
     - Ensure aggregated data matches actual entry_tests records
     - Add debugging output to API response
     - _Requirements: 2.4, 3.2_
 
+
+
   - [ ] 3.2 Test API response with multiple test entries
     - Create test entries with 2+ tests
     - Verify API returns correct test count and names
+
     - Confirm data format matches frontend expectations
     - _Requirements: 1.1, 1.2, 2.4_
 
