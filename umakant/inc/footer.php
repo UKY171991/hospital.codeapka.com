@@ -31,7 +31,10 @@
     if ($currentPage === 'patient.php') {
         echo '<script src="assets/js/patient.js?v=' . time() . '"></script>';
     } else {
-        echo '<script src="assets/js/patient-new.js?v=' . time() . '"></script>';
+        // Only load patient-new.js if it exists
+        if (file_exists(__DIR__ . '/../assets/js/patient-new.js')) {
+            echo '<script src="assets/js/patient-new.js?v=' . time() . '"></script>';
+        }
     }
     if ($currentPage === 'owner.php') {
         echo '<script src="assets/js/owner.js?v=' . time() . '"></script>';

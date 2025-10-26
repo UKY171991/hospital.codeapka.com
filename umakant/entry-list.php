@@ -15,6 +15,10 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
 $currentUserId = $_SESSION['user_id'] ?? '';
 $currentUserDisplayName = $_SESSION['full_name'] ?? $_SESSION['username'] ?? 'Unknown User';
 $currentUserRole = $_SESSION['role'] ?? 'user';
+
+// Ensure variables are properly set for JavaScript
+$currentUserId = $currentUserId ?: '';
+$currentUserDisplayName = $currentUserDisplayName ?: 'Unknown User';
 ?>
 
 <!-- Content Wrapper. Contains page content -->
@@ -542,7 +546,18 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
 <link rel="stylesheet" href="assets/css/entry-list.css">
 
 <script>
+    console.log('Setting global variables...');
     const currentUserId = <?php echo json_encode($currentUserId); ?>;
     const currentUserDisplayName = <?php echo json_encode($currentUserDisplayName); ?>;
+    console.log('Global variables set:', { currentUserId, currentUserDisplayName });
 </script>
-<script src="assets/js/entry-list.new.js"></script>
+<script src="assets/js/entry-list.new.js?v=<?php echo time(); ?>"></script>
+<script>
+// Fallback error handling if main script fails to load
+setTimeout(function() {
+    if (typeof checkDependencies === 'undefined') {
+        console.error('Main JavaScript file failed to load');
+        alert('JavaScript files failed to load. Please refresh the page.');
+    }
+}, 1000);
+</script>

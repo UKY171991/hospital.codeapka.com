@@ -3,6 +3,9 @@ let entriesTable;
 let currentEntryId = null;
 let testRowCount = 1;
 
+// Debug: Log that the file is loaded
+console.log('entry-list.new.js loaded successfully');
+
 // Global error handler
 window.addEventListener('error', function(e) {
     console.error('Global JavaScript error:', {
@@ -30,9 +33,11 @@ function checkDependencies() {
 
     if (missing.length > 0) {
         console.error('Missing required libraries:', missing.join(', '));
-        alert('Error: Missing required libraries. Please refresh the page.');
+        console.error('Available jQuery methods:', typeof $ !== 'undefined' ? Object.keys($.fn).slice(0, 10) : 'jQuery not loaded');
+        alert('Error: Missing required libraries: ' + missing.join(', ') + '. Please refresh the page.');
         return false;
     }
+    console.log('All required libraries are loaded successfully');
     return true;
 }
 
@@ -44,23 +49,26 @@ $(document).ready(function () {
         currentUserDisplayName: typeof currentUserDisplayName !== 'undefined' ? currentUserDisplayName : 'undefined'
     });
     
-    // Check dependencies first
-    if (!checkDependencies()) {
-        console.error('Dependencies check failed');
-        return;
-    }
-
-    try {
-        console.log('Dependencies OK, initializing page...');
-        initializePage();
-    } catch (error) {
-        console.error('Error initializing page:', error);
-        if (typeof toastr !== 'undefined') {
-            toastr.error('Error initializing page. Please refresh and try again.');
-        } else {
-            alert('Error initializing page. Please refresh and try again.');
+    // Add a small delay to ensure all libraries are fully loaded
+    setTimeout(function() {
+        // Check dependencies first
+        if (!checkDependencies()) {
+            console.error('Dependencies check failed');
+            return;
         }
-    }
+
+        try {
+            console.log('Dependencies OK, initializing page...');
+            initializePage();
+        } catch (error) {
+            console.error('Error initializing page:', error);
+            if (typeof toastr !== 'undefined') {
+                toastr.error('Error initializing page. Please refresh and try again.');
+            } else {
+                alert('Error initializing page. Please refresh and try again.');
+            }
+        }
+    }, 100);
 });
 
 // Initialize page components
