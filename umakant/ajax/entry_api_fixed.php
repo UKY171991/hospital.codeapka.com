@@ -672,8 +672,7 @@ try {
                     $test['status'] = $test['status'] ?? 'pending';
                     
                     // Use entry_tests unit if available, otherwise use test unit
-                    $test['unit'] = $test['et_unit'] ?? $test['test_unit'] ?? '';
-
+                    
                     echo json_encode(['success' => false, 'message' => 'Entry Testing '.$test]); die;
                     
                     // Clean up duplicate fields
