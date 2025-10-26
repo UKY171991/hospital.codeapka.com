@@ -1004,10 +1004,10 @@ class EntryManager {
                 $('#patientGender').val(patient.gender || '').trigger('change');
                 $('#patientAddress').val(patient.address || '');
             } else {
-                //console.warn('Failed to load patient details:', response.message);
+                console.warn('Failed to load patient details:', response.message);
             }
         } catch (error) {
-            //console.error('Error loading patient details:', error);
+            console.error('Error loading patient details:', error);
         }
     }
 
