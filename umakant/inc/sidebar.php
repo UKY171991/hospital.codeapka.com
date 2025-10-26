@@ -24,7 +24,7 @@ $role = $_SESSION['role'] ?? 'user';
     // Pages to include under Pathology
     $pathologyPages = [
       'index.php','doctors.php','patient.php','owner.php',
-      'test-category.php','test.php','upload_zip.php','upload_list.php',
+      'main-test-category.php','test-category.php','test.php','upload_zip.php','upload_list.php',
       'entry-list.php','plan.php','notice.php','pathology_reports.php'
     ];
     $isPathologyActive = in_array($activePage, $pathologyPages);
