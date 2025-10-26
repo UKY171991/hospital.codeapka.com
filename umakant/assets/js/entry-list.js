@@ -721,14 +721,15 @@ class EntryManager {
         const selectedOption = $select.find('option:selected');
         const testId = selectedOption.val();
 
-        //console.log('Test selection changed to:', testId);
+        console.log('Test selection changed to:', testId);
+        console.log('Row being updated:', $row.data('row-index'));
 
         if (testId) {
             // Find the test in our testsData for accurate information
             const foundTest = this.testsData.find(t => t.id == testId);
 
             if (foundTest) {
-                //console.log('Found test data:', foundTest);
+                console.log('Found test data for ID', testId, ':', foundTest);
 
                 // Populate test details from testsData (more reliable than data attributes)
                 $row.find('.test-category').val(foundTest.category_name || '');
@@ -737,9 +738,17 @@ class EntryManager {
                 $row.find('.test-min').val(foundTest.min || '');
                 $row.find('.test-max').val(foundTest.max || '');
                 $row.find('.test-price').val(foundTest.price || 0);
+                
+                console.log('Updated row with test data:', {
+                    category: foundTest.category_name,
+                    unit: foundTest.unit,
+                    min: foundTest.min,
+                    max: foundTest.max,
+                    price: foundTest.price
+                });
             } else {
                 // Fallback to data attributes if test not found in testsData
-                //console.warn('Test not found in testsData, using data attributes');
+                console.warn('Test not found in testsData for ID:', testId, 'using data attributes');
                 $row.find('.test-category').val(selectedOption.data('category') || '');
                 $row.find('.test-unit').val(selectedOption.data('unit') || '');
                 $row.find('.test-min').val(selectedOption.data('min') || '');
@@ -1190,16 +1199,16 @@ class EntryManager {
 
         // Ensure tests data is loaded before populating test rows
         if (this.testsData.length === 0) {
-            //console.log('Tests data not loaded, loading now...');
+            console.log('Tests data not loaded, loading now...');
             await this.loadTestsData();
-            //console.log('Tests data loaded:', this.testsData.length, 'tests');
+            console.log('Tests data loaded:', this.testsData.length, 'tests');
         } else {
-            //console.log('Tests data already loaded:', this.testsData.length, 'tests available');
+            console.log('Tests data already loaded:', this.testsData.length, 'tests available');
         }
         
         // Double-check that we have tests data
         if (this.testsData.length === 0) {
-            //console.error('No tests data available! This will cause issues with test selection.');
+            console.error('No tests data available! This will cause issues with test selection.');
             toastr.warning('Tests data could not be loaded. Test selection may not work properly.');
         }
 
@@ -1208,22 +1217,33 @@ class EntryManager {
         this.testRowCounter = 0;
 
         if (entry.tests && entry.tests.length > 0) {
-            //console.log('Populating', entry.tests.length, 'tests:', entry.tests);
-            //console.log('Available tests data:', this.testsData.length, 'tests');
+            console.log('Populating', entry.tests.length, 'tests:', entry.tests);
+            console.log('Available tests data:', this.testsData.length, 'tests');
             
             // Debug: show what test IDs we're looking for vs what we have
             const entryTestIds = entry.tests.map(t => t.test_id);
             const availableTestIds = this.testsData.map(t => t.id);
-            //console.log('Entry test IDs:', entryTestIds);
-            //console.log('Available test IDs:', availableTestIds);
-            //console.log('Missing test IDs:', entryTestIds.filter(id => !availableTestIds.includes(parseInt(id))));
+            console.log('Entry test IDs:', entryTestIds);
+            console.log('Available test IDs:', availableTestIds);
+            console.log('Missing test IDs:', entryTestIds.filter(id => !availableTestIds.includes(parseInt(id))));
 
+            // Debug each test in detail
             entry.tests.forEach((test, index) => {
-                //console.log(`Test ${index + 1}:`, test);
+                console.log(`Entry Test ${index + 1} Details:`, {
+                    test_id: test.test_id,
+                    test_name: test.test_name,
+                    category_name: test.category_name,
+                    category_id: test.category_id,
+                    min: test.min,
+                    max: test.max,
+                    unit: test.unit,
+                    result_value: test.result_value,
+                    price: test.price
+                });
                 this.addTestRow(test);
             });
         } else {
-            //console.log('No tests found, adding empty test row');
+            console.log('No tests found, adding empty test row');
             this.addTestRow();
         }
 
