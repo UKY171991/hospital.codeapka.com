@@ -145,7 +145,7 @@ class EntryManager {
                                 if (testCount === 0) {
                                     return '<span class="text-muted">No tests</span>';
                                 } else if (testCount === 1) {
-                                    return `<span class="badge badge-info">${testCount}</span> ${testNames}`;
+                                    return `<span class="badge badge-info">${testCount} hi</span> ${testNames}`;
                                 } else {
                                     return `<span class="badge badge-primary">${testCount}</span> ${testNames}`;
                                 }
