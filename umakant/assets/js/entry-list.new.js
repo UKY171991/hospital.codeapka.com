@@ -508,7 +508,20 @@ function loadTests(callback) {
                         const escapedCategoryName = (test.category_name || '').replace(/"/g, '&quot;');
                         const escapedTestName = (test.name || '').replace(/"/g, '&quot;');
 
-                        const opt = $(`<option value="${test.id}" data-price="${test.price || 0}" data-unit="${escapedUnit}" data-reference-range="${escapedRefRange}" data-min="${test.min || ''}" data-max="${test.max || ''}" data-category-id="${test.category_id || ''}" data-category-name="${escapedCategoryName}">${escapedTestName} - ₹${test.price || 0}</option>`);
+                        const opt = $(`<option value="${test.id}" 
+                            data-price="${test.price || 0}" 
+                            data-unit="${escapedUnit}" 
+                            data-reference-range="${escapedRefRange}" 
+                            data-min="${test.min || ''}" 
+                            data-max="${test.max || ''}"
+                            data-min-male="${test.min_male || ''}"
+                            data-max-male="${test.max_male || ''}"
+                            data-min-female="${test.min_female || ''}"
+                            data-max-female="${test.max_female || ''}"
+                            data-min-child="${test.min_child || ''}"
+                            data-max-child="${test.max_child || ''}"
+                            data-category-id="${test.category_id || ''}" 
+                            data-category-name="${escapedCategoryName}">${escapedTestName} - ₹${test.price || 0}</option>`);
                         $this.append(opt);
                     });
                     // restore previously selected value if still present
@@ -578,10 +591,34 @@ function setupEventHandlers() {
 
         const price = $opt.data('price');
         const unit = $opt.data('unit') || '';
-        const min = $opt.data('min') || '';
-        const max = $opt.data('max') || '';
         const categoryName = $opt.data('category-name') || '';
         const categoryId = $opt.data('category-id') || '';
+
+        // Get gender-specific min/max values
+        const patientGender = $('#patientGender').val();
+        const patientAge = parseInt($('#patientAge').val()) || 0;
+
+        let min = '';
+        let max = '';
+
+        // Determine which min/max to use based on gender and age
+        if (patientAge > 0 && patientAge <= 12) {
+            // Child ranges (0-12 years)
+            min = $opt.data('min-child') || $opt.data('min') || '';
+            max = $opt.data('max-child') || $opt.data('max') || '';
+        } else if (patientGender === 'Male') {
+            // Male adult ranges
+            min = $opt.data('min-male') || $opt.data('min') || '';
+            max = $opt.data('max-male') || $opt.data('max') || '';
+        } else if (patientGender === 'Female') {
+            // Female adult ranges
+            min = $opt.data('min-female') || $opt.data('min') || '';
+            max = $opt.data('max-female') || $opt.data('max') || '';
+        } else {
+            // Default ranges (when gender is not specified)
+            min = $opt.data('min') || '';
+            max = $opt.data('max') || '';
+        }
 
         // sanitize incoming values
         const safePrice = (typeof price !== 'undefined' && price !== null) ? price : '';
@@ -599,7 +636,12 @@ function setupEventHandlers() {
             unit: safeUnit,
             min: safeMin,
             max: safeMax,
-            categoryName: safeCategoryName
+            categoryName: safeCategoryName,
+            patientGender: patientGender,
+            patientAge: patientAge,
+            rangeType: patientAge > 0 && patientAge <= 12 ? 'child' :
+                patientGender === 'Male' ? 'male' :
+                    patientGender === 'Female' ? 'female' : 'default'
         });
 
         // Only clear result if it's not already populated (avoid clearing during edit mode)
@@ -692,6 +734,65 @@ function setupEventHandlers() {
         } else {
             // No patient selected - enable manual entry
             enableNewPatientMode();
+        }
+
+        // Update test min/max values when patient changes
+        setTimeout(updateTestMinMaxValues, 100);
+    });
+
+    // When patient gender changes, update test min/max values
+    $(document).on('change', '#patientGender', function () {
+        console.log('Patient gender changed to:', $(this).val());
+        updateTestMinMaxValues();
+    });
+
+    // When patient age changes, update test min/max values
+    $(document).on('change blur', '#patientAge', function () {
+        console.log('Patient age changed to:', $(this).val());
+        updateTestMinMaxValues();
+    });
+}
+
+// Update test min/max values based on patient gender and age
+function updateTestMinMaxValues() {
+    const patientGender = $('#patientGender').val();
+    const patientAge = parseInt($('#patientAge').val()) || 0;
+
+    console.log('Updating test min/max values for gender:', patientGender, 'age:', patientAge);
+
+    $('.test-select').each(function () {
+        const $select = $(this);
+        const $selectedOption = $select.find('option:selected');
+        const $row = $select.closest('.test-row');
+
+        if ($selectedOption.val()) {
+            let min = '';
+            let max = '';
+
+            // Determine which min/max to use based on gender and age
+            if (patientAge > 0 && patientAge <= 12) {
+                // Child ranges (0-12 years)
+                min = $selectedOption.data('min-child') || $selectedOption.data('min') || '';
+                max = $selectedOption.data('max-child') || $selectedOption.data('max') || '';
+            } else if (patientGender === 'Male') {
+                // Male adult ranges
+                min = $selectedOption.data('min-male') || $selectedOption.data('min') || '';
+                max = $selectedOption.data('max-male') || $selectedOption.data('max') || '';
+            } else if (patientGender === 'Female') {
+                // Female adult ranges
+                min = $selectedOption.data('min-female') || $selectedOption.data('min') || '';
+                max = $selectedOption.data('max-female') || $selectedOption.data('max') || '';
+            } else {
+                // Default ranges (when gender is not specified)
+                min = $selectedOption.data('min') || '';
+                max = $selectedOption.data('max') || '';
+            }
+
+            // Update the min/max fields
+            $row.find('.test-min').val(min);
+            $row.find('.test-max').val(max);
+
+            console.log('Updated test', $selectedOption.text(), 'min:', min, 'max:', max);
         }
     });
 }
@@ -2073,6 +2174,9 @@ function populateEditForm(entry) {
                 finalTotal: finalTotal
             }
         });
+
+        // Update test min/max values based on patient gender and age
+        updateTestMinMaxValues();
     }, 200);
 }
 
