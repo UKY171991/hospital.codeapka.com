@@ -167,7 +167,7 @@ function initializeDataTable() {
                     render: function (data, type, row) {
                         const testsCount = parseInt(row.tests_count || 0);
                         const testNames = data || '';
-                        
+
                         if (testsCount === 0) {
                             return '<span class="text-muted">No tests</span>';
                         } else if (testsCount === 1) {
@@ -1014,6 +1014,7 @@ $(document).on('shown.bs.modal', '#entryModal', function () {
     // Update dropdown options to reflect current selections
     setTimeout(function () {
         updateTestDropdownOptions();
+        console.log('Test dropdown options updated on modal show');
     }, 500);
 });
 
@@ -1118,6 +1119,8 @@ function updateTestDropdownOptions() {
         }
     });
 
+    console.log('Selected test IDs:', selectedTestIds);
+
     // Update each dropdown
     $('.test-select').each(function () {
         const $currentSelect = $(this);
@@ -1139,9 +1142,17 @@ function updateTestDropdownOptions() {
         // Refresh Select2 if it's initialized
         if ($currentSelect.hasClass('select2-hidden-accessible')) {
             try {
-                $currentSelect.trigger('change.select2');
+                // Destroy and recreate Select2 to properly handle disabled options
+                const currentVal = $currentSelect.val();
+                $currentSelect.select2('destroy');
+                $currentSelect.select2({
+                    dropdownParent: $('#entryModal'),
+                    width: '100%',
+                    theme: 'bootstrap4'
+                });
+                $currentSelect.val(currentVal);
             } catch (e) {
-                // Ignore Select2 errors
+                console.warn('Select2 refresh failed:', e);
             }
         }
     });
@@ -2149,18 +2160,18 @@ function populateEditForm(entry) {
                                 }
                             }
 
-                            // Trigger change event
-                            testSelect.trigger('change');
-
-                            console.log(`✓ Test ${index} set to: ${testSelect.find('option:selected').text()}`);
-
-                            // Populate the form fields with the actual test data from the entry
+                            // Populate the form fields with the actual test data from the entry BEFORE triggering change
                             testRow.find('.test-category').val(test.category_name || '');
                             testRow.find('.test-category-id').val(test.category_id || '');
                             testRow.find('.test-unit').val(test.unit || '');
                             testRow.find('.test-min').val(test.min || '');
                             testRow.find('.test-max').val(test.max || '');
                             testRow.find('.test-result').val(test.result_value || '');
+
+                            // Trigger change event AFTER populating fields to avoid overwriting
+                            testSelect.trigger('change');
+
+                            console.log(`✓ Test ${index} set to: ${testSelect.find('option:selected').text()}`);
 
                         } else {
                             console.error(`✗ Test option not found for: ${test.test_name} (ID: ${test.test_id})`);
@@ -2174,6 +2185,12 @@ function populateEditForm(entry) {
                 });
 
                 console.log('✓ All test selections completed');
+
+                // Update dropdown options to disable already selected tests
+                setTimeout(function () {
+                    updateTestDropdownOptions();
+                }, 100);
+
             }, 500); // Give more time for loadTests to complete
         } else {
             console.log('No tests to populate');
