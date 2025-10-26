@@ -31,7 +31,10 @@
   - Add comprehensive error handling and logging
   - _Requirements: 1.1, 1.3, 2.1, 2.2, 2.5_
 
-- [ ] 2.1 Remove file type restrictions and add security validation
+- [x] 2.1 Remove file type restrictions and add security validation
+
+
+
   - Modify upload_file.php to accept all file types
   - Integrate FileSecurityScanner validation before file storage
   - Implement quarantine system for suspicious files

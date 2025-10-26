@@ -44,7 +44,7 @@ require_once 'inc/sidebar.php';
               </form>
             </div>
             <div class="card-footer text-muted">
-              <small>All file types allowed • Max size 100MB</small>
+              <small>Most file types allowed • Max size 100MB • Executable files blocked for security</small>
             </div>
           </div>
         </div>

@@ -94,10 +94,20 @@ try{
     $file = $_FILES['file'];
     if ($file['error'] !== UPLOAD_ERR_OK) throw new Exception('Upload error: ' . $file['error']);
 
-    $allowed = ['zip','exe'];
+    // Basic security validation - block potentially dangerous files
     $name = $file['name'];
     $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-    if (!in_array($ext, $allowed)) throw new Exception('Only ZIP or EXE files allowed');
+    
+    // Block executable and script files for security
+    $blocked = ['php', 'asp', 'jsp', 'cgi', 'pl', 'py', 'rb', 'sh', 'bat', 'cmd', 'com', 'scr', 'vbs', 'js'];
+    if (in_array($ext, $blocked)) throw new Exception('File type not allowed for security reasons');
+    
+    // Additional security check for double extensions
+    $nameParts = explode('.', $name);
+    if (count($nameParts) > 2) {
+        $secondExt = strtolower($nameParts[count($nameParts) - 2]);
+        if (in_array($secondExt, $blocked)) throw new Exception('File type not allowed for security reasons');
+    }
 
     // size limit (example 100MB)
     $maxSize = 100 * 1024 * 1024;
