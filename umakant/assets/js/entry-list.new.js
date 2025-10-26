@@ -2474,8 +2474,8 @@ function populateEditForm(entry) {
                             testRow.find('.test-max').val(test.max || '');
                             testRow.find('.test-result').val(test.result_value || '');
 
-                            // Trigger change event AFTER populating fields to avoid overwriting
-                            testSelect.trigger('change');
+                            // Don't trigger change event to avoid overwriting the selection
+                            // testSelect.trigger('change');
 
                             console.log(`✓ Test ${index} set to: ${testSelect.find('option:selected').text()}`);
 
@@ -2497,6 +2497,25 @@ function populateEditForm(entry) {
                 
                 // Start processing from the first test
                 processTestSelection(0);
+                
+                // Additional fix: Set all selections again after processing
+                setTimeout(function() {
+                    console.log('=== FINAL TEST SELECTION VERIFICATION ===');
+                    window.editingEntryTests.forEach(function (test, index) {
+                        const testRow = testsContainer.find('.test-row').eq(index);
+                        const testSelect = testRow.find('.test-select');
+                        
+                        if (testSelect.val() != test.test_id) {
+                            console.log(`Fixing test ${index}: setting ${test.test_id} (${test.test_name})`);
+                            testSelect.val(test.test_id);
+                            
+                            // Update Select2 display if needed
+                            if (testSelect.hasClass('select2-hidden-accessible')) {
+                                testSelect.trigger('change.select2');
+                            }
+                        }
+                    });
+                }, 1000);
 
                 // Update dropdown options to disable already selected tests
                 // Note: updateTestDropdownOptions function doesn't exist, commenting out
