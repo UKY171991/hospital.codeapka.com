@@ -481,18 +481,70 @@ function calculateTotals() {
 
 // View entry details
 function viewEntry(id) {
-    console.log('Viewing entry:', id);
-    if (typeof toastr !== 'undefined') {
-        toastr.info('View functionality coming soon');
-    }
+    currentEntryId = id;
+    
+    // Load entry data
+    $.ajax({
+        url: 'ajax/entry_api_fixed.php',
+        method: 'GET',
+        data: { action: 'get', id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                populateEntryForm(response.data, true); // true = view mode
+                $('#entryModalLabel').html('<i class="fas fa-eye mr-1"></i>View Entry #' + id);
+                $('#entryModal').modal('show');
+            } else {
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(response.message || 'Failed to load entry details');
+                } else {
+                    alert(response.message || 'Failed to load entry details');
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading entry:', error);
+            if (typeof toastr !== 'undefined') {
+                toastr.error('Failed to load entry details');
+            } else {
+                alert('Failed to load entry details');
+            }
+        }
+    });
 }
 
 // Edit entry
 function editEntry(id) {
-    console.log('Editing entry:', id);
-    if (typeof toastr !== 'undefined') {
-        toastr.info('Edit functionality coming soon');
-    }
+    currentEntryId = id;
+    
+    // Load entry data
+    $.ajax({
+        url: 'ajax/entry_api_fixed.php',
+        method: 'GET',
+        data: { action: 'get', id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                populateEntryForm(response.data, false); // false = edit mode
+                $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry #' + id);
+                $('#entryModal').modal('show');
+            } else {
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(response.message || 'Failed to load entry details');
+                } else {
+                    alert(response.message || 'Failed to load entry details');
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading entry:', error);
+            if (typeof toastr !== 'undefined') {
+                toastr.error('Failed to load entry details');
+            } else {
+                alert('Failed to load entry details');
+            }
+        }
+    });
 }
 
 // Delete entry
