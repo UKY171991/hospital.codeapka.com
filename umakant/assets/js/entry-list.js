@@ -1131,7 +1131,7 @@ class EntryManager {
         try {
             // Show loading state
             if (typeof toastr !== 'undefined') {
-                toastr.info('Loading entry data...');
+                toastr.info('Loading entry data...'); 
             }
 
             const response = await $.ajax({
