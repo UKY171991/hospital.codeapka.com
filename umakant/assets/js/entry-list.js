@@ -728,6 +728,24 @@ class EntryManager {
         console.log('Row being updated:', $row.data('row-index'));
 
         if (testId) {
+            // Check if this row already has data (from edit mode) - if so, don't overwrite
+            const existingCategory = $row.find('.test-category').val();
+            const existingUnit = $row.find('.test-unit').val();
+            const existingMin = $row.find('.test-min').val();
+            const existingMax = $row.find('.test-max').val();
+            
+            // If the row already has complete data, don't overwrite it (edit mode)
+            if (existingCategory && existingUnit && existingMin && existingMax) {
+                console.log('Row already has complete data, not overwriting:', {
+                    category: existingCategory,
+                    unit: existingUnit,
+                    min: existingMin,
+                    max: existingMax
+                });
+                this.calculateTotals();
+                return;
+            }
+
             // Find the test in our testsData for accurate information
             const foundTest = this.testsData.find(t => t.id == testId);
 
