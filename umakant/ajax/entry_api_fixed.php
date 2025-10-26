@@ -260,8 +260,6 @@ try {
             echo json_encode(['success' => false, 'message' => 'Permission denied to view statistics']);
             exit;
         }
-
-        echo "Hello";  die;
         
         // Get statistics for dashboard
         $stats = [];
