@@ -316,7 +316,7 @@ class EntryManager {
                 dataType: 'json'
             });
 
-            //console.log('Test API response:', response);
+            console.log('Test API response:', response);
 
             if (response && response.success) {
                 this.testsData = response.data || [];
@@ -650,13 +650,31 @@ class EntryManager {
                         placeholder: 'Select Test'
                     });
 
-                    // Populate test details - prioritize entry data over testsData
-                    $newRow.find('.test-category').val(testData.category_name || foundTest.category_name || '');
-                    $newRow.find('.test-category-id').val(testData.category_id || foundTest.category_id || '');
-                    $newRow.find('.test-unit').val(testData.unit || foundTest.unit || '');
-                    $newRow.find('.test-min').val(testData.min || foundTest.min || '');
-                    $newRow.find('.test-max').val(testData.max || foundTest.max || '');
-                    $newRow.find('.test-price').val(testData.price || foundTest.price || 0);
+                    // Use entry data if available, otherwise use testsData
+                    const categoryName = testData.category_name || foundTest.category_name || '';
+                    const categoryId = testData.category_id || foundTest.category_id || '';
+                    const unit = testData.unit || foundTest.unit || '';
+                    const min = testData.min || foundTest.min || '';
+                    const max = testData.max || foundTest.max || '';
+                    const price = testData.price || foundTest.price || 0;
+
+                    console.log('Using test data for row:', {
+                        test_id: testData.test_id,
+                        category_name: categoryName,
+                        unit: unit,
+                        min: min,
+                        max: max,
+                        price: price,
+                        source: testData.category_name ? 'entry_data' : 'tests_data'
+                    });
+
+                    // Populate test details
+                    $newRow.find('.test-category').val(categoryName);
+                    $newRow.find('.test-category-id').val(categoryId);
+                    $newRow.find('.test-unit').val(unit);
+                    $newRow.find('.test-min').val(min);
+                    $newRow.find('.test-max').val(max);
+                    $newRow.find('.test-price').val(price);
                     $newRow.find('.test-result').val(testData.result_value || '');
 
                     // Don't trigger change event to avoid overwriting entry-specific data
@@ -688,12 +706,28 @@ class EntryManager {
                         placeholder: 'Select Test'
                     });
 
-                    $newRow.find('.test-category').val(testData.category_name || '');
+                    // Use whatever data is available from the entry
+                    const categoryName = testData.category_name || testData.test_name || 'Unknown Category';
+                    const unit = testData.unit || '';
+                    const min = testData.min || '';
+                    const max = testData.max || '';
+                    const price = testData.price || 0;
+
+                    console.log('Using fallback data for missing test:', {
+                        test_id: testData.test_id,
+                        category_name: categoryName,
+                        unit: unit,
+                        min: min,
+                        max: max,
+                        price: price
+                    });
+
+                    $newRow.find('.test-category').val(categoryName);
                     $newRow.find('.test-category-id').val(testData.category_id || '');
-                    $newRow.find('.test-unit').val(testData.unit || '');
-                    $newRow.find('.test-min').val(testData.min || '');
-                    $newRow.find('.test-max').val(testData.max || '');
-                    $newRow.find('.test-price').val(testData.price || 0);
+                    $newRow.find('.test-unit').val(unit);
+                    $newRow.find('.test-min').val(min);
+                    $newRow.find('.test-max').val(max);
+                    $newRow.find('.test-price').val(price);
                     $newRow.find('.test-result').val(testData.result_value || '');
 
                     console.log('Test row populated with fallback data for ID:', testData.test_id, 'Name:', testName);
@@ -1261,6 +1295,23 @@ class EntryManager {
                     result_value: test.result_value,
                     price: test.price
                 });
+                
+                // Check if this test has unique data
+                if (index > 0) {
+                    const prevTest = entry.tests[index - 1];
+                    const isDuplicate = (
+                        test.category_name === prevTest.category_name &&
+                        test.min === prevTest.min &&
+                        test.max === prevTest.max &&
+                        test.unit === prevTest.unit
+                    );
+                    if (isDuplicate) {
+                        console.warn(`Test ${index + 1} has duplicate data with previous test!`);
+                        console.warn('Current test:', test);
+                        console.warn('Previous test:', prevTest);
+                    }
+                }
+                
                 this.addTestRow(test);
             });
         } else {
