@@ -934,7 +934,7 @@
                     { 
                         action: 'save', 
                         method: 'POST', 
-                        description: 'Create or update a test with support for all 27 test fields. Required: name, main_category_id. Optional: category_id, price (decimal 10,2), unit (varchar 50), specimen (varchar 255), default_result (text), reference_range (varchar 255), min/max (decimal 10,2), description (text), min_male/max_male (decimal 10,2), min_female/max_female (decimal 10,2), min_child/max_child (decimal 10,2), child_unit (varchar 50), sub_heading (tinyint 0/1), test_code (varchar 100), method (varchar 255), print_new_page (tinyint 0/1), shortcut (varchar 50). Server validates that max >= min for all demographic ranges. Auto-sets added_by, created_at, updated_at.' 
+                        description: 'Create or update a test with support for all 26 test fields. Required: name, main_category_id. Optional: category_id, price (decimal 10,2), unit (varchar 50), specimen (varchar 255), default_result (text), reference_range (varchar 255), min/max (decimal 10,2), description (text), min_male/max_male (decimal 10,2), min_female/max_female (decimal 10,2), min_child/max_child (decimal 10,2), sub_heading (tinyint 0/1), test_code (varchar 100), method (varchar 255), print_new_page (tinyint 0/1), shortcut (varchar 50). Server validates that max >= min for all demographic ranges. Auto-sets added_by, created_at, updated_at.' 
                     },
                     { 
                         action: 'delete', 
@@ -999,8 +999,7 @@
                         'min_female': 'decimal(10,2) DEFAULT NULL - Female-specific minimum value',
                         'max_female': 'decimal(10,2) DEFAULT NULL - Female-specific maximum value',
                         'min_child': 'decimal(10,2) DEFAULT NULL - Child-specific minimum value',
-                        'max_child': 'decimal(10,2) DEFAULT NULL - Child-specific maximum value',
-                        'child_unit': 'varchar(50) DEFAULT NULL - Unit for child measurements if different'
+                        'max_child': 'decimal(10,2) DEFAULT NULL - Child-specific maximum value'
                     },
                     'Print & Display Settings': {
                         'print_new_page': 'tinyint(1) NOT NULL DEFAULT 0 - Whether to start new page when printing'
@@ -1190,7 +1189,6 @@
                                             <tr><td><code>max_female</code></td><td>decimal(10,2)</td><td>Female-specific maximum value</td></tr>
                                             <tr><td><code>min_child</code></td><td>decimal(10,2)</td><td>Child-specific minimum value</td></tr>
                                             <tr><td><code>max_child</code></td><td>decimal(10,2)</td><td>Child-specific maximum value</td></tr>
-                                            <tr><td><code>child_unit</code></td><td>varchar(50)</td><td>Unit for child measurements if different</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -1751,7 +1749,6 @@
                                 "max_female": "10500",
                                 "min_child": "5000",
                                 "max_child": "12000",
-                                "child_unit": "cells/μL",
                                 "sub_heading": "0",
                                 "test_code": "CBC001",
                                 "method": "Automated hematology analyzer",
@@ -2001,7 +1998,6 @@
                                     "max_female": "{{max_female_value}}",
                                     "min_child": "{{min_child_value}}",
                                     "max_child": "{{max_child_value}}",
-                                    "child_unit": "{{child_measurement_unit}}",
                                     "sub_heading": "{{is_sub_heading}}",
                                     "test_code": "{{test_code}}",
                                     "method": "{{testing_method}}",
