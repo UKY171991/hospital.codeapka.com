@@ -546,7 +546,7 @@ try {
         }
     } else if ($action === 'get') {
         
-        echo json_encode(['success' => false, 'message' => 'Entry ID is required']); die;
+        echo json_encode(['success' => false, 'message' => 'Testing  list']); exit();
         // Debug logging
         error_log("Entry API: GET action called with ID: " . ($_GET['id'] ?? 'none'));
         error_log("Entry API: User data: " . print_r($user_data, true));
