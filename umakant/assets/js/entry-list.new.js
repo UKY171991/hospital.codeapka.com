@@ -518,37 +518,14 @@ function loadTests(callback) {
                     }
                 }
 
+                // Store tests data globally for reuse
+                window.testsData = response.data;
+
                 const testSelects = $('.test-select');
                 testSelects.each(function () {
                     const $this = $(this);
                     const currentVal = $this.val();
-                    $this.empty().append('<option value="">Select Test</option>');
-                    response.data.forEach(function (test) {
-                        // include category, unit, reference range, and min/max as data attributes for easy population
-                        // Properly escape HTML attributes to handle special characters
-                        const escapedUnit = (test.unit || '').replace(/"/g, '&quot;');
-                        const escapedRefRange = (test.reference_range || '').replace(/"/g, '&quot;');
-                        const escapedCategoryName = (test.category_name || '').replace(/"/g, '&quot;');
-                        const escapedTestName = (test.name || '').replace(/"/g, '&quot;');
-
-                        const opt = $(`<option value="${test.id}" 
-                            data-price="${test.price || 0}" 
-                            data-unit="${escapedUnit}" 
-                            data-reference-range="${escapedRefRange}" 
-                            data-min="${test.min || ''}" 
-                            data-max="${test.max || ''}"
-                            data-min-male="${test.min_male || ''}"
-                            data-max-male="${test.max_male || ''}"
-                            data-min-female="${test.min_female || ''}"
-                            data-max-female="${test.max_female || ''}"
-                            data-min-child="${test.min_child || ''}"
-                            data-max-child="${test.max_child || ''}"
-                            data-category-id="${test.category_id || ''}" 
-                            data-category-name="${escapedCategoryName}">${escapedTestName} - ₹${test.price || 0}</option>`);
-                        $this.append(opt);
-                    });
-                    // restore previously selected value if still present
-                    if (currentVal) { $this.val(currentVal).trigger('change'); }
+                    populateTestSelect($this, response.data, currentVal);
                 });
             }
             if (typeof callback === 'function') {
@@ -556,6 +533,63 @@ function loadTests(callback) {
             }
         }
     });
+}
+
+// Load tests for a specific new row only
+function loadTestsForNewRow($newRow) {
+    if (window.testsData) {
+        // Use cached data if available
+        const $testSelect = $newRow.find('.test-select');
+        populateTestSelect($testSelect, window.testsData);
+    } else {
+        // Load fresh data if not cached
+        $.ajax({
+            url: 'ajax/test_api.php',
+            method: 'GET',
+            data: { action: 'simple_list' },
+            dataType: 'json',
+            success: function (response) {
+                if (response.success) {
+                    window.testsData = response.data;
+                    const $testSelect = $newRow.find('.test-select');
+                    populateTestSelect($testSelect, response.data);
+                }
+            }
+        });
+    }
+}
+
+// Helper function to populate a single test select dropdown
+function populateTestSelect($testSelect, testsData, currentVal) {
+    $testSelect.empty().append('<option value="">Select Test</option>');
+    testsData.forEach(function (test) {
+        // include category, unit, reference range, and min/max as data attributes for easy population
+        // Properly escape HTML attributes to handle special characters
+        const escapedUnit = (test.unit || '').replace(/"/g, '&quot;');
+        const escapedRefRange = (test.reference_range || '').replace(/"/g, '&quot;');
+        const escapedCategoryName = (test.category_name || '').replace(/"/g, '&quot;');
+        const escapedTestName = (test.name || '').replace(/"/g, '&quot;');
+
+        const opt = $(`<option value="${test.id}" 
+            data-price="${test.price || 0}" 
+            data-unit="${escapedUnit}" 
+            data-reference-range="${escapedRefRange}" 
+            data-min="${test.min || ''}" 
+            data-max="${test.max || ''}"
+            data-min-male="${test.min_male || ''}"
+            data-max-male="${test.max_male || ''}"
+            data-min-female="${test.min_female || ''}"
+            data-max-female="${test.max_female || ''}"
+            data-min-child="${test.min_child || ''}"
+            data-max-child="${test.max_child || ''}"
+            data-category-id="${test.category_id || ''}" 
+            data-category-name="${escapedCategoryName}">${escapedTestName} - ₹${test.price || 0}</option>`);
+        $testSelect.append(opt);
+    });
+    // restore previously selected value if still present
+    if (currentVal) { 
+        $testSelect.val(currentVal).trigger('change'); 
+    }
 }
 
 // Setup event handlers
@@ -586,18 +620,22 @@ function setupEventHandlers() {
         // Check for duplicate test selection
         if (selectedTestId) {
             let isDuplicate = false;
-            $('.test-select').not($currentSelect).each(function () {
+            let duplicateRowIndex = -1;
+            
+            $('.test-select').not($currentSelect).each(function (index) {
                 if ($(this).val() === selectedTestId) {
                     isDuplicate = true;
+                    duplicateRowIndex = index + 1;
                     return false; // break the loop
                 }
             });
 
             if (isDuplicate) {
-                // Show error message
-                toastr.error('This test is already selected in another row. Please choose a different test.');
+                // Show specific error message
+                const testName = $opt.text().split(' - ₹')[0]; // Get test name without price
+                toastr.error(`"${testName}" is already selected in row ${duplicateRowIndex}. Please choose a different test.`);
 
-                // Reset the selection
+                // Reset the selection immediately
                 $currentSelect.val('').trigger('change.select2');
 
                 // Clear the row fields
@@ -608,6 +646,9 @@ function setupEventHandlers() {
                 $row.find('.test-max').val('');
                 $row.find('.test-result').val('');
 
+                // Update pricing after clearing
+                updatePricingFields();
+                
                 return; // Exit early
             }
         }
@@ -2080,9 +2121,21 @@ function populateEditForm(entry) {
     console.log('Populating tests section with', entry.tests ? entry.tests.length : 0, 'tests');
 
     if (entry.tests && entry.tests.length > 0) {
-        // Create empty test rows first (without pre-filled values)
-        entry.tests.forEach(function (test, index) {
-            console.log(`Adding empty test row ${index} for:`, test.test_name);
+        // Create test rows for each unique test (prevent duplicates)
+        const uniqueTests = [];
+        const seenTestIds = new Set();
+        
+        entry.tests.forEach(function(test) {
+            if (!seenTestIds.has(test.test_id)) {
+                uniqueTests.push(test);
+                seenTestIds.add(test.test_id);
+            } else {
+                console.warn('Duplicate test found and skipped:', test.test_name, 'ID:', test.test_id);
+            }
+        });
+
+        uniqueTests.forEach(function (test, index) {
+            console.log(`Adding test row ${index} for:`, test.test_name);
 
             const newRowHTML = `
                 <div class="test-row row mb-2" data-test-id="${test.test_id}" data-test-index="${index}">
@@ -2096,7 +2149,7 @@ function populateEditForm(entry) {
                         <input type="hidden" name="tests[${index}][category_id]" class="test-category-id">
                     </div>
                     <div class="col-md-2">
-                        <input type="text" class="form-control test-result" name="tests[${index}][result_value]" placeholder="Result">
+                        <input type="text" class="form-control test-result" name="tests[${index}][result_value]" placeholder="Result" value="${test.result_value || ''}">
                     </div>
                     <div class="col-md-1">
                         <input type="text" class="form-control test-min" name="tests[${index}][min]" placeholder="Min" readonly>
@@ -2116,8 +2169,11 @@ function populateEditForm(entry) {
             `;
             testsContainer.append(newRowHTML);
         });
-        testRowCount = entry.tests.length;
-        console.log('Added', testRowCount, 'empty test rows to form');
+        testRowCount = uniqueTests.length;
+        console.log('Added', testRowCount, 'unique test rows to form');
+        
+        // Store the unique tests for later population
+        window.editingEntryTests = uniqueTests;
     } else {
         console.log('No tests found, adding blank row');
         addTestRow(); // Add a blank row if no tests
@@ -2127,10 +2183,10 @@ function populateEditForm(entry) {
     loadTests(function () {
         console.log('Tests loaded, now populating individual test selections...');
 
-        if (entry.tests && entry.tests.length > 0) {
+        if (window.editingEntryTests && window.editingEntryTests.length > 0) {
             // Wait a moment for all dropdowns to be fully populated
             setTimeout(function () {
-                entry.tests.forEach(function (test, index) {
+                window.editingEntryTests.forEach(function (test, index) {
                     console.log(`Setting test ${index}: ${test.test_name} (ID: ${test.test_id})`);
 
                     const testRow = testsContainer.find('.test-row').eq(index);
@@ -2585,8 +2641,8 @@ function addTestRow() {
     testsContainer.append(newRowHTML);
     testRowCount++;
 
-    // Load tests for the new row
-    loadTests();
+    // Load tests for the new row only
+    loadTestsForNewRow(testsContainer.find('.test-row').last());
 
     // Initialize Select2 for the new row
     setTimeout(function () {
@@ -2635,6 +2691,9 @@ function addTestRow() {
 window.addTestRow = addTestRow;
 window.removeTestRow = removeTestRow;
 window.openAddEntryModal = openAddEntryModal;
+window.viewEntry = viewEntry;
+window.editEntry = editEntry;
+window.deleteEntry = deleteEntry;
 
 // Remove test row
 function removeTestRow(button) {
