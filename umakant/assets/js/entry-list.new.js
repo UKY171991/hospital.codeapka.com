@@ -562,6 +562,17 @@ function loadAndViewEntry(id) {
         success: function(response) {
             if (response.success) {
                 console.log('Loaded entry data for viewing:', response.data);
+                console.log('Entry tests data for viewing:', response.data.tests);
+                if (response.data.tests && response.data.tests.length > 0) {
+                    response.data.tests.forEach(function(test, index) {
+                        console.log(`View Test ${index + 1}:`, {
+                            test_id: test.test_id,
+                            test_name: test.test_name,
+                            price: test.price,
+                            result_value: test.result_value
+                        });
+                    });
+                }
                 populateEntryForm(response.data, true); // true = view mode
                 $('#entryModalLabel').html('<i class="fas fa-eye mr-1"></i>View Entry #' + id);
                 $('#entryModal').modal('show');
@@ -610,6 +621,17 @@ function loadAndEditEntry(id) {
         success: function(response) {
             if (response.success) {
                 console.log('Loaded entry data for editing:', response.data);
+                console.log('Entry tests data:', response.data.tests);
+                if (response.data.tests && response.data.tests.length > 0) {
+                    response.data.tests.forEach(function(test, index) {
+                        console.log(`Test ${index + 1}:`, {
+                            test_id: test.test_id,
+                            test_name: test.test_name,
+                            price: test.price,
+                            result_value: test.result_value
+                        });
+                    });
+                }
                 populateEntryForm(response.data, false); // false = edit mode
                 $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry #' + id);
                 $('#entryModal').modal('show');
@@ -970,9 +992,11 @@ function populateEntryForm(data, viewMode = false) {
                     // If the test is not in the dropdown (maybe it was deleted), add it manually
                     if (testSelect.val() !== test.test_id.toString()) {
                         const testPrice = test.price || 0;
+                        const testName = test.test_name || 'Unknown Test #' + test.test_id;
                         testSelect.append('<option value="' + test.test_id + '" selected>' + 
-                            (test.test_name || 'Test #' + test.test_id) + ' - ₹' + testPrice + '</option>');
+                            testName + ' - ₹' + testPrice + '</option>');
                         testSelect.val(test.test_id);
+                        console.log('Added missing test to dropdown:', test.test_id, testName);
                     }
                     
                     console.log('Set test selection to:', test.test_id, 'Test name:', test.test_name);
@@ -981,9 +1005,11 @@ function populateEntryForm(data, viewMode = false) {
                 // If testsData is not available, add the current test manually
                 if (test.test_id) {
                     const testPrice = test.price || 0;
+                    const testName = test.test_name || 'Unknown Test #' + test.test_id;
                     testSelect.append('<option value="' + test.test_id + '" selected>' + 
-                        (test.test_name || 'Test #' + test.test_id) + ' - ₹' + testPrice + '</option>');
+                        testName + ' - ₹' + testPrice + '</option>');
                     testSelect.val(test.test_id);
+                    console.log('Added test without testsData:', test.test_id, testName);
                 }
             }
             

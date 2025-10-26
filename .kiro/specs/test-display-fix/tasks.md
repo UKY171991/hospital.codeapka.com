@@ -82,7 +82,10 @@
 
 
 
-  - [ ] 3.2 Test API response with multiple test entries
+  - [x] 3.2 Test API response with multiple test entries
+
+
+
 
 
     - Create test entries with 2+ tests
