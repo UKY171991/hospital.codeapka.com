@@ -332,7 +332,7 @@ function loadTests(callback) {
                 testSelects.each(function () {
                     const $this = $(this);
                     const currentVal = $this.val();
-                    populateTestSelect($this, response.data, currentVal, null);
+                    populateTestSelect($this, response.data, currentVal);
                 });
             }
             if (typeof callback === 'function') {
@@ -345,54 +345,30 @@ function loadTests(callback) {
     });
 }
 
-// Helper function to populate a single test select dropdown
-function populateTestSelect($testSelect, testsData, currentVal, existingTestData) {
+// Helper function to populate a single test select dropdown - SIMPLIFIED
+function populateTestSelect($testSelect, testsData, currentVal) {
     $testSelect.empty().append('<option value="">Select Test</option>');
     
-    // If we have existing test data, add it first to ensure it's available
-    if (existingTestData && existingTestData.test_id) {
-        const testName = existingTestData.test_name || 'Test #' + existingTestData.test_id;
-        const testPrice = existingTestData.price || 0;
-        const escapedTestName = testName.replace(/"/g, '&quot;');
-        
-        const existingOpt = $('<option value="' + existingTestData.test_id + '" ' +
-            'data-price="' + testPrice + '" ' +
-            'data-category="' + (existingTestData.category_name || '').replace(/"/g, '&quot;') + '" ' +
-            'data-category-id="' + (existingTestData.category_id || '') + '" ' +
-            'data-unit="' + (existingTestData.unit || '').replace(/"/g, '&quot;') + '" ' +
-            'data-min="' + (existingTestData.min || '') + '" ' +
-            'data-max="' + (existingTestData.max || '') + '" ' +
-            'data-reference-range="' + (existingTestData.reference_range || '').replace(/"/g, '&quot;') + '">' + 
-            escapedTestName + ' - ₹' + testPrice + '</option>');
-        $testSelect.append(existingOpt);
-    }
-    
-    // Add all available tests
     testsData.forEach(function (test) {
-        // Skip if this test is already added as existing test data
-        if (existingTestData && existingTestData.test_id == test.id) {
-            return;
-        }
+        const testName = test.name || 'Test #' + test.id;
+        const testPrice = test.price || 0;
         
-        const escapedTestName = (test.name || '').replace(/"/g, '&quot;');
-        const escapedCategory = (test.category_name || '').replace(/"/g, '&quot;');
-        const escapedUnit = (test.unit || '').replace(/"/g, '&quot;');
-        const escapedRefRange = (test.reference_range || '').replace(/"/g, '&quot;');
+        const $option = $('<option></option>')
+            .attr('value', test.id)
+            .text(testName + ' - ₹' + testPrice)
+            .data('price', testPrice)
+            .data('category', test.category_name || '')
+            .data('category-id', test.category_id || '')
+            .data('unit', test.unit || '')
+            .data('min', test.min || '')
+            .data('max', test.max || '')
+            .data('min-male', test.min_male || '')
+            .data('max-male', test.max_male || '')
+            .data('min-female', test.min_female || '')
+            .data('max-female', test.max_female || '')
+            .data('reference-range', test.reference_range || '');
         
-        const opt = $('<option value="' + test.id + '" ' +
-            'data-price="' + (test.price || 0) + '" ' +
-            'data-category="' + escapedCategory + '" ' +
-            'data-category-id="' + (test.category_id || '') + '" ' +
-            'data-unit="' + escapedUnit + '" ' +
-            'data-min="' + (test.min || '') + '" ' +
-            'data-max="' + (test.max || '') + '" ' +
-            'data-min-male="' + (test.min_male || '') + '" ' +
-            'data-max-male="' + (test.max_male || '') + '" ' +
-            'data-min-female="' + (test.min_female || '') + '" ' +
-            'data-max-female="' + (test.max_female || '') + '" ' +
-            'data-reference-range="' + escapedRefRange + '">' + 
-            escapedTestName + ' - ₹' + (test.price || 0) + '</option>');
-        $testSelect.append(opt);
+        $testSelect.append($option);
     });
     
     if (currentVal) { 
@@ -512,7 +488,7 @@ function addTestRow() {
     
     // Load tests for the new row
     if (window.testsData) {
-        populateTestSelect(newRow.find('.test-select'), window.testsData, null, null);
+        populateTestSelect(newRow.find('.test-select'), window.testsData, null);
     }
     
     console.log('Added new test row with index:', newIndex);
@@ -919,11 +895,12 @@ function filterByStatus(status) {
     console.log('Filtering by status:', status);
 }
 
-// Populate entry form with data
+// Populate entry form with data - COMPLETELY REWRITTEN
 function populateEntryForm(data, viewMode = false) {
-    console.log('Populating form with data:', data);
+    console.log('=== FRESH POPULATE ENTRY FORM ===');
+    console.log('Entry data received:', data);
     
-    // Set form fields
+    // Set basic form fields
     $('#entryId').val(data.id || '');
     $('#entryDate').val(data.entry_date || '');
     $('#entryStatus').val(data.status || 'pending').trigger('change');
@@ -945,14 +922,13 @@ function populateEntryForm(data, viewMode = false) {
     $('#priority').val(data.priority || 'normal').trigger('change');
     $('#entryNotes').val(data.notes || '');
     
-    // Set owner/user selection if available
+    // Set owner/user selection
     if (data.added_by) {
         $('#ownerAddedBySelect').val('user_' + data.added_by).trigger('change');
     }
     
-    // Set patient selection if available
+    // Set patient selection
     if (data.patient_id) {
-        // Add the current patient as an option if not already present
         const patientSelect = $('#patientSelect');
         if (patientSelect.find('option[value="' + data.patient_id + '"]').length === 0) {
             patientSelect.append('<option value="' + data.patient_id + '">' + (data.patient_name || 'Patient #' + data.patient_id) + '</option>');
@@ -960,7 +936,7 @@ function populateEntryForm(data, viewMode = false) {
         patientSelect.val(data.patient_id).trigger('change');
     }
     
-    // Set doctor selection if available
+    // Set doctor selection
     if (data.doctor_id) {
         const doctorSelect = $('#doctorSelect');
         if (doctorSelect.find('option[value="' + data.doctor_id + '"]').length === 0) {
@@ -969,121 +945,122 @@ function populateEntryForm(data, viewMode = false) {
         doctorSelect.val(data.doctor_id).trigger('change');
     }
     
-    // Clear existing test rows
+    // FRESH TEST HANDLING - Clear and rebuild
     $('#testsContainer').empty();
     
-    // Add test rows
     if (data.tests && data.tests.length > 0) {
-        data.tests.forEach(function(test, index) {
-            console.log('Processing test for edit mode:', {
-                index: index,
-                test_id: test.test_id,
-                test_name: test.test_name,
-                price: test.price,
-                category_name: test.category_name
-            });
+        console.log('Processing ' + data.tests.length + ' tests...');
+        
+        data.tests.forEach(function(testData, index) {
+            console.log('=== Processing Test ' + (index + 1) + ' ===');
+            console.log('Test ID:', testData.test_id);
+            console.log('Test Name:', testData.test_name);
+            console.log('Test Price:', testData.price);
+            console.log('Test Category:', testData.category_name);
             
-            const newRow = $('<div class="test-row row mb-2">' +
-                '<div class="col-md-3">' +
-                '<select class="form-control test-select select2" name="tests[' + index + '][test_id]" required>' +
-                '<option value="">Select Test</option>' +
-                '</select></div>' +
-                '<div class="col-md-2">' +
-                '<input type="text" class="form-control test-category" name="tests[' + index + '][category_name]" placeholder="Category" readonly value="' + (test.category_name || '') + '">' +
-                '<input type="hidden" name="tests[' + index + '][category_id]" class="test-category-id" value="' + (test.category_id || '') + '">' +
-                '<input type="hidden" class="test-price" name="tests[' + index + '][price]" value="' + (test.price || 0) + '">' +
-                '<input type="hidden" class="test-discount" name="tests[' + index + '][discount_amount]" value="' + (test.discount_amount || 0) + '">' +
-                '<input type="hidden" class="test-total" name="tests[' + index + '][total_price]" value="' + (test.total_price || 0) + '">' +
-                '</div>' +
-                '<div class="col-md-2">' +
-                '<input type="text" class="form-control test-result" name="tests[' + index + '][result_value]" placeholder="Result" value="' + (test.result_value || '') + '">' +
-                '</div>' +
-                '<div class="col-md-1">' +
-                '<input type="text" class="form-control test-min" name="tests[' + index + '][min]" placeholder="Min" readonly value="' + (test.min || '') + '">' +
-                '</div>' +
-                '<div class="col-md-1">' +
-                '<input type="text" class="form-control test-max" name="tests[' + index + '][max]" placeholder="Max" readonly value="' + (test.max || '') + '">' +
-                '</div>' +
-                '<div class="col-md-2">' +
-                '<input type="text" class="form-control test-unit" name="tests[' + index + '][unit]" placeholder="Unit" readonly value="' + (test.unit || '') + '">' +
-                '</div>' +
-                '<div class="col-md-1">' +
-                '<button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">' +
-                '<i class="fas fa-trash"></i></button></div></div>');
+            // Create fresh test row HTML
+            const testRowHtml = 
+                '<div class="test-row row mb-2">' +
+                    '<div class="col-md-3">' +
+                        '<select class="form-control test-select" name="tests[' + index + '][test_id]" required>' +
+                        '</select>' +
+                    '</div>' +
+                    '<div class="col-md-2">' +
+                        '<input type="text" class="form-control test-category" name="tests[' + index + '][category_name]" placeholder="Category" readonly>' +
+                        '<input type="hidden" name="tests[' + index + '][category_id]" class="test-category-id">' +
+                        '<input type="hidden" class="test-price" name="tests[' + index + '][price]">' +
+                        '<input type="hidden" class="test-discount" name="tests[' + index + '][discount_amount]">' +
+                        '<input type="hidden" class="test-total" name="tests[' + index + '][total_price]">' +
+                    '</div>' +
+                    '<div class="col-md-2">' +
+                        '<input type="text" class="form-control test-result" name="tests[' + index + '][result_value]" placeholder="Result">' +
+                    '</div>' +
+                    '<div class="col-md-1">' +
+                        '<input type="text" class="form-control test-min" name="tests[' + index + '][min]" placeholder="Min" readonly>' +
+                    '</div>' +
+                    '<div class="col-md-1">' +
+                        '<input type="text" class="form-control test-max" name="tests[' + index + '][max]" placeholder="Max" readonly>' +
+                    '</div>' +
+                    '<div class="col-md-2">' +
+                        '<input type="text" class="form-control test-unit" name="tests[' + index + '][unit]" placeholder="Unit" readonly>' +
+                    '</div>' +
+                    '<div class="col-md-1">' +
+                        '<button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">' +
+                            '<i class="fas fa-trash"></i>' +
+                        '</button>' +
+                    '</div>' +
+                '</div>';
             
-            $('#testsContainer').append(newRow);
+            // Add the row to container
+            const $newRow = $(testRowHtml);
+            $('#testsContainer').append($newRow);
             
-            // Populate test select with the existing test data
-            const testSelect = newRow.find('.test-select');
+            // Get the select element for this row
+            const $testSelect = $newRow.find('.test-select');
             
-            // DIRECT FIX: Always add the current test first with its exact data
-            if (test.test_id && test.test_name) {
-                const testPrice = test.price || 0;
-                const escapedTestName = test.test_name.replace(/"/g, '&quot;');
-                
-                // Add the current test as selected option
-                testSelect.append('<option value="' + test.test_id + '" selected ' +
-                    'data-price="' + testPrice + '" ' +
-                    'data-category="' + (test.category_name || '').replace(/"/g, '&quot;') + '" ' +
-                    'data-category-id="' + (test.category_id || '') + '" ' +
-                    'data-unit="' + (test.unit || '').replace(/"/g, '&quot;') + '" ' +
-                    'data-min="' + (test.min || '') + '" ' +
-                    'data-max="' + (test.max || '') + '">' + 
-                    escapedTestName + ' - ₹' + testPrice + '</option>');
-                
-                // Set the value to ensure it's selected
-                testSelect.val(test.test_id);
-                
-                console.log('Added test directly:', {
-                    test_id: test.test_id,
-                    test_name: test.test_name,
-                    price: testPrice,
-                    selected_value: testSelect.val()
-                });
-            }
+            // FRESH APPROACH: Create the option directly from test data
+            const testName = testData.test_name || 'Unknown Test';
+            const testPrice = testData.price || 0;
+            const testId = testData.test_id;
             
-            // Add other available tests if testsData is loaded
-            if (window.testsData) {
-                window.testsData.forEach(function(availableTest) {
-                    // Skip if this is the current test (already added)
-                    if (availableTest.id == test.test_id) {
-                        return;
-                    }
-                    
-                    const escapedName = (availableTest.name || '').replace(/"/g, '&quot;');
-                    testSelect.append('<option value="' + availableTest.id + '" ' +
-                        'data-price="' + (availableTest.price || 0) + '" ' +
-                        'data-category="' + (availableTest.category_name || '').replace(/"/g, '&quot;') + '" ' +
-                        'data-category-id="' + (availableTest.category_id || '') + '" ' +
-                        'data-unit="' + (availableTest.unit || '').replace(/"/g, '&quot;') + '" ' +
-                        'data-min="' + (availableTest.min || '') + '" ' +
-                        'data-max="' + (availableTest.max || '') + '">' + 
-                        escapedName + ' - ₹' + (availableTest.price || 0) + '</option>');
-                });
-            }
+            // Add the "Select Test" default option
+            $testSelect.append('<option value="">Select Test</option>');
+            
+            // Add the current test as the selected option
+            const optionText = testName + ' - ₹' + testPrice;
+            const $currentOption = $('<option></option>')
+                .attr('value', testId)
+                .attr('selected', 'selected')
+                .text(optionText)
+                .data('price', testPrice)
+                .data('category', testData.category_name || '')
+                .data('category-id', testData.category_id || '')
+                .data('unit', testData.unit || '')
+                .data('min', testData.min || '')
+                .data('max', testData.max || '');
+            
+            $testSelect.append($currentOption);
+            
+            // Set the select value
+            $testSelect.val(testId);
+            
+            // Fill in the other fields
+            $newRow.find('.test-category').val(testData.category_name || '');
+            $newRow.find('.test-category-id').val(testData.category_id || '');
+            $newRow.find('.test-result').val(testData.result_value || '');
+            $newRow.find('.test-min').val(testData.min || '');
+            $newRow.find('.test-max').val(testData.max || '');
+            $newRow.find('.test-unit').val(testData.unit || '');
+            $newRow.find('.test-price').val(testPrice);
+            $newRow.find('.test-discount').val(testData.discount_amount || 0);
+            $newRow.find('.test-total').val(testData.total_price || testPrice);
+            
+            console.log('✅ Test ' + (index + 1) + ' populated successfully');
+            console.log('Selected value:', $testSelect.val());
+            console.log('Option text:', $testSelect.find('option:selected').text());
         });
+        
+        console.log('=== All tests processed successfully ===');
     } else {
-        // Add at least one empty row
+        // Add one empty row if no tests
         addTestRow();
     }
     
-    // Recalculate totals after populating all test data
-    setTimeout(function() {
-        calculateTotals();
-    }, 100);
-    
-    // Set form to view mode if requested
+    // Set form mode
     if (viewMode) {
         $('#entryForm input, #entryForm select, #entryForm textarea').prop('disabled', true);
         $('#entryForm button[type="submit"]').hide();
-        $('.btn-danger').hide(); // Hide remove buttons
-        $('#entryForm .btn-success').hide(); // Hide add test button
+        $('.btn-danger').hide();
+        $('#entryForm .btn-success').hide();
     } else {
         $('#entryForm input, #entryForm select, #entryForm textarea').prop('disabled', false);
         $('#entryForm button[type="submit"]').show();
-        $('.btn-danger').show(); // Show remove buttons
-        $('#entryForm .btn-success').show(); // Show add test button
+        $('.btn-danger').show();
+        $('#entryForm .btn-success').show();
     }
+    
+    // Recalculate totals
+    setTimeout(calculateTotals, 100);
 }
 
 // Reset entry form
