@@ -147,7 +147,7 @@ class EntryManager {
                                 } else if (testCount === 1) {
                                     return `<span class="badge badge-info">${testCount}</span> ${testNames}`;
                                 } else {
-                                    return `<span class="badge badge-primary">${testCount} hi</span> ${testNames}`;
+                                    return `<span class="badge badge-primary">${testCount}</span> ${testNames}`;
                                 }
                             }
                             return data || '';
