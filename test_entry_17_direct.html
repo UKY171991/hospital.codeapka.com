@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Entry 17 API Direct</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h2>Direct API Test for Entry #17</h2>
+    <div id="results"></div>
+    
+    <script>
+    $(document).ready(function() {
+        console.log('Testing API call for entry #17...');
+        
+        $.ajax({
+            url: 'umakant/ajax/entry_api_fixed.php',
+            method: 'GET',
+            data: { action: 'get', id: 17 },
+            dataType: 'json',
+            success: function(response) {
+                console.log('API Response:', response);
+                
+                let html = '<h3>API Response for Entry #17:</h3>';
+                
+                if (response.success && response.data) {
+                    html += '<p><strong>Entry ID:</strong> ' + response.data.id + '</p>';
+                    html += '<p><strong>Patient:</strong> ' + (response.data.patient_name || 'N/A') + '</p>';
+                    
+                    if (response.data.tests && response.data.tests.length > 0) {
+                        html += '<h4>Tests (' + response.data.tests.length + '):</h4>';
+                        html += '<table border="1" style="border-collapse: collapse; width: 100%;">';
+                        html += '<tr><th>Index</th><th>Test ID</th><th>Test Name</th><th>Price</th><th>Category</th><th>Unit</th></tr>';
+                        
+                        response.data.tests.forEach(function(test, index) {
+                            html += '<tr>';
+                            html += '<td>' + index + '</td>';
+                            html += '<td>' + (test.test_id || 'NULL') + '</td>';
+                            html += '<td><strong>' + (test.test_name || 'NULL') + '</strong></td>';
+                            html += '<td>₹' + (test.price || 0) + '</td>';
+                            html += '<td>' + (test.category_name || 'NULL') + '</td>';
+                            html += '<td>' + (test.unit || 'NULL') + '</td>';
+                            html += '</tr>';
+                            
+                            console.log('Test ' + index + ':', {
+                                test_id: test.test_id,
+                                test_name: test.test_name,
+                                price: test.price,
+                                category_name: test.category_name
+                            });
+                        });
+                        
+                        html += '</table>';
+                    } else {
+                        html += '<p><strong>No tests found</strong></p>';
+                    }
+                } else {
+                    html += '<p><strong>Error:</strong> ' + (response.message || 'Unknown error') + '</p>';
+                }
+                
+                $('#results').html(html);
+            },
+            error: function(xhr, status, error) {
+                console.error('API Error:', error);
+                $('#results').html('<p><strong>AJAX Error:</strong> ' + error + '</p>');
+            }
+        });
+    });
+    </script>
+</body>
+</html>
