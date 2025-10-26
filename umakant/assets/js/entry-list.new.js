@@ -949,8 +949,7 @@ function getPatientDataSource() {
 
 // Open add entry modal
 function openAddEntryModal() {
-    // Prevent body scroll and fix modal positioning
-    $('body').addClass('modal-open');
+    // Let Bootstrap handle modal opening
     
     currentEntryId = null;
     $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
@@ -1055,18 +1054,7 @@ function openAddEntryModal() {
 
 // Update dropdown options when modal is shown
 $(document).on('shown.bs.modal', '#entryModal', function () {
-    // Fix modal positioning and prevent jumping
-    const modal = $(this);
-    const dialog = modal.find('.modal-dialog');
-    
-    // Ensure modal is properly centered
-    dialog.css({
-        'margin': '20px auto',
-        'transform': 'none',
-        'transition': 'none'
-    });
-    
-    // Prevent body scroll
+    // Prevent body scroll only
     $('body').css({
         'overflow': 'hidden',
         'padding-right': '0'
@@ -1090,14 +1078,11 @@ $(document).on('hidden.bs.modal', '#entryModal, #viewEntryModal, #deleteModal', 
 
 // Handle modal show event for all modals
 $(document).on('show.bs.modal', '.modal', function () {
-    const modal = $(this);
-    const dialog = modal.find('.modal-dialog');
-    
-    // Fix positioning immediately
-    setTimeout(function() {
-        dialog.css({
-            'margin': dialog.hasClass('modal-xl') ? '20px auto' : '1.75rem auto',
-            'transform': 'none',
+    // Just prevent body scroll, let Bootstrap handle modal positioning
+    $('body').css({
+        'overflow': 'hidden',
+        'padding-right': '0'
+    });
             'transition': 'none'
         });
         
@@ -2694,17 +2679,9 @@ function addTestRow() {
     testsContainer.append(newRowHTML);
     testRowCount++;
 
-    // Prevent modal jumping during content addition
+    // Store current scroll position to restore later
     const modal = $('#entryModal');
-    const modalDialog = modal.find('.modal-dialog');
     const currentScrollTop = modal.find('.modal-body').scrollTop();
-    
-    // Lock modal position
-    modalDialog.css({
-        'transform': 'none',
-        'margin': '20px auto',
-        'transition': 'none'
-    });
 
     // Load tests for the new row only
     loadTestsForNewRow(testsContainer.find('.test-row').last());
@@ -2744,13 +2721,8 @@ function addTestRow() {
         // Update dropdown options for all rows
         updateTestDropdownOptions();
         
-        // Restore scroll position and ensure modal stays in place
+        // Restore scroll position
         modal.find('.modal-body').scrollTop(currentScrollTop);
-        modalDialog.css({
-            'transform': 'none',
-            'margin': '20px auto',
-            'transition': 'none'
-        });
 
     }, 100);
 
@@ -2762,24 +2734,14 @@ function addTestRow() {
     }
 }
 
-// Function to stabilize modal position
+// Function to stabilize modal position - simplified
 function stabilizeModal() {
     const modal = $('#entryModal');
     if (modal.hasClass('show')) {
-        const modalDialog = modal.find('.modal-dialog');
-        modalDialog.css({
-            'transform': 'none',
-            'margin': '20px auto',
-            'transition': 'none',
-            'position': 'relative'
-        });
-        
-        // Ensure body stays locked
+        // Only ensure body scroll is locked, don't interfere with modal positioning
         $('body').css({
             'overflow': 'hidden',
-            'padding-right': '0',
-            'position': 'fixed',
-            'width': '100%'
+            'padding-right': '0'
         });
     }
 }
@@ -2805,17 +2767,9 @@ function removeTestRow(button) {
 
     // Don't allow removing the last row
     if (testsContainer.find('.test-row').length > 1) {
-        // Prevent modal jumping during removal
+        // Store current scroll position
         const modal = $('#entryModal');
-        const modalDialog = modal.find('.modal-dialog');
         const currentScrollTop = modal.find('.modal-body').scrollTop();
-        
-        // Lock modal position
-        modalDialog.css({
-            'transform': 'none',
-            'margin': '20px auto',
-            'transition': 'none'
-        });
         
         testRow.remove();
 
@@ -2825,10 +2779,9 @@ function removeTestRow(button) {
         // Update dropdown options after removal
         updateTestDropdownOptions();
         
-        // Restore scroll position and stabilize modal
+        // Restore scroll position
         setTimeout(function() {
             modal.find('.modal-body').scrollTop(currentScrollTop);
-            stabilizeModal();
         }, 10);
 
         // Re-index remaining test rows

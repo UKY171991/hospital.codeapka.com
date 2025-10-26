@@ -56,6 +56,11 @@ body.modal-open {
     z-index: 2100 !important; /* above Bootstrap modal (1050) and other UI */
 }
 
+/* Ensure smooth scrolling for modal */
+.modal-body {
+    scroll-behavior: smooth !important;
+}
+
 /* Enhanced Entry List Styles */
 .card-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -226,7 +231,7 @@ body.modal-open {
     border-radius: 0 0 15px 15px;
 }
 
-/* Fix Modal Jumping Issue - Complete Solution */
+/* Fix Modal Scrolling Issue - Simplified Solution */
 .modal {
     padding-right: 0 !important;
     overflow-x: hidden !important;
@@ -235,25 +240,12 @@ body.modal-open {
 
 .modal-dialog {
     margin: 20px auto !important;
-    transform: none !important;
-    transition: none !important;
-    position: relative !important;
-    width: auto !important;
     pointer-events: none !important;
 }
 
 .modal-dialog.modal-xl {
     max-width: 95% !important;
     margin: 20px auto !important;
-}
-
-.modal.fade .modal-dialog {
-    transform: translate(0, 0) !important;
-    transition: none !important;
-}
-
-.modal.show .modal-dialog {
-    transform: translate(0, 0) !important;
 }
 
 .modal-content {
@@ -269,15 +261,13 @@ body.modal-open {
     outline: 0 !important;
 }
 
-/* Prevent body scroll when modal is open */
+/* Prevent body scroll when modal is open - but allow modal to scroll */
 body.modal-open {
     overflow: hidden !important;
     padding-right: 0 !important;
-    position: fixed !important;
-    width: 100% !important;
 }
 
-/* Fixed height modal to prevent jumping */
+/* Fixed height modal with proper scrolling */
 .modal-dialog-scrollable {
     height: calc(100vh - 40px) !important;
     max-height: calc(100vh - 40px) !important;
@@ -323,7 +313,7 @@ body.modal-open {
     flex-shrink: 0 !important;
 }
 
-/* Prevent modal backdrop from causing scroll issues */
+/* Modal backdrop styling */
 .modal-backdrop {
     position: fixed !important;
     top: 0 !important;
