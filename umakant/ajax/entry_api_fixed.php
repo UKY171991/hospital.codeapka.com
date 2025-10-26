@@ -545,8 +545,6 @@ try {
             exit;
         }
     } else if ($action === 'get') {
-        
-        //echo json_encode(['success' => false, 'message' => 'Entry Testing']); die;
         // Debug logging
         error_log("Entry API: GET action called with ID: " . ($_GET['id'] ?? 'none'));
         error_log("Entry API: User data: " . print_r($user_data, true));
@@ -609,6 +607,8 @@ try {
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             $entry = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => false, 'message' => 'Entry Testing']); die;
             
             error_log("Entry API: Query result: " . ($entry ? 'Found entry' : 'No entry found'));
             
