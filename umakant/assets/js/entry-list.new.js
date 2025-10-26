@@ -730,3 +730,130 @@ function filterByDate(period) {
 function filterByStatus(status) {
     console.log('Filtering by status:', status);
 }
+
+// Populate entry form with data
+function populateEntryForm(data, viewMode = false) {
+    console.log('Populating form with data:', data);
+    
+    // Set form fields
+    $('#entryId').val(data.id || '');
+    $('#entryDate').val(data.entry_date || '');
+    $('#entryStatus').val(data.status || 'pending').trigger('change');
+    
+    // Set patient information
+    $('#patientName').val(data.patient_name || '');
+    $('#patientContact').val(data.patient_contact || '');
+    $('#patientAge').val(data.age || '');
+    $('#patientGender').val(data.gender || '').trigger('change');
+    $('#patientAddress').val(data.patient_address || '');
+    
+    // Set owner/user selection if available
+    if (data.added_by) {
+        $('#ownerAddedBySelect').val('user_' + data.added_by).trigger('change');
+    }
+    
+    // Set patient selection if available
+    if (data.patient_id) {
+        // Add the current patient as an option if not already present
+        const patientSelect = $('#patientSelect');
+        if (patientSelect.find('option[value="' + data.patient_id + '"]').length === 0) {
+            patientSelect.append('<option value="' + data.patient_id + '">' + (data.patient_name || 'Patient #' + data.patient_id) + '</option>');
+        }
+        patientSelect.val(data.patient_id).trigger('change');
+    }
+    
+    // Set doctor selection if available
+    if (data.doctor_id) {
+        const doctorSelect = $('#doctorSelect');
+        if (doctorSelect.find('option[value="' + data.doctor_id + '"]').length === 0) {
+            doctorSelect.append('<option value="' + data.doctor_id + '">Dr. ' + (data.doctor_name || 'Doctor #' + data.doctor_id) + '</option>');
+        }
+        doctorSelect.val(data.doctor_id).trigger('change');
+    }
+    
+    // Clear existing test rows
+    $('#testsContainer').empty();
+    
+    // Add test rows
+    if (data.tests && data.tests.length > 0) {
+        data.tests.forEach(function(test, index) {
+            const newRow = $('<div class="test-row row mb-2">' +
+                '<div class="col-md-3">' +
+                '<select class="form-control test-select select2" name="tests[' + index + '][test_id]" required>' +
+                '<option value="">Select Test</option>' +
+                '</select></div>' +
+                '<div class="col-md-2">' +
+                '<input type="text" class="form-control test-category" name="tests[' + index + '][category_name]" placeholder="Category" readonly value="' + (test.category_name || '') + '">' +
+                '</div>' +
+                '<div class="col-md-2">' +
+                '<input type="text" class="form-control test-result" name="tests[' + index + '][result_value]" placeholder="Result" value="' + (test.result_value || '') + '">' +
+                '</div>' +
+                '<div class="col-md-1">' +
+                '<input type="text" class="form-control test-min" name="tests[' + index + '][min]" placeholder="Min" readonly value="' + (test.min || '') + '">' +
+                '</div>' +
+                '<div class="col-md-1">' +
+                '<input type="text" class="form-control test-max" name="tests[' + index + '][max]" placeholder="Max" readonly value="' + (test.max || '') + '">' +
+                '</div>' +
+                '<div class="col-md-2">' +
+                '<input type="text" class="form-control test-unit" name="tests[' + index + '][unit]" placeholder="Unit" readonly value="' + (test.unit || '') + '">' +
+                '</div>' +
+                '<div class="col-md-1">' +
+                '<button type="button" class="btn btn-danger btn-sm" onclick="removeTestRow(this)" title="Remove Test">' +
+                '<i class="fas fa-trash"></i></button></div></div>');
+            
+            $('#testsContainer').append(newRow);
+            
+            // Populate test select with current test
+            const testSelect = newRow.find('.test-select');
+            if (window.testsData) {
+                populateTestSelect(testSelect, window.testsData);
+            }
+            
+            // Set the test selection
+            if (test.test_id) {
+                // Add the current test as an option if not already present
+                if (testSelect.find('option[value="' + test.test_id + '"]').length === 0) {
+                    testSelect.append('<option value="' + test.test_id + '">' + (test.test_name || 'Test #' + test.test_id) + '</option>');
+                }
+                testSelect.val(test.test_id).trigger('change');
+            }
+        });
+    } else {
+        // Add at least one empty row
+        addTestRow();
+    }
+    
+    // Set form to view mode if requested
+    if (viewMode) {
+        $('#entryForm input, #entryForm select, #entryForm textarea').prop('disabled', true);
+        $('#entryForm button[type="submit"]').hide();
+        $('.btn-danger').hide(); // Hide remove buttons
+        $('#entryForm .btn-success').hide(); // Hide add test button
+    } else {
+        $('#entryForm input, #entryForm select, #entryForm textarea').prop('disabled', false);
+        $('#entryForm button[type="submit"]').show();
+        $('.btn-danger').show(); // Show remove buttons
+        $('#entryForm .btn-success').show(); // Show add test button
+    }
+}
+
+// Reset entry form
+function resetEntryForm() {
+    currentEntryId = null;
+    $('#entryForm')[0].reset();
+    $('#testsContainer').empty();
+    addTestRow(); // Add one empty test row
+    $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
+    
+    // Re-enable all form elements
+    $('#entryForm input, #entryForm select, #entryForm textarea').prop('disabled', false);
+    $('#entryForm button[type="submit"]').show();
+    $('.btn-danger').show();
+    $('#entryForm .btn-success').show();
+}
+
+// Show add entry modal
+function showAddEntryModal() {
+    resetEntryForm();
+    $('#entryModal').modal('show');
+}
