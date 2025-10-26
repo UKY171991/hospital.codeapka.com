@@ -2396,7 +2396,15 @@ function populateEditForm(entry) {
         if (window.editingEntryTests && window.editingEntryTests.length > 0) {
             // Wait a moment for all dropdowns to be fully populated
             setTimeout(function () {
-                window.editingEntryTests.forEach(function (test, index) {
+                // Process tests one by one with delays to avoid conflicts
+                function processTestSelection(testIndex) {
+                    if (testIndex >= window.editingEntryTests.length) {
+                        console.log('✓ All test selections completed');
+                        return;
+                    }
+                    
+                    const test = window.editingEntryTests[testIndex];
+                    const index = testIndex;
                     console.log(`Setting test ${index}: ${test.test_name} (ID: ${test.test_id})`);
 
                     const testRow = testsContainer.find('.test-row').eq(index);
@@ -2431,7 +2439,17 @@ function populateEditForm(entry) {
 
                         if (targetOption.length > 0) {
                             // Set the value directly
+                            console.log(`✓ Setting test ${index} to test_id: ${test.test_id}`);
                             testSelect.val(test.test_id);
+                            
+                            // Verify the selection was set correctly
+                            const actualSelectedValue = testSelect.val();
+                            const actualSelectedText = testSelect.find('option:selected').text();
+                            console.log(`✓ Test ${index} selection result: value=${actualSelectedValue}, text="${actualSelectedText}"`);
+                            
+                            if (actualSelectedValue != test.test_id) {
+                                console.error(`❌ Selection failed for test ${index}: expected ${test.test_id}, got ${actualSelectedValue}`);
+                            }
 
                             // Force Select2 to update its display by destroying and recreating
                             if (testSelect.hasClass('select2-hidden-accessible')) {
@@ -2470,9 +2488,15 @@ function populateEditForm(entry) {
                     } else {
                         console.warn(`Test ${index} missing test_id or row not found`);
                     }
-                });
-
-                console.log('✓ All test selections completed');
+                    
+                    // Process next test after a small delay
+                    setTimeout(function() {
+                        processTestSelection(testIndex + 1);
+                    }, 100);
+                }
+                
+                // Start processing from the first test
+                processTestSelection(0);
 
                 // Update dropdown options to disable already selected tests
                 // Note: updateTestDropdownOptions function doesn't exist, commenting out
