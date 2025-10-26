@@ -1016,22 +1016,51 @@ function populateEntryForm(data, viewMode = false) {
             // Populate test select with the existing test data
             const testSelect = newRow.find('.test-select');
             
-            // Use the new populateTestSelect function with existing test data
-            if (window.testsData) {
-                populateTestSelect(testSelect, window.testsData, test.test_id, test);
-            } else {
-                // If testsData is not available, add only the current test
-                if (test.test_id && test.test_name) {
-                    const testPrice = test.price || 0;
-                    const escapedTestName = test.test_name.replace(/"/g, '&quot;');
-                    testSelect.append('<option value="' + test.test_id + '" selected>' + 
-                        escapedTestName + ' - ₹' + testPrice + '</option>');
-                    testSelect.val(test.test_id);
-                    console.log('Added test without testsData:', test.test_id, test.test_name);
-                }
+            // DIRECT FIX: Always add the current test first with its exact data
+            if (test.test_id && test.test_name) {
+                const testPrice = test.price || 0;
+                const escapedTestName = test.test_name.replace(/"/g, '&quot;');
+                
+                // Add the current test as selected option
+                testSelect.append('<option value="' + test.test_id + '" selected ' +
+                    'data-price="' + testPrice + '" ' +
+                    'data-category="' + (test.category_name || '').replace(/"/g, '&quot;') + '" ' +
+                    'data-category-id="' + (test.category_id || '') + '" ' +
+                    'data-unit="' + (test.unit || '').replace(/"/g, '&quot;') + '" ' +
+                    'data-min="' + (test.min || '') + '" ' +
+                    'data-max="' + (test.max || '') + '">' + 
+                    escapedTestName + ' - ₹' + testPrice + '</option>');
+                
+                // Set the value to ensure it's selected
+                testSelect.val(test.test_id);
+                
+                console.log('Added test directly:', {
+                    test_id: test.test_id,
+                    test_name: test.test_name,
+                    price: testPrice,
+                    selected_value: testSelect.val()
+                });
             }
             
-            console.log('Final test selection value:', testSelect.val(), 'for test:', test.test_name);
+            // Add other available tests if testsData is loaded
+            if (window.testsData) {
+                window.testsData.forEach(function(availableTest) {
+                    // Skip if this is the current test (already added)
+                    if (availableTest.id == test.test_id) {
+                        return;
+                    }
+                    
+                    const escapedName = (availableTest.name || '').replace(/"/g, '&quot;');
+                    testSelect.append('<option value="' + availableTest.id + '" ' +
+                        'data-price="' + (availableTest.price || 0) + '" ' +
+                        'data-category="' + (availableTest.category_name || '').replace(/"/g, '&quot;') + '" ' +
+                        'data-category-id="' + (availableTest.category_id || '') + '" ' +
+                        'data-unit="' + (availableTest.unit || '').replace(/"/g, '&quot;') + '" ' +
+                        'data-min="' + (availableTest.min || '') + '" ' +
+                        'data-max="' + (availableTest.max || '') + '">' + 
+                        escapedName + ' - ₹' + (availableTest.price || 0) + '</option>');
+                });
+            }
         });
     } else {
         // Add at least one empty row
