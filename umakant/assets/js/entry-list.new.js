@@ -6,6 +6,44 @@ let testRowCount = 1;
 // Debug: Log that the file is loaded
 console.log('entry-list.new.js loaded successfully');
 
+// Function to force modal scrolling
+function forceModalScrolling() {
+    const modal = $('#entryModal');
+    const modalDialog = modal.find('.modal-dialog');
+    const modalBody = modal.find('.modal-body');
+    
+    console.log('Forcing modal scrolling...');
+    console.log('Modal body scroll height:', modalBody[0] ? modalBody[0].scrollHeight : 'N/A');
+    console.log('Modal body client height:', modalBody[0] ? modalBody[0].clientHeight : 'N/A');
+    
+    // Force scrollable styles
+    modalDialog.css({
+        'height': 'calc(100vh - 40px)',
+        'max-height': 'calc(100vh - 40px)',
+        'display': 'flex',
+        'flex-direction': 'column'
+    });
+    
+    modalBody.css({
+        'overflow-y': 'auto',
+        'flex': '1',
+        'max-height': 'none',
+        '-webkit-overflow-scrolling': 'touch',
+        'scrollbar-width': 'thin'
+    });
+    
+    // Test scrolling
+    if (modalBody[0] && modalBody[0].scrollHeight > modalBody[0].clientHeight) {
+        console.log('Modal should be scrollable - scroll height exceeds client height');
+        modalBody[0].scrollTop = 10; // Test scroll
+        setTimeout(() => {
+            modalBody[0].scrollTop = 0; // Reset
+        }, 100);
+    } else {
+        console.log('Modal content fits within viewport');
+    }
+}
+
 // Global error handler
 window.addEventListener('error', function(e) {
     console.error('Global JavaScript error:', {
@@ -1109,6 +1147,26 @@ $(document).on('shown.bs.modal', '#entryModal', function () {
         'overflow': 'hidden',
         'padding-right': '0'
     });
+    
+    // Force modal body to be scrollable
+    const modalBody = $(this).find('.modal-body');
+    modalBody.css({
+        'overflow-y': 'auto',
+        'max-height': 'calc(100vh - 200px)',
+        '-webkit-overflow-scrolling': 'touch'
+    });
+    
+    // Ensure modal dialog has correct height
+    const modalDialog = $(this).find('.modal-dialog');
+    modalDialog.css({
+        'height': 'calc(100vh - 40px)',
+        'max-height': 'calc(100vh - 40px)'
+    });
+    
+    console.log('Modal scrolling forced - body height:', modalBody.height(), 'scroll height:', modalBody[0].scrollHeight);
+    
+    // Force modal scrolling
+    setTimeout(forceModalScrolling, 100);
     
     // Update dropdown options to reflect current selections
     setTimeout(function () {
@@ -2808,6 +2866,7 @@ window.viewEntry = viewEntry;
 window.editEntry = editEntry;
 window.deleteEntry = deleteEntry;
 window.stabilizeModal = stabilizeModal;
+window.forceModalScrolling = forceModalScrolling;
 
 // Remove test row
 function removeTestRow(button) {
