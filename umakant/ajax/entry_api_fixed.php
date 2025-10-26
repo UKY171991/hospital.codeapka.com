@@ -659,6 +659,9 @@ try {
         }
         
         try {
+            // Debug logging
+            error_log("Entry API SAVE: POST data: " . json_encode($_POST));
+            
             // Validate required fields
             $patientId = (int)($_POST['patient_id'] ?? 0);
             $entryDate = $_POST['entry_date'] ?? date('Y-m-d');
@@ -671,24 +674,79 @@ try {
                 exit;
             }
             
-            // Prepare entry data
+            // Get schema capabilities to check which columns exist
+            $entriesCaps = get_entries_schema_capabilities($pdo);
+            
+            // Prepare entry data - only include fields that exist in the database
             $entryData = [
                 'patient_id' => $patientId,
                 'doctor_id' => (int)($_POST['doctor_id'] ?? 0) ?: null,
                 'entry_date' => $entryDate,
                 'status' => $status,
-                'priority' => $priority,
-                'referral_source' => $_POST['referral_source'] ?? null,
-                'patient_contact' => $_POST['patient_contact'] ?? null,
-                'patient_address' => $_POST['patient_address'] ?? null,
-                'gender' => $_POST['gender'] ?? null,
-                'age' => (int)($_POST['age'] ?? 0) ?: null,
-                'subtotal' => (float)($_POST['subtotal'] ?? 0),
-                'discount_amount' => (float)($_POST['discount_amount'] ?? 0),
-                'total_price' => (float)($_POST['total_price'] ?? 0),
-                'notes' => $_POST['notes'] ?? null,
                 'added_by' => $user_data['user_id']
             ];
+            
+            // Add optional fields only if they exist in the database schema
+            if ($entriesCaps['has_priority']) {
+                $entryData['priority'] = $priority;
+            }
+            if ($entriesCaps['has_referral_source']) {
+                $entryData['referral_source'] = $_POST['referral_source'] ?? null;
+            }
+            // Only add these fields if the columns actually exist in the database
+            if ($entriesCaps['has_patient_contact'] && isset($_POST['patient_contact'])) {
+                $entryData['patient_contact'] = $_POST['patient_contact'];
+                error_log("Entry API: Adding patient_contact to entry data");
+            } else if (isset($_POST['patient_contact'])) {
+                error_log("Entry API: Skipping patient_contact - column does not exist in entries table");
+            }
+            
+            if ($entriesCaps['has_patient_address'] && isset($_POST['patient_address'])) {
+                $entryData['patient_address'] = $_POST['patient_address'];
+                error_log("Entry API: Adding patient_address to entry data");
+            } else if (isset($_POST['patient_address'])) {
+                error_log("Entry API: Skipping patient_address - column does not exist in entries table");
+            }
+            
+            if ($entriesCaps['has_gender'] && isset($_POST['gender'])) {
+                $entryData['gender'] = $_POST['gender'];
+                error_log("Entry API: Adding gender to entry data");
+            } else if (isset($_POST['gender'])) {
+                error_log("Entry API: Skipping gender - column does not exist in entries table");
+            }
+            
+            if ($entriesCaps['has_age'] && isset($_POST['age'])) {
+                $entryData['age'] = (int)($_POST['age'] ?? 0) ?: null;
+                error_log("Entry API: Adding age to entry data");
+            } else if (isset($_POST['age'])) {
+                error_log("Entry API: Skipping age - column does not exist in entries table");
+            }
+            if ($entriesCaps['has_subtotal']) {
+                $entryData['subtotal'] = (float)($_POST['subtotal'] ?? 0);
+            }
+            if ($entriesCaps['has_discount_amount']) {
+                $entryData['discount_amount'] = (float)($_POST['discount_amount'] ?? 0);
+            }
+            if ($entriesCaps['has_total_price']) {
+                $entryData['total_price'] = (float)($_POST['total_price'] ?? 0);
+            }
+            if ($entriesCaps['has_notes']) {
+                $entryData['notes'] = $_POST['notes'] ?? null;
+            }
+            
+            // Add patient_name if it's being sent from the form
+            if (isset($_POST['patient_name']) && !empty($_POST['patient_name'])) {
+                // Check if patient_name column exists (it might not be in the capabilities check)
+                if (db_column_exists($pdo, 'entries', 'patient_name')) {
+                    $entryData['patient_name'] = $_POST['patient_name'];
+                    error_log("Entry API: Added patient_name to entry data: " . $_POST['patient_name']);
+                } else {
+                    error_log("Entry API: patient_name column does not exist in entries table");
+                }
+            }
+            
+            // Debug logging
+            error_log("Entry API SAVE: Final entry data: " . json_encode($entryData));
             
             if ($isUpdate) {
                 // Update existing entry
