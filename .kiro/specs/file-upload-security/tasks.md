@@ -56,7 +56,9 @@
   - Add visual indicators for security validation status
   - _Requirements: 1.1, 4.1, 4.2, 4.4_
 
-- [ ] 3.1 Remove client-side file type restrictions
+- [x] 3.1 Remove client-side file type restrictions
+
+
   - Modify upload.js to remove ZIP/EXE only validation
   - Update validateFileType function to check size limits only
   - Preserve security-focused client-side validation (file size, basic checks)

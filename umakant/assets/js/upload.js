@@ -46,7 +46,7 @@ function handleUploadClick() {
     
     // Validate file type
     if (!validateFileType(file)) {
-        showMessage('Only ZIP or EXE files allowed.', 'danger');
+        showMessage('Invalid file. Please avoid uploading executable files.', 'danger');
         return;
     }
     
@@ -58,9 +58,25 @@ function handleUploadClick() {
  * Validate file type
  */
 function validateFileType(file) {
-    const allowed = ['zip', 'exe'];
-    const ext = file.name.split('.').pop().toLowerCase();
-    return allowed.indexOf(ext) !== -1;
+    // Allow all file types - only check for basic security
+    const filename = file.name;
+    
+    // Basic filename validation
+    if (!filename || filename.length === 0) {
+        return false;
+    }
+    
+    // Check for potentially dangerous filenames
+    const dangerousPatterns = ['.php', '.asp', '.jsp', '.cgi'];
+    const lowerName = filename.toLowerCase();
+    
+    for (let pattern of dangerousPatterns) {
+        if (lowerName.includes(pattern)) {
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 /**
