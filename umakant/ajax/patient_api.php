@@ -15,7 +15,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 try {
-        if (session_status() === PHP_SESSION_NONE) {
+        if (session_status() === PHP_SESSION_NONE) { 
         session_start();
     }
 
@@ -301,7 +301,9 @@ function handleCreate() {
 
 function handleRead() {
     global $pdo;
-    
+
+
+    echo "Hello"; die;
     $id = intval($_GET['id'] ?? 0);
     if (!$id) {
         throw new Exception('Patient ID is required');
