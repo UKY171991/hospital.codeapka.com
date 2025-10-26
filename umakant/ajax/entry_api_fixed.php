@@ -608,8 +608,8 @@ try {
             $stmt->execute($params);
             $entry = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            echo json_encode(['success' => false, 'message' => 'Entry Testing']); die;
-            
+            echo json_encode(['success' => false, 'message' => 'Entry Testing '.$entry]); die;
+
             error_log("Entry API: Query result: " . ($entry ? 'Found entry' : 'No entry found'));
             
             if (!$entry) {
