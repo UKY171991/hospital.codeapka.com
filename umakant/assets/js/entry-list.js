@@ -1102,16 +1102,78 @@ class EntryManager {
     }
 
     /**
+     * Validate form before submission
+     */
+    validateForm() {
+        const errors = [];
+
+        // Check required fields
+        if (!$('#ownerAddedBySelect').val()) {
+            errors.push('Owner/Added By is required');
+        }
+
+        if (!$('#patientSelect').val()) {
+            errors.push('Patient is required');
+        }
+
+        if (!$('#entryDate').val()) {
+            errors.push('Entry Date is required');
+        }
+
+        // Check tests
+        const testSelects = $('.test-select');
+        let hasValidTest = false;
+        testSelects.each(function () {
+            if ($(this).val()) {
+                hasValidTest = true;
+                return false;
+            }
+        });
+
+        if (!hasValidTest) {
+            errors.push('At least one test is required');
+        }
+
+        return errors;
+    }
+
+    /**
      * Save entry (create or update)
      */
     async saveEntry() {
         console.log('Saving entry...');
-
-        const formData = new FormData($('#entryForm')[0]);
-        const action = this.currentEditId ? 'update' : 'create';
-        formData.append('action', action);
+        console.log('Current edit ID:', this.currentEditId);
 
         try {
+            // Validate form
+            const validationErrors = this.validateForm();
+            if (validationErrors.length > 0) {
+                toastr.error('Please fix the following errors:<br>' + validationErrors.join('<br>'));
+                return;
+            }
+
+            const patientId = $('#patientSelect').val();
+            const ownerAddedBy = $('#ownerAddedBySelect').val();
+
+            const formData = new FormData($('#entryForm')[0]);
+            formData.append('action', 'save'); // Use 'save' action as expected by API
+
+            // Ensure owner_added_by is set (it should be in the form already)
+            if (!formData.get('owner_added_by')) {
+                formData.append('owner_added_by', ownerAddedBy);
+            }
+
+            // Ensure patient_id is set
+            if (!formData.get('patient_id')) {
+                formData.append('patient_id', patientId);
+            }
+
+            // Debug form data
+            console.log('Form data being sent:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key, ':', value);
+            }
+
             const response = await $.ajax({
                 url: 'ajax/entry_api_fixed.php',
                 method: 'POST',
@@ -1121,17 +1183,43 @@ class EntryManager {
                 dataType: 'json'
             });
 
+            console.log('Save response:', response);
+
             if (response.success) {
                 toastr.success(this.currentEditId ? 'Entry updated successfully' : 'Entry created successfully');
                 this.refreshTable();
                 $('#entryModal').modal('hide');
                 this.resetForm();
             } else {
+                console.error('Save failed:', response);
                 toastr.error(response.message || 'Failed to save entry');
             }
         } catch (error) {
             console.error('Error saving entry:', error);
-            toastr.error('Failed to save entry');
+            console.error('Error details:', {
+                status: error.status,
+                statusText: error.statusText,
+                responseText: error.responseText
+            });
+
+            let errorMessage = 'Failed to save entry';
+            if (error.responseJSON && error.responseJSON.message) {
+                errorMessage += ': ' + error.responseJSON.message;
+            } else if (error.responseText) {
+                try {
+                    const errorData = JSON.parse(error.responseText);
+                    if (errorData.message) {
+                        errorMessage += ': ' + errorData.message;
+                    }
+                } catch (parseError) {
+                    // If response is not JSON, show status
+                    if (error.status) {
+                        errorMessage += ` (Status: ${error.status})`;
+                    }
+                }
+            }
+
+            toastr.error(errorMessage);
         }
     }
 
