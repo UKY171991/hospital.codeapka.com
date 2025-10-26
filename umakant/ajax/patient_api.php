@@ -301,9 +301,7 @@ function handleCreate() {
 
 function handleRead() {
     global $pdo;
-
-
-    echo "Hello"; die;
+    
     $id = intval($_GET['id'] ?? 0);
     if (!$id) {
         throw new Exception('Patient ID is required');
