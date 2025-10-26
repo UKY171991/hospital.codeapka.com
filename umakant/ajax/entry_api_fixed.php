@@ -113,26 +113,36 @@ function get_entry_tests_schema_capabilities($pdo) {
 function build_entry_tests_aggregation_sql($pdo) {
     $caps = get_entry_tests_schema_capabilities($pdo);
     if (!$caps['table_exists']) {
+        error_log("Entry tests table does not exist, returning empty aggregation");
         return "SELECT NULL AS entry_id, 0 AS tests_count, '' AS test_names, '' AS test_ids, 0 AS total_price, 0 AS total_discount FROM dual WHERE 1 = 0";
     }
     $sumPrice = $caps['has_price'] ? 'SUM(et.price)' : 'SUM(0)';
     $sumDiscount = $caps['has_discount_amount'] ? 'SUM(et.discount_amount)' : 'SUM(0)';
 
-    return "SELECT et.entry_id,\n               COUNT(*) as tests_count,\n               GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,\n               GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,\n               {$sumPrice} as total_price,\n               {$sumDiscount} as total_discount\n        FROM entry_tests et\n        LEFT JOIN tests t ON et.test_id = t.id\n        GROUP BY et.entry_id";
+    $sql = "SELECT et.entry_id,\n               COUNT(*) as tests_count,\n               GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,\n               GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,\n               {$sumPrice} as total_price,\n               {$sumDiscount} as total_discount\n        FROM entry_tests et\n        LEFT JOIN tests t ON et.test_id = t.id\n        GROUP BY et.entry_id";
+    
+    error_log("Built aggregation SQL: " . $sql);
+    return $sql;
 }
 
 function refresh_entry_aggregates($pdo, $entryId) {
+    error_log("Refreshing aggregates for entry ID: $entryId");
     $entriesCaps = get_entries_schema_capabilities($pdo);
     $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
     if (!$entryTestsCaps['table_exists']) {
+        error_log("Entry tests table does not exist, skipping aggregate refresh");
         return;
     }
 
     $aggSql = build_entry_tests_aggregation_sql($pdo);
+    $fullQuery = "SELECT tests_count, test_ids, test_names, total_price, total_discount FROM (" . $aggSql . ") agg WHERE entry_id = ?";
+    error_log("Aggregate refresh query: " . $fullQuery);
 
-    $stmt = $pdo->prepare("SELECT tests_count, test_ids, test_names, total_price, total_discount FROM (" . $aggSql . ") agg WHERE entry_id = ?");
+    $stmt = $pdo->prepare($fullQuery);
     $stmt->execute([$entryId]);
     $aggRow = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    error_log("Aggregate query result: " . json_encode($aggRow));
 
     $testsCount = $aggRow ? (int)($aggRow['tests_count'] ?? 0) : 0;
     $testIds = $aggRow ? ($aggRow['test_ids'] ?? '') : '';
@@ -181,12 +191,21 @@ function refresh_entry_aggregates($pdo, $entryId) {
     }
 
     if (!$fields) {
+        error_log("No fields to update for entry ID: $entryId");
         return;
     }
 
     $sql = "UPDATE entries SET " . implode(', ', $fields) . " WHERE id = :entry_id";
+    error_log("Updating entry aggregates with SQL: " . $sql);
+    error_log("Update parameters: " . json_encode($params));
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    $result = $stmt->execute($params);
+    
+    if ($result) {
+        error_log("Successfully updated aggregates for entry ID: $entryId");
+    } else {
+        error_log("Failed to update aggregates for entry ID: $entryId - " . json_encode($stmt->errorInfo()));
+    }
 }
 
 try {
@@ -282,10 +301,20 @@ try {
             " ORDER BY COALESCE(e.entry_date, e.created_at) DESC, e.id DESC";
         
         try {
+            error_log("Executing list query: " . $sql);
+            error_log("With parameters: " . json_encode($params));
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            error_log("Retrieved " . count($rows) . " entries from database");
+            
+            // Debug first row to see aggregation data
+            if (count($rows) > 0) {
+                $firstRow = $rows[0];
+                error_log("First row aggregation data: agg_tests_count={$firstRow['agg_tests_count']}, agg_test_names='{$firstRow['agg_test_names']}'");
+            }
         } catch (Exception $e) {
+            error_log("Database error in list query: " . $e->getMessage());
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Database error while listing entries', 'error' => $e->getMessage()]);
             exit;
@@ -299,14 +328,20 @@ try {
                 $row['entry_date'] = $row['created_at'];
             }
             
-            // Format test information
-            $row['tests_count'] = (int)($row['tests_count'] ?? 0);
-            $row['test_names'] = $row['test_names'] ?? '';
-            $row['test_ids'] = $row['test_ids'] ?? '';
+            // Format test information - use aggregated data if available
+            $row['tests_count'] = (int)($row['agg_tests_count'] ?? $row['tests_count'] ?? 0);
+            $row['test_names'] = $row['agg_test_names'] ?? $row['test_names'] ?? '';
+            $row['test_ids'] = $row['agg_test_ids'] ?? $row['test_ids'] ?? '';
             
-            // Format pricing
-            $aggTotalPrice = (float)($row['total_price'] ?? 0);
-            $aggDiscount = (float)($row['total_discount'] ?? 0);
+            // Debug logging for test aggregation
+            error_log("Entry ID {$row['id']}: tests_count={$row['tests_count']}, test_names='{$row['test_names']}'");
+            if ($row['tests_count'] > 1) {
+                error_log("Entry ID {$row['id']} has multiple tests: agg_tests_count={$row['agg_tests_count']}, agg_test_names='{$row['agg_test_names']}'");
+            }
+            
+            // Format pricing - use aggregated data if available
+            $aggTotalPrice = (float)($row['agg_total_price'] ?? $row['total_price'] ?? 0);
+            $aggDiscount = (float)($row['agg_total_discount'] ?? $row['total_discount'] ?? 0);
             $row['aggregated_total_price'] = $aggTotalPrice;
             $row['aggregated_total_discount'] = $aggDiscount;
 
@@ -583,6 +618,17 @@ try {
             if (count($tests) > 0) {
                 error_log("Entry API: First test data: " . json_encode($tests[0]));
                 error_log("Entry API: All test IDs: " . implode(', ', array_column($tests, 'test_id')));
+                error_log("Entry API: All tests data: " . json_encode($tests));
+            } else {
+                error_log("Entry API: No tests found - checking entry_tests table directly");
+                // Check if entry_tests records exist
+                $checkStmt = $pdo->prepare("SELECT * FROM entry_tests WHERE entry_id = ?");
+                $checkStmt->execute([$id]);
+                $directTests = $checkStmt->fetchAll(PDO::FETCH_ASSOC);
+                error_log("Entry API: Direct entry_tests query found " . count($directTests) . " records");
+                if (count($directTests) > 0) {
+                    error_log("Entry API: Direct entry_tests data: " . json_encode($directTests));
+                }
             }
             
             // Calculate totals from tests
@@ -847,6 +893,12 @@ try {
             
             // Refresh aggregated data
             refresh_entry_aggregates($pdo, $savedEntryId);
+            
+            // Also refresh aggregates for entry ID 17 for testing (remove this later)
+            if ($savedEntryId != 17) {
+                error_log("Also refreshing aggregates for test entry ID 17");
+                refresh_entry_aggregates($pdo, 17);
+            }
             
             echo json_encode([
                 'success' => true,

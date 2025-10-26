@@ -2084,6 +2084,16 @@ function editEntry(id) {
 
                 if (response.data.tests && response.data.tests.length > 0) {
                     console.log('Test details:', response.data.tests);
+                    response.data.tests.forEach((test, index) => {
+                        console.log(`Test ${index + 1}:`, {
+                            test_id: test.test_id,
+                            test_name: test.test_name,
+                            result_value: test.result_value,
+                            category_name: test.category_name
+                        });
+                    });
+                } else {
+                    console.warn('No tests found in API response for entry ID:', id);
                 }
 
                 populateEditForm(response.data);
