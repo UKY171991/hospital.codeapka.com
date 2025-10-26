@@ -733,7 +733,7 @@ class EntryManager {
             const existingUnit = $row.find('.test-unit').val();
             const existingMin = $row.find('.test-min').val();
             const existingMax = $row.find('.test-max').val();
-            
+
             // If the row already has complete data, don't overwrite it (edit mode)
             if (existingCategory && existingUnit && existingMin && existingMax) {
                 console.log('Row already has complete data, not overwriting:', {
