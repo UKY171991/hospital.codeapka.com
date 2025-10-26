@@ -796,10 +796,13 @@ try {
             
             if ($tests && is_array($tests)) {
                 error_log('Processing ' . count($tests) . ' tests for entry ID: ' . $savedEntryId);
+                error_log('Raw tests data: ' . json_encode($tests));
+                
                 // Delete existing tests for this entry
                 if ($isUpdate) {
                     $stmt = $pdo->prepare("DELETE FROM entry_tests WHERE entry_id = ?");
                     $stmt->execute([$savedEntryId]);
+                    error_log("Deleted existing tests for entry ID: $savedEntryId");
                 }
                 
                 // Insert new tests

@@ -1513,7 +1513,7 @@ function continueWithSave($form) {
     let subtotalFromTests = 0;
     const testData = [];
 
-    $testRows.each(function () {
+    $testRows.each(function (index) {
         const testId = $(this).find('.test-select').val();
         const resultVal = $(this).find('.test-result').val();
         const unitVal = $(this).find('.test-unit').val() || '';
@@ -1522,6 +1522,17 @@ function continueWithSave($form) {
         const $selectedTest = $(this).find('.test-select option:selected');
         const testName = $selectedTest.text() || '';
         const testPrice = parseFloat($selectedTest.data('price') || 0);
+
+        console.log(`Processing test row ${index}:`, {
+            testId: testId,
+            testName: testName,
+            resultVal: resultVal,
+            unitVal: unitVal,
+            categoryName: categoryName,
+            categoryId: categoryId,
+            testPrice: testPrice,
+            hasTestId: !!testId
+        });
 
         if (testId) {
             testData.push({
@@ -1534,6 +1545,9 @@ function continueWithSave($form) {
                 price: testPrice
             });
             subtotalFromTests += testPrice;
+            console.log(`Added test ${index} to testData array`);
+        } else {
+            console.warn(`Skipping test row ${index} - no testId`);
         }
     });
 
@@ -1560,12 +1574,26 @@ function continueWithSave($form) {
         });
     });
 
+    // Debug: Log test collection process
+    console.log('Test collection debug:', {
+        testRowsFound: $testRows.length,
+        testDataCollected: testData.length,
+        finalTestsArray: tests.length,
+        subtotalFromTests: subtotalFromTests,
+        globalDiscount: globalDiscount
+    });
+
     // Only send tests if we have any
     if (tests.length > 0) {
         formData.set('tests', JSON.stringify(tests));
-        console.log('Setting tests data:', JSON.stringify(tests));
+        console.log('Setting tests data:', JSON.stringify(tests, null, 2));
     } else {
         console.warn('No tests to save!');
+        console.warn('Debug - Test rows found:', $testRows.length);
+        $testRows.each(function(index) {
+            const testId = $(this).find('.test-select').val();
+            console.warn(`Test row ${index}: testId = ${testId}`);
+        });
         if (typeof toastr !== 'undefined') {
             toastr.warning('No tests selected. Please add at least one test.');
         }
