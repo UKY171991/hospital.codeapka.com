@@ -341,7 +341,7 @@ class EntryManager {
                 statusText: error.statusText,
                 responseText: error.responseText
             });
-            
+
             // Try to parse error response
             if (error.responseText) {
                 try {
@@ -351,7 +351,7 @@ class EntryManager {
                     //console.error('Could not parse error response:', error.responseText);
                 }
             }
-            
+
             this.testsData = [];
         }
     }
@@ -642,7 +642,7 @@ class EntryManager {
                 setTimeout(() => {
                     // Set the select value
                     $testSelect.val(testData.test_id);
-                    
+
                     // Destroy and reinitialize Select2 to ensure proper display
                     $testSelect.select2('destroy').select2({
                         theme: 'bootstrap4',
@@ -666,7 +666,7 @@ class EntryManager {
                 }, 200); // Increased timeout to ensure DOM is ready
             } else {
                 console.warn('Test not found in testsData for ID:', testData.test_id);
-                console.log('Looking for test with ID:', testData.test_id, 'in', this.testsData.map(t => ({id: t.id, name: t.name})));
+                console.log('Looking for test with ID:', testData.test_id, 'in', this.testsData.map(t => ({ id: t.id, name: t.name })));
 
                 // If test not found in our data, try to populate with what we have
                 const testName = testData.test_name || `Test ${testData.test_id}`;
@@ -680,7 +680,7 @@ class EntryManager {
                 // Populate with available data
                 setTimeout(() => {
                     $testSelect.val(testData.test_id);
-                    
+
                     // Reinitialize Select2
                     $testSelect.select2('destroy').select2({
                         theme: 'bootstrap4',
@@ -695,7 +695,7 @@ class EntryManager {
                     $newRow.find('.test-price').val(testData.price || 0);
                     $newRow.find('.test-result').val(testData.result_value || '');
 
-                    //console.log('Test row populated with fallback data for ID:', testData.test_id, 'Name:', testName);
+                    console.log('Test row populated with fallback data for ID:', testData.test_id, 'Name:', testName);
                 }, 200);
             }
         }
@@ -740,7 +740,7 @@ class EntryManager {
                 $row.find('.test-min').val(foundTest.min || '');
                 $row.find('.test-max').val(foundTest.max || '');
                 $row.find('.test-price').val(foundTest.price || 0);
-                
+
                 console.log('Updated row with test data:', {
                     category: foundTest.category_name,
                     unit: foundTest.unit,
@@ -991,7 +991,7 @@ class EntryManager {
     displayEntryDetails(entry) {
         console.log('Displaying entry details:', entry);
         console.log('Entry tests data:', entry.tests);
-        
+
         // Debug each test
         if (entry.tests && entry.tests.length > 0) {
             entry.tests.forEach((test, index) => {
@@ -1117,12 +1117,12 @@ class EntryManager {
      * Populate edit form with entry data
      */
     async populateEditForm(entry) {
-        console.log('Populating edit form with entry:', entry);
-        console.log('Entry keys:', Object.keys(entry));
-        console.log('Added by field:', entry.added_by);
-        console.log('Owner ID field:', entry.owner_id);
-        console.log('Patient ID field:', entry.patient_id);
-        console.log('Doctor ID field:', entry.doctor_id);
+        // console.log('Populating edit form with entry:', entry);
+        // console.log('Entry keys:', Object.keys(entry));
+        // console.log('Added by field:', entry.added_by);
+        // console.log('Owner ID field:', entry.owner_id);
+        // console.log('Patient ID field:', entry.patient_id);
+        // console.log('Doctor ID field:', entry.doctor_id);
 
         this.currentEditId = entry.id;
 
@@ -1207,7 +1207,7 @@ class EntryManager {
         } else {
             console.log('Tests data already loaded:', this.testsData.length, 'tests available');
         }
-        
+
         // Double-check that we have tests data
         if (this.testsData.length === 0) {
             console.error('No tests data available! This will cause issues with test selection.');
@@ -1221,7 +1221,7 @@ class EntryManager {
         if (entry.tests && entry.tests.length > 0) {
             console.log('Populating', entry.tests.length, 'tests:', entry.tests);
             console.log('Available tests data:', this.testsData.length, 'tests');
-            
+
             // Debug: show what test IDs we're looking for vs what we have
             const entryTestIds = entry.tests.map(t => t.test_id);
             const availableTestIds = this.testsData.map(t => t.id);
@@ -1458,7 +1458,7 @@ $(document).ready(function () {
         // console.log('Initializing Entry Manager...');
         entryManager = new EntryManager();
         window.entryManager = entryManager;
-       // console.log('Entry Manager initialized successfully');
+        // console.log('Entry Manager initialized successfully');
     } catch (error) {
         // console.error('Error initializing Entry Manager:', error);
         // console.error('Error stack:', error.stack);
