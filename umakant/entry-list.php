@@ -227,6 +227,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
             <form id="entryForm">
                 <div class="modal-body">
                     <input type="hidden" id="entryId" name="id">
+                    <input type="hidden" id="isNewPatient" name="is_new_patient" value="false">
                     
                     <div class="row">
                         <div class="col-md-3">
@@ -292,28 +293,28 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label for="patientName">Patient Name</label>
-                                        <input type="text" class="form-control patient-info-field" id="patientName" name="patient_name" 
+                                        <input type="text" class="form-control patient-info-field" id="patientName" name="new_patient_name" 
                                                placeholder="Enter patient name...">
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label for="patientContact">Patient Contact</label>
-                                        <input type="text" class="form-control patient-info-field" id="patientContact" name="patient_contact" 
+                                        <input type="text" class="form-control patient-info-field" id="patientContact" name="new_patient_contact" 
                                                placeholder="Phone number or email...">
                                     </div>
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="patientAge">Age</label>
-                                        <input type="number" class="form-control patient-info-field" id="patientAge" name="age" 
+                                        <input type="number" class="form-control patient-info-field" id="patientAge" name="new_patient_age" 
                                                placeholder="Age" min="0" max="150">
                                     </div>
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="patientGender">Gender</label>
-                                        <select class="form-control select2 patient-info-field" id="patientGender" name="gender">
+                                        <select class="form-control select2 patient-info-field" id="patientGender" name="new_patient_gender">
                                             <option value="">Select Gender</option>
                                             <option value="Male">Male</option>
                                             <option value="Female">Female</option>
@@ -324,7 +325,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="patientAddress">Patient Address</label>
-                                        <textarea class="form-control patient-info-field" id="patientAddress" name="patient_address" rows="2" 
+                                        <textarea class="form-control patient-info-field" id="patientAddress" name="new_patient_address" rows="2" 
                                                   placeholder="Patient address..."></textarea>
                                     </div>
                                 </div>

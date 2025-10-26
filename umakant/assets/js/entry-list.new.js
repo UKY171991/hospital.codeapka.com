@@ -721,6 +721,9 @@ function enableNewPatientMode() {
     $('#patientInfoCard').removeClass('existing-patient-mode').addClass('new-patient-mode');
     $('#patientModeIndicator').removeClass('existing-patient').addClass('new-patient').text('New Patient Mode');
 
+    // Set hidden field to indicate new patient mode
+    $('#isNewPatient').val('true');
+
     console.log('New patient mode enabled - fields are now editable');
 }
 
@@ -755,6 +758,9 @@ function enableExistingPatientMode(age, gender, contact, address, name) {
     $('#patientInfoCard').removeClass('new-patient-mode').addClass('existing-patient-mode');
     $('#patientModeIndicator').removeClass('new-patient').addClass('existing-patient').text('Existing Patient');
 
+    // Set hidden field to indicate existing patient mode
+    $('#isNewPatient').val('false');
+
     console.log('Existing patient mode enabled - fields are now read-only');
 }
 
@@ -784,6 +790,7 @@ function openAddEntryModal() {
     try { if ($('#entryForm').length) { $('#entryForm')[0].reset(); } } catch (e) { }
     try { if ($('#addEntryForm').length) { $('#addEntryForm')[0].reset(); } } catch (e) { }
     $('#entryId').val('');
+    $('#isNewPatient').val('false');
     $('#entryDate').val(new Date().toISOString().split('T')[0]);
     $('#priority').val('normal');
     // Reset gender
@@ -1045,6 +1052,10 @@ function saveEntry(formElement) {
         if (!patientAge) {
             toastr.warning('Patient age is recommended for better record keeping.');
         }
+
+        // Create new patient first, then save entry
+        createNewPatientAndSaveEntry($form);
+        return;
     }
 
     // Validate for duplicate test selections before saving
@@ -1078,7 +1089,78 @@ function saveEntry(formElement) {
     }, 50);
 }
 
+// Create new patient and then save entry
+function createNewPatientAndSaveEntry($form) {
+    console.log('Creating new patient first...');
+
+    // Get owner/user information
+    const ownerAddedByValue = $('#ownerAddedBySelect').val();
+    let ownerId = null;
+
+    if (ownerAddedByValue) {
+        if (ownerAddedByValue.startsWith('owner_')) {
+            ownerId = ownerAddedByValue.replace('owner_', '');
+        } else if (ownerAddedByValue.startsWith('user_')) {
+            ownerId = ownerAddedByValue.replace('user_', '');
+        }
+    }
+
+    // Prepare new patient data
+    const newPatientData = {
+        action: 'create',
+        name: $('#patientName').val().trim(),
+        contact: $('#patientContact').val().trim(),
+        phone: $('#patientContact').val().trim(), // Use contact as phone
+        age: $('#patientAge').val(),
+        gender: $('#patientGender').val(),
+        address: $('#patientAddress').val().trim(),
+        owner_id: ownerId
+    };
+
+    console.log('New patient data:', newPatientData);
+
+    // Create the new patient
+    $.ajax({
+        url: 'ajax/patient_api.php',
+        method: 'POST',
+        data: newPatientData,
+        dataType: 'json',
+        success: function (response) {
+            console.log('Patient creation response:', response);
+
+            if (response.success && response.data && response.data.id) {
+                const newPatientId = response.data.id;
+                console.log('New patient created with ID:', newPatientId);
+
+                // Update the patient selection to use the new patient ID
+                $('#patientSelect').val(newPatientId);
+
+                // Remove the new_patient_* fields from form data to avoid database conflicts
+                $form.find('[name^="new_patient_"]').remove();
+
+                // Continue with entry save using the new patient ID
+                continueWithSave($form);
+
+                toastr.success('New patient created successfully!');
+            } else {
+                console.error('Failed to create patient:', response);
+                toastr.error(response.message || 'Failed to create new patient. Please try again.');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Error creating patient:', error, xhr.responseText);
+            toastr.error('Error creating new patient. Please check the information and try again.');
+        }
+    });
+}
+
 function continueWithSave($form) {
+    // Remove new_patient_* fields from form to avoid database conflicts
+    // These fields are only used for creating new patients, not for entry submission
+    $form.find('[name^="new_patient_"]').each(function () {
+        $(this).removeAttr('name');
+    });
+
     const formData = new FormData($form[0]);
 
     // Process owner/added by field - prefer form-local field, fallback to global selector
