@@ -1172,6 +1172,38 @@ class EntryManager {
     }
 
     /**
+     * Format date for HTML date input (requires YYYY-MM-DD format)
+     * @param {string} dateString - Date string in various formats
+     * @returns {string} Formatted date string in YYYY-MM-DD format
+     */
+    formatDateForInput(dateString) {
+        if (!dateString) {
+            return '';
+        }
+
+        try {
+            // Try to parse the date
+            const date = new Date(dateString);
+            
+            // Check if date is valid
+            if (isNaN(date.getTime())) {
+                console.warn('Invalid date format:', dateString);
+                return '';
+            }
+
+            // Format as YYYY-MM-DD for HTML date input
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}`;
+        } catch (error) {
+            console.error('Error formatting date:', dateString, error);
+            return '';
+        }
+    }
+
+    /**
      * Validate complete demographic range workflow
      * This method can be called from browser console for testing
      */
@@ -1819,7 +1851,14 @@ class EntryManager {
 
         // Populate basic fields
         $('#entryId').val(entry.id);
-        $('#entryDate').val(entry.entry_date);
+        
+        // Format entry date for HTML date input (requires YYYY-MM-DD format)
+        if (entry.entry_date) {
+            const formattedDate = this.formatDateForInput(entry.entry_date);
+            $('#entryDate').val(formattedDate);
+            console.log('Setting entry date:', entry.entry_date, '-> formatted:', formattedDate);
+        }
+        
         $('#entryStatus').val(entry.status);
         $('#priority').val(entry.priority);
         $('#referralSource').val(entry.referral_source);
