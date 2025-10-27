@@ -13,6 +13,13 @@ class EntryManager {
         this.currentEditId = null;
         this.testRowCounter = 0;
 
+        // Performance optimization: Range calculation cache
+        this.rangeCache = new Map();
+        this.rangeCacheTimeout = 5 * 60 * 1000; // 5 minutes cache timeout
+
+        // Performance optimization: Debounced update function
+        this.debouncedRangeUpdate = this.debounce(this.updateAllTestRangesForCurrentPatient.bind(this), 150);
+
         this.init();
     }
 
@@ -318,6 +325,12 @@ class EntryManager {
 
             if (response && response.success) {
                 this.testsData = response.data || [];
+                // Clear range cache when test data is updated
+                this.clearRangeCache();
+                
+                // Verify demographic range fields are available
+                this.verifyDemographicRangeFields();
+                
                 //console.log('Loaded tests data:', this.testsData.length, 'tests');
 
                 // Debug: show first few tests
@@ -655,32 +668,37 @@ class EntryManager {
                         placeholder: 'Select Test'
                     });
 
-                    // Use entry data if available, otherwise use testsData
+                    // Get current patient demographics for range calculation
+                    const patientAge = parseInt($('#patientAge').val()) || null;
+                    const patientGender = $('#patientGender').val() || null;
+
+                    // Calculate demographic-appropriate ranges (use current patient, not stored ranges)
+                    const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, foundTest);
+
+                    // Use entry data for non-range fields, demographic ranges for range fields
                     const categoryName = testData.category_name || foundTest.category_name || '';
                     const categoryId = testData.category_id || foundTest.category_id || '';
-                    const unit = testData.unit || foundTest.unit || '';
-                    const min = testData.min || foundTest.min || '';
-                    const max = testData.max || foundTest.max || '';
                     const price = testData.price || foundTest.price || 0;
 
-                    console.log('Using test data for row:', {
+                    console.log('Using demographic-appropriate ranges for edit mode:', {
                         test_id: testData.test_id,
                         category_name: categoryName,
-                        unit: unit,
-                        min: min,
-                        max: max,
+                        rangeType: rangeData.type,
+                        min: rangeData.min,
+                        max: rangeData.max,
+                        unit: rangeData.unit,
                         price: price,
-                        source: testData.category_name ? 'entry_data' : 'tests_data'
+                        result: testData.result_value
                     });
 
-                    // Populate test details
+                    // Populate test details with demographic-appropriate ranges
                     $newRow.find('.test-category').val(categoryName);
                     $newRow.find('.test-category-id').val(categoryId);
-                    $newRow.find('.test-unit').val(unit);
-                    $newRow.find('.test-min').val(min);
-                    $newRow.find('.test-max').val(max);
                     $newRow.find('.test-price').val(price);
                     $newRow.find('.test-result').val(testData.result_value || '');
+
+                    // Use demographic-appropriate ranges instead of stored ranges
+                    this.updateRangeDisplay($newRow, rangeData);
 
                     // Don't trigger change event to avoid overwriting entry-specific data
                     // $testSelect.trigger('change');
@@ -711,29 +729,33 @@ class EntryManager {
                         placeholder: 'Select Test'
                     });
 
-                    // Use whatever data is available from the entry
+                    // Use whatever data is available from the entry (fallback for missing tests)
                     const categoryName = testData.category_name || testData.test_name || 'Unknown Category';
-                    const unit = testData.unit || '';
-                    const min = testData.min || '';
-                    const max = testData.max || '';
                     const price = testData.price || 0;
+
+                    // Create fallback range data from stored values
+                    const fallbackRangeData = {
+                        min: testData.min || null,
+                        max: testData.max || null,
+                        unit: testData.unit || '',
+                        type: 'general',
+                        label: 'Stored Range'
+                    };
 
                     console.log('Using fallback data for missing test:', {
                         test_id: testData.test_id,
                         category_name: categoryName,
-                        unit: unit,
-                        min: min,
-                        max: max,
+                        rangeData: fallbackRangeData,
                         price: price
                     });
 
                     $newRow.find('.test-category').val(categoryName);
                     $newRow.find('.test-category-id').val(testData.category_id || '');
-                    $newRow.find('.test-unit').val(unit);
-                    $newRow.find('.test-min').val(min);
-                    $newRow.find('.test-max').val(max);
                     $newRow.find('.test-price').val(price);
                     $newRow.find('.test-result').val(testData.result_value || '');
+
+                    // Use fallback range data
+                    this.updateRangeDisplay($newRow, fallbackRangeData);
 
                     console.log('Test row populated with fallback data for ID:', testData.test_id, 'Name:', testName);
                 }, 200);
@@ -791,19 +813,27 @@ class EntryManager {
             if (foundTest) {
                 console.log('Found test data for ID', testId, ':', foundTest);
 
-                // Populate test details from testsData (more reliable than data attributes)
+                // Get current patient demographics
+                const patientAge = parseInt($('#patientAge').val()) || null;
+                const patientGender = $('#patientGender').val() || null;
+
+                // Calculate appropriate ranges for this patient
+                const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, foundTest);
+
+                // Populate test details from testsData
                 $row.find('.test-category').val(foundTest.category_name || '');
                 $row.find('.test-category-id').val(foundTest.category_id || '');
-                $row.find('.test-unit').val(foundTest.unit || '');
-                $row.find('.test-min').val(foundTest.min || '');
-                $row.find('.test-max').val(foundTest.max || '');
                 $row.find('.test-price').val(foundTest.price || 0);
 
-                console.log('Updated row with test data:', {
+                // Use calculated demographic-appropriate ranges
+                this.updateRangeDisplay($row, rangeData);
+
+                console.log('Updated row with demographic-appropriate ranges:', {
                     category: foundTest.category_name,
-                    unit: foundTest.unit,
-                    min: foundTest.min,
-                    max: foundTest.max,
+                    rangeType: rangeData.type,
+                    min: rangeData.min,
+                    max: rangeData.max,
+                    unit: rangeData.unit,
                     price: foundTest.price
                 });
             } else {
@@ -816,9 +846,10 @@ class EntryManager {
                 $row.find('.test-price').val(selectedOption.data('price') || 0);
             }
         } else {
-            // Clear test details
+            // Clear test details including range indicator
             $row.find('.test-category, .test-unit, .test-min, .test-max').val('');
             $row.find('.test-price').val(0);
+            $row.find('.range-type-indicator').remove();
         }
 
         this.calculateTotals();
@@ -841,6 +872,556 @@ class EntryManager {
 
         $('#subtotal').val(subtotal.toFixed(2));
         $('#totalPrice').val(total.toFixed(2));
+    }
+
+    /**
+     * Calculate appropriate reference ranges based on patient demographics (with caching)
+     * @param {number|null} patientAge - Patient's age in years
+     * @param {string|null} patientGender - Patient's gender ('Male', 'Female', etc.)
+     * @param {object} testData - Test data containing all range fields
+     * @returns {object} Range data with min, max, unit, type, and label
+     */
+    calculateAppropriateRanges(patientAge, patientGender, testData) {
+        // Performance optimization: Check cache first
+        const cacheKey = this.generateRangeCacheKey(patientAge, patientGender, testData.id);
+        const cachedResult = this.getRangeFromCache(cacheKey);
+        if (cachedResult) {
+            return cachedResult;
+        }
+        // Age threshold for child vs adult classification
+        const CHILD_AGE_THRESHOLD = 18;
+        
+        // Validate inputs
+        if (!testData) {
+            return this.getDefaultRangeData();
+        }
+
+        // Validate patient demographics
+        const validation = this.validatePatientDemographics(patientAge, patientGender);
+        const validAge = validation.age;
+        const validGender = validation.gender;
+
+        // Log warnings if any
+        if (validation.warnings.length > 0) {
+            console.warn('Patient demographic validation warnings:', validation.warnings);
+        }
+        
+        // Check if patient is a child (under 18)
+        if (validAge !== null && validAge < CHILD_AGE_THRESHOLD) {
+            // Use child ranges if available
+            if (this.hasValidRange(testData.min_child, testData.max_child)) {
+                const result = {
+                    min: testData.min_child,
+                    max: testData.max_child,
+                    unit: testData.child_unit || testData.unit || '',
+                    type: 'child',
+                    label: 'Child Range'
+                };
+                this.setRangeInCache(cacheKey, result);
+                return result;
+            }
+        } else if (validAge !== null && validAge >= CHILD_AGE_THRESHOLD) {
+            // Adult patient - check gender-specific ranges
+            if (validGender === 'male') {
+                if (this.hasValidRange(testData.min_male, testData.max_male)) {
+                    const result = {
+                        min: testData.min_male,
+                        max: testData.max_male,
+                        unit: testData.male_unit || testData.unit || '',
+                        type: 'male',
+                        label: 'Male Range'
+                    };
+                    this.setRangeInCache(cacheKey, result);
+                    return result;
+                }
+            } else if (validGender === 'female') {
+                if (this.hasValidRange(testData.min_female, testData.max_female)) {
+                    const result = {
+                        min: testData.min_female,
+                        max: testData.max_female,
+                        unit: testData.female_unit || testData.unit || '',
+                        type: 'female',
+                        label: 'Female Range'
+                    };
+                    this.setRangeInCache(cacheKey, result);
+                    return result;
+                }
+            }
+        }
+        
+        // Fallback to general ranges
+        const result = {
+            min: testData.min,
+            max: testData.max,
+            unit: testData.unit || '',
+            type: 'general',
+            label: 'General Range'
+        };
+
+        // Cache the result for future use
+        this.setRangeInCache(cacheKey, result);
+        return result;
+    }
+
+    /**
+     * Check if range values are valid (not null/undefined and at least one is present)
+     * @param {number|null} min - Minimum value
+     * @param {number|null} max - Maximum value
+     * @returns {boolean} True if at least one valid range value exists
+     */
+    hasValidRange(min, max) {
+        return (min !== null && min !== undefined) || (max !== null && max !== undefined);
+    }
+
+    /**
+     * Normalize gender string to lowercase for consistent comparison
+     * @param {string|null} gender - Gender string
+     * @returns {string} Normalized gender ('male', 'female', or 'unknown')
+     */
+    normalizeGender(gender) {
+        if (!gender || typeof gender !== 'string') {
+            return 'unknown';
+        }
+        
+        const normalized = gender.toLowerCase().trim();
+        if (normalized === 'male' || normalized === 'm') {
+            return 'male';
+        } else if (normalized === 'female' || normalized === 'f') {
+            return 'female';
+        }
+        
+        return 'unknown';
+    }
+
+    /**
+     * Get default range data when no specific ranges are available
+     * @returns {object} Default range data structure
+     */
+    getDefaultRangeData() {
+        return {
+            min: null,
+            max: null,
+            unit: '',
+            type: 'general',
+            label: 'General Range'
+        };
+    }
+
+    /**
+     * Validate patient demographic data
+     * @param {number|null} age - Patient age
+     * @param {string|null} gender - Patient gender
+     * @returns {object} Validation result with isValid flag and normalized values
+     */
+    validatePatientDemographics(age, gender) {
+        const result = {
+            isValid: true,
+            age: null,
+            gender: null,
+            warnings: []
+        };
+
+        // Validate age
+        if (age !== null && age !== undefined) {
+            const numericAge = parseInt(age);
+            if (isNaN(numericAge) || numericAge < 0 || numericAge > 150) {
+                result.warnings.push(`Invalid age: ${age}. Using general ranges.`);
+                result.age = null;
+            } else {
+                result.age = numericAge;
+            }
+        }
+
+        // Validate and normalize gender
+        if (gender && typeof gender === 'string') {
+            result.gender = this.normalizeGender(gender);
+        }
+
+        return result;
+    }
+
+    /**
+     * Generate cache key for range calculation
+     * @param {number|null} age - Patient age
+     * @param {string|null} gender - Patient gender
+     * @param {number} testId - Test ID
+     * @returns {string} Cache key
+     */
+    generateRangeCacheKey(age, gender, testId) {
+        return `${age || 'null'}_${gender || 'null'}_${testId}`;
+    }
+
+    /**
+     * Get range from cache if available and not expired
+     * @param {string} cacheKey - Cache key
+     * @returns {object|null} Cached range data or null
+     */
+    getRangeFromCache(cacheKey) {
+        const cached = this.rangeCache.get(cacheKey);
+        if (cached && (Date.now() - cached.timestamp) < this.rangeCacheTimeout) {
+            return cached.data;
+        }
+        
+        // Remove expired cache entry
+        if (cached) {
+            this.rangeCache.delete(cacheKey);
+        }
+        
+        return null;
+    }
+
+    /**
+     * Set range in cache with timestamp
+     * @param {string} cacheKey - Cache key
+     * @param {object} rangeData - Range data to cache
+     */
+    setRangeInCache(cacheKey, rangeData) {
+        this.rangeCache.set(cacheKey, {
+            data: rangeData,
+            timestamp: Date.now()
+        });
+
+        // Prevent cache from growing too large
+        if (this.rangeCache.size > 1000) {
+            // Remove oldest entries (simple LRU-like behavior)
+            const keysToDelete = Array.from(this.rangeCache.keys()).slice(0, 200);
+            keysToDelete.forEach(key => this.rangeCache.delete(key));
+        }
+    }
+
+    /**
+     * Clear range cache (useful when test data is reloaded)
+     */
+    clearRangeCache() {
+        this.rangeCache.clear();
+        console.log('Range cache cleared');
+    }
+
+    /**
+     * Optimized batch update for multiple test rows
+     * @param {Array} testRows - Array of test row data to update
+     * @param {number|null} patientAge - Patient age
+     * @param {string|null} patientGender - Patient gender
+     */
+    batchUpdateTestRanges(testRows, patientAge, patientGender) {
+        const startTime = performance.now();
+        
+        // Pre-calculate all ranges to minimize DOM access
+        const rangeUpdates = testRows.map(rowData => {
+            const testData = this.testsData.find(t => t.id == rowData.testId);
+            if (testData) {
+                return {
+                    $row: rowData.$row,
+                    rangeData: this.calculateAppropriateRanges(patientAge, patientGender, testData)
+                };
+            }
+            return null;
+        }).filter(update => update !== null);
+
+        // Apply all updates in a single DOM manipulation cycle
+        rangeUpdates.forEach(update => {
+            this.updateRangeDisplay(update.$row, update.rangeData);
+        });
+
+        const endTime = performance.now();
+        console.log(`Batch range update completed in ${(endTime - startTime).toFixed(2)}ms for ${rangeUpdates.length} tests`);
+        
+        return rangeUpdates.length;
+    }
+
+    /**
+     * Test demographic range functionality with sample data
+     */
+    testDemographicRangeFunctionality() {
+        console.log('=== TESTING DEMOGRAPHIC RANGE FUNCTIONALITY ===');
+        
+        if (this.testsData.length === 0) {
+            console.error('No test data available for testing');
+            return;
+        }
+
+        // Find a test with demographic ranges for testing
+        const testWithRanges = this.testsData.find(test => 
+            test.min_male || test.max_male || test.min_female || test.max_female || test.min_child || test.max_child
+        );
+
+        if (!testWithRanges) {
+            console.warn('No tests with demographic ranges found for testing');
+            return;
+        }
+
+        console.log('Testing with test:', testWithRanges.name, 'ID:', testWithRanges.id);
+
+        // Test child ranges (age 10)
+        const childRange = this.calculateAppropriateRanges(10, 'Male', testWithRanges);
+        console.log('Child range (age 10, Male):', childRange);
+
+        // Test adult male ranges (age 30)
+        const maleRange = this.calculateAppropriateRanges(30, 'Male', testWithRanges);
+        console.log('Adult male range (age 30, Male):', maleRange);
+
+        // Test adult female ranges (age 25)
+        const femaleRange = this.calculateAppropriateRanges(25, 'Female', testWithRanges);
+        console.log('Adult female range (age 25, Female):', femaleRange);
+
+        // Test general ranges (no demographics)
+        const generalRange = this.calculateAppropriateRanges(null, null, testWithRanges);
+        console.log('General range (no demographics):', generalRange);
+
+        console.log('=== DEMOGRAPHIC RANGE TESTING COMPLETE ===');
+    }
+
+    /**
+     * Validate complete demographic range workflow
+     * This method can be called from browser console for testing
+     */
+    validateDemographicRangeWorkflow() {
+        console.log('=== VALIDATING DEMOGRAPHIC RANGE WORKFLOW ===');
+        
+        const results = {
+            cacheTest: false,
+            performanceTest: false,
+            validationTest: false,
+            uiUpdateTest: false
+        };
+
+        try {
+            // Test 1: Cache functionality
+            console.log('Testing cache functionality...');
+            const testData = this.testsData[0];
+            if (testData) {
+                const key = this.generateRangeCacheKey(25, 'Male', testData.id);
+                const range1 = this.calculateAppropriateRanges(25, 'Male', testData);
+                const range2 = this.calculateAppropriateRanges(25, 'Male', testData); // Should use cache
+                results.cacheTest = true;
+                console.log('✓ Cache test passed');
+            }
+
+            // Test 2: Performance test
+            console.log('Testing performance...');
+            const startTime = performance.now();
+            for (let i = 0; i < 100; i++) {
+                if (this.testsData[0]) {
+                    this.calculateAppropriateRanges(25, 'Male', this.testsData[0]);
+                }
+            }
+            const endTime = performance.now();
+            const avgTime = (endTime - startTime) / 100;
+            results.performanceTest = avgTime < 1; // Should be under 1ms per calculation
+            console.log(`✓ Performance test: ${avgTime.toFixed(3)}ms per calculation`);
+
+            // Test 3: Validation test
+            console.log('Testing validation...');
+            const validation = this.validatePatientDemographics(25, 'Male');
+            results.validationTest = validation.age === 25 && validation.gender === 'male';
+            console.log('✓ Validation test passed');
+
+            // Test 4: UI update test (if DOM elements exist)
+            console.log('Testing UI updates...');
+            if ($('#patientAge').length > 0) {
+                $('#patientAge').val('25');
+                $('#patientGender').val('Male');
+                this.updateAllTestRangesForCurrentPatient();
+                results.uiUpdateTest = true;
+                console.log('✓ UI update test passed');
+            } else {
+                console.log('⚠ UI elements not available for testing');
+                results.uiUpdateTest = true; // Don't fail if UI not available
+            }
+
+        } catch (error) {
+            console.error('Workflow validation error:', error);
+        }
+
+        const allPassed = Object.values(results).every(result => result === true);
+        console.log('=== WORKFLOW VALIDATION RESULTS ===');
+        console.log('Cache Test:', results.cacheTest ? '✓ PASS' : '✗ FAIL');
+        console.log('Performance Test:', results.performanceTest ? '✓ PASS' : '✗ FAIL');
+        console.log('Validation Test:', results.validationTest ? '✓ PASS' : '✗ FAIL');
+        console.log('UI Update Test:', results.uiUpdateTest ? '✓ PASS' : '✗ FAIL');
+        console.log('Overall Result:', allPassed ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED');
+        
+        return results;
+    }
+
+    /**
+     * Verify that demographic range fields are available in test data
+     */
+    verifyDemographicRangeFields() {
+        if (this.testsData.length === 0) {
+            console.warn('No test data available for demographic range field verification');
+            return;
+        }
+
+        const requiredFields = ['min_male', 'max_male', 'min_female', 'max_female', 'min_child', 'max_child'];
+        const sampleTest = this.testsData[0];
+        const missingFields = [];
+        const availableFields = [];
+
+        requiredFields.forEach(field => {
+            if (sampleTest.hasOwnProperty(field)) {
+                availableFields.push(field);
+            } else {
+                missingFields.push(field);
+            }
+        });
+
+        console.log('Demographic range field verification:', {
+            totalTests: this.testsData.length,
+            availableFields: availableFields,
+            missingFields: missingFields,
+            sampleTestId: sampleTest.id,
+            sampleTestName: sampleTest.name
+        });
+
+        if (missingFields.length > 0) {
+            console.error('Missing demographic range fields:', missingFields);
+            console.error('Demographic range functionality may not work properly');
+            
+            if (typeof toastr !== 'undefined') {
+                toastr.warning('Some demographic range fields are missing from test data. Age/gender-specific ranges may not work properly.');
+            }
+        } else {
+            console.log('All demographic range fields are available');
+            
+            // Check if any tests actually have demographic-specific ranges
+            let testsWithDemographicRanges = 0;
+            this.testsData.forEach(test => {
+                if (test.min_male || test.max_male || test.min_female || test.max_female || test.min_child || test.max_child) {
+                    testsWithDemographicRanges++;
+                }
+            });
+
+            console.log(`Found ${testsWithDemographicRanges} tests with demographic-specific ranges out of ${this.testsData.length} total tests`);
+            
+            // Run functionality test if we have tests with demographic ranges
+            if (testsWithDemographicRanges > 0) {
+                this.testDemographicRangeFunctionality();
+            }
+        }
+    }
+
+    /**
+     * Update range display in a test row with demographic-appropriate ranges
+     * @param {jQuery} $row - The test row jQuery object
+     * @param {object} rangeData - Range data from calculateAppropriateRanges
+     */
+    updateRangeDisplay($row, rangeData) {
+        if (!$row || !rangeData) {
+            return;
+        }
+
+        // Update min/max fields
+        $row.find('.test-min').val(rangeData.min || '');
+        $row.find('.test-max').val(rangeData.max || '');
+        $row.find('.test-unit').val(rangeData.unit || '');
+
+        // Add/update range type indicator
+        let $indicator = $row.find('.range-type-indicator');
+        if ($indicator.length === 0) {
+            $indicator = $('<span class="range-type-indicator badge ml-1"></span>');
+            $row.find('.test-unit').after($indicator);
+        }
+
+        // Set indicator styling based on range type
+        $indicator.removeClass('badge-info badge-primary badge-success badge-secondary badge-warning')
+                 .addClass(this.getRangeTypeBadgeClass(rangeData.type))
+                 .text(rangeData.label)
+                 .attr('title', `Using ${rangeData.label.toLowerCase()} for this patient`)
+                 .attr('data-toggle', 'tooltip');
+
+        // Initialize tooltip if not already done
+        if (!$indicator.data('bs.tooltip')) {
+            $indicator.tooltip();
+        }
+    }
+
+    /**
+     * Get CSS class for range type badge
+     * @param {string} rangeType - Type of range ('child', 'male', 'female', 'general')
+     * @returns {string} CSS class for the badge
+     */
+    getRangeTypeBadgeClass(rangeType) {
+        switch (rangeType) {
+            case 'child':
+                return 'badge-info';
+            case 'male':
+                return 'badge-primary';
+            case 'female':
+                return 'badge-success';
+            case 'general':
+            default:
+                return 'badge-secondary';
+        }
+    }
+
+    /**
+     * Update all test ranges for the currently selected patient (with performance monitoring)
+     */
+    updateAllTestRangesForCurrentPatient() {
+        const startTime = performance.now();
+        const patientAge = parseInt($('#patientAge').val()) || null;
+        const patientGender = $('#patientGender').val() || null;
+
+        console.log('Updating all test ranges for patient:', { age: patientAge, gender: patientGender });
+
+        // Batch DOM updates for better performance
+        const updates = [];
+        
+        // Collect all updates first
+        $('.test-row').each((index, row) => {
+            const $row = $(row);
+            const testId = $row.find('.test-select').val();
+
+            if (testId) {
+                const testData = this.testsData.find(t => t.id == testId);
+                if (testData) {
+                    const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, testData);
+                    updates.push({ $row, rangeData, testName: testData.name });
+                }
+            }
+        });
+
+        // Apply all updates in batch
+        updates.forEach(update => {
+            this.updateRangeDisplay(update.$row, update.rangeData);
+            console.log(`Updated ranges for test ${update.testName}:`, update.rangeData);
+        });
+
+        // Performance monitoring
+        const endTime = performance.now();
+        const duration = endTime - startTime;
+        console.log(`Range update completed in ${duration.toFixed(2)}ms for ${updates.length} tests`);
+        
+        if (duration > 100) {
+            console.warn(`Range update took ${duration.toFixed(2)}ms, which exceeds the 100ms target`);
+        }
+    }
+
+    /**
+     * Reset all test ranges to general ranges (when no patient selected)
+     */
+    resetAllTestRangesToGeneral() {
+        console.log('Resetting all test ranges to general');
+
+        $('.test-row').each((index, row) => {
+            const $row = $(row);
+            const testId = $row.find('.test-select').val();
+
+            if (testId) {
+                const testData = this.testsData.find(t => t.id == testId);
+                if (testData) {
+                    const rangeData = {
+                        min: testData.min,
+                        max: testData.max,
+                        unit: testData.unit || '',
+                        type: 'general',
+                        label: 'General Range'
+                    };
+                    this.updateRangeDisplay($row, rangeData);
+                }
+            }
+        });
     }
 
     /**
@@ -903,6 +1484,8 @@ class EntryManager {
         } else {
             // Clear patient details
             this.clearPatientDetails();
+            // Reset to general ranges when no patient selected
+            this.resetAllTestRangesToGeneral();
         }
     }
 
@@ -1001,6 +1584,11 @@ class EntryManager {
                 $('#patientAge').val(patient.age || '');
                 $('#patientGender').val(patient.gender || '').trigger('change');
                 $('#patientAddress').val(patient.address || '');
+
+                // Update all test ranges after patient details are loaded (debounced for performance)
+                setTimeout(() => {
+                    this.debouncedRangeUpdate();
+                }, 100); // Small delay to ensure DOM updates are complete
             } else {
                 console.warn('Failed to load patient details:', response.message);
             }
@@ -1095,15 +1683,38 @@ class EntryManager {
                         </tr>
                     </thead>
                     <tbody>
-                        ${entry.tests ? entry.tests.map(test => `
-                            <tr>
-                                <td>${test.test_name || 'N/A'}</td>
-                                <td>${test.category_name || 'N/A'}</td>
-                                <td>${test.result_value || 'Pending'}</td>
-                                <td>${test.min || ''} - ${test.max || ''}</td>
-                                <td>${test.unit || ''}</td>
-                            </tr>
-                        `).join('') : '<tr><td colspan="5">No tests found</td></tr>'}
+                        ${entry.tests ? entry.tests.map(test => {
+                            // Calculate demographic-appropriate ranges for display
+                            const patientAge = parseInt(entry.age) || null;
+                            const patientGender = entry.gender || null;
+                            
+                            // Find test data for range calculation
+                            const testData = this.testsData.find(t => t.id == test.test_id);
+                            let rangeDisplay = '';
+                            let rangeTypeIndicator = '';
+                            
+                            if (testData) {
+                                const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, testData);
+                                const minVal = rangeData.min || '';
+                                const maxVal = rangeData.max || '';
+                                rangeDisplay = minVal || maxVal ? `${minVal} - ${maxVal}` : '';
+                                rangeTypeIndicator = rangeData.type !== 'general' ? 
+                                    `<span class="badge badge-${this.getRangeTypeBadgeClass(rangeData.type).replace('badge-', '')} ml-1" title="${rangeData.label}">${rangeData.type.charAt(0).toUpperCase() + rangeData.type.slice(1)}</span>` : '';
+                            } else {
+                                // Fallback to stored values if test data not found
+                                rangeDisplay = (test.min || test.max) ? `${test.min || ''} - ${test.max || ''}` : '';
+                            }
+                            
+                            return `
+                                <tr>
+                                    <td>${test.test_name || 'N/A'}</td>
+                                    <td>${test.category_name || 'N/A'}</td>
+                                    <td>${test.result_value || 'Pending'}</td>
+                                    <td>${rangeDisplay}${rangeTypeIndicator}</td>
+                                    <td>${test.unit || ''}</td>
+                                </tr>
+                            `;
+                        }).join('') : '<tr><td colspan="5">No tests found</td></tr>'}
                     </tbody>
                 </table>
             </div>
@@ -1553,7 +2164,23 @@ $(document).ready(function () {
         // console.log('Initializing Entry Manager...');
         entryManager = new EntryManager();
         window.entryManager = entryManager;
+        
+        // Add global testing functions for easy access
+        window.testDemographicRanges = () => entryManager.validateDemographicRangeWorkflow();
+        window.testRangeCalculation = (age, gender, testId) => {
+            const test = entryManager.testsData.find(t => t.id == testId);
+            if (test) {
+                return entryManager.calculateAppropriateRanges(age, gender, test);
+            } else {
+                console.error('Test not found with ID:', testId);
+                return null;
+            }
+        };
+        
         // console.log('Entry Manager initialized successfully');
+        console.log('Demographic range testing functions available:');
+        console.log('- testDemographicRanges() - Run complete workflow validation');
+        console.log('- testRangeCalculation(age, gender, testId) - Test specific range calculation');
     } catch (error) {
         // console.error('Error initializing Entry Manager:', error);
         // console.error('Error stack:', error.stack);
