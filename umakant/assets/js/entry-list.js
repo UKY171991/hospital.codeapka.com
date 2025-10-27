@@ -1091,7 +1091,7 @@ class EntryManager {
                             <th>Category</th>
                             <th>Result</th>
                             <th>Range</th>
-                            <th>Unit yy</th>
+                            <th>Unit</th>
                         </tr>
                     </thead>
                     <tbody>
