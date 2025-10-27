@@ -1067,7 +1067,7 @@ class EntryManager {
         const detailsHtml = `
             <div class="row">
                 <div class="col-md-6">
-                    <h6>Patient Information ttt</h6>
+                    <h6>Patient Information</h6>
                     <p><strong>Name:</strong> ${entry.patient_name || 'N/A'}</p>
                     <p><strong>Contact:</strong> ${entry.patient_contact || 'N/A'}</p>
                     <p><strong>Age:</strong> ${entry.age || 'N/A'}</p>
@@ -1091,14 +1091,14 @@ class EntryManager {
                             <th>Category</th>
                             <th>Result</th>
                             <th>Range</th>
-                            <th>Unit</th>
+                            <th>Unit yy</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${entry.tests ? entry.tests.map(test => `
                             <tr>
-                                <td>${test.test_id || 'N/A'}</td>
-                                <td>${test.category_id || 'N/A'}</td>
+                                <td>${test.test_name || 'N/A'}</td>
+                                <td>${test.category_name || 'N/A'}</td>
                                 <td>${test.result_value || 'Pending'}</td>
                                 <td>${test.min || ''} - ${test.max || ''}</td>
                                 <td>${test.unit || ''}</td>
