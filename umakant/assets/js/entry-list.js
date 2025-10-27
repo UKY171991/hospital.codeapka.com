@@ -708,14 +708,46 @@ class EntryManager {
             } else {
                 console.warn('Test not found in testsData for ID:', testData.test_id);
                 console.log('Looking for test with ID:', testData.test_id, 'in', this.testsData.map(t => ({ id: t.id, name: t.name })));
+                console.log('Available test IDs:', this.testsData.map(t => t.id));
+                console.log('Looking for test ID type:', typeof testData.test_id, 'Available ID types:', this.testsData.map(t => typeof t.id));
+
+                // Try to find test with string/number conversion
+                let foundTestAlt = this.testsData.find(t => t.id == testData.test_id || t.id === String(testData.test_id) || String(t.id) === String(testData.test_id));
+                if (foundTestAlt) {
+                    console.log('Found test with alternative matching:', foundTestAlt);
+                    // Use the found test data
+                    const rangeData = this.calculateAppropriateRanges(
+                        parseInt($('#patientAge').val()) || null,
+                        $('#patientGender').val() || null,
+                        foundTestAlt
+                    );
+
+                    $newRow.find('.test-category').val(foundTestAlt.category_name || '');
+                    $newRow.find('.test-category-id').val(foundTestAlt.category_id || '');
+                    $newRow.find('.test-price').val(foundTestAlt.price || 0);
+                    $newRow.find('.test-result').val(testData.result_value || '');
+                    this.updateRangeDisplay($newRow, rangeData);
+
+                    console.log('Test row populated with alternative match for ID:', testData.test_id, 'Name:', foundTestAlt.name);
+                    return; // Exit early since we found the test
+                }
 
                 // If test not found in our data, try to populate with what we have
                 const testName = testData.test_name || `Test ${testData.test_id}`;
                 console.log('Adding missing test option:', testData.test_id, testName);
+                console.log('Test data available for missing test:', {
+                    test_id: testData.test_id,
+                    test_name: testData.test_name,
+                    category_name: testData.category_name,
+                    hasTestName: !!testData.test_name
+                });
 
                 // Add the missing test option if it doesn't exist
                 if ($testSelect.find(`option[value="${testData.test_id}"]`).length === 0) {
                     $testSelect.append(`<option value="${testData.test_id}">${testName}</option>`);
+                } else {
+                    // Update existing option with correct name
+                    $testSelect.find(`option[value="${testData.test_id}"]`).text(testName);
                 }
 
                 // Populate with available data
@@ -1931,6 +1963,11 @@ class EntryManager {
         await this.loadTestsData();
         console.log('Tests data loaded:', this.testsData.length, 'tests');
         
+        // Debug: Log test IDs and names for troubleshooting
+        if (this.testsData.length > 0) {
+            console.log('Available tests:', this.testsData.map(t => ({ id: t.id, name: t.name, id_type: typeof t.id })));
+        }
+        
         // Debug: show first few tests
         if (this.testsData.length > 0) {
             console.log('First 5 tests in testsData:', this.testsData.slice(0, 5).map(t => ({id: t.id, name: t.name})));
@@ -1961,6 +1998,7 @@ class EntryManager {
             entry.tests.forEach((test, index) => {
                 console.log(`Entry Test ${index + 1} Details:`, {
                     test_id: test.test_id,
+                    test_id_type: typeof test.test_id,
                     test_name: test.test_name,
                     category_name: test.category_name,
                     category_id: test.category_id,
@@ -1968,7 +2006,8 @@ class EntryManager {
                     max: test.max,
                     unit: test.unit,
                     result_value: test.result_value,
-                    price: test.price
+                    price: test.price,
+                    all_keys: Object.keys(test)
                 });
 
                 // Check if this test has unique data
