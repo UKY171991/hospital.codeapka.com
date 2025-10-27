@@ -661,15 +661,17 @@ try {
                 $tests = $testStmt->fetchAll(PDO::FETCH_ASSOC);
                  
                 error_log("Entry API: Raw test query results for entry $id: " . json_encode($tests));
-                print_r($tests); die;
+                //print_r($tests); die;
                 // Format test data with better field handling
                 foreach ($tests as &$test) {
                     // Use entry_tests price if available, otherwise use test default price
                     $test['price'] = (float)($test['price'] ?? $test['test_default_price'] ?? 0);
                     $test['discount_amount'] = (float)($test['discount_amount'] ?? 0);
                     $test['total_price'] = $test['price'] - $test['discount_amount'];
-                    $test['result_value'] = $test['result_value'].' yyy' ?? '';
+                    $test['result_value'] = $test['result_value'] ?? '';
                     $test['status'] = $test['status'] ?? 'pending';
+                    $test['test_id'] = $test['test_id'] ?? '0' ;
+                    $test['category_id'] = $test['category_id'] ?? '0';
 
                     
                     
