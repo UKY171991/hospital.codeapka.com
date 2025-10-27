@@ -668,7 +668,7 @@ try {
                     $test['price'] = (float)($test['price'] ?? $test['test_default_price'] ?? 0);
                     $test['discount_amount'] = (float)($test['discount_amount'] ?? 0);
                     $test['total_price'] = $test['price'] - $test['discount_amount'];
-                    $test['result_value'] = $test['result_value'] ?? '';
+                    $test['result_value'] = $test['result_value'].' yyy' ?? '';
                     $test['status'] = $test['status'] ?? 'pending';
 
                     
