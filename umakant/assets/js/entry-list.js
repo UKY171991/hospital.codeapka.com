@@ -1097,8 +1097,8 @@ class EntryManager {
                     <tbody>
                         ${entry.tests ? entry.tests.map(test => `
                             <tr>
-                                <td>${test.test_name || 'N/A'}</td>
-                                <td>${test.category_name || 'N/A'}</td>
+                                <td>${test.test_id || 'N/A'}</td>
+                                <td>${test.category_id || 'N/A'}</td>
                                 <td>${test.result_value || 'Pending'}</td>
                                 <td>${test.min || ''} - ${test.max || ''}</td>
                                 <td>${test.unit || ''}</td>
