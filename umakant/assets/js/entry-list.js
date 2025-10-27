@@ -1067,7 +1067,7 @@ class EntryManager {
         const detailsHtml = `
             <div class="row">
                 <div class="col-md-6">
-                    <h6>Patient Information</h6>
+                    <h6>Patient Information ttt</h6>
                     <p><strong>Name:</strong> ${entry.patient_name || 'N/A'}</p>
                     <p><strong>Contact:</strong> ${entry.patient_contact || 'N/A'}</p>
                     <p><strong>Age:</strong> ${entry.age || 'N/A'}</p>
