@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 26, 2025 at 12:39 AM
+-- Generation Time: Oct 27, 2025 at 10:49 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -465,14 +465,9 @@ INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`,
 (6, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, 1080.00, 100.00, 980.00, 'pending', NULL, 1, '2025-10-06 16:40:50', NULL),
 (7, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, 400.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 17:12:12', NULL),
 (9, 2, NULL, 2, 14, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 500.00, 0.00, 300.00, 'pending', NULL, 2, '2025-10-08 11:21:38', NULL),
-(10, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 600.00, 0.00, 340.00, 'pending', NULL, 1, '2025-10-08 17:09:55', NULL),
-(11, 1, NULL, NULL, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 300.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-08 17:51:17', NULL),
-(12, 1, NULL, 3, 12, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-08 18:00:34', NULL),
-(13, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-09 08:15:03', NULL),
-(14, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-09 08:15:35', NULL),
-(15, 1, NULL, 3, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, 1080.00, 0.00, 1080.00, 'pending', NULL, 1, '2025-10-09 08:16:19', NULL),
-(16, 1, NULL, NULL, 12, '2025-10-09 00:00:00', 'pending', 'normal', NULL, 1080.00, 50.00, 1030.00, 'pending', NULL, 1, '2025-10-09 08:21:40', NULL),
-(17, 1, NULL, 27, 362, '2025-10-09 00:00:00', 'pending', 'normal', '', 1380.00, 20.00, 1360.00, 'pending', '', 1, '2025-10-09 08:30:36', '2025-10-25 23:08:31');
+(10, 1, NULL, 3, 12, '2025-10-26 00:00:00', 'pending', 'normal', NULL, 600.00, 0.00, 340.00, 'pending', NULL, 1, '2025-10-08 17:09:55', '2025-10-26 08:41:20'),
+(15, 1, NULL, 3, 12, '2025-10-26 00:00:00', 'pending', 'normal', NULL, 1080.00, 0.00, 1080.00, 'pending', NULL, 1, '2025-10-09 08:16:19', '2025-10-26 06:13:36'),
+(17, 1, NULL, 27, 362, '2025-10-27 00:00:00', 'pending', 'normal', '', 1380.00, 20.00, 1360.00, 'pending', '', 1, '2025-10-09 08:30:36', '2025-10-27 10:19:22');
 
 -- --------------------------------------------------------
 
@@ -484,6 +479,7 @@ CREATE TABLE `entry_tests` (
   `id` int(10) UNSIGNED NOT NULL,
   `entry_id` int(10) UNSIGNED NOT NULL,
   `test_id` int(10) UNSIGNED NOT NULL,
+  `category_id` int(11) NOT NULL,
   `result_value` varchar(255) DEFAULT NULL,
   `unit` varchar(64) DEFAULT NULL,
   `remarks` text DEFAULT NULL,
@@ -493,6 +489,19 @@ CREATE TABLE `entry_tests` (
   `total_price` decimal(10,2) DEFAULT 0.00,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `entry_tests`
+--
+
+INSERT INTO `entry_tests` (`id`, `entry_id`, `test_id`, `category_id`, `result_value`, `unit`, `remarks`, `status`, `price`, `discount_amount`, `total_price`, `created_at`) VALUES
+(54, 15, 4, 0, '', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-26 11:43:36'),
+(55, 15, 5, 0, '', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-26 11:43:36'),
+(61, 10, 4, 0, '', 'abc', NULL, 'pending', 980.00, 0.00, 980.00, '2025-10-26 14:11:20'),
+(62, 10, 5, 0, '', 'aaa', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-26 14:11:20'),
+(83, 17, 6, 0, '40', 'ttt', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-27 15:49:22'),
+(84, 17, 4, 0, '', 'abc', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-27 15:49:22'),
+(85, 17, 7, 0, '', 'abc', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-27 15:49:22');
 
 -- --------------------------------------------------------
 
@@ -645,7 +654,7 @@ INSERT INTO `patients` (`id`, `server_id`, `name`, `email`, `mobile`, `father_hu
 (24, NULL, 'werfg', '', '4554545454', 'esdfgb', '', 'male', 4, '', 'Years', 'P909868066', NULL, NULL, 2),
 (25, NULL, 'sdfgq', '', '5656534565', 'edfg', '', 'male', 43, '', 'Years', 'P909868067', NULL, NULL, 2),
 (26, NULL, 'wertgh', '', '655656565656', 'qwedfg', '', 'male', 5, '', 'Years', 'P909868068', NULL, NULL, 2),
-(27, NULL, 'aerfg', '', '5454545445', 'er', '', 'male', 54, '', 'Years', 'P909868069', NULL, NULL, 2);
+(27, NULL, 'aerfg gt', '', '5454545445', 'er', '', 'Male', 54, '', 'Years', 'P909868069', NULL, '2025-10-26 09:34:04', 2);
 
 -- --------------------------------------------------------
 
@@ -813,7 +822,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `api_token`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-10-26 04:02:13', '2025-10-26 10:12:00', '', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-10-27 15:06:46', '2025-10-26 10:12:00', '', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
 (2, 'uma', '$2y$12$auavnwTI5hbfkyqCoavijO/i3diGYgDZqt58EzkY6ZkB6M9jTmD9e', 'Uma Yadav', 'umakant171992@gmail.com', 'user', 1, 'Pathology', '2025-09-26 10:13:58', NULL, '2025-12-30 23:59:00', '6dad141b199e8c2ae3021462459c23135244d408778939a4c33c4a969726fde7', '0000-00-00 00:00:00', '2025-10-18 05:36:53');
 
 -- --------------------------------------------------------
@@ -1044,7 +1053,7 @@ ALTER TABLE `entries`
 -- AUTO_INCREMENT for table `entry_tests`
 --
 ALTER TABLE `entry_tests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
 
 --
 -- AUTO_INCREMENT for table `main_test_categories`
@@ -1122,7 +1131,7 @@ ALTER TABLE `user_settings`
 -- AUTO_INCREMENT for table `zip_uploads`
 --
 ALTER TABLE `zip_uploads`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Constraints for dumped tables
