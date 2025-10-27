@@ -1030,6 +1030,7 @@ class EntryManager {
                 data: { action: 'get', id: entryId },
                 dataType: 'json'
             });
+            alert('Testing');
             console.log('Displaying entry response:', response);
             if (response.success && response.data) {
                 this.displayEntryDetails(response.data);
