@@ -661,7 +661,7 @@ try {
                 $tests = $testStmt->fetchAll(PDO::FETCH_ASSOC);
                  
                 error_log("Entry API: Raw test query results for entry $id: " . json_encode($tests));
-                
+                print_r($tests); die;
                 // Format test data with better field handling
                 foreach ($tests as &$test) {
                     // Use entry_tests price if available, otherwise use test default price
