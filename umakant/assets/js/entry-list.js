@@ -1030,7 +1030,6 @@ class EntryManager {
                 data: { action: 'get', id: entryId },
                 dataType: 'json'
             });
-            alert('Testing');
             console.log('Displaying entry response:', response);
             if (response.success && response.data) {
                 this.displayEntryDetails(response.data);
@@ -1057,7 +1056,7 @@ class EntryManager {
                 console.log(`Test ${index + 1}:`, {
                     test_id: test.test_id,
                     test_name: test.test_name,
-                    category_name: test.category_name,
+                    category_id: test.category_id,
                     min: test.min,
                     max: test.max,
                     unit: test.unit,
