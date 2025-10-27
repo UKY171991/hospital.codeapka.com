@@ -24,6 +24,38 @@ class EntryManager {
     }
 
     /**
+     * Debug function to check test data (can be called from browser console)
+     */
+    debugTestData() {
+        console.log('=== TEST DATA DEBUG ===');
+        console.log('Total tests loaded:', this.testsData.length);
+        
+        if (this.testsData.length > 0) {
+            console.log('Sample test data:', this.testsData.slice(0, 3));
+            
+            // Check for duplicates
+            const testNames = this.testsData.map(t => t.name);
+            const uniqueNames = [...new Set(testNames)];
+            console.log('Total test names:', testNames.length);
+            console.log('Unique test names:', uniqueNames.length);
+            
+            if (testNames.length !== uniqueNames.length) {
+                console.warn('DUPLICATE NAMES FOUND!');
+                const duplicates = testNames.filter((name, index) => testNames.indexOf(name) !== index);
+                console.log('Duplicate names:', [...new Set(duplicates)]);
+                
+                duplicates.forEach(dupName => {
+                    const duplicateTests = this.testsData.filter(t => t.name === dupName);
+                    console.log(`Tests with name "${dupName}":`, duplicateTests);
+                });
+            } else {
+                console.log('✓ No duplicate test names found');
+            }
+        }
+        console.log('=== END DEBUG ===');
+    }
+
+    /**
      * Initialize the Entry Manager
      */
     init() {
@@ -319,7 +351,7 @@ class EntryManager {
             const response = await $.ajax({
                 url: 'ajax/test_api.php',
                 method: 'GET',
-                data: { action: 'list' },
+                data: { action: 'simple_list' },
                 dataType: 'json'
             });
 
@@ -332,6 +364,24 @@ class EntryManager {
                 this.verifyDemographicRangeFields();
                 
                 //console.log('Loaded tests data:', this.testsData.length, 'tests');
+                
+                // Debug: Check for duplicate test names in loaded data
+                const testNames = this.testsData.map(t => t.name);
+                const uniqueNames = [...new Set(testNames)];
+                if (testNames.length !== uniqueNames.length) {
+                    console.error('Duplicate test names detected in API response!');
+                    console.log('Total tests:', testNames.length, 'Unique names:', uniqueNames.length);
+                    
+                    // Find and log duplicates
+                    const duplicates = testNames.filter((name, index) => testNames.indexOf(name) !== index);
+                    console.log('Duplicate names:', [...new Set(duplicates)]);
+                    
+                    // Show detailed info about duplicates
+                    duplicates.forEach(dupName => {
+                        const duplicateTests = this.testsData.filter(t => t.name === dupName);
+                        console.log(`Tests with name "${dupName}":`, duplicateTests.map(t => ({ id: t.id, name: t.name, category: t.category_name })));
+                    });
+                }
 
                 // Debug: show first few tests
                 if (this.testsData.length > 0) {
@@ -574,11 +624,30 @@ class EntryManager {
 
         //console.log('Creating test row with', this.testsData.length, 'available tests');
 
-        const testOptions = this.testsData.map(test =>
-            `<option value="${test.id}" data-category="${test.category_name || ''}" data-unit="${test.unit || ''}" data-min="${test.min || ''}" data-max="${test.max || ''}" data-price="${test.price || 0}">
-                ${test.name}
-            </option>`
-        ).join('');
+        // Debug: Check for duplicate test names
+        const testNames = this.testsData.map(t => t.name);
+        const duplicateNames = testNames.filter((name, index) => testNames.indexOf(name) !== index);
+        if (duplicateNames.length > 0) {
+            console.warn('Duplicate test names found:', duplicateNames);
+            console.log('All test data:', this.testsData.map(t => ({ id: t.id, name: t.name })));
+        }
+
+        const testOptions = this.testsData.map(test => {
+            // Create a unique display name to avoid confusion
+            let displayName = test.name || `Test ${test.id}`;
+            
+            // Add category if available to help distinguish similar tests
+            if (test.category_name) {
+                displayName += ` (${test.category_name})`;
+            }
+            
+            // Add ID for additional uniqueness
+            displayName += ` [ID: ${test.id}]`;
+            
+            return `<option value="${test.id}" data-category="${test.category_name || ''}" data-unit="${test.unit || ''}" data-min="${test.min || ''}" data-max="${test.max || ''}" data-price="${test.price || 0}">
+                ${displayName}
+            </option>`;
+        }).join('');
 
         if (testData) {
             //console.log('Looking for test with ID:', testData.test_id);
@@ -733,7 +802,14 @@ class EntryManager {
                 }
 
                 // If test not found in our data, try to populate with what we have
-                const testName = testData.test_name || `Test ${testData.test_id}`;
+                let testName = testData.test_name || `Test ${testData.test_id}`;
+                
+                // Make the name more unique by adding category and ID
+                if (testData.category_name) {
+                    testName += ` (${testData.category_name})`;
+                }
+                testName += ` [ID: ${testData.test_id}]`;
+                
                 console.log('Adding missing test option:', testData.test_id, testName);
                 console.log('Test data available for missing test:', {
                     test_id: testData.test_id,
@@ -2254,9 +2330,11 @@ $(document).ready(function () {
                 return null;
             }
         };
+        window.debugTestData = () => entryManager.debugTestData();
         
         // console.log('Entry Manager initialized successfully');
-        console.log('Demographic range testing functions available:');
+        console.log('Entry Manager functions available:');
+        console.log('- debugTestData() - Debug test data and check for duplicates');
         console.log('- testDemographicRanges() - Run complete workflow validation');
         console.log('- testRangeCalculation(age, gender, testId) - Test specific range calculation');
     } catch (error) {
