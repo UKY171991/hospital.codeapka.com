@@ -310,6 +310,18 @@ class EntryManager {
         }
 
         try {
+            console.log('About to initialize DataTable...');
+            console.log('Table element exists:', $('#entriesTable').length > 0);
+            
+            // Check table structure
+            const $table = $('#entriesTable');
+            const headerCells = $table.find('thead th').length;
+            console.log('Number of header columns:', headerCells);
+            
+            if (headerCells !== 12) {
+                throw new Error(`Table structure mismatch: Expected 12 columns, found ${headerCells} columns`);
+            }
+            
             this.entriesTable = $('#entriesTable').DataTable({
                 processing: true,
                 serverSide: false,
@@ -564,6 +576,13 @@ class EntryManager {
                 pageLength: 25,
                 responsive: true,
                 dom: 'Bfrtip',
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 }, // ID
+                    { responsivePriority: 2, targets: 1 }, // Patient
+                    { responsivePriority: 3, targets: -1 }, // Actions
+                    { responsivePriority: 4, targets: 6 }, // Status
+                    { responsivePriority: 5, targets: 3 }  // Tests
+                ],
                 buttons: [
                     {
                         extend: 'excel',
