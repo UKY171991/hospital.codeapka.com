@@ -237,17 +237,17 @@ class EntryManager {
      * Initialize the Entry Manager
      */
     init() {
-        ////console.log('Initializing Entry Manager...');
+        //console.log('Initializing Entry Manager...');
 
         // Wait for DOM to be ready
         $(document).ready(() => {
-            ////console.log('DOM ready, starting initialization...');
+            //console.log('DOM ready, starting initialization...');
             try {
                 this.initializeDataTable();
                 this.loadInitialData();
                 this.bindEvents();
                 this.loadStatistics();
-                ////console.log('Entry Manager initialization complete');
+                //console.log('Entry Manager initialization complete');
             } catch (error) {
                 //console.error('Error during Entry Manager initialization:', error);
             }
@@ -258,7 +258,7 @@ class EntryManager {
      * Initialize DataTable with proper configuration
      */
     initializeDataTable() {
-        ////console.log('Initializing DataTable...');
+        //console.log('Initializing DataTable...');
 
         // Check if the table element exists
         if ($('#entriesTable').length === 0) {
@@ -3921,9 +3921,13 @@ class EntryManager {
      */
     onRowCategoryChange(categorySelect, $row) {
         try {
-            // Validate input parameters
+            // Enhanced validation of input parameters
             if (!categorySelect || !$row || $row.length === 0) {
-                console.error('Invalid parameters passed to onRowCategoryChange');
+                console.error('Invalid parameters passed to onRowCategoryChange:', {
+                    categorySelect: !!categorySelect,
+                    row: !!$row,
+                    rowLength: $row ? $row.length : 0
+                });
                 return;
             }
 
@@ -3931,64 +3935,318 @@ class EntryManager {
             const selectedCategoryId = $categorySelect.val();
             const $selectedOption = $categorySelect.find('option:selected');
             const mainCategoryId = $selectedOption.data('main-category');
+            const rowIndex = $row.data('row-index');
 
-            //console.log('Row category changed to:', selectedCategoryId, 'Main category:', mainCategoryId);
+            console.log('Row category changed:', {
+                rowIndex: rowIndex,
+                categoryId: selectedCategoryId,
+                mainCategoryId: mainCategoryId
+            });
 
-            // Set the main category ID in the hidden field
-            $row.find('.test-main-category-id').val(mainCategoryId || '');
+            // Enhanced main category ID handling
+            const mainCategoryValue = mainCategoryId || '';
+            $row.find('.test-main-category-id').val(mainCategoryValue);
 
-            // Get the test dropdown for this row
+            // Enhanced test dropdown validation
             const $testSelect = $row.find('.test-select');
             if ($testSelect.length === 0) {
-                console.error('Test select dropdown not found in row');
+                console.error('Test select dropdown not found in row', rowIndex);
+                this.handleRowCategoryChangeError('missing_test_dropdown', $row);
                 return;
             }
 
-            // Filter tests based on selected category
-            const filteredTests = this.filterTestsByCategory(selectedCategoryId);
-            //console.log(`Filtered ${filteredTests.length} tests for category ${selectedCategoryId}`);
-
-            // Store current test selection before updating options
-            const currentTestId = $testSelect.val();
-
-            // Update test dropdown options with filtered tests
-            this.updateTestDropdownOptions($testSelect, filteredTests, null);
-
-            // Check if current test selection is still valid after filtering
-            const isCurrentTestStillValid = currentTestId && filteredTests.some(test => test.id == currentTestId);
-
-            if (!isCurrentTestStillValid && currentTestId) {
-                //console.log(`Current test ${currentTestId} is not in the filtered category, clearing selection`);
-
-                // Clear test selection and related fields when category changes
-                $testSelect.val('').trigger('change');
-                this.clearTestRowFields($row);
-            } else if (isCurrentTestStillValid) {
-                //console.log(`Current test ${currentTestId} is still valid for the selected category`);
-                // Keep the current selection but refresh the dropdown
-                $testSelect.val(currentTestId);
-
-                // Refresh Select2 if it's initialized
-                if ($testSelect.hasClass('select2-hidden-accessible')) {
-                    $testSelect.trigger('change.select2');
-                }
+            // Enhanced filtering with error handling
+            let filteredTests;
+            try {
+                filteredTests = this.filterTestsByCategory(selectedCategoryId);
+                console.log(`Filtered ${filteredTests.length} tests for category ${selectedCategoryId} in row ${rowIndex}`);
+            } catch (filterError) {
+                console.error('Error filtering tests by category:', filterError);
+                this.handleRowCategoryChangeError('filter_error', $row, filterError);
+                return;
             }
 
-            // Update test count display if available
-            this.updateFilteredTestCount();
+            // Store current test selection with enhanced validation
+            const currentTestId = $testSelect.val();
+            const currentTestName = $testSelect.find('option:selected').text();
 
-            //console.log('Row category change handled successfully');
+            // Enhanced test dropdown clearing and repopulation
+            try {
+                // Clear the dropdown first to ensure clean state
+                this.clearTestDropdownOptions($testSelect);
+                
+                // Repopulate with filtered tests
+                this.updateTestDropdownOptions($testSelect, filteredTests, currentTestId);
+                
+                console.log(`Test dropdown updated for row ${rowIndex} with ${filteredTests.length} options`);
+            } catch (updateError) {
+                console.error('Error updating test dropdown options:', updateError);
+                this.handleRowCategoryChangeError('dropdown_update_error', $row, updateError);
+                return;
+            }
+
+            // Enhanced validation of current test selection
+            const isCurrentTestStillValid = currentTestId && 
+                filteredTests.some(test => String(test.id) === String(currentTestId));
+
+            if (currentTestId && !isCurrentTestStillValid) {
+                console.log(`Current test ${currentTestId} (${currentTestName}) is not in the filtered category, clearing selection`);
+
+                // Enhanced clearing of test selection and related fields
+                this.clearTestSelectionAndFields($testSelect, $row);
+                
+                // Provide user feedback about cleared selection
+                this.showTestSelectionClearedFeedback($row, currentTestName, selectedCategoryId);
+                
+            } else if (isCurrentTestStillValid) {
+                console.log(`Current test ${currentTestId} is still valid for the selected category`);
+                
+                // Enhanced restoration of valid selection
+                this.restoreTestSelection($testSelect, currentTestId);
+            }
+
+            // Enhanced test count and UI updates
+            this.updateFilteredTestCount();
+            this.updateRowCategoryIndicator($row, selectedCategoryId);
+
+            console.log('Row category change handled successfully for row', rowIndex);
+            
         } catch (error) {
             console.error('Error handling row category change:', error);
-            // Attempt recovery by showing all tests
-            try {
-                const $testSelect = $row.find('.test-select');
-                if ($testSelect.length > 0) {
-                    this.updateTestDropdownOptions($testSelect, this.testsData, null);
-                }
-            } catch (recoveryError) {
-                console.error('Error during category change recovery:', recoveryError);
+            this.handleRowCategoryChangeError('general_error', $row, error);
+        }
+    }
+
+    /**
+     * Clear test dropdown options properly
+     * @param {jQuery} $testSelect - The test select dropdown
+     */
+    clearTestDropdownOptions($testSelect) {
+        try {
+            // Destroy Select2 if initialized to prevent memory leaks
+            if ($testSelect.hasClass('select2-hidden-accessible')) {
+                $testSelect.select2('destroy');
             }
+            
+            // Clear all options except the placeholder
+            $testSelect.empty().append('<option value="">Select Test</option>');
+            
+        } catch (error) {
+            console.error('Error clearing test dropdown options:', error);
+            // Fallback: just empty the select
+            $testSelect.empty().append('<option value="">Select Test</option>');
+        }
+    }
+
+    /**
+     * Clear test selection and related fields with enhanced cleanup
+     * @param {jQuery} $testSelect - The test select dropdown
+     * @param {jQuery} $row - The test row jQuery object
+     */
+    clearTestSelectionAndFields($testSelect, $row) {
+        try {
+            // Clear the test selection
+            $testSelect.val('');
+            
+            // Clear all related fields
+            this.clearTestRowFields($row);
+            
+            // Trigger change event to ensure all handlers are notified
+            $testSelect.trigger('change');
+            
+            // Reinitialize Select2 if needed
+            if (!$testSelect.hasClass('select2-hidden-accessible')) {
+                $testSelect.select2({
+                    theme: 'bootstrap4',
+                    width: '100%',
+                    placeholder: 'Select Test'
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error clearing test selection and fields:', error);
+        }
+    }
+
+    /**
+     * Restore test selection with enhanced validation
+     * @param {jQuery} $testSelect - The test select dropdown
+     * @param {string} testId - The test ID to restore
+     */
+    restoreTestSelection($testSelect, testId) {
+        try {
+            // Set the value
+            $testSelect.val(testId);
+            
+            // Refresh Select2 if it's initialized
+            if ($testSelect.hasClass('select2-hidden-accessible')) {
+                $testSelect.trigger('change.select2');
+            } else {
+                // Reinitialize Select2 if not already initialized
+                $testSelect.select2({
+                    theme: 'bootstrap4',
+                    width: '100%',
+                    placeholder: 'Select Test'
+                });
+            }
+            
+            // Verify the selection was successful
+            const actualValue = $testSelect.val();
+            if (actualValue !== testId) {
+                console.warn(`Failed to restore test selection: expected ${testId}, got ${actualValue}`);
+            }
+            
+        } catch (error) {
+            console.error('Error restoring test selection:', error);
+        }
+    }
+
+    /**
+     * Show feedback when test selection is cleared due to category change
+     * @param {jQuery} $row - The test row jQuery object
+     * @param {string} testName - The name of the cleared test
+     * @param {string} categoryId - The new category ID
+     */
+    showTestSelectionClearedFeedback($row, testName, categoryId) {
+        try {
+            // Find category name for better user feedback
+            const category = this.categoriesData.find(cat => cat.id == categoryId);
+            const categoryName = category ? category.name : `Category ${categoryId}`;
+            
+            // Show temporary feedback in the row
+            const $feedback = $('<small class="text-warning test-selection-feedback"></small>')
+                .text(`"${testName}" cleared (not in ${categoryName})`);
+            
+            $row.find('.test-select').parent().append($feedback);
+            
+            // Remove feedback after 3 seconds
+            setTimeout(() => {
+                $feedback.fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+            
+        } catch (error) {
+            console.error('Error showing test selection cleared feedback:', error);
+        }
+    }
+
+    /**
+     * Update row category indicator
+     * @param {jQuery} $row - The test row jQuery object
+     * @param {string} categoryId - The selected category ID
+     */
+    updateRowCategoryIndicator($row, categoryId) {
+        try {
+            // Remove existing indicators
+            $row.find('.category-indicator').remove();
+            
+            if (categoryId) {
+                const category = this.categoriesData.find(cat => cat.id == categoryId);
+                if (category) {
+                    const $indicator = $('<span class="badge badge-info badge-sm category-indicator ml-1"></span>')
+                        .text(category.name)
+                        .attr('title', `Category: ${category.name}`);
+                    
+                    $row.find('.test-category-select').parent().append($indicator);
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error updating row category indicator:', error);
+        }
+    }
+
+    /**
+     * Handle errors during row category change operations
+     * @param {string} errorType - The type of error that occurred
+     * @param {jQuery} $row - The test row jQuery object
+     * @param {Error} error - The error object (optional)
+     */
+    handleRowCategoryChangeError(errorType, $row, error = null) {
+        try {
+            const rowIndex = $row.data('row-index');
+            console.error(`Row category change error (${errorType}) in row ${rowIndex}:`, error);
+            
+            // Attempt recovery based on error type
+            switch (errorType) {
+                case 'missing_test_dropdown':
+                    // Try to recreate the test dropdown
+                    this.recreateTestDropdown($row);
+                    break;
+                    
+                case 'filter_error':
+                    // Fall back to showing all tests
+                    this.fallbackToAllTests($row);
+                    break;
+                    
+                case 'dropdown_update_error':
+                    // Try to restore dropdown to working state
+                    this.restoreTestDropdown($row);
+                    break;
+                    
+                case 'general_error':
+                default:
+                    // General recovery: show all tests and clear category selection
+                    this.generalErrorRecovery($row);
+                    break;
+            }
+            
+            // Show user-friendly error message
+            this.showRowErrorFeedback($row, errorType);
+            
+        } catch (recoveryError) {
+            console.error('Error during row category change error handling:', recoveryError);
+        }
+    }
+
+    /**
+     * Fallback to showing all tests when filtering fails
+     * @param {jQuery} $row - The test row jQuery object
+     */
+    fallbackToAllTests($row) {
+        try {
+            const $testSelect = $row.find('.test-select');
+            if ($testSelect.length > 0) {
+                this.clearTestDropdownOptions($testSelect);
+                this.updateTestDropdownOptions($testSelect, this.testsData, null);
+                console.log('Fallback: showing all tests in row', $row.data('row-index'));
+            }
+        } catch (error) {
+            console.error('Error in fallback to all tests:', error);
+        }
+    }
+
+    /**
+     * Show error feedback to user
+     * @param {jQuery} $row - The test row jQuery object
+     * @param {string} errorType - The type of error
+     */
+    showRowErrorFeedback($row, errorType) {
+        try {
+            const errorMessages = {
+                'missing_test_dropdown': 'Test dropdown not found',
+                'filter_error': 'Category filtering failed',
+                'dropdown_update_error': 'Failed to update test options',
+                'general_error': 'Category change failed'
+            };
+            
+            const message = errorMessages[errorType] || 'An error occurred';
+            
+            const $errorFeedback = $('<small class="text-danger row-error-feedback"></small>')
+                .text(`${message} - showing all tests`);
+            
+            $row.find('.test-category-select').parent().append($errorFeedback);
+            
+            // Remove error feedback after 5 seconds
+            setTimeout(() => {
+                $errorFeedback.fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }, 5000);
+            
+        } catch (error) {
+            console.error('Error showing row error feedback:', error);
         }
     }
 
