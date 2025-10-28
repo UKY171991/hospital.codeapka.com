@@ -1029,7 +1029,7 @@ class EntryManager {
      */
     async loadMainCategoriesData() {
         try {
-            ////console.log('Loading main categories...');
+            //console.log('Loading main categories...');
             const response = await $.ajax({
                 url: 'ajax/main_test_category_api.php',
                 method: 'GET',
@@ -1039,7 +1039,7 @@ class EntryManager {
 
             if (response && response.success) {
                 this.mainCategoriesData = response.data || [];
-                ////console.log('Loaded main categories data:', this.mainCategoriesData.length, 'categories');
+                //console.log('Loaded main categories data:', this.mainCategoriesData.length, 'categories');
             } else {
                 //console.error('Failed to load main categories:', response ? response.message : 'Invalid response');
                 this.mainCategoriesData = [];
@@ -1074,7 +1074,7 @@ class EntryManager {
         // Update test count
         this.updateFilteredTestCount();
 
-        ////console.log('Category filter populated with', this.categoriesData.length, 'categories');
+        //console.log('Category filter populated with', this.categoriesData.length, 'categories');
     }
 
     /**
@@ -1784,7 +1784,7 @@ class EntryManager {
             if (response.success) {
                 this.ownersData = response.data || [];
                 this.populateOwnerSelect();
-                ////console.log('Loaded owners data:', this.ownersData.length, 'owners');
+                //console.log('Loaded owners data:', this.ownersData.length, 'owners');
             } else {
                 //console.error('Failed to load owners:', response.message);
             }
@@ -1805,7 +1805,7 @@ class EntryManager {
             $select.append(`<option value="${owner.id}">${owner.name || owner.username || owner.full_name}</option>`);
         });
 
-        ////console.log('Populated owner select with', this.ownersData.length, 'owners');
+        //console.log('Populated owner select with', this.ownersData.length, 'owners');
 
         // Refresh Select2 if initialized
         if ($select.hasClass('select2-hidden-accessible')) {
@@ -1964,7 +1964,7 @@ class EntryManager {
      * Open Add Entry Modal
      */
     openAddModal() {
-        ////console.log('Opening add entry modal...');
+        //console.log('Opening add entry modal...');
 
         this.currentEditId = null;
         this.resetForm();
@@ -1988,7 +1988,7 @@ class EntryManager {
     addTestRow(testData = null) {
         const rowIndex = this.testRowCounter++;
 
-        ////console.log('Creating test row with', this.testsData.length, 'available tests');
+        //console.log('Creating test row with', this.testsData.length, 'available tests');
 
         // Debug: Check for duplicate test names
         const testNames = this.testsData.map(t => t.name);
@@ -2027,9 +2027,9 @@ class EntryManager {
         }).join('');
 
         if (testData) {
-            ////console.log('Looking for test with ID:', testData.test_id);
+            //console.log('Looking for test with ID:', testData.test_id);
             const foundTest = this.testsData.find(t => t.id == testData.test_id);
-            ////console.log('Found test:', foundTest);
+            //console.log('Found test:', foundTest);
         }
 
         const rowHtml = `
@@ -2851,17 +2851,17 @@ class EntryManager {
 
         // Test adult male ranges (age 30)
         const maleRange = this.calculateAppropriateRanges(30, 'Male', testWithRanges);
-        ////console.log('Adult male range (age 30, Male):', maleRange);
+        //console.log('Adult male range (age 30, Male):', maleRange);
 
         // Test adult female ranges (age 25)
         const femaleRange = this.calculateAppropriateRanges(25, 'Female', testWithRanges);
-        ////console.log('Adult female range (age 25, Female):', femaleRange);
+        //console.log('Adult female range (age 25, Female):', femaleRange);
 
         // Test general ranges (no demographics)
         const generalRange = this.calculateAppropriateRanges(null, null, testWithRanges);
-        ////console.log('General range (no demographics):', generalRange);
+        //console.log('General range (no demographics):', generalRange);
 
-        ////console.log('=== DEMOGRAPHIC RANGE TESTING COMPLETE ===');
+        //console.log('=== DEMOGRAPHIC RANGE TESTING COMPLETE ===');
     }
 
     /**
@@ -2901,7 +2901,7 @@ class EntryManager {
      * This method can be called from browser console for testing
      */
     validateDemographicRangeWorkflow() {
-        ////console.log('=== VALIDATING DEMOGRAPHIC RANGE WORKFLOW ===');
+        //console.log('=== VALIDATING DEMOGRAPHIC RANGE WORKFLOW ===');
 
         const results = {
             cacheTest: false,
@@ -2912,18 +2912,18 @@ class EntryManager {
 
         try {
             // Test 1: Cache functionality
-            ////console.log('Testing cache functionality...');
+            //console.log('Testing cache functionality...');
             const testData = this.testsData[0];
             if (testData) {
                 const key = this.generateRangeCacheKey(25, 'Male', testData.id);
                 const range1 = this.calculateAppropriateRanges(25, 'Male', testData);
                 const range2 = this.calculateAppropriateRanges(25, 'Male', testData); // Should use cache
                 results.cacheTest = true;
-                ////console.log('✓ Cache test passed');
+                //console.log('✓ Cache test passed');
             }
 
             // Test 2: Performance test
-            ////console.log('Testing performance...');
+            //console.log('Testing performance...');
             const startTime = performance.now();
             for (let i = 0; i < 100; i++) {
                 if (this.testsData[0]) {
@@ -2933,24 +2933,24 @@ class EntryManager {
             const endTime = performance.now();
             const avgTime = (endTime - startTime) / 100;
             results.performanceTest = avgTime < 1; // Should be under 1ms per calculation
-            ////console.log(`✓ Performance test: ${avgTime.toFixed(3)}ms per calculation`);
+            //console.log(`✓ Performance test: ${avgTime.toFixed(3)}ms per calculation`);
 
             // Test 3: Validation test
-            ////console.log('Testing validation...');
+            //console.log('Testing validation...');
             const validation = this.validatePatientDemographics(25, 'Male');
             results.validationTest = validation.age === 25 && validation.gender === 'male';
-            ////console.log('✓ Validation test passed');
+            //console.log('✓ Validation test passed');
 
             // Test 4: UI update test (if DOM elements exist)
-            ////console.log('Testing UI updates...');
+            //console.log('Testing UI updates...');
             if ($('#patientAge').length > 0) {
                 $('#patientAge').val('25');
                 $('#patientGender').val('Male');
                 this.updateAllTestRangesForCurrentPatient();
                 results.uiUpdateTest = true;
-                ////console.log('✓ UI update test passed');
+                //console.log('✓ UI update test passed');
             } else {
-                ////console.log('⚠ UI elements not available for testing');
+                //console.log('⚠ UI elements not available for testing');
                 results.uiUpdateTest = true; // Don't fail if UI not available
             }
 
@@ -2959,12 +2959,12 @@ class EntryManager {
         }
 
         const allPassed = Object.values(results).every(result => result === true);
-        ////console.log('=== WORKFLOW VALIDATION RESULTS ===');
-        ////console.log('Cache Test:', results.cacheTest ? '✓ PASS' : '✗ FAIL');
-        ////console.log('Performance Test:', results.performanceTest ? '✓ PASS' : '✗ FAIL');
-        ////console.log('Validation Test:', results.validationTest ? '✓ PASS' : '✗ FAIL');
-        ////console.log('UI Update Test:', results.uiUpdateTest ? '✓ PASS' : '✗ FAIL');
-        ////console.log('Overall Result:', allPassed ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED');
+        //console.log('=== WORKFLOW VALIDATION RESULTS ===');
+        //console.log('Cache Test:', results.cacheTest ? '✓ PASS' : '✗ FAIL');
+        //console.log('Performance Test:', results.performanceTest ? '✓ PASS' : '✗ FAIL');
+        //console.log('Validation Test:', results.validationTest ? '✓ PASS' : '✗ FAIL');
+        //console.log('UI Update Test:', results.uiUpdateTest ? '✓ PASS' : '✗ FAIL');
+        //console.log('Overall Result:', allPassed ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED');
 
         return results;
     }
@@ -3007,7 +3007,7 @@ class EntryManager {
                 toastr.warning('Some demographic range fields are missing from test data. Age/gender-specific ranges may not work properly.');
             }
         } else {
-            ////console.log('All demographic range fields are available');
+            //console.log('All demographic range fields are available');
 
             // Check if any tests actually have demographic-specific ranges
             let testsWithDemographicRanges = 0;
@@ -3017,7 +3017,7 @@ class EntryManager {
                 }
             });
 
-            ////console.log(`Found ${testsWithDemographicRanges} tests with demographic-specific ranges out of ${this.testsData.length} total tests`);
+            //console.log(`Found ${testsWithDemographicRanges} tests with demographic-specific ranges out of ${this.testsData.length} total tests`);
 
             // Run functionality test if we have tests with demographic ranges
             if (testsWithDemographicRanges > 0) {
@@ -3132,7 +3132,7 @@ class EntryManager {
                 }
             });
 
-            //////console.log('Updated range labels for all test rows');
+            ////console.log('Updated range labels for all test rows');
         } catch (error) {
             //console.error('Error updating range labels:', error);
         }
@@ -3293,7 +3293,7 @@ class EntryManager {
                 }
             });
 
-            ////console.log('Validated all test results');
+            //console.log('Validated all test results');
         } catch (error) {
             //console.error('Error validating all test results:', error);
         }
@@ -3331,7 +3331,7 @@ class EntryManager {
      */
     onCategoryFilterChange(categoryId) {
         try {
-            ////console.log('Category filter changed to:', categoryId);
+            //console.log('Category filter changed to:', categoryId);
 
             // Update test count display
             this.updateFilteredTestCount();
@@ -3349,7 +3349,7 @@ class EntryManager {
                 $('#clearCategoryFilter').prop('disabled', true);
             }
 
-            ////console.log('Category filter applied successfully');
+            //console.log('Category filter applied successfully');
         } catch (error) {
             //console.error('Error handling category filter change:', error);
         }
@@ -3409,7 +3409,7 @@ class EntryManager {
                 }
             }
 
-            ////console.log('Populated category dropdown for test row');
+            //console.log('Populated category dropdown for test row');
         } catch (error) {
             //console.error('Error populating row category dropdown:', error);
         }
@@ -4286,7 +4286,7 @@ class EntryManager {
             // Validate all test results with new demographics
             this.validateAllTestResults();
 
-            ////console.log('Updated ranges and validation for all tests based on demographics');
+            //console.log('Updated ranges and validation for all tests based on demographics');
         } catch (error) {
             //console.error('Error updating ranges and validation:', error);
         }
@@ -4318,7 +4318,7 @@ class EntryManager {
             // Remove any active filter styling
             $('.category-filter-active').removeClass('category-filter-active');
 
-            ////console.log('Category filter error recovery completed');
+            //console.log('Category filter error recovery completed');
         } catch (error) {
             //console.error('Error during category filter recovery:', error);
         }
@@ -4351,7 +4351,7 @@ class EntryManager {
             $('#categoryFilter').prop('disabled', true).html('<option value="">Tests unavailable</option>');
             $('#clearCategoryFilter').prop('disabled', true);
 
-            ////console.log('Test data unavailable fallback applied');
+            //console.log('Test data unavailable fallback applied');
         } catch (error) {
             //console.error('Error applying test data fallback:', error);
         }
@@ -4436,7 +4436,7 @@ class EntryManager {
                 });
             }
 
-            ////console.log('Basic functionality ensured');
+            //console.log('Basic functionality ensured');
         } catch (error) {
             //console.error('Error ensuring basic functionality:', error);
         }
@@ -4541,7 +4541,7 @@ class EntryManager {
      * Handle owner selection change
      */
     onOwnerChange(ownerId) {
-        ////console.log('Owner changed:', ownerId);
+        //console.log('Owner changed:', ownerId);
 
         if (ownerId) {
             // Enable patient and doctor selects
@@ -4563,7 +4563,7 @@ class EntryManager {
      * Handle patient selection change
      */
     onPatientChange(patientId) {
-        ////console.log('Patient changed:', patientId);
+        //console.log('Patient changed:', patientId);
 
         if (patientId) {
             // Load patient details
@@ -4581,7 +4581,7 @@ class EntryManager {
      */
     async loadPatientsForOwner(ownerId) {
         try {
-            ////console.log('Loading patients for owner:', ownerId);
+            //console.log('Loading patients for owner:', ownerId);
 
             const response = await $.ajax({
                 url: 'ajax/patient_api.php',
@@ -4598,7 +4598,7 @@ class EntryManager {
                 response.data.forEach(patient => {
                     $select.append(`<option value="${patient.id}">${patient.name}</option>`);
                 });
-                ////console.log('Loaded', response.data.length, 'patients');
+                //console.log('Loaded', response.data.length, 'patients');
             } else {
                 //console.warn('No patients found or API error:', response.message);
             }
@@ -4617,7 +4617,7 @@ class EntryManager {
      */
     async loadDoctorsForOwner(ownerId) {
         try {
-            ////console.log('Loading doctors for owner:', ownerId);
+            //console.log('Loading doctors for owner:', ownerId);
 
             const response = await $.ajax({
                 url: 'ajax/doctor_api.php',
@@ -4634,7 +4634,7 @@ class EntryManager {
                 response.data.forEach(doctor => {
                     $select.append(`<option value="${doctor.id}">${doctor.name}</option>`);
                 });
-                ////console.log('Loaded', response.data.length, 'doctors');
+                //console.log('Loaded', response.data.length, 'doctors');
             } else {
                 //console.warn('No doctors found or API error:', response.message);
             }
@@ -4653,7 +4653,7 @@ class EntryManager {
      */
     async loadPatientDetails(patientId) {
         try {
-            ////console.log('Loading patient details for ID:', patientId);
+            //console.log('Loading patient details for ID:', patientId);
 
             const response = await $.ajax({
                 url: 'ajax/patient_api.php',
@@ -4664,7 +4664,7 @@ class EntryManager {
 
             if (response.success && response.data) {
                 const patient = response.data;
-                ////console.log('Patient details loaded:', patient);
+                //console.log('Patient details loaded:', patient);
 
                 $('#patientName').val(patient.name || '');
                 $('#patientContact').val(patient.contact || '');
@@ -4871,7 +4871,7 @@ class EntryManager {
      * View entry details
      */
     async viewEntry(entryId) {
-        ////console.log('Viewing entry:', entryId);
+        //console.log('Viewing entry:', entryId);
 
         try {
             const response = await $.ajax({
@@ -5119,13 +5119,13 @@ class EntryManager {
         // Handle owner/added_by selection and dependent dropdowns
         const ownerId = entry.added_by || entry.owner_id || entry.owner_added_by;
         if (ownerId) {
-            ////console.log('Setting owner/added_by to:', ownerId);
+            //console.log('Setting owner/added_by to:', ownerId);
 
             // Check if the owner exists in the dropdown, if not add it
             const $ownerSelect = $('#ownerAddedBySelect');
             if ($ownerSelect.find(`option[value="${ownerId}"]`).length === 0) {
                 const ownerName = entry.added_by_full_name || entry.added_by_username || `User ${ownerId}`;
-                ////console.log('Adding missing owner option:', ownerId, ownerName);
+                //console.log('Adding missing owner option:', ownerId, ownerName);
                 $ownerSelect.append(`<option value="${ownerId}">${ownerName}</option>`);
             }
 
@@ -5137,13 +5137,13 @@ class EntryManager {
 
             // Now set patient and doctor values
             if (entry.patient_id) {
-                ////console.log('Setting patient to:', entry.patient_id);
+                //console.log('Setting patient to:', entry.patient_id);
 
                 // Check if patient exists in dropdown, if not add it
                 const $patientSelect = $('#patientSelect');
                 if ($patientSelect.find(`option[value="${entry.patient_id}"]`).length === 0) {
                     const patientName = entry.patient_name || `Patient ${entry.patient_id}`;
-                    ////console.log('Adding missing patient option:', entry.patient_id, patientName);
+                    //console.log('Adding missing patient option:', entry.patient_id, patientName);
                     $patientSelect.append(`<option value="${entry.patient_id}">${patientName}</option>`);
                 }
 
@@ -5154,13 +5154,13 @@ class EntryManager {
             }
 
             if (entry.doctor_id) {
-                ////console.log('Setting doctor to:', entry.doctor_id);
+                //console.log('Setting doctor to:', entry.doctor_id);
 
                 // Check if doctor exists in dropdown, if not add it
                 const $doctorSelect = $('#doctorSelect');
                 if ($doctorSelect.find(`option[value="${entry.doctor_id}"]`).length === 0) {
                     const doctorName = entry.doctor_name || `Doctor ${entry.doctor_id}`;
-                    ////console.log('Adding missing doctor option:', entry.doctor_id, doctorName);
+                    //console.log('Adding missing doctor option:', entry.doctor_id, doctorName);
                     $doctorSelect.append(`<option value="${entry.doctor_id}">${doctorName}</option>`);
                 }
 
@@ -5238,7 +5238,7 @@ class EntryManager {
             $('#entryStatus').trigger('change');
             $('#priority').trigger('change');
             $('#referralSource').trigger('change');
-            ////console.log('Edit form populated successfully');
+            //console.log('Edit form populated successfully');
         }, 100);
     }
 
@@ -5246,7 +5246,7 @@ class EntryManager {
      * Delete entry
      */
     deleteEntry(entryId) {
-        ////console.log('Deleting entry:', entryId);
+        //console.log('Deleting entry:', entryId);
 
         // Show confirmation modal
         $('#deleteModal').modal('show');
@@ -5373,7 +5373,7 @@ class EntryManager {
                 dataType: 'json'
             });
 
-            ////console.log('Save response:', response);
+            //console.log('Save response:', response);
 
             if (response.success) {
                 toastr.success(this.currentEditId ? 'Entry updated successfully' : 'Entry created successfully');
