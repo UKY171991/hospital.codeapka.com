@@ -1902,7 +1902,10 @@ class EntryManager {
             const response = await $.ajax({
                 url: 'ajax/entry_api_fixed.php',
                 method: 'GET',
-                data: { action: 'stats' },
+                data: { 
+                    action: 'stats',
+                    secret_key: 'hospital-api-secret-2024'
+                },
                 dataType: 'json'
             });
 
