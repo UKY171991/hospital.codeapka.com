@@ -8,6 +8,7 @@ class EntryManager {
         this.entriesTable = null;
         this.testsData = [];
         this.categoriesData = [];
+        this.mainCategoriesData = [];
         this.patientsData = [];
         this.doctorsData = [];
         this.ownersData = [];
@@ -333,6 +334,9 @@ class EntryManager {
             // Load tests data
             await this.loadTestsData();
 
+            // Load main categories data
+            await this.loadMainCategoriesData();
+
             // Load categories data for filtering
             await this.loadCategoriesForFilter();
 
@@ -456,6 +460,32 @@ class EntryManager {
             
             this.categoriesData = [];
             this.handleGlobalError(error, 'category_loading');
+        }
+    }
+
+    /**
+     * Load main categories data
+     */
+    async loadMainCategoriesData() {
+        try {
+            //console.log('Loading main categories...');
+            const response = await $.ajax({
+                url: 'ajax/main_test_category_api.php',
+                method: 'GET',
+                data: { action: 'list' },
+                dataType: 'json'
+            });
+
+            if (response && response.success) {
+                this.mainCategoriesData = response.data || [];
+                //console.log('Loaded main categories data:', this.mainCategoriesData.length, 'categories');
+            } else {
+                //console.error('Failed to load main categories:', response ? response.message : 'Invalid response');
+                this.mainCategoriesData = [];
+            }
+        } catch (error) {
+            //console.error('Error loading main categories data:', error);
+            this.mainCategoriesData = [];
         }
     }
 
@@ -934,8 +964,10 @@ class EntryManager {
         const rowHtml = `
             <div class="test-row row mb-2" data-row-index="${rowIndex}">
                 <div class="col-md-2">
-                    <input type="text" class="form-control test-category" name="tests[${rowIndex}][category_name]" placeholder="Category" readonly>
-                    <input type="hidden" name="tests[${rowIndex}][category_id]" class="test-category-id">
+                    <select class="form-control test-category-select select2" name="tests[${rowIndex}][category_id]">
+                        <option value="">Select Category</option>
+                        <!-- Categories will be populated via JavaScript -->
+                    </select>
                 </div>
                 <div class="col-md-3">
                     <select class="form-control test-select select2" name="tests[${rowIndex}][test_id]" required>
@@ -987,11 +1019,26 @@ class EntryManager {
             this.onTestResultChange(e.target, $newRow);
         });
 
-        // Initialize Select2 for the new row
+        // Bind category selection change event
+        const $categorySelect = $newRow.find('.test-category-select');
+        $categorySelect.on('change', (e) => {
+            this.onRowCategoryChange(e.target, $newRow);
+        });
+
+        // Populate category dropdown for this row
+        this.populateRowCategoryDropdown($categorySelect);
+
+        // Initialize Select2 for both dropdowns
         $testSelect.select2({
             theme: 'bootstrap4',
             width: '100%',
             placeholder: 'Select Test'
+        });
+
+        $categorySelect.select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            placeholder: 'Select Category'
         });
 
         // If testData is provided, populate the row
@@ -2055,6 +2102,94 @@ class EntryManager {
             //console.log('Category filter applied successfully');
         } catch (error) {
             //console.error('Error handling category filter change:', error);
+        }
+    }
+
+    /**
+     * Populate category dropdown for a test row
+     * @param {jQuery} $categorySelect - The category select element
+     */
+    populateRowCategoryDropdown($categorySelect) {
+        try {
+            // Clear existing options
+            $categorySelect.empty().append('<option value="">Select Category</option>');
+
+            // Add main categories as optgroups
+            if (this.mainCategoriesData && this.mainCategoriesData.length > 0) {
+                this.mainCategoriesData.forEach(mainCategory => {
+                    if (mainCategory && mainCategory.id && mainCategory.name) {
+                        // Add main category as optgroup
+                        const optgroup = `<optgroup label="${mainCategory.name}">`;
+                        $categorySelect.append(optgroup);
+
+                        // Add test categories under this main category
+                        if (this.categoriesData && this.categoriesData.length > 0) {
+                            this.categoriesData.forEach(category => {
+                                if (category && category.main_category_id == mainCategory.id) {
+                                    const option = `<option value="${category.id}" data-main-category="${mainCategory.id}">${category.name}</option>`;
+                                    $categorySelect.append(option);
+                                }
+                            });
+                        }
+
+                        $categorySelect.append('</optgroup>');
+                    }
+                });
+            }
+
+            // Add categories without main category (if any)
+            if (this.categoriesData && this.categoriesData.length > 0) {
+                const orphanCategories = this.categoriesData.filter(cat => !cat.main_category_id);
+                if (orphanCategories.length > 0) {
+                    $categorySelect.append('<optgroup label="Other Categories">');
+                    orphanCategories.forEach(category => {
+                        if (category && category.id && category.name) {
+                            const option = `<option value="${category.id}">${category.name}</option>`;
+                            $categorySelect.append(option);
+                        }
+                    });
+                    $categorySelect.append('</optgroup>');
+                }
+            }
+
+            //console.log('Populated category dropdown for test row');
+        } catch (error) {
+            //console.error('Error populating row category dropdown:', error);
+        }
+    }
+
+    /**
+     * Handle category selection change in a test row
+     * @param {HTMLElement} categorySelect - The category select element
+     * @param {jQuery} $row - The test row jQuery object
+     */
+    onRowCategoryChange(categorySelect, $row) {
+        try {
+            const selectedCategoryId = $(categorySelect).val();
+            //console.log('Row category changed to:', selectedCategoryId);
+
+            // Update the test dropdown for this row based on selected category
+            const $testSelect = $row.find('.test-select');
+            const filteredTests = this.filterTestsByCategory(selectedCategoryId);
+            
+            // Update test dropdown options
+            this.updateTestDropdownOptions($testSelect, filteredTests);
+
+            // Clear test selection and related fields when category changes
+            $testSelect.val('').trigger('change');
+            $row.find('.test-result').val('');
+            $row.find('.test-min').val('');
+            $row.find('.test-max').val('');
+            $row.find('.test-unit').val('');
+            $row.find('.test-price').val('0');
+
+            // Clear validation indicators
+            $row.find('.validation-indicator').text('').removeClass('text-success text-danger text-warning');
+            $row.find('.test-result').removeClass('result-normal result-abnormal result-invalid result-empty');
+
+            //console.log('Row category change handled successfully');
+        } catch (error) {
+            //console.error('Error handling row category change:', error);
         }
     }
 

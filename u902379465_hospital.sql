@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 27, 2025 at 10:49 AM
+-- Generation Time: Oct 28, 2025 at 02:37 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -480,6 +480,7 @@ CREATE TABLE `entry_tests` (
   `entry_id` int(10) UNSIGNED NOT NULL,
   `test_id` int(10) UNSIGNED NOT NULL,
   `category_id` int(11) NOT NULL,
+  `main_category_id` int(11) NOT NULL,
   `result_value` varchar(255) DEFAULT NULL,
   `unit` varchar(64) DEFAULT NULL,
   `remarks` text DEFAULT NULL,
@@ -494,14 +495,14 @@ CREATE TABLE `entry_tests` (
 -- Dumping data for table `entry_tests`
 --
 
-INSERT INTO `entry_tests` (`id`, `entry_id`, `test_id`, `category_id`, `result_value`, `unit`, `remarks`, `status`, `price`, `discount_amount`, `total_price`, `created_at`) VALUES
-(54, 15, 4, 0, '', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-26 11:43:36'),
-(55, 15, 5, 0, '', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-26 11:43:36'),
-(61, 10, 4, 0, '', 'abc', NULL, 'pending', 980.00, 0.00, 980.00, '2025-10-26 14:11:20'),
-(62, 10, 5, 0, '', 'aaa', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-26 14:11:20'),
-(83, 17, 6, 0, '40', 'ttt', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-27 15:49:22'),
-(84, 17, 4, 0, '', 'abc', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-27 15:49:22'),
-(85, 17, 7, 0, '', 'abc', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-27 15:49:22');
+INSERT INTO `entry_tests` (`id`, `entry_id`, `test_id`, `category_id`, `main_category_id`, `result_value`, `unit`, `remarks`, `status`, `price`, `discount_amount`, `total_price`, `created_at`) VALUES
+(54, 15, 4, 0, 0, '', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-26 11:43:36'),
+(55, 15, 5, 0, 0, '', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-26 11:43:36'),
+(61, 10, 4, 0, 0, '', 'abc', NULL, 'pending', 980.00, 0.00, 980.00, '2025-10-26 14:11:20'),
+(62, 10, 5, 0, 0, '', 'aaa', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-26 14:11:20'),
+(83, 17, 6, 0, 0, '40', 'ttt', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-27 15:49:22'),
+(84, 17, 4, 0, 0, '', 'abc', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-27 15:49:22'),
+(85, 17, 7, 0, 0, '', 'abc', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-27 15:49:22');
 
 -- --------------------------------------------------------
 
@@ -523,9 +524,31 @@ CREATE TABLE `main_test_categories` (
 --
 
 INSERT INTO `main_test_categories` (`id`, `name`, `description`, `added_by`, `created_at`, `updated_at`) VALUES
-(1, 'qwer', '', 1, '2025-10-15 11:18:44', '2025-10-15 11:18:44'),
-(2, 'Second main', '', 1, '2025-10-17 11:15:22', '2025-10-17 11:15:22'),
-(3, 'wwwww', 'sdf', 1, '2025-10-23 07:22:34', '2025-10-24 11:29:38');
+(1, 'C-Reactive protein test', 'The CRP test analyzes the level of C-reactive protein in the bloodstream. The specific protein is made by the liver only. Any heightened levels of the same ...', 1, '2025-10-15 11:18:44', '2025-10-28 01:44:59'),
+(2, 'Complete blood count', 'A complete blood count, also known as a full blood count or full haemogram, is a set of medical laboratory tests that provide information about the cells in a person\'s blood. The CBC indicates the counts of white blood cells, red blood cells and platelets, the concentration of hemoglobin, and the hematocrit.', 1, '2025-10-17 11:15:22', '2025-10-28 01:44:09'),
+(3, 'Lipid panel', 'A lipid profile or lipid panel is a panel of blood tests used to find abnormalities in blood lipid concentrations. The results of this test can identify certain genetic diseases and can determine approximate risks for cardiovascular disease, certain forms of pancreatitis, and other diseases.', 1, '2025-10-23 07:22:34', '2025-10-28 01:43:24'),
+(4, 'Thyroid function tests', 'Thyroid function tests is a collective term for blood tests used to check the function of the thyroid. TFTs may be requested if a patient is thought to suffer from hyperthyroidism or hypothyroidism, or to monitor the effectiveness of either thyroid-suppression or hormone replacement therapy.', 1, '2025-10-28 01:45:27', '2025-10-28 01:45:27'),
+(5, 'Liver panel', 'Liver function tests, also referred to as a hepatic panel or liver panel, are groups of blood tests that provide information about the state of a patient\'s liver. These tests include prothrombin time, activated partial thromboplastin time, albumin, bilirubin, and others.', 1, '2025-10-28 01:45:53', '2025-10-28 01:45:53'),
+(6, 'Basic metabolic panel', 'A basic metabolic panel is a blood test consisting of a set of seven or eight biochemical tests and is one of the most common lab tests ordered by health care providers', 1, '2025-10-28 01:46:19', '2025-10-28 01:46:19'),
+(7, 'Basic metabolic panel', 'A basic metabolic panel is a blood test consisting of a set of seven or eight biochemical tests and is one of the most common lab tests ordered by health care providers.', 1, '2025-10-28 01:47:04', '2025-10-28 01:47:04'),
+(8, 'Erythrocyte sedimentation rate', 'The erythrocyte sedimentation rate is the rate at which red blood cells in anticoagulated whole blood descend in a standardized tube over a period of one hour. It is a common hematology test, and is a non-specific measure of inflammation.', 1, '2025-10-28 01:47:31', '2025-10-28 01:47:31'),
+(9, 'HbA1c test', 'Glycated hemoglobin, also called glycohemoglobin, is a form of hemoglobin that is chemically linked to a sugar. Most monosaccharides, including glucose, galactose, and fructose, spontaneously bond with hemoglobin when they are present in the bloodstream.', 1, '2025-10-28 01:48:10', '2025-10-28 01:48:10'),
+(10, 'Cardiac biomarkers', 'Cardiac biomarkers. Abnormal levels of enzymes indicate a wide range of issues that may need further testing.', 1, '2025-10-28 01:48:38', '2025-10-28 01:48:38'),
+(11, 'Coagulogram', 'Blood clotting tests are the tests used for diagnostics of the hemostasis system. Coagulometer is the medical laboratory analyzer used for testing of the hemostasis system. Modern coagulometers realize different methods of activation and observation of development of blood clots in blood or in blood plasma.', 1, '2025-10-28 02:02:08', '2025-10-28 02:02:08'),
+(12, 'Blood glucose test', 'Many types of glucose tests exist and they can be used to estimate blood sugar levels at a given time or, over a longer period of time, to obtain average levels or to see how fast the body is able to normalize changed glucose levels. Eating food for example leads to elevated blood sugar levels.', 1, '2025-10-28 02:02:43', '2025-10-28 02:02:43'),
+(13, 'Calcium blood test', 'Calcium blood test. The calcium blood test is conducted to assess the calcium levels in the bloodstream. Since calcium is a key mineral needed for healthy ...', 1, '2025-10-28 02:03:18', '2025-10-28 02:03:18'),
+(14, 'Electrolyte panel', 'Electrolyte panel. This blood test helps measure the levels of different minerals in your body. Any imbalance in these levels may indicate problems with ...', 1, '2025-10-28 02:04:03', '2025-10-28 02:04:03'),
+(15, 'Hematocrit', 'The hematocrit, also known by several other names, is the volume percentage of red blood cells in blood, measured as part of a blood test. The measurement depends on the number and size of red blood cells. It is normally 40.7–50.3% for males and 36.1–44.3% for females', 1, '2025-10-28 02:04:31', '2025-10-28 02:04:31'),
+(16, 'KFT test', 'Book a lab/blood test online with PharmEasy Labs and get the convenience of home sample collection at affordable price with fast and accurate results.', 1, '2025-10-28 02:04:59', '2025-10-28 02:04:59'),
+(17, 'Platelet', 'Platelets or thrombocytes are a part of blood whose function is to react to bleeding from blood vessel injury by clumping to form a blood clot. Platelets have no cell nucleus; they are fragments of cytoplasm from megakaryocytes which reside in bone marrow or lung tissue, and then enter the circulation.', 1, '2025-10-28 02:05:42', '2025-10-28 02:05:42'),
+(18, 'Thyroid-stimulating hormone', 'Thyroid-stimulating hormone is a pituitary hormone that stimulates the thyroid gland to produce thyroxine, and then triiodothyronine which stimulates the metabolism of almost every tissue in the body.', 1, '2025-10-28 02:06:09', '2025-10-28 02:06:09'),
+(19, 'Creatinine', '', 1, '2025-10-28 02:06:35', '2025-10-28 02:06:35'),
+(20, 'D-dimer test', 'D-dimer test. The D-dimer test is a blood test that checks for, or monitors, blood-clotting problems. Find out what a positive result means for you.', 1, '2025-10-28 02:07:02', '2025-10-28 02:07:02'),
+(21, 'Electrolytes', 'Other electrolytes and metabolites. edit · Electrolytes and metabolites: For iron and copper, some related proteins are also included. Test, Patient type, Lower ...', 1, '2025-10-28 02:07:25', '2025-10-28 02:07:25'),
+(22, 'Folate test', 'Folate test. Folate is an important nutrient for making normal red blood cells. The folate test checks whether you have enough folate in your blood.', 1, '2025-10-28 02:07:53', '2025-10-28 02:07:53'),
+(23, 'Gonorrhea test', 'Your doctor will perform follow-up tests to confirm a diagnosis. The Lifeforce Diagnostic is an at-home blood test designed to gather data on 40+ biomarkers ...', 1, '2025-10-28 02:08:24', '2025-10-28 02:08:24'),
+(24, 'Hemoglobin', 'Hemoglobin is an iron-rich protein in red blood cells that carries oxygen. Hematocrit levels that are too high might mean you\'re dehydrated. Low hematocrit ...', 1, '2025-10-28 02:08:47', '2025-10-28 02:08:47'),
+(25, 'MCV', 'The mean corpuscular volume, or mean cell volume, is a measure of the average volume of a red blood corpuscle. The measure is obtained by multiplying a volume of blood by the proportion of blood that is cellular, and dividing that product by the number of erythrocytes in that volume.', 1, '2025-10-28 02:09:17', '2025-10-28 02:09:17');
 
 -- --------------------------------------------------------
 
@@ -822,7 +845,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `api_token`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-10-27 15:06:46', '2025-10-26 10:12:00', '', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-10-28 06:48:43', '2025-10-26 10:12:00', '', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
 (2, 'uma', '$2y$12$auavnwTI5hbfkyqCoavijO/i3diGYgDZqt58EzkY6ZkB6M9jTmD9e', 'Uma Yadav', 'umakant171992@gmail.com', 'user', 1, 'Pathology', '2025-09-26 10:13:58', NULL, '2025-12-30 23:59:00', '6dad141b199e8c2ae3021462459c23135244d408778939a4c33c4a969726fde7', '0000-00-00 00:00:00', '2025-10-18 05:36:53');
 
 -- --------------------------------------------------------
@@ -1059,7 +1082,7 @@ ALTER TABLE `entry_tests`
 -- AUTO_INCREMENT for table `main_test_categories`
 --
 ALTER TABLE `main_test_categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `notices`
