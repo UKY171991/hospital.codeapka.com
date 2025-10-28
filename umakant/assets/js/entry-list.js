@@ -2213,7 +2213,7 @@ class EntryManager {
         if (testData) {
             console.log('=== POPULATING TEST ROW FOR EDIT ===');
             console.log('Test data:', testData);
-            
+
             // Set the test selection first
             $testSelect.val(testData.test_id);
             $testSelect.select2('destroy').select2({
@@ -2257,7 +2257,7 @@ class EntryManager {
     async onTestChange(selectElement, $row) {
         const $select = $(selectElement);
         const testId = $select.val();
-        
+
         console.log('=== TEST CHANGE EVENT ===');
         console.log('Test ID selected:', testId);
         console.log('Row index:', $row.data('row-index'));
@@ -2293,7 +2293,7 @@ class EntryManager {
 
         // Calculate totals
         this.calculateTotals();
-        
+
         console.log('=== TEST CHANGE COMPLETE ===');
     }
 
@@ -2313,7 +2313,7 @@ class EntryManager {
      */
     async setTestCategory($row, testData) {
         const $categorySelect = $row.find('.test-category-select');
-        
+
         console.log('Setting category for test:', testData.name, 'Category ID:', testData.category_id);
 
         // Ensure categories are loaded
@@ -2333,7 +2333,7 @@ class EntryManager {
         // Set the correct category value
         if (testData.category_id && testData.category_id != 0) {
             $categorySelect.val(testData.category_id);
-            
+
             // Set main category ID
             const category = this.categoriesData.find(cat => cat.id == testData.category_id);
             if (category && category.main_category_id) {
