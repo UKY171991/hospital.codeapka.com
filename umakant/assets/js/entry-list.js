@@ -54,59 +54,59 @@ class EntryManager {
      * Debug function to check test data (can be called from browser console)
      */
     debugTestData() {
-        ////console.log('=== TEST DATA DEBUG ===');
-        ////console.log('Total tests loaded:', this.testsData.length);
+        //console.log('=== TEST DATA DEBUG ===');
+        //console.log('Total tests loaded:', this.testsData.length);
 
         if (this.testsData.length > 0) {
-            ////console.log('Sample test data:', this.testsData.slice(0, 3));
+            //console.log('Sample test data:', this.testsData.slice(0, 3));
 
             // Check for duplicates
             const testNames = this.testsData.map(t => t.name);
             const uniqueNames = [...new Set(testNames)];
-            ////console.log('Total test names:', testNames.length);
-            ////console.log('Unique test names:', uniqueNames.length);
+            //console.log('Total test names:', testNames.length);
+            //console.log('Unique test names:', uniqueNames.length);
 
             if (testNames.length !== uniqueNames.length) {
                 console.warn('DUPLICATE NAMES FOUND!');
                 const duplicates = testNames.filter((name, index) => testNames.indexOf(name) !== index);
-                ////console.log('Duplicate names:', [...new Set(duplicates)]);
+                //console.log('Duplicate names:', [...new Set(duplicates)]);
 
                 duplicates.forEach(dupName => {
                     const duplicateTests = this.testsData.filter(t => t.name === dupName);
-                    ////console.log(`Tests with name "${dupName}":`, duplicateTests);
+                    //console.log(`Tests with name "${dupName}":`, duplicateTests);
                 });
             } else {
-                ////console.log('✓ No duplicate test names found');
+                //console.log('✓ No duplicate test names found');
             }
         }
-        ////console.log('=== END DEBUG ===');
+        //console.log('=== END DEBUG ===');
     }
 
     /**
      * Debug function to check category data (can be called from browser console)
      */
     debugCategoryData() {
-        ////console.log('=== CATEGORY DATA DEBUG ===');
-        ////console.log('Total categories loaded:', this.categoriesData.length);
-        ////console.log('Total main categories loaded:', this.mainCategoriesData.length);
+        //console.log('=== CATEGORY DATA DEBUG ===');
+        //console.log('Total categories loaded:', this.categoriesData.length);
+        //console.log('Total main categories loaded:', this.mainCategoriesData.length);
 
         if (this.categoriesData.length > 0) {
-            ////console.log('Sample category data:', this.categoriesData.slice(0, 5));
+            //console.log('Sample category data:', this.categoriesData.slice(0, 5));
 
             // Check category structure
             const categoriesWithMainId = this.categoriesData.filter(cat => cat.main_category_id);
             const categoriesWithoutMainId = this.categoriesData.filter(cat => !cat.main_category_id);
 
-            ////console.log('Categories with main_category_id:', categoriesWithMainId.length);
-            ////console.log('Categories without main_category_id:', categoriesWithoutMainId.length);
+            //console.log('Categories with main_category_id:', categoriesWithMainId.length);
+            //console.log('Categories without main_category_id:', categoriesWithoutMainId.length);
 
             if (categoriesWithMainId.length > 0) {
-                ////console.log('Sample category with main_category_id:', categoriesWithMainId[0]);
+                //console.log('Sample category with main_category_id:', categoriesWithMainId[0]);
             }
         }
 
         if (this.mainCategoriesData.length > 0) {
-            ////console.log('Sample main category data:', this.mainCategoriesData.slice(0, 3));
+            //console.log('Sample main category data:', this.mainCategoriesData.slice(0, 3));
         }
 
         // Check if tests have category information
@@ -114,38 +114,38 @@ class EntryManager {
             const testsWithCategory = this.testsData.filter(test => test.category_id);
             const testsWithCategoryName = this.testsData.filter(test => test.category_name);
 
-            ////console.log('Tests with category_id:', testsWithCategory.length, '/', this.testsData.length);
-            ////console.log('Tests with category_name:', testsWithCategoryName.length, '/', this.testsData.length);
+            //console.log('Tests with category_id:', testsWithCategory.length, '/', this.testsData.length);
+            //console.log('Tests with category_name:', testsWithCategoryName.length, '/', this.testsData.length);
 
             if (testsWithCategory.length > 0) {
-                ////console.log('Sample test with category:', testsWithCategory[0]);
+                //console.log('Sample test with category:', testsWithCategory[0]);
             }
         }
 
         // Check current form state
         const $categoryDropdowns = $('.test-category-select');
-        ////console.log('Category dropdowns found in DOM:', $categoryDropdowns.length);
+        //console.log('Category dropdowns found in DOM:', $categoryDropdowns.length);
 
         $categoryDropdowns.each((index, dropdown) => {
             const $dropdown = $(dropdown);
             const optionCount = $dropdown.find('option').length;
             const selectedValue = $dropdown.val();
-            ////console.log(`Dropdown ${index}: ${optionCount} options, selected: "${selectedValue}"`);
+            //console.log(`Dropdown ${index}: ${optionCount} options, selected: "${selectedValue}"`);
         });
 
-        ////console.log('=== END CATEGORY DEBUG ===');
+        //console.log('=== END CATEGORY DEBUG ===');
     }
 
     /**
      * Debug function to check edit mode state (can be called from browser console)
      */
     debugEditMode() {
-        ////console.log('=== EDIT MODE DEBUG ===');
-        ////console.log('Current edit ID:', this.currentEditId);
+        //console.log('=== EDIT MODE DEBUG ===');
+        //console.log('Current edit ID:', this.currentEditId);
 
         // Check test rows in the form
         const $testRows = $('.test-row');
-        ////console.log('Test rows found:', $testRows.length);
+        //console.log('Test rows found:', $testRows.length);
 
         $testRows.each((index, row) => {
             const $row = $(row);
@@ -156,7 +156,7 @@ class EntryManager {
             const categoryName = $row.find('.test-category-select option:selected').text();
             const mainCategoryId = $row.find('.test-main-category-id').val();
 
-            /*//console.log(`Row ${index} (index: ${rowIndex}):`, {
+            /*console.log(`Row ${index} (index: ${rowIndex}):`, {
                 testId: testId,
                 testName: testName,
                 categoryId: categoryId,
@@ -166,15 +166,15 @@ class EntryManager {
             });*/
         });
 
-        ////console.log('=== END EDIT MODE DEBUG ===');
+        //console.log('=== END EDIT MODE DEBUG ===');
     }
 
     /**
      * Debug function to check specific entry data (can be called from browser console)
      */
     async debugSpecificEntry(entryId) {
-        ////console.log('=== SPECIFIC ENTRY DEBUG ===');
-        ////console.log('Entry ID:', entryId);
+        //console.log('=== SPECIFIC ENTRY DEBUG ===');
+        //console.log('Entry ID:', entryId);
 
         try {
             // Get entry data from API
@@ -186,12 +186,12 @@ class EntryManager {
             });
 
             if (response.success && response.data) {
-                ////console.log('Entry data:', response.data);
+                //console.log('Entry data:', response.data);
 
                 if (response.data.tests) {
-                    ////console.log('Tests in entry:', response.data.tests.length);
+                    //console.log('Tests in entry:', response.data.tests.length);
                     response.data.tests.forEach((test, index) => {
-                        /*//console.log(`Test ${index + 1}:`, {
+                        /*console.log(`Test ${index + 1}:`, {
                             test_id: test.test_id,
                             test_name: test.test_name,
                             category_id: test.category_id,
@@ -202,7 +202,7 @@ class EntryManager {
                         // Check if this test exists in our testsData
                         const foundInTestsData = this.testsData.find(t => t.id == test.test_id);
                         if (foundInTestsData) {
-                            /*//console.log(`Test ${index + 1} found in testsData:`, {
+                            /*console.log(`Test ${index + 1} found in testsData:`, {
                                 id: foundInTestsData.id,
                                 name: foundInTestsData.name,
                                 category_id: foundInTestsData.category_id,
@@ -216,7 +216,7 @@ class EntryManager {
                         if (test.category_id) {
                             const foundCategory = this.categoriesData.find(cat => cat.id == test.category_id);
                             if (foundCategory) {
-                                ////console.log(`Category ${test.category_id} found:`, foundCategory);
+                                //console.log(`Category ${test.category_id} found:`, foundCategory);
                             } else {
                                 console.warn(`Category ${test.category_id} NOT found in categoriesData!`);
                             }
@@ -230,18 +230,18 @@ class EntryManager {
             console.error('Error getting entry data:', error);
         }
 
-        ////console.log('=== END SPECIFIC ENTRY DEBUG ===');
+        //console.log('=== END SPECIFIC ENTRY DEBUG ===');
     }
 
     /**
      * Initialize the Entry Manager
      */
     init() {
-        //console.log('Initializing Entry Manager...');
+        console.log('Initializing Entry Manager...');
 
         // Wait for DOM to be ready
         $(document).ready(() => {
-            //console.log('DOM ready, starting initialization...');
+            console.log('DOM ready, starting initialization...');
             try {
                 // Add a small delay to ensure all libraries are loaded
                 setTimeout(() => {
@@ -249,7 +249,7 @@ class EntryManager {
                     this.loadInitialData();
                     this.bindEvents();
                     this.loadStatistics();
-                    //console.log('Entry Manager initialization complete');
+                    console.log('Entry Manager initialization complete');
                 }, 100);
             } catch (error) {
                 console.error('Error during Entry Manager initialization:', error);
@@ -268,7 +268,7 @@ class EntryManager {
      * Initialize DataTable with proper configuration
      */
     initializeDataTable() {
-        //console.log('Initializing DataTable...');
+        console.log('Initializing DataTable...');
 
         // Check if the table element exists
         if ($('#entriesTable').length === 0) {
@@ -310,13 +310,13 @@ class EntryManager {
         }
 
         try {
-            //console.log('About to initialize DataTable...');
-            //console.log('Table element exists:', $('#entriesTable').length > 0);
+            console.log('About to initialize DataTable...');
+            console.log('Table element exists:', $('#entriesTable').length > 0);
             
             // Check table structure
             const $table = $('#entriesTable');
             const headerCells = $table.find('thead th').length;
-            //console.log('Number of header columns:', headerCells);
+            console.log('Number of header columns:', headerCells);
             
             if (headerCells !== 12) {
                 throw new Error(`Table structure mismatch: Expected 12 columns, found ${headerCells} columns`);
@@ -333,7 +333,7 @@ class EntryManager {
                         secret_key: 'hospital-api-secret-2024'
                     },
                     dataSrc: function (json) {
-                        //console.log('DataTable received data:', json);
+                        console.log('DataTable received data:', json);
                         if (json && json.success) {
                             return json.data || [];
                         } else {
@@ -607,7 +607,7 @@ class EntryManager {
                 }
             });
 
-            ////console.log('DataTable initialized successfully');
+            //console.log('DataTable initialized successfully');
         } catch (error) {
             console.error('Error initializing DataTable:', error);
             // Show detailed error message for debugging
@@ -627,7 +627,7 @@ class EntryManager {
      * Load initial data (tests, patients, doctors, owners)
      */
     async loadInitialData() {
-        // ////console.log('Loading initial data...');
+        // //console.log('Loading initial data...');
 
         try {
             // Load tests data
@@ -642,7 +642,7 @@ class EntryManager {
             // Load owners/users data
             await this.loadOwnersData();
 
-            // ////console.log('Initial data loaded successfully');
+            // //console.log('Initial data loaded successfully');
         } catch (error) {
             //console.error('Error loading initial data:', error);
             toastr.error('Failed to load initial data');
@@ -661,12 +661,12 @@ class EntryManager {
                 const cachedData = this.getCacheData(this.cacheKeys.TESTS_DATA);
                 if (cachedData) {
                     this.testsData = cachedData;
-                    ////console.log('Tests data loaded from cache:', this.testsData.length, 'tests');
+                    //console.log('Tests data loaded from cache:', this.testsData.length, 'tests');
                     return true;
                 }
             }
 
-            ////console.log(`Loading tests data from API... (attempt ${retryCount + 1}/${maxRetries + 1})`);
+            //console.log(`Loading tests data from API... (attempt ${retryCount + 1}/${maxRetries + 1})`);
             this.performanceMetrics.apiCalls++;
 
             const response = await $.ajax({
@@ -693,15 +693,15 @@ class EntryManager {
                 // Verify demographic range fields are available
                 this.verifyDemographicRangeFields();
 
-                ////console.log('Tests data loaded successfully:', this.testsData.length, 'tests');
+                //console.log('Tests data loaded successfully:', this.testsData.length, 'tests');
 
                 // Check for duplicate test names and handle them
                 this.handleDuplicateTestNames();
 
                 // Debug: show first few tests
                 if (this.testsData.length > 0) {
-                    //console.log('Sample tests:', this.testsData.slice(0, 5).map(t => ({id: t.id, name: t.name, category_id: t.category_id, category_name: t.category_name})));
-                    //console.log('Test data structure:', Object.keys(this.testsData[0]));
+                    console.log('Sample tests:', this.testsData.slice(0, 5).map(t => ({id: t.id, name: t.name, category_id: t.category_id, category_name: t.category_name})));
+                    console.log('Test data structure:', Object.keys(this.testsData[0]));
                 } else {
                     console.warn('Tests data is empty after validation');
                     this.handleEmptyTestData();
@@ -714,7 +714,7 @@ class EntryManager {
 
                 // Try retry if we haven't exceeded max retries
                 if (retryCount < maxRetries) {
-                    ////console.log(`Retrying test data load in 2 seconds... (${retryCount + 1}/${maxRetries})`);
+                    //console.log(`Retrying test data load in 2 seconds... (${retryCount + 1}/${maxRetries})`);
                     await this.delay(2000);
                     return await this.loadTestsData(retryCount + 1);
                 }
@@ -747,7 +747,7 @@ class EntryManager {
 
             // Try retry for network errors if we haven't exceeded max retries
             if (retryCount < maxRetries && (error.status === 0 || error.statusText === 'timeout' || error.status >= 500)) {
-                ////console.log(`Retrying test data load due to network error in 3 seconds... (${retryCount + 1}/${maxRetries})`);
+                //console.log(`Retrying test data load due to network error in 3 seconds... (${retryCount + 1}/${maxRetries})`);
                 await this.delay(3000);
                 return await this.loadTestsData(retryCount + 1);
             }
@@ -805,16 +805,16 @@ class EntryManager {
 
         if (testNames.length !== uniqueNames.length) {
             console.error('Duplicate test names detected in API response!');
-            ////console.log('Total tests:', testNames.length, 'Unique names:', uniqueNames.length);
+            //console.log('Total tests:', testNames.length, 'Unique names:', uniqueNames.length);
 
             // Find and log duplicates
             const duplicates = testNames.filter((name, index) => testNames.indexOf(name) !== index);
-            ////console.log('Duplicate names:', [...new Set(duplicates)]);
+            //console.log('Duplicate names:', [...new Set(duplicates)]);
 
             // Show detailed info about duplicates
             duplicates.forEach(dupName => {
                 const duplicateTests = this.testsData.filter(t => t.name === dupName);
-                /*//console.log(`Tests with name "${dupName}":`, duplicateTests.map(t => ({
+                /*console.log(`Tests with name "${dupName}":`, duplicateTests.map(t => ({
                     id: t.id,
                     name: t.name,
                     category: t.category_name
@@ -914,7 +914,7 @@ class EntryManager {
      */
     async retryTestDataLoad() {
         try {
-            ////console.log('Retrying test data load...');
+            //console.log('Retrying test data load...');
 
             // Show loading state
             const $retryButton = $('#testDataRetryUI button:first');
@@ -935,11 +935,11 @@ class EntryManager {
                     toastr.success('Test data loaded successfully!');
                 }
 
-                ////console.log('Test data retry successful');
+                //console.log('Test data retry successful');
             } else {
                 // Failed again - restore button state
                 $retryButton.html(originalText).prop('disabled', false);
-                ////console.log('Test data retry failed');
+                //console.log('Test data retry failed');
             }
         } catch (error) {
             console.error('Error during test data retry:', error);
@@ -956,7 +956,7 @@ class EntryManager {
     dismissTestDataError() {
         try {
             $('#testDataRetryUI').remove();
-            ////console.log('Test data error UI dismissed');
+            //console.log('Test data error UI dismissed');
         } catch (error) {
             console.error('Error dismissing test data error UI:', error);
         }
@@ -975,12 +975,12 @@ class EntryManager {
                 if (cachedData) {
                     this.categoriesData = cachedData;
                     this.populateCategoryFilter();
-                    ////console.log('Categories data loaded from cache:', this.categoriesData.length, 'categories');
+                    //console.log('Categories data loaded from cache:', this.categoriesData.length, 'categories');
                     return true;
                 }
             }
 
-            ////console.log(`Loading categories for filter... (attempt ${retryCount + 1}/${maxRetries + 1})`);
+            //console.log(`Loading categories for filter... (attempt ${retryCount + 1}/${maxRetries + 1})`);
             this.performanceMetrics.apiCalls++;
 
             const response = await $.ajax({
@@ -1009,12 +1009,12 @@ class EntryManager {
                 this.setCacheData(this.cacheKeys.CATEGORIES_DATA, this.categoriesData);
 
                 this.populateCategoryFilter();
-                //console.log('Categories loaded successfully:', this.categoriesData.length, 'categories');
-                //console.log('Sample categories:', this.categoriesData.slice(0, 3));
+                console.log('Categories loaded successfully:', this.categoriesData.length, 'categories');
+                console.log('Sample categories:', this.categoriesData.slice(0, 3));
 
                 // Debug: Log first few categories to verify data structure
                 if (this.categoriesData.length > 0) {
-                    ////console.log('Sample category data:', this.categoriesData.slice(0, 3));
+                    //console.log('Sample category data:', this.categoriesData.slice(0, 3));
                 }
 
                 return true; // Success
@@ -1024,7 +1024,7 @@ class EntryManager {
 
                 // Try retry if we haven't exceeded max retries
                 if (retryCount < maxRetries) {
-                    ////console.log(`Retrying category load in 2 seconds... (${retryCount + 1}/${maxRetries})`);
+                    //console.log(`Retrying category load in 2 seconds... (${retryCount + 1}/${maxRetries})`);
                     await this.delay(2000);
                     return await this.loadCategoriesForFilter(retryCount + 1);
                 }
@@ -1046,7 +1046,7 @@ class EntryManager {
 
             // Try retry for network errors if we haven't exceeded max retries
             if (retryCount < maxRetries && (error.status === 0 || error.statusText === 'timeout' || error.status >= 500)) {
-                ////console.log(`Retrying category load due to network error in 3 seconds... (${retryCount + 1}/${maxRetries})`);
+                //console.log(`Retrying category load due to network error in 3 seconds... (${retryCount + 1}/${maxRetries})`);
                 await this.delay(3000);
                 return await this.loadCategoriesForFilter(retryCount + 1);
             }
@@ -1097,7 +1097,7 @@ class EntryManager {
      */
     async loadMainCategoriesData() {
         try {
-            ////console.log('Loading main categories...');
+            //console.log('Loading main categories...');
             const response = await $.ajax({
                 url: 'ajax/main_test_category_api.php',
                 method: 'GET',
@@ -1107,7 +1107,7 @@ class EntryManager {
 
             if (response && response.success) {
                 this.mainCategoriesData = response.data || [];
-                ////console.log('Loaded main categories data:', this.mainCategoriesData.length, 'categories');
+                //console.log('Loaded main categories data:', this.mainCategoriesData.length, 'categories');
             } else {
                 //console.error('Failed to load main categories:', response ? response.message : 'Invalid response');
                 this.mainCategoriesData = [];
@@ -1142,7 +1142,7 @@ class EntryManager {
         // Update test count
         this.updateFilteredTestCount();
 
-        ////console.log('Category filter populated with', this.categoriesData.length, 'categories');
+        //console.log('Category filter populated with', this.categoriesData.length, 'categories');
     }
 
     /**
@@ -1236,7 +1236,7 @@ class EntryManager {
      */
     async retryCategoryLoad() {
         try {
-            ////console.log('Retrying category load...');
+            //console.log('Retrying category load...');
 
             // Show loading state
             const $retryButton = $('#categoryRetryUI button:first');
@@ -1256,11 +1256,11 @@ class EntryManager {
                     toastr.success('Categories loaded successfully!');
                 }
 
-                ////console.log('Category retry successful');
+                //console.log('Category retry successful');
             } else {
                 // Failed again - restore button state
                 $retryButton.html(originalText).prop('disabled', false);
-                ////console.log('Category retry failed');
+                //console.log('Category retry failed');
             }
         } catch (error) {
             console.error('Error during category retry:', error);
@@ -1277,7 +1277,7 @@ class EntryManager {
     dismissCategoryError() {
         try {
             $('#categoryRetryUI').remove();
-            ////console.log('Category error UI dismissed');
+            //console.log('Category error UI dismissed');
         } catch (error) {
             console.error('Error dismissing category error UI:', error);
         }
@@ -1324,7 +1324,7 @@ class EntryManager {
 
             // If no valid category selected, return all tests
             if (normalizedCategoryId === null) {
-                //console.log('No category filter applied, returning all tests:', this.testsData.length);
+                console.log('No category filter applied, returning all tests:', this.testsData.length);
                 return this.testsData;
             }
 
@@ -1353,7 +1353,7 @@ class EntryManager {
                 }
             });
 
-            //console.log(`Filtered tests by category ${categoryId}:`, filteredTests.length, 'out of', this.testsData.length);
+            console.log(`Filtered tests by category ${categoryId}:`, filteredTests.length, 'out of', this.testsData.length);
 
             // Enhanced debugging and fallback behavior
             if (filteredTests.length === 0 && normalizedCategoryId !== 'uncategorized') {
@@ -1472,7 +1472,7 @@ class EntryManager {
                 .filter(id => id !== null)
         )];
 
-        //console.log('Available category IDs in tests:', availableCategoryIds);
+        console.log('Available category IDs in tests:', availableCategoryIds);
 
         // Check if the category exists in our categories data
         const categoryExists = this.categoriesData.some(cat =>
@@ -1524,7 +1524,7 @@ class EntryManager {
     async onCategoryFilterChange(categoryId) {
         try {
             const startTime = performance.now();
-            ////console.log('Global category filter changed to:', categoryId);
+            //console.log('Global category filter changed to:', categoryId);
 
             // Update the filtered test count display
             this.updateFilteredTestCount();
@@ -1556,7 +1556,7 @@ class EntryManager {
             const duration = endTime - startTime;
 
             // Log performance metrics
-            ////console.log(`Global category filter change completed in ${duration.toFixed(2)}ms`);
+            //console.log(`Global category filter change completed in ${duration.toFixed(2)}ms`);
 
             // Track performance
             this.performanceMetrics.filterOperations.push({
@@ -1571,7 +1571,7 @@ class EntryManager {
                 console.warn(`Category filter change took ${duration.toFixed(2)}ms, which exceeds the 200ms target`);
             }
 
-            ////console.log('Global category filter change handled successfully');
+            //console.log('Global category filter change handled successfully');
         } catch (error) {
             console.error('Error handling global category filter change:', error);
             // Attempt recovery
@@ -1584,7 +1584,7 @@ class EntryManager {
      */
     clearCategoryFilter() {
         try {
-            ////console.log('Clearing global category filter...');
+            //console.log('Clearing global category filter...');
 
             // Reset category filter dropdown
             const $categoryFilter = $('#categoryFilter');
@@ -1603,7 +1603,7 @@ class EntryManager {
             $('#clearCategoryFilter').prop('disabled', true).hide();
             this.hideCategoryFilterIndicator();
 
-            ////console.log('Category filter cleared, showing all tests');
+            //console.log('Category filter cleared, showing all tests');
         } catch (error) {
             console.error('Error clearing category filter:', error);
         }
@@ -1667,7 +1667,7 @@ class EntryManager {
             const filteredTests = this.getCurrentlyFilteredTests();
             const $testSelects = $('#testsContainer .test-select');
 
-            ////console.log(`Updating ${$testSelects.length} test dropdowns with ${filteredTests.length} filtered tests`);
+            //console.log(`Updating ${$testSelects.length} test dropdowns with ${filteredTests.length} filtered tests`);
 
             // Batch DOM updates for better performance
             const updates = [];
@@ -1711,7 +1711,7 @@ class EntryManager {
                 this.performanceMetrics.filterOperations.splice(0, 10);
             }
 
-            ////console.log(`Updated all test dropdowns in ${duration.toFixed(2)}ms`);
+            //console.log(`Updated all test dropdowns in ${duration.toFixed(2)}ms`);
 
             // Warn if operation is slow
             if (duration > 500) {
@@ -1789,10 +1789,10 @@ class EntryManager {
 
             if (shouldRestoreSelection) {
                 $select.val(currentValue);
-                ////console.log(`Restored test selection: ${currentValue}`);
+                //console.log(`Restored test selection: ${currentValue}`);
             } else if (currentValue) {
                 // If previously selected test is not in filtered results, clear selection
-                ////console.log(`Previous test selection ${currentValue} not available in filtered results, clearing`);
+                //console.log(`Previous test selection ${currentValue} not available in filtered results, clearing`);
                 $select.val('');
 
                 // Clear related fields in the row using the helper method
@@ -1821,7 +1821,7 @@ class EntryManager {
                 }
             }
 
-            ////console.log(`Updated test dropdown with ${validTests.length} options`);
+            //console.log(`Updated test dropdown with ${validTests.length} options`);
 
         } catch (error) {
             console.error('Error updating test dropdown options:', error);
@@ -1852,7 +1852,7 @@ class EntryManager {
             if (response.success) {
                 this.ownersData = response.data || [];
                 this.populateOwnerSelect();
-                ////console.log('Loaded owners data:', this.ownersData.length, 'owners');
+                //console.log('Loaded owners data:', this.ownersData.length, 'owners');
             } else {
                 //console.error('Failed to load owners:', response.message);
             }
@@ -1873,7 +1873,7 @@ class EntryManager {
             $select.append(`<option value="${owner.id}">${owner.name || owner.username || owner.full_name}</option>`);
         });
 
-        ////console.log('Populated owner select with', this.ownersData.length, 'owners');
+        //console.log('Populated owner select with', this.ownersData.length, 'owners');
 
         // Refresh Select2 if initialized
         if ($select.hasClass('select2-hidden-accessible')) {
@@ -1911,7 +1911,7 @@ class EntryManager {
      * Bind event handlers
      */
     bindEvents() {
-        // ////console.log('Binding events...');
+        // //console.log('Binding events...');
 
         // Filter change events
         $('#statusFilter, #dateFilter').on('change', () => {
@@ -1957,7 +1957,7 @@ class EntryManager {
             this.debouncedRangeUpdate();
         });
 
-        // ////console.log('Events bound successfully');
+        // //console.log('Events bound successfully');
     }
 
     /**
@@ -2032,7 +2032,7 @@ class EntryManager {
      * Open Add Entry Modal
      */
     openAddModal() {
-        ////console.log('Opening add entry modal...');
+        //console.log('Opening add entry modal...');
 
         this.currentEditId = null;
         this.resetForm();
@@ -2056,14 +2056,14 @@ class EntryManager {
     addTestRow(testData = null) {
         const rowIndex = this.testRowCounter++;
 
-        ////console.log('Creating test row with', this.testsData.length, 'available tests');
+        //console.log('Creating test row with', this.testsData.length, 'available tests');
 
         // Debug: Check for duplicate test names
         const testNames = this.testsData.map(t => t.name);
         const duplicateNames = testNames.filter((name, index) => testNames.indexOf(name) !== index);
         if (duplicateNames.length > 0) {
             console.warn('Duplicate test names found:', duplicateNames);
-            ////console.log('All test data:', this.testsData.map(t => ({ id: t.id, name: t.name })));
+            //console.log('All test data:', this.testsData.map(t => ({ id: t.id, name: t.name })));
         }
 
         // Get filtered tests based on current global category filter
@@ -2071,7 +2071,7 @@ class EntryManager {
         const globalCategoryFilter = $('#categoryFilter').val();
         const filteredTests = this.getCurrentlyFilteredTests();
 
-        /*//console.log('Creating new test row with global filter:', {
+        /*console.log('Creating new test row with global filter:', {
             global_filter: globalCategoryFilter,
             filtered_tests_count: filteredTests.length,
             total_tests_count: this.testsData.length
@@ -2095,9 +2095,9 @@ class EntryManager {
         }).join('');
 
         if (testData) {
-            ////console.log('Looking for test with ID:', testData.test_id);
+            //console.log('Looking for test with ID:', testData.test_id);
             const foundTest = this.testsData.find(t => t.id == testData.test_id);
-            ////console.log('Found test:', foundTest);
+            //console.log('Found test:', foundTest);
         }
 
         const rowHtml = `
@@ -2170,7 +2170,7 @@ class EntryManager {
 
         // If global category filter is active, pre-select it in the new row
         if (globalCategoryFilter && globalCategoryFilter !== '' && !testData) {
-            ////console.log('Pre-selecting global category filter in new row:', globalCategoryFilter);
+            //console.log('Pre-selecting global category filter in new row:', globalCategoryFilter);
             $categorySelect.val(globalCategoryFilter);
 
             // Set main category ID if available
@@ -2181,7 +2181,7 @@ class EntryManager {
         }
 
         // Debug: Log category population status
-        ////console.log('Category dropdown populated for row', rowIndex, 'with', this.categoriesData.length, 'categories');
+        //console.log('Category dropdown populated for row', rowIndex, 'with', this.categoriesData.length, 'categories');
 
         // Initialize Select2 for both dropdowns
         $testSelect.select2({
@@ -2198,22 +2198,22 @@ class EntryManager {
 
         // If testData is provided, populate the row
         if (testData) {
-            ////console.log('=== POPULATING TEST ROW ===');
-            ////console.log('Test data received:', testData);
-            ////console.log('Test ID from data:', testData.test_id);
-            ////console.log('Test name from data:', testData.test_name);
-            ////console.log('Available tests in testsData:', this.testsData.length);
-            ////console.log('Looking for test ID:', testData.test_id);
+            //console.log('=== POPULATING TEST ROW ===');
+            //console.log('Test data received:', testData);
+            //console.log('Test ID from data:', testData.test_id);
+            //console.log('Test name from data:', testData.test_name);
+            //console.log('Available tests in testsData:', this.testsData.length);
+            //console.log('Looking for test ID:', testData.test_id);
 
             // Debug: show what test IDs are available
             const availableIds = this.testsData.map(t => t.id);
-            ////console.log('Available test IDs in testsData:', availableIds);
-            ////console.log('Is test ID', testData.test_id, 'in available IDs?', availableIds.includes(parseInt(testData.test_id)));
+            //console.log('Available test IDs in testsData:', availableIds);
+            //console.log('Is test ID', testData.test_id, 'in available IDs?', availableIds.includes(parseInt(testData.test_id)));
 
             // Find the test in our testsData to get the correct information
             const foundTest = this.testsData.find(t => t.id == testData.test_id);
             if (foundTest) {
-                ////console.log('Found matching test in testsData:', foundTest);
+                //console.log('Found matching test in testsData:', foundTest);
 
                 // Populate all the fields with the correct data first
                 setTimeout(() => {
@@ -2253,7 +2253,7 @@ class EntryManager {
                         });
                     }
 
-                    /*//console.log('Category selection debug:', {
+                    /*console.log('Category selection debug:', {
                         test_id: testData.test_id,
                         test_name: foundTest.name,
                         entry_category_id: testData.category_id,
@@ -2264,7 +2264,7 @@ class EntryManager {
                         final_category_name: categoryName
                     });*/
 
-                    /*//console.log('Using demographic-appropriate ranges for edit mode:', {
+                    /*console.log('Using demographic-appropriate ranges for edit mode:', {
                         test_id: testData.test_id,
                         category_name: categoryName,
                         rangeType: rangeData.type,
@@ -2277,7 +2277,7 @@ class EntryManager {
 
                     // Set the category dropdown to the correct category (prioritizing current test data)
                     if (categoryId) {
-                        ////console.log('Setting category dropdown to:', categoryId, 'for test:', testData.test_id);
+                        //console.log('Setting category dropdown to:', categoryId, 'for test:', testData.test_id);
 
                         // Check if the category exists in the dropdown
                         const categoryExists = $categorySelect.find(`option[value="${categoryId}"]`).length > 0;
@@ -2290,17 +2290,17 @@ class EntryManager {
                             const selectedCategory = this.categoriesData.find(cat => cat.id == categoryId);
                             if (selectedCategory && selectedCategory.main_category_id) {
                                 $newRow.find('.test-main-category-id').val(selectedCategory.main_category_id);
-                                ////console.log('Set main category ID:', selectedCategory.main_category_id, 'for category:', selectedCategory.name);
+                                //console.log('Set main category ID:', selectedCategory.main_category_id, 'for category:', selectedCategory.name);
                             }
 
-                            ////console.log('Successfully set category:', categoryId, categoryName);
+                            //console.log('Successfully set category:', categoryId, categoryName);
                         } else {
                             // Category doesn't exist in dropdown, try to add it
                             console.warn('Category ID', categoryId, 'not found in dropdown options!');
 
                             const categoryInData = this.categoriesData.find(cat => cat.id == categoryId);
                             if (categoryInData) {
-                                ////console.log('Adding missing category to dropdown:', categoryInData);
+                                //console.log('Adding missing category to dropdown:', categoryInData);
 
                                 // Find the appropriate optgroup or create one
                                 let $targetOptgroup;
@@ -2331,7 +2331,7 @@ class EntryManager {
                                 $categorySelect.val(categoryId);
                                 $newRow.find('.test-main-category-id').val(categoryInData.main_category_id || '');
 
-                                ////console.log('Added and selected missing category:', categoryInData.name);
+                                //console.log('Added and selected missing category:', categoryInData.name);
                             } else {
                                 console.error('Category not found in categoriesData either! Using fallback.');
                                 // Create a fallback option
@@ -2346,7 +2346,7 @@ class EntryManager {
                                 $otherOptgroup.append($fallbackOption);
                                 $categorySelect.val(categoryId);
 
-                                ////console.log('Created fallback category option:', fallbackName);
+                                //console.log('Created fallback category option:', fallbackName);
                             }
                         }
 
@@ -2355,7 +2355,7 @@ class EntryManager {
                             $categorySelect.trigger('change.select2');
                         }
                     } else {
-                        ////console.log('No category ID available for test:', testData.test_id);
+                        //console.log('No category ID available for test:', testData.test_id);
                     }
 
                     $newRow.find('.test-price').val(price);
@@ -2367,18 +2367,18 @@ class EntryManager {
                     // Don't trigger change event to avoid overwriting entry-specific data
                     // $testSelect.trigger('change');
 
-                    ////console.log('Test row populated with test ID:', testData.test_id, 'Name:', foundTest.name);
+                    //console.log('Test row populated with test ID:', testData.test_id, 'Name:', foundTest.name);
                 }, 200); // Increased timeout to ensure DOM is ready
             } else {
                 console.warn('Test not found in testsData for ID:', testData.test_id);
-                ////console.log('Looking for test with ID:', testData.test_id, 'in', this.testsData.map(t => ({ id: t.id, name: t.name })));
-                ////console.log('Available test IDs:', this.testsData.map(t => t.id));
-                ////console.log('Looking for test ID type:', typeof testData.test_id, 'Available ID types:', this.testsData.map(t => typeof t.id));
+                //console.log('Looking for test with ID:', testData.test_id, 'in', this.testsData.map(t => ({ id: t.id, name: t.name })));
+                //console.log('Available test IDs:', this.testsData.map(t => t.id));
+                //console.log('Looking for test ID type:', typeof testData.test_id, 'Available ID types:', this.testsData.map(t => typeof t.id));
 
                 // Try to find test with string/number conversion
                 let foundTestAlt = this.testsData.find(t => t.id == testData.test_id || t.id === String(testData.test_id) || String(t.id) === String(testData.test_id));
                 if (foundTestAlt) {
-                    ////console.log('Found test with alternative matching:', foundTestAlt);
+                    //console.log('Found test with alternative matching:', foundTestAlt);
                     // Use the found test data
                     const rangeData = this.calculateAppropriateRanges(
                         parseInt($('#patientAge').val()) || null,
@@ -2404,7 +2404,7 @@ class EntryManager {
                     $newRow.find('.test-result').val(testData.result_value || '');
                     this.updateRangeDisplay($newRow, rangeData);
 
-                    ////console.log('Test row populated with alternative match for ID:', testData.test_id, 'Name:', foundTestAlt.name);
+                    //console.log('Test row populated with alternative match for ID:', testData.test_id, 'Name:', foundTestAlt.name);
                     return; // Exit early since we found the test
                 }
 
@@ -2417,8 +2417,8 @@ class EntryManager {
                 }
                 testName += ` [ID: ${testData.test_id}]`;
 
-                ////console.log('Adding missing test option:', testData.test_id, testName);
-                /*//console.log('Test data available for missing test:', {
+                //console.log('Adding missing test option:', testData.test_id, testName);
+                /*console.log('Test data available for missing test:', {
                     test_id: testData.test_id,
                     test_name: testData.test_name,
                     category_name: testData.category_name,
@@ -2457,7 +2457,7 @@ class EntryManager {
                         label: 'Stored Range'
                     };
 
-                    /*//console.log('Using fallback data for missing test:', {
+                    /*console.log('Using fallback data for missing test:', {
                         test_id: testData.test_id,
                         category_name: categoryName,
                         rangeData: fallbackRangeData,
@@ -2484,7 +2484,7 @@ class EntryManager {
                     // Use fallback range data
                     this.updateRangeDisplay($newRow, fallbackRangeData);
 
-                    ////console.log('Test row populated with fallback data for ID:', testData.test_id, 'Name:', testName);
+                    //console.log('Test row populated with fallback data for ID:', testData.test_id, 'Name:', testName);
                 }, 200);
             }
         }
@@ -2512,8 +2512,8 @@ class EntryManager {
         const selectedOption = $select.find('option:selected');
         const testId = selectedOption.val();
 
-        ////console.log('Test selection changed to:', testId);
-        ////console.log('Row being updated:', $row.data('row-index'));
+        //console.log('Test selection changed to:', testId);
+        //console.log('Row being updated:', $row.data('row-index'));
 
         if (testId) {
             // Check if this row already has data (from edit mode) - if so, don't overwrite
@@ -2524,7 +2524,7 @@ class EntryManager {
 
             // If the row already has complete data, don't overwrite it (edit mode)
             if (existingCategoryId && existingUnit && existingMin && existingMax) {
-                /*//console.log('Row already has complete data, not overwriting:', {
+                /*console.log('Row already has complete data, not overwriting:', {
                     categoryId: existingCategoryId,
                     unit: existingUnit,
                     min: existingMin,
@@ -2538,7 +2538,7 @@ class EntryManager {
             const foundTest = this.testsData.find(t => t.id == testId);
 
             if (foundTest) {
-                ////console.log('Found test data for ID', testId, ':', foundTest);
+                //console.log('Found test data for ID', testId, ':', foundTest);
 
                 // Get current patient demographics
                 const patientAge = parseInt($('#patientAge').val()) || null;
@@ -2551,8 +2551,8 @@ class EntryManager {
                 // Set the category dropdown to match the test's category
                 const $categorySelect = $row.find('.test-category-select');
                 if (foundTest.category_id) {
-                    //console.log('Setting category for test:', foundTest.category_id, 'Test name:', foundTest.name);
-                    //console.log('Test data:', {id: foundTest.id, name: foundTest.name, category_id: foundTest.category_id, category_name: foundTest.category_name});
+                    console.log('Setting category for test:', foundTest.category_id, 'Test name:', foundTest.name);
+                    console.log('Test data:', {id: foundTest.id, name: foundTest.name, category_id: foundTest.category_id, category_name: foundTest.category_name});
 
                     // Ensure category dropdown is populated first
                     if (this.categoriesData.length === 0) {
@@ -2577,21 +2577,21 @@ class EntryManager {
                         });
                     }
 
-                    //console.log('Category set to:', foundTest.category_id, 'for test:', foundTest.name);
-                    //console.log('Dropdown value after setting:', $categorySelect.val());
-                    //console.log('Available options in dropdown:', $categorySelect.find('option').map(function() { return $(this).val() + ':' + $(this).text(); }).get());
+                    console.log('Category set to:', foundTest.category_id, 'for test:', foundTest.name);
+                    console.log('Dropdown value after setting:', $categorySelect.val());
+                    console.log('Available options in dropdown:', $categorySelect.find('option').map(function() { return $(this).val() + ':' + $(this).text(); }).get());
 
                     // Also set the main category ID
                     const selectedCategory = this.categoriesData.find(cat => cat.id == foundTest.category_id);
                     if (selectedCategory && selectedCategory.main_category_id) {
                         $row.find('.test-main-category-id').val(selectedCategory.main_category_id);
-                        //console.log('Set main category ID:', selectedCategory.main_category_id, 'for category:', selectedCategory.name);
+                        console.log('Set main category ID:', selectedCategory.main_category_id, 'for category:', selectedCategory.name);
                     } else {
                         console.warn('Could not find category data for ID:', foundTest.category_id);
-                        //console.log('Available categories:', this.categoriesData.map(c => ({id: c.id, name: c.name})));
+                        console.log('Available categories:', this.categoriesData.map(c => ({id: c.id, name: c.name})));
                     }
                 } else {
-                    //console.log('Test has no category_id:', foundTest.name);
+                    console.log('Test has no category_id:', foundTest.name);
                 }
 
                 $row.find('.test-price').val(foundTest.price || 0);
@@ -2599,7 +2599,7 @@ class EntryManager {
                 // Use calculated demographic-appropriate ranges
                 this.updateRangeDisplay($row, rangeData);
 
-                /*//console.log('Updated row with demographic-appropriate ranges:', {
+                /*console.log('Updated row with demographic-appropriate ranges:', {
                     category: foundTest.category_name,
                     rangeType: rangeData.type,
                     min: rangeData.min,
@@ -2611,7 +2611,7 @@ class EntryManager {
                 // Fallback to data attributes if test not found in testsData
                 console.warn('Test not found in testsData for ID:', testId, 'using data attributes');
                 // Note: We should set the category dropdown properly here too, but for now just log
-                ////console.log('Category from data attribute:', selectedOption.data('category'));
+                //console.log('Category from data attribute:', selectedOption.data('category'));
                 $row.find('.test-unit').val(selectedOption.data('unit') || '');
                 $row.find('.test-min').val(selectedOption.data('min') || '');
                 $row.find('.test-max').val(selectedOption.data('max') || '');
@@ -2867,7 +2867,7 @@ class EntryManager {
      */
     clearRangeCache() {
         this.rangeCache.clear();
-        ////console.log('Range cache cleared');
+        //console.log('Range cache cleared');
     }
 
     /**
@@ -2897,7 +2897,7 @@ class EntryManager {
         });
 
         const endTime = performance.now();
-        ////console.log(`Batch range update completed in ${(endTime - startTime).toFixed(2)}ms for ${rangeUpdates.length} tests`);
+        //console.log(`Batch range update completed in ${(endTime - startTime).toFixed(2)}ms for ${rangeUpdates.length} tests`);
 
         return rangeUpdates.length;
     }
@@ -2906,7 +2906,7 @@ class EntryManager {
      * Test demographic range functionality with sample data
      */
     testDemographicRangeFunctionality() {
-        ////console.log('=== TESTING DEMOGRAPHIC RANGE FUNCTIONALITY ===');
+        //console.log('=== TESTING DEMOGRAPHIC RANGE FUNCTIONALITY ===');
 
         if (this.testsData.length === 0) {
             console.error('No test data available for testing');
@@ -2923,25 +2923,25 @@ class EntryManager {
             return;
         }
 
-        ////console.log('Testing with test:', testWithRanges.name, 'ID:', testWithRanges.id);
+        //console.log('Testing with test:', testWithRanges.name, 'ID:', testWithRanges.id);
 
         // Test child ranges (age 10)
         const childRange = this.calculateAppropriateRanges(10, 'Male', testWithRanges);
-        ////console.log('Child range (age 10, Male):', childRange);
+        //console.log('Child range (age 10, Male):', childRange);
 
         // Test adult male ranges (age 30)
         const maleRange = this.calculateAppropriateRanges(30, 'Male', testWithRanges);
-        ////console.log('Adult male range (age 30, Male):', maleRange);
+        //console.log('Adult male range (age 30, Male):', maleRange);
 
         // Test adult female ranges (age 25)
         const femaleRange = this.calculateAppropriateRanges(25, 'Female', testWithRanges);
-        ////console.log('Adult female range (age 25, Female):', femaleRange);
+        //console.log('Adult female range (age 25, Female):', femaleRange);
 
         // Test general ranges (no demographics)
         const generalRange = this.calculateAppropriateRanges(null, null, testWithRanges);
-        ////console.log('General range (no demographics):', generalRange);
+        //console.log('General range (no demographics):', generalRange);
 
-        ////console.log('=== DEMOGRAPHIC RANGE TESTING COMPLETE ===');
+        //console.log('=== DEMOGRAPHIC RANGE TESTING COMPLETE ===');
     }
 
     /**
@@ -2981,7 +2981,7 @@ class EntryManager {
      * This method can be called from browser console for testing
      */
     validateDemographicRangeWorkflow() {
-        ////console.log('=== VALIDATING DEMOGRAPHIC RANGE WORKFLOW ===');
+        //console.log('=== VALIDATING DEMOGRAPHIC RANGE WORKFLOW ===');
 
         const results = {
             cacheTest: false,
@@ -2992,18 +2992,18 @@ class EntryManager {
 
         try {
             // Test 1: Cache functionality
-            ////console.log('Testing cache functionality...');
+            //console.log('Testing cache functionality...');
             const testData = this.testsData[0];
             if (testData) {
                 const key = this.generateRangeCacheKey(25, 'Male', testData.id);
                 const range1 = this.calculateAppropriateRanges(25, 'Male', testData);
                 const range2 = this.calculateAppropriateRanges(25, 'Male', testData); // Should use cache
                 results.cacheTest = true;
-                ////console.log('✓ Cache test passed');
+                //console.log('✓ Cache test passed');
             }
 
             // Test 2: Performance test
-            ////console.log('Testing performance...');
+            //console.log('Testing performance...');
             const startTime = performance.now();
             for (let i = 0; i < 100; i++) {
                 if (this.testsData[0]) {
@@ -3013,24 +3013,24 @@ class EntryManager {
             const endTime = performance.now();
             const avgTime = (endTime - startTime) / 100;
             results.performanceTest = avgTime < 1; // Should be under 1ms per calculation
-            ////console.log(`✓ Performance test: ${avgTime.toFixed(3)}ms per calculation`);
+            //console.log(`✓ Performance test: ${avgTime.toFixed(3)}ms per calculation`);
 
             // Test 3: Validation test
-            ////console.log('Testing validation...');
+            //console.log('Testing validation...');
             const validation = this.validatePatientDemographics(25, 'Male');
             results.validationTest = validation.age === 25 && validation.gender === 'male';
-            ////console.log('✓ Validation test passed');
+            //console.log('✓ Validation test passed');
 
             // Test 4: UI update test (if DOM elements exist)
-            ////console.log('Testing UI updates...');
+            //console.log('Testing UI updates...');
             if ($('#patientAge').length > 0) {
                 $('#patientAge').val('25');
                 $('#patientGender').val('Male');
                 this.updateAllTestRangesForCurrentPatient();
                 results.uiUpdateTest = true;
-                ////console.log('✓ UI update test passed');
+                //console.log('✓ UI update test passed');
             } else {
-                ////console.log('⚠ UI elements not available for testing');
+                //console.log('⚠ UI elements not available for testing');
                 results.uiUpdateTest = true; // Don't fail if UI not available
             }
 
@@ -3039,12 +3039,12 @@ class EntryManager {
         }
 
         const allPassed = Object.values(results).every(result => result === true);
-        ////console.log('=== WORKFLOW VALIDATION RESULTS ===');
-        ////console.log('Cache Test:', results.cacheTest ? '✓ PASS' : '✗ FAIL');
-        ////console.log('Performance Test:', results.performanceTest ? '✓ PASS' : '✗ FAIL');
-        ////console.log('Validation Test:', results.validationTest ? '✓ PASS' : '✗ FAIL');
-        ////console.log('UI Update Test:', results.uiUpdateTest ? '✓ PASS' : '✗ FAIL');
-        ////console.log('Overall Result:', allPassed ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED');
+        //console.log('=== WORKFLOW VALIDATION RESULTS ===');
+        //console.log('Cache Test:', results.cacheTest ? '✓ PASS' : '✗ FAIL');
+        //console.log('Performance Test:', results.performanceTest ? '✓ PASS' : '✗ FAIL');
+        //console.log('Validation Test:', results.validationTest ? '✓ PASS' : '✗ FAIL');
+        //console.log('UI Update Test:', results.uiUpdateTest ? '✓ PASS' : '✗ FAIL');
+        //console.log('Overall Result:', allPassed ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED');
 
         return results;
     }
@@ -3071,7 +3071,7 @@ class EntryManager {
             }
         });
 
-        /*//console.log('Demographic range field verification:', {
+        /*console.log('Demographic range field verification:', {
             totalTests: this.testsData.length,
             availableFields: availableFields,
             missingFields: missingFields,
@@ -3087,7 +3087,7 @@ class EntryManager {
                 toastr.warning('Some demographic range fields are missing from test data. Age/gender-specific ranges may not work properly.');
             }
         } else {
-            ////console.log('All demographic range fields are available');
+            //console.log('All demographic range fields are available');
 
             // Check if any tests actually have demographic-specific ranges
             let testsWithDemographicRanges = 0;
@@ -3097,7 +3097,7 @@ class EntryManager {
                 }
             });
 
-            ////console.log(`Found ${testsWithDemographicRanges} tests with demographic-specific ranges out of ${this.testsData.length} total tests`);
+            //console.log(`Found ${testsWithDemographicRanges} tests with demographic-specific ranges out of ${this.testsData.length} total tests`);
 
             // Run functionality test if we have tests with demographic ranges
             if (testsWithDemographicRanges > 0) {
@@ -3212,7 +3212,7 @@ class EntryManager {
                 }
             });
 
-            //////console.log('Updated range labels for all test rows');
+            ////console.log('Updated range labels for all test rows');
         } catch (error) {
             //console.error('Error updating range labels:', error);
         }
@@ -3373,7 +3373,7 @@ class EntryManager {
                 }
             });
 
-            ////console.log('Validated all test results');
+            //console.log('Validated all test results');
         } catch (error) {
             //console.error('Error validating all test results:', error);
         }
@@ -3411,7 +3411,7 @@ class EntryManager {
      */
     onCategoryFilterChange(categoryId) {
         try {
-            ////console.log('Category filter changed to:', categoryId);
+            //console.log('Category filter changed to:', categoryId);
 
             // Update test count display
             this.updateFilteredTestCount();
@@ -3429,7 +3429,7 @@ class EntryManager {
                 $('#clearCategoryFilter').prop('disabled', true);
             }
 
-            ////console.log('Category filter applied successfully');
+            //console.log('Category filter applied successfully');
         } catch (error) {
             //console.error('Error handling category filter change:', error);
         }
@@ -3441,8 +3441,8 @@ class EntryManager {
      */
     populateRowCategoryDropdown($categorySelect) {
         try {
-            //console.log('Populating category dropdown with', this.categoriesData.length, 'categories');
-            //console.log('Main categories available:', this.mainCategoriesData.length);
+            console.log('Populating category dropdown with', this.categoriesData.length, 'categories');
+            console.log('Main categories available:', this.mainCategoriesData.length);
             
             // Clear existing options
             $categorySelect.empty().append('<option value="">Select Category</option>');
@@ -3492,7 +3492,7 @@ class EntryManager {
                 }
             }
 
-            //console.log('Populated category dropdown for test row with', $categorySelect.find('option').length, 'options');
+            console.log('Populated category dropdown for test row with', $categorySelect.find('option').length, 'options');
         } catch (error) {
             console.error('Error populating row category dropdown:', error);
         }
@@ -3540,7 +3540,7 @@ class EntryManager {
             // Remove any error UI elements
             $('#categoryRetryUI').remove();
 
-            ////console.log('Category filter error recovery completed');
+            //console.log('Category filter error recovery completed');
         } catch (error) {
             console.error('Error during category filter recovery:', error);
         }
@@ -3633,7 +3633,7 @@ class EntryManager {
                 }
             });
 
-            ////console.log('Test selection error recovery completed');
+            //console.log('Test selection error recovery completed');
         } catch (error) {
             console.error('Error during test selection recovery:', error);
         }
@@ -3661,7 +3661,7 @@ class EntryManager {
                 }
             }
 
-            ////console.log('Data reconciliation error recovery completed');
+            //console.log('Data reconciliation error recovery completed');
         } catch (error) {
             console.error('Error during data reconciliation recovery:', error);
         }
@@ -3672,7 +3672,7 @@ class EntryManager {
      */
     ensureBasicFunctionality() {
         try {
-            ////console.log('Ensuring basic functionality...');
+            //console.log('Ensuring basic functionality...');
 
             // Ensure at least one test row exists
             if ($('#testsContainer .test-row').length === 0) {
@@ -3720,7 +3720,7 @@ class EntryManager {
                 }
             });
 
-            ////console.log('Basic functionality ensured');
+            //console.log('Basic functionality ensured');
         } catch (error) {
             console.error('Error ensuring basic functionality:', error);
         }
@@ -3770,7 +3770,7 @@ class EntryManager {
     clearStoredErrorLogs() {
         try {
             localStorage.removeItem('entryManagerErrors');
-            ////console.log('Stored error logs cleared');
+            //console.log('Stored error logs cleared');
         } catch (error) {
             console.error('Error clearing stored error logs:', error);
         }
@@ -3791,7 +3791,7 @@ class EntryManager {
                 timeout: timeout
             });
 
-            ////console.log(`Data cached for key: ${key}, expires in ${timeout / 1000}s`);
+            //console.log(`Data cached for key: ${key}, expires in ${timeout / 1000}s`);
         } catch (error) {
             console.error('Error setting cache data:', error);
         }
@@ -3807,14 +3807,14 @@ class EntryManager {
             const cached = this.dataCache.get(key);
             if (cached && (Date.now() - cached.timestamp) < cached.timeout) {
                 this.performanceMetrics.cacheHits++;
-                ////console.log(`Cache hit for key: ${key}`);
+                //console.log(`Cache hit for key: ${key}`);
                 return cached.data;
             }
 
             // Remove expired cache entry
             if (cached) {
                 this.dataCache.delete(key);
-                ////console.log(`Cache expired for key: ${key}`);
+                //console.log(`Cache expired for key: ${key}`);
             }
 
             this.performanceMetrics.cacheMisses++;
@@ -3833,7 +3833,7 @@ class EntryManager {
     clearCacheData(key) {
         try {
             this.dataCache.delete(key);
-            ////console.log(`Cache cleared for key: ${key}`);
+            //console.log(`Cache cleared for key: ${key}`);
         } catch (error) {
             console.error('Error clearing cache data:', error);
         }
@@ -3845,7 +3845,7 @@ class EntryManager {
     clearAllCacheData() {
         try {
             this.dataCache.clear();
-            ////console.log('All cache data cleared');
+            //console.log('All cache data cleared');
         } catch (error) {
             console.error('Error clearing all cache data:', error);
         }
@@ -3870,7 +3870,7 @@ class EntryManager {
      */
     async preloadEssentialData() {
         try {
-            ////console.log('Preloading essential data...');
+            //console.log('Preloading essential data...');
             const startTime = performance.now();
 
             // Load data in parallel for better performance
@@ -3884,7 +3884,7 @@ class EntryManager {
             await Promise.allSettled(promises);
 
             const endTime = performance.now();
-            ////console.log(`Essential data preloaded in ${(endTime - startTime).toFixed(2)}ms`);
+            //console.log(`Essential data preloaded in ${(endTime - startTime).toFixed(2)}ms`);
         } catch (error) {
             console.error('Error preloading essential data:', error);
         }
@@ -3920,7 +3920,7 @@ class EntryManager {
      */
     optimizePerformance() {
         try {
-            ////console.log('Optimizing performance...');
+            //console.log('Optimizing performance...');
 
             // Clean up expired cache entries
             this.cleanupExpiredCache();
@@ -3929,16 +3929,16 @@ class EntryManager {
             if (this.rangeCache.size > 1000) {
                 const keysToDelete = Array.from(this.rangeCache.keys()).slice(0, 200);
                 keysToDelete.forEach(key => this.rangeCache.delete(key));
-                ////console.log(`Cleaned up ${keysToDelete.length} range cache entries`);
+                //console.log(`Cleaned up ${keysToDelete.length} range cache entries`);
             }
 
             // Clean up old performance metrics
             if (this.performanceMetrics.filterOperations.length > 50) {
                 this.performanceMetrics.filterOperations.splice(0, 25);
-                ////console.log('Cleaned up old performance metrics');
+                //console.log('Cleaned up old performance metrics');
             }
 
-            ////console.log('Performance optimization completed');
+            //console.log('Performance optimization completed');
         } catch (error) {
             console.error('Error during performance optimization:', error);
         }
@@ -3960,7 +3960,7 @@ class EntryManager {
             }
 
             if (cleanedCount > 0) {
-                ////console.log(`Cleaned up ${cleanedCount} expired cache entries`);
+                //console.log(`Cleaned up ${cleanedCount} expired cache entries`);
             }
         } catch (error) {
             console.error('Error cleaning up expired cache:', error);
@@ -3989,7 +3989,7 @@ class EntryManager {
 
             // Auto-optimize if needed
             if (metrics.memory.dataCacheSize > 100 || metrics.memory.rangeCacheSize > 2000) {
-                ////console.log('Auto-optimizing performance due to large cache sizes');
+                //console.log('Auto-optimizing performance due to large cache sizes');
                 this.optimizePerformance();
             }
         } catch (error) {
@@ -4020,7 +4020,7 @@ class EntryManager {
             const mainCategoryId = $selectedOption.data('main-category');
             const rowIndex = $row.data('row-index');
 
-            //console.log('Row category changed:', {
+            console.log('Row category changed:', {
                 rowIndex: rowIndex,
                 categoryId: selectedCategoryId,
                 mainCategoryId: mainCategoryId
@@ -4042,7 +4042,7 @@ class EntryManager {
             let filteredTests;
             try {
                 filteredTests = this.filterTestsByCategory(selectedCategoryId);
-                //console.log(`Filtered ${filteredTests.length} tests for category ${selectedCategoryId} in row ${rowIndex}`);
+                console.log(`Filtered ${filteredTests.length} tests for category ${selectedCategoryId} in row ${rowIndex}`);
             } catch (filterError) {
                 console.error('Error filtering tests by category:', filterError);
                 this.handleRowCategoryChangeError('filter_error', $row, filterError);
@@ -4061,7 +4061,7 @@ class EntryManager {
                 // Repopulate with filtered tests
                 this.updateTestDropdownOptions($testSelect, filteredTests, currentTestId);
 
-                //console.log(`Test dropdown updated for row ${rowIndex} with ${filteredTests.length} options`);
+                console.log(`Test dropdown updated for row ${rowIndex} with ${filteredTests.length} options`);
             } catch (updateError) {
                 console.error('Error updating test dropdown options:', updateError);
                 this.handleRowCategoryChangeError('dropdown_update_error', $row, updateError);
@@ -4073,7 +4073,7 @@ class EntryManager {
                 filteredTests.some(test => String(test.id) === String(currentTestId));
 
             if (currentTestId && !isCurrentTestStillValid) {
-                //console.log(`Current test ${currentTestId} (${currentTestName}) is not in the filtered category, clearing selection`);
+                console.log(`Current test ${currentTestId} (${currentTestName}) is not in the filtered category, clearing selection`);
 
                 // Enhanced clearing of test selection and related fields
                 this.clearTestSelectionAndFields($testSelect, $row);
@@ -4082,7 +4082,7 @@ class EntryManager {
                 this.showTestSelectionClearedFeedback($row, currentTestName, selectedCategoryId);
 
             } else if (isCurrentTestStillValid) {
-                //console.log(`Current test ${currentTestId} is still valid for the selected category`);
+                console.log(`Current test ${currentTestId} is still valid for the selected category`);
 
                 // Enhanced restoration of valid selection
                 this.restoreTestSelection($testSelect, currentTestId);
@@ -4092,7 +4092,7 @@ class EntryManager {
             this.updateFilteredTestCount();
             this.updateRowCategoryIndicator($row, selectedCategoryId);
 
-            //console.log('Row category change handled successfully for row', rowIndex);
+            console.log('Row category change handled successfully for row', rowIndex);
 
         } catch (error) {
             console.error('Error handling row category change:', error);
@@ -4293,7 +4293,7 @@ class EntryManager {
             if ($testSelect.length > 0) {
                 this.clearTestDropdownOptions($testSelect);
                 this.updateTestDropdownOptions($testSelect, this.testsData, null);
-                //console.log('Fallback: showing all tests in row', $row.data('row-index'));
+                console.log('Fallback: showing all tests in row', $row.data('row-index'));
             }
         } catch (error) {
             console.error('Error in fallback to all tests:', error);
@@ -4369,7 +4369,7 @@ class EntryManager {
             // Validate all test results with new demographics
             this.validateAllTestResults();
 
-            ////console.log('Updated ranges and validation for all tests based on demographics');
+            //console.log('Updated ranges and validation for all tests based on demographics');
         } catch (error) {
             //console.error('Error updating ranges and validation:', error);
         }
@@ -4401,7 +4401,7 @@ class EntryManager {
             // Remove any active filter styling
             $('.category-filter-active').removeClass('category-filter-active');
 
-            ////console.log('Category filter error recovery completed');
+            //console.log('Category filter error recovery completed');
         } catch (error) {
             //console.error('Error during category filter recovery:', error);
         }
@@ -4434,7 +4434,7 @@ class EntryManager {
             $('#categoryFilter').prop('disabled', true).html('<option value="">Tests unavailable</option>');
             $('#clearCategoryFilter').prop('disabled', true);
 
-            ////console.log('Test data unavailable fallback applied');
+            //console.log('Test data unavailable fallback applied');
         } catch (error) {
             //console.error('Error applying test data fallback:', error);
         }
@@ -4519,7 +4519,7 @@ class EntryManager {
                 });
             }
 
-            ////console.log('Basic functionality ensured');
+            //console.log('Basic functionality ensured');
         } catch (error) {
             //console.error('Error ensuring basic functionality:', error);
         }
@@ -4533,7 +4533,7 @@ class EntryManager {
         const patientAge = parseInt($('#patientAge').val()) || null;
         const patientGender = $('#patientGender').val() || null;
 
-        ////console.log('Updating all test ranges for patient:', { age: patientAge, gender: patientGender });
+        //console.log('Updating all test ranges for patient:', { age: patientAge, gender: patientGender });
 
         // Batch DOM updates for better performance
         const updates = [];
@@ -4555,13 +4555,13 @@ class EntryManager {
         // Apply all updates in batch
         updates.forEach(update => {
             this.updateRangeDisplay(update.$row, update.rangeData);
-            ////console.log(`Updated ranges for test ${update.testName}:`, update.rangeData);
+            //console.log(`Updated ranges for test ${update.testName}:`, update.rangeData);
         });
 
         // Performance monitoring
         const endTime = performance.now();
         const duration = endTime - startTime;
-        ////console.log(`Range update completed in ${duration.toFixed(2)}ms for ${updates.length} tests`);
+        //console.log(`Range update completed in ${duration.toFixed(2)}ms for ${updates.length} tests`);
 
         if (duration > 100) {
             console.warn(`Range update took ${duration.toFixed(2)}ms, which exceeds the 100ms target`);
@@ -4572,7 +4572,7 @@ class EntryManager {
      * Reset all test ranges to general ranges (when no patient selected)
      */
     resetAllTestRangesToGeneral() {
-        ////console.log('Resetting all test ranges to general');
+        //console.log('Resetting all test ranges to general');
 
         $('.test-row').each((index, row) => {
             const $row = $(row);
@@ -4624,7 +4624,7 @@ class EntryManager {
      * Handle owner selection change
      */
     onOwnerChange(ownerId) {
-        ////console.log('Owner changed:', ownerId);
+        //console.log('Owner changed:', ownerId);
 
         if (ownerId) {
             // Enable patient and doctor selects
@@ -4646,7 +4646,7 @@ class EntryManager {
      * Handle patient selection change
      */
     onPatientChange(patientId) {
-        ////console.log('Patient changed:', patientId);
+        //console.log('Patient changed:', patientId);
 
         if (patientId) {
             // Load patient details
@@ -4664,7 +4664,7 @@ class EntryManager {
      */
     async loadPatientsForOwner(ownerId) {
         try {
-            ////console.log('Loading patients for owner:', ownerId);
+            //console.log('Loading patients for owner:', ownerId);
 
             const response = await $.ajax({
                 url: 'ajax/patient_api.php',
@@ -4681,7 +4681,7 @@ class EntryManager {
                 response.data.forEach(patient => {
                     $select.append(`<option value="${patient.id}">${patient.name}</option>`);
                 });
-                ////console.log('Loaded', response.data.length, 'patients');
+                //console.log('Loaded', response.data.length, 'patients');
             } else {
                 //console.warn('No patients found or API error:', response.message);
             }
@@ -4700,7 +4700,7 @@ class EntryManager {
      */
     async loadDoctorsForOwner(ownerId) {
         try {
-            ////console.log('Loading doctors for owner:', ownerId);
+            //console.log('Loading doctors for owner:', ownerId);
 
             const response = await $.ajax({
                 url: 'ajax/doctor_api.php',
@@ -4717,7 +4717,7 @@ class EntryManager {
                 response.data.forEach(doctor => {
                     $select.append(`<option value="${doctor.id}">${doctor.name}</option>`);
                 });
-                ////console.log('Loaded', response.data.length, 'doctors');
+                //console.log('Loaded', response.data.length, 'doctors');
             } else {
                 //console.warn('No doctors found or API error:', response.message);
             }
@@ -4736,7 +4736,7 @@ class EntryManager {
      */
     async loadPatientDetails(patientId) {
         try {
-            ////console.log('Loading patient details for ID:', patientId);
+            //console.log('Loading patient details for ID:', patientId);
 
             const response = await $.ajax({
                 url: 'ajax/patient_api.php',
@@ -4747,7 +4747,7 @@ class EntryManager {
 
             if (response.success && response.data) {
                 const patient = response.data;
-                ////console.log('Patient details loaded:', patient);
+                //console.log('Patient details loaded:', patient);
 
                 $('#patientName').val(patient.name || '');
                 $('#patientContact').val(patient.contact || '');
@@ -4782,7 +4782,7 @@ class EntryManager {
      */
     reconcileTestCategoryData(entryTests) {
         try {
-            ////console.log('Starting test category data reconciliation...');
+            //console.log('Starting test category data reconciliation...');
 
             const reconciledTests = entryTests.map((entryTest, index) => {
                 // Get current test data
@@ -4837,7 +4837,7 @@ class EntryManager {
                 return reconciledTest;
             });
 
-            ////console.log('Test category data reconciliation completed');
+            //console.log('Test category data reconciliation completed');
             return reconciledTests;
         } catch (error) {
             console.error('Error during test category data reconciliation:', error);
@@ -4954,7 +4954,7 @@ class EntryManager {
      * View entry details
      */
     async viewEntry(entryId) {
-        ////console.log('Viewing entry:', entryId);
+        //console.log('Viewing entry:', entryId);
 
         try {
             const response = await $.ajax({
@@ -4963,7 +4963,7 @@ class EntryManager {
                 data: { action: 'get', id: entryId },
                 dataType: 'json'
             });
-            ////console.log('Displaying entry response:', response);
+            //console.log('Displaying entry response:', response);
             if (response.success && response.data) {
                 this.displayEntryDetails(response.data);
                 $('#viewEntryModal').modal('show');
@@ -4980,13 +4980,13 @@ class EntryManager {
      * Display entry details in modal
      */
     displayEntryDetails(entry) {
-        ////console.log('Displaying entry details:', entry);
-        ////console.log('Entry tests data:', entry.tests);
+        //console.log('Displaying entry details:', entry);
+        //console.log('Entry tests data:', entry.tests);
 
         // Debug each test
         if (entry.tests && entry.tests.length > 0) {
             entry.tests.forEach((test, index) => {
-                /*//console.log(`Test ${index + 1}:`, {
+                /*console.log(`Test ${index + 1}:`, {
                     test_id: test.test_id,
                     test_name: test.test_name,
                     category_id: test.category_id,
@@ -5101,7 +5101,7 @@ class EntryManager {
      * Edit entry
      */
     async editEntry(entryId) {
-        ////console.log('Editing entry:', entryId);
+        //console.log('Editing entry:', entryId);
 
         try {
             // Show loading state
@@ -5115,16 +5115,16 @@ class EntryManager {
                 data: { action: 'get', id: entryId },
                 dataType: 'json'
             });
-            ////console.log('Editing entry response:', response);
+            //console.log('Editing entry response:', response);
 
             // Special debugging for entry 17
             if (entryId == 17) {
-                ////console.log('=== SPECIAL DEBUG FOR ENTRY 17 ===');
-                ////console.log('Response data:', response.data);
-                ////console.log('Tests in response:', response.data.tests);
+                //console.log('=== SPECIAL DEBUG FOR ENTRY 17 ===');
+                //console.log('Response data:', response.data);
+                //console.log('Tests in response:', response.data.tests);
                 if (response.data.tests) {
                     response.data.tests.forEach((test, index) => {
-                        /*//console.log(`Test ${index + 1}:`, {
+                        /*console.log(`Test ${index + 1}:`, {
                             test_id: test.test_id,
                             test_name: test.test_name,
                             category_name: test.category_name,
@@ -5132,7 +5132,7 @@ class EntryManager {
                         });*/
                     });
                 }
-                ////console.log('=== END SPECIAL DEBUG ===');
+                //console.log('=== END SPECIAL DEBUG ===');
             }
 
             if (response.success && response.data) {
@@ -5141,7 +5141,7 @@ class EntryManager {
 
                 // Ensure owner data is loaded before populating form
                 if (this.ownersData.length === 0) {
-                    ////console.log('Owner data not loaded, loading now...');
+                    //console.log('Owner data not loaded, loading now...');
                     await this.loadOwnersData();
                 }
 
@@ -5164,12 +5164,12 @@ class EntryManager {
      * Populate edit form with entry data
      */
     async populateEditForm(entry) {
-        // ////console.log('Populating edit form with entry:', entry);
-        // ////console.log('Entry keys:', Object.keys(entry));
-        // ////console.log('Added by field:', entry.added_by);
-        // ////console.log('Owner ID field:', entry.owner_id);
-        // ////console.log('Patient ID field:', entry.patient_id);
-        // ////console.log('Doctor ID field:', entry.doctor_id);
+        // //console.log('Populating edit form with entry:', entry);
+        // //console.log('Entry keys:', Object.keys(entry));
+        // //console.log('Added by field:', entry.added_by);
+        // //console.log('Owner ID field:', entry.owner_id);
+        // //console.log('Patient ID field:', entry.patient_id);
+        // //console.log('Doctor ID field:', entry.doctor_id);
 
         this.currentEditId = entry.id;
 
@@ -5183,7 +5183,7 @@ class EntryManager {
         if (entry.entry_date) {
             const formattedDate = this.formatDateForInput(entry.entry_date);
             $('#entryDate').val(formattedDate);
-            ////console.log('Setting entry date:', entry.entry_date, '-> formatted:', formattedDate);
+            //console.log('Setting entry date:', entry.entry_date, '-> formatted:', formattedDate);
         }
 
         $('#entryStatus').val(entry.status);
@@ -5202,13 +5202,13 @@ class EntryManager {
         // Handle owner/added_by selection and dependent dropdowns
         const ownerId = entry.added_by || entry.owner_id || entry.owner_added_by;
         if (ownerId) {
-            ////console.log('Setting owner/added_by to:', ownerId);
+            //console.log('Setting owner/added_by to:', ownerId);
 
             // Check if the owner exists in the dropdown, if not add it
             const $ownerSelect = $('#ownerAddedBySelect');
             if ($ownerSelect.find(`option[value="${ownerId}"]`).length === 0) {
                 const ownerName = entry.added_by_full_name || entry.added_by_username || `User ${ownerId}`;
-                ////console.log('Adding missing owner option:', ownerId, ownerName);
+                //console.log('Adding missing owner option:', ownerId, ownerName);
                 $ownerSelect.append(`<option value="${ownerId}">${ownerName}</option>`);
             }
 
@@ -5220,13 +5220,13 @@ class EntryManager {
 
             // Now set patient and doctor values
             if (entry.patient_id) {
-                ////console.log('Setting patient to:', entry.patient_id);
+                //console.log('Setting patient to:', entry.patient_id);
 
                 // Check if patient exists in dropdown, if not add it
                 const $patientSelect = $('#patientSelect');
                 if ($patientSelect.find(`option[value="${entry.patient_id}"]`).length === 0) {
                     const patientName = entry.patient_name || `Patient ${entry.patient_id}`;
-                    ////console.log('Adding missing patient option:', entry.patient_id, patientName);
+                    //console.log('Adding missing patient option:', entry.patient_id, patientName);
                     $patientSelect.append(`<option value="${entry.patient_id}">${patientName}</option>`);
                 }
 
@@ -5237,13 +5237,13 @@ class EntryManager {
             }
 
             if (entry.doctor_id) {
-                ////console.log('Setting doctor to:', entry.doctor_id);
+                //console.log('Setting doctor to:', entry.doctor_id);
 
                 // Check if doctor exists in dropdown, if not add it
                 const $doctorSelect = $('#doctorSelect');
                 if ($doctorSelect.find(`option[value="${entry.doctor_id}"]`).length === 0) {
                     const doctorName = entry.doctor_name || `Doctor ${entry.doctor_id}`;
-                    ////console.log('Adding missing doctor option:', entry.doctor_id, doctorName);
+                    //console.log('Adding missing doctor option:', entry.doctor_id, doctorName);
                     $doctorSelect.append(`<option value="${entry.doctor_id}">${doctorName}</option>`);
                 }
 
@@ -5254,25 +5254,25 @@ class EntryManager {
         }
 
         // Always reload tests data to ensure we have the latest data
-        ////console.log('Reloading tests data to ensure accuracy...');
+        //console.log('Reloading tests data to ensure accuracy...');
         await this.loadTestsData();
-        ////console.log('Tests data loaded:', this.testsData.length, 'tests');
+        //console.log('Tests data loaded:', this.testsData.length, 'tests');
 
         // Also ensure categories are loaded for proper category dropdown population
-        ////console.log('Ensuring categories are loaded...');
+        //console.log('Ensuring categories are loaded...');
         if (this.categoriesData.length === 0) {
             await this.loadCategoriesForFilter();
         }
-        ////console.log('Categories data loaded:', this.categoriesData.length, 'categories');
+        //console.log('Categories data loaded:', this.categoriesData.length, 'categories');
 
         // Debug: Log test IDs and names for troubleshooting
         if (this.testsData.length > 0) {
-            ////console.log('Available tests:', this.testsData.map(t => ({ id: t.id, name: t.name, id_type: typeof t.id })));
+            //console.log('Available tests:', this.testsData.map(t => ({ id: t.id, name: t.name, id_type: typeof t.id })));
         }
 
         // Debug: show first few tests
         if (this.testsData.length > 0) {
-            ////console.log('First 5 tests in testsData:', this.testsData.slice(0, 5).map(t => ({ id: t.id, name: t.name })));
+            //console.log('First 5 tests in testsData:', this.testsData.slice(0, 5).map(t => ({ id: t.id, name: t.name })));
         }
 
         // Double-check that we have tests data
@@ -5286,13 +5286,13 @@ class EntryManager {
         this.testRowCounter = 0;
 
         if (entry.tests && entry.tests.length > 0) {
-            ////console.log('Populating', entry.tests.length, 'tests with data reconciliation');
+            //console.log('Populating', entry.tests.length, 'tests with data reconciliation');
 
             // Reconcile entry test data with current test data
             const reconciledTests = this.reconcileTestCategoryData(entry.tests);
 
             // Log reconciliation results
-            /*//console.log('Data reconciliation completed:', {
+            /*console.log('Data reconciliation completed:', {
                 original_tests: entry.tests.length,
                 reconciled_tests: reconciledTests.length,
                 conflicts_detected: reconciledTests.filter(t => t.category_conflict).length
@@ -5300,7 +5300,7 @@ class EntryManager {
 
             // Create test rows with reconciled data
             reconciledTests.forEach((reconciledTest, index) => {
-                /*//console.log(`Creating test row ${index + 1} with reconciled data:`, {
+                /*console.log(`Creating test row ${index + 1} with reconciled data:`, {
                     test_id: reconciledTest.test_id,
                     test_name: reconciledTest.test_name,
                     resolved_category_id: reconciledTest.resolved_category_id,
@@ -5312,7 +5312,7 @@ class EntryManager {
                 this.addTestRow(reconciledTest);
             });
         } else {
-            ////console.log('No tests found, adding empty test row');
+            //console.log('No tests found, adding empty test row');
             this.addTestRow();
         }
 
@@ -5321,7 +5321,7 @@ class EntryManager {
             $('#entryStatus').trigger('change');
             $('#priority').trigger('change');
             $('#referralSource').trigger('change');
-            ////console.log('Edit form populated successfully');
+            //console.log('Edit form populated successfully');
         }, 100);
     }
 
@@ -5329,7 +5329,7 @@ class EntryManager {
      * Delete entry
      */
     deleteEntry(entryId) {
-        ////console.log('Deleting entry:', entryId);
+        //console.log('Deleting entry:', entryId);
 
         // Show confirmation modal
         $('#deleteModal').modal('show');
@@ -5398,8 +5398,8 @@ class EntryManager {
      * Save entry (create or update)
      */
     async saveEntry() {
-        ////console.log('Saving entry...');
-        ////console.log('Current edit ID:', this.currentEditId);
+        //console.log('Saving entry...');
+        //console.log('Current edit ID:', this.currentEditId);
 
         try {
             // Validate form
@@ -5426,17 +5426,17 @@ class EntryManager {
             }
 
             // Debug form data - specifically check for category information
-            ////console.log('Form data being sent:');
+            //console.log('Form data being sent:');
             let hasTestData = false;
             let categoryDataFound = false;
             for (let [key, value] of formData.entries()) {
-                ////console.log(key, ':', value);
+                //console.log(key, ':', value);
                 if (key.includes('tests[') && key.includes('category_id')) {
                     categoryDataFound = true;
-                    ////console.log('Found category data:', key, '=', value);
+                    //console.log('Found category data:', key, '=', value);
                 }
                 if (key.includes('tests[') && key.includes('main_category_id')) {
-                    ////console.log('Found main category data:', key, '=', value);
+                    //console.log('Found main category data:', key, '=', value);
                 }
                 if (key.includes('tests[')) {
                     hasTestData = true;
@@ -5456,7 +5456,7 @@ class EntryManager {
                 dataType: 'json'
             });
 
-            ////console.log('Save response:', response);
+            //console.log('Save response:', response);
 
             if (response.success) {
                 toastr.success(this.currentEditId ? 'Entry updated successfully' : 'Entry created successfully');
@@ -5531,14 +5531,14 @@ class EntryManager {
 let entryManager;
 $(document).ready(function () {
     try {
-        // ////console.log('Page ready, checking dependencies...');
-        // ////console.log('jQuery version:', $.fn.jquery);
-        // ////console.log('DataTables available:', typeof $.fn.DataTable !== 'undefined');
-        // ////console.log('Select2 available:', typeof $.fn.select2 !== 'undefined');
-        // ////console.log('Toastr available:', typeof toastr !== 'undefined');
-        // ////console.log('Bootstrap available:', typeof $.fn.modal !== 'undefined');
+        // //console.log('Page ready, checking dependencies...');
+        // //console.log('jQuery version:', $.fn.jquery);
+        // //console.log('DataTables available:', typeof $.fn.DataTable !== 'undefined');
+        // //console.log('Select2 available:', typeof $.fn.select2 !== 'undefined');
+        // //console.log('Toastr available:', typeof toastr !== 'undefined');
+        // //console.log('Bootstrap available:', typeof $.fn.modal !== 'undefined');
 
-        // ////console.log('Initializing Entry Manager...');
+        // //console.log('Initializing Entry Manager...');
         entryManager = new EntryManager();
         window.entryManager = entryManager;
 
@@ -5564,18 +5564,18 @@ $(document).ready(function () {
         window.optimizePerformance = () => entryManager.optimizePerformance();
         window.clearAllCache = () => entryManager.clearAllCacheData();
 
-        // ////console.log('Entry Manager initialized successfully');
-        ////console.log('Entry Manager functions available:');
-        ////console.log('- debugTestData() - Debug test data and check for duplicates');
-        ////console.log('- debugCategoryData() - Debug category data and form state');
-        ////console.log('- debugEditMode() - Debug edit mode and test row state');
-        ////console.log('- debugSpecificEntry(entryId) - Debug specific entry data and categories');
-        ////console.log('- testDemographicRanges() - Run complete workflow validation');
-        ////console.log('- testRangeCalculation(age, gender, testId) - Test specific range calculation');
-        ////console.log('- getPerformanceMetrics() - Get performance and cache statistics');
-        ////console.log('- getCacheStatistics() - Get detailed cache statistics');
-        ////console.log('- optimizePerformance() - Manually optimize performance and clean caches');
-        ////console.log('- clearAllCache() - Clear all cached data');
+        // //console.log('Entry Manager initialized successfully');
+        //console.log('Entry Manager functions available:');
+        //console.log('- debugTestData() - Debug test data and check for duplicates');
+        //console.log('- debugCategoryData() - Debug category data and form state');
+        //console.log('- debugEditMode() - Debug edit mode and test row state');
+        //console.log('- debugSpecificEntry(entryId) - Debug specific entry data and categories');
+        //console.log('- testDemographicRanges() - Run complete workflow validation');
+        //console.log('- testRangeCalculation(age, gender, testId) - Test specific range calculation');
+        //console.log('- getPerformanceMetrics() - Get performance and cache statistics');
+        //console.log('- getCacheStatistics() - Get detailed cache statistics');
+        //console.log('- optimizePerformance() - Manually optimize performance and clean caches');
+        //console.log('- clearAllCache() - Clear all cached data');
     } catch (error) {
         // console.error('Error initializing Entry Manager:', error);
         // console.error('Error stack:', error.stack);
