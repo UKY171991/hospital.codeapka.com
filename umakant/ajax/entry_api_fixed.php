@@ -414,9 +414,23 @@ try {
                 $finalAmount = $aggTotalPrice - $aggDiscount;
             }
 
-            $row['total_price'] = $entriesCaps['has_total_price'] && isset($row['total_price'])
-                ? (float)$row['total_price']
-                : $aggTotalPrice;
+            // Calculate total_price: use aggregated price if > 0, otherwise calculate from subtotal
+            if ($aggTotalPrice > 0) {
+                $row['total_price'] = $aggTotalPrice;
+                $row['price_source'] = 'aggregated';
+            } else if (isset($row['subtotal']) && (float)$row['subtotal'] > 0) {
+                // Calculate from subtotal minus discount
+                $subtotal = (float)$row['subtotal'];
+                $discount = (float)($row['discount_amount'] ?? 0);
+                $row['total_price'] = max($subtotal - $discount, 0);
+                $row['price_source'] = 'subtotal_calculated';
+            } else if ($entriesCaps['has_total_price'] && isset($row['total_price']) && (float)$row['total_price'] > 0) {
+                $row['total_price'] = (float)$row['total_price'];
+                $row['price_source'] = 'stored_total';
+            } else {
+                $row['total_price'] = 0;
+                $row['price_source'] = 'default_zero';
+            }
             $row['total_discount'] = $entriesCaps['has_discount_amount'] && isset($row['discount_amount'])
                 ? (float)$row['discount_amount']
                 : $aggDiscount;
