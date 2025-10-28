@@ -58,6 +58,60 @@ class EntryManager {
     }
 
     /**
+     * Debug function to check category data (can be called from browser console)
+     */
+    debugCategoryData() {
+        console.log('=== CATEGORY DATA DEBUG ===');
+        console.log('Total categories loaded:', this.categoriesData.length);
+        console.log('Total main categories loaded:', this.mainCategoriesData.length);
+        
+        if (this.categoriesData.length > 0) {
+            console.log('Sample category data:', this.categoriesData.slice(0, 5));
+            
+            // Check category structure
+            const categoriesWithMainId = this.categoriesData.filter(cat => cat.main_category_id);
+            const categoriesWithoutMainId = this.categoriesData.filter(cat => !cat.main_category_id);
+            
+            console.log('Categories with main_category_id:', categoriesWithMainId.length);
+            console.log('Categories without main_category_id:', categoriesWithoutMainId.length);
+            
+            if (categoriesWithMainId.length > 0) {
+                console.log('Sample category with main_category_id:', categoriesWithMainId[0]);
+            }
+        }
+        
+        if (this.mainCategoriesData.length > 0) {
+            console.log('Sample main category data:', this.mainCategoriesData.slice(0, 3));
+        }
+        
+        // Check if tests have category information
+        if (this.testsData.length > 0) {
+            const testsWithCategory = this.testsData.filter(test => test.category_id);
+            const testsWithCategoryName = this.testsData.filter(test => test.category_name);
+            
+            console.log('Tests with category_id:', testsWithCategory.length, '/', this.testsData.length);
+            console.log('Tests with category_name:', testsWithCategoryName.length, '/', this.testsData.length);
+            
+            if (testsWithCategory.length > 0) {
+                console.log('Sample test with category:', testsWithCategory[0]);
+            }
+        }
+        
+        // Check current form state
+        const $categoryDropdowns = $('.test-category-select');
+        console.log('Category dropdowns found in DOM:', $categoryDropdowns.length);
+        
+        $categoryDropdowns.each((index, dropdown) => {
+            const $dropdown = $(dropdown);
+            const optionCount = $dropdown.find('option').length;
+            const selectedValue = $dropdown.val();
+            console.log(`Dropdown ${index}: ${optionCount} options, selected: "${selectedValue}"`);
+        });
+        
+        console.log('=== END CATEGORY DEBUG ===');
+    }
+
+    /**
      * Initialize the Entry Manager
      */
     init() {
@@ -430,7 +484,7 @@ class EntryManager {
      */
     async loadCategoriesForFilter() {
         try {
-            //console.log('Loading categories for filter...');
+            console.log('Loading categories for filter...');
             const response = await $.ajax({
                 url: 'patho_api/test_category.php',
                 method: 'GET',
@@ -444,14 +498,19 @@ class EntryManager {
             if (response && response.success) {
                 this.categoriesData = response.data || [];
                 this.populateCategoryFilter();
-                //console.log('Loaded categories data:', this.categoriesData.length, 'categories');
+                console.log('Loaded categories data:', this.categoriesData.length, 'categories');
+                
+                // Debug: Log first few categories to verify data structure
+                if (this.categoriesData.length > 0) {
+                    console.log('Sample category data:', this.categoriesData.slice(0, 3));
+                }
             } else {
-                //console.error('Failed to load categories:', response ? response.message : 'Invalid response');
+                console.error('Failed to load categories:', response ? response.message : 'Invalid response');
                 this.categoriesData = [];
                 this.handleCategoryLoadError();
             }
         } catch (error) {
-            //console.error('Error loading categories data:', error);
+            console.error('Error loading categories data:', error);
             console.error('Category load error details:', {
                 status: error.status,
                 statusText: error.statusText,
@@ -459,7 +518,7 @@ class EntryManager {
             });
             
             this.categoriesData = [];
-            this.handleGlobalError(error, 'category_loading');
+            this.handleCategoryLoadError();
         }
     }
 
@@ -520,6 +579,8 @@ class EntryManager {
      * Handle category loading errors gracefully
      */
     handleCategoryLoadError() {
+        console.warn('Category loading failed, disabling category features');
+        
         const $categoryFilter = $('#categoryFilter');
         if ($categoryFilter.length > 0) {
             $categoryFilter.empty().append('<option value="">All Categories (Error loading categories)</option>');
@@ -534,7 +595,12 @@ class EntryManager {
         // Show all tests since filtering is not available
         this.updateFilteredTestCount();
         
-        //console.warn('Category filtering disabled due to loading error');
+        // Show user-friendly error message
+        if (typeof toastr !== 'undefined') {
+            toastr.warning('Could not load test categories. Category filtering will be disabled.');
+        }
+        
+        console.warn('Category filtering disabled due to loading error');
     }
 
     /**
@@ -1028,6 +1094,9 @@ class EntryManager {
 
         // Populate category dropdown for this row
         this.populateRowCategoryDropdown($categorySelect);
+        
+        // Debug: Log category population status
+        console.log('Category dropdown populated for row', rowIndex, 'with', this.categoriesData.length, 'categories');
 
         // Initialize Select2 for both dropdowns
         $testSelect.select2({
@@ -1224,7 +1293,7 @@ class EntryManager {
     /**
      * Handle test selection change
      */
-    onTestChange(selectElement, $row) {
+    async onTestChange(selectElement, $row) {
         const $select = $(selectElement);
         const selectedOption = $select.find('option:selected');
         const testId = selectedOption.val();
@@ -1268,13 +1337,35 @@ class EntryManager {
                 // Set the category dropdown to match the test's category
                 const $categorySelect = $row.find('.test-category-select');
                 if (foundTest.category_id) {
-                    $categorySelect.val(foundTest.category_id).trigger('change.select2');
+                    console.log('Setting category for test:', foundTest.category_id, 'Test name:', foundTest.name);
+                    
+                    // Ensure category dropdown is populated first
+                    if (this.categoriesData.length === 0) {
+                        console.warn('Categories not loaded yet, attempting to load...');
+                        await this.loadCategoriesForFilter();
+                    }
+                    
+                    // Re-populate the category dropdown for this row to ensure it has the latest data
+                    this.populateRowCategoryDropdown($categorySelect);
+                    
+                    // Set the category value
+                    $categorySelect.val(foundTest.category_id);
+                    
+                    // Trigger Select2 update
+                    if ($categorySelect.hasClass('select2-hidden-accessible')) {
+                        $categorySelect.trigger('change.select2');
+                    }
                     
                     // Also set the main category ID
                     const selectedCategory = this.categoriesData.find(cat => cat.id == foundTest.category_id);
                     if (selectedCategory && selectedCategory.main_category_id) {
                         $row.find('.test-main-category-id').val(selectedCategory.main_category_id);
+                        console.log('Set main category ID:', selectedCategory.main_category_id, 'for category:', selectedCategory.name);
+                    } else {
+                        console.warn('Could not find category data for ID:', foundTest.category_id);
                     }
+                } else {
+                    console.log('Test has no category_id:', foundTest.name);
                 }
                 
                 $row.find('.test-price').val(foundTest.price || 0);
@@ -3093,8 +3184,8 @@ class EntryManager {
      * Save entry (create or update)
      */
     async saveEntry() {
-        //console.log('Saving entry...');
-        //console.log('Current edit ID:', this.currentEditId);
+        console.log('Saving entry...');
+        console.log('Current edit ID:', this.currentEditId);
 
         try {
             // Validate form
@@ -3120,10 +3211,26 @@ class EntryManager {
                 formData.append('patient_id', patientId);
             }
 
-            // Debug form data
-            //console.log('Form data being sent:');
+            // Debug form data - specifically check for category information
+            console.log('Form data being sent:');
+            let hasTestData = false;
+            let categoryDataFound = false;
             for (let [key, value] of formData.entries()) {
-                //console.log(key, ':', value);
+                console.log(key, ':', value);
+                if (key.includes('tests[') && key.includes('category_id')) {
+                    categoryDataFound = true;
+                    console.log('Found category data:', key, '=', value);
+                }
+                if (key.includes('tests[') && key.includes('main_category_id')) {
+                    console.log('Found main category data:', key, '=', value);
+                }
+                if (key.includes('tests[')) {
+                    hasTestData = true;
+                }
+            }
+            
+            if (hasTestData && !categoryDataFound) {
+                console.warn('WARNING: Test data found but no category_id data detected in form submission!');
             }
 
             const response = await $.ajax({
@@ -3233,10 +3340,12 @@ $(document).ready(function () {
             }
         };
         window.debugTestData = () => entryManager.debugTestData();
+        window.debugCategoryData = () => entryManager.debugCategoryData();
         
         // console.log('Entry Manager initialized successfully');
         console.log('Entry Manager functions available:');
         console.log('- debugTestData() - Debug test data and check for duplicates');
+        console.log('- debugCategoryData() - Debug category data and form state');
         console.log('- testDemographicRanges() - Run complete workflow validation');
         console.log('- testRangeCalculation(age, gender, testId) - Test specific range calculation');
     } catch (error) {
