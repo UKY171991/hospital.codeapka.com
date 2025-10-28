@@ -419,13 +419,13 @@ try {
                 // There are tests, calculate the price
                 if ($aggTotalPrice > 0) {
                     $row['total_price'] = $aggTotalPrice;
-                    $row['debug_price_source'] = 'aggregated';
+
                 } else if (isset($row['subtotal']) && (float)$row['subtotal'] > 0) {
                     // Calculate from subtotal minus discount
                     $subtotal = (float)$row['subtotal'];
                     $discount = (float)($row['discount_amount'] ?? 0);
                     $row['total_price'] = max($subtotal - $discount, 0);
-                    $row['debug_price_source'] = 'subtotal';
+
                 } else if ($entriesCaps['has_total_price'] && isset($row['total_price']) && (float)$row['total_price'] > 0) {
                     $row['total_price'] = (float)$row['total_price'];
                     $row['debug_price_source'] = 'stored';
