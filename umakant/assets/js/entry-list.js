@@ -237,19 +237,29 @@ class EntryManager {
      * Initialize the Entry Manager
      */
     init() {
-        //console.log('Initializing Entry Manager...');
+        console.log('Initializing Entry Manager...');
 
         // Wait for DOM to be ready
         $(document).ready(() => {
-            //console.log('DOM ready, starting initialization...');
+            console.log('DOM ready, starting initialization...');
             try {
-                this.initializeDataTable();
-                this.loadInitialData();
-                this.bindEvents();
-                this.loadStatistics();
-                //console.log('Entry Manager initialization complete');
+                // Add a small delay to ensure all libraries are loaded
+                setTimeout(() => {
+                    this.initializeDataTable();
+                    this.loadInitialData();
+                    this.bindEvents();
+                    this.loadStatistics();
+                    console.log('Entry Manager initialization complete');
+                }, 100);
             } catch (error) {
-                //console.error('Error during Entry Manager initialization:', error);
+                console.error('Error during Entry Manager initialization:', error);
+                $('#entriesTable').closest('.card-body').html(`
+                    <div class="alert alert-danger">
+                        <h5>Initialization Error</h5>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <button class="btn btn-primary btn-sm" onclick="location.reload()">Refresh Page</button>
+                    </div>
+                `);
             }
         });
     }
@@ -258,17 +268,44 @@ class EntryManager {
      * Initialize DataTable with proper configuration
      */
     initializeDataTable() {
-        //console.log('Initializing DataTable...');
+        console.log('Initializing DataTable...');
 
         // Check if the table element exists
         if ($('#entriesTable').length === 0) {
-            //console.error('DataTable element #entriesTable not found');
+            console.error('DataTable element #entriesTable not found');
+            $('#entriesTable').closest('.card-body').html(`
+                <div class="alert alert-danger">
+                    <h5>Table Element Not Found</h5>
+                    <p>The entries table element could not be found in the DOM.</p>
+                    <button class="btn btn-primary btn-sm" onclick="location.reload()">Refresh Page</button>
+                </div>
+            `);
+            return;
+        }
+
+        // Check if jQuery is available
+        if (typeof $ === 'undefined') {
+            console.error('jQuery library not loaded');
+            document.getElementById('entriesTable').innerHTML = `
+                <div class="alert alert-danger">
+                    <h5>jQuery Library Not Loaded</h5>
+                    <p>The jQuery JavaScript library failed to load.</p>
+                    <button class="btn btn-primary btn-sm" onclick="location.reload()">Refresh Page</button>
+                </div>
+            `;
             return;
         }
 
         // Check if DataTable is available
         if (typeof $.fn.DataTable === 'undefined') {
-            //console.error('DataTables library not loaded');
+            console.error('DataTables library not loaded');
+            $('#entriesTable').html(`
+                <div class="alert alert-danger">
+                    <h5>DataTables Library Not Loaded</h5>
+                    <p>The DataTables JavaScript library failed to load.</p>
+                    <button class="btn btn-primary btn-sm" onclick="location.reload()">Refresh Page</button>
+                </div>
+            `);
             return;
         }
 
@@ -279,13 +316,16 @@ class EntryManager {
                 ajax: {
                     url: 'ajax/entry_api_fixed.php',
                     type: 'GET',
-                    data: { action: 'list' },
+                    data: { 
+                        action: 'list',
+                        secret_key: 'hospital-api-secret-2024'
+                    },
                     dataSrc: function (json) {
-                        //console.log('DataTable received data:', json);
+                        console.log('DataTable received data:', json);
                         if (json && json.success) {
                             return json.data || [];
                         } else {
-                            //console.error('API Error:', json ? json.message : 'Invalid response');
+                            console.error('API Error:', json ? json.message : 'Invalid response');
                             if (typeof toastr !== 'undefined') {
                                 toastr.error(json ? json.message : 'Failed to load entries - invalid response');
                             } else {
@@ -550,9 +590,17 @@ class EntryManager {
 
             //console.log('DataTable initialized successfully');
         } catch (error) {
-            //console.error('Error initializing DataTable:', error);
-            // Show user-friendly error message
-            $('#entriesTable').html('<div class="alert alert-danger">Failed to initialize data table. Please refresh the page.</div>');
+            console.error('Error initializing DataTable:', error);
+            // Show detailed error message for debugging
+            const errorDetails = error.message || 'Unknown error';
+            $('#entriesTable').html(`
+                <div class="alert alert-danger">
+                    <h5>Failed to initialize data table</h5>
+                    <p><strong>Error:</strong> ${errorDetails}</p>
+                    <p>Please check the browser console for more details and refresh the page.</p>
+                    <button class="btn btn-primary btn-sm" onclick="location.reload()">Refresh Page</button>
+                </div>
+            `);
         }
     }
 
