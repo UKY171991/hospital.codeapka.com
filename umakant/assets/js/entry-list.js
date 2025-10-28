@@ -325,12 +325,12 @@ class EntryManager {
                     {
                         data: 'id',
                         title: 'ID',
-                        width: '5%'
+                        width: '4%'
                     },
                     {
                         data: 'patient_name',
                         title: 'Patient',
-                        width: '12%',
+                        width: '10%',
                         render: function (data, type, row) {
                             if (type === 'display') {
                                 let html = `<strong>${data || 'N/A'}</strong>`;
@@ -345,7 +345,7 @@ class EntryManager {
                     {
                         data: 'doctor_name',
                         title: 'Doctor',
-                        width: '10%',
+                        width: '8%',
                         render: function (data, type, row) {
                             return data || '<span class="text-muted">Not assigned</span>';
                         }
@@ -353,7 +353,7 @@ class EntryManager {
                     {
                         data: 'test_names',
                         title: 'Tests',
-                        width: '15%',
+                        width: '12%',
                         render: function (data, type, row) {
                             if (type === 'display') {
                                 const testCount = parseInt(row.tests_count) || 0;
@@ -371,9 +371,65 @@ class EntryManager {
                         }
                     },
                     {
+                        data: 'test_categories',
+                        title: 'Test Category',
+                        width: '10%',
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                const categories = data || row.category_names || '';
+                                if (!categories) {
+                                    return '<span class="text-muted">No category</span>';
+                                }
+
+                                // Handle multiple categories
+                                const categoryArray = categories.split(',').map(cat => cat.trim()).filter(cat => cat);
+                                const uniqueCategories = [...new Set(categoryArray)];
+
+                                if (uniqueCategories.length === 0) {
+                                    return '<span class="text-muted">No category</span>';
+                                } else if (uniqueCategories.length === 1) {
+                                    return `<span class="badge badge-secondary">${uniqueCategories[0]}</span>`;
+                                } else {
+                                    const displayText = uniqueCategories.slice(0, 2).join(', ');
+                                    const remainingCount = uniqueCategories.length - 2;
+                                    return `<span class="badge badge-secondary" title="${uniqueCategories.join(', ')}">${displayText}${remainingCount > 0 ? ` +${remainingCount}` : ''}</span>`;
+                                }
+                            }
+                            return data || '';
+                        }
+                    },
+                    {
+                        data: 'main_test_categories',
+                        title: 'Main Test Category',
+                        width: '10%',
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                const mainCategories = data || row.main_category_names || '';
+                                if (!mainCategories) {
+                                    return '<span class="text-muted">No main category</span>';
+                                }
+
+                                // Handle multiple main categories
+                                const categoryArray = mainCategories.split(',').map(cat => cat.trim()).filter(cat => cat);
+                                const uniqueCategories = [...new Set(categoryArray)];
+
+                                if (uniqueCategories.length === 0) {
+                                    return '<span class="text-muted">No main category</span>';
+                                } else if (uniqueCategories.length === 1) {
+                                    return `<span class="badge badge-primary">${uniqueCategories[0]}</span>`;
+                                } else {
+                                    const displayText = uniqueCategories.slice(0, 2).join(', ');
+                                    const remainingCount = uniqueCategories.length - 2;
+                                    return `<span class="badge badge-primary" title="${uniqueCategories.join(', ')}">${displayText}${remainingCount > 0 ? ` +${remainingCount}` : ''}</span>`;
+                                }
+                            }
+                            return data || '';
+                        }
+                    },
+                    {
                         data: 'status',
                         title: 'Status',
-                        width: '7%',
+                        width: '6%',
                         render: function (data, type, row) {
                             if (type === 'display') {
                                 const status = data || 'pending';
@@ -391,7 +447,7 @@ class EntryManager {
                     {
                         data: 'priority',
                         title: 'Priority',
-                        width: '7%',
+                        width: '6%',
                         render: function (data, type, row) {
                             if (type === 'display') {
                                 const priority = data || 'normal';
@@ -410,7 +466,7 @@ class EntryManager {
                     {
                         data: 'total_price',
                         title: 'Amount',
-                        width: '8%',
+                        width: '7%',
                         render: function (data, type, row) {
                             if (type === 'display') {
                                 const amount = parseFloat(data) || 0;
@@ -422,7 +478,7 @@ class EntryManager {
                     {
                         data: 'entry_date',
                         title: 'Date',
-                        width: '8%',
+                        width: '7%',
                         render: function (data, type, row) {
                             if (type === 'display' && data) {
                                 const date = new Date(data);
@@ -434,7 +490,7 @@ class EntryManager {
                     {
                         data: 'added_by_full_name',
                         title: 'Added By',
-                        width: '7%',
+                        width: '6%',
                         render: function (data, type, row) {
                             return data || row.added_by_username || 'Unknown';
                         }
@@ -442,7 +498,7 @@ class EntryManager {
                     {
                         data: null,
                         title: 'Actions',
-                        width: '9%',
+                        width: '8%',
                         orderable: false,
                         render: function (data, type, row) {
                             if (type === 'display') {
@@ -4466,6 +4522,7 @@ class EntryManager {
                         <tr>
                             <th>Test Name</th>
                             <th>Category</th>
+                            <th>Main Category</th>
                             <th>Result</th>
                             <th>Range</th>
                             <th>Unit</th>
@@ -4494,16 +4551,29 @@ class EntryManager {
                 rangeDisplay = (test.min || test.max) ? `${test.min || ''} - ${test.max || ''}` : '';
             }
 
+            // Get main category name
+            let mainCategoryName = 'N/A';
+            if (test.category_id && this.categoriesData.length > 0) {
+                const category = this.categoriesData.find(cat => cat.id == test.category_id);
+                if (category && category.main_category_id && this.mainCategoriesData.length > 0) {
+                    const mainCategory = this.mainCategoriesData.find(mc => mc.id == category.main_category_id);
+                    if (mainCategory) {
+                        mainCategoryName = mainCategory.name;
+                    }
+                }
+            }
+
             return `
                                 <tr>
                                     <td>${test.test_name || 'N/A'}</td>
                                     <td>${test.category_name || 'N/A'}</td>
+                                    <td>${mainCategoryName}</td>
                                     <td>${test.result_value || 'Pending'}</td>
                                     <td>${rangeDisplay}${rangeTypeIndicator}</td>
                                     <td>${test.unit || ''}</td>
                                 </tr>
                             `;
-        }).join('') : '<tr><td colspan="5">No tests found</td></tr>'}
+        }).join('') : '<tr><td colspan="6">No tests found</td></tr>'}
                     </tbody>
                 </table>
             </div>
