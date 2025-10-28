@@ -521,15 +521,21 @@ class EntryManager {
                         width: '7%',
                         render: function (data, type, row) {
                             if (type === 'display') {
-                                // Use subtotal if total_price is 0 or not available
-                                let amount = parseFloat(data) || 0;
-                                if (amount === 0 && row.subtotal) {
-                                    amount = parseFloat(row.subtotal) || 0;
-                                    // Subtract discount if available
-                                    const discount = parseFloat(row.discount_amount) || 0;
-                                    amount = Math.max(amount - discount, 0);
+                                // Only show amount if there are tests
+                                if (row.tests_count && row.tests_count > 0) {
+                                    // Use total_price if available, otherwise calculate from subtotal
+                                    let amount = parseFloat(data) || 0;
+                                    if (amount === 0 && row.subtotal) {
+                                        amount = parseFloat(row.subtotal) || 0;
+                                        // Subtract discount if available
+                                        const discount = parseFloat(row.discount_amount) || 0;
+                                        amount = Math.max(amount - discount, 0);
+                                    }
+                                    return `₹${amount.toFixed(2)}`;
+                                } else {
+                                    // No tests, show ₹0.00
+                                    return `₹0.00`;
                                 }
-                                return `₹${amount.toFixed(2)}`;
                             }
                             return data || 0;
                         }
