@@ -114,7 +114,7 @@ function build_entry_tests_aggregation_sql($pdo) {
     $caps = get_entry_tests_schema_capabilities($pdo);
     if (!$caps['table_exists']) {
         error_log("Entry tests table does not exist, returning empty aggregation");
-        return "SELECT NULL AS entry_id, 0 AS tests_count, '' AS test_names, '' AS test_ids, 0 AS total_price, 0 AS total_discount FROM dual WHERE 1 = 0";
+        return "SELECT NULL AS entry_id, 0 AS tests_count, '' AS test_names, '' AS test_ids, '' AS test_categories, '' AS main_test_categories, 0 AS total_price, 0 AS total_discount FROM dual WHERE 1 = 0";
     }
     
     // Use COALESCE to handle NULL values properly
@@ -125,10 +125,14 @@ function build_entry_tests_aggregation_sql($pdo) {
                    COUNT(DISTINCT et.test_id) as tests_count,
                    GROUP_CONCAT(DISTINCT COALESCE(t.name, CONCAT('Test_', et.test_id)) ORDER BY t.name SEPARATOR ', ') as test_names,
                    GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id) as test_ids,
+                   GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') as test_categories,
+                   GROUP_CONCAT(DISTINCT mc.name ORDER BY mc.name SEPARATOR ', ') as main_test_categories,
                    {$sumPrice} as total_price,
                    {$sumDiscount} as total_discount
             FROM entry_tests et
             LEFT JOIN tests t ON et.test_id = t.id
+            LEFT JOIN categories c ON t.category_id = c.id
+            LEFT JOIN main_test_categories mc ON t.main_category_id = mc.id
             WHERE et.entry_id IS NOT NULL AND et.test_id IS NOT NULL
             GROUP BY et.entry_id";
     
@@ -154,7 +158,7 @@ function refresh_entry_aggregates($pdo, $entryId) {
     }
 
     $aggSql = build_entry_tests_aggregation_sql($pdo);
-    $fullQuery = "SELECT tests_count, test_ids, test_names, total_price, total_discount FROM (" . $aggSql . ") agg WHERE entry_id = ?";
+    $fullQuery = "SELECT tests_count, test_ids, test_names, test_categories, main_test_categories, total_price, total_discount FROM (" . $aggSql . ") agg WHERE entry_id = ?";
     error_log("Aggregate refresh query: " . $fullQuery);
 
     $stmt = $pdo->prepare($fullQuery);
@@ -321,10 +325,10 @@ try {
         $entryTestsCaps = get_entry_tests_schema_capabilities($pdo);
         if ($entryTestsCaps['table_exists']) {
             $aggSql = build_entry_tests_aggregation_sql($pdo);
-            $aggSelect = "COALESCE(agg.tests_count, 0) AS agg_tests_count,\n                   COALESCE(agg.test_names, '') AS agg_test_names,\n                   COALESCE(agg.test_ids, '') AS agg_test_ids,\n                   COALESCE(agg.total_price, 0) AS agg_total_price,\n                   COALESCE(agg.total_discount, 0) AS agg_total_discount";
+            $aggSelect = "COALESCE(agg.tests_count, 0) AS agg_tests_count,\n                   COALESCE(agg.test_names, '') AS agg_test_names,\n                   COALESCE(agg.test_ids, '') AS agg_test_ids,\n                   COALESCE(agg.test_categories, '') AS agg_test_categories,\n                   COALESCE(agg.main_test_categories, '') AS agg_main_test_categories,\n                   COALESCE(agg.total_price, 0) AS agg_total_price,\n                   COALESCE(agg.total_discount, 0) AS agg_total_discount";
             $aggJoin = " LEFT JOIN (" . $aggSql . ") agg ON agg.entry_id = e.id";
         } else {
-            $aggSelect = "0 AS agg_tests_count, '' AS agg_test_names, '' AS agg_test_ids, 0 AS agg_total_price, 0 AS agg_total_discount";
+            $aggSelect = "0 AS agg_tests_count, '' AS agg_test_names, '' AS agg_test_ids, '' AS agg_test_categories, '' AS agg_main_test_categories, 0 AS agg_total_price, 0 AS agg_total_discount";
             $aggJoin = '';
         }
 
@@ -377,8 +381,21 @@ try {
             $row['test_names'] = $row['agg_test_names'] ?? $row['test_names'] ?? '';
             $row['test_ids'] = $row['agg_test_ids'] ?? $row['test_ids'] ?? '';
             
+            // Format category information - use aggregated data if available
+            $row['test_categories'] = $row['agg_test_categories'] ?? '';
+            $row['main_test_categories'] = $row['agg_main_test_categories'] ?? '';
+            
+            // Clean up category data - remove "No category" entries
+            if ($row['test_categories'] === 'No category') {
+                $row['test_categories'] = '';
+            }
+            if ($row['main_test_categories'] === 'No main category') {
+                $row['main_test_categories'] = '';
+            }
+            
             // Debug logging for test aggregation
             error_log("Entry ID {$row['id']}: tests_count={$row['tests_count']}, test_names='{$row['test_names']}'");
+            error_log("Entry ID {$row['id']}: test_categories='{$row['test_categories']}, main_test_categories='{$row['main_test_categories']}'");
             if ($row['tests_count'] > 1) {
                 error_log("Entry ID {$row['id']} has multiple tests: agg_tests_count={$row['agg_tests_count']}, agg_test_names='{$row['agg_test_names']}'");
             }
