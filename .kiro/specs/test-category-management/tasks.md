@@ -10,6 +10,7 @@
   - Add foreign key relationship to users table for created_by
   - Create initial database migration script
 
+
   - _Requirements: 1.1, 1.2, 1.3, 4.1, 4.2, 5.1_
 
 - [ ] 2. Update tests table schema with category relationship
