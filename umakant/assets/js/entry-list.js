@@ -5099,7 +5099,11 @@ class EntryManager {
                 const response = await $.ajax({
                     url: 'ajax/entry_api_fixed.php',
                     method: 'POST',
-                    data: { action: 'delete', id: entryId },
+                    data: { 
+                        action: 'delete', 
+                        id: entryId,
+                        secret_key: 'hospital-api-secret-2024'
+                    },
                     dataType: 'json'
                 });
 
