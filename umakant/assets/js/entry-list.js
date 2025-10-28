@@ -2266,6 +2266,11 @@ class EntryManager {
             if (testData.max) $row.find('.test-max').val(testData.max);
             if (testData.unit) $row.find('.test-unit').val(testData.unit);
 
+            // Recalculate totals after setting prices
+            setTimeout(() => {
+                this.calculateTotals();
+            }, 200);
+
             console.log('=== TEST ROW POPULATED ===');
         }
     }
@@ -2410,6 +2415,9 @@ class EntryManager {
 
         // Update range display
         this.updateRangeDisplay($row, rangeData);
+        
+        // Recalculate totals after setting price
+        this.calculateTotals();
     }
 
     /**
