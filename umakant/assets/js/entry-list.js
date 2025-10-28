@@ -2209,8 +2209,30 @@ class EntryManager {
             placeholder: 'Select Category'
         });
 
-        // If testData is provided, populate the row
+        // If testData is provided, populate the row (EDIT MODE)
         if (testData) {
+            console.log('=== POPULATING TEST ROW FOR EDIT ===');
+            console.log('Test data:', testData);
+            
+            // Set the test selection first
+            $testSelect.val(testData.test_id);
+            $testSelect.select2('destroy').select2({
+                theme: 'bootstrap4',
+                width: '100%',
+                placeholder: 'Select Test'
+            });
+
+            // Set other fields from the entry data
+            $resultInput.val(testData.result_value || '');
+            $row.find('.test-price').val(testData.price || 0);
+
+            // IMPORTANT: Let the onTestChange handler set the category correctly
+            // This ensures the category matches the test's current category
+            setTimeout(() => {
+                $testSelect.trigger('change');
+            }, 100);
+
+            console.log('=== TEST ROW POPULATED ===');
             //console.log('=== POPULATING TEST ROW ===');
             //console.log('Test data received:', testData);
             //console.log('Test ID from data:', testData.test_id);
@@ -2522,123 +2544,127 @@ class EntryManager {
      */
     async onTestChange(selectElement, $row) {
         const $select = $(selectElement);
-        const selectedOption = $select.find('option:selected');
-        const testId = selectedOption.val();
+        const testId = $select.val();
+        
+        console.log('=== TEST CHANGE EVENT ===');
+        console.log('Test ID selected:', testId);
+        console.log('Row index:', $row.data('row-index'));
 
-        //console.log('Test selection changed to:', testId);
-        //console.log('Row being updated:', $row.data('row-index'));
-
-        if (testId) {
-            // Check if this row already has data (from edit mode) - if so, don't overwrite
-            const existingCategoryId = $row.find('.test-category-select').val();
-            const existingUnit = $row.find('.test-unit').val();
-            const existingMin = $row.find('.test-min').val();
-            const existingMax = $row.find('.test-max').val();
-
-            // If the row already has complete data, don't overwrite it (edit mode)
-            if (existingCategoryId && existingUnit && existingMin && existingMax) {
-                /*console.log('Row already has complete data, not overwriting:', {
-                    categoryId: existingCategoryId,
-                    unit: existingUnit,
-                    min: existingMin,
-                    max: existingMax
-                });*/
-                this.calculateTotals();
-                return;
-            }
-
-            // Find the test in our testsData for accurate information
-            const foundTest = this.testsData.find(t => t.id == testId);
-
-            if (foundTest) {
-                //console.log('Found test data for ID', testId, ':', foundTest);
-
-                // Get current patient demographics
-                const patientAge = parseInt($('#patientAge').val()) || null;
-                const patientGender = $('#patientGender').val() || null;
-
-                // Calculate appropriate ranges for this patient
-                const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, foundTest);
-
-                // Populate test details from testsData
-                // Set the category dropdown to match the test's category
-                const $categorySelect = $row.find('.test-category-select');
-                if (foundTest.category_id) {
-                    console.log('Setting category for test:', foundTest.category_id, 'Test name:', foundTest.name);
-                    console.log('Test data:', { id: foundTest.id, name: foundTest.name, category_id: foundTest.category_id, category_name: foundTest.category_name });
-
-                    // Ensure category dropdown is populated first
-                    if (this.categoriesData.length === 0) {
-                        console.warn('Categories not loaded yet, attempting to load...');
-                        await this.loadCategoriesForFilter();
-                    }
-
-                    // Re-populate the category dropdown for this row to ensure it has the latest data
-                    this.populateRowCategoryDropdown($categorySelect);
-
-                    // Set the category value immediately
-                    $categorySelect.val(foundTest.category_id);
-
-                    // Force Select2 to update if it's initialized
-                    if ($categorySelect.hasClass('select2-hidden-accessible')) {
-                        // Destroy and reinitialize Select2 to ensure it shows the correct value
-                        $categorySelect.select2('destroy');
-                        $categorySelect.select2({
-                            theme: 'bootstrap4',
-                            width: '100%',
-                            placeholder: 'Select Category'
-                        });
-                    }
-
-                    console.log('Category set to:', foundTest.category_id, 'for test:', foundTest.name);
-                    console.log('Dropdown value after setting:', $categorySelect.val());
-                    console.log('Available options in dropdown:', $categorySelect.find('option').map(function () { return $(this).val() + ':' + $(this).text(); }).get());
-
-                    // Also set the main category ID
-                    const selectedCategory = this.categoriesData.find(cat => cat.id == foundTest.category_id);
-                    if (selectedCategory && selectedCategory.main_category_id) {
-                        $row.find('.test-main-category-id').val(selectedCategory.main_category_id);
-                        console.log('Set main category ID:', selectedCategory.main_category_id, 'for category:', selectedCategory.name);
-                    } else {
-                        console.warn('Could not find category data for ID:', foundTest.category_id);
-                        console.log('Available categories:', this.categoriesData.map(c => ({ id: c.id, name: c.name })));
-                    }
-                } else {
-                    console.log('Test has no category_id:', foundTest.name);
-                }
-
-                $row.find('.test-price').val(foundTest.price || 0);
-
-                // Use calculated demographic-appropriate ranges
-                this.updateRangeDisplay($row, rangeData);
-
-                /*console.log('Updated row with demographic-appropriate ranges:', {
-                    category: foundTest.category_name,
-                    rangeType: rangeData.type,
-                    min: rangeData.min,
-                    max: rangeData.max,
-                    unit: rangeData.unit,
-                    price: foundTest.price
-                });*/
-            } else {
-                // Fallback to data attributes if test not found in testsData
-                console.warn('Test not found in testsData for ID:', testId, 'using data attributes');
-                // Note: We should set the category dropdown properly here too, but for now just log
-                //console.log('Category from data attribute:', selectedOption.data('category'));
-                $row.find('.test-unit').val(selectedOption.data('unit') || '');
-                $row.find('.test-min').val(selectedOption.data('min') || '');
-                $row.find('.test-max').val(selectedOption.data('max') || '');
-                $row.find('.test-price').val(selectedOption.data('price') || 0);
-            }
-        } else {
-            // Clear test details including range indicator
-            $row.find('.test-category-select, .test-unit, .test-min, .test-max').val('');
-            $row.find('.test-main-category-id').val('');
-            $row.find('.test-price').val(0);
-            $row.find('.range-type-indicator').remove();
+        if (!testId) {
+            // Clear everything if no test selected
+            this.clearTestRow($row);
+            this.calculateTotals();
+            return;
         }
 
+        // Find the test data
+        const testData = this.testsData.find(t => t.id == testId);
+        if (!testData) {
+            console.error('Test not found in testsData:', testId);
+            this.clearTestRow($row);
+            this.calculateTotals();
+            return;
+        }
+
+        console.log('Found test data:', {
+            id: testData.id,
+            name: testData.name,
+            category_id: testData.category_id,
+            category_name: testData.category_name
+        });
+
+        // ALWAYS set the category based on the test's category, regardless of edit mode
+        await this.setTestCategory($row, testData);
+
+        // Set other test details
+        this.setTestDetails($row, testData);
+
+        // Calculate totals
         this.calculateTotals();
+        
+        console.log('=== TEST CHANGE COMPLETE ===');
+    }
+
+    /**
+     * Clear all data in a test row
+     */
+    clearTestRow($row) {
+        $row.find('.test-category-select').val('').trigger('change');
+        $row.find('.test-unit, .test-min, .test-max').val('');
+        $row.find('.test-main-category-id').val('');
+        $row.find('.test-price').val(0);
+        $row.find('.range-type-indicator').remove();
+    }
+
+    /**
+     * Set category for a test row - COMPLETELY REWRITTEN
+     */
+    async setTestCategory($row, testData) {
+        const $categorySelect = $row.find('.test-category-select');
+        
+        console.log('Setting category for test:', testData.name, 'Category ID:', testData.category_id);
+
+        // Ensure categories are loaded
+        if (this.categoriesData.length === 0) {
+            console.log('Loading categories...');
+            await this.loadCategoriesForFilter();
+        }
+
+        // ALWAYS destroy Select2 first to avoid any conflicts
+        if ($categorySelect.hasClass('select2-hidden-accessible')) {
+            $categorySelect.select2('destroy');
+        }
+
+        // Repopulate the dropdown with fresh data
+        this.populateRowCategoryDropdown($categorySelect);
+
+        // Set the correct category value
+        if (testData.category_id && testData.category_id != 0) {
+            $categorySelect.val(testData.category_id);
+            
+            // Set main category ID
+            const category = this.categoriesData.find(cat => cat.id == testData.category_id);
+            if (category && category.main_category_id) {
+                $row.find('.test-main-category-id').val(category.main_category_id);
+            }
+
+            console.log('Category set to:', testData.category_name, '(ID:', testData.category_id, ')');
+        } else {
+            $categorySelect.val('');
+            console.log('No category for test:', testData.name);
+        }
+
+        // Reinitialize Select2 AFTER setting the value
+        $categorySelect.select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            placeholder: 'Select Category'
+        });
+
+        // Verify the value was set correctly
+        const finalValue = $categorySelect.val();
+        console.log('Final category value:', finalValue);
+        if (finalValue != testData.category_id && testData.category_id != 0) {
+            console.error('Category value mismatch! Expected:', testData.category_id, 'Got:', finalValue);
+        }
+    }
+
+    /**
+     * Set other test details (unit, ranges, price)
+     */
+    setTestDetails($row, testData) {
+        // Get patient demographics for range calculation
+        const patientAge = parseInt($('#patientAge').val()) || null;
+        const patientGender = $('#patientGender').val() || null;
+
+        // Calculate appropriate ranges
+        const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, testData);
+
+        // Set price
+        $row.find('.test-price').val(testData.price || 0);
+
+        // Update range display
+        this.updateRangeDisplay($row, rangeData);
     }
 
     /**
