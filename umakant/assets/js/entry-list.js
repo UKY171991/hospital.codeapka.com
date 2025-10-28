@@ -4901,11 +4901,15 @@ class EntryManager {
         //console.log('Editing entry:', entryId);
 
         try {
+            console.log('=== EDIT ENTRY START ===');
+            console.log('Entry ID:', entryId);
+            
             // Show loading state
             if (typeof toastr !== 'undefined') {
                 toastr.info('Loading entry data...');
             }
 
+            console.log('Making API request...');
             const response = await $.ajax({
                 url: 'ajax/entry_api_fixed.php',
                 method: 'GET',
@@ -4916,6 +4920,8 @@ class EntryManager {
                 },
                 dataType: 'json'
             });
+            
+            console.log('API response received:', response);
             //console.log('Editing entry response:', response);
 
             // Special debugging for entry 17
