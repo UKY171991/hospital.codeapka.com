@@ -318,6 +318,50 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         </div>
                     </div>
                     
+                    <!-- Category Filter Section -->
+                    <div class="card mt-3 mb-3" id="categoryFilterCard">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-filter mr-1"></i>
+                                Test Category Filter
+                                <small class="text-muted ml-2">Filter tests by category to find relevant tests quickly</small>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-0">
+                                        <label for="categoryFilter">Filter Tests by Category</label>
+                                        <select class="form-control select2" id="categoryFilter">
+                                            <option value="">All Categories (Show All Tests)</option>
+                                            <!-- Categories will be populated via JavaScript -->
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-0">
+                                        <label>&nbsp;</label>
+                                        <div>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" id="clearCategoryFilter" title="Clear category filter and show all tests">
+                                                <i class="fas fa-times mr-1"></i> Clear Filter
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-0">
+                                        <label>&nbsp;</label>
+                                        <div>
+                                            <small class="text-muted">
+                                                <span id="filteredTestCount">0</span> tests available
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Tests Section -->
                     <div class="form-group">
                         <label>Tests <span class="text-danger">*</span></label>
