@@ -2220,7 +2220,7 @@ class EntryManager {
         if (testData) {
             console.log('=== POPULATING TEST ROW FOR EDIT ===');
             console.log('Test data:', testData);
-
+            
             // Set the test selection first
             $testSelect.val(testData.test_id);
             $testSelect.select2('destroy').select2({
@@ -2229,18 +2229,44 @@ class EntryManager {
                 placeholder: 'Select Test'
             });
 
+            // Set the category IMMEDIATELY based on the test data
+            // Use the category_id from the test data (which should be the correct one)
+            const categoryId = testData.category_id || testData.test_category_id || testData.entry_category_id;
+            if (categoryId && categoryId != 0) {
+                console.log('Setting category to:', categoryId);
+                
+                // Ensure category dropdown is populated
+                this.populateRowCategoryDropdown($categorySelect);
+                
+                // Set the category value
+                $categorySelect.val(categoryId);
+                
+                // Reinitialize Select2 for category
+                $categorySelect.select2('destroy').select2({
+                    theme: 'bootstrap4',
+                    width: '100%',
+                    placeholder: 'Select Category'
+                });
+                
+                // Set main category ID if available
+                const mainCategoryId = testData.main_category_id || testData.entry_main_category_id;
+                if (mainCategoryId) {
+                    $row.find('.test-main-category-id').val(mainCategoryId);
+                }
+                
+                console.log('Category set to:', categoryId, 'Main category:', mainCategoryId);
+            }
+
             // Set other fields from the entry data
             $resultInput.val(testData.result_value || '');
             $row.find('.test-price').val(testData.price || 0);
-
-            // IMPORTANT: Let the onTestChange handler set the category correctly
-            // This ensures the category matches the test's current category
-            setTimeout(() => {
-                $testSelect.trigger('change');
-            }, 100);
+            
+            // Set range fields if available
+            if (testData.min) $row.find('.test-min').val(testData.min);
+            if (testData.max) $row.find('.test-max').val(testData.max);
+            if (testData.unit) $row.find('.test-unit').val(testData.unit);
 
             console.log('=== TEST ROW POPULATED ===');
-            // This will be handled by the onTestChange event
         }
     }
 
@@ -4923,7 +4949,30 @@ class EntryManager {
             }
         } catch (error) {
             console.error('Error loading entry for editing:', error);
-            toastr.error('Failed to load entry for editing');
+            console.error('Error details:', {
+                message: error.message,
+                status: error.status,
+                statusText: error.statusText,
+                responseText: error.responseText
+            });
+            
+            let errorMessage = 'Failed to load entry for editing';
+            if (error.status === 401) {
+                errorMessage += ' - Authentication failed';
+            } else if (error.status === 404) {
+                errorMessage += ' - Entry not found';
+            } else if (error.status === 500) {
+                errorMessage += ' - Server error';
+            } else if (error.responseText) {
+                try {
+                    const errorData = JSON.parse(error.responseText);
+                    errorMessage += ': ' + (errorData.message || 'Unknown error');
+                } catch (e) {
+                    errorMessage += ': ' + error.responseText.substring(0, 100);
+                }
+            }
+            
+            toastr.error(errorMessage);
         }
     }
 
