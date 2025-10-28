@@ -7,6 +7,7 @@ class EntryManager {
     constructor() {
         this.entriesTable = null;
         this.testsData = [];
+        this.categoriesData = [];
         this.patientsData = [];
         this.doctorsData = [];
         this.ownersData = [];
@@ -18,7 +19,7 @@ class EntryManager {
         this.rangeCacheTimeout = 5 * 60 * 1000; // 5 minutes cache timeout
 
         // Performance optimization: Debounced update function
-        this.debouncedRangeUpdate = this.debounce(this.updateAllTestRangesForCurrentPatient.bind(this), 150);
+        this.debouncedRangeUpdate = this.debounce(this.updateAllTestRangesAndValidation.bind(this), 150);
 
         this.init();
     }
@@ -332,6 +333,9 @@ class EntryManager {
             // Load tests data
             await this.loadTestsData();
 
+            // Load categories data for filtering
+            await this.loadCategoriesForFilter();
+
             // Load owners/users data
             await this.loadOwnersData();
 
@@ -414,6 +418,261 @@ class EntryManager {
             }
 
             this.testsData = [];
+        }
+    }
+
+    /**
+     * Load categories data for filtering
+     */
+    async loadCategoriesForFilter() {
+        try {
+            //console.log('Loading categories for filter...');
+            const response = await $.ajax({
+                url: 'patho_api/test_category.php',
+                method: 'GET',
+                data: { 
+                    action: 'list',
+                    secret_key: 'hospital-api-secret-2024'
+                },
+                dataType: 'json'
+            });
+
+            if (response && response.success) {
+                this.categoriesData = response.data || [];
+                this.populateCategoryFilter();
+                //console.log('Loaded categories data:', this.categoriesData.length, 'categories');
+            } else {
+                //console.error('Failed to load categories:', response ? response.message : 'Invalid response');
+                this.categoriesData = [];
+                this.handleCategoryLoadError();
+            }
+        } catch (error) {
+            //console.error('Error loading categories data:', error);
+            console.error('Category load error details:', {
+                status: error.status,
+                statusText: error.statusText,
+                responseText: error.responseText
+            });
+            
+            this.categoriesData = [];
+            this.handleGlobalError(error, 'category_loading');
+        }
+    }
+
+    /**
+     * Populate category filter dropdown
+     */
+    populateCategoryFilter() {
+        const $categoryFilter = $('#categoryFilter');
+        if ($categoryFilter.length === 0) {
+            //console.warn('Category filter element not found');
+            return;
+        }
+
+        // Clear existing options except the first one
+        $categoryFilter.empty().append('<option value="">All Categories (Show All Tests)</option>');
+
+        // Add categories to dropdown
+        this.categoriesData.forEach(category => {
+            if (category && category.id && category.name) {
+                const option = `<option value="${category.id}">${category.name}</option>`;
+                $categoryFilter.append(option);
+            }
+        });
+
+        // Update test count
+        this.updateFilteredTestCount();
+
+        //console.log('Category filter populated with', this.categoriesData.length, 'categories');
+    }
+
+    /**
+     * Handle category loading errors gracefully
+     */
+    handleCategoryLoadError() {
+        const $categoryFilter = $('#categoryFilter');
+        if ($categoryFilter.length > 0) {
+            $categoryFilter.empty().append('<option value="">All Categories (Error loading categories)</option>');
+            $categoryFilter.prop('disabled', true);
+        }
+
+        const $clearButton = $('#clearCategoryFilter');
+        if ($clearButton.length > 0) {
+            $clearButton.prop('disabled', true);
+        }
+
+        // Show all tests since filtering is not available
+        this.updateFilteredTestCount();
+        
+        //console.warn('Category filtering disabled due to loading error');
+    }
+
+    /**
+     * Update the filtered test count display
+     */
+    updateFilteredTestCount() {
+        const $countElement = $('#filteredTestCount');
+        if ($countElement.length > 0) {
+            const selectedCategory = $('#categoryFilter').val();
+            let count = this.testsData.length;
+            
+            if (selectedCategory) {
+                count = this.testsData.filter(test => test.category_id == selectedCategory).length;
+            }
+            
+            $countElement.text(count);
+        }
+    }
+
+    /**
+     * Filter tests by selected category
+     * @param {string|number} categoryId - The category ID to filter by (empty string for all)
+     * @returns {Array} Filtered tests array
+     */
+    filterTestsByCategory(categoryId) {
+        try {
+            // If no category selected, return all tests
+            if (!categoryId || categoryId === '') {
+                //console.log('No category filter applied, returning all tests:', this.testsData.length);
+                return this.testsData;
+            }
+
+            // Filter tests by category_id
+            const filteredTests = this.testsData.filter(test => {
+                return test.category_id && test.category_id == categoryId;
+            });
+
+            //console.log(`Filtered tests by category ${categoryId}:`, filteredTests.length, 'out of', this.testsData.length);
+            return filteredTests;
+        } catch (error) {
+            this.handleGlobalError(error, 'category_filtering');
+            // Return all tests as fallback
+            return this.testsData;
+        }
+    }
+
+    /**
+     * Clear category filter and show all tests
+     */
+    clearCategoryFilter() {
+        try {
+            // Reset category filter dropdown
+            const $categoryFilter = $('#categoryFilter');
+            if ($categoryFilter.length > 0) {
+                $categoryFilter.val('').trigger('change');
+            }
+
+            // Update test count
+            this.updateFilteredTestCount();
+
+            // Update all existing test dropdowns to show all tests
+            this.updateAllTestDropdowns();
+
+            //console.log('Category filter cleared, showing all tests');
+        } catch (error) {
+            //console.error('Error clearing category filter:', error);
+        }
+    }
+
+    /**
+     * Get currently filtered tests based on selected category
+     * @returns {Array} Currently filtered tests
+     */
+    getCurrentlyFilteredTests() {
+        const selectedCategory = $('#categoryFilter').val();
+        return this.filterTestsByCategory(selectedCategory);
+    }
+
+    /**
+     * Update all existing test dropdowns with filtered results
+     */
+    updateAllTestDropdowns() {
+        try {
+            const filteredTests = this.getCurrentlyFilteredTests();
+            
+            // Find all test select dropdowns in the form
+            $('#testsContainer .test-select').each((index, element) => {
+                const $select = $(element);
+                const currentValue = $select.val();
+                
+                // Update the dropdown options
+                this.updateTestDropdownOptions($select, filteredTests, currentValue);
+            });
+
+            //console.log('Updated all test dropdowns with filtered results');
+        } catch (error) {
+            //console.error('Error updating test dropdowns:', error);
+        }
+    }
+
+    /**
+     * Update a single test dropdown with filtered options
+     * @param {jQuery} $select - The select element to update
+     * @param {Array} filteredTests - Array of filtered tests
+     * @param {string} currentValue - Currently selected value to preserve
+     */
+    updateTestDropdownOptions($select, filteredTests, currentValue = null) {
+        try {
+            // Store current selection if not provided
+            if (currentValue === null) {
+                currentValue = $select.val();
+            }
+
+            // Clear existing options except the first one
+            $select.empty().append('<option value="">Select Test</option>');
+
+            // Add filtered test options
+            filteredTests.forEach(test => {
+                if (test && test.id && test.name) {
+                    // Create a unique display name
+                    let displayName = test.name || `Test ${test.id}`;
+                    
+                    // Add category if available to help distinguish similar tests
+                    if (test.category_name) {
+                        displayName += ` (${test.category_name})`;
+                    }
+                    
+                    // Add ID for additional uniqueness
+                    displayName += ` [ID: ${test.id}]`;
+                    
+                    const option = `<option value="${test.id}" 
+                        data-category="${test.category_name || ''}" 
+                        data-unit="${test.unit || ''}" 
+                        data-min="${test.min || ''}" 
+                        data-max="${test.max || ''}" 
+                        data-price="${test.price || 0}">
+                        ${displayName}
+                    </option>`;
+                    
+                    $select.append(option);
+                }
+            });
+
+            // Restore previous selection if it still exists in filtered results
+            if (currentValue && filteredTests.some(test => test.id == currentValue)) {
+                $select.val(currentValue);
+            } else if (currentValue) {
+                // If previously selected test is not in filtered results, clear selection
+                $select.val('');
+                // Clear related fields in the row
+                const $row = $select.closest('.test-row');
+                if ($row.length > 0) {
+                    $row.find('.test-category').val('');
+                    $row.find('.test-category-id').val('');
+                    $row.find('.test-min').val('');
+                    $row.find('.test-max').val('');
+                    $row.find('.test-unit').val('');
+                    $row.find('.test-price').val('0');
+                }
+            }
+
+            // Refresh Select2 if it's initialized
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.trigger('change.select2');
+            }
+
+        } catch (error) {
+            //console.error('Error updating test dropdown options:', error);
         }
     }
 
@@ -521,6 +780,20 @@ class EntryManager {
         // Discount amount change
         $('#discountAmount').on('input', () => {
             this.calculateTotals();
+        });
+
+        // Category filter events
+        $('#categoryFilter').on('change', (e) => {
+            this.onCategoryFilterChange(e.target.value);
+        });
+
+        $('#clearCategoryFilter').on('click', () => {
+            this.clearCategoryFilter();
+        });
+
+        // Patient demographics change events for range updates
+        $('#patientAge, #patientGender').on('change input', () => {
+            this.debouncedRangeUpdate();
         });
 
         // console.log('Events bound successfully');
@@ -632,7 +905,10 @@ class EntryManager {
             console.log('All test data:', this.testsData.map(t => ({ id: t.id, name: t.name })));
         }
 
-        const testOptions = this.testsData.map(test => {
+        // Get filtered tests based on current category selection
+        const filteredTests = this.getCurrentlyFilteredTests();
+        
+        const testOptions = filteredTests.map(test => {
             // Create a unique display name to avoid confusion
             let displayName = test.name || `Test ${test.id}`;
             
@@ -669,15 +945,21 @@ class EntryManager {
                 </div>
                 <div class="col-md-2">
                     <input type="text" class="form-control test-result" name="tests[${rowIndex}][result_value]" placeholder="Result">
+                    <small class="validation-indicator text-muted"></small>
                 </div>
                 <div class="col-md-1">
                     <input type="text" class="form-control test-min" name="tests[${rowIndex}][min]" placeholder="Min" readonly>
+                    <small class="range-indicator text-muted"></small>
                 </div>
                 <div class="col-md-1">
                     <input type="text" class="form-control test-max" name="tests[${rowIndex}][max]" placeholder="Max" readonly>
+                    <small class="range-indicator text-muted"></small>
                 </div>
                 <div class="col-md-2">
-                    <input type="text" class="form-control test-unit" name="tests[${rowIndex}][unit]" placeholder="Unit" readonly>
+                    <div class="test-unit-container">
+                        <input type="text" class="form-control test-unit" name="tests[${rowIndex}][unit]" placeholder="Unit" readonly>
+                        <span class="test-range-indicator badge badge-secondary" style="display: none;"></span>
+                    </div>
                 </div>
                 <div class="col-md-1">
                     <button type="button" class="btn btn-danger btn-sm remove-test-btn" onclick="window.entryManager.removeTestRow(this)" title="Remove Test">
@@ -697,6 +979,12 @@ class EntryManager {
         // Bind test selection change event first
         $testSelect.on('change', (e) => {
             this.onTestChange(e.target, $newRow);
+        });
+
+        // Bind result validation events
+        const $resultInput = $newRow.find('.test-result');
+        $resultInput.on('input blur', (e) => {
+            this.onTestResultChange(e.target, $newRow);
         });
 
         // Initialize Select2 for the new row
@@ -1456,23 +1744,35 @@ class EntryManager {
         $row.find('.test-max').val(rangeData.max || '');
         $row.find('.test-unit').val(rangeData.unit || '');
 
-        // Add/update range type indicator
-        let $indicator = $row.find('.range-type-indicator');
-        if ($indicator.length === 0) {
-            $indicator = $('<span class="range-type-indicator badge ml-1"></span>');
-            $row.find('.test-unit').after($indicator);
+        // Update range indicators in min/max fields
+        const $minIndicator = $row.find('.test-min').siblings('.range-indicator');
+        const $maxIndicator = $row.find('.test-max').siblings('.range-indicator');
+        
+        if ($minIndicator.length > 0) {
+            $minIndicator.text(rangeData.label).attr('title', `Using ${rangeData.label.toLowerCase()} for this patient`);
+        }
+        
+        if ($maxIndicator.length > 0) {
+            $maxIndicator.text(rangeData.label).attr('title', `Using ${rangeData.label.toLowerCase()} for this patient`);
         }
 
-        // Set indicator styling based on range type
-        $indicator.removeClass('badge-info badge-primary badge-success badge-secondary badge-warning')
-                 .addClass(this.getRangeTypeBadgeClass(rangeData.type))
-                 .text(rangeData.label)
-                 .attr('title', `Using ${rangeData.label.toLowerCase()} for this patient`)
-                 .attr('data-toggle', 'tooltip');
+        // Update the main range indicator badge
+        const $mainIndicator = $row.find('.test-range-indicator');
+        if ($mainIndicator.length > 0) {
+            // Remove all existing badge classes
+            $mainIndicator.removeClass('badge-info badge-primary badge-success badge-secondary badge-warning male-range female-range child-range general-range');
+            
+            // Add appropriate class and show the indicator
+            $mainIndicator.addClass(this.getRangeTypeBadgeClass(rangeData.type))
+                          .addClass(this.getRangeTypeClass(rangeData.type))
+                          .text(rangeData.label)
+                          .attr('title', `Using ${rangeData.label.toLowerCase()} for this patient`)
+                          .show();
 
-        // Initialize tooltip if not already done
-        if (!$indicator.data('bs.tooltip')) {
-            $indicator.tooltip();
+            // Initialize tooltip if not already done
+            if (!$mainIndicator.data('bs.tooltip')) {
+                $mainIndicator.tooltip();
+            }
         }
     }
 
@@ -1484,14 +1784,445 @@ class EntryManager {
     getRangeTypeBadgeClass(rangeType) {
         switch (rangeType) {
             case 'child':
-                return 'badge-info';
+                return 'badge-warning'; // Yellow for child
             case 'male':
-                return 'badge-primary';
+                return 'badge-primary'; // Blue for male
             case 'female':
-                return 'badge-success';
+                return 'badge-danger'; // Red for female
             case 'general':
             default:
-                return 'badge-secondary';
+                return 'badge-secondary'; // Gray for general
+        }
+    }
+
+    /**
+     * Get specific CSS class for range type styling
+     * @param {string} rangeType - Type of range ('child', 'male', 'female', 'general')
+     * @returns {string} CSS class for range type styling
+     */
+    getRangeTypeClass(rangeType) {
+        switch (rangeType) {
+            case 'child':
+                return 'child-range';
+            case 'male':
+                return 'male-range';
+            case 'female':
+                return 'female-range';
+            case 'general':
+            default:
+                return 'general-range';
+        }
+    }
+
+    /**
+     * Update range labels for all test rows
+     */
+    updateRangeLabels() {
+        try {
+            const patientAge = parseInt($('#patientAge').val()) || null;
+            const patientGender = $('#patientGender').val() || null;
+
+            $('.test-row').each((index, row) => {
+                const $row = $(row);
+                const testId = $row.find('.test-select').val();
+                
+                if (testId) {
+                    const testData = this.testsData.find(t => t.id == testId);
+                    if (testData) {
+                        const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, testData);
+                        this.updateRangeDisplay($row, rangeData);
+                    }
+                }
+            });
+
+            //console.log('Updated range labels for all test rows');
+        } catch (error) {
+            //console.error('Error updating range labels:', error);
+        }
+    }
+
+    /**
+     * Validate test result against appropriate reference ranges
+     * @param {number} resultValue - The test result value
+     * @param {object} rangeData - Range data from calculateAppropriateRanges
+     * @returns {object} Validation result with status and message
+     */
+    validateTestResult(resultValue, rangeData) {
+        try {
+            // Check if result value is valid
+            if (resultValue === null || resultValue === undefined || resultValue === '') {
+                return {
+                    status: 'empty',
+                    message: 'No result entered',
+                    isNormal: null
+                };
+            }
+
+            const numericResult = parseFloat(resultValue);
+            if (isNaN(numericResult)) {
+                return {
+                    status: 'invalid',
+                    message: 'Invalid numeric value',
+                    isNormal: null
+                };
+            }
+
+            // Check if range data is available
+            if (!rangeData || (rangeData.min === null && rangeData.max === null)) {
+                return {
+                    status: 'no_range',
+                    message: 'No reference range available',
+                    isNormal: null
+                };
+            }
+
+            const min = parseFloat(rangeData.min);
+            const max = parseFloat(rangeData.max);
+
+            // Validate against range
+            let isNormal = true;
+            let message = 'Normal';
+
+            if (!isNaN(min) && numericResult < min) {
+                isNormal = false;
+                message = `Below normal (Min: ${min})`;
+            } else if (!isNaN(max) && numericResult > max) {
+                isNormal = false;
+                message = `Above normal (Max: ${max})`;
+            } else if (!isNaN(min) && !isNaN(max)) {
+                message = `Normal (${min} - ${max})`;
+            } else if (!isNaN(min)) {
+                message = `Normal (≥ ${min})`;
+            } else if (!isNaN(max)) {
+                message = `Normal (≤ ${max})`;
+            }
+
+            return {
+                status: 'valid',
+                message: message,
+                isNormal: isNormal
+            };
+
+        } catch (error) {
+            //console.error('Error validating test result:', error);
+            return {
+                status: 'error',
+                message: 'Validation error',
+                isNormal: null
+            };
+        }
+    }
+
+    /**
+     * Update validation indicators for a test result
+     * @param {jQuery} $row - The test row jQuery object
+     * @param {object} validationResult - Result from validateTestResult
+     */
+    updateValidationIndicators($row, validationResult) {
+        try {
+            const $resultInput = $row.find('.test-result');
+            const $validationIndicator = $row.find('.validation-indicator');
+
+            // Remove existing validation classes
+            $resultInput.removeClass('result-normal result-abnormal result-invalid result-empty');
+
+            // Add appropriate validation class
+            if (validationResult.status === 'valid') {
+                if (validationResult.isNormal) {
+                    $resultInput.addClass('result-normal');
+                } else {
+                    $resultInput.addClass('result-abnormal');
+                }
+            } else if (validationResult.status === 'invalid') {
+                $resultInput.addClass('result-invalid');
+            } else if (validationResult.status === 'empty') {
+                $resultInput.addClass('result-empty');
+            }
+
+            // Update or create validation indicator
+            if ($validationIndicator.length === 0) {
+                const indicator = '<small class="validation-indicator text-muted"></small>';
+                $resultInput.after(indicator);
+            }
+
+            const $indicator = $row.find('.validation-indicator');
+            $indicator.text(validationResult.message)
+                     .removeClass('text-success text-danger text-warning text-muted')
+                     .addClass(this.getValidationIndicatorClass(validationResult));
+
+        } catch (error) {
+            //console.error('Error updating validation indicators:', error);
+        }
+    }
+
+    /**
+     * Get CSS class for validation indicator
+     * @param {object} validationResult - Result from validateTestResult
+     * @returns {string} CSS class for the indicator
+     */
+    getValidationIndicatorClass(validationResult) {
+        switch (validationResult.status) {
+            case 'valid':
+                return validationResult.isNormal ? 'text-success' : 'text-danger';
+            case 'invalid':
+                return 'text-warning';
+            case 'empty':
+            case 'no_range':
+            default:
+                return 'text-muted';
+        }
+    }
+
+    /**
+     * Validate all test results in the form
+     */
+    validateAllTestResults() {
+        try {
+            const patientAge = parseInt($('#patientAge').val()) || null;
+            const patientGender = $('#patientGender').val() || null;
+
+            $('.test-row').each((index, row) => {
+                const $row = $(row);
+                const testId = $row.find('.test-select').val();
+                const resultValue = $row.find('.test-result').val();
+
+                if (testId) {
+                    const testData = this.testsData.find(t => t.id == testId);
+                    if (testData) {
+                        const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, testData);
+                        const validationResult = this.validateTestResult(resultValue, rangeData);
+                        this.updateValidationIndicators($row, validationResult);
+                    }
+                }
+            });
+
+            //console.log('Validated all test results');
+        } catch (error) {
+            //console.error('Error validating all test results:', error);
+        }
+    }
+
+    /**
+     * Handle test result input change for validation
+     * @param {HTMLElement} resultInput - The result input element
+     * @param {jQuery} $row - The test row jQuery object
+     */
+    onTestResultChange(resultInput, $row) {
+        try {
+            const testId = $row.find('.test-select').val();
+            const resultValue = $(resultInput).val();
+
+            if (testId) {
+                const testData = this.testsData.find(t => t.id == testId);
+                if (testData) {
+                    const patientAge = parseInt($('#patientAge').val()) || null;
+                    const patientGender = $('#patientGender').val() || null;
+                    
+                    const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, testData);
+                    const validationResult = this.validateTestResult(resultValue, rangeData);
+                    this.updateValidationIndicators($row, validationResult);
+                }
+            }
+        } catch (error) {
+            //console.error('Error handling test result change:', error);
+        }
+    }
+
+    /**
+     * Handle category filter change
+     * @param {string} categoryId - Selected category ID
+     */
+    onCategoryFilterChange(categoryId) {
+        try {
+            //console.log('Category filter changed to:', categoryId);
+
+            // Update test count display
+            this.updateFilteredTestCount();
+
+            // Update all existing test dropdowns with filtered results
+            this.updateAllTestDropdowns();
+
+            // Add visual indication that filter is active
+            const $filterCard = $('#categoryFilterCard, .test-category-filter-card').parent();
+            if (categoryId) {
+                $filterCard.addClass('category-filter-active');
+                $('#clearCategoryFilter').prop('disabled', false);
+            } else {
+                $filterCard.removeClass('category-filter-active');
+                $('#clearCategoryFilter').prop('disabled', true);
+            }
+
+            //console.log('Category filter applied successfully');
+        } catch (error) {
+            //console.error('Error handling category filter change:', error);
+        }
+    }
+
+    /**
+     * Enhanced patient demographics change handler
+     * Updates both range displays and validation indicators
+     */
+    updateAllTestRangesAndValidation() {
+        try {
+            // Update range labels for all tests
+            this.updateRangeLabels();
+            
+            // Validate all test results with new demographics
+            this.validateAllTestResults();
+            
+            //console.log('Updated ranges and validation for all tests based on demographics');
+        } catch (error) {
+            //console.error('Error updating ranges and validation:', error);
+        }
+    }
+
+    /**
+     * Comprehensive error recovery for category filtering
+     */
+    recoverFromCategoryFilterError() {
+        try {
+            //console.warn('Attempting to recover from category filter error...');
+            
+            // Reset category filter to show all tests
+            const $categoryFilter = $('#categoryFilter');
+            if ($categoryFilter.length > 0) {
+                $categoryFilter.val('').prop('disabled', false);
+            }
+
+            // Reset clear button
+            const $clearButton = $('#clearCategoryFilter');
+            if ($clearButton.length > 0) {
+                $clearButton.prop('disabled', true);
+            }
+
+            // Ensure all tests are shown
+            this.updateAllTestDropdowns();
+            this.updateFilteredTestCount();
+
+            // Remove any active filter styling
+            $('.category-filter-active').removeClass('category-filter-active');
+
+            //console.log('Category filter error recovery completed');
+        } catch (error) {
+            //console.error('Error during category filter recovery:', error);
+        }
+    }
+
+    /**
+     * Fallback function when test data is unavailable
+     */
+    handleTestDataUnavailable() {
+        try {
+            //console.warn('Test data unavailable, applying fallbacks...');
+            
+            // Show user-friendly message
+            const $testsContainer = $('#testsContainer');
+            if ($testsContainer.length > 0 && $testsContainer.children().length === 0) {
+                const fallbackMessage = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <strong>Test data temporarily unavailable.</strong>
+                        Please refresh the page or contact support if the issue persists.
+                        <button type="button" class="btn btn-sm btn-outline-warning ml-2" onclick="window.entryManager.loadTestsData()">
+                            <i class="fas fa-refresh mr-1"></i>Retry
+                        </button>
+                    </div>
+                `;
+                $testsContainer.html(fallbackMessage);
+            }
+
+            // Disable category filter
+            $('#categoryFilter').prop('disabled', true).html('<option value="">Tests unavailable</option>');
+            $('#clearCategoryFilter').prop('disabled', true);
+
+            //console.log('Test data unavailable fallback applied');
+        } catch (error) {
+            //console.error('Error applying test data fallback:', error);
+        }
+    }
+
+    /**
+     * Global error handler for the entry manager
+     * @param {Error} error - The error object
+     * @param {string} context - Context where the error occurred
+     */
+    handleGlobalError(error, context = 'Unknown') {
+        try {
+            //console.error(`Global error in ${context}:`, error);
+            
+            // Log error details for debugging
+            const errorDetails = {
+                message: error.message,
+                stack: error.stack,
+                context: context,
+                timestamp: new Date().toISOString()
+            };
+            
+            //console.error('Error details:', errorDetails);
+
+            // Apply appropriate fallback based on context
+            switch (context) {
+                case 'category_loading':
+                    this.handleCategoryLoadError();
+                    break;
+                case 'test_loading':
+                    this.handleTestDataUnavailable();
+                    break;
+                case 'category_filtering':
+                    this.recoverFromCategoryFilterError();
+                    break;
+                default:
+                    // Generic fallback - ensure basic functionality works
+                    this.ensureBasicFunctionality();
+                    break;
+            }
+
+        } catch (fallbackError) {
+            //console.error('Error in global error handler:', fallbackError);
+            // Last resort - show user message
+            if (typeof toastr !== 'undefined') {
+                toastr.error('An unexpected error occurred. Please refresh the page.');
+            }
+        }
+    }
+
+    /**
+     * Ensure basic functionality is available even when errors occur
+     */
+    ensureBasicFunctionality() {
+        try {
+            // Ensure at least one test row exists
+            if ($('#testsContainer .test-row').length === 0) {
+                // Create a basic test row without filtered data
+                const basicRowHtml = `
+                    <div class="test-row row mb-2" data-row-index="0">
+                        <div class="col-md-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Test selection temporarily unavailable. Please refresh the page.
+                                <button type="button" class="btn btn-sm btn-outline-info ml-2" onclick="location.reload()">
+                                    <i class="fas fa-refresh mr-1"></i>Refresh Page
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $('#testsContainer').html(basicRowHtml);
+            }
+
+            // Ensure form can still be submitted
+            const $form = $('#entryForm');
+            if ($form.length > 0) {
+                $form.find('input[required], select[required]').each(function() {
+                    if ($(this).attr('id') !== 'patientSelect' && $(this).attr('id') !== 'ownerAddedBySelect') {
+                        $(this).removeAttr('required');
+                    }
+                });
+            }
+
+            //console.log('Basic functionality ensured');
+        } catch (error) {
+            //console.error('Error ensuring basic functionality:', error);
         }
     }
 
