@@ -1253,7 +1253,7 @@ class EntryManager {
 
             // Enhanced type checking and normalization for category ID
             const normalizedCategoryId = this.normalizeCategoryId(categoryId);
-            
+
             // If no valid category selected, return all tests
             if (normalizedCategoryId === null) {
                 console.log('No category filter applied, returning all tests:', this.testsData.length);
@@ -1270,7 +1270,7 @@ class EntryManager {
 
                     // Enhanced category ID validation with fallback behavior
                     const testCategoryId = this.normalizeTestCategoryId(test);
-                    
+
                     // Handle missing category data with fallback
                     if (testCategoryId === null) {
                         // If category data is incomplete, include test in "uncategorized" behavior
@@ -1324,7 +1324,7 @@ class EntryManager {
 
         // Convert to string and trim whitespace
         const stringValue = String(categoryId).trim();
-        
+
         // Return null for empty strings after trimming
         if (stringValue === '') {
             return null;
@@ -1380,7 +1380,7 @@ class EntryManager {
 
         // Convert to string and trim
         const categoryId = String(test.category_id).trim();
-        
+
         // Return null for empty strings
         if (categoryId === '') {
             return null;
@@ -1396,21 +1396,21 @@ class EntryManager {
      */
     handleEmptyFilterResults(originalCategoryId, normalizedCategoryId) {
         console.warn(`No tests found for category ID: ${originalCategoryId} (normalized: ${normalizedCategoryId})`);
-        
+
         // Provide debugging information
         const availableCategoryIds = [...new Set(
             this.testsData
                 .map(t => this.normalizeTestCategoryId(t))
                 .filter(id => id !== null)
         )];
-        
+
         console.log('Available category IDs in tests:', availableCategoryIds);
-        
+
         // Check if the category exists in our categories data
-        const categoryExists = this.categoriesData.some(cat => 
+        const categoryExists = this.categoriesData.some(cat =>
             String(cat.id).trim() === normalizedCategoryId
         );
-        
+
         if (!categoryExists) {
             console.warn(`Category ${normalizedCategoryId} does not exist in categories data`);
         } else {
@@ -3974,10 +3974,10 @@ class EntryManager {
             try {
                 // Clear the dropdown first to ensure clean state
                 this.clearTestDropdownOptions($testSelect);
-                
+
                 // Repopulate with filtered tests
                 this.updateTestDropdownOptions($testSelect, filteredTests, currentTestId);
-                
+
                 console.log(`Test dropdown updated for row ${rowIndex} with ${filteredTests.length} options`);
             } catch (updateError) {
                 console.error('Error updating test dropdown options:', updateError);
@@ -3986,7 +3986,7 @@ class EntryManager {
             }
 
             // Enhanced validation of current test selection
-            const isCurrentTestStillValid = currentTestId && 
+            const isCurrentTestStillValid = currentTestId &&
                 filteredTests.some(test => String(test.id) === String(currentTestId));
 
             if (currentTestId && !isCurrentTestStillValid) {
@@ -3994,13 +3994,13 @@ class EntryManager {
 
                 // Enhanced clearing of test selection and related fields
                 this.clearTestSelectionAndFields($testSelect, $row);
-                
+
                 // Provide user feedback about cleared selection
                 this.showTestSelectionClearedFeedback($row, currentTestName, selectedCategoryId);
-                
+
             } else if (isCurrentTestStillValid) {
                 console.log(`Current test ${currentTestId} is still valid for the selected category`);
-                
+
                 // Enhanced restoration of valid selection
                 this.restoreTestSelection($testSelect, currentTestId);
             }
@@ -4010,7 +4010,7 @@ class EntryManager {
             this.updateRowCategoryIndicator($row, selectedCategoryId);
 
             console.log('Row category change handled successfully for row', rowIndex);
-            
+
         } catch (error) {
             console.error('Error handling row category change:', error);
             this.handleRowCategoryChangeError('general_error', $row, error);
@@ -4027,10 +4027,10 @@ class EntryManager {
             if ($testSelect.hasClass('select2-hidden-accessible')) {
                 $testSelect.select2('destroy');
             }
-            
+
             // Clear all options except the placeholder
             $testSelect.empty().append('<option value="">Select Test</option>');
-            
+
         } catch (error) {
             console.error('Error clearing test dropdown options:', error);
             // Fallback: just empty the select
@@ -4047,13 +4047,13 @@ class EntryManager {
         try {
             // Clear the test selection
             $testSelect.val('');
-            
+
             // Clear all related fields
             this.clearTestRowFields($row);
-            
+
             // Trigger change event to ensure all handlers are notified
             $testSelect.trigger('change');
-            
+
             // Reinitialize Select2 if needed
             if (!$testSelect.hasClass('select2-hidden-accessible')) {
                 $testSelect.select2({
@@ -4062,7 +4062,7 @@ class EntryManager {
                     placeholder: 'Select Test'
                 });
             }
-            
+
         } catch (error) {
             console.error('Error clearing test selection and fields:', error);
         }
@@ -4077,7 +4077,7 @@ class EntryManager {
         try {
             // Set the value
             $testSelect.val(testId);
-            
+
             // Refresh Select2 if it's initialized
             if ($testSelect.hasClass('select2-hidden-accessible')) {
                 $testSelect.trigger('change.select2');
@@ -4089,13 +4089,13 @@ class EntryManager {
                     placeholder: 'Select Test'
                 });
             }
-            
+
             // Verify the selection was successful
             const actualValue = $testSelect.val();
             if (actualValue !== testId) {
                 console.warn(`Failed to restore test selection: expected ${testId}, got ${actualValue}`);
             }
-            
+
         } catch (error) {
             console.error('Error restoring test selection:', error);
         }
@@ -4112,20 +4112,20 @@ class EntryManager {
             // Find category name for better user feedback
             const category = this.categoriesData.find(cat => cat.id == categoryId);
             const categoryName = category ? category.name : `Category ${categoryId}`;
-            
+
             // Show temporary feedback in the row
             const $feedback = $('<small class="text-warning test-selection-feedback"></small>')
                 .text(`"${testName}" cleared (not in ${categoryName})`);
-            
+
             $row.find('.test-select').parent().append($feedback);
-            
+
             // Remove feedback after 3 seconds
             setTimeout(() => {
-                $feedback.fadeOut(300, function() {
+                $feedback.fadeOut(300, function () {
                     $(this).remove();
                 });
             }, 3000);
-            
+
         } catch (error) {
             console.error('Error showing test selection cleared feedback:', error);
         }
@@ -4140,18 +4140,18 @@ class EntryManager {
         try {
             // Remove existing indicators
             $row.find('.category-indicator').remove();
-            
+
             if (categoryId) {
                 const category = this.categoriesData.find(cat => cat.id == categoryId);
                 if (category) {
                     const $indicator = $('<span class="badge badge-info badge-sm category-indicator ml-1"></span>')
                         .text(category.name)
                         .attr('title', `Category: ${category.name}`);
-                    
+
                     $row.find('.test-category-select').parent().append($indicator);
                 }
             }
-            
+
         } catch (error) {
             console.error('Error updating row category indicator:', error);
         }
@@ -4167,34 +4167,34 @@ class EntryManager {
         try {
             const rowIndex = $row.data('row-index');
             console.error(`Row category change error (${errorType}) in row ${rowIndex}:`, error);
-            
+
             // Attempt recovery based on error type
             switch (errorType) {
                 case 'missing_test_dropdown':
                     // Try to recreate the test dropdown
                     this.recreateTestDropdown($row);
                     break;
-                    
+
                 case 'filter_error':
                     // Fall back to showing all tests
                     this.fallbackToAllTests($row);
                     break;
-                    
+
                 case 'dropdown_update_error':
                     // Try to restore dropdown to working state
                     this.restoreTestDropdown($row);
                     break;
-                    
+
                 case 'general_error':
                 default:
                     // General recovery: show all tests and clear category selection
                     this.generalErrorRecovery($row);
                     break;
             }
-            
+
             // Show user-friendly error message
             this.showRowErrorFeedback($row, errorType);
-            
+
         } catch (recoveryError) {
             console.error('Error during row category change error handling:', recoveryError);
         }
@@ -4230,21 +4230,21 @@ class EntryManager {
                 'dropdown_update_error': 'Failed to update test options',
                 'general_error': 'Category change failed'
             };
-            
+
             const message = errorMessages[errorType] || 'An error occurred';
-            
+
             const $errorFeedback = $('<small class="text-danger row-error-feedback"></small>')
                 .text(`${message} - showing all tests`);
-            
+
             $row.find('.test-category-select').parent().append($errorFeedback);
-            
+
             // Remove error feedback after 5 seconds
             setTimeout(() => {
-                $errorFeedback.fadeOut(300, function() {
+                $errorFeedback.fadeOut(300, function () {
                     $(this).remove();
                 });
             }, 5000);
-            
+
         } catch (error) {
             console.error('Error showing row error feedback:', error);
         }
@@ -4903,7 +4903,7 @@ class EntryManager {
         // Debug each test
         if (entry.tests && entry.tests.length > 0) {
             entry.tests.forEach((test, index) => {
-                //console.log(`Test ${index + 1}:`, {
+                /*console.log(`Test ${index + 1}:`, {
                     test_id: test.test_id,
                     test_name: test.test_name,
                     category_id: test.category_id,
@@ -4911,7 +4911,7 @@ class EntryManager {
                     max: test.max,
                     unit: test.unit,
                     result_value: test.result_value
-                });
+                });*/
             });
         }
         const detailsHtml = `
@@ -5041,12 +5041,12 @@ class EntryManager {
                 //console.log('Tests in response:', response.data.tests);
                 if (response.data.tests) {
                     response.data.tests.forEach((test, index) => {
-                        //console.log(`Test ${index + 1}:`, {
+                        /*console.log(`Test ${index + 1}:`, {
                             test_id: test.test_id,
                             test_name: test.test_name,
                             category_name: test.category_name,
                             result_value: test.result_value
-                        });
+                        });*/
                     });
                 }
                 //console.log('=== END SPECIAL DEBUG ===');
@@ -5209,22 +5209,22 @@ class EntryManager {
             const reconciledTests = this.reconcileTestCategoryData(entry.tests);
 
             // Log reconciliation results
-            //console.log('Data reconciliation completed:', {
+            /*console.log('Data reconciliation completed:', {
                 original_tests: entry.tests.length,
                 reconciled_tests: reconciledTests.length,
                 conflicts_detected: reconciledTests.filter(t => t.category_conflict).length
-            });
+            });*/
 
             // Create test rows with reconciled data
             reconciledTests.forEach((reconciledTest, index) => {
-                //console.log(`Creating test row ${index + 1} with reconciled data:`, {
+                /*console.log(`Creating test row ${index + 1} with reconciled data:`, {
                     test_id: reconciledTest.test_id,
                     test_name: reconciledTest.test_name,
                     resolved_category_id: reconciledTest.resolved_category_id,
                     resolved_category_name: reconciledTest.resolved_category_name,
                     category_conflict: reconciledTest.category_conflict,
                     data_source: reconciledTest.data_source
-                });
+                });*/
 
                 this.addTestRow(reconciledTest);
             });
