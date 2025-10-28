@@ -312,23 +312,23 @@ class EntryManager {
         try {
             console.log('About to initialize DataTable...');
             console.log('Table element exists:', $('#entriesTable').length > 0);
-            
+
             // Check table structure
             const $table = $('#entriesTable');
             const headerCells = $table.find('thead th').length;
             console.log('Number of header columns:', headerCells);
-            
+
             if (headerCells !== 12) {
                 throw new Error(`Table structure mismatch: Expected 12 columns, found ${headerCells} columns`);
             }
-            
+
             this.entriesTable = $('#entriesTable').DataTable({
                 processing: true,
                 serverSide: false,
                 ajax: {
                     url: 'ajax/entry_api_fixed.php',
                     type: 'GET',
-                    data: { 
+                    data: {
                         action: 'list',
                         secret_key: 'hospital-api-secret-2024'
                     },
@@ -707,7 +707,7 @@ class EntryManager {
 
                 // Debug: show first few tests
                 if (this.testsData.length > 0) {
-                    console.log('Sample tests:', this.testsData.slice(0, 5).map(t => ({id: t.id, name: t.name, category_id: t.category_id, category_name: t.category_name})));
+                    console.log('Sample tests:', this.testsData.slice(0, 5).map(t => ({ id: t.id, name: t.name, category_id: t.category_id, category_name: t.category_name })));
                     console.log('Test data structure:', Object.keys(this.testsData[0]));
                 } else {
                     console.warn('Tests data is empty after validation');
@@ -2559,7 +2559,7 @@ class EntryManager {
                 const $categorySelect = $row.find('.test-category-select');
                 if (foundTest.category_id) {
                     console.log('Setting category for test:', foundTest.category_id, 'Test name:', foundTest.name);
-                    console.log('Test data:', {id: foundTest.id, name: foundTest.name, category_id: foundTest.category_id, category_name: foundTest.category_name});
+                    console.log('Test data:', { id: foundTest.id, name: foundTest.name, category_id: foundTest.category_id, category_name: foundTest.category_name });
 
                     // Ensure category dropdown is populated first
                     if (this.categoriesData.length === 0) {
@@ -2586,7 +2586,7 @@ class EntryManager {
 
                     console.log('Category set to:', foundTest.category_id, 'for test:', foundTest.name);
                     console.log('Dropdown value after setting:', $categorySelect.val());
-                    console.log('Available options in dropdown:', $categorySelect.find('option').map(function() { return $(this).val() + ':' + $(this).text(); }).get());
+                    console.log('Available options in dropdown:', $categorySelect.find('option').map(function () { return $(this).val() + ':' + $(this).text(); }).get());
 
                     // Also set the main category ID
                     const selectedCategory = this.categoriesData.find(cat => cat.id == foundTest.category_id);
@@ -2595,7 +2595,7 @@ class EntryManager {
                         console.log('Set main category ID:', selectedCategory.main_category_id, 'for category:', selectedCategory.name);
                     } else {
                         console.warn('Could not find category data for ID:', foundTest.category_id);
-                        console.log('Available categories:', this.categoriesData.map(c => ({id: c.id, name: c.name})));
+                        console.log('Available categories:', this.categoriesData.map(c => ({ id: c.id, name: c.name })));
                     }
                 } else {
                     console.log('Test has no category_id:', foundTest.name);
@@ -3450,7 +3450,7 @@ class EntryManager {
         try {
             console.log('Populating category dropdown with', this.categoriesData.length, 'categories');
             console.log('Main categories available:', this.mainCategoriesData.length);
-            
+
             // Clear existing options
             $categorySelect.empty().append('<option value="">Select Category</option>');
 

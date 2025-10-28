@@ -414,22 +414,29 @@ try {
                 $finalAmount = $aggTotalPrice - $aggDiscount;
             }
 
-            // Calculate total_price: use aggregated price if > 0, otherwise calculate from subtotal
-            if ($aggTotalPrice > 0) {
-                $row['total_price'] = $aggTotalPrice;
-
-            } else if (isset($row['subtotal']) && (float)$row['subtotal'] > 0) {
-                // Calculate from subtotal minus discount
-                $subtotal = (float)$row['subtotal'];
-                $discount = (float)($row['discount_amount'] ?? 0);
-                $row['total_price'] = max($subtotal - $discount, 0);
-
-            } else if ($entriesCaps['has_total_price'] && isset($row['total_price']) && (float)$row['total_price'] > 0) {
-                $row['total_price'] = (float)$row['total_price'];
-
+            // Calculate total_price: only show amount if there are tests
+            if ($row['tests_count'] > 0) {
+                // There are tests, calculate the price
+                if ($aggTotalPrice > 0) {
+                    $row['total_price'] = $aggTotalPrice;
+                    $row['debug_price_source'] = 'aggregated';
+                } else if (isset($row['subtotal']) && (float)$row['subtotal'] > 0) {
+                    // Calculate from subtotal minus discount
+                    $subtotal = (float)$row['subtotal'];
+                    $discount = (float)($row['discount_amount'] ?? 0);
+                    $row['total_price'] = max($subtotal - $discount, 0);
+                    $row['debug_price_source'] = 'subtotal';
+                } else if ($entriesCaps['has_total_price'] && isset($row['total_price']) && (float)$row['total_price'] > 0) {
+                    $row['total_price'] = (float)$row['total_price'];
+                    $row['debug_price_source'] = 'stored';
+                } else {
+                    $row['total_price'] = 0;
+                    $row['debug_price_source'] = 'zero_with_tests';
+                }
             } else {
+                // No tests, amount should be 0
                 $row['total_price'] = 0;
-
+                $row['debug_price_source'] = 'zero_no_tests';
             }
             $row['total_discount'] = $entriesCaps['has_discount_amount'] && isset($row['discount_amount'])
                 ? (float)$row['discount_amount']
