@@ -1009,7 +1009,8 @@ class EntryManager {
                 this.setCacheData(this.cacheKeys.CATEGORIES_DATA, this.categoriesData);
 
                 this.populateCategoryFilter();
-                //console.log('Categories loaded successfully:', this.categoriesData.length, 'categories');
+                console.log('Categories loaded successfully:', this.categoriesData.length, 'categories');
+                console.log('Sample categories:', this.categoriesData.slice(0, 3));
 
                 // Debug: Log first few categories to verify data structure
                 if (this.categoriesData.length > 0) {
@@ -2550,7 +2551,7 @@ class EntryManager {
                 // Set the category dropdown to match the test's category
                 const $categorySelect = $row.find('.test-category-select');
                 if (foundTest.category_id) {
-                    //console.log('Setting category for test:', foundTest.category_id, 'Test name:', foundTest.name);
+                    console.log('Setting category for test:', foundTest.category_id, 'Test name:', foundTest.name);
 
                     // Ensure category dropdown is populated first
                     if (this.categoriesData.length === 0) {
@@ -2561,24 +2562,31 @@ class EntryManager {
                     // Re-populate the category dropdown for this row to ensure it has the latest data
                     this.populateRowCategoryDropdown($categorySelect);
 
-                    // Set the category value
-                    $categorySelect.val(foundTest.category_id);
+                    // Wait a moment for the dropdown to be populated
+                    setTimeout(() => {
+                        // Set the category value
+                        $categorySelect.val(foundTest.category_id);
 
-                    // Trigger Select2 update
-                    if ($categorySelect.hasClass('select2-hidden-accessible')) {
-                        $categorySelect.trigger('change.select2');
-                    }
+                        // Trigger Select2 update if it's initialized
+                        if ($categorySelect.hasClass('select2-hidden-accessible')) {
+                            $categorySelect.trigger('change.select2');
+                        }
+
+                        console.log('Category set to:', foundTest.category_id, 'for test:', foundTest.name);
+                        console.log('Available options in dropdown:', $categorySelect.find('option').map(function() { return $(this).val() + ':' + $(this).text(); }).get());
+                    }, 100);
 
                     // Also set the main category ID
                     const selectedCategory = this.categoriesData.find(cat => cat.id == foundTest.category_id);
                     if (selectedCategory && selectedCategory.main_category_id) {
                         $row.find('.test-main-category-id').val(selectedCategory.main_category_id);
-                        //console.log('Set main category ID:', selectedCategory.main_category_id, 'for category:', selectedCategory.name);
+                        console.log('Set main category ID:', selectedCategory.main_category_id, 'for category:', selectedCategory.name);
                     } else {
                         console.warn('Could not find category data for ID:', foundTest.category_id);
+                        console.log('Available categories:', this.categoriesData.map(c => ({id: c.id, name: c.name})));
                     }
                 } else {
-                    //console.log('Test has no category_id:', foundTest.name);
+                    console.log('Test has no category_id:', foundTest.name);
                 }
 
                 $row.find('.test-price').val(foundTest.price || 0);
@@ -3428,6 +3436,9 @@ class EntryManager {
      */
     populateRowCategoryDropdown($categorySelect) {
         try {
+            console.log('Populating category dropdown with', this.categoriesData.length, 'categories');
+            console.log('Main categories available:', this.mainCategoriesData.length);
+            
             // Clear existing options
             $categorySelect.empty().append('<option value="">Select Category</option>');
 
@@ -3476,9 +3487,9 @@ class EntryManager {
                 }
             }
 
-            //console.log('Populated category dropdown for test row');
+            console.log('Populated category dropdown for test row with', $categorySelect.find('option').length, 'options');
         } catch (error) {
-            //console.error('Error populating row category dropdown:', error);
+            console.error('Error populating row category dropdown:', error);
         }
     }
 
