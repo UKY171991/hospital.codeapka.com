@@ -423,12 +423,12 @@ class EntryManager {
                         }
                     },
                     {
-                        data: 'test_categories',
+                        data: 'agg_test_categories',
                         title: 'Test Category',
                         width: '10%',
                         render: function (data, type, row) {
                             if (type === 'display') {
-                                const categories = data || row.category_names || '';
+                                const categories = data || row.test_categories || '';
                                 if (!categories) {
                                     return '<span class="text-muted">No category</span>';
                                 }
@@ -451,12 +451,12 @@ class EntryManager {
                         }
                     },
                     {
-                        data: 'main_test_categories',
+                        data: 'agg_main_test_categories',
                         title: 'Main Test Category',
                         width: '10%',
                         render: function (data, type, row) {
                             if (type === 'display') {
-                                const mainCategories = data || row.main_category_names || '';
+                                const mainCategories = data || row.main_test_categories || '';
                                 if (!mainCategories) {
                                     return '<span class="text-muted">No main category</span>';
                                 }

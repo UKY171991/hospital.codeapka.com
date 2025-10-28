@@ -395,29 +395,7 @@ try {
             
             // Debug logging for test aggregation
             error_log("Entry ID {$row['id']}: tests_count={$row['tests_count']}, test_names='{$row['test_names']}'");
-            error_log("Entry ID {$row['id']}: test_categories='{$row['test_categories']}', main_test_categories='{$row['main_test_categories']}'");
-            
-            // Debug: Check if we have test IDs but no categories
-            if (!empty($row['test_ids']) && empty($row['test_categories'])) {
-                error_log("Entry {$row['id']} has tests ({$row['test_ids']}) but no categories - investigating...");
-                
-                // Quick debug query to see what's happening
-                try {
-                    $debugStmt = $pdo->prepare("
-                        SELECT et.test_id, t.name as test_name, t.category_id, c.name as category_name 
-                        FROM entry_tests et 
-                        LEFT JOIN tests t ON et.test_id = t.id 
-                        LEFT JOIN categories c ON t.category_id = c.id 
-                        WHERE et.entry_id = ? 
-                        LIMIT 3
-                    ");
-                    $debugStmt->execute([$row['id']]);
-                    $debugResults = $debugStmt->fetchAll(PDO::FETCH_ASSOC);
-                    error_log("Debug results for entry {$row['id']}: " . json_encode($debugResults));
-                } catch (Exception $debugE) {
-                    error_log("Debug query failed: " . $debugE->getMessage());
-                }
-            }
+
             if ($row['tests_count'] > 1) {
                 error_log("Entry ID {$row['id']} has multiple tests: agg_tests_count={$row['agg_tests_count']}, agg_test_names='{$row['agg_test_names']}'");
             }
