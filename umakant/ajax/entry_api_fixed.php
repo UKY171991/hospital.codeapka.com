@@ -436,7 +436,7 @@ try {
             } else {
                 // No tests, amount should be 0
                 $row['total_price'] = 0;
-                $row['debug_price_source'] = 'zero_no_tests';
+
             }
             $row['total_discount'] = $entriesCaps['has_discount_amount'] && isset($row['discount_amount'])
                 ? (float)$row['discount_amount']
