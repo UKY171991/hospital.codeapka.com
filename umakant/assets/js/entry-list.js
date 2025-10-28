@@ -19,10 +19,35 @@ class EntryManager {
         this.rangeCache = new Map();
         this.rangeCacheTimeout = 5 * 60 * 1000; // 5 minutes cache timeout
 
-        // Performance optimization: Debounced update function
+        // Performance optimization: Data caching
+        this.dataCache = new Map();
+        this.dataCacheTimeout = 10 * 60 * 1000; // 10 minutes cache timeout for data
+        this.cacheKeys = {
+            TESTS_DATA: 'tests_data',
+            CATEGORIES_DATA: 'categories_data',
+            MAIN_CATEGORIES_DATA: 'main_categories_data',
+            OWNERS_DATA: 'owners_data'
+        };
+
+        // Performance optimization: Debounced update functions
         this.debouncedRangeUpdate = this.debounce(this.updateAllTestRangesAndValidation.bind(this), 150);
+        this.debouncedCategoryFilter = this.debounce(this.onCategoryFilterChange.bind(this), 100);
+        this.debouncedTestDropdownUpdate = this.debounce(this.updateAllTestDropdowns.bind(this), 200);
+
+        // Performance monitoring
+        this.performanceMetrics = {
+            filterOperations: [],
+            cacheHits: 0,
+            cacheMisses: 0,
+            apiCalls: 0
+        };
 
         this.init();
+
+        // Start performance monitoring (every 2 minutes)
+        setInterval(() => {
+            this.monitorPerformance();
+        }, 2 * 60 * 1000);
     }
 
     /**
@@ -502,86 +527,339 @@ class EntryManager {
     }
 
     /**
-     * Load tests data from API
+     * Load tests data from API with enhanced error handling and caching
      */
-    async loadTestsData() {
+    async loadTestsData(retryCount = 0, forceReload = false) {
+        const maxRetries = 2;
+
         try {
-            //console.log('Loading tests data from API...');
+            // Check cache first unless force reload is requested
+            if (!forceReload) {
+                const cachedData = this.getCacheData(this.cacheKeys.TESTS_DATA);
+                if (cachedData) {
+                    this.testsData = cachedData;
+                    console.log('Tests data loaded from cache:', this.testsData.length, 'tests');
+                    return true;
+                }
+            }
+
+            console.log(`Loading tests data from API... (attempt ${retryCount + 1}/${maxRetries + 1})`);
+            this.performanceMetrics.apiCalls++;
+
             const response = await $.ajax({
                 url: 'ajax/test_api.php',
                 method: 'GET',
                 data: { action: 'simple_list' },
-                dataType: 'json'
+                dataType: 'json',
+                timeout: 15000 // 15 second timeout for test data
             });
 
             if (response && response.success) {
-                this.testsData = response.data || [];
+                const rawTestsData = response.data || [];
+
+                // Validate and clean test data
+                const validatedTests = this.validateTestData(rawTestsData);
+                this.testsData = validatedTests;
+
+                // Cache the validated data
+                this.setCacheData(this.cacheKeys.TESTS_DATA, validatedTests);
+
                 // Clear range cache when test data is updated
                 this.clearRangeCache();
 
                 // Verify demographic range fields are available
                 this.verifyDemographicRangeFields();
 
-                //console.log('Loaded tests data:', this.testsData.length, 'tests');
+                console.log('Tests data loaded successfully:', this.testsData.length, 'tests');
 
-                // Debug: Check for duplicate test names in loaded data
-                const testNames = this.testsData.map(t => t.name);
-                const uniqueNames = [...new Set(testNames)];
-                if (testNames.length !== uniqueNames.length) {
-                    console.error('Duplicate test names detected in API response!');
-                    console.log('Total tests:', testNames.length, 'Unique names:', uniqueNames.length);
-
-                    // Find and log duplicates
-                    const duplicates = testNames.filter((name, index) => testNames.indexOf(name) !== index);
-                    console.log('Duplicate names:', [...new Set(duplicates)]);
-
-                    // Show detailed info about duplicates
-                    duplicates.forEach(dupName => {
-                        const duplicateTests = this.testsData.filter(t => t.name === dupName);
-                        console.log(`Tests with name "${dupName}":`, duplicateTests.map(t => ({ id: t.id, name: t.name, category: t.category_name })));
-                    });
-                }
+                // Check for duplicate test names and handle them
+                this.handleDuplicateTestNames();
 
                 // Debug: show first few tests
                 if (this.testsData.length > 0) {
-                    // console.log('Sample tests:', this.testsData.slice(0, 3));
-                    // console.log('Test data structure:', Object.keys(this.testsData[0]));
+                    console.log('Sample tests:', this.testsData.slice(0, 3));
+                    console.log('Test data structure:', Object.keys(this.testsData[0]));
                 } else {
-                    //console.warn('Tests data is empty');
+                    console.warn('Tests data is empty after validation');
+                    this.handleEmptyTestData();
                 }
+
+                return true; // Success
             } else {
-                // console.error('Failed to load tests:', response ? response.message : 'Invalid response');
-                // console.error('Full response:', response);
+                const errorMessage = response ? response.message : 'Invalid response from server';
+                console.error('Failed to load tests:', errorMessage);
+
+                // Try retry if we haven't exceeded max retries
+                if (retryCount < maxRetries) {
+                    console.log(`Retrying test data load in 2 seconds... (${retryCount + 1}/${maxRetries})`);
+                    await this.delay(2000);
+                    return await this.loadTestsData(retryCount + 1);
+                }
+
                 this.testsData = [];
+                this.handleTestDataLoadError(errorMessage);
+                return false; // Failed
             }
         } catch (error) {
-            //console.error('Error loading tests data:', error);
-            console.error('Error details:', {
+            console.error('Error loading tests data:', error);
+
+            const errorDetails = {
                 status: error.status,
                 statusText: error.statusText,
-                responseText: error.responseText
-            });
+                responseText: error.responseText,
+                timeout: error.statusText === 'timeout'
+            };
+            console.error('Test data load error details:', errorDetails);
 
-            // Try to parse error response
+            // Try to parse error response for more details
             if (error.responseText) {
                 try {
                     const errorData = JSON.parse(error.responseText);
-                    //console.error('Parsed error response:', errorData);
+                    console.error('Parsed error response:', errorData);
+                    errorDetails.parsedError = errorData;
                 } catch (parseError) {
-                    //console.error('Could not parse error response:', error.responseText);
+                    console.error('Could not parse error response:', error.responseText);
                 }
             }
 
+            // Try retry for network errors if we haven't exceeded max retries
+            if (retryCount < maxRetries && (error.status === 0 || error.statusText === 'timeout' || error.status >= 500)) {
+                console.log(`Retrying test data load due to network error in 3 seconds... (${retryCount + 1}/${maxRetries})`);
+                await this.delay(3000);
+                return await this.loadTestsData(retryCount + 1);
+            }
+
             this.testsData = [];
+            this.handleTestDataLoadError(error.message || 'Network error occurred');
+            return false; // Failed
         }
     }
 
     /**
-     * Load categories data for filtering
+     * Validate test data structure
+     * @param {Array} tests - Array of test objects to validate
+     * @returns {Array} Array of valid test objects
      */
-    async loadCategoriesForFilter() {
+    validateTestData(tests) {
+        if (!Array.isArray(tests)) {
+            console.error('Tests data is not an array:', tests);
+            return [];
+        }
+
+        const validTests = tests.filter(test => {
+            if (!test || typeof test !== 'object') {
+                console.warn('Invalid test object:', test);
+                return false;
+            }
+
+            if (!test.id || !test.name) {
+                console.warn('Test missing required fields (id, name):', test);
+                return false;
+            }
+
+            // Validate numeric fields
+            if (test.price && isNaN(parseFloat(test.price))) {
+                console.warn('Test has invalid price:', test);
+                test.price = 0; // Set default price
+            }
+
+            return true;
+        });
+
+        if (validTests.length !== tests.length) {
+            console.warn(`${tests.length - validTests.length} invalid tests filtered out`);
+        }
+
+        return validTests;
+    }
+
+    /**
+     * Handle duplicate test names
+     */
+    handleDuplicateTestNames() {
+        const testNames = this.testsData.map(t => t.name);
+        const uniqueNames = [...new Set(testNames)];
+
+        if (testNames.length !== uniqueNames.length) {
+            console.error('Duplicate test names detected in API response!');
+            console.log('Total tests:', testNames.length, 'Unique names:', uniqueNames.length);
+
+            // Find and log duplicates
+            const duplicates = testNames.filter((name, index) => testNames.indexOf(name) !== index);
+            console.log('Duplicate names:', [...new Set(duplicates)]);
+
+            // Show detailed info about duplicates
+            duplicates.forEach(dupName => {
+                const duplicateTests = this.testsData.filter(t => t.name === dupName);
+                console.log(`Tests with name "${dupName}":`, duplicateTests.map(t => ({
+                    id: t.id,
+                    name: t.name,
+                    category: t.category_name
+                })));
+            });
+
+            // Show user warning about duplicates
+            if (typeof toastr !== 'undefined') {
+                toastr.warning(
+                    `Found ${duplicates.length} duplicate test names. This may cause confusion in test selection.`,
+                    'Duplicate Tests Detected',
+                    { timeOut: 8000 }
+                );
+            }
+        }
+    }
+
+    /**
+     * Handle empty test data
+     */
+    handleEmptyTestData() {
+        console.warn('No test data available');
+
+        if (typeof toastr !== 'undefined') {
+            toastr.warning('No tests are available. Please contact your administrator.', 'No Tests Available');
+        }
+
+        // Disable test-related functionality
+        this.handleTestDataUnavailable();
+    }
+
+    /**
+     * Handle test data loading errors
+     * @param {string} errorMessage - The error message to display
+     */
+    handleTestDataLoadError(errorMessage = 'Unknown error') {
+        console.error('Test data loading failed:', errorMessage);
+
+        // Create retry UI for test data
+        this.createTestDataRetryUI(errorMessage);
+
+        // Show user-friendly error message
+        if (typeof toastr !== 'undefined') {
+            toastr.error(
+                `Could not load test data: ${errorMessage}. <br>
+                <button onclick="window.entryManager.retryTestDataLoad()" class="btn btn-sm btn-outline-light mt-1">
+                    <i class="fas fa-retry"></i> Retry
+                </button>`,
+                'Test Data Loading Error',
+                {
+                    timeOut: 0,
+                    extendedTimeOut: 0,
+                    closeButton: true,
+                    escapeHtml: false
+                }
+            );
+        }
+
+        // Apply fallback measures
+        this.handleTestDataUnavailable();
+    }
+
+    /**
+     * Create retry UI for test data loading
+     * @param {string} errorMessage - The error message to display
+     */
+    createTestDataRetryUI(errorMessage) {
         try {
-            console.log('Loading categories for filter...');
+            // Remove existing retry UI
+            $('#testDataRetryUI').remove();
+
+            // Create retry UI
+            const retryHtml = `
+                <div id="testDataRetryUI" class="alert alert-danger mt-2">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <strong>Test data loading failed:</strong> ${this.escapeHtml(errorMessage)}
+                    <br>
+                    <button type="button" class="btn btn-sm btn-danger mt-2" onclick="window.entryManager.retryTestDataLoad()">
+                        <i class="fas fa-retry mr-1"></i>Retry Loading Tests
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary mt-2 ml-2" onclick="window.entryManager.dismissTestDataError()">
+                        <i class="fas fa-times mr-1"></i>Dismiss
+                    </button>
+                </div>
+            `;
+
+            // Add retry UI to the tests container or form
+            const $container = $('#testsContainer').length > 0 ? $('#testsContainer') : $('#entryForm');
+            $container.prepend(retryHtml);
+        } catch (error) {
+            console.error('Error creating test data retry UI:', error);
+        }
+    }
+
+    /**
+     * Retry test data loading
+     */
+    async retryTestDataLoad() {
+        try {
+            console.log('Retrying test data load...');
+
+            // Show loading state
+            const $retryButton = $('#testDataRetryUI button:first');
+            const originalText = $retryButton.html();
+            $retryButton.html('<i class="fas fa-spinner fa-spin mr-1"></i>Loading...').prop('disabled', true);
+
+            // Attempt to reload test data
+            const success = await this.loadTestsData();
+
+            if (success) {
+                // Success - remove retry UI and refresh UI
+                $('#testDataRetryUI').remove();
+
+                // Refresh test dropdowns if any exist
+                this.updateAllTestDropdowns();
+
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Test data loaded successfully!');
+                }
+
+                console.log('Test data retry successful');
+            } else {
+                // Failed again - restore button state
+                $retryButton.html(originalText).prop('disabled', false);
+                console.log('Test data retry failed');
+            }
+        } catch (error) {
+            console.error('Error during test data retry:', error);
+
+            // Restore button state
+            const $retryButton = $('#testDataRetryUI button:first');
+            $retryButton.html('<i class="fas fa-retry mr-1"></i>Retry Loading Tests').prop('disabled', false);
+        }
+    }
+
+    /**
+     * Dismiss test data error UI
+     */
+    dismissTestDataError() {
+        try {
+            $('#testDataRetryUI').remove();
+            console.log('Test data error UI dismissed');
+        } catch (error) {
+            console.error('Error dismissing test data error UI:', error);
+        }
+    }
+
+    /**
+     * Load categories data for filtering with enhanced error handling and caching
+     */
+    async loadCategoriesForFilter(retryCount = 0, forceReload = false) {
+        const maxRetries = 2;
+
+        try {
+            // Check cache first unless force reload is requested
+            if (!forceReload) {
+                const cachedData = this.getCacheData(this.cacheKeys.CATEGORIES_DATA);
+                if (cachedData) {
+                    this.categoriesData = cachedData;
+                    this.populateCategoryFilter();
+                    console.log('Categories data loaded from cache:', this.categoriesData.length, 'categories');
+                    return true;
+                }
+            }
+
+            console.log(`Loading categories for filter... (attempt ${retryCount + 1}/${maxRetries + 1})`);
+            this.performanceMetrics.apiCalls++;
+
             const response = await $.ajax({
                 url: 'patho_api/test_category.php',
                 method: 'GET',
@@ -590,34 +868,104 @@ class EntryManager {
                     all: '1',  // Load ALL categories, not just user-specific ones
                     secret_key: 'hospital-api-secret-2024'
                 },
-                dataType: 'json'
+                dataType: 'json',
+                timeout: 10000 // 10 second timeout
             });
 
             if (response && response.success) {
                 this.categoriesData = response.data || [];
+
+                // Validate category data structure
+                const validCategories = this.validateCategoryData(this.categoriesData);
+                if (validCategories.length !== this.categoriesData.length) {
+                    console.warn(`${this.categoriesData.length - validCategories.length} invalid categories filtered out`);
+                    this.categoriesData = validCategories;
+                }
+
+                // Cache the validated data
+                this.setCacheData(this.cacheKeys.CATEGORIES_DATA, this.categoriesData);
+
                 this.populateCategoryFilter();
-                console.log('Loaded categories data:', this.categoriesData.length, 'categories');
+                console.log('Categories loaded successfully:', this.categoriesData.length, 'categories');
 
                 // Debug: Log first few categories to verify data structure
                 if (this.categoriesData.length > 0) {
                     console.log('Sample category data:', this.categoriesData.slice(0, 3));
                 }
+
+                return true; // Success
             } else {
-                console.error('Failed to load categories:', response ? response.message : 'Invalid response');
+                const errorMessage = response ? response.message : 'Invalid response from server';
+                console.error('Failed to load categories:', errorMessage);
+
+                // Try retry if we haven't exceeded max retries
+                if (retryCount < maxRetries) {
+                    console.log(`Retrying category load in 2 seconds... (${retryCount + 1}/${maxRetries})`);
+                    await this.delay(2000);
+                    return await this.loadCategoriesForFilter(retryCount + 1);
+                }
+
                 this.categoriesData = [];
-                this.handleCategoryLoadError();
+                this.handleCategoryLoadError(errorMessage);
+                return false; // Failed
             }
         } catch (error) {
             console.error('Error loading categories data:', error);
-            console.error('Category load error details:', {
+
+            const errorDetails = {
                 status: error.status,
                 statusText: error.statusText,
-                responseText: error.responseText
-            });
+                responseText: error.responseText,
+                timeout: error.statusText === 'timeout'
+            };
+            console.error('Category load error details:', errorDetails);
+
+            // Try retry for network errors if we haven't exceeded max retries
+            if (retryCount < maxRetries && (error.status === 0 || error.statusText === 'timeout' || error.status >= 500)) {
+                console.log(`Retrying category load due to network error in 3 seconds... (${retryCount + 1}/${maxRetries})`);
+                await this.delay(3000);
+                return await this.loadCategoriesForFilter(retryCount + 1);
+            }
 
             this.categoriesData = [];
-            this.handleCategoryLoadError();
+            this.handleCategoryLoadError(error.message || 'Network error occurred');
+            return false; // Failed
         }
+    }
+
+    /**
+     * Validate category data structure
+     * @param {Array} categories - Array of category objects to validate
+     * @returns {Array} Array of valid category objects
+     */
+    validateCategoryData(categories) {
+        if (!Array.isArray(categories)) {
+            console.error('Categories data is not an array:', categories);
+            return [];
+        }
+
+        return categories.filter(category => {
+            if (!category || typeof category !== 'object') {
+                console.warn('Invalid category object:', category);
+                return false;
+            }
+
+            if (!category.id || !category.name) {
+                console.warn('Category missing required fields (id, name):', category);
+                return false;
+            }
+
+            return true;
+        });
+    }
+
+    /**
+     * Utility method to create a delay
+     * @param {number} ms - Milliseconds to delay
+     * @returns {Promise} Promise that resolves after the delay
+     */
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     /**
@@ -674,31 +1022,141 @@ class EntryManager {
     }
 
     /**
-     * Handle category loading errors gracefully
+     * Handle category loading errors gracefully with retry options
+     * @param {string} errorMessage - The error message to display
      */
-    handleCategoryLoadError() {
-        console.warn('Category loading failed, disabling category features');
+    handleCategoryLoadError(errorMessage = 'Unknown error') {
+        console.warn('Category loading failed, implementing fallback measures');
+        console.error('Error details:', errorMessage);
 
         const $categoryFilter = $('#categoryFilter');
+        const $clearButton = $('#clearCategoryFilter');
+
+        // Disable category filtering UI
         if ($categoryFilter.length > 0) {
             $categoryFilter.empty().append('<option value="">All Categories (Error loading categories)</option>');
-            $categoryFilter.prop('disabled', true);
+            $categoryFilter.prop('disabled', true).addClass('error-state');
         }
 
-        const $clearButton = $('#clearCategoryFilter');
         if ($clearButton.length > 0) {
             $clearButton.prop('disabled', true);
         }
 
+        // Hide category filter indicator if visible
+        this.hideCategoryFilterIndicator();
+
         // Show all tests since filtering is not available
         this.updateFilteredTestCount();
 
-        // Show user-friendly error message
+        // Create retry mechanism
+        this.createCategoryRetryUI();
+
+        // Show user-friendly error message with retry option
         if (typeof toastr !== 'undefined') {
-            toastr.warning('Could not load test categories. Category filtering will be disabled.');
+            toastr.error(
+                `Could not load test categories: ${errorMessage}. Category filtering is disabled. <br>
+                <button onclick="window.entryManager.retryCategoryLoad()" class="btn btn-sm btn-outline-light mt-1">
+                    <i class="fas fa-retry"></i> Retry
+                </button>`,
+                'Category Loading Error',
+                {
+                    timeOut: 0,
+                    extendedTimeOut: 0,
+                    closeButton: true,
+                    escapeHtml: false
+                }
+            );
         }
 
-        console.warn('Category filtering disabled due to loading error');
+        // Log error for debugging
+        console.error('Category loading error handled. Features disabled:', {
+            category_filter_disabled: true,
+            clear_button_disabled: true,
+            retry_ui_created: true,
+            error_message: errorMessage
+        });
+    }
+
+    /**
+     * Create retry UI for category loading
+     */
+    createCategoryRetryUI() {
+        try {
+            // Remove existing retry UI
+            $('#categoryRetryUI').remove();
+
+            // Create retry UI
+            const retryHtml = `
+                <div id="categoryRetryUI" class="alert alert-warning mt-2">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <strong>Category loading failed.</strong> Category filtering is disabled.
+                    <br>
+                    <button type="button" class="btn btn-sm btn-warning mt-2" onclick="window.entryManager.retryCategoryLoad()">
+                        <i class="fas fa-retry mr-1"></i>Retry Loading Categories
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary mt-2 ml-2" onclick="window.entryManager.dismissCategoryError()">
+                        <i class="fas fa-times mr-1"></i>Dismiss
+                    </button>
+                </div>
+            `;
+
+            // Add retry UI after the category filter
+            $('#categoryFilter').parent().append(retryHtml);
+        } catch (error) {
+            console.error('Error creating category retry UI:', error);
+        }
+    }
+
+    /**
+     * Retry category loading
+     */
+    async retryCategoryLoad() {
+        try {
+            console.log('Retrying category load...');
+
+            // Show loading state
+            const $retryButton = $('#categoryRetryUI button:first');
+            const originalText = $retryButton.html();
+            $retryButton.html('<i class="fas fa-spinner fa-spin mr-1"></i>Loading...').prop('disabled', true);
+
+            // Attempt to reload categories
+            const success = await this.loadCategoriesForFilter();
+
+            if (success) {
+                // Success - remove retry UI and re-enable category filter
+                $('#categoryRetryUI').remove();
+                $('#categoryFilter').prop('disabled', false).removeClass('error-state');
+                $('#clearCategoryFilter').prop('disabled', false);
+
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Categories loaded successfully!');
+                }
+
+                console.log('Category retry successful');
+            } else {
+                // Failed again - restore button state
+                $retryButton.html(originalText).prop('disabled', false);
+                console.log('Category retry failed');
+            }
+        } catch (error) {
+            console.error('Error during category retry:', error);
+
+            // Restore button state
+            const $retryButton = $('#categoryRetryUI button:first');
+            $retryButton.html('<i class="fas fa-retry mr-1"></i>Retry Loading Categories').prop('disabled', false);
+        }
+    }
+
+    /**
+     * Dismiss category error UI
+     */
+    dismissCategoryError() {
+        try {
+            $('#categoryRetryUI').remove();
+            console.log('Category error UI dismissed');
+        } catch (error) {
+            console.error('Error dismissing category error UI:', error);
+        }
     }
 
     /**
@@ -725,23 +1183,116 @@ class EntryManager {
      */
     filterTestsByCategory(categoryId) {
         try {
+            // Validate input parameters
+            if (!this.testsData || !Array.isArray(this.testsData)) {
+                console.warn('Tests data is not available or invalid');
+                return [];
+            }
+
             // If no category selected, return all tests
-            if (!categoryId || categoryId === '') {
-                //console.log('No category filter applied, returning all tests:', this.testsData.length);
+            if (!categoryId || categoryId === '' || categoryId === null || categoryId === undefined) {
+                console.log('No category filter applied, returning all tests:', this.testsData.length);
                 return this.testsData;
             }
 
-            // Filter tests by category_id
+            // Normalize category ID for comparison
+            const normalizedCategoryId = String(categoryId).trim();
+
+            // Filter tests by category_id with enhanced validation
             const filteredTests = this.testsData.filter(test => {
-                return test.category_id && test.category_id == categoryId;
+                // Ensure test object is valid
+                if (!test || typeof test !== 'object') {
+                    return false;
+                }
+
+                // Check if test has a valid category_id
+                if (!test.category_id && test.category_id !== 0) {
+                    return false;
+                }
+
+                // Normalize test category ID for comparison
+                const testCategoryId = String(test.category_id).trim();
+
+                // Perform comparison
+                return testCategoryId === normalizedCategoryId;
             });
 
-            //console.log(`Filtered tests by category ${categoryId}:`, filteredTests.length, 'out of', this.testsData.length);
+            console.log(`Filtered tests by category ${categoryId}:`, filteredTests.length, 'out of', this.testsData.length);
+
+            // Log category details for debugging
+            if (filteredTests.length === 0) {
+                console.warn(`No tests found for category ID: ${categoryId}`);
+                console.log('Available category IDs in tests:', [...new Set(this.testsData.map(t => t.category_id).filter(id => id !== null && id !== undefined))]);
+            }
+
             return filteredTests;
         } catch (error) {
+            console.error('Error in filterTestsByCategory:', error);
             this.handleGlobalError(error, 'category_filtering');
             // Return all tests as fallback
-            return this.testsData;
+            return this.testsData || [];
+        }
+    }
+
+    /**
+     * Handle global category filter change
+     * @param {string|number} categoryId - The selected category ID
+     */
+    async onCategoryFilterChange(categoryId) {
+        try {
+            const startTime = performance.now();
+            console.log('Global category filter changed to:', categoryId);
+
+            // Update the filtered test count display
+            this.updateFilteredTestCount();
+
+            // Update all existing test dropdowns with filtered results
+            await this.updateAllTestDropdowns();
+
+            // Add visual indicator when filter is active
+            const $categoryFilter = $('#categoryFilter');
+            const $clearButton = $('#clearCategoryFilter');
+
+            if (categoryId && categoryId !== '') {
+                // Filter is active
+                $categoryFilter.addClass('category-filter-active');
+                $clearButton.prop('disabled', false).show();
+
+                // Show filter indicator
+                this.showCategoryFilterIndicator(categoryId);
+            } else {
+                // Filter is cleared
+                $categoryFilter.removeClass('category-filter-active');
+                $clearButton.prop('disabled', true).hide();
+
+                // Hide filter indicator
+                this.hideCategoryFilterIndicator();
+            }
+
+            const endTime = performance.now();
+            const duration = endTime - startTime;
+
+            // Log performance metrics
+            console.log(`Global category filter change completed in ${duration.toFixed(2)}ms`);
+
+            // Track performance
+            this.performanceMetrics.filterOperations.push({
+                timestamp: Date.now(),
+                duration: duration,
+                type: 'global_filter_change',
+                categoryId: categoryId
+            });
+
+            // Alert if operation is slow
+            if (duration > 200) {
+                console.warn(`Category filter change took ${duration.toFixed(2)}ms, which exceeds the 200ms target`);
+            }
+
+            console.log('Global category filter change handled successfully');
+        } catch (error) {
+            console.error('Error handling global category filter change:', error);
+            // Attempt recovery
+            this.recoverFromCategoryFilterError();
         }
     }
 
@@ -750,6 +1301,8 @@ class EntryManager {
      */
     clearCategoryFilter() {
         try {
+            console.log('Clearing global category filter...');
+
             // Reset category filter dropdown
             const $categoryFilter = $('#categoryFilter');
             if ($categoryFilter.length > 0) {
@@ -762,9 +1315,54 @@ class EntryManager {
             // Update all existing test dropdowns to show all tests
             this.updateAllTestDropdowns();
 
-            //console.log('Category filter cleared, showing all tests');
+            // Remove visual indicators
+            $categoryFilter.removeClass('category-filter-active');
+            $('#clearCategoryFilter').prop('disabled', true).hide();
+            this.hideCategoryFilterIndicator();
+
+            console.log('Category filter cleared, showing all tests');
         } catch (error) {
-            //console.error('Error clearing category filter:', error);
+            console.error('Error clearing category filter:', error);
+        }
+    }
+
+    /**
+     * Show visual indicator that category filter is active
+     * @param {string|number} categoryId - The active category ID
+     */
+    showCategoryFilterIndicator(categoryId) {
+        try {
+            const category = this.categoriesData.find(cat => cat.id == categoryId);
+            const categoryName = category ? category.name : `Category ${categoryId}`;
+
+            // Create or update filter indicator
+            let $indicator = $('#categoryFilterIndicator');
+            if ($indicator.length === 0) {
+                $indicator = $('<div id="categoryFilterIndicator" class="alert alert-info alert-sm mt-2"></div>');
+                $('#categoryFilter').parent().append($indicator);
+            }
+
+            $indicator.html(`
+                <i class="fas fa-filter mr-1"></i>
+                <strong>Active Filter:</strong> ${this.escapeHtml(categoryName)}
+                <button type="button" class="btn btn-sm btn-outline-info ml-2" onclick="window.entryManager.clearCategoryFilter()">
+                    <i class="fas fa-times"></i> Clear
+                </button>
+            `).show();
+
+        } catch (error) {
+            console.error('Error showing category filter indicator:', error);
+        }
+    }
+
+    /**
+     * Hide category filter indicator
+     */
+    hideCategoryFilterIndicator() {
+        try {
+            $('#categoryFilterIndicator').hide();
+        } catch (error) {
+            console.error('Error hiding category filter indicator:', error);
         }
     }
 
@@ -778,24 +1376,66 @@ class EntryManager {
     }
 
     /**
-     * Update all existing test dropdowns with filtered results
+     * Update all existing test dropdowns with filtered results (optimized)
      */
-    updateAllTestDropdowns() {
+    async updateAllTestDropdowns() {
         try {
+            const startTime = performance.now();
             const filteredTests = this.getCurrentlyFilteredTests();
+            const $testSelects = $('#testsContainer .test-select');
 
-            // Find all test select dropdowns in the form
-            $('#testsContainer .test-select').each((index, element) => {
+            console.log(`Updating ${$testSelects.length} test dropdowns with ${filteredTests.length} filtered tests`);
+
+            // Batch DOM updates for better performance
+            const updates = [];
+
+            // Collect all updates first
+            $testSelects.each((index, element) => {
                 const $select = $(element);
                 const currentValue = $select.val();
-
-                // Update the dropdown options
-                this.updateTestDropdownOptions($select, filteredTests, currentValue);
+                updates.push({ $select, currentValue });
             });
 
-            //console.log('Updated all test dropdowns with filtered results');
+            // Apply updates in batches to minimize DOM reflows
+            const batchSize = 5;
+            for (let i = 0; i < updates.length; i += batchSize) {
+                const batch = updates.slice(i, i + batchSize);
+
+                // Process batch
+                batch.forEach(update => {
+                    this.updateTestDropdownOptions(update.$select, filteredTests, update.currentValue);
+                });
+
+                // Allow browser to breathe between batches
+                if (i + batchSize < updates.length) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+            }
+
+            const endTime = performance.now();
+            const duration = endTime - startTime;
+
+            // Track performance
+            this.performanceMetrics.filterOperations.push({
+                timestamp: Date.now(),
+                duration: duration,
+                dropdownCount: $testSelects.length,
+                testCount: filteredTests.length
+            });
+
+            // Keep only last 20 operations for memory efficiency
+            if (this.performanceMetrics.filterOperations.length > 20) {
+                this.performanceMetrics.filterOperations.splice(0, 10);
+            }
+
+            console.log(`Updated all test dropdowns in ${duration.toFixed(2)}ms`);
+
+            // Warn if operation is slow
+            if (duration > 500) {
+                console.warn(`Test dropdown update took ${duration.toFixed(2)}ms, which exceeds the 500ms target`);
+            }
         } catch (error) {
-            //console.error('Error updating test dropdowns:', error);
+            console.error('Error updating test dropdowns:', error);
         }
     }
 
@@ -807,66 +1447,110 @@ class EntryManager {
      */
     updateTestDropdownOptions($select, filteredTests, currentValue = null) {
         try {
+            // Validate input parameters
+            if (!$select || $select.length === 0) {
+                console.error('Invalid select element passed to updateTestDropdownOptions');
+                return;
+            }
+
+            if (!filteredTests || !Array.isArray(filteredTests)) {
+                console.warn('Invalid filteredTests array, using empty array');
+                filteredTests = [];
+            }
+
             // Store current selection if not provided
             if (currentValue === null) {
                 currentValue = $select.val();
             }
 
-            // Clear existing options except the first one
-            $select.empty().append('<option value="">Select Test</option>');
+            // Performance optimization: Build options HTML in memory first
+            let optionsHtml = '<option value="">Select Test</option>';
+            const validTests = [];
 
-            // Add filtered test options
+            // Process and validate tests
             filteredTests.forEach(test => {
                 if (test && test.id && test.name) {
-                    // Create a unique display name
-                    let displayName = test.name || `Test ${test.id}`;
+                    validTests.push(test);
+
+                    // Create a unique display name with proper escaping
+                    let displayName = this.escapeHtml(test.name) || `Test ${test.id}`;
 
                     // Add category if available to help distinguish similar tests
                     if (test.category_name) {
-                        displayName += ` (${test.category_name})`;
+                        displayName += ` (${this.escapeHtml(test.category_name)})`;
                     }
 
                     // Add ID for additional uniqueness
                     displayName += ` [ID: ${test.id}]`;
 
-                    const option = `<option value="${test.id}" 
-                        data-category="${test.category_name || ''}" 
-                        data-unit="${test.unit || ''}" 
+                    // Build option with proper data attributes
+                    optionsHtml += `<option value="${test.id}" 
+                        data-category="${this.escapeHtml(test.category_name || '')}" 
+                        data-category-id="${test.category_id || ''}"
+                        data-unit="${this.escapeHtml(test.unit || '')}" 
                         data-min="${test.min || ''}" 
                         data-max="${test.max || ''}" 
                         data-price="${test.price || 0}">
                         ${displayName}
                     </option>`;
-
-                    $select.append(option);
+                } else {
+                    console.warn('Invalid test object found:', test);
                 }
             });
 
-            // Restore previous selection if it still exists in filtered results
-            if (currentValue && filteredTests.some(test => test.id == currentValue)) {
+            // Update dropdown with all options at once (more efficient)
+            $select.html(optionsHtml);
+
+            // Handle selection restoration
+            const shouldRestoreSelection = currentValue && validTests.some(test => test.id == currentValue);
+
+            if (shouldRestoreSelection) {
                 $select.val(currentValue);
+                console.log(`Restored test selection: ${currentValue}`);
             } else if (currentValue) {
                 // If previously selected test is not in filtered results, clear selection
+                console.log(`Previous test selection ${currentValue} not available in filtered results, clearing`);
                 $select.val('');
-                // Clear related fields in the row
+
+                // Clear related fields in the row using the helper method
                 const $row = $select.closest('.test-row');
                 if ($row.length > 0) {
-                    $row.find('.test-category-select').val('');
-                    $row.find('.test-main-category-id').val('');
-                    $row.find('.test-min').val('');
-                    $row.find('.test-max').val('');
-                    $row.find('.test-unit').val('');
-                    $row.find('.test-price').val('0');
+                    this.clearTestRowFields($row);
                 }
             }
 
             // Refresh Select2 if it's initialized
             if ($select.hasClass('select2-hidden-accessible')) {
-                $select.trigger('change.select2');
+                try {
+                    $select.trigger('change.select2');
+                } catch (select2Error) {
+                    console.warn('Error refreshing Select2:', select2Error);
+                    // Try to reinitialize Select2 if refresh fails
+                    try {
+                        $select.select2('destroy').select2({
+                            theme: 'bootstrap4',
+                            width: '100%',
+                            placeholder: 'Select Test'
+                        });
+                    } catch (reinitError) {
+                        console.error('Error reinitializing Select2:', reinitError);
+                    }
+                }
             }
 
+            console.log(`Updated test dropdown with ${validTests.length} options`);
+
         } catch (error) {
-            //console.error('Error updating test dropdown options:', error);
+            console.error('Error updating test dropdown options:', error);
+
+            // Fallback: Ensure dropdown has at least the default option
+            try {
+                if ($select && $select.length > 0) {
+                    $select.html('<option value="">Select Test (Error loading options)</option>');
+                }
+            } catch (fallbackError) {
+                console.error('Error in fallback option creation:', fallbackError);
+            }
         }
     }
 
@@ -976,9 +1660,9 @@ class EntryManager {
             this.calculateTotals();
         });
 
-        // Category filter events
+        // Category filter events (debounced for performance)
         $('#categoryFilter').on('change', (e) => {
-            this.onCategoryFilterChange(e.target.value);
+            this.debouncedCategoryFilter(e.target.value);
         });
 
         $('#clearCategoryFilter').on('click', () => {
@@ -1099,8 +1783,16 @@ class EntryManager {
             console.log('All test data:', this.testsData.map(t => ({ id: t.id, name: t.name })));
         }
 
-        // Get filtered tests based on current category selection
+        // Get filtered tests based on current global category filter
+        // This ensures new test rows respect the active global filter
+        const globalCategoryFilter = $('#categoryFilter').val();
         const filteredTests = this.getCurrentlyFilteredTests();
+
+        console.log('Creating new test row with global filter:', {
+            global_filter: globalCategoryFilter,
+            filtered_tests_count: filteredTests.length,
+            total_tests_count: this.testsData.length
+        });
 
         const testOptions = filteredTests.map(test => {
             // Create a unique display name to avoid confusion
@@ -1193,6 +1885,18 @@ class EntryManager {
         // Populate category dropdown for this row
         this.populateRowCategoryDropdown($categorySelect);
 
+        // If global category filter is active, pre-select it in the new row
+        if (globalCategoryFilter && globalCategoryFilter !== '' && !testData) {
+            console.log('Pre-selecting global category filter in new row:', globalCategoryFilter);
+            $categorySelect.val(globalCategoryFilter);
+
+            // Set main category ID if available
+            const selectedCategory = this.categoriesData.find(cat => cat.id == globalCategoryFilter);
+            if (selectedCategory && selectedCategory.main_category_id) {
+                $newRow.find('.test-main-category-id').val(selectedCategory.main_category_id);
+            }
+        }
+
         // Debug: Log category population status
         console.log('Category dropdown populated for row', rowIndex, 'with', this.categoriesData.length, 'categories');
 
@@ -1247,11 +1951,24 @@ class EntryManager {
                     // Calculate demographic-appropriate ranges (use current patient, not stored ranges)
                     const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, foundTest);
 
-                    // Use entry data for non-range fields, demographic ranges for range fields
-                    // IMPORTANT: Use the test's actual category, not the stored entry category
-                    const categoryName = foundTest.category_name || testData.category_name || '';
+                    // PRIORITY: Use current test data over entry data for categories
+                    // This ensures we show the test's current category, not outdated entry data
                     const categoryId = foundTest.category_id || testData.category_id || '';
+                    const categoryName = foundTest.category_name || testData.category_name || '';
                     const price = testData.price || foundTest.price || 0;
+
+                    // Detect and log category conflicts for debugging
+                    if (testData.category_id && foundTest.category_id && testData.category_id != foundTest.category_id) {
+                        console.warn('Category conflict detected:', {
+                            test_id: testData.test_id,
+                            test_name: foundTest.name,
+                            entry_category_id: testData.category_id,
+                            entry_category_name: testData.category_name,
+                            current_category_id: foundTest.category_id,
+                            current_category_name: foundTest.category_name,
+                            resolution: 'Using current test category'
+                        });
+                    }
 
                     console.log('Category selection debug:', {
                         test_id: testData.test_id,
@@ -1275,56 +1992,87 @@ class EntryManager {
                         result: testData.result_value
                     });
 
-                    // Populate test details with demographic-appropriate ranges
-                    // Set the category dropdown to the correct category
+                    // Set the category dropdown to the correct category (prioritizing current test data)
                     if (categoryId) {
                         console.log('Setting category dropdown to:', categoryId, 'for test:', testData.test_id);
 
-                        // Debug: Check what options are available in the dropdown
-                        const availableOptions = [];
-                        $categorySelect.find('option').each(function () {
-                            const optionValue = $(this).val();
-                            const optionText = $(this).text();
-                            if (optionValue) {
-                                availableOptions.push({ value: optionValue, text: optionText });
-                            }
-                        });
-                        console.log('Available category options:', availableOptions);
-                        console.log('Looking for category ID:', categoryId, 'Type:', typeof categoryId);
-
                         // Check if the category exists in the dropdown
                         const categoryExists = $categorySelect.find(`option[value="${categoryId}"]`).length > 0;
-                        console.log('Category exists in dropdown:', categoryExists);
 
-                        if (!categoryExists) {
+                        if (categoryExists) {
+                            // Category exists, set it
+                            $categorySelect.val(categoryId);
+
+                            // Set the main category ID if available
+                            const selectedCategory = this.categoriesData.find(cat => cat.id == categoryId);
+                            if (selectedCategory && selectedCategory.main_category_id) {
+                                $newRow.find('.test-main-category-id').val(selectedCategory.main_category_id);
+                                console.log('Set main category ID:', selectedCategory.main_category_id, 'for category:', selectedCategory.name);
+                            }
+
+                            console.log('Successfully set category:', categoryId, categoryName);
+                        } else {
+                            // Category doesn't exist in dropdown, try to add it
                             console.warn('Category ID', categoryId, 'not found in dropdown options!');
-                            // Try to find the category in our categories data
+
                             const categoryInData = this.categoriesData.find(cat => cat.id == categoryId);
                             if (categoryInData) {
-                                console.log('Category found in categoriesData:', categoryInData);
+                                console.log('Adding missing category to dropdown:', categoryInData);
+
+                                // Find the appropriate optgroup or create one
+                                let $targetOptgroup;
+                                if (categoryInData.main_category_id) {
+                                    const mainCategory = this.mainCategoriesData.find(mc => mc.id == categoryInData.main_category_id);
+                                    if (mainCategory) {
+                                        $targetOptgroup = $categorySelect.find(`optgroup[label="${this.escapeHtml(mainCategory.name)}"]`);
+                                        if ($targetOptgroup.length === 0) {
+                                            $targetOptgroup = $(`<optgroup label="${this.escapeHtml(mainCategory.name)}"></optgroup>`);
+                                            $categorySelect.append($targetOptgroup);
+                                        }
+                                    }
+                                }
+
+                                if (!$targetOptgroup || $targetOptgroup.length === 0) {
+                                    $targetOptgroup = $categorySelect.find('optgroup[label="Other Categories"]');
+                                    if ($targetOptgroup.length === 0) {
+                                        $targetOptgroup = $('<optgroup label="Other Categories"></optgroup>');
+                                        $categorySelect.append($targetOptgroup);
+                                    }
+                                }
+
+                                // Add the missing category option
+                                const $newOption = $(`<option value="${categoryInData.id}" data-main-category="${categoryInData.main_category_id || ''}">${this.escapeHtml(categoryInData.name)}</option>`);
+                                $targetOptgroup.append($newOption);
+
+                                // Now set the category
+                                $categorySelect.val(categoryId);
+                                $newRow.find('.test-main-category-id').val(categoryInData.main_category_id || '');
+
+                                console.log('Added and selected missing category:', categoryInData.name);
                             } else {
-                                console.error('Category not found in categoriesData either!');
+                                console.error('Category not found in categoriesData either! Using fallback.');
+                                // Create a fallback option
+                                const fallbackName = categoryName || `Category ${categoryId}`;
+                                let $otherOptgroup = $categorySelect.find('optgroup[label="Other Categories"]');
+                                if ($otherOptgroup.length === 0) {
+                                    $otherOptgroup = $('<optgroup label="Other Categories"></optgroup>');
+                                    $categorySelect.append($otherOptgroup);
+                                }
+
+                                const $fallbackOption = $(`<option value="${categoryId}">${this.escapeHtml(fallbackName)} (Missing)</option>`);
+                                $otherOptgroup.append($fallbackOption);
+                                $categorySelect.val(categoryId);
+
+                                console.log('Created fallback category option:', fallbackName);
                             }
                         }
-
-                        $categorySelect.val(categoryId);
 
                         // Trigger Select2 update for category dropdown
                         if ($categorySelect.hasClass('select2-hidden-accessible')) {
                             $categorySelect.trigger('change.select2');
                         }
-
-                        // Verify what was actually selected
-                        const actuallySelected = $categorySelect.val();
-                        const selectedText = $categorySelect.find('option:selected').text();
-                        console.log('Actually selected:', actuallySelected, 'Text:', selectedText);
-
-                        // Set the main category ID if available
-                        const selectedCategory = this.categoriesData.find(cat => cat.id == categoryId);
-                        if (selectedCategory && selectedCategory.main_category_id) {
-                            $newRow.find('.test-main-category-id').val(selectedCategory.main_category_id);
-                            console.log('Set main category ID:', selectedCategory.main_category_id, 'for category:', selectedCategory.name);
-                        }
+                    } else {
+                        console.log('No category ID available for test:', testData.test_id);
                     }
 
                     $newRow.find('.test-price').val(price);
@@ -2465,30 +3213,576 @@ class EntryManager {
     }
 
     /**
+     * Comprehensive error recovery for category filtering
+     */
+    recoverFromCategoryFilterError() {
+        try {
+            console.warn('Attempting to recover from category filter error...');
+
+            // Reset category filter to show all tests
+            const $categoryFilter = $('#categoryFilter');
+            if ($categoryFilter.length > 0) {
+                $categoryFilter.val('').prop('disabled', false).removeClass('error-state');
+            }
+
+            // Reset clear button
+            const $clearButton = $('#clearCategoryFilter');
+            if ($clearButton.length > 0) {
+                $clearButton.prop('disabled', true).hide();
+            }
+
+            // Ensure all tests are shown
+            this.updateAllTestDropdowns();
+            this.updateFilteredTestCount();
+
+            // Remove any active filter styling
+            $('.category-filter-active').removeClass('category-filter-active');
+            this.hideCategoryFilterIndicator();
+
+            // Remove any error UI elements
+            $('#categoryRetryUI').remove();
+
+            console.log('Category filter error recovery completed');
+        } catch (error) {
+            console.error('Error during category filter recovery:', error);
+        }
+    }
+
+    /**
+     * Global error handler for the entry manager
+     * @param {Error} error - The error object
+     * @param {string} context - Context where the error occurred
+     */
+    handleGlobalError(error, context = 'Unknown') {
+        try {
+            console.error(`Global error in ${context}:`, error);
+
+            // Log error details for debugging
+            const errorDetails = {
+                message: error.message,
+                stack: error.stack,
+                context: context,
+                timestamp: new Date().toISOString(),
+                url: window.location.href,
+                userAgent: navigator.userAgent
+            };
+
+            console.error('Error details:', errorDetails);
+
+            // Apply appropriate fallback based on context
+            switch (context) {
+                case 'category_loading':
+                    this.handleCategoryLoadError(error.message);
+                    break;
+                case 'test_loading':
+                    this.handleTestDataLoadError(error.message);
+                    break;
+                case 'category_filtering':
+                    this.recoverFromCategoryFilterError();
+                    break;
+                case 'test_selection':
+                    this.recoverFromTestSelectionError();
+                    break;
+                case 'data_reconciliation':
+                    this.recoverFromDataReconciliationError();
+                    break;
+                default:
+                    // Generic fallback - ensure basic functionality works
+                    this.ensureBasicFunctionality();
+                    break;
+            }
+
+            // Log error for potential reporting
+            this.logErrorForReporting(errorDetails);
+
+        } catch (fallbackError) {
+            console.error('Error in global error handler:', fallbackError);
+            // Last resort - show user message
+            if (typeof toastr !== 'undefined') {
+                toastr.error('An unexpected error occurred. Please refresh the page.');
+            }
+        }
+    }
+
+    /**
+     * Recover from test selection errors
+     */
+    recoverFromTestSelectionError() {
+        try {
+            console.warn('Recovering from test selection error...');
+
+            // Clear any problematic test selections
+            $('.test-select').each((index, select) => {
+                const $select = $(select);
+                const $row = $select.closest('.test-row');
+
+                try {
+                    // Verify the selected test exists in our data
+                    const selectedValue = $select.val();
+                    if (selectedValue) {
+                        const testExists = this.testsData.some(test => test.id == selectedValue);
+                        if (!testExists) {
+                            console.warn(`Test ${selectedValue} no longer exists, clearing selection`);
+                            $select.val('');
+                            this.clearTestRowFields($row);
+                        }
+                    }
+                } catch (rowError) {
+                    console.error('Error recovering test row:', rowError);
+                    // Clear the problematic row
+                    $select.val('');
+                    this.clearTestRowFields($row);
+                }
+            });
+
+            console.log('Test selection error recovery completed');
+        } catch (error) {
+            console.error('Error during test selection recovery:', error);
+        }
+    }
+
+    /**
+     * Recover from data reconciliation errors
+     */
+    recoverFromDataReconciliationError() {
+        try {
+            console.warn('Recovering from data reconciliation error...');
+
+            // Reset to basic entry mode without reconciliation
+            const $testsContainer = $('#testsContainer');
+            if ($testsContainer.length > 0) {
+                // Clear existing test rows
+                $testsContainer.empty();
+                this.testRowCounter = 0;
+
+                // Add a single basic test row
+                this.addTestRow();
+
+                if (typeof toastr !== 'undefined') {
+                    toastr.warning('Data reconciliation failed. Starting with a fresh test row.');
+                }
+            }
+
+            console.log('Data reconciliation error recovery completed');
+        } catch (error) {
+            console.error('Error during data reconciliation recovery:', error);
+        }
+    }
+
+    /**
+     * Ensure basic functionality is available even when errors occur
+     */
+    ensureBasicFunctionality() {
+        try {
+            console.log('Ensuring basic functionality...');
+
+            // Ensure at least one test row exists
+            if ($('#testsContainer .test-row').length === 0) {
+                // Create a basic test row
+                const basicRowHtml = `
+                    <div class="test-row row mb-2" data-row-index="0">
+                        <div class="col-md-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Some features are temporarily unavailable. Basic test entry is still possible.
+                                <button type="button" class="btn btn-sm btn-outline-info ml-2" onclick="location.reload()">
+                                    <i class="fas fa-refresh mr-1"></i>Refresh Page
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $('#testsContainer').html(basicRowHtml);
+            }
+
+            // Ensure form can still be submitted
+            const $form = $('#entryForm');
+            if ($form.length > 0) {
+                // Remove required attributes from problematic fields
+                $form.find('input[required], select[required]').each(function () {
+                    const $field = $(this);
+                    if ($field.attr('id') !== 'patientSelect' && $field.attr('id') !== 'ownerAddedBySelect') {
+                        $field.removeAttr('required');
+                    }
+                });
+            }
+
+            // Ensure basic dropdowns work
+            $('.select2').each(function () {
+                const $select = $(this);
+                try {
+                    if (!$select.hasClass('select2-hidden-accessible')) {
+                        $select.select2({
+                            theme: 'bootstrap4',
+                            width: '100%'
+                        });
+                    }
+                } catch (select2Error) {
+                    console.warn('Select2 initialization failed for element:', $select, select2Error);
+                }
+            });
+
+            console.log('Basic functionality ensured');
+        } catch (error) {
+            console.error('Error ensuring basic functionality:', error);
+        }
+    }
+
+    /**
+     * Log error for potential reporting
+     * @param {object} errorDetails - Detailed error information
+     */
+    logErrorForReporting(errorDetails) {
+        try {
+            // Store error in localStorage for potential reporting
+            const errorLog = JSON.parse(localStorage.getItem('entryManagerErrors') || '[]');
+            errorLog.push(errorDetails);
+
+            // Keep only the last 10 errors to prevent storage bloat
+            if (errorLog.length > 10) {
+                errorLog.splice(0, errorLog.length - 10);
+            }
+
+            localStorage.setItem('entryManagerErrors', JSON.stringify(errorLog));
+
+            // In a production environment, you might want to send this to a logging service
+            // this.sendErrorToLoggingService(errorDetails);
+
+        } catch (loggingError) {
+            console.error('Error logging error for reporting:', loggingError);
+        }
+    }
+
+    /**
+     * Get stored error logs (for debugging)
+     * @returns {Array} Array of stored error logs
+     */
+    getStoredErrorLogs() {
+        try {
+            return JSON.parse(localStorage.getItem('entryManagerErrors') || '[]');
+        } catch (error) {
+            console.error('Error retrieving stored error logs:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Clear stored error logs
+     */
+    clearStoredErrorLogs() {
+        try {
+            localStorage.removeItem('entryManagerErrors');
+            console.log('Stored error logs cleared');
+        } catch (error) {
+            console.error('Error clearing stored error logs:', error);
+        }
+    }
+
+    /**
+     * Set data in cache with timestamp
+     * @param {string} key - Cache key
+     * @param {any} data - Data to cache
+     * @param {number} customTimeout - Custom timeout in milliseconds (optional)
+     */
+    setCacheData(key, data, customTimeout = null) {
+        try {
+            const timeout = customTimeout || this.dataCacheTimeout;
+            this.dataCache.set(key, {
+                data: data,
+                timestamp: Date.now(),
+                timeout: timeout
+            });
+
+            console.log(`Data cached for key: ${key}, expires in ${timeout / 1000}s`);
+        } catch (error) {
+            console.error('Error setting cache data:', error);
+        }
+    }
+
+    /**
+     * Get data from cache if available and not expired
+     * @param {string} key - Cache key
+     * @returns {any|null} Cached data or null if not found/expired
+     */
+    getCacheData(key) {
+        try {
+            const cached = this.dataCache.get(key);
+            if (cached && (Date.now() - cached.timestamp) < cached.timeout) {
+                this.performanceMetrics.cacheHits++;
+                console.log(`Cache hit for key: ${key}`);
+                return cached.data;
+            }
+
+            // Remove expired cache entry
+            if (cached) {
+                this.dataCache.delete(key);
+                console.log(`Cache expired for key: ${key}`);
+            }
+
+            this.performanceMetrics.cacheMisses++;
+            return null;
+        } catch (error) {
+            console.error('Error getting cache data:', error);
+            this.performanceMetrics.cacheMisses++;
+            return null;
+        }
+    }
+
+    /**
+     * Clear specific cache entry
+     * @param {string} key - Cache key to clear
+     */
+    clearCacheData(key) {
+        try {
+            this.dataCache.delete(key);
+            console.log(`Cache cleared for key: ${key}`);
+        } catch (error) {
+            console.error('Error clearing cache data:', error);
+        }
+    }
+
+    /**
+     * Clear all cached data
+     */
+    clearAllCacheData() {
+        try {
+            this.dataCache.clear();
+            console.log('All cache data cleared');
+        } catch (error) {
+            console.error('Error clearing all cache data:', error);
+        }
+    }
+
+    /**
+     * Get cache statistics
+     * @returns {object} Cache statistics
+     */
+    getCacheStatistics() {
+        return {
+            cacheSize: this.dataCache.size,
+            cacheHits: this.performanceMetrics.cacheHits,
+            cacheMisses: this.performanceMetrics.cacheMisses,
+            hitRate: this.performanceMetrics.cacheHits / (this.performanceMetrics.cacheHits + this.performanceMetrics.cacheMisses) || 0,
+            apiCalls: this.performanceMetrics.apiCalls
+        };
+    }
+
+    /**
+     * Preload and cache essential data
+     */
+    async preloadEssentialData() {
+        try {
+            console.log('Preloading essential data...');
+            const startTime = performance.now();
+
+            // Load data in parallel for better performance
+            const promises = [
+                this.loadTestsData(),
+                this.loadCategoriesForFilter(),
+                this.loadMainCategoriesData(),
+                this.loadOwnersData()
+            ];
+
+            await Promise.allSettled(promises);
+
+            const endTime = performance.now();
+            console.log(`Essential data preloaded in ${(endTime - startTime).toFixed(2)}ms`);
+        } catch (error) {
+            console.error('Error preloading essential data:', error);
+        }
+    }
+
+    /**
+     * Get performance metrics
+     * @returns {object} Performance metrics
+     */
+    getPerformanceMetrics() {
+        const filterOps = this.performanceMetrics.filterOperations;
+        const avgFilterTime = filterOps.length > 0
+            ? filterOps.reduce((sum, op) => sum + op.duration, 0) / filterOps.length
+            : 0;
+
+        return {
+            cache: this.getCacheStatistics(),
+            filtering: {
+                totalOperations: filterOps.length,
+                averageTime: avgFilterTime,
+                slowOperations: filterOps.filter(op => op.duration > 500).length,
+                recentOperations: filterOps.slice(-5)
+            },
+            memory: {
+                rangeCacheSize: this.rangeCache.size,
+                dataCacheSize: this.dataCache.size
+            }
+        };
+    }
+
+    /**
+     * Optimize performance by cleaning up caches
+     */
+    optimizePerformance() {
+        try {
+            console.log('Optimizing performance...');
+
+            // Clean up expired cache entries
+            this.cleanupExpiredCache();
+
+            // Limit range cache size
+            if (this.rangeCache.size > 1000) {
+                const keysToDelete = Array.from(this.rangeCache.keys()).slice(0, 200);
+                keysToDelete.forEach(key => this.rangeCache.delete(key));
+                console.log(`Cleaned up ${keysToDelete.length} range cache entries`);
+            }
+
+            // Clean up old performance metrics
+            if (this.performanceMetrics.filterOperations.length > 50) {
+                this.performanceMetrics.filterOperations.splice(0, 25);
+                console.log('Cleaned up old performance metrics');
+            }
+
+            console.log('Performance optimization completed');
+        } catch (error) {
+            console.error('Error during performance optimization:', error);
+        }
+    }
+
+    /**
+     * Clean up expired cache entries
+     */
+    cleanupExpiredCache() {
+        try {
+            let cleanedCount = 0;
+            const now = Date.now();
+
+            for (const [key, cached] of this.dataCache.entries()) {
+                if ((now - cached.timestamp) >= cached.timeout) {
+                    this.dataCache.delete(key);
+                    cleanedCount++;
+                }
+            }
+
+            if (cleanedCount > 0) {
+                console.log(`Cleaned up ${cleanedCount} expired cache entries`);
+            }
+        } catch (error) {
+            console.error('Error cleaning up expired cache:', error);
+        }
+    }
+
+    /**
+     * Monitor and log performance issues
+     */
+    monitorPerformance() {
+        try {
+            const metrics = this.getPerformanceMetrics();
+
+            // Log warnings for performance issues
+            if (metrics.filtering.averageTime > 300) {
+                console.warn(`Average filter time (${metrics.filtering.averageTime.toFixed(2)}ms) exceeds 300ms target`);
+            }
+
+            if (metrics.cache.hitRate < 0.7) {
+                console.warn(`Cache hit rate (${(metrics.cache.hitRate * 100).toFixed(1)}%) is below 70%`);
+            }
+
+            if (metrics.memory.dataCacheSize > 50) {
+                console.warn(`Data cache size (${metrics.memory.dataCacheSize}) is getting large`);
+            }
+
+            // Auto-optimize if needed
+            if (metrics.memory.dataCacheSize > 100 || metrics.memory.rangeCacheSize > 2000) {
+                console.log('Auto-optimizing performance due to large cache sizes');
+                this.optimizePerformance();
+            }
+        } catch (error) {
+            console.error('Error monitoring performance:', error);
+        }
+    }
+
+    /**
      * Handle category selection change in a test row
      * @param {HTMLElement} categorySelect - The category select element
      * @param {jQuery} $row - The test row jQuery object
      */
     onRowCategoryChange(categorySelect, $row) {
         try {
-            const selectedCategoryId = $(categorySelect).val();
-            const $selectedOption = $(categorySelect).find('option:selected');
+            // Validate input parameters
+            if (!categorySelect || !$row || $row.length === 0) {
+                console.error('Invalid parameters passed to onRowCategoryChange');
+                return;
+            }
+
+            const $categorySelect = $(categorySelect);
+            const selectedCategoryId = $categorySelect.val();
+            const $selectedOption = $categorySelect.find('option:selected');
             const mainCategoryId = $selectedOption.data('main-category');
 
-            //console.log('Row category changed to:', selectedCategoryId, 'Main category:', mainCategoryId);
+            console.log('Row category changed to:', selectedCategoryId, 'Main category:', mainCategoryId);
 
             // Set the main category ID in the hidden field
             $row.find('.test-main-category-id').val(mainCategoryId || '');
 
-            // Update the test dropdown for this row based on selected category
+            // Get the test dropdown for this row
             const $testSelect = $row.find('.test-select');
+            if ($testSelect.length === 0) {
+                console.error('Test select dropdown not found in row');
+                return;
+            }
+
+            // Filter tests based on selected category
             const filteredTests = this.filterTestsByCategory(selectedCategoryId);
+            console.log(`Filtered ${filteredTests.length} tests for category ${selectedCategoryId}`);
 
-            // Update test dropdown options
-            this.updateTestDropdownOptions($testSelect, filteredTests);
+            // Store current test selection before updating options
+            const currentTestId = $testSelect.val();
 
-            // Clear test selection and related fields when category changes
-            $testSelect.val('').trigger('change');
+            // Update test dropdown options with filtered tests
+            this.updateTestDropdownOptions($testSelect, filteredTests, null);
+
+            // Check if current test selection is still valid after filtering
+            const isCurrentTestStillValid = currentTestId && filteredTests.some(test => test.id == currentTestId);
+
+            if (!isCurrentTestStillValid && currentTestId) {
+                console.log(`Current test ${currentTestId} is not in the filtered category, clearing selection`);
+
+                // Clear test selection and related fields when category changes
+                $testSelect.val('').trigger('change');
+                this.clearTestRowFields($row);
+            } else if (isCurrentTestStillValid) {
+                console.log(`Current test ${currentTestId} is still valid for the selected category`);
+                // Keep the current selection but refresh the dropdown
+                $testSelect.val(currentTestId);
+
+                // Refresh Select2 if it's initialized
+                if ($testSelect.hasClass('select2-hidden-accessible')) {
+                    $testSelect.trigger('change.select2');
+                }
+            }
+
+            // Update test count display if available
+            this.updateFilteredTestCount();
+
+            console.log('Row category change handled successfully');
+        } catch (error) {
+            console.error('Error handling row category change:', error);
+            // Attempt recovery by showing all tests
+            try {
+                const $testSelect = $row.find('.test-select');
+                if ($testSelect.length > 0) {
+                    this.updateTestDropdownOptions($testSelect, this.testsData, null);
+                }
+            } catch (recoveryError) {
+                console.error('Error during category change recovery:', recoveryError);
+            }
+        }
+    }
+
+    /**
+     * Clear test row fields when test selection is cleared
+     * @param {jQuery} $row - The test row jQuery object
+     */
+    clearTestRowFields($row) {
+        try {
             $row.find('.test-result').val('');
             $row.find('.test-min').val('');
             $row.find('.test-max').val('');
@@ -2499,9 +3793,11 @@ class EntryManager {
             $row.find('.validation-indicator').text('').removeClass('text-success text-danger text-warning');
             $row.find('.test-result').removeClass('result-normal result-abnormal result-invalid result-empty');
 
-            //console.log('Row category change handled successfully');
+            // Remove range indicators
+            $row.find('.test-range-indicator').hide();
+            $row.find('.range-indicator').text('');
         } catch (error) {
-            //console.error('Error handling row category change:', error);
+            console.error('Error clearing test row fields:', error);
         }
     }
 
@@ -2924,6 +4220,181 @@ class EntryManager {
     }
 
     /**
+     * Reconcile test category data between entry data and current test data
+     * @param {Array} entryTests - Array of tests from entry data
+     * @returns {Array} Array of reconciled test data
+     */
+    reconcileTestCategoryData(entryTests) {
+        try {
+            console.log('Starting test category data reconciliation...');
+
+            const reconciledTests = entryTests.map((entryTest, index) => {
+                // Get current test data
+                const currentTest = this.getCurrentTestCategory(entryTest.test_id);
+
+                // Create reconciled test object
+                const reconciledTest = {
+                    ...entryTest, // Start with entry data
+                    category_conflict: false,
+                    data_source: 'entry',
+                    resolved_category_id: entryTest.category_id,
+                    resolved_category_name: entryTest.category_name
+                };
+
+                if (currentTest) {
+                    // Check for category conflicts
+                    const hasConflict = this.detectCategoryConflict(entryTest, currentTest);
+
+                    if (hasConflict) {
+                        console.warn(`Category conflict detected for test ${entryTest.test_id}:`, {
+                            entry_category: { id: entryTest.category_id, name: entryTest.category_name },
+                            current_category: { id: currentTest.category_id, name: currentTest.category_name }
+                        });
+
+                        // Resolve conflict by prioritizing current test data
+                        const resolution = this.resolveConflictingCategories(entryTest, currentTest);
+
+                        reconciledTest.category_conflict = true;
+                        reconciledTest.resolved_category_id = resolution.category_id;
+                        reconciledTest.resolved_category_name = resolution.category_name;
+                        reconciledTest.data_source = resolution.source;
+                        reconciledTest.conflict_resolution = resolution.reason;
+
+                        // Update the test data to use resolved values
+                        reconciledTest.category_id = resolution.category_id;
+                        reconciledTest.category_name = resolution.category_name;
+                    } else {
+                        // No conflict, but update with current data if entry data is missing
+                        if (!entryTest.category_id && currentTest.category_id) {
+                            reconciledTest.category_id = currentTest.category_id;
+                            reconciledTest.category_name = currentTest.category_name;
+                            reconciledTest.resolved_category_id = currentTest.category_id;
+                            reconciledTest.resolved_category_name = currentTest.category_name;
+                            reconciledTest.data_source = 'current';
+                        }
+                    }
+                } else {
+                    console.warn(`Current test data not found for test ID: ${entryTest.test_id}`);
+                    reconciledTest.data_source = 'entry_only';
+                }
+
+                return reconciledTest;
+            });
+
+            console.log('Test category data reconciliation completed');
+            return reconciledTests;
+        } catch (error) {
+            console.error('Error during test category data reconciliation:', error);
+            // Return original data as fallback
+            return entryTests;
+        }
+    }
+
+    /**
+     * Get current test category data for a specific test ID
+     * @param {number|string} testId - The test ID to look up
+     * @returns {object|null} Current test data or null if not found
+     */
+    getCurrentTestCategory(testId) {
+        try {
+            if (!testId || !this.testsData || !Array.isArray(this.testsData)) {
+                return null;
+            }
+
+            const currentTest = this.testsData.find(test => test.id == testId);
+
+            if (currentTest) {
+                return {
+                    test_id: currentTest.id,
+                    test_name: currentTest.name,
+                    category_id: currentTest.category_id,
+                    category_name: currentTest.category_name,
+                    main_category_id: currentTest.main_category_id,
+                    price: currentTest.price,
+                    unit: currentTest.unit,
+                    min: currentTest.min,
+                    max: currentTest.max
+                };
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error getting current test category:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Detect if there's a category conflict between entry and current test data
+     * @param {object} entryTest - Test data from entry
+     * @param {object} currentTest - Current test data
+     * @returns {boolean} True if conflict detected
+     */
+    detectCategoryConflict(entryTest, currentTest) {
+        try {
+            // No conflict if either doesn't have category data
+            if (!entryTest.category_id || !currentTest.category_id) {
+                return false;
+            }
+
+            // Convert to strings for comparison to handle type differences
+            const entryCategoryId = String(entryTest.category_id).trim();
+            const currentCategoryId = String(currentTest.category_id).trim();
+
+            // Conflict exists if category IDs are different
+            return entryCategoryId !== currentCategoryId;
+        } catch (error) {
+            console.error('Error detecting category conflict:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Resolve conflicting categories between entry and current test data
+     * @param {object} entryTest - Test data from entry
+     * @param {object} currentTest - Current test data
+     * @returns {object} Resolution with category_id, category_name, source, and reason
+     */
+    resolveConflictingCategories(entryTest, currentTest) {
+        try {
+            // Priority: Current test data over entry data
+            // This ensures we show the most up-to-date category information
+
+            if (currentTest.category_id) {
+                return {
+                    category_id: currentTest.category_id,
+                    category_name: currentTest.category_name,
+                    source: 'current',
+                    reason: 'Prioritized current test category over entry category'
+                };
+            } else if (entryTest.category_id) {
+                return {
+                    category_id: entryTest.category_id,
+                    category_name: entryTest.category_name,
+                    source: 'entry',
+                    reason: 'Used entry category as current test has no category'
+                };
+            } else {
+                return {
+                    category_id: null,
+                    category_name: null,
+                    source: 'none',
+                    reason: 'No category data available in either source'
+                };
+            }
+        } catch (error) {
+            console.error('Error resolving conflicting categories:', error);
+            // Fallback to entry data
+            return {
+                category_id: entryTest.category_id,
+                category_name: entryTest.category_name,
+                source: 'entry_fallback',
+                reason: 'Error occurred, used entry data as fallback'
+            };
+        }
+    }
+
+    /**
      * View entry details
      */
     async viewEntry(entryId) {
@@ -3240,55 +4711,35 @@ class EntryManager {
             toastr.warning('Tests data could not be loaded. Test selection may not work properly.');
         }
 
-        // Clear and populate tests
+        // Clear and populate tests with data reconciliation
         $('#testsContainer').empty();
         this.testRowCounter = 0;
 
         if (entry.tests && entry.tests.length > 0) {
-            console.log('Populating', entry.tests.length, 'tests:', entry.tests);
-            console.log('Available tests data:', this.testsData.length, 'tests');
+            console.log('Populating', entry.tests.length, 'tests with data reconciliation');
 
-            // Debug: show what test IDs we're looking for vs what we have
-            const entryTestIds = entry.tests.map(t => t.test_id);
-            const availableTestIds = this.testsData.map(t => t.id);
-            console.log('Entry test IDs:', entryTestIds);
-            console.log('Available test IDs:', availableTestIds);
-            console.log('Missing test IDs:', entryTestIds.filter(id => !availableTestIds.includes(parseInt(id))));
+            // Reconcile entry test data with current test data
+            const reconciledTests = this.reconcileTestCategoryData(entry.tests);
 
-            // Debug each test in detail
-            entry.tests.forEach((test, index) => {
-                console.log(`Entry Test ${index + 1} Details:`, {
-                    test_id: test.test_id,
-                    test_id_type: typeof test.test_id,
-                    test_name: test.test_name,
-                    category_name: test.category_name,
-                    category_id: test.category_id,
-                    min: test.min,
-                    max: test.max,
-                    unit: test.unit,
-                    result_value: test.result_value,
-                    price: test.price,
-                    all_keys: Object.keys(test)
+            // Log reconciliation results
+            console.log('Data reconciliation completed:', {
+                original_tests: entry.tests.length,
+                reconciled_tests: reconciledTests.length,
+                conflicts_detected: reconciledTests.filter(t => t.category_conflict).length
+            });
+
+            // Create test rows with reconciled data
+            reconciledTests.forEach((reconciledTest, index) => {
+                console.log(`Creating test row ${index + 1} with reconciled data:`, {
+                    test_id: reconciledTest.test_id,
+                    test_name: reconciledTest.test_name,
+                    resolved_category_id: reconciledTest.resolved_category_id,
+                    resolved_category_name: reconciledTest.resolved_category_name,
+                    category_conflict: reconciledTest.category_conflict,
+                    data_source: reconciledTest.data_source
                 });
 
-                // Check if this test has unique data
-                if (index > 0) {
-                    const prevTest = entry.tests[index - 1];
-                    const isDuplicate = (
-                        test.category_name === prevTest.category_name &&
-                        test.min === prevTest.min &&
-                        test.max === prevTest.max &&
-                        test.unit === prevTest.unit
-                    );
-                    if (isDuplicate) {
-                        console.warn(`Test ${index + 1} has duplicate data with previous test!`);
-                        console.warn('Current test:', test);
-                        console.warn('Previous test:', prevTest);
-                    }
-                }
-
-                console.log(`Creating test row ${index + 1} with category_id:`, test.category_id);
-                this.addTestRow(test);
+                this.addTestRow(reconciledTest);
             });
         } else {
             console.log('No tests found, adding empty test row');
@@ -3537,6 +4988,12 @@ $(document).ready(function () {
         window.debugEditMode = () => entryManager.debugEditMode();
         window.debugSpecificEntry = (entryId) => entryManager.debugSpecificEntry(entryId);
 
+        // Add performance monitoring functions
+        window.getPerformanceMetrics = () => entryManager.getPerformanceMetrics();
+        window.getCacheStatistics = () => entryManager.getCacheStatistics();
+        window.optimizePerformance = () => entryManager.optimizePerformance();
+        window.clearAllCache = () => entryManager.clearAllCacheData();
+
         // console.log('Entry Manager initialized successfully');
         console.log('Entry Manager functions available:');
         console.log('- debugTestData() - Debug test data and check for duplicates');
@@ -3545,6 +5002,10 @@ $(document).ready(function () {
         console.log('- debugSpecificEntry(entryId) - Debug specific entry data and categories');
         console.log('- testDemographicRanges() - Run complete workflow validation');
         console.log('- testRangeCalculation(age, gender, testId) - Test specific range calculation');
+        console.log('- getPerformanceMetrics() - Get performance and cache statistics');
+        console.log('- getCacheStatistics() - Get detailed cache statistics');
+        console.log('- optimizePerformance() - Manually optimize performance and clean caches');
+        console.log('- clearAllCache() - Clear all cached data');
     } catch (error) {
         // console.error('Error initializing Entry Manager:', error);
         // console.error('Error stack:', error.stack);
