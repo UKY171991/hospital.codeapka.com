@@ -693,8 +693,21 @@ try {
                     $test['total_price'] = $test['price'] - $test['discount_amount'];
                     $test['result_value'] = $test['result_value'] ?? '';
                     $test['status'] = $test['status'] ?? 'pending';
-                    $test['test_id'] = $test['test_id'] ?? '0' ;
-                    $test['category_id'] = $test['category_id'] ?? '0';
+                    $test['test_id'] = $test['test_id'] ?? '0';
+                    
+                    // Use entry_tests category if set and not 0, otherwise use test's category
+                    $test['category_id'] = ($test['entry_category_id'] && $test['entry_category_id'] != 0) 
+                        ? $test['entry_category_id'] 
+                        : ($test['test_category_id'] ?? 0);
+                    
+                    $test['main_category_id'] = ($test['entry_main_category_id'] && $test['entry_main_category_id'] != 0) 
+                        ? $test['entry_main_category_id'] 
+                        : 0;
+                    
+                    // Use the appropriate category name
+                    $test['category_name'] = ($test['entry_category_name'] && $test['entry_category_id'] != 0) 
+                        ? $test['entry_category_name'] 
+                        : ($test['category_name'] ?? '');
 
                     
                     

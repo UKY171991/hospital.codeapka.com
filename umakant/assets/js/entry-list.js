@@ -4820,13 +4820,14 @@ class EntryManager {
                         reconciledTest.category_id = resolution.category_id;
                         reconciledTest.category_name = resolution.category_name;
                     } else {
-                        // No conflict, but update with current data if entry data is missing
-                        if (!entryTest.category_id && currentTest.category_id) {
+                        // No conflict, but update with current data if entry data is missing or 0
+                        if ((!entryTest.category_id || entryTest.category_id == 0) && currentTest.category_id) {
                             reconciledTest.category_id = currentTest.category_id;
                             reconciledTest.category_name = currentTest.category_name;
                             reconciledTest.resolved_category_id = currentTest.category_id;
                             reconciledTest.resolved_category_name = currentTest.category_name;
                             reconciledTest.data_source = 'current';
+                            console.log(`Using current test category for test ${entryTest.test_id}: ${currentTest.category_name} (ID: ${currentTest.category_id})`);
                         }
                     }
                 } else {
@@ -4888,8 +4889,8 @@ class EntryManager {
      */
     detectCategoryConflict(entryTest, currentTest) {
         try {
-            // No conflict if either doesn't have category data
-            if (!entryTest.category_id || !currentTest.category_id) {
+            // No conflict if either doesn't have category data (treat 0 as no category)
+            if (!entryTest.category_id || entryTest.category_id == 0 || !currentTest.category_id || currentTest.category_id == 0) {
                 return false;
             }
 
