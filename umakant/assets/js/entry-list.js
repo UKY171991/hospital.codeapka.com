@@ -700,8 +700,8 @@ class EntryManager {
 
                 // Debug: show first few tests
                 if (this.testsData.length > 0) {
-                    //console.log('Sample tests:', this.testsData.slice(0, 3));
-                    //console.log('Test data structure:', Object.keys(this.testsData[0]));
+                    console.log('Sample tests:', this.testsData.slice(0, 5).map(t => ({id: t.id, name: t.name, category_id: t.category_id, category_name: t.category_name})));
+                    console.log('Test data structure:', Object.keys(this.testsData[0]));
                 } else {
                     console.warn('Tests data is empty after validation');
                     this.handleEmptyTestData();
@@ -2552,6 +2552,7 @@ class EntryManager {
                 const $categorySelect = $row.find('.test-category-select');
                 if (foundTest.category_id) {
                     console.log('Setting category for test:', foundTest.category_id, 'Test name:', foundTest.name);
+                    console.log('Test data:', {id: foundTest.id, name: foundTest.name, category_id: foundTest.category_id, category_name: foundTest.category_name});
 
                     // Ensure category dropdown is populated first
                     if (this.categoriesData.length === 0) {
@@ -2562,19 +2563,23 @@ class EntryManager {
                     // Re-populate the category dropdown for this row to ensure it has the latest data
                     this.populateRowCategoryDropdown($categorySelect);
 
-                    // Wait a moment for the dropdown to be populated
-                    setTimeout(() => {
-                        // Set the category value
-                        $categorySelect.val(foundTest.category_id);
+                    // Set the category value immediately
+                    $categorySelect.val(foundTest.category_id);
 
-                        // Trigger Select2 update if it's initialized
-                        if ($categorySelect.hasClass('select2-hidden-accessible')) {
-                            $categorySelect.trigger('change.select2');
-                        }
+                    // Force Select2 to update if it's initialized
+                    if ($categorySelect.hasClass('select2-hidden-accessible')) {
+                        // Destroy and reinitialize Select2 to ensure it shows the correct value
+                        $categorySelect.select2('destroy');
+                        $categorySelect.select2({
+                            theme: 'bootstrap4',
+                            width: '100%',
+                            placeholder: 'Select Category'
+                        });
+                    }
 
-                        console.log('Category set to:', foundTest.category_id, 'for test:', foundTest.name);
-                        console.log('Available options in dropdown:', $categorySelect.find('option').map(function() { return $(this).val() + ':' + $(this).text(); }).get());
-                    }, 100);
+                    console.log('Category set to:', foundTest.category_id, 'for test:', foundTest.name);
+                    console.log('Dropdown value after setting:', $categorySelect.val());
+                    console.log('Available options in dropdown:', $categorySelect.find('option').map(function() { return $(this).val() + ':' + $(this).text(); }).get());
 
                     // Also set the main category ID
                     const selectedCategory = this.categoriesData.find(cat => cat.id == foundTest.category_id);
