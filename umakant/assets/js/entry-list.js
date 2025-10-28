@@ -5177,6 +5177,7 @@ class EntryManager {
 
             const formData = new FormData($('#entryForm')[0]);
             formData.append('action', 'save'); // Use 'save' action as expected by API
+            formData.append('secret_key', 'hospital-api-secret-2024'); // Add authentication
 
             // Ensure owner_added_by is set (it should be in the form already)
             if (!formData.get('owner_added_by')) {
