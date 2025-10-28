@@ -112,6 +112,39 @@ class EntryManager {
     }
 
     /**
+     * Debug function to check edit mode state (can be called from browser console)
+     */
+    debugEditMode() {
+        console.log('=== EDIT MODE DEBUG ===');
+        console.log('Current edit ID:', this.currentEditId);
+        
+        // Check test rows in the form
+        const $testRows = $('.test-row');
+        console.log('Test rows found:', $testRows.length);
+        
+        $testRows.each((index, row) => {
+            const $row = $(row);
+            const rowIndex = $row.data('row-index');
+            const testId = $row.find('.test-select').val();
+            const testName = $row.find('.test-select option:selected').text();
+            const categoryId = $row.find('.test-category-select').val();
+            const categoryName = $row.find('.test-category-select option:selected').text();
+            const mainCategoryId = $row.find('.test-main-category-id').val();
+            
+            console.log(`Row ${index} (index: ${rowIndex}):`, {
+                testId: testId,
+                testName: testName,
+                categoryId: categoryId,
+                categoryName: categoryName,
+                mainCategoryId: mainCategoryId,
+                categoryOptions: $row.find('.test-category-select option').length
+            });
+        });
+        
+        console.log('=== END EDIT MODE DEBUG ===');
+    }
+
+    /**
      * Initialize the Entry Manager
      */
     init() {
@@ -753,8 +786,8 @@ class EntryManager {
                 // Clear related fields in the row
                 const $row = $select.closest('.test-row');
                 if ($row.length > 0) {
-                    $row.find('.test-category').val('');
-                    $row.find('.test-category-id').val('');
+                    $row.find('.test-category-select').val('');
+                    $row.find('.test-main-category-id').val('');
                     $row.find('.test-min').val('');
                     $row.find('.test-max').val('');
                     $row.find('.test-unit').val('');
@@ -1166,8 +1199,24 @@ class EntryManager {
                     });
 
                     // Populate test details with demographic-appropriate ranges
-                    $newRow.find('.test-category').val(categoryName);
-                    $newRow.find('.test-category-id').val(categoryId);
+                    // Set the category dropdown to the correct category
+                    if (categoryId) {
+                        console.log('Setting category dropdown to:', categoryId, 'for test:', testData.test_id);
+                        $categorySelect.val(categoryId);
+                        
+                        // Trigger Select2 update for category dropdown
+                        if ($categorySelect.hasClass('select2-hidden-accessible')) {
+                            $categorySelect.trigger('change.select2');
+                        }
+                        
+                        // Set the main category ID if available
+                        const selectedCategory = this.categoriesData.find(cat => cat.id == categoryId);
+                        if (selectedCategory && selectedCategory.main_category_id) {
+                            $newRow.find('.test-main-category-id').val(selectedCategory.main_category_id);
+                            console.log('Set main category ID:', selectedCategory.main_category_id, 'for category:', selectedCategory.name);
+                        }
+                    }
+                    
                     $newRow.find('.test-price').val(price);
                     $newRow.find('.test-result').val(testData.result_value || '');
 
@@ -1196,8 +1245,20 @@ class EntryManager {
                         foundTestAlt
                     );
 
-                    $newRow.find('.test-category').val(foundTestAlt.category_name || '');
-                    $newRow.find('.test-category-id').val(foundTestAlt.category_id || '');
+                    // Set the category dropdown for alternative match
+                    if (foundTestAlt.category_id) {
+                        $categorySelect.val(foundTestAlt.category_id);
+                        if ($categorySelect.hasClass('select2-hidden-accessible')) {
+                            $categorySelect.trigger('change.select2');
+                        }
+                        
+                        // Set the main category ID
+                        const selectedCategory = this.categoriesData.find(cat => cat.id == foundTestAlt.category_id);
+                        if (selectedCategory && selectedCategory.main_category_id) {
+                            $newRow.find('.test-main-category-id').val(selectedCategory.main_category_id);
+                        }
+                    }
+                    
                     $newRow.find('.test-price').val(foundTestAlt.price || 0);
                     $newRow.find('.test-result').val(testData.result_value || '');
                     this.updateRangeDisplay($newRow, rangeData);
@@ -1262,8 +1323,20 @@ class EntryManager {
                         price: price
                     });
 
-                    $newRow.find('.test-category').val(categoryName);
-                    $newRow.find('.test-category-id').val(testData.category_id || '');
+                    // Set category dropdown for fallback case
+                    if (testData.category_id) {
+                        $categorySelect.val(testData.category_id);
+                        if ($categorySelect.hasClass('select2-hidden-accessible')) {
+                            $categorySelect.trigger('change.select2');
+                        }
+                        
+                        // Set the main category ID
+                        const selectedCategory = this.categoriesData.find(cat => cat.id == testData.category_id);
+                        if (selectedCategory && selectedCategory.main_category_id) {
+                            $newRow.find('.test-main-category-id').val(selectedCategory.main_category_id);
+                        }
+                    }
+                    
                     $newRow.find('.test-price').val(price);
                     $newRow.find('.test-result').val(testData.result_value || '');
 
@@ -1303,15 +1376,15 @@ class EntryManager {
 
         if (testId) {
             // Check if this row already has data (from edit mode) - if so, don't overwrite
-            const existingCategory = $row.find('.test-category').val();
+            const existingCategoryId = $row.find('.test-category-select').val();
             const existingUnit = $row.find('.test-unit').val();
             const existingMin = $row.find('.test-min').val();
             const existingMax = $row.find('.test-max').val();
 
             // If the row already has complete data, don't overwrite it (edit mode)
-            if (existingCategory && existingUnit && existingMin && existingMax) {
+            if (existingCategoryId && existingUnit && existingMin && existingMax) {
                 console.log('Row already has complete data, not overwriting:', {
-                    category: existingCategory,
+                    categoryId: existingCategoryId,
                     unit: existingUnit,
                     min: existingMin,
                     max: existingMax
@@ -1384,7 +1457,8 @@ class EntryManager {
             } else {
                 // Fallback to data attributes if test not found in testsData
                 console.warn('Test not found in testsData for ID:', testId, 'using data attributes');
-                $row.find('.test-category').val(selectedOption.data('category') || '');
+                // Note: We should set the category dropdown properly here too, but for now just log
+                console.log('Category from data attribute:', selectedOption.data('category'));
                 $row.find('.test-unit').val(selectedOption.data('unit') || '');
                 $row.find('.test-min').val(selectedOption.data('min') || '');
                 $row.find('.test-max').val(selectedOption.data('max') || '');
@@ -1392,7 +1466,8 @@ class EntryManager {
             }
         } else {
             // Clear test details including range indicator
-            $row.find('.test-category, .test-unit, .test-min, .test-max').val('');
+            $row.find('.test-category-select, .test-unit, .test-min, .test-max').val('');
+            $row.find('.test-main-category-id').val('');
             $row.find('.test-price').val(0);
             $row.find('.range-type-indicator').remove();
         }
@@ -3032,6 +3107,13 @@ class EntryManager {
         await this.loadTestsData();
         console.log('Tests data loaded:', this.testsData.length, 'tests');
         
+        // Also ensure categories are loaded for proper category dropdown population
+        console.log('Ensuring categories are loaded...');
+        if (this.categoriesData.length === 0) {
+            await this.loadCategoriesForFilter();
+        }
+        console.log('Categories data loaded:', this.categoriesData.length, 'categories');
+        
         // Debug: Log test IDs and names for troubleshooting
         if (this.testsData.length > 0) {
             console.log('Available tests:', this.testsData.map(t => ({ id: t.id, name: t.name, id_type: typeof t.id })));
@@ -3095,6 +3177,7 @@ class EntryManager {
                     }
                 }
 
+                console.log(`Creating test row ${index + 1} with category_id:`, test.category_id);
                 this.addTestRow(test);
             });
         } else {
@@ -3341,11 +3424,13 @@ $(document).ready(function () {
         };
         window.debugTestData = () => entryManager.debugTestData();
         window.debugCategoryData = () => entryManager.debugCategoryData();
+        window.debugEditMode = () => entryManager.debugEditMode();
         
         // console.log('Entry Manager initialized successfully');
         console.log('Entry Manager functions available:');
         console.log('- debugTestData() - Debug test data and check for duplicates');
         console.log('- debugCategoryData() - Debug category data and form state');
+        console.log('- debugEditMode() - Debug edit mode and test row state');
         console.log('- testDemographicRanges() - Run complete workflow validation');
         console.log('- testRangeCalculation(age, gender, testId) - Test specific range calculation');
     } catch (error) {
