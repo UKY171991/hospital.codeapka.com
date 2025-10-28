@@ -933,15 +933,15 @@ class EntryManager {
 
         const rowHtml = `
             <div class="test-row row mb-2" data-row-index="${rowIndex}">
+                <div class="col-md-2">
+                    <input type="text" class="form-control test-category" name="tests[${rowIndex}][category_name]" placeholder="Category" readonly>
+                    <input type="hidden" name="tests[${rowIndex}][category_id]" class="test-category-id">
+                </div>
                 <div class="col-md-3">
                     <select class="form-control test-select select2" name="tests[${rowIndex}][test_id]" required>
                         <option value="">Select Test</option>
                         ${testOptions}
                     </select>
-                </div>
-                <div class="col-md-2">
-                    <input type="text" class="form-control test-category" name="tests[${rowIndex}][category_name]" placeholder="Category" readonly>
-                    <input type="hidden" name="tests[${rowIndex}][category_id]" class="test-category-id">
                 </div>
                 <div class="col-md-2">
                     <input type="text" class="form-control test-result" name="tests[${rowIndex}][result_value]" placeholder="Result">

@@ -354,11 +354,11 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     <div class="form-group">
                         <label>Tests <span class="text-danger">*</span></label>
                         <div class="row mb-2">
-                            <div class="col-md-3">
-                                <small class="text-muted">Test Name</small>
-                            </div>
                             <div class="col-md-2">
                                 <small class="text-muted">Category</small>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Test Name</small>
                             </div>
                             <div class="col-md-2">
                                 <small class="text-muted">Result</small>
