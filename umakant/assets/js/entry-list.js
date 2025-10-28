@@ -2114,41 +2114,48 @@ class EntryManager {
             // Clear existing options
             $categorySelect.empty().append('<option value="">Select Category</option>');
 
-            // Add main categories as optgroups
+            // Group categories by main category
             if (this.mainCategoriesData && this.mainCategoriesData.length > 0) {
                 this.mainCategoriesData.forEach(mainCategory => {
                     if (mainCategory && mainCategory.id && mainCategory.name) {
-                        // Add main category as optgroup
-                        const optgroup = `<optgroup label="${mainCategory.name}">`;
-                        $categorySelect.append(optgroup);
+                        // Find test categories under this main category
+                        const subCategories = this.categoriesData.filter(cat => 
+                            cat && cat.main_category_id == mainCategory.id
+                        );
 
-                        // Add test categories under this main category
-                        if (this.categoriesData && this.categoriesData.length > 0) {
-                            this.categoriesData.forEach(category => {
-                                if (category && category.main_category_id == mainCategory.id) {
-                                    const option = `<option value="${category.id}" data-main-category="${mainCategory.id}">${category.name}</option>`;
-                                    $categorySelect.append(option);
+                        if (subCategories.length > 0) {
+                            // Create optgroup for main category
+                            const $optgroup = $(`<optgroup label="${this.escapeHtml(mainCategory.name)}"></optgroup>`);
+                            
+                            // Add test categories under this main category
+                            subCategories.forEach(category => {
+                                if (category && category.id && category.name) {
+                                    const $option = $(`<option value="${category.id}" data-main-category="${mainCategory.id}">${this.escapeHtml(category.name)}</option>`);
+                                    $optgroup.append($option);
                                 }
                             });
+                            
+                            $categorySelect.append($optgroup);
                         }
-
-                        $categorySelect.append('</optgroup>');
                     }
                 });
             }
 
             // Add categories without main category (if any)
             if (this.categoriesData && this.categoriesData.length > 0) {
-                const orphanCategories = this.categoriesData.filter(cat => !cat.main_category_id);
+                const orphanCategories = this.categoriesData.filter(cat => 
+                    !cat.main_category_id || cat.main_category_id === null
+                );
+                
                 if (orphanCategories.length > 0) {
-                    $categorySelect.append('<optgroup label="Other Categories">');
+                    const $optgroup = $(`<optgroup label="Other Categories"></optgroup>`);
                     orphanCategories.forEach(category => {
                         if (category && category.id && category.name) {
-                            const option = `<option value="${category.id}">${category.name}</option>`;
-                            $categorySelect.append(option);
+                            const $option = $(`<option value="${category.id}">${this.escapeHtml(category.name)}</option>`);
+                            $optgroup.append($option);
                         }
                     });
-                    $categorySelect.append('</optgroup>');
+                    $categorySelect.append($optgroup);
                 }
             }
 
@@ -2156,6 +2163,18 @@ class EntryManager {
         } catch (error) {
             //console.error('Error populating row category dropdown:', error);
         }
+    }
+
+    /**
+     * Escape HTML to prevent XSS
+     * @param {string} text - Text to escape
+     * @returns {string} Escaped text
+     */
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     /**
