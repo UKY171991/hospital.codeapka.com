@@ -281,7 +281,7 @@ class EntryManager {
                     type: 'GET',
                     data: { action: 'list' },
                     dataSrc: function (json) {
-                        ////console.log('DataTable received data:', json);
+                        //console.log('DataTable received data:', json);
                         if (json && json.success) {
                             return json.data || [];
                         } else {
@@ -548,7 +548,7 @@ class EntryManager {
                 }
             });
 
-            ////console.log('DataTable initialized successfully');
+            //console.log('DataTable initialized successfully');
         } catch (error) {
             //console.error('Error initializing DataTable:', error);
             // Show user-friendly error message
