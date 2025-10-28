@@ -957,6 +957,8 @@ try {
                         $testData = [
                             'entry_id' => $savedEntryId,
                             'test_id' => $testId,
+                            'category_id' => $test['category_id'] ?? null,
+                            'main_category_id' => $test['main_category_id'] ?? null,
                             'result_value' => $test['result_value'] ?? null,
                             'unit' => $test['unit'] ?? null,
                             'remarks' => $test['remarks'] ?? null,

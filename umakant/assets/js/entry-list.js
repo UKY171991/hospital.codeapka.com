@@ -968,6 +968,7 @@ class EntryManager {
                         <option value="">Select Category</option>
                         <!-- Categories will be populated via JavaScript -->
                     </select>
+                    <input type="hidden" name="tests[${rowIndex}][main_category_id]" class="test-main-category-id">
                 </div>
                 <div class="col-md-3">
                     <select class="form-control test-select select2" name="tests[${rowIndex}][test_id]" required>
@@ -1264,8 +1265,18 @@ class EntryManager {
                 const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, foundTest);
 
                 // Populate test details from testsData
-                $row.find('.test-category').val(foundTest.category_name || '');
-                $row.find('.test-category-id').val(foundTest.category_id || '');
+                // Set the category dropdown to match the test's category
+                const $categorySelect = $row.find('.test-category-select');
+                if (foundTest.category_id) {
+                    $categorySelect.val(foundTest.category_id).trigger('change.select2');
+                    
+                    // Also set the main category ID
+                    const selectedCategory = this.categoriesData.find(cat => cat.id == foundTest.category_id);
+                    if (selectedCategory && selectedCategory.main_category_id) {
+                        $row.find('.test-main-category-id').val(selectedCategory.main_category_id);
+                    }
+                }
+                
                 $row.find('.test-price').val(foundTest.price || 0);
 
                 // Use calculated demographic-appropriate ranges
@@ -2185,7 +2196,13 @@ class EntryManager {
     onRowCategoryChange(categorySelect, $row) {
         try {
             const selectedCategoryId = $(categorySelect).val();
-            //console.log('Row category changed to:', selectedCategoryId);
+            const $selectedOption = $(categorySelect).find('option:selected');
+            const mainCategoryId = $selectedOption.data('main-category');
+            
+            //console.log('Row category changed to:', selectedCategoryId, 'Main category:', mainCategoryId);
+
+            // Set the main category ID in the hidden field
+            $row.find('.test-main-category-id').val(mainCategoryId || '');
 
             // Update the test dropdown for this row based on selected category
             const $testSelect = $row.find('.test-select');
