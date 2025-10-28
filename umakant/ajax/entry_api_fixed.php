@@ -643,6 +643,8 @@ try {
                 $testSql = "SELECT et.id as entry_test_id,
                                    et.entry_id,
                                    et.test_id,
+                                   et.category_id as entry_category_id,
+                                   et.main_category_id as entry_main_category_id,
                                    et.result_value,
                                    et.unit as et_unit,
                                    et.remarks,
@@ -653,7 +655,7 @@ try {
                                    et.created_at as et_created_at,
                                    t.id as test_table_id,
                                    t.name AS test_name, 
-                                   t.category_id,
+                                   t.category_id as test_category_id,
                                    t.unit as test_unit, 
                                    t.min, 
                                    t.max,
@@ -664,10 +666,14 @@ try {
                                    t.reference_range,
                                    t.price as test_default_price,
                                    c.id as category_table_id,
-                                   c.name AS category_name
+                                   c.name AS category_name,
+                                   ec.name AS entry_category_name,
+                                   mc.name AS entry_main_category_name
                             FROM entry_tests et
                             LEFT JOIN tests t ON et.test_id = t.id
                             LEFT JOIN categories c ON t.category_id = c.id
+                            LEFT JOIN categories ec ON et.category_id = ec.id
+                            LEFT JOIN main_test_categories mc ON et.main_category_id = mc.id
                             WHERE et.entry_id = ?
                             ORDER BY et.id, t.name";
                 
