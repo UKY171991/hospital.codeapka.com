@@ -156,14 +156,14 @@ class EntryManager {
             const categoryName = $row.find('.test-category-select option:selected').text();
             const mainCategoryId = $row.find('.test-main-category-id').val();
 
-            //console.log(`Row ${index} (index: ${rowIndex}):`, {
+            /*console.log(`Row ${index} (index: ${rowIndex}):`, {
                 testId: testId,
                 testName: testName,
                 categoryId: categoryId,
                 categoryName: categoryName,
                 mainCategoryId: mainCategoryId,
                 categoryOptions: $row.find('.test-category-select option').length
-            });
+            });*/
         });
 
         //console.log('=== END EDIT MODE DEBUG ===');
@@ -191,23 +191,23 @@ class EntryManager {
                 if (response.data.tests) {
                     //console.log('Tests in entry:', response.data.tests.length);
                     response.data.tests.forEach((test, index) => {
-                        //console.log(`Test ${index + 1}:`, {
+                        /*console.log(`Test ${index + 1}:`, {
                             test_id: test.test_id,
                             test_name: test.test_name,
                             category_id: test.category_id,
                             category_name: test.category_name,
                             entry_category_id: test.entry_category_id || 'not set'
-                        });
+                        });*/
 
                         // Check if this test exists in our testsData
                         const foundInTestsData = this.testsData.find(t => t.id == test.test_id);
                         if (foundInTestsData) {
-                            //console.log(`Test ${index + 1} found in testsData:`, {
+                            /*console.log(`Test ${index + 1} found in testsData:`, {
                                 id: foundInTestsData.id,
                                 name: foundInTestsData.name,
                                 category_id: foundInTestsData.category_id,
                                 category_name: foundInTestsData.category_name
-                            });
+                            });*/
                         } else {
                             console.warn(`Test ${index + 1} NOT found in testsData!`);
                         }
@@ -747,11 +747,11 @@ class EntryManager {
             // Show detailed info about duplicates
             duplicates.forEach(dupName => {
                 const duplicateTests = this.testsData.filter(t => t.name === dupName);
-                //console.log(`Tests with name "${dupName}":`, duplicateTests.map(t => ({
+                /*console.log(`Tests with name "${dupName}":`, duplicateTests.map(t => ({
                     id: t.id,
                     name: t.name,
                     category: t.category_name
-                })));
+                })));*/
             });
 
             // Show user warning about duplicates
@@ -1239,54 +1239,213 @@ class EntryManager {
      */
     filterTestsByCategory(categoryId) {
         try {
-            // Validate input parameters
+            // Enhanced validation of input parameters
             if (!this.testsData || !Array.isArray(this.testsData)) {
-                console.warn('Tests data is not available or invalid');
+                console.warn('Tests data is not available or invalid, returning empty array');
                 return [];
             }
 
-            // If no category selected, return all tests
-            if (!categoryId || categoryId === '' || categoryId === null || categoryId === undefined) {
-                //console.log('No category filter applied, returning all tests:', this.testsData.length);
+            // Handle empty tests data gracefully
+            if (this.testsData.length === 0) {
+                console.warn('Tests data is empty, no tests to filter');
+                return [];
+            }
+
+            // Enhanced type checking and normalization for category ID
+            const normalizedCategoryId = this.normalizeCategoryId(categoryId);
+            
+            // If no valid category selected, return all tests
+            if (normalizedCategoryId === null) {
+                console.log('No category filter applied, returning all tests:', this.testsData.length);
                 return this.testsData;
             }
 
-            // Normalize category ID for comparison
-            const normalizedCategoryId = String(categoryId).trim();
-
-            // Filter tests by category_id with enhanced validation
+            // Filter tests by category_id with enhanced validation and error handling
             const filteredTests = this.testsData.filter(test => {
-                // Ensure test object is valid
-                if (!test || typeof test !== 'object') {
-                    return false;
+                try {
+                    // Enhanced test object validation
+                    if (!this.isValidTestObject(test)) {
+                        return false;
+                    }
+
+                    // Enhanced category ID validation with fallback behavior
+                    const testCategoryId = this.normalizeTestCategoryId(test);
+                    
+                    // Handle missing category data with fallback
+                    if (testCategoryId === null) {
+                        // If category data is incomplete, include test in "uncategorized" behavior
+                        return normalizedCategoryId === 'uncategorized';
+                    }
+
+                    // Perform comparison with type safety
+                    return testCategoryId === normalizedCategoryId;
+                } catch (testError) {
+                    console.warn('Error processing test during filtering:', testError, test);
+                    return false; // Exclude problematic tests
                 }
-
-                // Check if test has a valid category_id
-                if (!test.category_id && test.category_id !== 0) {
-                    return false;
-                }
-
-                // Normalize test category ID for comparison
-                const testCategoryId = String(test.category_id).trim();
-
-                // Perform comparison
-                return testCategoryId === normalizedCategoryId;
             });
 
-            //console.log(`Filtered tests by category ${categoryId}:`, filteredTests.length, 'out of', this.testsData.length);
+            console.log(`Filtered tests by category ${categoryId}:`, filteredTests.length, 'out of', this.testsData.length);
 
-            // Log category details for debugging
-            if (filteredTests.length === 0) {
-                console.warn(`No tests found for category ID: ${categoryId}`);
-                //console.log('Available category IDs in tests:', [...new Set(this.testsData.map(t => t.category_id).filter(id => id !== null && id !== undefined))]);
+            // Enhanced debugging and fallback behavior
+            if (filteredTests.length === 0 && normalizedCategoryId !== 'uncategorized') {
+                this.handleEmptyFilterResults(categoryId, normalizedCategoryId);
             }
 
             return filteredTests;
         } catch (error) {
             console.error('Error in filterTestsByCategory:', error);
-            this.handleGlobalError(error, 'category_filtering');
-            // Return all tests as fallback
+            this.handleCategoryFilterError(error, categoryId);
+            // Enhanced fallback: return all tests to maintain functionality
             return this.testsData || [];
+        }
+    }
+
+    /**
+     * Normalize category ID with enhanced type checking and validation
+     * @param {*} categoryId - The category ID to normalize
+     * @returns {string|null} Normalized category ID or null if invalid/empty
+     */
+    normalizeCategoryId(categoryId) {
+        // Handle null, undefined, empty string cases
+        if (categoryId === null || categoryId === undefined || categoryId === '') {
+            return null;
+        }
+
+        // Handle boolean false (but not 0)
+        if (categoryId === false) {
+            return null;
+        }
+
+        // Handle numeric zero as valid category ID
+        if (categoryId === 0 || categoryId === '0') {
+            return '0';
+        }
+
+        // Convert to string and trim whitespace
+        const stringValue = String(categoryId).trim();
+        
+        // Return null for empty strings after trimming
+        if (stringValue === '') {
+            return null;
+        }
+
+        // Validate that it's a reasonable category ID (numeric or alphanumeric)
+        if (!/^[a-zA-Z0-9_-]+$/.test(stringValue)) {
+            console.warn('Invalid category ID format:', categoryId);
+            return null;
+        }
+
+        return stringValue;
+    }
+
+    /**
+     * Validate test object structure
+     * @param {*} test - The test object to validate
+     * @returns {boolean} True if test object is valid
+     */
+    isValidTestObject(test) {
+        if (!test || typeof test !== 'object') {
+            return false;
+        }
+
+        // Check for required fields
+        if (!test.id || !test.name) {
+            return false;
+        }
+
+        // Validate ID is numeric
+        if (isNaN(parseInt(test.id))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Normalize test category ID with fallback behavior
+     * @param {Object} test - The test object
+     * @returns {string|null} Normalized category ID or null if missing
+     */
+    normalizeTestCategoryId(test) {
+        // Check if test has a valid category_id
+        if (test.category_id === null || test.category_id === undefined) {
+            return null;
+        }
+
+        // Handle numeric zero as valid category ID
+        if (test.category_id === 0 || test.category_id === '0') {
+            return '0';
+        }
+
+        // Convert to string and trim
+        const categoryId = String(test.category_id).trim();
+        
+        // Return null for empty strings
+        if (categoryId === '') {
+            return null;
+        }
+
+        return categoryId;
+    }
+
+    /**
+     * Handle empty filter results with debugging and suggestions
+     * @param {*} originalCategoryId - The original category ID provided
+     * @param {string} normalizedCategoryId - The normalized category ID
+     */
+    handleEmptyFilterResults(originalCategoryId, normalizedCategoryId) {
+        console.warn(`No tests found for category ID: ${originalCategoryId} (normalized: ${normalizedCategoryId})`);
+        
+        // Provide debugging information
+        const availableCategoryIds = [...new Set(
+            this.testsData
+                .map(t => this.normalizeTestCategoryId(t))
+                .filter(id => id !== null)
+        )];
+        
+        console.log('Available category IDs in tests:', availableCategoryIds);
+        
+        // Check if the category exists in our categories data
+        const categoryExists = this.categoriesData.some(cat => 
+            String(cat.id).trim() === normalizedCategoryId
+        );
+        
+        if (!categoryExists) {
+            console.warn(`Category ${normalizedCategoryId} does not exist in categories data`);
+        } else {
+            console.warn(`Category ${normalizedCategoryId} exists but has no associated tests`);
+        }
+    }
+
+    /**
+     * Handle category filter errors with recovery options
+     * @param {Error} error - The error that occurred
+     * @param {*} categoryId - The category ID that caused the error
+     */
+    handleCategoryFilterError(error, categoryId) {
+        console.error('Category filtering error details:', {
+            error: error.message,
+            categoryId: categoryId,
+            testsDataLength: this.testsData ? this.testsData.length : 'null',
+            categoriesDataLength: this.categoriesData ? this.categoriesData.length : 'null'
+        });
+
+        // Track error for performance monitoring
+        if (this.performanceMetrics) {
+            this.performanceMetrics.filterOperations.push({
+                timestamp: Date.now(),
+                type: 'filter_error',
+                categoryId: categoryId,
+                error: error.message
+            });
+        }
+
+        // Attempt to recover by clearing any problematic state
+        try {
+            this.recoverFromCategoryFilterError();
+        } catch (recoveryError) {
+            console.error('Error during category filter recovery:', recoveryError);
         }
     }
 
@@ -1844,11 +2003,11 @@ class EntryManager {
         const globalCategoryFilter = $('#categoryFilter').val();
         const filteredTests = this.getCurrentlyFilteredTests();
 
-        //console.log('Creating new test row with global filter:', {
+        /*console.log('Creating new test row with global filter:', {
             global_filter: globalCategoryFilter,
             filtered_tests_count: filteredTests.length,
             total_tests_count: this.testsData.length
-        });
+        });*/
 
         const testOptions = filteredTests.map(test => {
             // Create a unique display name to avoid confusion
@@ -2026,7 +2185,7 @@ class EntryManager {
                         });
                     }
 
-                    //console.log('Category selection debug:', {
+                    /*console.log('Category selection debug:', {
                         test_id: testData.test_id,
                         test_name: foundTest.name,
                         entry_category_id: testData.category_id,
@@ -2035,9 +2194,9 @@ class EntryManager {
                         test_category_name: foundTest.category_name,
                         final_category_id: categoryId,
                         final_category_name: categoryName
-                    });
+                    });*/
 
-                    //console.log('Using demographic-appropriate ranges for edit mode:', {
+                    /*console.log('Using demographic-appropriate ranges for edit mode:', {
                         test_id: testData.test_id,
                         category_name: categoryName,
                         rangeType: rangeData.type,
@@ -2046,7 +2205,7 @@ class EntryManager {
                         unit: rangeData.unit,
                         price: price,
                         result: testData.result_value
-                    });
+                    });*/
 
                     // Set the category dropdown to the correct category (prioritizing current test data)
                     if (categoryId) {
@@ -2191,12 +2350,12 @@ class EntryManager {
                 testName += ` [ID: ${testData.test_id}]`;
 
                 //console.log('Adding missing test option:', testData.test_id, testName);
-                //console.log('Test data available for missing test:', {
+                /*console.log('Test data available for missing test:', {
                     test_id: testData.test_id,
                     test_name: testData.test_name,
                     category_name: testData.category_name,
                     hasTestName: !!testData.test_name
-                });
+                });*/
 
                 // Add the missing test option if it doesn't exist
                 if ($testSelect.find(`option[value="${testData.test_id}"]`).length === 0) {
@@ -2230,12 +2389,12 @@ class EntryManager {
                         label: 'Stored Range'
                     };
 
-                    //console.log('Using fallback data for missing test:', {
+                    /*console.log('Using fallback data for missing test:', {
                         test_id: testData.test_id,
                         category_name: categoryName,
                         rangeData: fallbackRangeData,
                         price: price
-                    });
+                    });*/
 
                     // Set category dropdown for fallback case
                     if (testData.category_id) {
@@ -2297,12 +2456,12 @@ class EntryManager {
 
             // If the row already has complete data, don't overwrite it (edit mode)
             if (existingCategoryId && existingUnit && existingMin && existingMax) {
-                //console.log('Row already has complete data, not overwriting:', {
+                /*console.log('Row already has complete data, not overwriting:', {
                     categoryId: existingCategoryId,
                     unit: existingUnit,
                     min: existingMin,
                     max: existingMax
-                });
+                });*/
                 this.calculateTotals();
                 return;
             }
@@ -2360,14 +2519,14 @@ class EntryManager {
                 // Use calculated demographic-appropriate ranges
                 this.updateRangeDisplay($row, rangeData);
 
-                //console.log('Updated row with demographic-appropriate ranges:', {
+                /*console.log('Updated row with demographic-appropriate ranges:', {
                     category: foundTest.category_name,
                     rangeType: rangeData.type,
                     min: rangeData.min,
                     max: rangeData.max,
                     unit: rangeData.unit,
                     price: foundTest.price
-                });
+                });*/
             } else {
                 // Fallback to data attributes if test not found in testsData
                 console.warn('Test not found in testsData for ID:', testId, 'using data attributes');
@@ -2832,13 +2991,13 @@ class EntryManager {
             }
         });
 
-        ////console.log('Demographic range field verification:', {
+        /*console.log('Demographic range field verification:', {
             totalTests: this.testsData.length,
             availableFields: availableFields,
             missingFields: missingFields,
             sampleTestId: sampleTest.id,
             sampleTestName: sampleTest.name
-        });
+        });*/
 
         if (missingFields.length > 0) {
             console.error('Missing demographic range fields:', missingFields);

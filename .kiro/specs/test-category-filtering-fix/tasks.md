@@ -10,7 +10,10 @@
 
 
 
-- [ ] 1.1 Enhance the filterTestsByCategory method
+
+
+- [-] 1.1 Enhance the filterTestsByCategory method
+
   - Modify the existing method to handle edge cases like missing category IDs
   - Add proper type checking and validation for category filtering
   - Implement fallback behavior when category data is incomplete
