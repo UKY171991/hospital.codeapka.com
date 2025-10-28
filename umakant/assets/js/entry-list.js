@@ -31,21 +31,21 @@ class EntryManager {
     debugTestData() {
         console.log('=== TEST DATA DEBUG ===');
         console.log('Total tests loaded:', this.testsData.length);
-        
+
         if (this.testsData.length > 0) {
             console.log('Sample test data:', this.testsData.slice(0, 3));
-            
+
             // Check for duplicates
             const testNames = this.testsData.map(t => t.name);
             const uniqueNames = [...new Set(testNames)];
             console.log('Total test names:', testNames.length);
             console.log('Unique test names:', uniqueNames.length);
-            
+
             if (testNames.length !== uniqueNames.length) {
                 console.warn('DUPLICATE NAMES FOUND!');
                 const duplicates = testNames.filter((name, index) => testNames.indexOf(name) !== index);
                 console.log('Duplicate names:', [...new Set(duplicates)]);
-                
+
                 duplicates.forEach(dupName => {
                     const duplicateTests = this.testsData.filter(t => t.name === dupName);
                     console.log(`Tests with name "${dupName}":`, duplicateTests);
@@ -64,50 +64,50 @@ class EntryManager {
         console.log('=== CATEGORY DATA DEBUG ===');
         console.log('Total categories loaded:', this.categoriesData.length);
         console.log('Total main categories loaded:', this.mainCategoriesData.length);
-        
+
         if (this.categoriesData.length > 0) {
             console.log('Sample category data:', this.categoriesData.slice(0, 5));
-            
+
             // Check category structure
             const categoriesWithMainId = this.categoriesData.filter(cat => cat.main_category_id);
             const categoriesWithoutMainId = this.categoriesData.filter(cat => !cat.main_category_id);
-            
+
             console.log('Categories with main_category_id:', categoriesWithMainId.length);
             console.log('Categories without main_category_id:', categoriesWithoutMainId.length);
-            
+
             if (categoriesWithMainId.length > 0) {
                 console.log('Sample category with main_category_id:', categoriesWithMainId[0]);
             }
         }
-        
+
         if (this.mainCategoriesData.length > 0) {
             console.log('Sample main category data:', this.mainCategoriesData.slice(0, 3));
         }
-        
+
         // Check if tests have category information
         if (this.testsData.length > 0) {
             const testsWithCategory = this.testsData.filter(test => test.category_id);
             const testsWithCategoryName = this.testsData.filter(test => test.category_name);
-            
+
             console.log('Tests with category_id:', testsWithCategory.length, '/', this.testsData.length);
             console.log('Tests with category_name:', testsWithCategoryName.length, '/', this.testsData.length);
-            
+
             if (testsWithCategory.length > 0) {
                 console.log('Sample test with category:', testsWithCategory[0]);
             }
         }
-        
+
         // Check current form state
         const $categoryDropdowns = $('.test-category-select');
         console.log('Category dropdowns found in DOM:', $categoryDropdowns.length);
-        
+
         $categoryDropdowns.each((index, dropdown) => {
             const $dropdown = $(dropdown);
             const optionCount = $dropdown.find('option').length;
             const selectedValue = $dropdown.val();
             console.log(`Dropdown ${index}: ${optionCount} options, selected: "${selectedValue}"`);
         });
-        
+
         console.log('=== END CATEGORY DEBUG ===');
     }
 
@@ -117,11 +117,11 @@ class EntryManager {
     debugEditMode() {
         console.log('=== EDIT MODE DEBUG ===');
         console.log('Current edit ID:', this.currentEditId);
-        
+
         // Check test rows in the form
         const $testRows = $('.test-row');
         console.log('Test rows found:', $testRows.length);
-        
+
         $testRows.each((index, row) => {
             const $row = $(row);
             const rowIndex = $row.data('row-index');
@@ -130,7 +130,7 @@ class EntryManager {
             const categoryId = $row.find('.test-category-select').val();
             const categoryName = $row.find('.test-category-select option:selected').text();
             const mainCategoryId = $row.find('.test-main-category-id').val();
-            
+
             console.log(`Row ${index} (index: ${rowIndex}):`, {
                 testId: testId,
                 testName: testName,
@@ -140,8 +140,72 @@ class EntryManager {
                 categoryOptions: $row.find('.test-category-select option').length
             });
         });
-        
+
         console.log('=== END EDIT MODE DEBUG ===');
+    }
+
+    /**
+     * Debug function to check specific entry data (can be called from browser console)
+     */
+    async debugSpecificEntry(entryId) {
+        console.log('=== SPECIFIC ENTRY DEBUG ===');
+        console.log('Entry ID:', entryId);
+
+        try {
+            // Get entry data from API
+            const response = await $.ajax({
+                url: 'ajax/entry_api_fixed.php',
+                method: 'GET',
+                data: { action: 'get', id: entryId },
+                dataType: 'json'
+            });
+
+            if (response.success && response.data) {
+                console.log('Entry data:', response.data);
+
+                if (response.data.tests) {
+                    console.log('Tests in entry:', response.data.tests.length);
+                    response.data.tests.forEach((test, index) => {
+                        console.log(`Test ${index + 1}:`, {
+                            test_id: test.test_id,
+                            test_name: test.test_name,
+                            category_id: test.category_id,
+                            category_name: test.category_name,
+                            entry_category_id: test.entry_category_id || 'not set'
+                        });
+
+                        // Check if this test exists in our testsData
+                        const foundInTestsData = this.testsData.find(t => t.id == test.test_id);
+                        if (foundInTestsData) {
+                            console.log(`Test ${index + 1} found in testsData:`, {
+                                id: foundInTestsData.id,
+                                name: foundInTestsData.name,
+                                category_id: foundInTestsData.category_id,
+                                category_name: foundInTestsData.category_name
+                            });
+                        } else {
+                            console.warn(`Test ${index + 1} NOT found in testsData!`);
+                        }
+
+                        // Check if the category exists in our categoriesData
+                        if (test.category_id) {
+                            const foundCategory = this.categoriesData.find(cat => cat.id == test.category_id);
+                            if (foundCategory) {
+                                console.log(`Category ${test.category_id} found:`, foundCategory);
+                            } else {
+                                console.warn(`Category ${test.category_id} NOT found in categoriesData!`);
+                            }
+                        }
+                    });
+                }
+            } else {
+                console.error('Failed to get entry data:', response.message);
+            }
+        } catch (error) {
+            console.error('Error getting entry data:', error);
+        }
+
+        console.log('=== END SPECIFIC ENTRY DEBUG ===');
     }
 
     /**
@@ -454,23 +518,23 @@ class EntryManager {
                 this.testsData = response.data || [];
                 // Clear range cache when test data is updated
                 this.clearRangeCache();
-                
+
                 // Verify demographic range fields are available
                 this.verifyDemographicRangeFields();
-                
+
                 //console.log('Loaded tests data:', this.testsData.length, 'tests');
-                
+
                 // Debug: Check for duplicate test names in loaded data
                 const testNames = this.testsData.map(t => t.name);
                 const uniqueNames = [...new Set(testNames)];
                 if (testNames.length !== uniqueNames.length) {
                     console.error('Duplicate test names detected in API response!');
                     console.log('Total tests:', testNames.length, 'Unique names:', uniqueNames.length);
-                    
+
                     // Find and log duplicates
                     const duplicates = testNames.filter((name, index) => testNames.indexOf(name) !== index);
                     console.log('Duplicate names:', [...new Set(duplicates)]);
-                    
+
                     // Show detailed info about duplicates
                     duplicates.forEach(dupName => {
                         const duplicateTests = this.testsData.filter(t => t.name === dupName);
@@ -521,8 +585,9 @@ class EntryManager {
             const response = await $.ajax({
                 url: 'patho_api/test_category.php',
                 method: 'GET',
-                data: { 
+                data: {
                     action: 'list',
+                    all: '1',  // Load ALL categories, not just user-specific ones
                     secret_key: 'hospital-api-secret-2024'
                 },
                 dataType: 'json'
@@ -532,7 +597,7 @@ class EntryManager {
                 this.categoriesData = response.data || [];
                 this.populateCategoryFilter();
                 console.log('Loaded categories data:', this.categoriesData.length, 'categories');
-                
+
                 // Debug: Log first few categories to verify data structure
                 if (this.categoriesData.length > 0) {
                     console.log('Sample category data:', this.categoriesData.slice(0, 3));
@@ -549,7 +614,7 @@ class EntryManager {
                 statusText: error.statusText,
                 responseText: error.responseText
             });
-            
+
             this.categoriesData = [];
             this.handleCategoryLoadError();
         }
@@ -613,7 +678,7 @@ class EntryManager {
      */
     handleCategoryLoadError() {
         console.warn('Category loading failed, disabling category features');
-        
+
         const $categoryFilter = $('#categoryFilter');
         if ($categoryFilter.length > 0) {
             $categoryFilter.empty().append('<option value="">All Categories (Error loading categories)</option>');
@@ -627,12 +692,12 @@ class EntryManager {
 
         // Show all tests since filtering is not available
         this.updateFilteredTestCount();
-        
+
         // Show user-friendly error message
         if (typeof toastr !== 'undefined') {
             toastr.warning('Could not load test categories. Category filtering will be disabled.');
         }
-        
+
         console.warn('Category filtering disabled due to loading error');
     }
 
@@ -644,11 +709,11 @@ class EntryManager {
         if ($countElement.length > 0) {
             const selectedCategory = $('#categoryFilter').val();
             let count = this.testsData.length;
-            
+
             if (selectedCategory) {
                 count = this.testsData.filter(test => test.category_id == selectedCategory).length;
             }
-            
+
             $countElement.text(count);
         }
     }
@@ -718,12 +783,12 @@ class EntryManager {
     updateAllTestDropdowns() {
         try {
             const filteredTests = this.getCurrentlyFilteredTests();
-            
+
             // Find all test select dropdowns in the form
             $('#testsContainer .test-select').each((index, element) => {
                 const $select = $(element);
                 const currentValue = $select.val();
-                
+
                 // Update the dropdown options
                 this.updateTestDropdownOptions($select, filteredTests, currentValue);
             });
@@ -755,15 +820,15 @@ class EntryManager {
                 if (test && test.id && test.name) {
                     // Create a unique display name
                     let displayName = test.name || `Test ${test.id}`;
-                    
+
                     // Add category if available to help distinguish similar tests
                     if (test.category_name) {
                         displayName += ` (${test.category_name})`;
                     }
-                    
+
                     // Add ID for additional uniqueness
                     displayName += ` [ID: ${test.id}]`;
-                    
+
                     const option = `<option value="${test.id}" 
                         data-category="${test.category_name || ''}" 
                         data-unit="${test.unit || ''}" 
@@ -772,7 +837,7 @@ class EntryManager {
                         data-price="${test.price || 0}">
                         ${displayName}
                     </option>`;
-                    
+
                     $select.append(option);
                 }
             });
@@ -1036,19 +1101,19 @@ class EntryManager {
 
         // Get filtered tests based on current category selection
         const filteredTests = this.getCurrentlyFilteredTests();
-        
+
         const testOptions = filteredTests.map(test => {
             // Create a unique display name to avoid confusion
             let displayName = test.name || `Test ${test.id}`;
-            
+
             // Add category if available to help distinguish similar tests
             if (test.category_name) {
                 displayName += ` (${test.category_name})`;
             }
-            
+
             // Add ID for additional uniqueness
             displayName += ` [ID: ${test.id}]`;
-            
+
             return `<option value="${test.id}" data-category="${test.category_name || ''}" data-unit="${test.unit || ''}" data-min="${test.min || ''}" data-max="${test.max || ''}" data-price="${test.price || 0}">
                 ${displayName}
             </option>`;
@@ -1127,7 +1192,7 @@ class EntryManager {
 
         // Populate category dropdown for this row
         this.populateRowCategoryDropdown($categorySelect);
-        
+
         // Debug: Log category population status
         console.log('Category dropdown populated for row', rowIndex, 'with', this.categoriesData.length, 'categories');
 
@@ -1152,7 +1217,7 @@ class EntryManager {
             console.log('Test name from data:', testData.test_name);
             console.log('Available tests in testsData:', this.testsData.length);
             console.log('Looking for test ID:', testData.test_id);
-            
+
             // Debug: show what test IDs are available
             const availableIds = this.testsData.map(t => t.id);
             console.log('Available test IDs in testsData:', availableIds);
@@ -1183,9 +1248,21 @@ class EntryManager {
                     const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, foundTest);
 
                     // Use entry data for non-range fields, demographic ranges for range fields
-                    const categoryName = testData.category_name || foundTest.category_name || '';
-                    const categoryId = testData.category_id || foundTest.category_id || '';
+                    // IMPORTANT: Use the test's actual category, not the stored entry category
+                    const categoryName = foundTest.category_name || testData.category_name || '';
+                    const categoryId = foundTest.category_id || testData.category_id || '';
                     const price = testData.price || foundTest.price || 0;
+
+                    console.log('Category selection debug:', {
+                        test_id: testData.test_id,
+                        test_name: foundTest.name,
+                        entry_category_id: testData.category_id,
+                        entry_category_name: testData.category_name,
+                        test_category_id: foundTest.category_id,
+                        test_category_name: foundTest.category_name,
+                        final_category_id: categoryId,
+                        final_category_name: categoryName
+                    });
 
                     console.log('Using demographic-appropriate ranges for edit mode:', {
                         test_id: testData.test_id,
@@ -1202,13 +1279,46 @@ class EntryManager {
                     // Set the category dropdown to the correct category
                     if (categoryId) {
                         console.log('Setting category dropdown to:', categoryId, 'for test:', testData.test_id);
+
+                        // Debug: Check what options are available in the dropdown
+                        const availableOptions = [];
+                        $categorySelect.find('option').each(function () {
+                            const optionValue = $(this).val();
+                            const optionText = $(this).text();
+                            if (optionValue) {
+                                availableOptions.push({ value: optionValue, text: optionText });
+                            }
+                        });
+                        console.log('Available category options:', availableOptions);
+                        console.log('Looking for category ID:', categoryId, 'Type:', typeof categoryId);
+
+                        // Check if the category exists in the dropdown
+                        const categoryExists = $categorySelect.find(`option[value="${categoryId}"]`).length > 0;
+                        console.log('Category exists in dropdown:', categoryExists);
+
+                        if (!categoryExists) {
+                            console.warn('Category ID', categoryId, 'not found in dropdown options!');
+                            // Try to find the category in our categories data
+                            const categoryInData = this.categoriesData.find(cat => cat.id == categoryId);
+                            if (categoryInData) {
+                                console.log('Category found in categoriesData:', categoryInData);
+                            } else {
+                                console.error('Category not found in categoriesData either!');
+                            }
+                        }
+
                         $categorySelect.val(categoryId);
-                        
+
                         // Trigger Select2 update for category dropdown
                         if ($categorySelect.hasClass('select2-hidden-accessible')) {
                             $categorySelect.trigger('change.select2');
                         }
-                        
+
+                        // Verify what was actually selected
+                        const actuallySelected = $categorySelect.val();
+                        const selectedText = $categorySelect.find('option:selected').text();
+                        console.log('Actually selected:', actuallySelected, 'Text:', selectedText);
+
                         // Set the main category ID if available
                         const selectedCategory = this.categoriesData.find(cat => cat.id == categoryId);
                         if (selectedCategory && selectedCategory.main_category_id) {
@@ -1216,7 +1326,7 @@ class EntryManager {
                             console.log('Set main category ID:', selectedCategory.main_category_id, 'for category:', selectedCategory.name);
                         }
                     }
-                    
+
                     $newRow.find('.test-price').val(price);
                     $newRow.find('.test-result').val(testData.result_value || '');
 
@@ -1251,14 +1361,14 @@ class EntryManager {
                         if ($categorySelect.hasClass('select2-hidden-accessible')) {
                             $categorySelect.trigger('change.select2');
                         }
-                        
+
                         // Set the main category ID
                         const selectedCategory = this.categoriesData.find(cat => cat.id == foundTestAlt.category_id);
                         if (selectedCategory && selectedCategory.main_category_id) {
                             $newRow.find('.test-main-category-id').val(selectedCategory.main_category_id);
                         }
                     }
-                    
+
                     $newRow.find('.test-price').val(foundTestAlt.price || 0);
                     $newRow.find('.test-result').val(testData.result_value || '');
                     this.updateRangeDisplay($newRow, rangeData);
@@ -1269,13 +1379,13 @@ class EntryManager {
 
                 // If test not found in our data, try to populate with what we have
                 let testName = testData.test_name || `Test ${testData.test_id}`;
-                
+
                 // Make the name more unique by adding category and ID
                 if (testData.category_name) {
                     testName += ` (${testData.category_name})`;
                 }
                 testName += ` [ID: ${testData.test_id}]`;
-                
+
                 console.log('Adding missing test option:', testData.test_id, testName);
                 console.log('Test data available for missing test:', {
                     test_id: testData.test_id,
@@ -1329,14 +1439,14 @@ class EntryManager {
                         if ($categorySelect.hasClass('select2-hidden-accessible')) {
                             $categorySelect.trigger('change.select2');
                         }
-                        
+
                         // Set the main category ID
                         const selectedCategory = this.categoriesData.find(cat => cat.id == testData.category_id);
                         if (selectedCategory && selectedCategory.main_category_id) {
                             $newRow.find('.test-main-category-id').val(selectedCategory.main_category_id);
                         }
                     }
-                    
+
                     $newRow.find('.test-price').val(price);
                     $newRow.find('.test-result').val(testData.result_value || '');
 
@@ -1411,24 +1521,24 @@ class EntryManager {
                 const $categorySelect = $row.find('.test-category-select');
                 if (foundTest.category_id) {
                     console.log('Setting category for test:', foundTest.category_id, 'Test name:', foundTest.name);
-                    
+
                     // Ensure category dropdown is populated first
                     if (this.categoriesData.length === 0) {
                         console.warn('Categories not loaded yet, attempting to load...');
                         await this.loadCategoriesForFilter();
                     }
-                    
+
                     // Re-populate the category dropdown for this row to ensure it has the latest data
                     this.populateRowCategoryDropdown($categorySelect);
-                    
+
                     // Set the category value
                     $categorySelect.val(foundTest.category_id);
-                    
+
                     // Trigger Select2 update
                     if ($categorySelect.hasClass('select2-hidden-accessible')) {
                         $categorySelect.trigger('change.select2');
                     }
-                    
+
                     // Also set the main category ID
                     const selectedCategory = this.categoriesData.find(cat => cat.id == foundTest.category_id);
                     if (selectedCategory && selectedCategory.main_category_id) {
@@ -1440,7 +1550,7 @@ class EntryManager {
                 } else {
                     console.log('Test has no category_id:', foundTest.name);
                 }
-                
+
                 $row.find('.test-price').val(foundTest.price || 0);
 
                 // Use calculated demographic-appropriate ranges
@@ -1510,7 +1620,7 @@ class EntryManager {
         }
         // Age threshold for child vs adult classification
         const CHILD_AGE_THRESHOLD = 18;
-        
+
         // Validate inputs
         if (!testData) {
             return this.getDefaultRangeData();
@@ -1525,7 +1635,7 @@ class EntryManager {
         if (validation.warnings.length > 0) {
             console.warn('Patient demographic validation warnings:', validation.warnings);
         }
-        
+
         // Check if patient is a child (under 18)
         if (validAge !== null && validAge < CHILD_AGE_THRESHOLD) {
             // Use child ranges if available
@@ -1568,7 +1678,7 @@ class EntryManager {
                 }
             }
         }
-        
+
         // Fallback to general ranges
         const result = {
             min: testData.min,
@@ -1602,14 +1712,14 @@ class EntryManager {
         if (!gender || typeof gender !== 'string') {
             return 'unknown';
         }
-        
+
         const normalized = gender.toLowerCase().trim();
         if (normalized === 'male' || normalized === 'm') {
             return 'male';
         } else if (normalized === 'female' || normalized === 'f') {
             return 'female';
         }
-        
+
         return 'unknown';
     }
 
@@ -1681,12 +1791,12 @@ class EntryManager {
         if (cached && (Date.now() - cached.timestamp) < this.rangeCacheTimeout) {
             return cached.data;
         }
-        
+
         // Remove expired cache entry
         if (cached) {
             this.rangeCache.delete(cacheKey);
         }
-        
+
         return null;
     }
 
@@ -1725,7 +1835,7 @@ class EntryManager {
      */
     batchUpdateTestRanges(testRows, patientAge, patientGender) {
         const startTime = performance.now();
-        
+
         // Pre-calculate all ranges to minimize DOM access
         const rangeUpdates = testRows.map(rowData => {
             const testData = this.testsData.find(t => t.id == rowData.testId);
@@ -1745,7 +1855,7 @@ class EntryManager {
 
         const endTime = performance.now();
         console.log(`Batch range update completed in ${(endTime - startTime).toFixed(2)}ms for ${rangeUpdates.length} tests`);
-        
+
         return rangeUpdates.length;
     }
 
@@ -1754,14 +1864,14 @@ class EntryManager {
      */
     testDemographicRangeFunctionality() {
         console.log('=== TESTING DEMOGRAPHIC RANGE FUNCTIONALITY ===');
-        
+
         if (this.testsData.length === 0) {
             console.error('No test data available for testing');
             return;
         }
 
         // Find a test with demographic ranges for testing
-        const testWithRanges = this.testsData.find(test => 
+        const testWithRanges = this.testsData.find(test =>
             test.min_male || test.max_male || test.min_female || test.max_female || test.min_child || test.max_child
         );
 
@@ -1804,7 +1914,7 @@ class EntryManager {
         try {
             // Try to parse the date
             const date = new Date(dateString);
-            
+
             // Check if date is valid
             if (isNaN(date.getTime())) {
                 console.warn('Invalid date format:', dateString);
@@ -1815,7 +1925,7 @@ class EntryManager {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
-            
+
             return `${year}-${month}-${day}`;
         } catch (error) {
             console.error('Error formatting date:', dateString, error);
@@ -1829,7 +1939,7 @@ class EntryManager {
      */
     validateDemographicRangeWorkflow() {
         console.log('=== VALIDATING DEMOGRAPHIC RANGE WORKFLOW ===');
-        
+
         const results = {
             cacheTest: false,
             performanceTest: false,
@@ -1892,7 +2002,7 @@ class EntryManager {
         console.log('Validation Test:', results.validationTest ? '✓ PASS' : '✗ FAIL');
         console.log('UI Update Test:', results.uiUpdateTest ? '✓ PASS' : '✗ FAIL');
         console.log('Overall Result:', allPassed ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED');
-        
+
         return results;
     }
 
@@ -1929,13 +2039,13 @@ class EntryManager {
         if (missingFields.length > 0) {
             console.error('Missing demographic range fields:', missingFields);
             console.error('Demographic range functionality may not work properly');
-            
+
             if (typeof toastr !== 'undefined') {
                 toastr.warning('Some demographic range fields are missing from test data. Age/gender-specific ranges may not work properly.');
             }
         } else {
             console.log('All demographic range fields are available');
-            
+
             // Check if any tests actually have demographic-specific ranges
             let testsWithDemographicRanges = 0;
             this.testsData.forEach(test => {
@@ -1945,7 +2055,7 @@ class EntryManager {
             });
 
             console.log(`Found ${testsWithDemographicRanges} tests with demographic-specific ranges out of ${this.testsData.length} total tests`);
-            
+
             // Run functionality test if we have tests with demographic ranges
             if (testsWithDemographicRanges > 0) {
                 this.testDemographicRangeFunctionality();
@@ -1971,11 +2081,11 @@ class EntryManager {
         // Update range indicators in min/max fields
         const $minIndicator = $row.find('.test-min').siblings('.range-indicator');
         const $maxIndicator = $row.find('.test-max').siblings('.range-indicator');
-        
+
         if ($minIndicator.length > 0) {
             $minIndicator.text(rangeData.label).attr('title', `Using ${rangeData.label.toLowerCase()} for this patient`);
         }
-        
+
         if ($maxIndicator.length > 0) {
             $maxIndicator.text(rangeData.label).attr('title', `Using ${rangeData.label.toLowerCase()} for this patient`);
         }
@@ -1985,13 +2095,13 @@ class EntryManager {
         if ($mainIndicator.length > 0) {
             // Remove all existing badge classes
             $mainIndicator.removeClass('badge-info badge-primary badge-success badge-secondary badge-warning male-range female-range child-range general-range');
-            
+
             // Add appropriate class and show the indicator
             $mainIndicator.addClass(this.getRangeTypeBadgeClass(rangeData.type))
-                          .addClass(this.getRangeTypeClass(rangeData.type))
-                          .text(rangeData.label)
-                          .attr('title', `Using ${rangeData.label.toLowerCase()} for this patient`)
-                          .show();
+                .addClass(this.getRangeTypeClass(rangeData.type))
+                .text(rangeData.label)
+                .attr('title', `Using ${rangeData.label.toLowerCase()} for this patient`)
+                .show();
 
             // Initialize tooltip if not already done
             if (!$mainIndicator.data('bs.tooltip')) {
@@ -2049,7 +2159,7 @@ class EntryManager {
             $('.test-row').each((index, row) => {
                 const $row = $(row);
                 const testId = $row.find('.test-select').val();
-                
+
                 if (testId) {
                     const testData = this.testsData.find(t => t.id == testId);
                     if (testData) {
@@ -2171,8 +2281,8 @@ class EntryManager {
 
             const $indicator = $row.find('.validation-indicator');
             $indicator.text(validationResult.message)
-                     .removeClass('text-success text-danger text-warning text-muted')
-                     .addClass(this.getValidationIndicatorClass(validationResult));
+                .removeClass('text-success text-danger text-warning text-muted')
+                .addClass(this.getValidationIndicatorClass(validationResult));
 
         } catch (error) {
             //console.error('Error updating validation indicators:', error);
@@ -2241,7 +2351,7 @@ class EntryManager {
                 if (testData) {
                     const patientAge = parseInt($('#patientAge').val()) || null;
                     const patientGender = $('#patientGender').val() || null;
-                    
+
                     const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, testData);
                     const validationResult = this.validateTestResult(resultValue, rangeData);
                     this.updateValidationIndicators($row, validationResult);
@@ -2296,14 +2406,14 @@ class EntryManager {
                 this.mainCategoriesData.forEach(mainCategory => {
                     if (mainCategory && mainCategory.id && mainCategory.name) {
                         // Find test categories under this main category
-                        const subCategories = this.categoriesData.filter(cat => 
+                        const subCategories = this.categoriesData.filter(cat =>
                             cat && cat.main_category_id == mainCategory.id
                         );
 
                         if (subCategories.length > 0) {
                             // Create optgroup for main category
                             const $optgroup = $(`<optgroup label="${this.escapeHtml(mainCategory.name)}"></optgroup>`);
-                            
+
                             // Add test categories under this main category
                             subCategories.forEach(category => {
                                 if (category && category.id && category.name) {
@@ -2311,7 +2421,7 @@ class EntryManager {
                                     $optgroup.append($option);
                                 }
                             });
-                            
+
                             $categorySelect.append($optgroup);
                         }
                     }
@@ -2320,10 +2430,10 @@ class EntryManager {
 
             // Add categories without main category (if any)
             if (this.categoriesData && this.categoriesData.length > 0) {
-                const orphanCategories = this.categoriesData.filter(cat => 
+                const orphanCategories = this.categoriesData.filter(cat =>
                     !cat.main_category_id || cat.main_category_id === null
                 );
-                
+
                 if (orphanCategories.length > 0) {
                     const $optgroup = $(`<optgroup label="Other Categories"></optgroup>`);
                     orphanCategories.forEach(category => {
@@ -2364,7 +2474,7 @@ class EntryManager {
             const selectedCategoryId = $(categorySelect).val();
             const $selectedOption = $(categorySelect).find('option:selected');
             const mainCategoryId = $selectedOption.data('main-category');
-            
+
             //console.log('Row category changed to:', selectedCategoryId, 'Main category:', mainCategoryId);
 
             // Set the main category ID in the hidden field
@@ -2373,7 +2483,7 @@ class EntryManager {
             // Update the test dropdown for this row based on selected category
             const $testSelect = $row.find('.test-select');
             const filteredTests = this.filterTestsByCategory(selectedCategoryId);
-            
+
             // Update test dropdown options
             this.updateTestDropdownOptions($testSelect, filteredTests);
 
@@ -2403,10 +2513,10 @@ class EntryManager {
         try {
             // Update range labels for all tests
             this.updateRangeLabels();
-            
+
             // Validate all test results with new demographics
             this.validateAllTestResults();
-            
+
             //console.log('Updated ranges and validation for all tests based on demographics');
         } catch (error) {
             //console.error('Error updating ranges and validation:', error);
@@ -2419,7 +2529,7 @@ class EntryManager {
     recoverFromCategoryFilterError() {
         try {
             //console.warn('Attempting to recover from category filter error...');
-            
+
             // Reset category filter to show all tests
             const $categoryFilter = $('#categoryFilter');
             if ($categoryFilter.length > 0) {
@@ -2451,7 +2561,7 @@ class EntryManager {
     handleTestDataUnavailable() {
         try {
             //console.warn('Test data unavailable, applying fallbacks...');
-            
+
             // Show user-friendly message
             const $testsContainer = $('#testsContainer');
             if ($testsContainer.length > 0 && $testsContainer.children().length === 0) {
@@ -2486,7 +2596,7 @@ class EntryManager {
     handleGlobalError(error, context = 'Unknown') {
         try {
             //console.error(`Global error in ${context}:`, error);
-            
+
             // Log error details for debugging
             const errorDetails = {
                 message: error.message,
@@ -2494,7 +2604,7 @@ class EntryManager {
                 context: context,
                 timestamp: new Date().toISOString()
             };
-            
+
             //console.error('Error details:', errorDetails);
 
             // Apply appropriate fallback based on context
@@ -2550,7 +2660,7 @@ class EntryManager {
             // Ensure form can still be submitted
             const $form = $('#entryForm');
             if ($form.length > 0) {
-                $form.find('input[required], select[required]').each(function() {
+                $form.find('input[required], select[required]').each(function () {
                     if ($(this).attr('id') !== 'patientSelect' && $(this).attr('id') !== 'ownerAddedBySelect') {
                         $(this).removeAttr('required');
                     }
@@ -2575,7 +2685,7 @@ class EntryManager {
 
         // Batch DOM updates for better performance
         const updates = [];
-        
+
         // Collect all updates first
         $('.test-row').each((index, row) => {
             const $row = $(row);
@@ -2600,7 +2710,7 @@ class EntryManager {
         const endTime = performance.now();
         const duration = endTime - startTime;
         console.log(`Range update completed in ${duration.toFixed(2)}ms for ${updates.length} tests`);
-        
+
         if (duration > 100) {
             console.warn(`Range update took ${duration.toFixed(2)}ms, which exceeds the 100ms target`);
         }
@@ -2892,28 +3002,28 @@ class EntryManager {
                     </thead>
                     <tbody>
                         ${entry.tests ? entry.tests.map(test => {
-                            // Calculate demographic-appropriate ranges for display
-                            const patientAge = parseInt(entry.age) || null;
-                            const patientGender = entry.gender || null;
-                            
-                            // Find test data for range calculation
-                            const testData = this.testsData.find(t => t.id == test.test_id);
-                            let rangeDisplay = '';
-                            let rangeTypeIndicator = '';
-                            
-                            if (testData) {
-                                const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, testData);
-                                const minVal = rangeData.min || '';
-                                const maxVal = rangeData.max || '';
-                                rangeDisplay = minVal || maxVal ? `${minVal} - ${maxVal}` : '';
-                                rangeTypeIndicator = rangeData.type !== 'general' ? 
-                                    `<span class="badge badge-${this.getRangeTypeBadgeClass(rangeData.type).replace('badge-', '')} ml-1" title="${rangeData.label}">${rangeData.type.charAt(0).toUpperCase() + rangeData.type.slice(1)}</span>` : '';
-                            } else {
-                                // Fallback to stored values if test data not found
-                                rangeDisplay = (test.min || test.max) ? `${test.min || ''} - ${test.max || ''}` : '';
-                            }
-                            
-                            return `
+            // Calculate demographic-appropriate ranges for display
+            const patientAge = parseInt(entry.age) || null;
+            const patientGender = entry.gender || null;
+
+            // Find test data for range calculation
+            const testData = this.testsData.find(t => t.id == test.test_id);
+            let rangeDisplay = '';
+            let rangeTypeIndicator = '';
+
+            if (testData) {
+                const rangeData = this.calculateAppropriateRanges(patientAge, patientGender, testData);
+                const minVal = rangeData.min || '';
+                const maxVal = rangeData.max || '';
+                rangeDisplay = minVal || maxVal ? `${minVal} - ${maxVal}` : '';
+                rangeTypeIndicator = rangeData.type !== 'general' ?
+                    `<span class="badge badge-${this.getRangeTypeBadgeClass(rangeData.type).replace('badge-', '')} ml-1" title="${rangeData.label}">${rangeData.type.charAt(0).toUpperCase() + rangeData.type.slice(1)}</span>` : '';
+            } else {
+                // Fallback to stored values if test data not found
+                rangeDisplay = (test.min || test.max) ? `${test.min || ''} - ${test.max || ''}` : '';
+            }
+
+            return `
                                 <tr>
                                     <td>${test.test_name || 'N/A'}</td>
                                     <td>${test.category_name || 'N/A'}</td>
@@ -2922,7 +3032,7 @@ class EntryManager {
                                     <td>${test.unit || ''}</td>
                                 </tr>
                             `;
-                        }).join('') : '<tr><td colspan="5">No tests found</td></tr>'}
+        }).join('') : '<tr><td colspan="5">No tests found</td></tr>'}
                     </tbody>
                 </table>
             </div>
@@ -2955,7 +3065,7 @@ class EntryManager {
         try {
             // Show loading state
             if (typeof toastr !== 'undefined') {
-                toastr.info('Loading entry data...'); 
+                toastr.info('Loading entry data...');
             }
 
             const response = await $.ajax({
@@ -2965,7 +3075,7 @@ class EntryManager {
                 dataType: 'json'
             });
             console.log('Editing entry response:', response);
-            
+
             // Special debugging for entry 17
             if (entryId == 17) {
                 console.log('=== SPECIAL DEBUG FOR ENTRY 17 ===');
@@ -2983,7 +3093,7 @@ class EntryManager {
                 }
                 console.log('=== END SPECIAL DEBUG ===');
             }
-            
+
             if (response.success && response.data) {
                 $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
                 $('#entryModal').modal('show');
@@ -3027,14 +3137,14 @@ class EntryManager {
 
         // Populate basic fields
         $('#entryId').val(entry.id);
-        
+
         // Format entry date for HTML date input (requires YYYY-MM-DD format)
         if (entry.entry_date) {
             const formattedDate = this.formatDateForInput(entry.entry_date);
             $('#entryDate').val(formattedDate);
             console.log('Setting entry date:', entry.entry_date, '-> formatted:', formattedDate);
         }
-        
+
         $('#entryStatus').val(entry.status);
         $('#priority').val(entry.priority);
         $('#referralSource').val(entry.referral_source);
@@ -3106,22 +3216,22 @@ class EntryManager {
         console.log('Reloading tests data to ensure accuracy...');
         await this.loadTestsData();
         console.log('Tests data loaded:', this.testsData.length, 'tests');
-        
+
         // Also ensure categories are loaded for proper category dropdown population
         console.log('Ensuring categories are loaded...');
         if (this.categoriesData.length === 0) {
             await this.loadCategoriesForFilter();
         }
         console.log('Categories data loaded:', this.categoriesData.length, 'categories');
-        
+
         // Debug: Log test IDs and names for troubleshooting
         if (this.testsData.length > 0) {
             console.log('Available tests:', this.testsData.map(t => ({ id: t.id, name: t.name, id_type: typeof t.id })));
         }
-        
+
         // Debug: show first few tests
         if (this.testsData.length > 0) {
-            console.log('First 5 tests in testsData:', this.testsData.slice(0, 5).map(t => ({id: t.id, name: t.name})));
+            console.log('First 5 tests in testsData:', this.testsData.slice(0, 5).map(t => ({ id: t.id, name: t.name })));
         }
 
         // Double-check that we have tests data
@@ -3311,7 +3421,7 @@ class EntryManager {
                     hasTestData = true;
                 }
             }
-            
+
             if (hasTestData && !categoryDataFound) {
                 console.warn('WARNING: Test data found but no category_id data detected in form submission!');
             }
@@ -3410,7 +3520,7 @@ $(document).ready(function () {
         // console.log('Initializing Entry Manager...');
         entryManager = new EntryManager();
         window.entryManager = entryManager;
-        
+
         // Add global testing functions for easy access
         window.testDemographicRanges = () => entryManager.validateDemographicRangeWorkflow();
         window.testRangeCalculation = (age, gender, testId) => {
@@ -3425,12 +3535,14 @@ $(document).ready(function () {
         window.debugTestData = () => entryManager.debugTestData();
         window.debugCategoryData = () => entryManager.debugCategoryData();
         window.debugEditMode = () => entryManager.debugEditMode();
-        
+        window.debugSpecificEntry = (entryId) => entryManager.debugSpecificEntry(entryId);
+
         // console.log('Entry Manager initialized successfully');
         console.log('Entry Manager functions available:');
         console.log('- debugTestData() - Debug test data and check for duplicates');
         console.log('- debugCategoryData() - Debug category data and form state');
         console.log('- debugEditMode() - Debug edit mode and test row state');
+        console.log('- debugSpecificEntry(entryId) - Debug specific entry data and categories');
         console.log('- testDemographicRanges() - Run complete workflow validation');
         console.log('- testRangeCalculation(age, gender, testId) - Test specific range calculation');
     } catch (error) {
