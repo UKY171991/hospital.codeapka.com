@@ -428,10 +428,10 @@ try {
 
                 } else if ($entriesCaps['has_total_price'] && isset($row['total_price']) && (float)$row['total_price'] > 0) {
                     $row['total_price'] = (float)$row['total_price'];
-                    $row['debug_price_source'] = 'stored';
+
                 } else {
                     $row['total_price'] = 0;
-                    $row['debug_price_source'] = 'zero_with_tests';
+
                 }
             } else {
                 // No tests, amount should be 0
