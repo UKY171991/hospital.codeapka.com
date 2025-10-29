@@ -254,20 +254,52 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         </div>
                     </div>
 
+                    <!-- Global Category Filter -->
+                    <div class="card mt-3 mb-3" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); color: white;">
+                        <div class="card-body py-2">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <h6 class="mb-0 text-white">
+                                        <i class="fas fa-filter mr-1"></i> Global Category Filter
+                                    </h6>
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-control form-control-sm" id="globalCategoryFilter" style="background: white; border: none;">
+                                        <option value="">All Categories (Show All Tests)</option>
+                                        <!-- Categories will be populated via JavaScript -->
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button" class="btn btn-outline-light btn-sm" id="clearGlobalCategoryFilter">
+                                        <i class="fas fa-times mr-1"></i> Clear Filter
+                                    </button>
+                                </div>
+                                <div class="col-md-2">
+                                    <small class="text-white-50">
+                                        Filter all test dropdowns
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Tests Section -->
                     <div class="form-group">
                         <label>Tests <span class="text-danger">*</span></label>
                         <div class="row mb-2">
-                            <div class="col-md-5">
+                            <div class="col-md-3">
+                                <small class="text-muted">Test Category</small>
+                            </div>
+                            <div class="col-md-4">
                                 <small class="text-muted">Test Name</small>
                             </div>
                             <div class="col-md-2">
                                 <small class="text-muted">Result</small>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
                                 <small class="text-muted">Price</small>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
                                 <small class="text-muted">Unit</small>
                             </div>
                             <div class="col-md-1">

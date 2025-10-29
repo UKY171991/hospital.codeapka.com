@@ -239,6 +239,56 @@
     border-color: #bd2130;
 }
 
+/* Category Select Styling */
+.category-select {
+    border-color: #6f42c1;
+}
+
+.category-select:focus {
+    border-color: #6f42c1;
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+}
+
+/* Test Select - filtered state */
+.test-select option[style*="display: none"] {
+    display: none !important;
+}
+
+/* Global Category Filter Styling */
+#globalCategoryFilter {
+    border: none;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    height: 32px;
+    background: white;
+    color: #495057;
+}
+
+#globalCategoryFilter:focus {
+    border-color: #6f42c1;
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+}
+
+#clearGlobalCategoryFilter {
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: white;
+    background-color: transparent;
+    font-size: 0.875rem;
+    height: 32px;
+    transition: all 0.2s ease;
+}
+
+#clearGlobalCategoryFilter:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: white;
+    color: white;
+}
+
+#clearGlobalCategoryFilter:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Pricing Card */
 .card .card-header h6 {
     margin-bottom: 0;
@@ -279,7 +329,9 @@
     }
     
     .test-row .col-md-1,
-    .test-row .col-md-2 {
+    .test-row .col-md-2,
+    .test-row .col-md-3,
+    .test-row .col-md-4 {
         margin-bottom: 10px;
     }
     

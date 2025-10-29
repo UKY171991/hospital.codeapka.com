@@ -43,8 +43,10 @@ The entry-list.php page has been completely rewritten to fix all existing issues
 
 ## New Features
 
-### 1. **Simplified Test Management**
-- Easy add/remove test rows
+### 1. **Enhanced Test Management**
+- Test category selection before test name
+- Easy add/remove test rows with category filtering
+- Global category filter for all test dropdowns
 - Automatic price calculation
 - Real-time total updates
 - Clear validation messages
@@ -66,6 +68,12 @@ The entry-list.php page has been completely rewritten to fix all existing issues
 - Reduced JavaScript complexity
 - Faster page load times
 - Better memory usage
+
+### 5. **Category-Based Test Organization**
+- Test category column before test name
+- Category-based test filtering
+- Global category filter for bulk operations
+- Auto-population of category when test is selected
 
 ## File Structure
 
@@ -129,7 +137,9 @@ umakant/
 
 ### Features Tested
 - ✅ Entry creation and editing
-- ✅ Test row management
+- ✅ Test row management with categories
+- ✅ Category-based test filtering
+- ✅ Global category filter
 - ✅ Price calculations
 - ✅ Form validation
 - ✅ Data filtering
