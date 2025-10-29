@@ -511,35 +511,72 @@ function openAddModal() {
     // Show modal
     $('#entryModal').modal('show');
 
-    // Initialize Select2 dropdowns
-    initializeSelect2();
+    // Wait for modal to be fully shown before initializing
+    $('#entryModal').off('shown.bs.modal').on('shown.bs.modal', function () {
+        // Initialize Select2 dropdowns
+        initializeSelect2();
 
-    // Add first test row
-    addTestRow();
+        // Add first test row if none exist
+        if ($('#testsContainer .test-row').length === 0) {
+            addTestRow();
+        }
+    });
+
+    // Reset form when modal is hidden
+    $('#entryModal').off('hidden.bs.modal').on('hidden.bs.modal', function () {
+        // Don't reset form here as it might interfere with the save process
+        console.log('Modal hidden');
+    });
 }
 
 /**
  * Reset form to default state
  */
 function resetForm() {
+    console.log('Resetting form...');
+
+    // Reset form fields
     $('#entryForm')[0].reset();
     $('#entryId').val('');
+
+    // Clear tests container
     $('#testsContainer').empty();
     testRowCounter = 0;
+
+    // Reset totals
     calculateTotals();
+
+    // Clear global category filter
+    $('#globalCategoryFilter').val('');
+
+    console.log('Form reset complete');
 }
 
 /**
  * Initialize Select2 dropdowns
  */
 function initializeSelect2() {
-    $('.select2').select2({
-        theme: 'bootstrap4',
-        width: '100%'
-    });
+    try {
+        // Destroy existing Select2 instances first
+        $('.select2').each(function () {
+            if ($(this).hasClass('select2-hidden-accessible')) {
+                $(this).select2('destroy');
+            }
+        });
 
-    // Populate global category filter
-    populateGlobalCategoryFilter();
+        // Initialize Select2 dropdowns
+        $('.select2').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
+
+        // Populate global category filter
+        populateGlobalCategoryFilter();
+
+        console.log('Select2 initialized');
+    } catch (error) {
+        console.error('Error initializing Select2:', error);
+    }
 }
 
 /**
@@ -660,6 +697,19 @@ function addTestRow(testData = null) {
     // Bind result validation event
     $newRow.find('.test-result').on('input blur', function () {
         validateTestResult(this, $newRow);
+    });
+
+    // Initialize Select2 for the new row dropdowns
+    $categorySelect.select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Select Category'
+    });
+
+    $testSelect.select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Select Test'
     });
 
     // If testData is provided, populate the row (EDIT MODE)
@@ -847,28 +897,44 @@ async function saveEntry() {
         formData.append('action', currentEditId ? 'update' : 'save');
         formData.append('secret_key', 'hospital-api-secret-2024');
 
+        // Add current user ID if available
+        if (typeof currentUserId !== 'undefined' && currentUserId) {
+            formData.append('added_by', currentUserId);
+        }
+
         // Collect tests data
         const tests = [];
-        $('#testsContainer .test-row').each(function () {
+        $('#testsContainer .test-row').each(function (index) {
             const $row = $(this);
             const testId = $row.find('.test-select').val();
 
+            console.log(`Test row ${index}:`, {
+                testId: testId,
+                categoryId: $row.find('.category-select').val(),
+                result: $row.find('.test-result').val(),
+                price: $row.find('.test-price').val()
+            });
+
             if (testId) {
-                tests.push({
+                const testData = {
                     test_id: testId,
                     category_id: $row.find('.category-select').val() || null,
-                    result_value: $row.find('.test-result').val(),
-                    min: $row.find('.test-min').val(),
-                    max: $row.find('.test-max').val(),
+                    result_value: $row.find('.test-result').val() || '',
+                    min: $row.find('.test-min').val() || '',
+                    max: $row.find('.test-max').val() || '',
                     price: parseFloat($row.find('.test-price').val()) || 0,
-                    unit: $row.find('.test-unit').val()
-                });
+                    unit: $row.find('.test-unit').val() || ''
+                };
+                tests.push(testData);
+                console.log(`Added test data:`, testData);
             }
         });
 
         formData.append('tests', JSON.stringify(tests));
 
         console.log('Submitting form data:', Object.fromEntries(formData));
+        console.log('Tests data:', tests);
+        console.log('Current edit ID:', currentEditId);
 
         const response = await $.ajax({
             url: 'ajax/entry_api_fixed.php',
@@ -879,17 +945,38 @@ async function saveEntry() {
             dataType: 'json'
         });
 
-        if (response.success) {
+        console.log('Server response:', response);
+
+        if (response && response.success) {
             showSuccess(response.message || 'Entry saved successfully');
             $('#entryModal').modal('hide');
             refreshTable();
         } else {
-            showError(response.message || 'Failed to save entry');
+            console.error('Save failed:', response);
+            showError(response ? response.message : 'Failed to save entry - no response from server');
         }
 
     } catch (error) {
         console.error('Error saving entry:', error);
-        showError('An error occurred while saving the entry');
+        console.error('Error details:', {
+            status: error.status,
+            statusText: error.statusText,
+            responseText: error.responseText
+        });
+
+        let errorMessage = 'An error occurred while saving the entry';
+        if (error.responseText) {
+            try {
+                const errorData = JSON.parse(error.responseText);
+                errorMessage = errorData.message || errorMessage;
+            } catch (parseError) {
+                errorMessage = error.responseText;
+            }
+        } else if (error.statusText) {
+            errorMessage = `Server error: ${error.statusText}`;
+        }
+
+        showError(errorMessage);
     } finally {
         // Restore button state
         const $submitBtn = $('#entryForm button[type="submit"]');
@@ -901,22 +988,59 @@ async function saveEntry() {
  * Validate form before submission
  */
 function validateForm() {
+    console.log('Validating form...');
+
     // Check if patient is selected
-    if (!$('#patientSelect').val()) {
+    const patientId = $('#patientSelect').val();
+    console.log('Patient ID:', patientId);
+    if (!patientId) {
         showError('Please select a patient');
         return false;
     }
 
+    // Check entry date
+    const entryDate = $('#entryDate').val();
+    console.log('Entry date:', entryDate);
+    if (!entryDate) {
+        showError('Please select an entry date');
+        return false;
+    }
+
     // Check if at least one test is selected
-    const hasTests = $('#testsContainer .test-select').filter(function () {
-        return $(this).val() !== '';
+    const testRows = $('#testsContainer .test-row');
+    console.log('Number of test rows:', testRows.length);
+
+    const hasTests = testRows.filter(function () {
+        const testId = $(this).find('.test-select').val();
+        return testId && testId !== '';
     }).length > 0;
 
+    console.log('Has valid tests:', hasTests);
     if (!hasTests) {
         showError('Please add at least one test');
         return false;
     }
 
+    // Validate each test row
+    let validationErrors = [];
+    testRows.each(function (index) {
+        const $row = $(this);
+        const testId = $row.find('.test-select').val();
+
+        if (testId) {
+            const categoryId = $row.find('.category-select').val();
+            if (!categoryId) {
+                validationErrors.push(`Test row ${index + 1}: Please select a category`);
+            }
+        }
+    });
+
+    if (validationErrors.length > 0) {
+        showError(validationErrors.join('<br>'));
+        return false;
+    }
+
+    console.log('Form validation passed');
     return true;
 }
 
@@ -1201,3 +1325,36 @@ function showInfo(message) {
         alert(message);
     }
 }
+
+/**
+ * Debug function to test form data collection
+ */
+function debugFormData() {
+    console.log('=== FORM DEBUG INFO ===');
+    console.log('Patient ID:', $('#patientSelect').val());
+    console.log('Doctor ID:', $('#doctorSelect').val());
+    console.log('Entry Date:', $('#entryDate').val());
+    console.log('Status:', $('#entryStatus').val());
+    console.log('Priority:', $('#priority').val());
+
+    console.log('Test rows count:', $('#testsContainer .test-row').length);
+
+    $('#testsContainer .test-row').each(function (index) {
+        const $row = $(this);
+        console.log(`Test Row ${index}:`, {
+            category: $row.find('.category-select').val(),
+            test: $row.find('.test-select').val(),
+            result: $row.find('.test-result').val(),
+            min: $row.find('.test-min').val(),
+            max: $row.find('.test-max').val(),
+            unit: $row.find('.test-unit').val(),
+            price: $row.find('.test-price').val()
+        });
+    });
+
+    console.log('Current Edit ID:', currentEditId);
+    console.log('=== END DEBUG INFO ===');
+}
+
+// Make debug function available globally
+window.debugFormData = debugFormData;
