@@ -5868,6 +5868,11 @@ class EntryManager {
         this.currentEditId = null;
         this.testRowCounter = 0;
         this.updateFilteredTestCount();
+        
+        // Reset pricing
+        $('#subtotal').val('0.00');
+        $('#discountAmount').val('0.00');
+        $('#totalPrice').val('0.00');
     }
 
     /**
@@ -5900,7 +5905,11 @@ class EntryManager {
         }
         
         $('#entryModal').modal('show');
-        this.addTestRow(); // Add one empty test row
+        
+        // Add one empty test row after modal is shown
+        setTimeout(() => {
+            this.addTestRow();
+        }, 100);
     }
 
     /**
@@ -5941,6 +5950,300 @@ class EntryManager {
             $('#completedEntries').text('0');
             $('#todayEntries').text('0');
         }, 1000);
+    }
+
+    /**
+     * Add a new test row
+     */
+    addTestRow() {
+        this.addTestRowWithData({});
+    }
+
+    /**
+     * Add test row with existing data
+     */
+    addTestRowWithData(testData = {}) {
+        const rowIndex = this.testRowCounter++;
+        console.log('Adding test row with data:', testData, 'Row index:', rowIndex);
+        
+        const testRow = `
+            <div class="test-row" data-row-index="${rowIndex}">
+                <div class="row">
+                    <div class="col-md-2">
+                        <select class="form-control test-category-select" name="test_category_${rowIndex}" required>
+                            <option value="">Select Category</option>
+                        </select>
+                        <input type="hidden" class="test-main-category-id" name="test_main_category_id_${rowIndex}">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-control test-select" name="test_id_${rowIndex}" required disabled>
+                            <option value="">Select Category First</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control test-result" name="test_result_${rowIndex}" 
+                               placeholder="Enter Result">
+                        <small class="validation-indicator text-muted"></small>
+                    </div>
+                    <div class="col-md-1">
+                        <input type="number" class="form-control test-min-range" name="test_min_${rowIndex}" 
+                               placeholder="Min" step="0.01" readonly>
+                    </div>
+                    <div class="col-md-1">
+                        <input type="number" class="form-control test-max-range" name="test_max_${rowIndex}" 
+                               placeholder="Max" step="0.01" readonly>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="test-unit-container">
+                            <input type="text" class="form-control test-unit" name="test_unit_${rowIndex}" 
+                                   placeholder="Unit" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-danger btn-sm remove-test-row">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('#testsContainer').append(testRow);
+        
+        // Get the newly added row
+        const $row = $(`.test-row[data-row-index="${rowIndex}"]`);
+        
+        // Populate category dropdown
+        this.populateTestCategoryDropdown($row.find('.test-category-select'));
+        
+        // Bind category change event
+        $row.find('.test-category-select').on('change', (e) => {
+            this.onCategoryChange(e, $row);
+        });
+        
+        // Bind test selection change event
+        $row.find('.test-select').on('change', (e) => {
+            this.onTestChange(e, $row);
+        });
+
+        // Bind result input change event for validation
+        $row.find('.test-result').on('input', (e) => {
+            const testId = $row.find('.test-select').val();
+            if (testId) {
+                const test = this.testsData.find(t => t.id == testId);
+                if (test) {
+                    this.validateTestResult($row, test);
+                }
+            }
+        });
+
+        // Bind remove event
+        $row.find('.remove-test-row').on('click', () => {
+            $row.remove();
+            this.updatePricing();
+        });
+        
+        // If we have existing data, populate it
+        if (testData.category_id) {
+            $row.find('.test-category-select').val(testData.category_id).trigger('change');
+            
+            // Wait a bit for the test dropdown to populate, then set the test
+            setTimeout(() => {
+                if (testData.test_id) {
+                    $row.find('.test-select').val(testData.test_id).trigger('change');
+                }
+            }, 100);
+        }
+        
+        if (testData.result_value) {
+            $row.find('.test-result').val(testData.result_value);
+        }
+        
+        console.log('Test row added successfully');
+    }
+
+    /**
+     * Populate test category dropdown
+     */
+    populateTestCategoryDropdown($dropdown) {
+        $dropdown.empty().append('<option value="">Select Category</option>');
+        
+        this.categoriesData.forEach(category => {
+            if (category && category.id && category.name) {
+                $dropdown.append(new Option(category.name, category.id, false, false));
+            }
+        });
+    }
+
+    /**
+     * Handle category selection change
+     */
+    onCategoryChange(event, $row) {
+        const selectedCategoryId = $(event.target).val();
+        const $testSelect = $row.find('.test-select');
+        
+        // Clear and reset test dropdown
+        $testSelect.empty().append('<option value="">Select Test</option>');
+        
+        if (selectedCategoryId) {
+            // Enable test dropdown
+            $testSelect.prop('disabled', false);
+            
+            // Filter tests by selected category
+            const filteredTests = this.testsData.filter(test => {
+                return test.category_id == selectedCategoryId;
+            });
+            
+            // Populate test dropdown with filtered tests
+            filteredTests.forEach(test => {
+                $testSelect.append(new Option(test.name, test.id, false, false));
+            });
+            
+            console.log('Category changed:', selectedCategoryId, 'Tests available:', filteredTests.length);
+        } else {
+            // Disable test dropdown if no category selected
+            $testSelect.prop('disabled', true);
+        }
+        
+        // Clear test-related fields
+        this.clearTestFields($row);
+    }
+
+    /**
+     * Handle test selection change
+     */
+    onTestChange(event, $row) {
+        const selectedTestId = $(event.target).val();
+        
+        if (selectedTestId) {
+            const selectedTest = this.testsData.find(test => test.id == selectedTestId);
+            if (selectedTest) {
+                console.log('Test selected:', selectedTest);
+                
+                // Auto-fill unit
+                $row.find('.test-unit').val(selectedTest.unit || '');
+                
+                // Auto-fill min/max ranges based on patient demographics
+                this.updateTestRanges($row, selectedTest);
+                
+                // Validate result if already entered
+                this.validateTestResult($row, selectedTest);
+            }
+        } else {
+            this.clearTestFields($row);
+        }
+    }
+
+    /**
+     * Update test ranges based on patient demographics
+     */
+    updateTestRanges($row, test) {
+        // Get patient demographics
+        const patientAge = parseInt($('#patientAge').val()) || 0;
+        const patientGender = $('#patientGender').val() || '';
+        
+        let minRange = '';
+        let maxRange = '';
+        
+        // Determine appropriate range based on demographics
+        if (patientAge < 18) {
+            // Child ranges
+            minRange = test.min_child || test.min_range || '';
+            maxRange = test.max_child || test.max_range || '';
+        } else if (patientGender.toLowerCase() === 'male') {
+            // Male ranges
+            minRange = test.min_male || test.min_range || '';
+            maxRange = test.max_male || test.max_range || '';
+        } else if (patientGender.toLowerCase() === 'female') {
+            // Female ranges
+            minRange = test.min_female || test.min_range || '';
+            maxRange = test.max_female || test.max_range || '';
+        } else {
+            // General ranges
+            minRange = test.min_range || '';
+            maxRange = test.max_range || '';
+        }
+        
+        // Set the ranges
+        $row.find('.test-min-range').val(minRange);
+        $row.find('.test-max-range').val(maxRange);
+        
+        console.log('Ranges updated for test:', test.name, 'Min:', minRange, 'Max:', maxRange);
+    }
+
+    /**
+     * Validate test result against ranges
+     */
+    validateTestResult($row, test) {
+        const resultValue = parseFloat($row.find('.test-result').val());
+        const minRange = parseFloat($row.find('.test-min-range').val());
+        const maxRange = parseFloat($row.find('.test-max-range').val());
+        const $indicator = $row.find('.validation-indicator');
+        const $resultInput = $row.find('.test-result');
+        
+        // Clear previous styling
+        $indicator.text('').removeClass('text-success text-danger text-warning');
+        $resultInput.removeClass('result-normal result-abnormal result-warning');
+        
+        if (isNaN(resultValue)) {
+            return;
+        }
+        
+        if (!isNaN(minRange) && !isNaN(maxRange)) {
+            if (resultValue < minRange) {
+                $indicator.text('Below normal range').addClass('text-danger');
+                $resultInput.addClass('result-abnormal');
+            } else if (resultValue > maxRange) {
+                $indicator.text('Above normal range').addClass('text-danger');
+                $resultInput.addClass('result-abnormal');
+            } else {
+                $indicator.text('Within normal range').addClass('text-success');
+                $resultInput.addClass('result-normal');
+            }
+        } else {
+            $indicator.text('No reference range').addClass('text-warning');
+            $resultInput.addClass('result-warning');
+        }
+    }
+
+    /**
+     * Clear test-related fields
+     */
+    clearTestFields($row) {
+        $row.find('.test-unit').val('');
+        $row.find('.test-min-range').val('');
+        $row.find('.test-max-range').val('');
+        $row.find('.validation-indicator').text('').removeClass('text-success text-danger text-warning');
+    }
+
+    /**
+     * Update pricing calculations
+     */
+    updatePricing() {
+        let subtotal = 0;
+        
+        // Calculate subtotal from all test rows
+        $('.test-row').each((index, row) => {
+            const $row = $(row);
+            const testId = $row.find('.test-select').val();
+            
+            if (testId) {
+                const test = this.testsData.find(t => t.id == testId);
+                if (test && test.price) {
+                    subtotal += parseFloat(test.price) || 0;
+                }
+            }
+        });
+        
+        // Update subtotal
+        $('#subtotal').val(subtotal.toFixed(2));
+        
+        // Calculate total (subtotal - discount)
+        const discount = parseFloat($('#discountAmount').val()) || 0;
+        const total = Math.max(subtotal - discount, 0);
+        $('#totalPrice').val(total.toFixed(2));
+        
+        console.log('Pricing updated - Subtotal:', subtotal, 'Discount:', discount, 'Total:', total);
     }
 
     /**
@@ -6644,6 +6947,13 @@ $(document).ready(function () {
     $('#clearCategoryFilter').on('click', function() {
         if (window.entryManager) {
             window.entryManager.clearCategoryFilter();
+        }
+    });
+
+    // Bind discount amount change to update pricing
+    $('#discountAmount').on('input', function() {
+        if (window.entryManager) {
+            window.entryManager.updatePricing();
         }
     });
 });

@@ -454,6 +454,50 @@
     border-color: #bd2130;
 }
 
+/* Test row validation indicators */
+.validation-indicator {
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: 2px;
+    display: block;
+    min-height: 16px;
+}
+
+.validation-indicator.text-success {
+    color: #28a745 !important;
+}
+
+.validation-indicator.text-danger {
+    color: #dc3545 !important;
+}
+
+.validation-indicator.text-warning {
+    color: #ffc107 !important;
+}
+
+/* Disabled test select styling */
+.test-select:disabled {
+    background-color: #f8f9fa;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Test result input with validation styling */
+.test-result.result-normal {
+    border-color: #28a745;
+    background-color: #f8fff9;
+}
+
+.test-result.result-abnormal {
+    border-color: #dc3545;
+    background-color: #fff8f8;
+}
+
+.test-result.result-warning {
+    border-color: #ffc107;
+    background-color: #fffdf5;
+}
+
 /* Range Type Indicators */
 .range-type-indicator {
     font-size: 0.7rem;
