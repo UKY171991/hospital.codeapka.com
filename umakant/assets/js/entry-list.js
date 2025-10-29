@@ -54,59 +54,59 @@ class EntryManager {
      * Debug function to check test data (can be called from browser console)
      */
     debugTestData() {
-        //console.log('=== TEST DATA DEBUG ===');
-        //console.log('Total tests loaded:', this.testsData.length);
+        //// console.log removed
+        //// console.log removed
 
         if (this.testsData.length > 0) {
-            //console.log('Sample test data:', this.testsData.slice(0, 3));
+            //// console.log removed
 
             // Check for duplicates
             const testNames = this.testsData.map(t => t.name);
             const uniqueNames = [...new Set(testNames)];
-            //console.log('Total test names:', testNames.length);
-            //console.log('Unique test names:', uniqueNames.length);
+            //// console.log removed
+            //// console.log removed
 
             if (testNames.length !== uniqueNames.length) {
-                console.warn('DUPLICATE NAMES FOUND!');
+                // console.warn removed
                 const duplicates = testNames.filter((name, index) => testNames.indexOf(name) !== index);
-                //console.log('Duplicate names:', [...new Set(duplicates)]);
+                //// console.log removed
 
                 duplicates.forEach(dupName => {
                     const duplicateTests = this.testsData.filter(t => t.name === dupName);
-                    //console.log(`Tests with name "${dupName}":`, duplicateTests);
+                    //// console.log removed
                 });
             } else {
-                //console.log('✓ No duplicate test names found');
+                //// console.log removed
             }
         }
-        //console.log('=== END DEBUG ===');
+        //// console.log removed
     }
 
     /**
      * Debug function to check category data (can be called from browser console)
      */
     debugCategoryData() {
-        //console.log('=== CATEGORY DATA DEBUG ===');
-        //console.log('Total categories loaded:', this.categoriesData.length);
-        //console.log('Total main categories loaded:', this.mainCategoriesData.length);
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
 
         if (this.categoriesData.length > 0) {
-            //console.log('Sample category data:', this.categoriesData.slice(0, 5));
+            //// console.log removed
 
             // Check category structure
             const categoriesWithMainId = this.categoriesData.filter(cat => cat.main_category_id);
             const categoriesWithoutMainId = this.categoriesData.filter(cat => !cat.main_category_id);
 
-            //console.log('Categories with main_category_id:', categoriesWithMainId.length);
-            //console.log('Categories without main_category_id:', categoriesWithoutMainId.length);
+            //// console.log removed
+            //// console.log removed
 
             if (categoriesWithMainId.length > 0) {
-                //console.log('Sample category with main_category_id:', categoriesWithMainId[0]);
+                //// console.log removed
             }
         }
 
         if (this.mainCategoriesData.length > 0) {
-            //console.log('Sample main category data:', this.mainCategoriesData.slice(0, 3));
+            //// console.log removed
         }
 
         // Check if tests have category information
@@ -114,38 +114,38 @@ class EntryManager {
             const testsWithCategory = this.testsData.filter(test => test.category_id);
             const testsWithCategoryName = this.testsData.filter(test => test.category_name);
 
-            //console.log('Tests with category_id:', testsWithCategory.length, '/', this.testsData.length);
-            //console.log('Tests with category_name:', testsWithCategoryName.length, '/', this.testsData.length);
+            //// console.log removed
+            //// console.log removed
 
             if (testsWithCategory.length > 0) {
-                //console.log('Sample test with category:', testsWithCategory[0]);
+                //// console.log removed
             }
         }
 
         // Check current form state
         const $categoryDropdowns = $('.test-category-select');
-        //console.log('Category dropdowns found in DOM:', $categoryDropdowns.length);
+        //// console.log removed
 
         $categoryDropdowns.each((index, dropdown) => {
             const $dropdown = $(dropdown);
             const optionCount = $dropdown.find('option').length;
             const selectedValue = $dropdown.val();
-            //console.log(`Dropdown ${index}: ${optionCount} options, selected: "${selectedValue}"`);
+            //// console.log removed
         });
 
-        //console.log('=== END CATEGORY DEBUG ===');
+        //// console.log removed
     }
 
     /**
      * Debug function to check edit mode state (can be called from browser console)
      */
     debugEditMode() {
-        //console.log('=== EDIT MODE DEBUG ===');
-        //console.log('Current edit ID:', this.currentEditId);
+        //// console.log removed
+        //// console.log removed
 
         // Check test rows in the form
         const $testRows = $('.test-row');
-        //console.log('Test rows found:', $testRows.length);
+        //// console.log removed
 
         $testRows.each((index, row) => {
             const $row = $(row);
@@ -156,7 +156,7 @@ class EntryManager {
             const categoryName = $row.find('.test-category-select option:selected').text();
             const mainCategoryId = $row.find('.test-main-category-id').val();
 
-            /*console.log(`Row ${index} (index: ${rowIndex}):`, {
+            /*// console.log removed:`, {
                 testId: testId,
                 testName: testName,
                 categoryId: categoryId,
@@ -166,15 +166,15 @@ class EntryManager {
             });*/
         });
 
-        //console.log('=== END EDIT MODE DEBUG ===');
+        //// console.log removed
     }
 
     /**
      * Debug function to check specific entry data (can be called from browser console)
      */
     async debugSpecificEntry(entryId) {
-        //console.log('=== SPECIFIC ENTRY DEBUG ===');
-        //console.log('Entry ID:', entryId);
+        //// console.log removed
+        //// console.log removed
 
         try {
             // Get entry data from API
@@ -190,62 +190,51 @@ class EntryManager {
             });
 
             if (response.success && response.data) {
-                //console.log('Entry data:', response.data);
+                //// console.log removed
 
                 if (response.data.tests) {
-                    //console.log('Tests in entry:', response.data.tests.length);
+                    //// console.log removed
                     response.data.tests.forEach((test, index) => {
-                        /*console.log(`Test ${index + 1}:`, {
-                            test_id: test.test_id,
-                            test_name: test.test_name,
-                            category_id: test.category_id,
-                            category_name: test.category_name,
-                            entry_category_id: test.entry_category_id || 'not set'
-                        });*/
+                        /*// console.log removed*/
 
                         // Check if this test exists in our testsData
                         const foundInTestsData = this.testsData.find(t => t.id == test.test_id);
                         if (foundInTestsData) {
-                            /*console.log(`Test ${index + 1} found in testsData:`, {
-                                id: foundInTestsData.id,
-                                name: foundInTestsData.name,
-                                category_id: foundInTestsData.category_id,
-                                category_name: foundInTestsData.category_name
-                            });*/
+                            /*// console.log removed*/
                         } else {
-                            console.warn(`Test ${index + 1} NOT found in testsData!`);
+                            // console.warn removed
                         }
 
                         // Check if the category exists in our categoriesData
                         if (test.category_id) {
                             const foundCategory = this.categoriesData.find(cat => cat.id == test.category_id);
                             if (foundCategory) {
-                                //console.log(`Category ${test.category_id} found:`, foundCategory);
+                                //// console.log removed
                             } else {
-                                console.warn(`Category ${test.category_id} NOT found in categoriesData!`);
+                                // console.warn removed
                             }
                         }
                     });
                 }
             } else {
-                console.error('Failed to get entry data:', response.message);
+                // console.error removed
             }
         } catch (error) {
-            console.error('Error getting entry data:', error);
+            // console.error removed
         }
 
-        //console.log('=== END SPECIFIC ENTRY DEBUG ===');
+        //// console.log removed
     }
 
     /**
      * Initialize the Entry Manager
      */
     init() {
-        console.log('Initializing Entry Manager...');
+        // console.log removed
 
         // Wait for DOM to be ready
         $(document).ready(() => {
-            console.log('DOM ready, starting initialization...');
+            // console.log removed
             try {
                 // Add a small delay to ensure all libraries are loaded
                 setTimeout(() => {
@@ -253,10 +242,10 @@ class EntryManager {
                     this.loadInitialData();
                     this.bindEvents();
                     this.loadStatistics();
-                    console.log('Entry Manager initialization complete');
+                    // console.log removed
                 }, 100);
             } catch (error) {
-                console.error('Error during Entry Manager initialization:', error);
+                // console.error removed
                 $('#entriesTable').closest('.card-body').html(`
                     <div class="alert alert-danger">
                         <h5>Initialization Error</h5>
@@ -272,11 +261,11 @@ class EntryManager {
      * Initialize DataTable with proper configuration
      */
     initializeDataTable() {
-        console.log('Initializing DataTable...');
+        // console.log removed
 
         // Check if the table element exists
         if ($('#entriesTable').length === 0) {
-            console.error('DataTable element #entriesTable not found');
+            // console.error removed
             $('#entriesTable').closest('.card-body').html(`
                 <div class="alert alert-danger">
                     <h5>Table Element Not Found</h5>
@@ -289,7 +278,7 @@ class EntryManager {
 
         // Check if jQuery is available
         if (typeof $ === 'undefined') {
-            console.error('jQuery library not loaded');
+            // console.error removed
             document.getElementById('entriesTable').innerHTML = `
                 <div class="alert alert-danger">
                     <h5>jQuery Library Not Loaded</h5>
@@ -302,7 +291,7 @@ class EntryManager {
 
         // Check if DataTable is available
         if (typeof $.fn.DataTable === 'undefined') {
-            console.error('DataTables library not loaded');
+            // console.error removed
             $('#entriesTable').html(`
                 <div class="alert alert-danger">
                     <h5>DataTables Library Not Loaded</h5>
@@ -314,13 +303,13 @@ class EntryManager {
         }
 
         try {
-            console.log('About to initialize DataTable...');
-            console.log('Table element exists:', $('#entriesTable').length > 0);
+            // console.log removed
+            // console.log removed
 
             // Check table structure
             const $table = $('#entriesTable');
             const headerCells = $table.find('thead th').length;
-            console.log('Number of header columns:', headerCells);
+            // console.log removed
 
             if (headerCells !== 11) {
                 throw new Error(`Table structure mismatch: Expected 11 columns, found ${headerCells} columns`);
@@ -422,11 +411,11 @@ class EntryManager {
                         secret_key: 'hospital-api-secret-2024'
                     },
                     dataSrc: function (json) {
-                        console.log('DataTable received data:', json);
+                        // console.log removed
                         if (json && json.success) {
                             return json.data || [];
                         } else {
-                            console.error('API Error:', json ? json.message : 'Invalid response');
+                            // console.error removed
                             if (typeof toastr !== 'undefined') {
                                 toastr.error(json ? json.message : 'Failed to load entries - invalid response');
                             } else {
@@ -436,13 +425,7 @@ class EntryManager {
                         }
                     },
                     error: function (xhr, error, thrown) {
-                        console.error('DataTable AJAX Error:', {
-                            error: error,
-                            thrown: thrown,
-                            status: xhr.status,
-                            statusText: xhr.statusText,
-                            responseText: xhr.responseText
-                        });
+                        // console.error removed
 
                         let errorMessage = 'Failed to load entries. ';
                         if (xhr.status === 404) {
@@ -681,9 +664,9 @@ class EntryManager {
                 }
             });
 
-            //console.log('DataTable initialized successfully');
+            //// console.log removed
         } catch (error) {
-            console.error('Error initializing DataTable:', error);
+            // console.error removed
             // Show detailed error message for debugging
             const errorDetails = error.message || 'Unknown error';
             $('#entriesTable').html(`
@@ -701,7 +684,7 @@ class EntryManager {
      * Load initial data (tests, patients, doctors, owners)
      */
     async loadInitialData() {
-        // //console.log('Loading initial data...');
+        // //// console.log removed
 
         try {
             // Load tests data
@@ -716,9 +699,9 @@ class EntryManager {
             // Load owners/users data
             await this.loadOwnersData();
 
-            // //console.log('Initial data loaded successfully');
+            // //// console.log removed
         } catch (error) {
-            //console.error('Error loading initial data:', error);
+            //// console.error removed
             toastr.error('Failed to load initial data');
         }
     }
@@ -735,12 +718,12 @@ class EntryManager {
                 const cachedData = this.getCacheData(this.cacheKeys.TESTS_DATA);
                 if (cachedData) {
                     this.testsData = cachedData;
-                    //console.log('Tests data loaded from cache:', this.testsData.length, 'tests');
+                    //// console.log removed
                     return true;
                 }
             }
 
-            //console.log(`Loading tests data from API... (attempt ${retryCount + 1}/${maxRetries + 1})`);
+            //// console.log removed
             this.performanceMetrics.apiCalls++;
 
             const response = await $.ajax({
@@ -767,28 +750,28 @@ class EntryManager {
                 // Verify demographic range fields are available
                 this.verifyDemographicRangeFields();
 
-                //console.log('Tests data loaded successfully:', this.testsData.length, 'tests');
+                //// console.log removed
 
                 // Check for duplicate test names and handle them
                 this.handleDuplicateTestNames();
 
                 // Debug: show first few tests
                 if (this.testsData.length > 0) {
-                    console.log('Sample tests:', this.testsData.slice(0, 5).map(t => ({ id: t.id, name: t.name, category_id: t.category_id, category_name: t.category_name })));
-                    console.log('Test data structure:', Object.keys(this.testsData[0]));
+                    // console.log removed
+                    // console.log removed
                 } else {
-                    console.warn('Tests data is empty after validation');
+                    // console.warn removed
                     this.handleEmptyTestData();
                 }
 
                 return true; // Success
             } else {
                 const errorMessage = response ? response.message : 'Invalid response from server';
-                console.error('Failed to load tests:', errorMessage);
+                // console.error removed
 
                 // Try retry if we haven't exceeded max retries
                 if (retryCount < maxRetries) {
-                    //console.log(`Retrying test data load in 2 seconds... (${retryCount + 1}/${maxRetries})`);
+                    //// console.log removed
                     await this.delay(2000);
                     return await this.loadTestsData(retryCount + 1);
                 }
@@ -798,7 +781,7 @@ class EntryManager {
                 return false; // Failed
             }
         } catch (error) {
-            console.error('Error loading tests data:', error);
+            // console.error removed
 
             const errorDetails = {
                 status: error.status,
@@ -806,22 +789,22 @@ class EntryManager {
                 responseText: error.responseText,
                 timeout: error.statusText === 'timeout'
             };
-            console.error('Test data load error details:', errorDetails);
+            // console.error removed
 
             // Try to parse error response for more details
             if (error.responseText) {
                 try {
                     const errorData = JSON.parse(error.responseText);
-                    console.error('Parsed error response:', errorData);
+                    // console.error removed
                     errorDetails.parsedError = errorData;
                 } catch (parseError) {
-                    console.error('Could not parse error response:', error.responseText);
+                    // console.error removed
                 }
             }
 
             // Try retry for network errors if we haven't exceeded max retries
             if (retryCount < maxRetries && (error.status === 0 || error.statusText === 'timeout' || error.status >= 500)) {
-                //console.log(`Retrying test data load due to network error in 3 seconds... (${retryCount + 1}/${maxRetries})`);
+                //// console.log removed
                 await this.delay(3000);
                 return await this.loadTestsData(retryCount + 1);
             }
@@ -839,24 +822,24 @@ class EntryManager {
      */
     validateTestData(tests) {
         if (!Array.isArray(tests)) {
-            console.error('Tests data is not an array:', tests);
+            // console.error removed
             return [];
         }
 
         const validTests = tests.filter(test => {
             if (!test || typeof test !== 'object') {
-                console.warn('Invalid test object:', test);
+                // console.warn removed
                 return false;
             }
 
             if (!test.id || !test.name) {
-                console.warn('Test missing required fields (id, name):', test);
+                // console.warn removed
                 return false;
             }
 
             // Validate numeric fields
             if (test.price && isNaN(parseFloat(test.price))) {
-                console.warn('Test has invalid price:', test);
+                // console.warn removed
                 test.price = 0; // Set default price
             }
 
@@ -864,7 +847,7 @@ class EntryManager {
         });
 
         if (validTests.length !== tests.length) {
-            console.warn(`${tests.length - validTests.length} invalid tests filtered out`);
+            // console.warn removed
         }
 
         return validTests;
@@ -878,21 +861,17 @@ class EntryManager {
         const uniqueNames = [...new Set(testNames)];
 
         if (testNames.length !== uniqueNames.length) {
-            console.error('Duplicate test names detected in API response!');
-            //console.log('Total tests:', testNames.length, 'Unique names:', uniqueNames.length);
+            // console.error removed
+            //// console.log removed
 
             // Find and log duplicates
             const duplicates = testNames.filter((name, index) => testNames.indexOf(name) !== index);
-            //console.log('Duplicate names:', [...new Set(duplicates)]);
+            //// console.log removed
 
             // Show detailed info about duplicates
             duplicates.forEach(dupName => {
                 const duplicateTests = this.testsData.filter(t => t.name === dupName);
-                /*console.log(`Tests with name "${dupName}":`, duplicateTests.map(t => ({
-                    id: t.id,
-                    name: t.name,
-                    category: t.category_name
-                })));*/
+                /*// console.log removed));*/
             });
 
             // Show user warning about duplicates
@@ -910,7 +889,7 @@ class EntryManager {
      * Handle empty test data
      */
     handleEmptyTestData() {
-        console.warn('No test data available');
+        // console.warn removed
 
         if (typeof toastr !== 'undefined') {
             toastr.warning('No tests are available. Please contact your administrator.', 'No Tests Available');
@@ -925,7 +904,7 @@ class EntryManager {
      * @param {string} errorMessage - The error message to display
      */
     handleTestDataLoadError(errorMessage = 'Unknown error') {
-        console.error('Test data loading failed:', errorMessage);
+        // console.error removed
 
         // Create retry UI for test data
         this.createTestDataRetryUI(errorMessage);
@@ -979,7 +958,7 @@ class EntryManager {
             const $container = $('#testsContainer').length > 0 ? $('#testsContainer') : $('#entryForm');
             $container.prepend(retryHtml);
         } catch (error) {
-            console.error('Error creating test data retry UI:', error);
+            // console.error removed
         }
     }
 
@@ -988,7 +967,7 @@ class EntryManager {
      */
     async retryTestDataLoad() {
         try {
-            //console.log('Retrying test data load...');
+            //// console.log removed
 
             // Show loading state
             const $retryButton = $('#testDataRetryUI button:first');
@@ -1009,14 +988,14 @@ class EntryManager {
                     toastr.success('Test data loaded successfully!');
                 }
 
-                //console.log('Test data retry successful');
+                //// console.log removed
             } else {
                 // Failed again - restore button state
                 $retryButton.html(originalText).prop('disabled', false);
-                //console.log('Test data retry failed');
+                //// console.log removed
             }
         } catch (error) {
-            console.error('Error during test data retry:', error);
+            // console.error removed
 
             // Restore button state
             const $retryButton = $('#testDataRetryUI button:first');
@@ -1030,9 +1009,9 @@ class EntryManager {
     dismissTestDataError() {
         try {
             $('#testDataRetryUI').remove();
-            //console.log('Test data error UI dismissed');
+            //// console.log removed
         } catch (error) {
-            console.error('Error dismissing test data error UI:', error);
+            // console.error removed
         }
     }
 
@@ -1049,12 +1028,12 @@ class EntryManager {
                 if (cachedData) {
                     this.categoriesData = cachedData;
                     this.populateCategoryFilter();
-                    //console.log('Categories data loaded from cache:', this.categoriesData.length, 'categories');
+                    //// console.log removed
                     return true;
                 }
             }
 
-            //console.log(`Loading categories for filter... (attempt ${retryCount + 1}/${maxRetries + 1})`);
+            //// console.log removed
             this.performanceMetrics.apiCalls++;
 
             const response = await $.ajax({
@@ -1075,7 +1054,7 @@ class EntryManager {
                 // Validate category data structure
                 const validCategories = this.validateCategoryData(this.categoriesData);
                 if (validCategories.length !== this.categoriesData.length) {
-                    console.warn(`${this.categoriesData.length - validCategories.length} invalid categories filtered out`);
+                    // console.warn removed
                     this.categoriesData = validCategories;
                 }
 
@@ -1083,22 +1062,22 @@ class EntryManager {
                 this.setCacheData(this.cacheKeys.CATEGORIES_DATA, this.categoriesData);
 
                 this.populateCategoryFilter();
-                console.log('Categories loaded successfully:', this.categoriesData.length, 'categories');
-                console.log('Sample categories:', this.categoriesData.slice(0, 3));
+                // console.log removed
+                // console.log removed
 
                 // Debug: Log first few categories to verify data structure
                 if (this.categoriesData.length > 0) {
-                    //console.log('Sample category data:', this.categoriesData.slice(0, 3));
+                    //// console.log removed
                 }
 
                 return true; // Success
             } else {
                 const errorMessage = response ? response.message : 'Invalid response from server';
-                console.error('Failed to load categories:', errorMessage);
+                // console.error removed
 
                 // Try retry if we haven't exceeded max retries
                 if (retryCount < maxRetries) {
-                    //console.log(`Retrying category load in 2 seconds... (${retryCount + 1}/${maxRetries})`);
+                    //// console.log removed
                     await this.delay(2000);
                     return await this.loadCategoriesForFilter(retryCount + 1);
                 }
@@ -1108,7 +1087,7 @@ class EntryManager {
                 return false; // Failed
             }
         } catch (error) {
-            console.error('Error loading categories data:', error);
+            // console.error removed
 
             const errorDetails = {
                 status: error.status,
@@ -1116,11 +1095,11 @@ class EntryManager {
                 responseText: error.responseText,
                 timeout: error.statusText === 'timeout'
             };
-            console.error('Category load error details:', errorDetails);
+            // console.error removed
 
             // Try retry for network errors if we haven't exceeded max retries
             if (retryCount < maxRetries && (error.status === 0 || error.statusText === 'timeout' || error.status >= 500)) {
-                //console.log(`Retrying category load due to network error in 3 seconds... (${retryCount + 1}/${maxRetries})`);
+                //// console.log removed
                 await this.delay(3000);
                 return await this.loadCategoriesForFilter(retryCount + 1);
             }
@@ -1138,18 +1117,18 @@ class EntryManager {
      */
     validateCategoryData(categories) {
         if (!Array.isArray(categories)) {
-            console.error('Categories data is not an array:', categories);
+            // console.error removed
             return [];
         }
 
         return categories.filter(category => {
             if (!category || typeof category !== 'object') {
-                console.warn('Invalid category object:', category);
+                // console.warn removed
                 return false;
             }
 
             if (!category.id || !category.name) {
-                console.warn('Category missing required fields (id, name):', category);
+                // console.warn removed
                 return false;
             }
 
@@ -1171,7 +1150,7 @@ class EntryManager {
      */
     async loadMainCategoriesData() {
         try {
-            //console.log('Loading main categories...');
+            //// console.log removed
             const response = await $.ajax({
                 url: 'ajax/main_test_category_api.php',
                 method: 'GET',
@@ -1181,13 +1160,13 @@ class EntryManager {
 
             if (response && response.success) {
                 this.mainCategoriesData = response.data || [];
-                //console.log('Loaded main categories data:', this.mainCategoriesData.length, 'categories');
+                //// console.log removed
             } else {
-                //console.error('Failed to load main categories:', response ? response.message : 'Invalid response');
+                //// console.error removed
                 this.mainCategoriesData = [];
             }
         } catch (error) {
-            //console.error('Error loading main categories data:', error);
+            //// console.error removed
             this.mainCategoriesData = [];
         }
     }
@@ -1198,7 +1177,7 @@ class EntryManager {
     populateCategoryFilter() {
         const $categoryFilter = $('#categoryFilter');
         if ($categoryFilter.length === 0) {
-            //console.warn('Category filter element not found');
+            //// console.warn removed
             return;
         }
 
@@ -1216,7 +1195,7 @@ class EntryManager {
         // Update test count
         this.updateFilteredTestCount();
 
-        //console.log('Category filter populated with', this.categoriesData.length, 'categories');
+        //// console.log removed
     }
 
     /**
@@ -1224,8 +1203,8 @@ class EntryManager {
      * @param {string} errorMessage - The error message to display
      */
     handleCategoryLoadError(errorMessage = 'Unknown error') {
-        console.warn('Category loading failed, implementing fallback measures');
-        console.error('Error details:', errorMessage);
+        // console.warn removed
+        // console.error removed
 
         const $categoryFilter = $('#categoryFilter');
         const $clearButton = $('#clearCategoryFilter');
@@ -1267,12 +1246,7 @@ class EntryManager {
         }
 
         // Log error for debugging
-        console.error('Category loading error handled. Features disabled:', {
-            category_filter_disabled: true,
-            clear_button_disabled: true,
-            retry_ui_created: true,
-            error_message: errorMessage
-        });
+        // console.error removed
     }
 
     /**
@@ -1301,7 +1275,7 @@ class EntryManager {
             // Add retry UI after the category filter
             $('#categoryFilter').parent().append(retryHtml);
         } catch (error) {
-            console.error('Error creating category retry UI:', error);
+            // console.error removed
         }
     }
 
@@ -1310,7 +1284,7 @@ class EntryManager {
      */
     async retryCategoryLoad() {
         try {
-            //console.log('Retrying category load...');
+            //// console.log removed
 
             // Show loading state
             const $retryButton = $('#categoryRetryUI button:first');
@@ -1330,14 +1304,14 @@ class EntryManager {
                     toastr.success('Categories loaded successfully!');
                 }
 
-                //console.log('Category retry successful');
+                //// console.log removed
             } else {
                 // Failed again - restore button state
                 $retryButton.html(originalText).prop('disabled', false);
-                //console.log('Category retry failed');
+                //// console.log removed
             }
         } catch (error) {
-            console.error('Error during category retry:', error);
+            // console.error removed
 
             // Restore button state
             const $retryButton = $('#categoryRetryUI button:first');
@@ -1351,9 +1325,9 @@ class EntryManager {
     dismissCategoryError() {
         try {
             $('#categoryRetryUI').remove();
-            //console.log('Category error UI dismissed');
+            //// console.log removed
         } catch (error) {
-            console.error('Error dismissing category error UI:', error);
+            // console.error removed
         }
     }
 
@@ -1383,13 +1357,13 @@ class EntryManager {
         try {
             // Enhanced validation of input parameters
             if (!this.testsData || !Array.isArray(this.testsData)) {
-                console.warn('Tests data is not available or invalid, returning empty array');
+                // console.warn removed
                 return [];
             }
 
             // Handle empty tests data gracefully
             if (this.testsData.length === 0) {
-                console.warn('Tests data is empty, no tests to filter');
+                // console.warn removed
                 return [];
             }
 
@@ -1398,7 +1372,7 @@ class EntryManager {
 
             // If no valid category selected, return all tests
             if (normalizedCategoryId === null) {
-                console.log('No category filter applied, returning all tests:', this.testsData.length);
+                // console.log removed
                 return this.testsData;
             }
 
@@ -1422,12 +1396,12 @@ class EntryManager {
                     // Perform comparison with type safety
                     return testCategoryId === normalizedCategoryId;
                 } catch (testError) {
-                    console.warn('Error processing test during filtering:', testError, test);
+                    // console.warn removed
                     return false; // Exclude problematic tests
                 }
             });
 
-            console.log(`Filtered tests by category ${categoryId}:`, filteredTests.length, 'out of', this.testsData.length);
+            // console.log removed
 
             // Enhanced debugging and fallback behavior
             if (filteredTests.length === 0 && normalizedCategoryId !== 'uncategorized') {
@@ -1436,7 +1410,7 @@ class EntryManager {
 
             return filteredTests;
         } catch (error) {
-            console.error('Error in filterTestsByCategory:', error);
+            // console.error removed
             this.handleCategoryFilterError(error, categoryId);
             // Enhanced fallback: return all tests to maintain functionality
             return this.testsData || [];
@@ -1474,7 +1448,7 @@ class EntryManager {
 
         // Validate that it's a reasonable category ID (numeric or alphanumeric)
         if (!/^[a-zA-Z0-9_-]+$/.test(stringValue)) {
-            console.warn('Invalid category ID format:', categoryId);
+            // console.warn removed
             return null;
         }
 
@@ -1537,7 +1511,7 @@ class EntryManager {
      * @param {string} normalizedCategoryId - The normalized category ID
      */
     handleEmptyFilterResults(originalCategoryId, normalizedCategoryId) {
-        console.warn(`No tests found for category ID: ${originalCategoryId} (normalized: ${normalizedCategoryId})`);
+        // console.warn removed
 
         // Provide debugging information
         const availableCategoryIds = [...new Set(
@@ -1546,7 +1520,7 @@ class EntryManager {
                 .filter(id => id !== null)
         )];
 
-        console.log('Available category IDs in tests:', availableCategoryIds);
+        // console.log removed
 
         // Check if the category exists in our categories data
         const categoryExists = this.categoriesData.some(cat =>
@@ -1554,9 +1528,9 @@ class EntryManager {
         );
 
         if (!categoryExists) {
-            console.warn(`Category ${normalizedCategoryId} does not exist in categories data`);
+            // console.warn removed
         } else {
-            console.warn(`Category ${normalizedCategoryId} exists but has no associated tests`);
+            // console.warn removed
         }
     }
 
@@ -1566,12 +1540,7 @@ class EntryManager {
      * @param {*} categoryId - The category ID that caused the error
      */
     handleCategoryFilterError(error, categoryId) {
-        console.error('Category filtering error details:', {
-            error: error.message,
-            categoryId: categoryId,
-            testsDataLength: this.testsData ? this.testsData.length : 'null',
-            categoriesDataLength: this.categoriesData ? this.categoriesData.length : 'null'
-        });
+        // console.error removed
 
         // Track error for performance monitoring
         if (this.performanceMetrics) {
@@ -1587,7 +1556,7 @@ class EntryManager {
         try {
             this.recoverFromCategoryFilterError();
         } catch (recoveryError) {
-            console.error('Error during category filter recovery:', recoveryError);
+            // console.error removed
         }
     }
 
@@ -1598,7 +1567,7 @@ class EntryManager {
     async onCategoryFilterChange(categoryId) {
         try {
             const startTime = performance.now();
-            //console.log('Global category filter changed to:', categoryId);
+            //// console.log removed
 
             // Update the filtered test count display
             this.updateFilteredTestCount();
@@ -1630,7 +1599,7 @@ class EntryManager {
             const duration = endTime - startTime;
 
             // Log performance metrics
-            //console.log(`Global category filter change completed in ${duration.toFixed(2)}ms`);
+            //// console.log removed
 
             // Track performance
             this.performanceMetrics.filterOperations.push({
@@ -1642,12 +1611,12 @@ class EntryManager {
 
             // Alert if operation is slow
             if (duration > 200) {
-                console.warn(`Category filter change took ${duration.toFixed(2)}ms, which exceeds the 200ms target`);
+                // console.warn removed
             }
 
-            //console.log('Global category filter change handled successfully');
+            //// console.log removed
         } catch (error) {
-            console.error('Error handling global category filter change:', error);
+            // console.error removed
             // Attempt recovery
             this.recoverFromCategoryFilterError();
         }
@@ -1658,7 +1627,7 @@ class EntryManager {
      */
     clearCategoryFilter() {
         try {
-            //console.log('Clearing global category filter...');
+            //// console.log removed
 
             // Reset category filter dropdown
             const $categoryFilter = $('#categoryFilter');
@@ -1677,9 +1646,9 @@ class EntryManager {
             $('#clearCategoryFilter').prop('disabled', true).hide();
             this.hideCategoryFilterIndicator();
 
-            //console.log('Category filter cleared, showing all tests');
+            //// console.log removed
         } catch (error) {
-            console.error('Error clearing category filter:', error);
+            // console.error removed
         }
     }
 
@@ -1708,7 +1677,7 @@ class EntryManager {
             `).show();
 
         } catch (error) {
-            console.error('Error showing category filter indicator:', error);
+            // console.error removed
         }
     }
 
@@ -1719,7 +1688,7 @@ class EntryManager {
         try {
             $('#categoryFilterIndicator').hide();
         } catch (error) {
-            console.error('Error hiding category filter indicator:', error);
+            // console.error removed
         }
     }
 
@@ -1741,7 +1710,7 @@ class EntryManager {
             const filteredTests = this.getCurrentlyFilteredTests();
             const $testSelects = $('#testsContainer .test-select');
 
-            //console.log(`Updating ${$testSelects.length} test dropdowns with ${filteredTests.length} filtered tests`);
+            //// console.log removed
 
             // Batch DOM updates for better performance
             const updates = [];
@@ -1785,14 +1754,14 @@ class EntryManager {
                 this.performanceMetrics.filterOperations.splice(0, 10);
             }
 
-            //console.log(`Updated all test dropdowns in ${duration.toFixed(2)}ms`);
+            //// console.log removed
 
             // Warn if operation is slow
             if (duration > 500) {
-                console.warn(`Test dropdown update took ${duration.toFixed(2)}ms, which exceeds the 500ms target`);
+                // console.warn removed
             }
         } catch (error) {
-            console.error('Error updating test dropdowns:', error);
+            // console.error removed
         }
     }
 
@@ -1806,12 +1775,12 @@ class EntryManager {
         try {
             // Validate input parameters
             if (!$select || $select.length === 0) {
-                console.error('Invalid select element passed to updateTestDropdownOptions');
+                // console.error removed
                 return;
             }
 
             if (!filteredTests || !Array.isArray(filteredTests)) {
-                console.warn('Invalid filteredTests array, using empty array');
+                // console.warn removed
                 filteredTests = [];
             }
 
@@ -1851,7 +1820,7 @@ class EntryManager {
                         ${displayName}
                     </option>`;
                 } else {
-                    console.warn('Invalid test object found:', test);
+                    // console.warn removed
                 }
             });
 
@@ -1863,10 +1832,10 @@ class EntryManager {
 
             if (shouldRestoreSelection) {
                 $select.val(currentValue);
-                //console.log(`Restored test selection: ${currentValue}`);
+                //// console.log removed
             } else if (currentValue) {
                 // If previously selected test is not in filtered results, clear selection
-                //console.log(`Previous test selection ${currentValue} not available in filtered results, clearing`);
+                //// console.log removed
                 $select.val('');
 
                 // Clear related fields in the row using the helper method
@@ -1881,7 +1850,7 @@ class EntryManager {
                 try {
                     $select.trigger('change.select2');
                 } catch (select2Error) {
-                    console.warn('Error refreshing Select2:', select2Error);
+                    // console.warn removed
                     // Try to reinitialize Select2 if refresh fails
                     try {
                         $select.select2('destroy').select2({
@@ -1890,15 +1859,15 @@ class EntryManager {
                             placeholder: 'Select Test'
                         });
                     } catch (reinitError) {
-                        console.error('Error reinitializing Select2:', reinitError);
+                        // console.error removed
                     }
                 }
             }
 
-            //console.log(`Updated test dropdown with ${validTests.length} options`);
+            //// console.log removed
 
         } catch (error) {
-            console.error('Error updating test dropdown options:', error);
+            // console.error removed
 
             // Fallback: Ensure dropdown has at least the default option
             try {
@@ -1906,7 +1875,7 @@ class EntryManager {
                     $select.html('<option value="">Select Test (Error loading options)</option>');
                 }
             } catch (fallbackError) {
-                console.error('Error in fallback option creation:', fallbackError);
+                // console.error removed
             }
         }
     }
@@ -1926,12 +1895,12 @@ class EntryManager {
             if (response.success) {
                 this.ownersData = response.data || [];
                 this.populateOwnerSelect();
-                //console.log('Loaded owners data:', this.ownersData.length, 'owners');
+                //// console.log removed
             } else {
-                //console.error('Failed to load owners:', response.message);
+                //// console.error removed
             }
         } catch (error) {
-            //console.error('Error loading owners data:', error);
+            //// console.error removed
             this.ownersData = [];
         }
     }
@@ -1947,7 +1916,7 @@ class EntryManager {
             $select.append(`<option value="${owner.id}">${owner.name || owner.username || owner.full_name}</option>`);
         });
 
-        //console.log('Populated owner select with', this.ownersData.length, 'owners');
+        //// console.log removed
 
         // Refresh Select2 if initialized
         if ($select.hasClass('select2-hidden-accessible')) {
@@ -1977,10 +1946,10 @@ class EntryManager {
                 $('#completedEntries').text(stats.completed || 0);
                 $('#todayEntries').text(stats.today || 0);
             } else {
-                //console.error('Failed to load statistics:', response.message);
+                //// console.error removed
             }
         } catch (error) {
-            //console.error('Error loading statistics:', error);
+            //// console.error removed
         }
     }
 
@@ -1988,7 +1957,7 @@ class EntryManager {
      * Bind event handlers
      */
     bindEvents() {
-        // //console.log('Binding events...');
+        // //// console.log removed
 
         // Filter change events
         $('#statusFilter, #dateFilter').on('change', () => {
@@ -2034,7 +2003,7 @@ class EntryManager {
             this.debouncedRangeUpdate();
         });
 
-        // //console.log('Events bound successfully');
+        // //// console.log removed
     }
 
     /**
@@ -2109,7 +2078,7 @@ class EntryManager {
      * Open Add Entry Modal
      */
     openAddModal() {
-        //console.log('Opening add entry modal...');
+        //// console.log removed
 
         this.currentEditId = null;
         this.resetForm();
@@ -2133,14 +2102,14 @@ class EntryManager {
     addTestRow(testData = null) {
         const rowIndex = this.testRowCounter++;
 
-        //console.log('Creating test row with', this.testsData.length, 'available tests');
+        //// console.log removed
 
         // Debug: Check for duplicate test names
         const testNames = this.testsData.map(t => t.name);
         const duplicateNames = testNames.filter((name, index) => testNames.indexOf(name) !== index);
         if (duplicateNames.length > 0) {
-            console.warn('Duplicate test names found:', duplicateNames);
-            //console.log('All test data:', this.testsData.map(t => ({ id: t.id, name: t.name })));
+            // console.warn removed
+            //// console.log removed
         }
 
         // Get filtered tests based on current global category filter
@@ -2148,11 +2117,7 @@ class EntryManager {
         const globalCategoryFilter = $('#categoryFilter').val();
         const filteredTests = this.getCurrentlyFilteredTests();
 
-        /*console.log('Creating new test row with global filter:', {
-            global_filter: globalCategoryFilter,
-            filtered_tests_count: filteredTests.length,
-            total_tests_count: this.testsData.length
-        });*/
+        /*// console.log removed*/
 
         const testOptions = filteredTests.map(test => {
             // Create a unique display name to avoid confusion
@@ -2172,9 +2137,9 @@ class EntryManager {
         }).join('');
 
         if (testData) {
-            //console.log('Looking for test with ID:', testData.test_id);
+            //// console.log removed
             const foundTest = this.testsData.find(t => t.id == testData.test_id);
-            //console.log('Found test:', foundTest);
+            //// console.log removed
         }
 
         const rowHtml = `
@@ -2247,7 +2212,7 @@ class EntryManager {
 
         // If global category filter is active, pre-select it in the new row
         if (globalCategoryFilter && globalCategoryFilter !== '' && !testData) {
-            //console.log('Pre-selecting global category filter in new row:', globalCategoryFilter);
+            //// console.log removed
             $categorySelect.val(globalCategoryFilter);
 
             // Set main category ID if available
@@ -2258,7 +2223,7 @@ class EntryManager {
         }
 
         // Debug: Log category population status
-        //console.log('Category dropdown populated for row', rowIndex, 'with', this.categoriesData.length, 'categories');
+        //// console.log removed
 
         // Initialize Select2 for both dropdowns
         $testSelect.select2({
@@ -2275,8 +2240,8 @@ class EntryManager {
 
         // If testData is provided, populate the row (EDIT MODE)
         if (testData) {
-            console.log('=== POPULATING TEST ROW FOR EDIT ===');
-            console.log('Test data:', testData);
+            // console.log removed
+            // console.log removed
             
             // Set the test selection first
             $testSelect.val(testData.test_id);
@@ -2290,7 +2255,7 @@ class EntryManager {
             // Use the category_id from the test data (which should be the correct one)
             const categoryId = testData.category_id || testData.test_category_id || testData.entry_category_id;
             if (categoryId && categoryId != 0) {
-                console.log('Setting category to:', categoryId);
+                // console.log removed
                 
                 // Ensure category dropdown is populated
                 this.populateRowCategoryDropdown($categorySelect);
@@ -2311,7 +2276,7 @@ class EntryManager {
                     $row.find('.test-main-category-id').val(mainCategoryId);
                 }
                 
-                console.log('Category set to:', categoryId, 'Main category:', mainCategoryId);
+                // console.log removed
             }
 
             // Set other fields from the entry data
@@ -2328,7 +2293,7 @@ class EntryManager {
                 this.calculateTotals();
             }, 200);
 
-            console.log('=== TEST ROW POPULATED ===');
+            // console.log removed
         }
     }
 
@@ -2353,9 +2318,9 @@ class EntryManager {
         const $select = $(selectElement);
         const testId = $select.val();
 
-        console.log('=== TEST CHANGE EVENT ===');
-        console.log('Test ID selected:', testId);
-        console.log('Row index:', $row.data('row-index'));
+        // console.log removed
+        // console.log removed
+        // console.log removed
 
         if (!testId) {
             // Clear everything if no test selected
@@ -2367,18 +2332,13 @@ class EntryManager {
         // Find the test data
         const testData = this.testsData.find(t => t.id == testId);
         if (!testData) {
-            console.error('Test not found in testsData:', testId);
+            // console.error removed
             this.clearTestRow($row);
             this.calculateTotals();
             return;
         }
 
-        console.log('Found test data:', {
-            id: testData.id,
-            name: testData.name,
-            category_id: testData.category_id,
-            category_name: testData.category_name
-        });
+        // console.log removed
 
         // ALWAYS set the category based on the test's category, regardless of edit mode
         await this.setTestCategory($row, testData);
@@ -2389,7 +2349,7 @@ class EntryManager {
         // Calculate totals
         this.calculateTotals();
 
-        console.log('=== TEST CHANGE COMPLETE ===');
+        // console.log removed
     }
 
     /**
@@ -2409,11 +2369,11 @@ class EntryManager {
     async setTestCategory($row, testData) {
         const $categorySelect = $row.find('.test-category-select');
 
-        console.log('Setting category for test:', testData.name, 'Category ID:', testData.category_id);
+        // console.log removed
 
         // Ensure categories are loaded
         if (this.categoriesData.length === 0) {
-            console.log('Loading categories...');
+            // console.log removed
             await this.loadCategoriesForFilter();
         }
 
@@ -2435,10 +2395,10 @@ class EntryManager {
                 $row.find('.test-main-category-id').val(category.main_category_id);
             }
 
-            console.log('Category set to:', testData.category_name, '(ID:', testData.category_id, ')');
+            // console.log removed
         } else {
             $categorySelect.val('');
-            console.log('No category for test:', testData.name);
+            // console.log removed
         }
 
         // Reinitialize Select2 AFTER setting the value
@@ -2450,9 +2410,9 @@ class EntryManager {
 
         // Verify the value was set correctly
         const finalValue = $categorySelect.val();
-        console.log('Final category value:', finalValue);
+        // console.log removed
         if (finalValue != testData.category_id && testData.category_id != 0) {
-            console.error('Category value mismatch! Expected:', testData.category_id, 'Got:', finalValue);
+            // console.error removed
         }
     }
 
@@ -2525,7 +2485,7 @@ class EntryManager {
 
         // Log warnings if any
         if (validation.warnings.length > 0) {
-            console.warn('Patient demographic validation warnings:', validation.warnings);
+            // console.warn removed
         }
 
         // Check if patient is a child (under 18)
@@ -2716,7 +2676,7 @@ class EntryManager {
      */
     clearRangeCache() {
         this.rangeCache.clear();
-        //console.log('Range cache cleared');
+        //// console.log removed
     }
 
     /**
@@ -2746,7 +2706,7 @@ class EntryManager {
         });
 
         const endTime = performance.now();
-        //console.log(`Batch range update completed in ${(endTime - startTime).toFixed(2)}ms for ${rangeUpdates.length} tests`);
+        //// console.log removed
 
         return rangeUpdates.length;
     }
@@ -2755,10 +2715,10 @@ class EntryManager {
      * Test demographic range functionality with sample data
      */
     testDemographicRangeFunctionality() {
-        //console.log('=== TESTING DEMOGRAPHIC RANGE FUNCTIONALITY ===');
+        //// console.log removed
 
         if (this.testsData.length === 0) {
-            console.error('No test data available for testing');
+            // console.error removed
             return;
         }
 
@@ -2768,29 +2728,29 @@ class EntryManager {
         );
 
         if (!testWithRanges) {
-            console.warn('No tests with demographic ranges found for testing');
+            // console.warn removed
             return;
         }
 
-        //console.log('Testing with test:', testWithRanges.name, 'ID:', testWithRanges.id);
+        //// console.log removed
 
         // Test child ranges (age 10)
         const childRange = this.calculateAppropriateRanges(10, 'Male', testWithRanges);
-        //console.log('Child range (age 10, Male):', childRange);
+        //// console.log removed
 
         // Test adult male ranges (age 30)
         const maleRange = this.calculateAppropriateRanges(30, 'Male', testWithRanges);
-        //console.log('Adult male range (age 30, Male):', maleRange);
+        //// console.log removed
 
         // Test adult female ranges (age 25)
         const femaleRange = this.calculateAppropriateRanges(25, 'Female', testWithRanges);
-        //console.log('Adult female range (age 25, Female):', femaleRange);
+        //// console.log removed
 
         // Test general ranges (no demographics)
         const generalRange = this.calculateAppropriateRanges(null, null, testWithRanges);
-        //console.log('General range (no demographics):', generalRange);
+        //// console.log removed
 
-        //console.log('=== DEMOGRAPHIC RANGE TESTING COMPLETE ===');
+        //// console.log removed
     }
 
     /**
@@ -2809,7 +2769,7 @@ class EntryManager {
 
             // Check if date is valid
             if (isNaN(date.getTime())) {
-                console.warn('Invalid date format:', dateString);
+                // console.warn removed
                 return '';
             }
 
@@ -2820,7 +2780,7 @@ class EntryManager {
 
             return `${year}-${month}-${day}`;
         } catch (error) {
-            console.error('Error formatting date:', dateString, error);
+            // console.error removed
             return '';
         }
     }
@@ -2830,7 +2790,7 @@ class EntryManager {
      * This method can be called from browser console for testing
      */
     validateDemographicRangeWorkflow() {
-        //console.log('=== VALIDATING DEMOGRAPHIC RANGE WORKFLOW ===');
+        //// console.log removed
 
         const results = {
             cacheTest: false,
@@ -2841,18 +2801,18 @@ class EntryManager {
 
         try {
             // Test 1: Cache functionality
-            //console.log('Testing cache functionality...');
+            //// console.log removed
             const testData = this.testsData[0];
             if (testData) {
                 const key = this.generateRangeCacheKey(25, 'Male', testData.id);
                 const range1 = this.calculateAppropriateRanges(25, 'Male', testData);
                 const range2 = this.calculateAppropriateRanges(25, 'Male', testData); // Should use cache
                 results.cacheTest = true;
-                //console.log('✓ Cache test passed');
+                //// console.log removed
             }
 
             // Test 2: Performance test
-            //console.log('Testing performance...');
+            //// console.log removed
             const startTime = performance.now();
             for (let i = 0; i < 100; i++) {
                 if (this.testsData[0]) {
@@ -2862,38 +2822,38 @@ class EntryManager {
             const endTime = performance.now();
             const avgTime = (endTime - startTime) / 100;
             results.performanceTest = avgTime < 1; // Should be under 1ms per calculation
-            //console.log(`✓ Performance test: ${avgTime.toFixed(3)}ms per calculation`);
+            //// console.log removed
 
             // Test 3: Validation test
-            //console.log('Testing validation...');
+            //// console.log removed
             const validation = this.validatePatientDemographics(25, 'Male');
             results.validationTest = validation.age === 25 && validation.gender === 'male';
-            //console.log('✓ Validation test passed');
+            //// console.log removed
 
             // Test 4: UI update test (if DOM elements exist)
-            //console.log('Testing UI updates...');
+            //// console.log removed
             if ($('#patientAge').length > 0) {
                 $('#patientAge').val('25');
                 $('#patientGender').val('Male');
                 this.updateAllTestRangesForCurrentPatient();
                 results.uiUpdateTest = true;
-                //console.log('✓ UI update test passed');
+                //// console.log removed
             } else {
-                //console.log('⚠ UI elements not available for testing');
+                //// console.log removed
                 results.uiUpdateTest = true; // Don't fail if UI not available
             }
 
         } catch (error) {
-            console.error('Workflow validation error:', error);
+            // console.error removed
         }
 
         const allPassed = Object.values(results).every(result => result === true);
-        //console.log('=== WORKFLOW VALIDATION RESULTS ===');
-        //console.log('Cache Test:', results.cacheTest ? '✓ PASS' : '✗ FAIL');
-        //console.log('Performance Test:', results.performanceTest ? '✓ PASS' : '✗ FAIL');
-        //console.log('Validation Test:', results.validationTest ? '✓ PASS' : '✗ FAIL');
-        //console.log('UI Update Test:', results.uiUpdateTest ? '✓ PASS' : '✗ FAIL');
-        //console.log('Overall Result:', allPassed ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED');
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
 
         return results;
     }
@@ -2903,7 +2863,7 @@ class EntryManager {
      */
     verifyDemographicRangeFields() {
         if (this.testsData.length === 0) {
-            console.warn('No test data available for demographic range field verification');
+            // console.warn removed
             return;
         }
 
@@ -2920,23 +2880,17 @@ class EntryManager {
             }
         });
 
-        /*console.log('Demographic range field verification:', {
-            totalTests: this.testsData.length,
-            availableFields: availableFields,
-            missingFields: missingFields,
-            sampleTestId: sampleTest.id,
-            sampleTestName: sampleTest.name
-        });*/
+        /*// console.log removed*/
 
         if (missingFields.length > 0) {
-            console.error('Missing demographic range fields:', missingFields);
-            console.error('Demographic range functionality may not work properly');
+            // console.error removed
+            // console.error removed
 
             if (typeof toastr !== 'undefined') {
                 toastr.warning('Some demographic range fields are missing from test data. Age/gender-specific ranges may not work properly.');
             }
         } else {
-            //console.log('All demographic range fields are available');
+            //// console.log removed
 
             // Check if any tests actually have demographic-specific ranges
             let testsWithDemographicRanges = 0;
@@ -2946,7 +2900,7 @@ class EntryManager {
                 }
             });
 
-            //console.log(`Found ${testsWithDemographicRanges} tests with demographic-specific ranges out of ${this.testsData.length} total tests`);
+            //// console.log removed
 
             // Run functionality test if we have tests with demographic ranges
             if (testsWithDemographicRanges > 0) {
@@ -3061,9 +3015,9 @@ class EntryManager {
                 }
             });
 
-            ////console.log('Updated range labels for all test rows');
+            ////// console.log removed
         } catch (error) {
-            //console.error('Error updating range labels:', error);
+            //// console.error removed
         }
     }
 
@@ -3130,7 +3084,7 @@ class EntryManager {
             };
 
         } catch (error) {
-            //console.error('Error validating test result:', error);
+            //// console.error removed
             return {
                 status: 'error',
                 message: 'Validation error',
@@ -3177,7 +3131,7 @@ class EntryManager {
                 .addClass(this.getValidationIndicatorClass(validationResult));
 
         } catch (error) {
-            //console.error('Error updating validation indicators:', error);
+            //// console.error removed
         }
     }
 
@@ -3222,9 +3176,9 @@ class EntryManager {
                 }
             });
 
-            //console.log('Validated all test results');
+            //// console.log removed
         } catch (error) {
-            //console.error('Error validating all test results:', error);
+            //// console.error removed
         }
     }
 
@@ -3250,7 +3204,7 @@ class EntryManager {
                 }
             }
         } catch (error) {
-            //console.error('Error handling test result change:', error);
+            //// console.error removed
         }
     }
 
@@ -3260,7 +3214,7 @@ class EntryManager {
      */
     onCategoryFilterChange(categoryId) {
         try {
-            //console.log('Category filter changed to:', categoryId);
+            //// console.log removed
 
             // Update test count display
             this.updateFilteredTestCount();
@@ -3278,9 +3232,9 @@ class EntryManager {
                 $('#clearCategoryFilter').prop('disabled', true);
             }
 
-            //console.log('Category filter applied successfully');
+            //// console.log removed
         } catch (error) {
-            //console.error('Error handling category filter change:', error);
+            //// console.error removed
         }
     }
 
@@ -3290,8 +3244,8 @@ class EntryManager {
      */
     populateRowCategoryDropdown($categorySelect) {
         try {
-            console.log('Populating category dropdown with', this.categoriesData.length, 'categories');
-            console.log('Main categories available:', this.mainCategoriesData.length);
+            // console.log removed
+            // console.log removed
 
             // Clear existing options
             $categorySelect.empty().append('<option value="">Select Category</option>');
@@ -3341,9 +3295,9 @@ class EntryManager {
                 }
             }
 
-            console.log('Populated category dropdown for test row with', $categorySelect.find('option').length, 'options');
+            // console.log removed
         } catch (error) {
-            console.error('Error populating row category dropdown:', error);
+            // console.error removed
         }
     }
 
@@ -3364,7 +3318,7 @@ class EntryManager {
      */
     recoverFromCategoryFilterError() {
         try {
-            console.warn('Attempting to recover from category filter error...');
+            // console.warn removed
 
             // Reset category filter to show all tests
             const $categoryFilter = $('#categoryFilter');
@@ -3389,9 +3343,9 @@ class EntryManager {
             // Remove any error UI elements
             $('#categoryRetryUI').remove();
 
-            //console.log('Category filter error recovery completed');
+            //// console.log removed
         } catch (error) {
-            console.error('Error during category filter recovery:', error);
+            // console.error removed
         }
     }
 
@@ -3402,7 +3356,7 @@ class EntryManager {
      */
     handleGlobalError(error, context = 'Unknown') {
         try {
-            console.error(`Global error in ${context}:`, error);
+            // console.error removed
 
             // Log error details for debugging
             const errorDetails = {
@@ -3414,7 +3368,7 @@ class EntryManager {
                 userAgent: navigator.userAgent
             };
 
-            console.error('Error details:', errorDetails);
+            // console.error removed
 
             // Apply appropriate fallback based on context
             switch (context) {
@@ -3443,7 +3397,7 @@ class EntryManager {
             this.logErrorForReporting(errorDetails);
 
         } catch (fallbackError) {
-            console.error('Error in global error handler:', fallbackError);
+            // console.error removed
             // Last resort - show user message
             if (typeof toastr !== 'undefined') {
                 toastr.error('An unexpected error occurred. Please refresh the page.');
@@ -3456,7 +3410,7 @@ class EntryManager {
      */
     recoverFromTestSelectionError() {
         try {
-            console.warn('Recovering from test selection error...');
+            // console.warn removed
 
             // Clear any problematic test selections
             $('.test-select').each((index, select) => {
@@ -3469,22 +3423,22 @@ class EntryManager {
                     if (selectedValue) {
                         const testExists = this.testsData.some(test => test.id == selectedValue);
                         if (!testExists) {
-                            console.warn(`Test ${selectedValue} no longer exists, clearing selection`);
+                            // console.warn removed
                             $select.val('');
                             this.clearTestRowFields($row);
                         }
                     }
                 } catch (rowError) {
-                    console.error('Error recovering test row:', rowError);
+                    // console.error removed
                     // Clear the problematic row
                     $select.val('');
                     this.clearTestRowFields($row);
                 }
             });
 
-            //console.log('Test selection error recovery completed');
+            //// console.log removed
         } catch (error) {
-            console.error('Error during test selection recovery:', error);
+            // console.error removed
         }
     }
 
@@ -3493,7 +3447,7 @@ class EntryManager {
      */
     recoverFromDataReconciliationError() {
         try {
-            console.warn('Recovering from data reconciliation error...');
+            // console.warn removed
 
             // Reset to basic entry mode without reconciliation
             const $testsContainer = $('#testsContainer');
@@ -3510,9 +3464,9 @@ class EntryManager {
                 }
             }
 
-            //console.log('Data reconciliation error recovery completed');
+            //// console.log removed
         } catch (error) {
-            console.error('Error during data reconciliation recovery:', error);
+            // console.error removed
         }
     }
 
@@ -3521,7 +3475,7 @@ class EntryManager {
      */
     ensureBasicFunctionality() {
         try {
-            //console.log('Ensuring basic functionality...');
+            //// console.log removed
 
             // Ensure at least one test row exists
             if ($('#testsContainer .test-row').length === 0) {
@@ -3565,13 +3519,13 @@ class EntryManager {
                         });
                     }
                 } catch (select2Error) {
-                    console.warn('Select2 initialization failed for element:', $select, select2Error);
+                    // console.warn removed
                 }
             });
 
-            //console.log('Basic functionality ensured');
+            //// console.log removed
         } catch (error) {
-            console.error('Error ensuring basic functionality:', error);
+            // console.error removed
         }
     }
 
@@ -3596,7 +3550,7 @@ class EntryManager {
             // this.sendErrorToLoggingService(errorDetails);
 
         } catch (loggingError) {
-            console.error('Error logging error for reporting:', loggingError);
+            // console.error removed
         }
     }
 
@@ -3608,7 +3562,7 @@ class EntryManager {
         try {
             return JSON.parse(localStorage.getItem('entryManagerErrors') || '[]');
         } catch (error) {
-            console.error('Error retrieving stored error logs:', error);
+            // console.error removed
             return [];
         }
     }
@@ -3619,9 +3573,9 @@ class EntryManager {
     clearStoredErrorLogs() {
         try {
             localStorage.removeItem('entryManagerErrors');
-            //console.log('Stored error logs cleared');
+            //// console.log removed
         } catch (error) {
-            console.error('Error clearing stored error logs:', error);
+            // console.error removed
         }
     }
 
@@ -3640,9 +3594,9 @@ class EntryManager {
                 timeout: timeout
             });
 
-            //console.log(`Data cached for key: ${key}, expires in ${timeout / 1000}s`);
+            //// console.log removed
         } catch (error) {
-            console.error('Error setting cache data:', error);
+            // console.error removed
         }
     }
 
@@ -3656,20 +3610,20 @@ class EntryManager {
             const cached = this.dataCache.get(key);
             if (cached && (Date.now() - cached.timestamp) < cached.timeout) {
                 this.performanceMetrics.cacheHits++;
-                //console.log(`Cache hit for key: ${key}`);
+                //// console.log removed
                 return cached.data;
             }
 
             // Remove expired cache entry
             if (cached) {
                 this.dataCache.delete(key);
-                //console.log(`Cache expired for key: ${key}`);
+                //// console.log removed
             }
 
             this.performanceMetrics.cacheMisses++;
             return null;
         } catch (error) {
-            console.error('Error getting cache data:', error);
+            // console.error removed
             this.performanceMetrics.cacheMisses++;
             return null;
         }
@@ -3682,9 +3636,9 @@ class EntryManager {
     clearCacheData(key) {
         try {
             this.dataCache.delete(key);
-            //console.log(`Cache cleared for key: ${key}`);
+            //// console.log removed
         } catch (error) {
-            console.error('Error clearing cache data:', error);
+            // console.error removed
         }
     }
 
@@ -3694,9 +3648,9 @@ class EntryManager {
     clearAllCacheData() {
         try {
             this.dataCache.clear();
-            //console.log('All cache data cleared');
+            //// console.log removed
         } catch (error) {
-            console.error('Error clearing all cache data:', error);
+            // console.error removed
         }
     }
 
@@ -3719,7 +3673,7 @@ class EntryManager {
      */
     async preloadEssentialData() {
         try {
-            //console.log('Preloading essential data...');
+            //// console.log removed
             const startTime = performance.now();
 
             // Load data in parallel for better performance
@@ -3733,9 +3687,9 @@ class EntryManager {
             await Promise.allSettled(promises);
 
             const endTime = performance.now();
-            //console.log(`Essential data preloaded in ${(endTime - startTime).toFixed(2)}ms`);
+            //// console.log removed
         } catch (error) {
-            console.error('Error preloading essential data:', error);
+            // console.error removed
         }
     }
 
@@ -3769,7 +3723,7 @@ class EntryManager {
      */
     optimizePerformance() {
         try {
-            //console.log('Optimizing performance...');
+            //// console.log removed
 
             // Clean up expired cache entries
             this.cleanupExpiredCache();
@@ -3778,18 +3732,18 @@ class EntryManager {
             if (this.rangeCache.size > 1000) {
                 const keysToDelete = Array.from(this.rangeCache.keys()).slice(0, 200);
                 keysToDelete.forEach(key => this.rangeCache.delete(key));
-                //console.log(`Cleaned up ${keysToDelete.length} range cache entries`);
+                //// console.log removed
             }
 
             // Clean up old performance metrics
             if (this.performanceMetrics.filterOperations.length > 50) {
                 this.performanceMetrics.filterOperations.splice(0, 25);
-                //console.log('Cleaned up old performance metrics');
+                //// console.log removed
             }
 
-            //console.log('Performance optimization completed');
+            //// console.log removed
         } catch (error) {
-            console.error('Error during performance optimization:', error);
+            // console.error removed
         }
     }
 
@@ -3809,10 +3763,10 @@ class EntryManager {
             }
 
             if (cleanedCount > 0) {
-                //console.log(`Cleaned up ${cleanedCount} expired cache entries`);
+                //// console.log removed
             }
         } catch (error) {
-            console.error('Error cleaning up expired cache:', error);
+            // console.error removed
         }
     }
 
@@ -3825,24 +3779,24 @@ class EntryManager {
 
             // Log warnings for performance issues
             if (metrics.filtering.averageTime > 300) {
-                console.warn(`Average filter time (${metrics.filtering.averageTime.toFixed(2)}ms) exceeds 300ms target`);
+                // console.warn removed
             }
 
             if (metrics.cache.hitRate < 0.7) {
-                console.warn(`Cache hit rate (${(metrics.cache.hitRate * 100).toFixed(1)}%) is below 70%`);
+                // console.warn removed
             }
 
             if (metrics.memory.dataCacheSize > 50) {
-                console.warn(`Data cache size (${metrics.memory.dataCacheSize}) is getting large`);
+                // console.warn removed
             }
 
             // Auto-optimize if needed
             if (metrics.memory.dataCacheSize > 100 || metrics.memory.rangeCacheSize > 2000) {
-                //console.log('Auto-optimizing performance due to large cache sizes');
+                //// console.log removed
                 this.optimizePerformance();
             }
         } catch (error) {
-            console.error('Error monitoring performance:', error);
+            // console.error removed
         }
     }
 
@@ -3855,11 +3809,7 @@ class EntryManager {
         try {
             // Enhanced validation of input parameters
             if (!categorySelect || !$row || $row.length === 0) {
-                console.error('Invalid parameters passed to onRowCategoryChange:', {
-                    categorySelect: !!categorySelect,
-                    row: !!$row,
-                    rowLength: $row ? $row.length : 0
-                });
+                // console.error removed
                 return;
             }
 
@@ -3869,11 +3819,7 @@ class EntryManager {
             const mainCategoryId = $selectedOption.data('main-category');
             const rowIndex = $row.data('row-index');
 
-            console.log('Row category changed:', {
-                rowIndex: rowIndex,
-                categoryId: selectedCategoryId,
-                mainCategoryId: mainCategoryId
-            });
+            // console.log removed
 
             // Enhanced main category ID handling
             const mainCategoryValue = mainCategoryId || '';
@@ -3882,7 +3828,7 @@ class EntryManager {
             // Enhanced test dropdown validation
             const $testSelect = $row.find('.test-select');
             if ($testSelect.length === 0) {
-                console.error('Test select dropdown not found in row', rowIndex);
+                // console.error removed
                 this.handleRowCategoryChangeError('missing_test_dropdown', $row);
                 return;
             }
@@ -3891,9 +3837,9 @@ class EntryManager {
             let filteredTests;
             try {
                 filteredTests = this.filterTestsByCategory(selectedCategoryId);
-                console.log(`Filtered ${filteredTests.length} tests for category ${selectedCategoryId} in row ${rowIndex}`);
+                // console.log removed
             } catch (filterError) {
-                console.error('Error filtering tests by category:', filterError);
+                // console.error removed
                 this.handleRowCategoryChangeError('filter_error', $row, filterError);
                 return;
             }
@@ -3910,9 +3856,9 @@ class EntryManager {
                 // Repopulate with filtered tests
                 this.updateTestDropdownOptions($testSelect, filteredTests, currentTestId);
 
-                console.log(`Test dropdown updated for row ${rowIndex} with ${filteredTests.length} options`);
+                // console.log removed
             } catch (updateError) {
-                console.error('Error updating test dropdown options:', updateError);
+                // console.error removed
                 this.handleRowCategoryChangeError('dropdown_update_error', $row, updateError);
                 return;
             }
@@ -3922,7 +3868,7 @@ class EntryManager {
                 filteredTests.some(test => String(test.id) === String(currentTestId));
 
             if (currentTestId && !isCurrentTestStillValid) {
-                console.log(`Current test ${currentTestId} (${currentTestName}) is not in the filtered category, clearing selection`);
+                // console.log removed
 
                 // Enhanced clearing of test selection and related fields
                 this.clearTestSelectionAndFields($testSelect, $row);
@@ -3931,7 +3877,7 @@ class EntryManager {
                 this.showTestSelectionClearedFeedback($row, currentTestName, selectedCategoryId);
 
             } else if (isCurrentTestStillValid) {
-                console.log(`Current test ${currentTestId} is still valid for the selected category`);
+                // console.log removed
 
                 // Enhanced restoration of valid selection
                 this.restoreTestSelection($testSelect, currentTestId);
@@ -3941,10 +3887,10 @@ class EntryManager {
             this.updateFilteredTestCount();
             this.updateRowCategoryIndicator($row, selectedCategoryId);
 
-            console.log('Row category change handled successfully for row', rowIndex);
+            // console.log removed
 
         } catch (error) {
-            console.error('Error handling row category change:', error);
+            // console.error removed
             this.handleRowCategoryChangeError('general_error', $row, error);
         }
     }
@@ -3964,7 +3910,7 @@ class EntryManager {
             $testSelect.empty().append('<option value="">Select Test</option>');
 
         } catch (error) {
-            console.error('Error clearing test dropdown options:', error);
+            // console.error removed
             // Fallback: just empty the select
             $testSelect.empty().append('<option value="">Select Test</option>');
         }
@@ -3996,7 +3942,7 @@ class EntryManager {
             }
 
         } catch (error) {
-            console.error('Error clearing test selection and fields:', error);
+            // console.error removed
         }
     }
 
@@ -4025,11 +3971,11 @@ class EntryManager {
             // Verify the selection was successful
             const actualValue = $testSelect.val();
             if (actualValue !== testId) {
-                console.warn(`Failed to restore test selection: expected ${testId}, got ${actualValue}`);
+                // console.warn removed
             }
 
         } catch (error) {
-            console.error('Error restoring test selection:', error);
+            // console.error removed
         }
     }
 
@@ -4059,7 +4005,7 @@ class EntryManager {
             }, 3000);
 
         } catch (error) {
-            console.error('Error showing test selection cleared feedback:', error);
+            // console.error removed
         }
     }
 
@@ -4085,7 +4031,7 @@ class EntryManager {
             }
 
         } catch (error) {
-            console.error('Error updating row category indicator:', error);
+            // console.error removed
         }
     }
 
@@ -4098,7 +4044,7 @@ class EntryManager {
     handleRowCategoryChangeError(errorType, $row, error = null) {
         try {
             const rowIndex = $row.data('row-index');
-            console.error(`Row category change error (${errorType}) in row ${rowIndex}:`, error);
+            // console.error removed
 
             // Attempt recovery based on error type
             switch (errorType) {
@@ -4128,7 +4074,7 @@ class EntryManager {
             this.showRowErrorFeedback($row, errorType);
 
         } catch (recoveryError) {
-            console.error('Error during row category change error handling:', recoveryError);
+            // console.error removed
         }
     }
 
@@ -4142,10 +4088,10 @@ class EntryManager {
             if ($testSelect.length > 0) {
                 this.clearTestDropdownOptions($testSelect);
                 this.updateTestDropdownOptions($testSelect, this.testsData, null);
-                console.log('Fallback: showing all tests in row', $row.data('row-index'));
+                // console.log removed
             }
         } catch (error) {
-            console.error('Error in fallback to all tests:', error);
+            // console.error removed
         }
     }
 
@@ -4178,7 +4124,7 @@ class EntryManager {
             }, 5000);
 
         } catch (error) {
-            console.error('Error showing row error feedback:', error);
+            // console.error removed
         }
     }
 
@@ -4202,7 +4148,7 @@ class EntryManager {
             $row.find('.test-range-indicator').hide();
             $row.find('.range-indicator').text('');
         } catch (error) {
-            console.error('Error clearing test row fields:', error);
+            // console.error removed
         }
     }
 
@@ -4218,9 +4164,9 @@ class EntryManager {
             // Validate all test results with new demographics
             this.validateAllTestResults();
 
-            //console.log('Updated ranges and validation for all tests based on demographics');
+            //// console.log removed
         } catch (error) {
-            //console.error('Error updating ranges and validation:', error);
+            //// console.error removed
         }
     }
 
@@ -4229,7 +4175,7 @@ class EntryManager {
      */
     recoverFromCategoryFilterError() {
         try {
-            //console.warn('Attempting to recover from category filter error...');
+            //// console.warn removed
 
             // Reset category filter to show all tests
             const $categoryFilter = $('#categoryFilter');
@@ -4250,9 +4196,9 @@ class EntryManager {
             // Remove any active filter styling
             $('.category-filter-active').removeClass('category-filter-active');
 
-            //console.log('Category filter error recovery completed');
+            //// console.log removed
         } catch (error) {
-            //console.error('Error during category filter recovery:', error);
+            //// console.error removed
         }
     }
 
@@ -4261,7 +4207,7 @@ class EntryManager {
      */
     handleTestDataUnavailable() {
         try {
-            //console.warn('Test data unavailable, applying fallbacks...');
+            //// console.warn removed
 
             // Show user-friendly message
             const $testsContainer = $('#testsContainer');
@@ -4283,9 +4229,9 @@ class EntryManager {
             $('#categoryFilter').prop('disabled', true).html('<option value="">Tests unavailable</option>');
             $('#clearCategoryFilter').prop('disabled', true);
 
-            //console.log('Test data unavailable fallback applied');
+            //// console.log removed
         } catch (error) {
-            //console.error('Error applying test data fallback:', error);
+            //// console.error removed
         }
     }
 
@@ -4296,7 +4242,7 @@ class EntryManager {
      */
     handleGlobalError(error, context = 'Unknown') {
         try {
-            //console.error(`Global error in ${context}:`, error);
+            //// console.error removed
 
             // Log error details for debugging
             const errorDetails = {
@@ -4306,7 +4252,7 @@ class EntryManager {
                 timestamp: new Date().toISOString()
             };
 
-            //console.error('Error details:', errorDetails);
+            //// console.error removed
 
             // Apply appropriate fallback based on context
             switch (context) {
@@ -4326,7 +4272,7 @@ class EntryManager {
             }
 
         } catch (fallbackError) {
-            //console.error('Error in global error handler:', fallbackError);
+            //// console.error removed
             // Last resort - show user message
             if (typeof toastr !== 'undefined') {
                 toastr.error('An unexpected error occurred. Please refresh the page.');
@@ -4368,7 +4314,7 @@ class EntryManager {
                 });
             }
         } catch (error) {
-            //console.error('Error ensuring basic functionality:', error);
+            //// console.error removed
         }
     }
 
@@ -4405,7 +4351,7 @@ class EntryManager {
         const endTime = performance.now();
         const duration = endTime - startTime;
         if (duration > 100) {
-            console.warn(`Range update took ${duration.toFixed(2)}ms, which exceeds the 100ms target`);
+            // console.warn removed
         }
     }
 
@@ -4485,7 +4431,7 @@ class EntryManager {
      * Handle patient selection change
      */
     onPatientChange(patientId) {
-        ////console.log('Patient changed:', patientId);
+        ////// console.log removed
 
         if (patientId) {
             // Load patient details
@@ -4519,7 +4465,7 @@ class EntryManager {
                     $select.append(`<option value="${patient.id}">${patient.name}</option>`);
                 });
             } else {
-                console.warn('No patients found or API error:', response.message);
+                // console.warn removed
             }
 
             // Refresh Select2 if initialized
@@ -4527,7 +4473,7 @@ class EntryManager {
                 $select.trigger('change');
             }
         } catch (error) {
-            console.error('Error loading patients:', error);
+            // console.error removed
         }
     }
 
@@ -4552,7 +4498,7 @@ class EntryManager {
                     $select.append(`<option value="${doctor.id}">${doctor.name}</option>`);
                 });
             } else {
-                console.warn('No doctors found or API error:', response.message);
+                // console.warn removed
             }
 
             // Refresh Select2 if initialized
@@ -4560,7 +4506,7 @@ class EntryManager {
                 $select.trigger('change');
             }
         } catch (error) {
-            console.error('Error loading doctors:', error);
+            // console.error removed
         }
     }
 
@@ -4589,10 +4535,10 @@ class EntryManager {
                     this.debouncedRangeUpdate();
                 }, 100); // Small delay to ensure DOM updates are complete
             } else {
-                console.warn('Failed to load patient details:', response.message);
+                // console.warn removed
             }
         } catch (error) {
-            console.error('Error loading patient details:', error);
+            // console.error removed
         }
     }
 
@@ -4630,10 +4576,7 @@ class EntryManager {
                     const hasConflict = this.detectCategoryConflict(entryTest, currentTest);
 
                     if (hasConflict) {
-                        console.warn(`Category conflict detected for test ${entryTest.test_id}:`, {
-                            entry_category: { id: entryTest.category_id, name: entryTest.category_name },
-                            current_category: { id: currentTest.category_id, name: currentTest.category_name }
-                        });
+                        // console.warn removed
 
                         // Resolve conflict by prioritizing current test data
                         const resolution = this.resolveConflictingCategories(entryTest, currentTest);
@@ -4658,17 +4601,16 @@ class EntryManager {
                         }
                     }
                 } else {
-                    console.warn(`Current test data not found for test ID: ${entryTest.test_id}`);
+                    // console.warn removed
                     reconciledTest.data_source = 'entry_only';
                 }
 
                 return reconciledTest;
             });
 
-            //console.log('Test category data reconciliation completed');
             return reconciledTests;
         } catch (error) {
-            console.error('Error during test category data reconciliation:', error);
+            // console.error removed
             // Return original data as fallback
             return entryTests;
         }
@@ -4703,7 +4645,7 @@ class EntryManager {
 
             return null;
         } catch (error) {
-            console.error('Error getting current test category:', error);
+            // console.error removed
             return null;
         }
     }
@@ -4728,7 +4670,7 @@ class EntryManager {
             // Conflict exists if category IDs are different
             return entryCategoryId !== currentCategoryId;
         } catch (error) {
-            console.error('Error detecting category conflict:', error);
+            // console.error removed
             return false;
         }
     }
@@ -4767,7 +4709,7 @@ class EntryManager {
                 };
             }
         } catch (error) {
-            console.error('Error resolving conflicting categories:', error);
+            // console.error removed
             // Fallback to entry data
             return {
                 category_id: entryTest.category_id,
@@ -4782,8 +4724,7 @@ class EntryManager {
      * View entry details
      */
     async viewEntry(entryId) {
-        //console.log('Viewing entry:', entryId);
-
+        
         try {
             const response = await $.ajax({
                 url: 'ajax/entry_api_fixed.php',
@@ -4795,7 +4736,6 @@ class EntryManager {
                 },
                 dataType: 'json'
             });
-            //console.log('Displaying entry response:', response);
             if (response.success && response.data) {
                 this.displayEntryDetails(response.data);
                 $('#viewEntryModal').modal('show');
@@ -4803,7 +4743,7 @@ class EntryManager {
                 toastr.error(response.message || 'Failed to load entry details');
             }
         } catch (error) {
-            console.error('Error loading entry details:', error);
+            // console.error removed
             toastr.error('Failed to load entry details');
         }
     }
@@ -4812,21 +4752,10 @@ class EntryManager {
      * Display entry details in modal
      */
     displayEntryDetails(entry) {
-        //console.log('Displaying entry details:', entry);
-        //console.log('Entry tests data:', entry.tests);
-
         // Debug each test
         if (entry.tests && entry.tests.length > 0) {
             entry.tests.forEach((test, index) => {
-                /*console.log(`Test ${index + 1}:`, {
-                    test_id: test.test_id,
-                    test_name: test.test_name,
-                    category_id: test.category_id,
-                    min: test.min,
-                    max: test.max,
-                    unit: test.unit,
-                    result_value: test.result_value
-                });*/
+                /*// console.log removed*/
             });
         }
         const detailsHtml = `
@@ -4933,18 +4862,17 @@ class EntryManager {
      * Edit entry
      */
     async editEntry(entryId) {
-        //console.log('Editing entry:', entryId);
-
+        
         try {
-            console.log('=== EDIT ENTRY START ===');
-            console.log('Entry ID:', entryId);
+            // console.log removed
+            // console.log removed
             
             // Show loading state
             if (typeof toastr !== 'undefined') {
                 toastr.info('Loading entry data...');
             }
 
-            console.log('Making API request...');
+            // console.log removed
             const response = await $.ajax({
                 url: 'ajax/entry_api_fixed.php',
                 method: 'GET',
@@ -4956,25 +4884,15 @@ class EntryManager {
                 dataType: 'json'
             });
             
-            console.log('API response received:', response);
-            //console.log('Editing entry response:', response);
-
+            // console.log removed
+            
             // Special debugging for entry 17
             if (entryId == 17) {
-                //console.log('=== SPECIAL DEBUG FOR ENTRY 17 ===');
-                //console.log('Response data:', response.data);
-                //console.log('Tests in response:', response.data.tests);
                 if (response.data.tests) {
                     response.data.tests.forEach((test, index) => {
-                        /*console.log(`Test ${index + 1}:`, {
-                            test_id: test.test_id,
-                            test_name: test.test_name,
-                            category_name: test.category_name,
-                            result_value: test.result_value
-                        });*/
+                        /*// console.log removed*/
                     });
                 }
-                //console.log('=== END SPECIAL DEBUG ===');
             }
 
             if (response.success && response.data) {
@@ -4983,7 +4901,6 @@ class EntryManager {
 
                 // Ensure owner data is loaded before populating form
                 if (this.ownersData.length === 0) {
-                    //console.log('Owner data not loaded, loading now...');
                     await this.loadOwnersData();
                 }
 
@@ -4997,13 +4914,8 @@ class EntryManager {
                 toastr.error(response.message || 'Failed to load entry for editing');
             }
         } catch (error) {
-            console.error('Error loading entry for editing:', error);
-            console.error('Error details:', {
-                message: error.message,
-                status: error.status,
-                statusText: error.statusText,
-                responseText: error.responseText
-            });
+            // console.error removed
+            // console.error removed
             
             let errorMessage = 'Failed to load entry for editing';
             if (error.status === 401) {
@@ -5029,12 +4941,7 @@ class EntryManager {
      * Populate edit form with entry data
      */
     async populateEditForm(entry) {
-        // //console.log('Populating edit form with entry:', entry);
-        // //console.log('Entry keys:', Object.keys(entry));
-        // //console.log('Added by field:', entry.added_by);
-        // //console.log('Owner ID field:', entry.owner_id);
-        // //console.log('Patient ID field:', entry.patient_id);
-        // //console.log('Doctor ID field:', entry.doctor_id);
+      
 
         this.currentEditId = entry.id;
 
@@ -5048,7 +4955,7 @@ class EntryManager {
         if (entry.entry_date) {
             const formattedDate = this.formatDateForInput(entry.entry_date);
             $('#entryDate').val(formattedDate);
-            //console.log('Setting entry date:', entry.entry_date, '-> formatted:', formattedDate);
+            //// console.log removed
         }
 
         $('#entryStatus').val(entry.status);
@@ -5067,13 +4974,13 @@ class EntryManager {
         // Handle owner/added_by selection and dependent dropdowns
         const ownerId = entry.added_by || entry.owner_id || entry.owner_added_by;
         if (ownerId) {
-            //console.log('Setting owner/added_by to:', ownerId);
+            //// console.log removed
 
             // Check if the owner exists in the dropdown, if not add it
             const $ownerSelect = $('#ownerAddedBySelect');
             if ($ownerSelect.find(`option[value="${ownerId}"]`).length === 0) {
                 const ownerName = entry.added_by_full_name || entry.added_by_username || `User ${ownerId}`;
-                //console.log('Adding missing owner option:', ownerId, ownerName);
+                //// console.log removed
                 $ownerSelect.append(`<option value="${ownerId}">${ownerName}</option>`);
             }
 
@@ -5085,13 +4992,13 @@ class EntryManager {
 
             // Now set patient and doctor values
             if (entry.patient_id) {
-                //console.log('Setting patient to:', entry.patient_id);
+                //// console.log removed
 
                 // Check if patient exists in dropdown, if not add it
                 const $patientSelect = $('#patientSelect');
                 if ($patientSelect.find(`option[value="${entry.patient_id}"]`).length === 0) {
                     const patientName = entry.patient_name || `Patient ${entry.patient_id}`;
-                    //console.log('Adding missing patient option:', entry.patient_id, patientName);
+                    //// console.log removed
                     $patientSelect.append(`<option value="${entry.patient_id}">${patientName}</option>`);
                 }
 
@@ -5102,47 +5009,47 @@ class EntryManager {
             }
 
             if (entry.doctor_id) {
-                //console.log('Setting doctor to:', entry.doctor_id);
+                //// console.log removed
 
                 // Check if doctor exists in dropdown, if not add it
                 const $doctorSelect = $('#doctorSelect');
                 if ($doctorSelect.find(`option[value="${entry.doctor_id}"]`).length === 0) {
                     const doctorName = entry.doctor_name || `Doctor ${entry.doctor_id}`;
-                    //console.log('Adding missing doctor option:', entry.doctor_id, doctorName);
+                    //// console.log removed
                     $doctorSelect.append(`<option value="${entry.doctor_id}">${doctorName}</option>`);
                 }
 
                 $doctorSelect.val(entry.doctor_id).trigger('change');
             }
         } else {
-            //console.warn('No owner/added_by found in entry data:', entry);
+            //// console.warn removed
         }
 
         // Always reload tests data to ensure we have the latest data
-        //console.log('Reloading tests data to ensure accuracy...');
+        //// console.log removed
         await this.loadTestsData();
-        //console.log('Tests data loaded:', this.testsData.length, 'tests');
+        //// console.log removed
 
         // Also ensure categories are loaded for proper category dropdown population
-        //console.log('Ensuring categories are loaded...');
+        //// console.log removed
         if (this.categoriesData.length === 0) {
             await this.loadCategoriesForFilter();
         }
-        //console.log('Categories data loaded:', this.categoriesData.length, 'categories');
+        //// console.log removed
 
         // Debug: Log test IDs and names for troubleshooting
         if (this.testsData.length > 0) {
-            //console.log('Available tests:', this.testsData.map(t => ({ id: t.id, name: t.name, id_type: typeof t.id })));
+            //// console.log removed
         }
 
         // Debug: show first few tests
         if (this.testsData.length > 0) {
-            //console.log('First 5 tests in testsData:', this.testsData.slice(0, 5).map(t => ({ id: t.id, name: t.name })));
+            //// console.log removed
         }
 
         // Double-check that we have tests data
         if (this.testsData.length === 0) {
-            console.error('No tests data available! This will cause issues with test selection.');
+            // console.error removed
             toastr.warning('Tests data could not be loaded. Test selection may not work properly.');
         }
 
@@ -5151,33 +5058,23 @@ class EntryManager {
         this.testRowCounter = 0;
 
         if (entry.tests && entry.tests.length > 0) {
-            //console.log('Populating', entry.tests.length, 'tests with data reconciliation');
+            //// console.log removed
 
             // Reconcile entry test data with current test data
             const reconciledTests = this.reconcileTestCategoryData(entry.tests);
 
             // Log reconciliation results
-            /*console.log('Data reconciliation completed:', {
-                original_tests: entry.tests.length,
-                reconciled_tests: reconciledTests.length,
-                conflicts_detected: reconciledTests.filter(t => t.category_conflict).length
+            /*// console.log removed.length
             });*/
 
             // Create test rows with reconciled data
             reconciledTests.forEach((reconciledTest, index) => {
-                /*console.log(`Creating test row ${index + 1} with reconciled data:`, {
-                    test_id: reconciledTest.test_id,
-                    test_name: reconciledTest.test_name,
-                    resolved_category_id: reconciledTest.resolved_category_id,
-                    resolved_category_name: reconciledTest.resolved_category_name,
-                    category_conflict: reconciledTest.category_conflict,
-                    data_source: reconciledTest.data_source
-                });*/
+                /*// console.log removed*/
 
                 this.addTestRow(reconciledTest);
             });
         } else {
-            //console.log('No tests found, adding empty test row');
+            //// console.log removed
             this.addTestRow();
         }
 
@@ -5186,7 +5083,7 @@ class EntryManager {
             $('#entryStatus').trigger('change');
             $('#priority').trigger('change');
             $('#referralSource').trigger('change');
-            //console.log('Edit form populated successfully');
+            //// console.log removed
         }, 100);
     }
 
@@ -5194,7 +5091,7 @@ class EntryManager {
      * Delete entry
      */
     deleteEntry(entryId) {
-        //console.log('Deleting entry:', entryId);
+        //// console.log removed
 
         // Show confirmation modal
         $('#deleteModal').modal('show');
@@ -5221,7 +5118,7 @@ class EntryManager {
                     toastr.error(response.message || 'Failed to delete entry');
                 }
             } catch (error) {
-                //console.error('Error deleting entry:', error);
+                //// console.error removed
                 toastr.error('Failed to delete entry');
             }
         });
@@ -5267,8 +5164,8 @@ class EntryManager {
      * Save entry (create or update)
      */
     async saveEntry() {
-        //console.log('Saving entry...');
-        //console.log('Current edit ID:', this.currentEditId);
+        //// console.log removed
+        //// console.log removed
 
         try {
             // Validate form
@@ -5296,17 +5193,17 @@ class EntryManager {
             }
 
             // Debug form data - specifically check for category information
-            //console.log('Form data being sent:');
+            //// console.log removed
             let hasTestData = false;
             let categoryDataFound = false;
             for (let [key, value] of formData.entries()) {
-                //console.log(key, ':', value);
+                //// console.log removed
                 if (key.includes('tests[') && key.includes('category_id')) {
                     categoryDataFound = true;
-                    //console.log('Found category data:', key, '=', value);
+                    //// console.log removed
                 }
                 if (key.includes('tests[') && key.includes('main_category_id')) {
-                    //console.log('Found main category data:', key, '=', value);
+                    //// console.log removed
                 }
                 if (key.includes('tests[')) {
                     hasTestData = true;
@@ -5314,7 +5211,7 @@ class EntryManager {
             }
 
             if (hasTestData && !categoryDataFound) {
-                console.warn('WARNING: Test data found but no category_id data detected in form submission!');
+                // console.warn removed
             }
 
             const response = await $.ajax({
@@ -5326,7 +5223,7 @@ class EntryManager {
                 dataType: 'json'
             });
 
-            //console.log('Save response:', response);
+            //// console.log removed
 
             if (response.success) {
                 toastr.success(this.currentEditId ? 'Entry updated successfully' : 'Entry created successfully');
@@ -5334,16 +5231,12 @@ class EntryManager {
                 $('#entryModal').modal('hide');
                 this.resetForm();
             } else {
-                //console.error('Save failed:', response);
+                //// console.error removed
                 toastr.error(response.message || 'Failed to save entry');
             }
         } catch (error) {
-            //console.error('Error saving entry:', error);
-            console.error('Error details:', {
-                status: error.status,
-                statusText: error.statusText,
-                responseText: error.responseText
-            });
+            //// console.error removed
+            // console.error removed
 
             let errorMessage = 'Failed to save entry';
             if (error.responseJSON && error.responseJSON.message) {
@@ -5400,7 +5293,7 @@ class EntryManager {
      * View entry details
      */
     viewEntry(entryId) {
-        console.log('Viewing entry:', entryId);
+        // console.log removed
         
         // Show loading state
         $('#entryDetails').html(`
@@ -5436,7 +5329,7 @@ class EntryManager {
                 }
             },
             error: (xhr, status, error) => {
-                console.error('Error loading entry:', error);
+                // console.error removed
                 $('#entryDetails').html(`
                     <div class="alert alert-danger">
                         <h5>Error Loading Entry</h5>
@@ -5522,7 +5415,7 @@ class EntryManager {
      * Edit entry
      */
     editEntry(entryId) {
-        console.log('Editing entry:', entryId);
+        // console.log removed
         
         // Set current edit ID
         this.currentEditId = entryId;
@@ -5541,26 +5434,21 @@ class EntryManager {
             },
             dataType: 'json',
             success: (response) => {
-                console.log('Edit entry response:', response);
+                // console.log removed
                 if (response && response.success && response.data) {
                     this.populateEditForm(response.data);
                     $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
                     $('#entryModal').modal('show');
                     toastr.clear();
                 } else {
-                    console.error('Edit entry failed:', response);
+                    // console.error removed
                     const errorMsg = response && response.message ? response.message : 'Failed to load entry for editing';
                     toastr.error(errorMsg);
                     this.currentEditId = null;
                 }
             },
             error: (xhr, status, error) => {
-                console.error('Error loading entry for edit:', {
-                    status: xhr.status,
-                    statusText: xhr.statusText,
-                    responseText: xhr.responseText,
-                    error: error
-                });
+                // console.error removed
                 
                 let errorMessage = 'Failed to load entry for editing';
                 if (xhr.status === 404) {
@@ -5583,7 +5471,7 @@ class EntryManager {
      * Populate edit form with entry data
      */
     populateEditForm(entry) {
-        console.log('Populating edit form with entry:', entry);
+        // console.log removed
         
         try {
             // Basic fields
@@ -5653,20 +5541,20 @@ class EntryManager {
             
             // Add test rows if tests exist
             if (entry.tests && entry.tests.length > 0) {
-                console.log('Adding test rows:', entry.tests.length);
+                // console.log removed
                 entry.tests.forEach((test, index) => {
-                    console.log('Adding test row', index, test);
+                    // console.log removed
                     this.addTestRowWithData(test);
                 });
             } else {
-                console.log('No tests found, adding empty test row');
+                // console.log removed
                 // Add one empty test row
                 this.addTestRow();
             }
             
-            console.log('Edit form populated successfully');
+            // console.log removed
         } catch (error) {
-            console.error('Error populating edit form:', error);
+            // console.error removed
             toastr.error('Error populating form data');
         }
     }
@@ -5676,7 +5564,7 @@ class EntryManager {
      */
     addTestRowWithData(testData = {}) {
         const rowIndex = this.testRowCounter++;
-        console.log('Adding test row with data:', testData, 'Row index:', rowIndex);
+        // console.log removed
         
         const testRow = `
             <div class="test-row" data-row-index="${rowIndex}">
@@ -5754,11 +5642,11 @@ class EntryManager {
         
         // Set the selections after populating dropdowns
         if (testData.test_id) {
-            console.log('Setting test selection:', testData.test_id);
+            // console.log removed
             $row.find('.test-select').val(testData.test_id).trigger('change');
         }
         if (testData.category_id) {
-            console.log('Setting category selection:', testData.category_id);
+            // console.log removed
             $row.find('.test-category-select').val(testData.category_id).trigger('change');
         }
         
@@ -5787,14 +5675,14 @@ class EntryManager {
             this.updatePricing();
         });
         
-        console.log('Test row added successfully');
+        // console.log removed
     }
 
     /**
      * Delete entry
      */
     deleteEntry(entryId) {
-        console.log('Deleting entry:', entryId);
+        // console.log removed
         
         // Show confirmation modal
         $('#deleteModal').modal('show');
@@ -5820,7 +5708,7 @@ class EntryManager {
                     }
                 },
                 error: (xhr, status, error) => {
-                    console.error('Error deleting entry:', error);
+                    // console.error removed
                     toastr.error('Failed to delete entry');
                 }
             });
@@ -5866,7 +5754,7 @@ class EntryManager {
     updatePricing() {
         // This would contain pricing calculation logic
         // For now, just a placeholder
-        console.log('Updating pricing...');
+        // console.log removed
     }
 
     /**
@@ -5925,7 +5813,7 @@ class EntryManager {
      */
     monitorPerformance() {
         // Performance monitoring placeholder
-        console.log('Performance monitoring active');
+        // console.log removed
     }
 
     /**
@@ -5948,7 +5836,7 @@ class EntryManager {
     refreshTable() {
         if (this.entriesTable) {
             this.entriesTable.ajax.reload();
-            console.log('Table refreshed');
+            // console.log removed
         }
     }
 
@@ -5983,7 +5871,7 @@ class EntryManager {
      */
     addTestRowWithData(testData = {}) {
         const rowIndex = this.testRowCounter++;
-        console.log('Adding test row with data:', testData, 'Row index:', rowIndex);
+        // console.log removed
         
         const testRow = `
             <div class="test-row" data-row-index="${rowIndex}">
@@ -6078,7 +5966,7 @@ class EntryManager {
             $row.find('.test-result').val(testData.result_value);
         }
         
-        console.log('Test row added successfully');
+        // console.log removed
     }
 
     /**
@@ -6118,7 +6006,7 @@ class EntryManager {
                 $testSelect.append(new Option(test.name, test.id, false, false));
             });
             
-            console.log('Category changed:', selectedCategoryId, 'Tests available:', filteredTests.length);
+            // console.log removed
         } else {
             // Disable test dropdown if no category selected
             $testSelect.prop('disabled', true);
@@ -6137,7 +6025,7 @@ class EntryManager {
         if (selectedTestId) {
             const selectedTest = this.testsData.find(test => test.id == selectedTestId);
             if (selectedTest) {
-                console.log('Test selected:', selectedTest);
+                // console.log removed
                 
                 // Auto-fill unit
                 $row.find('.test-unit').val(selectedTest.unit || '');
@@ -6187,7 +6075,7 @@ class EntryManager {
         $row.find('.test-min-range').val(minRange);
         $row.find('.test-max-range').val(maxRange);
         
-        console.log('Ranges updated for test:', test.name, 'Min:', minRange, 'Max:', maxRange);
+        // console.log removed
     }
 
     /**
@@ -6262,7 +6150,7 @@ class EntryManager {
         const total = Math.max(subtotal - discount, 0);
         $('#totalPrice').val(total.toFixed(2));
         
-        console.log('Pricing updated - Subtotal:', subtotal, 'Discount:', discount, 'Total:', total);
+        // console.log removed
     }
 
     /**
@@ -6270,7 +6158,7 @@ class EntryManager {
      */
     async saveEntry() {
         try {
-            console.log('Saving entry...');
+            // console.log removed
             
             // Validate form
             if (!this.validateForm()) {
@@ -6284,7 +6172,7 @@ class EntryManager {
             
             // Collect form data
             const formData = this.collectFormData();
-            console.log('Form data collected:', formData);
+            // console.log removed
             
             // Determine if this is add or edit
             const isEdit = this.currentEditId !== null;
@@ -6307,7 +6195,7 @@ class EntryManager {
                 dataType: 'json'
             });
             
-            console.log('Save response:', response);
+            // console.log removed
             
             if (response && response.success) {
                 toastr.success(isEdit ? 'Entry updated successfully' : 'Entry created successfully');
@@ -6319,12 +6207,12 @@ class EntryManager {
                 
             } else {
                 const errorMessage = response && response.message ? response.message : 'Failed to save entry';
-                console.error('Save failed:', errorMessage);
+                // console.error removed
                 toastr.error(errorMessage);
             }
             
         } catch (error) {
-            console.error('Error saving entry:', error);
+            // console.error removed
             
             let errorMessage = 'Failed to save entry';
             if (error.responseJSON && error.responseJSON.message) {
@@ -6475,7 +6363,7 @@ class EntryManager {
             $('#patientGender').val(patient.gender || '').trigger('change');
             $('#patientAddress').val(patient.address || '');
             
-            console.log('Patient info populated:', patient.name);
+            // console.log removed
             
             // Update test ranges if any tests are selected
             this.updateAllTestRanges();
@@ -6544,7 +6432,7 @@ class EntryManager {
         }
 
         $('#filteredTestCount').text(filteredCount);
-        console.log('Filtered test count updated:', filteredCount);
+        // console.log removed
     }
 
     /**
@@ -6580,7 +6468,7 @@ class EntryManager {
             }
         });
         
-        console.log('Test dropdowns filtered by category:', selectedCategoryId);
+        // console.log removed
     }
 
     /**
@@ -6594,21 +6482,21 @@ class EntryManager {
      * Initialize the Entry Manager
      */
     init() {
-        console.log('Initializing Entry Manager...');
+        // console.log removed
 
         // Wait for DOM to be ready
         $(document).ready(() => {
-            console.log('DOM ready, starting initialization...');
+            // console.log removed
             try {
                 // Add a small delay to ensure all libraries are loaded
                 setTimeout(() => {
                     this.initializeDataTable();
                     this.loadInitialData();
                     this.loadStatistics();
-                    console.log('Entry Manager initialization complete');
+                    // console.log removed
                 }, 100);
             } catch (error) {
-                console.error('Error during Entry Manager initialization:', error);
+                // console.error removed
             }
         });
     }
@@ -6617,7 +6505,7 @@ class EntryManager {
      * Load initial data (tests, categories, etc.)
      */
     async loadInitialData() {
-        console.log('Loading initial data...');
+        // console.log removed
 
         try {
             // Load tests data
@@ -6632,9 +6520,9 @@ class EntryManager {
             // Load owners data
             await this.loadOwnersData();
             
-            console.log('Initial data loaded successfully');
+            // console.log removed
         } catch (error) {
-            console.error('Error loading initial data:', error);
+            // console.error removed
         }
     }
 
@@ -6643,7 +6531,7 @@ class EntryManager {
      */
     async loadTestsData() {
         try {
-            console.log('Loading tests data...');
+            // console.log removed
             const response = await $.ajax({
                 url: 'ajax/test_api.php',
                 method: 'GET',
@@ -6653,13 +6541,13 @@ class EntryManager {
 
             if (response && response.success) {
                 this.testsData = response.data || [];
-                console.log('Tests data loaded:', this.testsData.length, 'tests');
+                // console.log removed
             } else {
-                console.error('Failed to load tests:', response ? response.message : 'Invalid response');
+                // console.error removed
                 this.testsData = [];
             }
         } catch (error) {
-            console.error('Error loading tests data:', error);
+            // console.error removed
             this.testsData = [];
         }
     }
@@ -6669,7 +6557,7 @@ class EntryManager {
      */
     async loadCategoriesData() {
         try {
-            console.log('Loading categories data...');
+            // console.log removed
             const response = await $.ajax({
                 url: 'patho_api/test_category.php',
                 method: 'GET',
@@ -6682,16 +6570,16 @@ class EntryManager {
 
             if (response && response.success) {
                 this.categoriesData = response.data || [];
-                console.log('Categories data loaded:', this.categoriesData.length, 'categories');
+                // console.log removed
                 
                 // Populate the modal category filter
                 this.populateModalCategoryFilter();
             } else {
-                console.error('Failed to load categories:', response ? response.message : 'Invalid response');
+                // console.error removed
                 this.categoriesData = [];
             }
         } catch (error) {
-            console.error('Error loading categories data:', error);
+            // console.error removed
             this.categoriesData = [];
         }
     }
@@ -6701,7 +6589,7 @@ class EntryManager {
      */
     async loadMainCategoriesData() {
         try {
-            console.log('Loading main categories data...');
+            // console.log removed
             const response = await $.ajax({
                 url: 'ajax/main_test_category_api.php',
                 method: 'GET',
@@ -6711,13 +6599,13 @@ class EntryManager {
 
             if (response && response.success) {
                 this.mainCategoriesData = response.data || [];
-                console.log('Main categories data loaded:', this.mainCategoriesData.length, 'main categories');
+                // console.log removed
             } else {
-                console.error('Failed to load main categories:', response ? response.message : 'Invalid response');
+                // console.error removed
                 this.mainCategoriesData = [];
             }
         } catch (error) {
-            console.error('Error loading main categories data:', error);
+            // console.error removed
             this.mainCategoriesData = [];
         }
     }
@@ -6728,7 +6616,7 @@ class EntryManager {
     populateModalCategoryFilter() {
         const $filter = $('#modalCategoryFilter');
         if ($filter.length === 0) {
-            console.warn('Modal category filter element not found');
+            // console.warn removed
             return;
         }
 
@@ -6743,7 +6631,7 @@ class EntryManager {
             }
         });
 
-        console.log('Modal category filter populated with', this.categoriesData.length, 'categories');
+        // console.log removed
         
         // Update test count
         this.updateFilteredTestCount();
@@ -6754,7 +6642,7 @@ class EntryManager {
      */
     async loadOwnersData() {
         try {
-            console.log('Loading owners data...');
+            // console.log removed
             const response = await $.ajax({
                 url: 'ajax/user_api.php',
                 method: 'GET',
@@ -6764,16 +6652,16 @@ class EntryManager {
 
             if (response && response.success) {
                 this.ownersData = response.data || [];
-                console.log('Owners data loaded:', this.ownersData.length, 'owners');
+                // console.log removed
                 
                 // Populate owner dropdown
                 this.populateOwnerDropdown();
             } else {
-                console.error('Failed to load owners:', response ? response.message : 'Invalid response');
+                // console.error removed
                 this.ownersData = [];
             }
         } catch (error) {
-            console.error('Error loading owners data:', error);
+            // console.error removed
             this.ownersData = [];
         }
     }
@@ -6796,7 +6684,7 @@ class EntryManager {
             }
         });
 
-        console.log('Owner dropdown populated with', this.ownersData.length, 'owners');
+        // console.log removed
     }
 
     /**
@@ -6804,7 +6692,7 @@ class EntryManager {
      */
     async loadPatientsData(ownerId) {
         try {
-            console.log('Loading patients data for owner:', ownerId);
+            // console.log removed
             const response = await $.ajax({
                 url: 'ajax/patient_api.php',
                 method: 'GET',
@@ -6817,17 +6705,17 @@ class EntryManager {
 
             if (response && response.success) {
                 this.patientsData = response.data || [];
-                console.log('Patients data loaded:', this.patientsData.length, 'patients');
+                // console.log removed
                 
                 // Populate patient dropdown
                 this.populatePatientDropdown();
             } else {
-                console.error('Failed to load patients:', response ? response.message : 'Invalid response');
+                // console.error removed
                 this.patientsData = [];
                 this.populatePatientDropdown();
             }
         } catch (error) {
-            console.error('Error loading patients data:', error);
+            // console.error removed
             this.patientsData = [];
             this.populatePatientDropdown();
         }
@@ -6853,7 +6741,7 @@ class EntryManager {
         // Enable/disable based on data availability
         $patientSelect.prop('disabled', this.patientsData.length === 0);
 
-        console.log('Patient dropdown populated with', this.patientsData.length, 'patients');
+        // console.log removed
     }
 
     /**
@@ -6861,7 +6749,7 @@ class EntryManager {
      */
     async loadDoctorsData(ownerId) {
         try {
-            console.log('Loading doctors data for owner:', ownerId);
+            // console.log removed
             const response = await $.ajax({
                 url: 'ajax/doctor_api.php',
                 method: 'GET',
@@ -6874,17 +6762,17 @@ class EntryManager {
 
             if (response && response.success) {
                 this.doctorsData = response.data || [];
-                console.log('Doctors data loaded:', this.doctorsData.length, 'doctors');
+                // console.log removed
                 
                 // Populate doctor dropdown
                 this.populateDoctorDropdown();
             } else {
-                console.error('Failed to load doctors:', response ? response.message : 'Invalid response');
+                // console.error removed
                 this.doctorsData = [];
                 this.populateDoctorDropdown();
             }
         } catch (error) {
-            console.error('Error loading doctors data:', error);
+            // console.error removed
             this.doctorsData = [];
             this.populateDoctorDropdown();
         }
@@ -6910,18 +6798,18 @@ class EntryManager {
         // Enable/disable based on data availability
         $doctorSelect.prop('disabled', this.doctorsData.length === 0);
 
-        console.log('Doctor dropdown populated with', this.doctorsData.length, 'doctors');
+        // console.log removed
     }
 
     /**
      * Initialize DataTable with proper configuration
      */
     initializeDataTable() {
-        console.log('Initializing DataTable...');
+        // console.log removed
 
         // Check if the table element exists
         if ($('#entriesTable').length === 0) {
-            console.error('DataTable element #entriesTable not found');
+            // console.error removed
             return;
         }
 
@@ -7022,22 +6910,16 @@ class EntryManager {
                         secret_key: 'hospital-api-secret-2024'
                     },
                     dataSrc: function (json) {
-                        console.log('DataTable received data:', json);
+                        // console.log removed
                         if (json && json.success) {
                             return json.data || [];
                         } else {
-                            console.error('API Error:', json ? json.message : 'Invalid response');
+                            // console.error removed
                             return [];
                         }
                     },
                     error: function (xhr, error, thrown) {
-                        console.error('DataTable AJAX Error:', {
-                            error: error,
-                            thrown: thrown,
-                            status: xhr.status,
-                            statusText: xhr.statusText,
-                            responseText: xhr.responseText
-                        });
+                        // console.error removed
                     }
                 },
                 columns: [
@@ -7259,9 +7141,9 @@ class EntryManager {
                 }
             });
 
-            console.log('DataTable initialized successfully');
+            // console.log removed
         } catch (error) {
-            console.error('Error initializing DataTable:', error);
+            // console.error removed
         }
     }
 }
@@ -7270,14 +7152,14 @@ class EntryManager {
 let entryManager;
 $(document).ready(function () {
     try {
-        // //console.log('Page ready, checking dependencies...');
-        // //console.log('jQuery version:', $.fn.jquery);
-        // //console.log('DataTables available:', typeof $.fn.DataTable !== 'undefined');
-        // //console.log('Select2 available:', typeof $.fn.select2 !== 'undefined');
-        // //console.log('Toastr available:', typeof toastr !== 'undefined');
-        // //console.log('Bootstrap available:', typeof $.fn.modal !== 'undefined');
+        // //// console.log removed
+        // //// console.log removed
+        // //// console.log removed
+        // //// console.log removed
+        // //// console.log removed
+        // //// console.log removed
 
-        // //console.log('Initializing Entry Manager...');
+        // //// console.log removed
         entryManager = new EntryManager();
         window.entryManager = entryManager;
 
@@ -7288,7 +7170,7 @@ $(document).ready(function () {
             if (test) {
                 return entryManager.calculateAppropriateRanges(age, gender, test);
             } else {
-                console.error('Test not found with ID:', testId);
+                // console.error removed
                 return null;
             }
         };
@@ -7303,21 +7185,21 @@ $(document).ready(function () {
         window.optimizePerformance = () => entryManager.optimizePerformance();
         window.clearAllCache = () => entryManager.clearAllCacheData();
 
-        // //console.log('Entry Manager initialized successfully');
-        //console.log('Entry Manager functions available:');
-        //console.log('- debugTestData() - Debug test data and check for duplicates');
-        //console.log('- debugCategoryData() - Debug category data and form state');
-        //console.log('- debugEditMode() - Debug edit mode and test row state');
-        //console.log('- debugSpecificEntry(entryId) - Debug specific entry data and categories');
-        //console.log('- testDemographicRanges() - Run complete workflow validation');
-        //console.log('- testRangeCalculation(age, gender, testId) - Test specific range calculation');
-        //console.log('- getPerformanceMetrics() - Get performance and cache statistics');
-        //console.log('- getCacheStatistics() - Get detailed cache statistics');
-        //console.log('- optimizePerformance() - Manually optimize performance and clean caches');
-        //console.log('- clearAllCache() - Clear all cached data');
+        // //// console.log removed
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
+        //// console.log removed
     } catch (error) {
-        // console.error('Error initializing Entry Manager:', error);
-        // console.error('Error stack:', error.stack);
+        // // console.error removed
+        // // console.error removed
     }
 });/*
 *
@@ -7456,13 +7338,14 @@ function loadMainCategoriesFilter() {
                     }
                 });
                 
-                console.log('Main categories loaded for filter:', response.data.length);
+                // console.log removed
             } else {
-                console.error('Failed to load main categories:', response ? response.message : 'Invalid response');
+                // console.error removed
             }
         },
         error: function(xhr, status, error) {
-            console.error('Error loading main categories:', error);
+            // console.error removed
         }
     });
 }
+
