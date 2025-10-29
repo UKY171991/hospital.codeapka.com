@@ -130,7 +130,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="card-body">
                             <!-- Filters Row -->
                             <div class="row mb-3">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="statusFilter">Status Filter:</label>
                                         <select class="form-control form-control-sm" id="statusFilter">
@@ -141,7 +141,15 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="mainCategoryFilter">Main Category:</label>
+                                        <select class="form-control form-control-sm" id="mainCategoryFilter">
+                                            <option value="">All Categories</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="dateFilter">Date Range:</label>
                                         <select class="form-control form-control-sm" id="dateFilter">
@@ -175,16 +183,15 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                     <thead class="thead-dark">
                                         <tr>
                                             <th width="4%">ID</th>
-                                            <th width="10%">Patient</th>
-                                            <th width="8%">Doctor</th>
-                                            <th width="12%">Tests</th>
-                                            <th width="10%">Test Category</th>
-                                            <th width="10%">Main Test Category</th>
-                                            <th width="6%">Status</th>
-                                            <th width="6%">Priority</th>
-                                            <th width="7%">Amount</th>
-                                            <th width="7%">Date</th>
-                                            <th width="6%">Added By</th>
+                                            <th width="12%">Patient</th>
+                                            <th width="10%">Doctor</th>
+                                            <th width="14%">Tests</th>
+                                            <th width="12%">Test Category</th>
+                                            <th width="8%">Status</th>
+                                            <th width="8%">Priority</th>
+                                            <th width="8%">Amount</th>
+                                            <th width="8%">Date</th>
+                                            <th width="8%">Added By</th>
                                             <th width="8%">Actions</th>
                                         </tr>
                                     </thead>

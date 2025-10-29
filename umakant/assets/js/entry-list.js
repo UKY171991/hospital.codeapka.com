@@ -322,9 +322,94 @@ class EntryManager {
             const headerCells = $table.find('thead th').length;
             console.log('Number of header columns:', headerCells);
 
-            if (headerCells !== 12) {
-                throw new Error(`Table structure mismatch: Expected 12 columns, found ${headerCells} columns`);
+            if (headerCells !== 11) {
+                throw new Error(`Table structure mismatch: Expected 11 columns, found ${headerCells} columns`);
             }
+
+            // Add custom search functions for all filters
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                if (settings.nTable.id !== 'entriesTable') {
+                    return true;
+                }
+                
+                const rowData = settings.aoData[dataIndex]._aData;
+                
+                // Main Category Filter
+                const mainCategoryFilter = $('#mainCategoryFilter').val();
+                if (mainCategoryFilter) {
+                    const mainCategories = rowData.agg_main_test_categories || rowData.main_test_categories || '';
+                    if (!mainCategories || !mainCategories.toLowerCase().includes(mainCategoryFilter.toLowerCase())) {
+                        return false;
+                    }
+                }
+                
+                // Status Filter
+                const statusFilter = $('#statusFilter').val();
+                if (statusFilter) {
+                    const status = rowData.status || '';
+                    if (status.toLowerCase() !== statusFilter.toLowerCase()) {
+                        return false;
+                    }
+                }
+                
+                // Date Filter
+                const dateFilter = $('#dateFilter').val();
+                if (dateFilter) {
+                    const entryDate = new Date(rowData.entry_date);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    let showRow = false;
+                    switch (dateFilter) {
+                        case 'today':
+                            const todayEnd = new Date(today);
+                            todayEnd.setHours(23, 59, 59, 999);
+                            showRow = entryDate >= today && entryDate <= todayEnd;
+                            break;
+                        case 'yesterday':
+                            const yesterday = new Date(today);
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            const yesterdayEnd = new Date(yesterday);
+                            yesterdayEnd.setHours(23, 59, 59, 999);
+                            showRow = entryDate >= yesterday && entryDate <= yesterdayEnd;
+                            break;
+                        case 'this_week':
+                            const weekStart = new Date(today);
+                            weekStart.setDate(today.getDate() - today.getDay());
+                            showRow = entryDate >= weekStart;
+                            break;
+                        case 'this_month':
+                            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                            showRow = entryDate >= monthStart;
+                            break;
+                        default:
+                            showRow = true;
+                    }
+                    if (!showRow) {
+                        return false;
+                    }
+                }
+                
+                // Patient Filter
+                const patientFilter = $('#patientFilter').val();
+                if (patientFilter) {
+                    const patientName = rowData.patient_name || '';
+                    if (!patientName.toLowerCase().includes(patientFilter.toLowerCase())) {
+                        return false;
+                    }
+                }
+                
+                // Doctor Filter
+                const doctorFilter = $('#doctorFilter').val();
+                if (doctorFilter) {
+                    const doctorName = rowData.doctor_name || '';
+                    if (!doctorName.toLowerCase().includes(doctorFilter.toLowerCase())) {
+                        return false;
+                    }
+                }
+                
+                return true; // Show row if all filters pass
+            });
 
             this.entriesTable = $('#entriesTable').DataTable({
                 processing: true,
@@ -429,7 +514,7 @@ class EntryManager {
                     {
                         data: 'agg_test_categories',
                         title: 'Test Category',
-                        width: '10%',
+                        width: '12%',
                         render: function (data, type, row) {
                             if (type === 'display') {
                                 const categories = data || row.test_categories || '';
@@ -455,37 +540,9 @@ class EntryManager {
                         }
                     },
                     {
-                        data: 'agg_main_test_categories',
-                        title: 'Main Test Category',
-                        width: '10%',
-                        render: function (data, type, row) {
-                            if (type === 'display') {
-                                const mainCategories = data || row.main_test_categories || '';
-                                if (!mainCategories) {
-                                    return '<span class="text-muted">No main category</span>';
-                                }
-
-                                // Handle multiple main categories
-                                const categoryArray = mainCategories.split(',').map(cat => cat.trim()).filter(cat => cat);
-                                const uniqueCategories = [...new Set(categoryArray)];
-
-                                if (uniqueCategories.length === 0) {
-                                    return '<span class="text-muted">No main category</span>';
-                                } else if (uniqueCategories.length === 1) {
-                                    return `<span class="badge badge-primary">${uniqueCategories[0]}</span>`;
-                                } else {
-                                    const displayText = uniqueCategories.slice(0, 2).join(', ');
-                                    const remainingCount = uniqueCategories.length - 2;
-                                    return `<span class="badge badge-primary" title="${uniqueCategories.join(', ')}">${displayText}${remainingCount > 0 ? ` +${remainingCount}` : ''}</span>`;
-                                }
-                            }
-                            return data || '';
-                        }
-                    },
-                    {
                         data: 'status',
                         title: 'Status',
-                        width: '6%',
+                        width: '8%',
                         render: function (data, type, row) {
                             if (type === 'display') {
                                 const status = data || 'pending';
@@ -503,7 +560,7 @@ class EntryManager {
                     {
                         data: 'priority',
                         title: 'Priority',
-                        width: '6%',
+                        width: '8%',
                         render: function (data, type, row) {
                             if (type === 'display') {
                                 const priority = data || 'normal';
@@ -522,7 +579,7 @@ class EntryManager {
                     {
                         data: 'total_price',
                         title: 'Amount',
-                        width: '7%',
+                        width: '8%',
                         render: function (data, type, row) {
                             if (type === 'display') {
                                 // Only show amount if there are tests
@@ -547,7 +604,7 @@ class EntryManager {
                     {
                         data: 'entry_date',
                         title: 'Date',
-                        width: '7%',
+                        width: '8%',
                         render: function (data, type, row) {
                             if (type === 'display' && data) {
                                 const date = new Date(data);
@@ -559,7 +616,7 @@ class EntryManager {
                     {
                         data: 'added_by_full_name',
                         title: 'Added By',
-                        width: '6%',
+                        width: '8%',
                         render: function (data, type, row) {
                             return data || row.added_by_username || 'Unknown';
                         }
@@ -597,7 +654,7 @@ class EntryManager {
                     { responsivePriority: 1, targets: 0 }, // ID
                     { responsivePriority: 2, targets: 1 }, // Patient
                     { responsivePriority: 3, targets: -1 }, // Actions
-                    { responsivePriority: 4, targets: 6 }, // Status
+                    { responsivePriority: 4, targets: 5 }, // Status
                     { responsivePriority: 5, targets: 3 }  // Tests
                 ],
                 buttons: [
@@ -5456,4 +5513,56 @@ $(document).ready(function () {
     }).ajaxStop(function () {
         $('body').removeClass('loading');
     });
+
+    // Load main categories for filter
+    loadMainCategoriesFilter();
+
+    // Bind filter change events
+    $('#mainCategoryFilter, #statusFilter, #dateFilter').on('change', function() {
+        if (window.entryManager && window.entryManager.entriesTable) {
+            window.entryManager.entriesTable.draw();
+        }
+    });
+
+    // Bind search input events with debounce
+    let searchTimeout;
+    $('#patientFilter, #doctorFilter').on('keyup', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            if (window.entryManager && window.entryManager.entriesTable) {
+                window.entryManager.entriesTable.draw();
+            }
+        }, 300);
+    });
 });
+
+/**
+ * Load main categories for the filter dropdown
+ */
+function loadMainCategoriesFilter() {
+    $.ajax({
+        url: 'ajax/main_test_category_api.php',
+        method: 'GET',
+        data: { action: 'list' },
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success && response.data) {
+                const $filter = $('#mainCategoryFilter');
+                $filter.empty().append('<option value="">All Categories</option>');
+                
+                response.data.forEach(function(category) {
+                    if (category && category.id && category.name) {
+                        $filter.append(`<option value="${category.name}">${category.name}</option>`);
+                    }
+                });
+                
+                console.log('Main categories loaded for filter:', response.data.length);
+            } else {
+                console.error('Failed to load main categories:', response ? response.message : 'Invalid response');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading main categories:', error);
+        }
+    });
+}
