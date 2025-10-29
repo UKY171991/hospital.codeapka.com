@@ -1018,7 +1018,10 @@ async function saveEntry() {
 
         // Prepare form data
         const formData = new FormData($('#entryForm')[0]);
-        formData.append('action', currentEditId ? 'update' : 'save');
+        formData.append('action', 'save'); // Use 'save' for both create and update
+        if (currentEditId) {
+            formData.append('id', currentEditId); // Add ID for updates
+        }
         formData.append('secret_key', 'hospital-api-secret-2024');
 
         // Add current user ID if available

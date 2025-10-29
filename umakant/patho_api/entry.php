@@ -51,6 +51,7 @@ try {
         case 'list': handleList($pdo, $entity_config, $user_data); break;
         case 'get': handleGet($pdo, $entity_config, $user_data); break;
         case 'save': handleSave($pdo, $entity_config, $user_data); break;
+        case 'update': handleSave($pdo, $entity_config, $user_data); break; // Alias for save
         case 'delete': handleDelete($pdo, $entity_config, $user_data); break;
         case 'stats': handleStats($pdo, $user_data); break;
         case 'add_test': handleAddTest($pdo, $user_data); break;
@@ -58,6 +59,13 @@ try {
         case 'get_tests': handleGetTests($pdo, $user_data); break;
         case 'update_test_result': handleUpdateTestResult($pdo, $user_data); break;
         case 'report_list': handleReportList($pdo, $user_data); break;
+        case 'cleanup_duplicates': handleCleanupDuplicates($pdo, $user_data); break;
+        case 'debug_get_entry': handleDebugGetEntry($pdo, $user_data); break;
+        case 'debug_entry_17': handleDebugEntry17($pdo, $user_data); break;
+        case 'refresh_aggregates': handleRefreshAggregates($pdo, $user_data); break;
+        case 'debug_all_entries': handleDebugAllEntries($pdo, $user_data); break;
+        case 'test_aggregation_sql': handleTestAggregationSQL($pdo, $user_data); break;
+        case 'refresh_all_aggregates': handleRefreshAllAggregates($pdo, $user_data); break;
         default: json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
     }
 } catch (Exception $e) {
@@ -620,6 +628,297 @@ function columnExists($pdo, $table, $column) {
         return $stmt->fetch(PDO::FETCH_ASSOC) ? true : false;
     } catch (Exception $e) {
         return false;
+    }
+}
+
+/**
+ * Handle cleanup of duplicate entries
+ */
+function handleCleanupDuplicates($pdo, $user_data) {
+    if (!simpleCheckPermission($user_data, 'delete')) {
+        json_response(['success' => false, 'message' => 'Permission denied to cleanup duplicates'], 403);
+    }
+
+    try {
+        error_log("Cleaning up duplicate test entries");
+        
+        // Find duplicate test entries (same entry_id and test_id)
+        $sql = "SELECT entry_id, test_id, COUNT(*) as count, GROUP_CONCAT(id) as ids 
+                FROM entry_tests 
+                GROUP BY entry_id, test_id 
+                HAVING COUNT(*) > 1";
+        
+        $stmt = $pdo->query($sql);
+        $duplicates = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $cleaned = 0;
+        foreach ($duplicates as $duplicate) {
+            $ids = explode(',', $duplicate['ids']);
+            // Keep the first one, delete the rest
+            array_shift($ids);
+            
+            if (!empty($ids)) {
+                $placeholders = implode(',', array_fill(0, count($ids), '?'));
+                $deleteStmt = $pdo->prepare("DELETE FROM entry_tests WHERE id IN ($placeholders)");
+                $deleteStmt->execute($ids);
+                $cleaned += count($ids);
+                
+                error_log("Deleted duplicate tests for entry {$duplicate['entry_id']}, test {$duplicate['test_id']}: " . implode(',', $ids));
+            }
+        }
+        
+        json_response([
+            'success' => true,
+            'message' => "Cleaned up $cleaned duplicate test entries",
+            'duplicates_found' => count($duplicates),
+            'entries_cleaned' => $cleaned
+        ]);
+        
+    } catch (Exception $e) {
+        error_log('Error cleaning duplicates: ' . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Failed to cleanup duplicates', 'error' => $e->getMessage()], 500);
+    }
+}
+
+/**
+ * Debug function to get entry details
+ */
+function handleDebugGetEntry($pdo, $user_data) {
+    $entryId = (int)($_GET['entry_id'] ?? $_GET['id'] ?? 0);
+    if (!$entryId) {
+        json_response(['success' => false, 'message' => 'Entry ID required']);
+    }
+    
+    error_log("Debug: Checking get action for entry $entryId");
+    
+    try {
+        // Get entry with all related data
+        $sql = "SELECT e.*, 
+                       p.name AS patient_name, p.uhid, p.age, p.sex AS gender, 
+                       p.contact AS patient_contact, p.address AS patient_address,
+                       d.name AS doctor_name, d.specialization AS doctor_specialization,
+                       u.username AS added_by_username, u.full_name AS added_by_full_name
+                FROM entries e 
+                LEFT JOIN patients p ON e.patient_id = p.id 
+                LEFT JOIN doctors d ON e.doctor_id = d.id 
+                LEFT JOIN users u ON e.added_by = u.id
+                WHERE e.id = ?";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$entryId]);
+        $entry = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$entry) {
+            json_response(['success' => false, 'message' => 'Entry not found']);
+        }
+        
+        // Get associated tests
+        $testSql = "SELECT et.*, t.name as test_name, t.category_id, c.name as category_name 
+                    FROM entry_tests et 
+                    LEFT JOIN tests t ON et.test_id = t.id 
+                    LEFT JOIN categories c ON t.category_id = c.id 
+                    WHERE et.entry_id = ? 
+                    ORDER BY et.id";
+        
+        $testStmt = $pdo->prepare($testSql);
+        $testStmt->execute([$entryId]);
+        $tests = $testStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        json_response([
+            'success' => true,
+            'entry_id' => $entryId,
+            'entry_data' => $entry,
+            'tests_data' => $tests,
+            'tests_count' => count($tests),
+            'debug_info' => [
+                'sql_used' => $sql,
+                'test_sql_used' => $testSql
+            ]
+        ]);
+        
+    } catch (Exception $e) {
+        json_response(['success' => false, 'message' => 'Debug failed', 'error' => $e->getMessage()], 500);
+    }
+}
+
+/**
+ * Debug function for entry 17 (specific debugging)
+ */
+function handleDebugEntry17($pdo, $user_data) {
+    error_log("Debug: Checking entry 17 data");
+    
+    try {
+        // Check entry_tests table directly
+        $stmt = $pdo->prepare("SELECT * FROM entry_tests WHERE entry_id = 17 ORDER BY id");
+        $stmt->execute();
+        $directTests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Check with JOIN to tests table
+        $stmt = $pdo->prepare("SELECT et.*, t.name as test_name, t.category_id, c.name as category_name 
+                               FROM entry_tests et 
+                               LEFT JOIN tests t ON et.test_id = t.id 
+                               LEFT JOIN categories c ON t.category_id = c.id 
+                               WHERE et.entry_id = 17 
+                               ORDER BY et.id");
+        $stmt->execute();
+        $joinedTests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        json_response([
+            'success' => true,
+            'direct_tests' => $directTests,
+            'joined_tests' => $joinedTests,
+            'direct_count' => count($directTests),
+            'joined_count' => count($joinedTests)
+        ]);
+        
+    } catch (Exception $e) {
+        json_response(['success' => false, 'message' => 'Debug failed', 'error' => $e->getMessage()], 500);
+    }
+}
+
+/**
+ * Manually refresh aggregates for a specific entry
+ */
+function handleRefreshAggregates($pdo, $user_data) {
+    $entryId = (int)($_GET['entry_id'] ?? $_POST['entry_id'] ?? 0);
+    if (!$entryId) {
+        json_response(['success' => false, 'message' => 'Entry ID required']);
+    }
+    
+    error_log("Manual refresh aggregates for entry ID: $entryId");
+    
+    try {
+        // Get entry_tests data before refresh
+        $stmt = $pdo->prepare("SELECT et.*, t.name as test_name FROM entry_tests et LEFT JOIN tests t ON et.test_id = t.id WHERE et.entry_id = ?");
+        $stmt->execute([$entryId]);
+        $beforeTests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Refresh aggregates
+        refreshEntryAggregates($pdo, $entryId);
+        
+        // Get updated entry data
+        $stmt = $pdo->prepare("SELECT id, tests_count, test_names, test_ids FROM entries WHERE id = ?");
+        $stmt->execute([$entryId]);
+        $entryData = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        json_response([
+            'success' => true,
+            'message' => 'Aggregates refreshed',
+            'entry_data' => $entryData,
+            'entry_tests_data' => $beforeTests,
+            'entry_tests_count' => count($beforeTests)
+        ]);
+        
+    } catch (Exception $e) {
+        json_response(['success' => false, 'message' => 'Failed to refresh aggregates', 'error' => $e->getMessage()], 500);
+    }
+}
+
+/**
+ * Debug all entries with multiple tests
+ */
+function handleDebugAllEntries($pdo, $user_data) {
+    error_log("Debug: Checking all entries with multiple tests");
+    
+    try {
+        // Get all entries with their test counts
+        $sql = "SELECT e.id, e.patient_id, e.tests_count as stored_tests_count, e.test_names as stored_test_names,
+                       COUNT(et.id) as actual_tests_count,
+                       GROUP_CONCAT(t.name SEPARATOR ', ') as actual_test_names
+                FROM entries e 
+                LEFT JOIN entry_tests et ON e.id = et.entry_id
+                LEFT JOIN tests t ON et.test_id = t.id
+                GROUP BY e.id
+                HAVING actual_tests_count > 1 OR stored_tests_count > 1
+                ORDER BY e.id";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+        $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        json_response([
+            'success' => true,
+            'entries_with_multiple_tests' => $entries,
+            'count' => count($entries)
+        ]);
+        
+    } catch (Exception $e) {
+        json_response(['success' => false, 'message' => 'Debug failed', 'error' => $e->getMessage()], 500);
+    }
+}
+
+/**
+ * Test aggregation SQL directly
+ */
+function handleTestAggregationSQL($pdo, $user_data) {
+    error_log("Testing aggregation SQL directly");
+    
+    try {
+        $aggSql = "SELECT 
+                       et.entry_id,
+                       COUNT(et.id) as tests_count,
+                       GROUP_CONCAT(et.test_id ORDER BY t.name) as test_ids,
+                       GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ', ') as test_names,
+                       SUM(et.price) as total_price
+                   FROM entry_tests et
+                   LEFT JOIN tests t ON et.test_id = t.id
+                   GROUP BY et.entry_id";
+        
+        error_log("Aggregation SQL: " . $aggSql);
+        
+        $stmt = $pdo->prepare($aggSql);
+        $stmt->execute();
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        json_response([
+            'success' => true,
+            'sql' => $aggSql,
+            'results' => $results,
+            'count' => count($results)
+        ]);
+        
+    } catch (Exception $e) {
+        json_response([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'sql' => $aggSql ?? 'Failed to build SQL'
+        ], 500);
+    }
+}
+
+/**
+ * Refresh aggregates for all entries
+ */
+function handleRefreshAllAggregates($pdo, $user_data) {
+    if (!simpleCheckPermission($user_data, 'save')) {
+        json_response(['success' => false, 'message' => 'Permission denied to refresh aggregates'], 403);
+    }
+    
+    error_log("Refreshing aggregates for all entries with tests");
+    
+    try {
+        // Get all entry IDs that have tests
+        $stmt = $pdo->query("SELECT DISTINCT entry_id FROM entry_tests ORDER BY entry_id");
+        $entryIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        $refreshed = 0;
+        foreach ($entryIds as $entryId) {
+            refreshEntryAggregates($pdo, $entryId);
+            $refreshed++;
+        }
+        
+        json_response([
+            'success' => true,
+            'message' => "Refreshed aggregates for $refreshed entries",
+            'refreshed_count' => $refreshed,
+            'entry_ids' => $entryIds
+        ]);
+        
+    } catch (Exception $e) {
+        json_response([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
     }
 }
 ?>
