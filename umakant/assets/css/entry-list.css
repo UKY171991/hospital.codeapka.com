@@ -243,29 +243,64 @@
     padding: 3px 8px;
 }
 
-/* Test Category Filter - Purple Header Style */
-.test-category-filter-card {
+/* Main Category Filter - Purple Header Style */
+.main-category-filter-card {
     background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
     border: none;
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(111, 66, 193, 0.3);
 }
 
-.test-category-filter-card .card-body {
+.main-category-filter-card .card-body {
     padding: 12px 20px;
 }
 
-.test-category-filter-card h6 {
+.main-category-filter-card h6 {
     font-weight: 600;
     margin-bottom: 0;
     color: white;
 }
 
-.test-category-filter-card small {
+.main-category-filter-card small {
     color: rgba(255, 255, 255, 0.8);
     font-weight: 400;
 }
 
+#modalMainCategoryFilter {
+    border: none;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    height: 32px;
+    background: white;
+    color: #495057;
+}
+
+#modalMainCategoryFilter:focus {
+    border-color: #6f42c1;
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+}
+
+#clearMainCategoryFilter {
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: white;
+    background-color: transparent;
+    font-size: 0.875rem;
+    height: 32px;
+    transition: all 0.2s ease;
+}
+
+#clearMainCategoryFilter:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: white;
+    color: white;
+}
+
+#clearMainCategoryFilter:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Legacy support for old category filter */
 #categoryFilter {
     border: none;
     border-radius: 4px;
