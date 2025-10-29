@@ -12,6 +12,28 @@ let doctorsData = [];
 let currentEditId = null;
 let testRowCounter = 0;
 
+// API Configuration
+const API_CONFIG = {
+    // Use the new patho_api/entry.php API (set to false to use ajax/entry_api_fixed.php)
+    useNewAPI: true,
+
+    // API endpoints
+    endpoints: {
+        new: 'patho_api/entry.php',
+        old: 'ajax/entry_api_fixed.php'
+    },
+
+    // Get current API URL
+    getURL: function () {
+        return this.useNewAPI ? this.endpoints.new : this.endpoints.old;
+    },
+
+    // Get API secret key
+    getSecretKey: function () {
+        return this.useNewAPI ? null : 'hospital-api-secret-2024';
+    }
+};
+
 /**
  * Initialize the application
  */
@@ -37,11 +59,15 @@ function initializeDataTable() {
             processing: true,
             serverSide: false,
             ajax: {
-                url: 'ajax/entry_api_fixed.php',
+                url: API_CONFIG.getURL(),
                 type: 'GET',
-                data: {
-                    action: 'list',
-                    secret_key: 'hospital-api-secret-2024'
+                data: function () {
+                    const data = { action: 'list' };
+                    const secretKey = API_CONFIG.getSecretKey();
+                    if (secretKey) {
+                        data.secret_key = secretKey;
+                    }
+                    return data;
                 },
                 dataSrc: function (json) {
                     console.log('DataTable response:', json);
@@ -1075,8 +1101,14 @@ async function saveEntry() {
         const entryDate = formData.get('entry_date');
         console.log('Final validation - Patient ID:', patientId, 'Entry Date:', entryDate);
 
+        // Add secret key if using old API
+        const secretKey = API_CONFIG.getSecretKey();
+        if (secretKey) {
+            formData.append('secret_key', secretKey);
+        }
+
         const response = await $.ajax({
-            url: 'ajax/entry_api_fixed.php',
+            url: API_CONFIG.getURL(),
             method: 'POST',
             data: formData,
             processData: false,
@@ -1213,14 +1245,20 @@ function viewEntry(id) {
     $('#viewEntryModal').modal('show');
 
     // Load entry data
+    const requestData = {
+        action: 'get',
+        id: id
+    };
+
+    const secretKey = API_CONFIG.getSecretKey();
+    if (secretKey) {
+        requestData.secret_key = secretKey;
+    }
+
     $.ajax({
-        url: 'ajax/entry_api_fixed.php',
+        url: API_CONFIG.getURL(),
         method: 'GET',
-        data: {
-            action: 'get',
-            id: id,
-            secret_key: 'hospital-api-secret-2024'
-        },
+        data: requestData,
         dataType: 'json',
         success: function (response) {
             if (response.success) {
@@ -1320,14 +1358,20 @@ function editEntry(id) {
     $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
 
     // Load entry data
+    const requestData = {
+        action: 'get',
+        id: id
+    };
+
+    const secretKey = API_CONFIG.getSecretKey();
+    if (secretKey) {
+        requestData.secret_key = secretKey;
+    }
+
     $.ajax({
-        url: 'ajax/entry_api_fixed.php',
+        url: API_CONFIG.getURL(),
         method: 'GET',
-        data: {
-            action: 'get',
-            id: id,
-            secret_key: 'hospital-api-secret-2024'
-        },
+        data: requestData,
         dataType: 'json',
         success: function (response) {
             if (response.success) {
@@ -1393,14 +1437,20 @@ function deleteEntry(id) {
 
     // Handle delete confirmation
     $('#confirmDelete').off('click').on('click', function () {
+        const requestData = {
+            action: 'delete',
+            id: id
+        };
+
+        const secretKey = API_CONFIG.getSecretKey();
+        if (secretKey) {
+            requestData.secret_key = secretKey;
+        }
+
         $.ajax({
-            url: 'ajax/entry_api_fixed.php',
+            url: API_CONFIG.getURL(),
             method: 'POST',
-            data: {
-                action: 'delete',
-                id: id,
-                secret_key: 'hospital-api-secret-2024'
-            },
+            data: requestData,
             dataType: 'json',
             success: function (response) {
                 if (response.success) {
@@ -1552,13 +1602,19 @@ async function testAPI() {
     console.log('Testing API connectivity...');
 
     try {
+        const requestData = {
+            action: 'list'
+        };
+
+        const secretKey = API_CONFIG.getSecretKey();
+        if (secretKey) {
+            requestData.secret_key = secretKey;
+        }
+
         const response = await $.ajax({
-            url: 'ajax/entry_api_fixed.php',
+            url: API_CONFIG.getURL(),
             method: 'GET',
-            data: {
-                action: 'list',
-                secret_key: 'hospital-api-secret-2024'
-            },
+            data: requestData,
             dataType: 'json',
             timeout: 10000
         });
@@ -1599,7 +1655,11 @@ async function testSave() {
     try {
         const formData = new FormData();
         formData.append('action', 'save');
-        formData.append('secret_key', 'hospital-api-secret-2024');
+
+        const secretKey = API_CONFIG.getSecretKey();
+        if (secretKey) {
+            formData.append('secret_key', secretKey);
+        }
         formData.append('patient_id', patientsData[0].id); // Use first patient
         formData.append('entry_date', new Date().toISOString().split('T')[0]); // Today's date
         formData.append('status', 'pending');
@@ -1625,7 +1685,7 @@ async function testSave() {
         console.log('Test save data:', Object.fromEntries(formData));
 
         const response = await $.ajax({
-            url: 'ajax/entry_api_fixed.php',
+            url: API_CONFIG.getURL(),
             method: 'POST',
             data: formData,
             processData: false,
@@ -1663,13 +1723,19 @@ async function checkAuth() {
     console.log('Checking authentication...');
 
     try {
+        const requestData = {
+            action: 'stats'
+        };
+
+        const secretKey = API_CONFIG.getSecretKey();
+        if (secretKey) {
+            requestData.secret_key = secretKey;
+        }
+
         const response = await $.ajax({
-            url: 'ajax/entry_api_fixed.php',
+            url: API_CONFIG.getURL(),
             method: 'GET',
-            data: {
-                action: 'stats',
-                secret_key: 'hospital-api-secret-2024'
-            },
+            data: requestData,
             dataType: 'json'
         });
 
@@ -2069,3 +2135,77 @@ async function forceReloadData() {
 }
 
 window.forceReloadData = forceReloadData;
+
+/**
+ * Switch between old and new API
+ */
+function switchAPI(useNew = true) {
+    console.log(`🔄 Switching to ${useNew ? 'NEW' : 'OLD'} API...`);
+
+    API_CONFIG.useNewAPI = useNew;
+
+    console.log(`Current API: ${API_CONFIG.getURL()}`);
+    console.log(`Secret Key: ${API_CONFIG.getSecretKey() || 'None (new API)'}`);
+
+    // Refresh the DataTable to use new API
+    if (entriesTable) {
+        entriesTable.ajax.reload();
+    }
+
+    showSuccess(`Switched to ${useNew ? 'new patho_api/entry.php' : 'old ajax/entry_api_fixed.php'} API`);
+}
+
+window.switchAPI = switchAPI;
+
+/**
+ * Test both APIs
+ */
+async function testBothAPIs() {
+    console.log('🔍 Testing both APIs...');
+
+    const results = {
+        oldAPI: false,
+        newAPI: false
+    };
+
+    try {
+        // Test old API
+        console.log('Testing OLD API...');
+        switchAPI(false);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        results.oldAPI = await testAPI();
+
+        // Test new API
+        console.log('Testing NEW API...');
+        switchAPI(true);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        results.newAPI = await testAPI();
+
+        // Summary
+        console.log('\n📋 API TEST SUMMARY:');
+        console.log('==================');
+        console.log(`${results.oldAPI ? '✅' : '❌'} Old API (ajax/entry_api_fixed.php): ${results.oldAPI ? 'WORKING' : 'FAILED'}`);
+        console.log(`${results.newAPI ? '✅' : '❌'} New API (patho_api/entry.php): ${results.newAPI ? 'WORKING' : 'FAILED'}`);
+
+        if (results.newAPI) {
+            console.log('\n🎯 Recommendation: Use NEW API (already selected)');
+            showSuccess('Both APIs tested. Using new API (recommended).');
+        } else if (results.oldAPI) {
+            console.log('\n⚠️ Fallback: Using OLD API');
+            switchAPI(false);
+            showInfo('New API failed, switched to old API as fallback.');
+        } else {
+            console.log('\n❌ Both APIs failed!');
+            showError('Both APIs failed! Please check server configuration.');
+        }
+
+        return results;
+
+    } catch (error) {
+        console.error('❌ Error testing APIs:', error);
+        showError('Error testing APIs: ' + error.message);
+        return results;
+    }
+}
+
+window.testBothAPIs = testBothAPIs;
