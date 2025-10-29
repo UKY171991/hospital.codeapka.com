@@ -512,9 +512,25 @@ function openAddModal() {
 
     // Check if required data is loaded
     if (testsData.length === 0 || categoriesData.length === 0) {
-        showError('Please wait for data to load before adding entries');
+        console.log('Data not loaded, attempting to load...');
+        showInfo('Loading data, please wait...');
+
+        // Try to load data first
+        loadInitialData().then(() => {
+            if (testsData.length === 0 || categoriesData.length === 0) {
+                showError('Failed to load required data. Please refresh the page.');
+                return;
+            }
+            // Retry opening modal
+            openAddModal();
+        }).catch(error => {
+            console.error('Failed to load data:', error);
+            showError('Failed to load data. Please refresh the page.');
+        });
         return;
     }
+
+    console.log(`Opening modal with ${testsData.length} tests and ${categoriesData.length} categories`);
 
     currentEditId = null;
     resetForm();
@@ -527,13 +543,21 @@ function openAddModal() {
 
     // Wait for modal to be fully shown before initializing
     $('#entryModal').off('shown.bs.modal').on('shown.bs.modal', function () {
+        console.log('Modal shown, initializing...');
+
         // Initialize Select2 dropdowns
         initializeSelect2();
 
         // Add first test row if none exist
         if ($('#testsContainer .test-row').length === 0) {
+            console.log('Adding first test row...');
             addTestRow();
         }
+
+        // Refresh dropdowns to ensure they have data
+        setTimeout(() => {
+            refreshAllDropdowns();
+        }, 500);
     });
 
     // Reset form when modal is hidden
@@ -637,6 +661,15 @@ function addTestRow(testData = null) {
     const rowIndex = testRowCounter++;
 
     console.log(`Adding test row ${rowIndex}`, testData);
+    console.log('Available categories:', categoriesData.length);
+    console.log('Available tests:', testsData.length);
+
+    // Check if data is loaded
+    if (categoriesData.length === 0 || testsData.length === 0) {
+        console.error('Cannot add test row: Data not loaded yet');
+        showError('Please wait for data to load before adding test rows');
+        return;
+    }
 
     // Create category options
     const categoryOptions = categoriesData.map(category => {
@@ -718,19 +751,32 @@ function addTestRow(testData = null) {
 
     // Initialize Select2 for the new row dropdowns
     try {
+        // Destroy any existing Select2 instances first
+        if ($categorySelect.hasClass('select2-hidden-accessible')) {
+            $categorySelect.select2('destroy');
+        }
+        if ($testSelect.hasClass('select2-hidden-accessible')) {
+            $testSelect.select2('destroy');
+        }
+
+        // Initialize Select2 with proper configuration
         $categorySelect.select2({
             theme: 'bootstrap4',
             width: '100%',
-            placeholder: 'Select Category'
+            placeholder: 'Select Category',
+            allowClear: true
         });
 
         $testSelect.select2({
             theme: 'bootstrap4',
             width: '100%',
-            placeholder: 'Select Test'
+            placeholder: 'Select Test',
+            allowClear: true
         });
 
         console.log(`Select2 initialized for row ${rowIndex}`);
+        console.log(`Category options: ${$categorySelect.find('option').length}`);
+        console.log(`Test options: ${$testSelect.find('option').length}`);
     } catch (error) {
         console.error('Error initializing Select2 for test row:', error);
     }
@@ -1712,33 +1758,59 @@ async function runComprehensiveTest() {
         console.log('🌐 Testing API connectivity...');
         results.apiConnectivity = await testAPI();
 
-        // Test 3: Form Validation
-        console.log('📝 Testing form validation...');
-        // Open modal and add test data
+        // Test 3: Dropdown Population & Form Validation
+        console.log('📝 Testing dropdown population and form validation...');
+        // Open modal and check dropdowns
         openAddModal();
 
         // Wait for modal to be ready
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        // Set test data
-        if (patientsData.length > 0) {
-            $('#patientSelect').val(patientsData[0].id);
-        }
-        $('#entryDate').val(new Date().toISOString().split('T')[0]);
+        // Check if dropdowns have options
+        const $firstRow = $('#testsContainer .test-row').first();
+        const categoryOptions = $firstRow.find('.category-select option').length;
+        const testOptions = $firstRow.find('.test-select option').length;
 
-        // Add a test row with data
-        if (testsData.length > 0) {
-            const $firstRow = $('#testsContainer .test-row').first();
-            if ($firstRow.length > 0) {
-                $firstRow.find('.test-select').val(testsData[0].id).trigger('change');
-                $firstRow.find('.test-price').val(testsData[0].price || 100);
+        console.log(`Category options: ${categoryOptions}, Test options: ${testOptions}`);
+
+        if (categoryOptions > 1 && testOptions > 1) {
+            console.log('✅ Dropdown population: PASSED');
+
+            // Set test data
+            if (patientsData.length > 0) {
+                $('#patientSelect').val(patientsData[0].id);
+            }
+            $('#entryDate').val(new Date().toISOString().split('T')[0]);
+
+            // Select first available test
+            if (testOptions > 1) {
+                const firstTestValue = $firstRow.find('.test-select option:nth-child(2)').val();
+                $firstRow.find('.test-select').val(firstTestValue).trigger('change');
+                $firstRow.find('.test-price').val(100);
+            }
+
+            // Test validation
+            const isValid = validateForm();
+            results.formValidation = isValid;
+            console.log(isValid ? '✅ Form validation: PASSED' : '❌ Form validation: FAILED');
+        } else {
+            console.log('❌ Dropdown population: FAILED');
+            console.log('Attempting to refresh dropdowns...');
+            refreshAllDropdowns();
+
+            // Wait and check again
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const newCategoryOptions = $firstRow.find('.category-select option').length;
+            const newTestOptions = $firstRow.find('.test-select option').length;
+
+            if (newCategoryOptions > 1 && newTestOptions > 1) {
+                results.formValidation = true;
+                console.log('✅ Dropdown population: PASSED (after refresh)');
+            } else {
+                results.formValidation = false;
+                console.log('❌ Dropdown population: FAILED (even after refresh)');
             }
         }
-
-        // Test validation
-        const isValid = validateForm();
-        results.formValidation = isValid;
-        console.log(isValid ? '✅ Form validation: PASSED' : '❌ Form validation: FAILED');
 
         // Test 4: Duplicate Handling
         console.log('🔄 Testing duplicate handling...');
@@ -1877,3 +1949,123 @@ function quickFix() {
 }
 
 window.quickFix = quickFix;
+
+/**
+ * Refresh all dropdowns with current data
+ */
+function refreshAllDropdowns() {
+    console.log('🔄 Refreshing all dropdowns...');
+
+    try {
+        // Check if data is loaded
+        if (categoriesData.length === 0 || testsData.length === 0) {
+            console.log('Data not loaded, attempting to reload...');
+            loadInitialData().then(() => {
+                console.log('Data reloaded, refreshing dropdowns again...');
+                refreshAllDropdowns();
+            });
+            return;
+        }
+
+        console.log(`Refreshing with ${categoriesData.length} categories and ${testsData.length} tests`);
+
+        // Refresh each test row
+        $('#testsContainer .test-row').each(function (index) {
+            const $row = $(this);
+            const $categorySelect = $row.find('.category-select');
+            const $testSelect = $row.find('.test-select');
+
+            // Store current values
+            const currentCategory = $categorySelect.val();
+            const currentTest = $testSelect.val();
+
+            console.log(`Refreshing row ${index}: category=${currentCategory}, test=${currentTest}`);
+
+            // Rebuild category options
+            $categorySelect.find('option:not(:first)').remove();
+            categoriesData.forEach(category => {
+                $categorySelect.append(`<option value="${category.id}">${category.name}</option>`);
+            });
+
+            // Rebuild test options
+            $testSelect.find('option:not(:first)').remove();
+            testsData.forEach(test => {
+                const displayName = `${test.name} [ID: ${test.id}]`;
+                $testSelect.append(`<option value="${test.id}" data-category-id="${test.category_id || ''}" data-price="${test.price || 0}" data-unit="${test.unit || ''}" data-min="${test.min || ''}" data-max="${test.max || ''}">${displayName}</option>`);
+            });
+
+            // Restore values
+            if (currentCategory) {
+                $categorySelect.val(currentCategory);
+            }
+            if (currentTest) {
+                $testSelect.val(currentTest);
+            }
+
+            // Refresh Select2
+            if ($categorySelect.hasClass('select2-hidden-accessible')) {
+                $categorySelect.select2('destroy').select2({
+                    theme: 'bootstrap4',
+                    width: '100%',
+                    placeholder: 'Select Category',
+                    allowClear: true
+                });
+            }
+
+            if ($testSelect.hasClass('select2-hidden-accessible')) {
+                $testSelect.select2('destroy').select2({
+                    theme: 'bootstrap4',
+                    width: '100%',
+                    placeholder: 'Select Test',
+                    allowClear: true
+                });
+            }
+        });
+
+        // Refresh global category filter
+        populateGlobalCategoryFilter();
+
+        console.log('✅ All dropdowns refreshed successfully');
+        showSuccess('Dropdowns refreshed with latest data');
+
+    } catch (error) {
+        console.error('❌ Error refreshing dropdowns:', error);
+        showError('Failed to refresh dropdowns: ' + error.message);
+    }
+}
+
+window.refreshAllDropdowns = refreshAllDropdowns;
+
+/**
+ * Force reload all data and refresh dropdowns
+ */
+async function forceReloadData() {
+    console.log('🔄 Force reloading all data...');
+
+    try {
+        // Reset data arrays
+        testsData = [];
+        categoriesData = [];
+        patientsData = [];
+        doctorsData = [];
+
+        // Reload all data
+        await loadInitialData();
+
+        // Refresh dropdowns
+        refreshAllDropdowns();
+
+        // Refresh patient and doctor selects
+        populatePatientSelect();
+        populateDoctorSelect();
+
+        console.log('✅ Data force reloaded successfully');
+        showSuccess('All data reloaded successfully');
+
+    } catch (error) {
+        console.error('❌ Error force reloading data:', error);
+        showError('Failed to reload data: ' + error.message);
+    }
+}
+
+window.forceReloadData = forceReloadData;
