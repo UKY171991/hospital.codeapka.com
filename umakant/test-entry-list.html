@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entry List API Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Entry List API Test</h1>
+    <div id="results"></div>
+
+    <script>
+        async function testAPIs() {
+            const results = $('#results');
+            results.html('<p>Testing APIs...</p>');
+
+            const tests = [
+                {
+                    name: 'Entry API - List',
+                    url: 'ajax/entry_api_fixed.php',
+                    data: { action: 'list', secret_key: 'hospital-api-secret-2024' }
+                },
+                {
+                    name: 'Entry API - Stats',
+                    url: 'ajax/entry_api_fixed.php',
+                    data: { action: 'stats', secret_key: 'hospital-api-secret-2024' }
+                },
+                {
+                    name: 'Test API - Simple List',
+                    url: 'ajax/test_api.php',
+                    data: { action: 'simple_list' }
+                },
+                {
+                    name: 'Patient API - List',
+                    url: 'ajax/patient_api.php',
+                    data: { action: 'list' }
+                },
+                {
+                    name: 'Doctor API - List',
+                    url: 'ajax/doctor_api.php',
+                    data: { action: 'list' }
+                }
+            ];
+
+            let html = '<h2>API Test Results:</h2>';
+
+            for (const test of tests) {
+                try {
+                    const response = await $.ajax({
+                        url: test.url,
+                        method: 'GET',
+                        data: test.data,
+                        dataType: 'json',
+                        timeout: 5000
+                    });
+
+                    if (response.success) {
+                        html += `<p style="color: green;">✓ ${test.name}: SUCCESS (${Array.isArray(response.data) ? response.data.length : 'N/A'} records)</p>`;
+                    } else {
+                        html += `<p style="color: orange;">⚠ ${test.name}: API returned success=false - ${response.message || 'Unknown error'}</p>`;
+                    }
+                } catch (error) {
+                    html += `<p style="color: red;">✗ ${test.name}: ERROR - ${error.statusText || error.message || 'Unknown error'}</p>`;
+                }
+            }
+
+            results.html(html);
+        }
+
+        // Run tests when page loads
+        $(document).ready(function() {
+            testAPIs();
+        });
+    </script>
+</body>
+</html>

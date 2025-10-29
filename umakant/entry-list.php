@@ -1,8 +1,8 @@
 <?php
-// Define page-specific CSS
-$pageSpecificCSS = '<link rel="stylesheet" href="assets/css/entry-list.css">';
+// Define page-specific CSS and JS
+$pageSpecificCSS = '<link rel="stylesheet" href="assets/css/entry-list.css?v=' . time() . '">';
 
-// Include header
+// Include header and sidebar
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 
@@ -51,7 +51,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="icon">
                             <i class="fas fa-clipboard-list"></i>
                         </div>
-                        <a href="#" class="small-box-footer" onclick="window.entryManager.filterByStatus('all')">
+                        <a href="#" class="small-box-footer" onclick="filterByStatus('all')">
                             More info <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
@@ -66,7 +66,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="icon">
                             <i class="fas fa-clock"></i>
                         </div>
-                        <a href="#" class="small-box-footer" onclick="window.entryManager.filterByStatus('pending')">
+                        <a href="#" class="small-box-footer" onclick="filterByStatus('pending')">
                             More info <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
@@ -81,7 +81,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="icon">
                             <i class="fas fa-check-circle"></i>
                         </div>
-                        <a href="#" class="small-box-footer" onclick="window.entryManager.filterByStatus('completed')">
+                        <a href="#" class="small-box-footer" onclick="filterByStatus('completed')">
                             More info <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
@@ -96,7 +96,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="icon">
                             <i class="fas fa-calendar-day"></i>
                         </div>
-                        <a href="#" class="small-box-footer" onclick="window.entryManager.filterByDate('today')">
+                        <a href="#" class="small-box-footer" onclick="filterByDate('today')">
                             More info <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
@@ -114,13 +114,13 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                             </h3>
                             <div class="card-tools">
                                 <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-primary btn-sm" onclick="window.entryManager.openAddModal()">
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="openAddModal()">
                                         <i class="fas fa-plus"></i> Add Entry
                                     </button>
-                                    <button type="button" class="btn btn-success btn-sm" onclick="window.entryManager.exportEntries()">
+                                    <button type="button" class="btn btn-success btn-sm" onclick="exportEntries()">
                                         <i class="fas fa-download"></i> Export
                                     </button>
-                                    <button type="button" class="btn btn-info btn-sm" onclick="window.entryManager.refreshTable()">
+                                    <button type="button" class="btn btn-info btn-sm" onclick="refreshTable()">
                                         <i class="fas fa-sync-alt"></i> Refresh
                                     </button>
                                 </div>
@@ -143,14 +143,6 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label for="mainCategoryFilter">Main Category:</label>
-                                        <select class="form-control form-control-sm" id="mainCategoryFilter">
-                                            <option value="">All Categories</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
                                         <label for="dateFilter">Date Range:</label>
                                         <select class="form-control form-control-sm" id="dateFilter">
                                             <option value="">All Dates</option>
@@ -161,14 +153,14 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="patientFilter">Patient:</label>
                                         <input type="text" class="form-control form-control-sm" id="patientFilter" 
                                                placeholder="Search by patient name...">
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="doctorFilter">Doctor:</label>
                                         <input type="text" class="form-control form-control-sm" id="doctorFilter" 
@@ -182,17 +174,15 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 <table id="entriesTable" class="table table-bordered table-striped table-hover">
                                     <thead class="thead-dark">
                                         <tr>
-                                            <th width="4%">ID</th>
-                                            <th width="12%">Patient</th>
-                                            <th width="10%">Doctor</th>
-                                            <th width="14%">Tests</th>
-                                            <th width="12%">Test Category</th>
-                                            <th width="8%">Status</th>
+                                            <th width="5%">ID</th>
+                                            <th width="15%">Patient</th>
+                                            <th width="12%">Doctor</th>
+                                            <th width="20%">Tests</th>
+                                            <th width="10%">Status</th>
                                             <th width="8%">Priority</th>
-                                            <th width="8%">Amount</th>
-                                            <th width="8%">Date</th>
-                                            <th width="8%">Added By</th>
-                                            <th width="8%">Actions</th>
+                                            <th width="10%">Amount</th>
+                                            <th width="10%">Date</th>
+                                            <th width="10%">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -226,37 +216,20 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     
                     <!-- Basic Information Row -->
                     <div class="row">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <div class="form-group">
-                                <label for="ownerAddedBySelect">Owner/Added By <span class="text-danger">*</span></label>
-                                <select class="form-control select2" id="ownerAddedBySelect" name="owner_added_by" required>
-                                    <option value="">Select Owner/User</option>
+                                <label for="patientSelect">Patient <span class="text-danger">*</span></label>
+                                <select class="form-control select2" id="patientSelect" name="patient_id" required>
+                                    <option value="">Select Patient</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="patientSelect">Patient <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <select class="form-control select2" id="patientSelect" name="patient_id" required disabled>
-                                        <option value="">Select Owner/User first</option>
-                                    </select>
-                                    <div class="input-group-append">
-                                        <button type="button" class="btn btn-outline-success btn-sm" id="addNewPatientBtn" 
-                                                title="Add New Patient" disabled>
-                                            <i class="fas fa-plus"></i> New
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="doctorSelect">Doctor</label>
-                                <select class="form-control select2" id="doctorSelect" name="doctor_id" disabled>
-                                    <option value="">Select Owner/User first</option>
+                                <select class="form-control select2" id="doctorSelect" name="doctor_id">
+                                    <option value="">Select Doctor</option>
                                 </select>
                             </div>
                         </div>
@@ -272,97 +245,11 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label for="entryStatus">Status</label>
-                                <select class="form-control select2" id="entryStatus" name="status">
+                                <select class="form-control" id="entryStatus" name="status">
                                     <option value="pending">Pending</option>
                                     <option value="completed">Completed</option>
                                     <option value="cancelled">Cancelled</option>
                                 </select>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Patient Information Section -->
-                    <div class="card mt-3 mb-3" id="patientInfoCard">
-                        <div class="card-header">
-                            <h6 class="mb-0">
-                                <i class="fas fa-user mr-1"></i>
-                                Patient Information
-                                <span id="patientModeIndicator" class="badge badge-info ml-2">Existing Patient</span>
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="patientName">Patient Name</label>
-                                        <input type="text" class="form-control patient-field" id="patientName" name="patient_name" 
-                                               placeholder="Enter patient name..." readonly>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="patientContact">Patient Contact</label>
-                                        <input type="text" class="form-control patient-field" id="patientContact" name="patient_contact" 
-                                               placeholder="Phone number or email..." readonly>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="patientAge">Age</label>
-                                        <input type="number" class="form-control patient-field" id="patientAge" name="age" 
-                                               placeholder="Age" min="0" max="150" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="patientGender">Gender</label>
-                                        <select class="form-control select2 patient-field" id="patientGender" name="gender" disabled>
-                                            <option value="">Select Gender</option>
-                                            <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="patientAddress">Address</label>
-                                        <textarea class="form-control patient-field" id="patientAddress" name="patient_address" rows="2" 
-                                                  placeholder="Patient address..." readonly></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Test Category Filter Section -->
-                    <div class="card mt-3 mb-3" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); color: white;">
-                        <div class="card-body py-2">
-                            <div class="row align-items-center">
-                                <div class="col-md-2">
-                                    <h6 class="mb-0 text-white">
-                                        <i class="fas fa-filter mr-1"></i> Test Category Filter
-                                    </h6>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="text-white-50">Filter Tests by Category</small>
-                                </div>
-                                <div class="col-md-4">
-                                    <select class="form-control form-control-sm" id="modalCategoryFilter" style="background: white; border: none;">
-                                        <option value="">All Categories (Show All Tests)</option>
-                                        <!-- Categories will be populated via JavaScript -->
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <button type="button" class="btn btn-outline-light btn-sm" id="clearCategoryFilter">
-                                        <i class="fas fa-times mr-1"></i> Clear Filter
-                                    </button>
-                                </div>
-                                <div class="col-md-1">
-                                    <small class="text-white-50">
-                                        <span id="filteredTestCount">0</span> tests available
-                                    </small>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -371,20 +258,14 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     <div class="form-group">
                         <label>Tests <span class="text-danger">*</span></label>
                         <div class="row mb-2">
-                            <div class="col-md-2">
-                                <small class="text-muted">Category</small>
-                            </div>
-                            <div class="col-md-3">
+                            <div class="col-md-5">
                                 <small class="text-muted">Test Name</small>
                             </div>
                             <div class="col-md-2">
                                 <small class="text-muted">Result</small>
                             </div>
-                            <div class="col-md-1">
-                                <small class="text-muted">Min</small>
-                            </div>
-                            <div class="col-md-1">
-                                <small class="text-muted">Max</small>
+                            <div class="col-md-2">
+                                <small class="text-muted">Price</small>
                             </div>
                             <div class="col-md-2">
                                 <small class="text-muted">Unit</small>
@@ -396,7 +277,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div id="testsContainer">
                             <!-- Test rows will be added dynamically -->
                         </div>
-                        <button type="button" class="btn btn-success btn-sm" onclick="window.entryManager.addTestRow()">
+                        <button type="button" class="btn btn-success btn-sm" onclick="addTestRow()">
                             <i class="fas fa-plus"></i> Add Test
                         </button>
                     </div>
@@ -405,25 +286,25 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label for="priority">Priority</label>
+                                <select class="form-control" id="priority" name="priority">
+                                    <option value="normal">Normal</option>
+                                    <option value="urgent">Urgent</option>
+                                    <option value="emergency">Emergency</option>
+                                    <option value="routine">Routine</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
                                 <label for="referralSource">Referral Source</label>
-                                <select class="form-control select2" id="referralSource" name="referral_source">
+                                <select class="form-control" id="referralSource" name="referral_source">
                                     <option value="">Select Source</option>
                                     <option value="doctor">Doctor Referral</option>
                                     <option value="hospital">Hospital</option>
                                     <option value="walk_in">Walk-in</option>
                                     <option value="online">Online Booking</option>
                                     <option value="other">Other</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="priority">Priority</label>
-                                <select class="form-control select2" id="priority" name="priority">
-                                    <option value="normal">Normal</option>
-                                    <option value="urgent">Urgent</option>
-                                    <option value="emergency">Emergency</option>
-                                    <option value="routine">Routine</option>
                                 </select>
                             </div>
                         </div>
@@ -507,7 +388,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">
                     <i class="fas fa-times mr-1"></i> Close
                 </button>
-                <button type="button" class="btn btn-primary" onclick="window.entryManager.printEntryDetails()">
+                <button type="button" class="btn btn-primary" onclick="printEntryDetails()">
                     <i class="fas fa-print mr-1"></i> Print
                 </button>
             </div>
