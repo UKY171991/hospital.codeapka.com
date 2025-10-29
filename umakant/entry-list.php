@@ -290,17 +290,17 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                             <div class="col-md-3">
                                 <small class="text-muted">Test Category</small>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <small class="text-muted">Test Name</small>
                             </div>
                             <div class="col-md-2">
                                 <small class="text-muted">Result</small>
                             </div>
-                            <div class="col-md-1">
-                                <small class="text-muted">Price</small>
+                            <div class="col-md-2">
+                                <small class="text-muted">Unit</small>
                             </div>
                             <div class="col-md-1">
-                                <small class="text-muted">Unit</small>
+                                <small class="text-muted">Price</small>
                             </div>
                             <div class="col-md-1">
                                 <small class="text-muted">Action</small>

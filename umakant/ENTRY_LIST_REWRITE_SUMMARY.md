@@ -74,6 +74,7 @@ The entry-list.php page has been completely rewritten to fix all existing issues
 - Category-based test filtering
 - Global category filter for bulk operations
 - Auto-population of category when test is selected
+- Unit column positioned after Result column for better workflow
 
 ## File Structure
 

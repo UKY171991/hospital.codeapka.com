@@ -647,7 +647,7 @@ function addTestRow(testData = null) {
                     ${categoryOptions}
                 </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <select class="form-control test-select" name="tests[${rowIndex}][test_id]" required>
                     <option value="">Select Test</option>
                     ${testOptions}
@@ -656,11 +656,11 @@ function addTestRow(testData = null) {
             <div class="col-md-2">
                 <input type="text" class="form-control test-result" name="tests[${rowIndex}][result_value]" placeholder="Result">
             </div>
-            <div class="col-md-1">
-                <input type="number" class="form-control test-price" name="tests[${rowIndex}][price]" placeholder="0.00" step="0.01" min="0">
+            <div class="col-md-2">
+                <input type="text" class="form-control test-unit" name="tests[${rowIndex}][unit]" placeholder="Unit" readonly>
             </div>
             <div class="col-md-1">
-                <input type="text" class="form-control test-unit" name="tests[${rowIndex}][unit]" placeholder="Unit" readonly>
+                <input type="number" class="form-control test-price" name="tests[${rowIndex}][price]" placeholder="0.00" step="0.01" min="0">
             </div>
             <div class="col-md-1">
                 <button type="button" class="btn btn-danger btn-sm remove-test-btn" onclick="removeTestRow(this)" title="Remove Test">
