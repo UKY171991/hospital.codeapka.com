@@ -5899,9 +5899,17 @@ class EntryManager {
         this.resetForm();
         $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
         
+        // Initialize Select2
+        this.initializeSelect2();
+        
         // Initialize category filter if not already done
         if (this.categoriesData.length > 0) {
             this.populateModalCategoryFilter();
+        }
+        
+        // Populate owner dropdown if not already done
+        if (this.ownersData.length > 0) {
+            this.populateOwnerDropdown();
         }
         
         $('#entryModal').modal('show');
@@ -5920,6 +5928,29 @@ class EntryManager {
     }
 
     /**
+     * Debounce function for performance optimization
+     */
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    /**
+     * Monitor performance (placeholder)
+     */
+    monitorPerformance() {
+        // Performance monitoring placeholder
+        console.log('Performance monitoring active');
+    }
+
+    /**
      * Filter by status
      */
     filterByStatus(status) {
@@ -5931,6 +5962,16 @@ class EntryManager {
      */
     filterByDate(dateRange) {
         $('#dateFilter').val(dateRange).trigger('change');
+    }
+
+    /**
+     * Refresh the DataTable
+     */
+    refreshTable() {
+        if (this.entriesTable) {
+            this.entriesTable.ajax.reload();
+            console.log('Table refreshed');
+        }
     }
 
     /**
@@ -6247,6 +6288,267 @@ class EntryManager {
     }
 
     /**
+     * Save entry (add or edit)
+     */
+    async saveEntry() {
+        try {
+            console.log('Saving entry...');
+            
+            // Validate form
+            if (!this.validateForm()) {
+                return;
+            }
+            
+            // Show loading state
+            const $saveButton = $('#entryForm button[type="submit"]');
+            const originalText = $saveButton.html();
+            $saveButton.html('<i class="fas fa-spinner fa-spin mr-1"></i>Saving...').prop('disabled', true);
+            
+            // Collect form data
+            const formData = this.collectFormData();
+            console.log('Form data collected:', formData);
+            
+            // Determine if this is add or edit
+            const isEdit = this.currentEditId !== null;
+            const url = 'ajax/entry_api_fixed.php';
+            const action = isEdit ? 'update' : 'save';
+            
+            // Add action and secret key
+            formData.action = action;
+            formData.secret_key = 'hospital-api-secret-2024';
+            
+            if (isEdit) {
+                formData.id = this.currentEditId;
+            }
+            
+            // Submit form
+            const response = await $.ajax({
+                url: url,
+                method: 'POST',
+                data: formData,
+                dataType: 'json'
+            });
+            
+            console.log('Save response:', response);
+            
+            if (response && response.success) {
+                toastr.success(isEdit ? 'Entry updated successfully' : 'Entry created successfully');
+                
+                // Close modal and refresh table
+                $('#entryModal').modal('hide');
+                this.refreshTable();
+                this.resetForm();
+                
+            } else {
+                const errorMessage = response && response.message ? response.message : 'Failed to save entry';
+                console.error('Save failed:', errorMessage);
+                toastr.error(errorMessage);
+            }
+            
+        } catch (error) {
+            console.error('Error saving entry:', error);
+            
+            let errorMessage = 'Failed to save entry';
+            if (error.responseJSON && error.responseJSON.message) {
+                errorMessage += ': ' + error.responseJSON.message;
+            } else if (error.responseText) {
+                try {
+                    const errorData = JSON.parse(error.responseText);
+                    if (errorData.message) {
+                        errorMessage += ': ' + errorData.message;
+                    }
+                } catch (parseError) {
+                    if (error.status) {
+                        errorMessage += ` (Status: ${error.status})`;
+                    }
+                }
+            }
+            
+            toastr.error(errorMessage);
+            
+        } finally {
+            // Restore save button
+            const $saveButton = $('#entryForm button[type="submit"]');
+            $saveButton.html('<i class="fas fa-save"></i> Save Entry').prop('disabled', false);
+        }
+    }
+
+    /**
+     * Validate form before submission
+     */
+    validateForm() {
+        let isValid = true;
+        const errors = [];
+        
+        // Check required fields
+        const ownerAddedBy = $('#ownerAddedBySelect').val();
+        if (!ownerAddedBy) {
+            errors.push('Owner/Added By is required');
+            isValid = false;
+        }
+        
+        const patientId = $('#patientSelect').val();
+        if (!patientId) {
+            errors.push('Patient is required');
+            isValid = false;
+        }
+        
+        const entryDate = $('#entryDate').val();
+        if (!entryDate) {
+            errors.push('Entry Date is required');
+            isValid = false;
+        }
+        
+        // Check if at least one test is selected
+        let hasTests = false;
+        $('.test-row').each((index, row) => {
+            const $row = $(row);
+            const categoryId = $row.find('.test-category-select').val();
+            const testId = $row.find('.test-select').val();
+            
+            if (categoryId && testId) {
+                hasTests = true;
+                return false; // break loop
+            }
+        });
+        
+        if (!hasTests) {
+            errors.push('At least one test must be selected');
+            isValid = false;
+        }
+        
+        // Show validation errors
+        if (!isValid) {
+            const errorMessage = 'Please fix the following errors:<br>• ' + errors.join('<br>• ');
+            toastr.error(errorMessage, 'Validation Error', {
+                timeOut: 8000,
+                escapeHtml: false
+            });
+        }
+        
+        return isValid;
+    }
+
+    /**
+     * Collect form data for submission
+     */
+    collectFormData() {
+        const formData = {};
+        
+        // Basic entry data
+        formData.owner_added_by = $('#ownerAddedBySelect').val();
+        formData.patient_id = $('#patientSelect').val();
+        formData.doctor_id = $('#doctorSelect').val();
+        formData.entry_date = $('#entryDate').val();
+        formData.status = $('#entryStatus').val();
+        formData.priority = $('#priority').val();
+        formData.referral_source = $('#referralSource').val();
+        formData.notes = $('#entryNotes').val();
+        
+        // Pricing data
+        formData.subtotal = $('#subtotal').val();
+        formData.discount_amount = $('#discountAmount').val();
+        formData.total_price = $('#totalPrice').val();
+        
+        // Patient data (if available)
+        formData.patient_name = $('#patientName').val();
+        formData.patient_contact = $('#patientContact').val();
+        formData.age = $('#patientAge').val();
+        formData.gender = $('#patientGender').val();
+        formData.patient_address = $('#patientAddress').val();
+        
+        // Collect test data
+        const tests = [];
+        $('.test-row').each((index, row) => {
+            const $row = $(row);
+            const categoryId = $row.find('.test-category-select').val();
+            const testId = $row.find('.test-select').val();
+            const result = $row.find('.test-result').val();
+            const minRange = $row.find('.test-min-range').val();
+            const maxRange = $row.find('.test-max-range').val();
+            const unit = $row.find('.test-unit').val();
+            
+            if (categoryId && testId) {
+                tests.push({
+                    category_id: categoryId,
+                    test_id: testId,
+                    result_value: result,
+                    min_range: minRange,
+                    max_range: maxRange,
+                    unit: unit
+                });
+            }
+        });
+        
+        formData.tests = JSON.stringify(tests);
+        
+        return formData;
+    }
+
+    /**
+     * Populate patient information fields
+     */
+    populatePatientInfo(patientId) {
+        const patient = this.patientsData.find(p => p.id == patientId);
+        if (patient) {
+            $('#patientName').val(patient.name || '');
+            $('#patientContact').val(patient.contact || patient.phone || '');
+            $('#patientAge').val(patient.age || '');
+            $('#patientGender').val(patient.gender || '').trigger('change');
+            $('#patientAddress').val(patient.address || '');
+            
+            console.log('Patient info populated:', patient.name);
+            
+            // Update test ranges if any tests are selected
+            this.updateAllTestRanges();
+        }
+    }
+
+    /**
+     * Clear patient information fields
+     */
+    clearPatientInfo() {
+        $('#patientName').val('');
+        $('#patientContact').val('');
+        $('#patientAge').val('');
+        $('#patientGender').val('').trigger('change');
+        $('#patientAddress').val('');
+        
+        // Update test ranges
+        this.updateAllTestRanges();
+    }
+
+    /**
+     * Update all test ranges when patient demographics change
+     */
+    updateAllTestRanges() {
+        $('.test-row').each((index, row) => {
+            const $row = $(row);
+            const testId = $row.find('.test-select').val();
+            
+            if (testId) {
+                const test = this.testsData.find(t => t.id == testId);
+                if (test) {
+                    this.updateTestRanges($row, test);
+                    this.validateTestResult($row, test);
+                }
+            }
+        });
+    }
+
+    /**
+     * Initialize Select2 dropdowns
+     */
+    initializeSelect2() {
+        if (typeof $.fn.select2 !== 'undefined') {
+            $('.select2').select2({
+                theme: 'bootstrap4',
+                width: '100%'
+            });
+        }
+    }
+
+    /**
      * Update filtered test count based on category selection
      */
     updateFilteredTestCount() {
@@ -6348,6 +6650,9 @@ class EntryManager {
             
             // Load main categories data
             await this.loadMainCategoriesData();
+            
+            // Load owners data
+            await this.loadOwnersData();
             
             console.log('Initial data loaded successfully');
         } catch (error) {
@@ -6464,6 +6769,170 @@ class EntryManager {
         
         // Update test count
         this.updateFilteredTestCount();
+    }
+
+    /**
+     * Load owners data from API
+     */
+    async loadOwnersData() {
+        try {
+            console.log('Loading owners data...');
+            const response = await $.ajax({
+                url: 'ajax/user_api.php',
+                method: 'GET',
+                data: { action: 'list' },
+                dataType: 'json'
+            });
+
+            if (response && response.success) {
+                this.ownersData = response.data || [];
+                console.log('Owners data loaded:', this.ownersData.length, 'owners');
+                
+                // Populate owner dropdown
+                this.populateOwnerDropdown();
+            } else {
+                console.error('Failed to load owners:', response ? response.message : 'Invalid response');
+                this.ownersData = [];
+            }
+        } catch (error) {
+            console.error('Error loading owners data:', error);
+            this.ownersData = [];
+        }
+    }
+
+    /**
+     * Populate owner dropdown
+     */
+    populateOwnerDropdown() {
+        const $ownerSelect = $('#ownerAddedBySelect');
+        if ($ownerSelect.length === 0) {
+            return;
+        }
+
+        $ownerSelect.empty().append('<option value="">Select Owner/User</option>');
+
+        this.ownersData.forEach(owner => {
+            if (owner && owner.id) {
+                const name = owner.full_name || owner.username || `User ${owner.id}`;
+                $ownerSelect.append(new Option(name, owner.id, false, false));
+            }
+        });
+
+        console.log('Owner dropdown populated with', this.ownersData.length, 'owners');
+    }
+
+    /**
+     * Load patients data based on selected owner
+     */
+    async loadPatientsData(ownerId) {
+        try {
+            console.log('Loading patients data for owner:', ownerId);
+            const response = await $.ajax({
+                url: 'ajax/patient_api.php',
+                method: 'GET',
+                data: { 
+                    action: 'list',
+                    owner_id: ownerId
+                },
+                dataType: 'json'
+            });
+
+            if (response && response.success) {
+                this.patientsData = response.data || [];
+                console.log('Patients data loaded:', this.patientsData.length, 'patients');
+                
+                // Populate patient dropdown
+                this.populatePatientDropdown();
+            } else {
+                console.error('Failed to load patients:', response ? response.message : 'Invalid response');
+                this.patientsData = [];
+                this.populatePatientDropdown();
+            }
+        } catch (error) {
+            console.error('Error loading patients data:', error);
+            this.patientsData = [];
+            this.populatePatientDropdown();
+        }
+    }
+
+    /**
+     * Populate patient dropdown
+     */
+    populatePatientDropdown() {
+        const $patientSelect = $('#patientSelect');
+        if ($patientSelect.length === 0) {
+            return;
+        }
+
+        $patientSelect.empty().append('<option value="">Select Patient</option>');
+
+        this.patientsData.forEach(patient => {
+            if (patient && patient.id && patient.name) {
+                $patientSelect.append(new Option(patient.name, patient.id, false, false));
+            }
+        });
+
+        // Enable/disable based on data availability
+        $patientSelect.prop('disabled', this.patientsData.length === 0);
+
+        console.log('Patient dropdown populated with', this.patientsData.length, 'patients');
+    }
+
+    /**
+     * Load doctors data based on selected owner
+     */
+    async loadDoctorsData(ownerId) {
+        try {
+            console.log('Loading doctors data for owner:', ownerId);
+            const response = await $.ajax({
+                url: 'ajax/doctor_api.php',
+                method: 'GET',
+                data: { 
+                    action: 'list',
+                    owner_id: ownerId
+                },
+                dataType: 'json'
+            });
+
+            if (response && response.success) {
+                this.doctorsData = response.data || [];
+                console.log('Doctors data loaded:', this.doctorsData.length, 'doctors');
+                
+                // Populate doctor dropdown
+                this.populateDoctorDropdown();
+            } else {
+                console.error('Failed to load doctors:', response ? response.message : 'Invalid response');
+                this.doctorsData = [];
+                this.populateDoctorDropdown();
+            }
+        } catch (error) {
+            console.error('Error loading doctors data:', error);
+            this.doctorsData = [];
+            this.populateDoctorDropdown();
+        }
+    }
+
+    /**
+     * Populate doctor dropdown
+     */
+    populateDoctorDropdown() {
+        const $doctorSelect = $('#doctorSelect');
+        if ($doctorSelect.length === 0) {
+            return;
+        }
+
+        $doctorSelect.empty().append('<option value="">Select Doctor (Optional)</option>');
+
+        this.doctorsData.forEach(doctor => {
+            if (doctor && doctor.id && doctor.name) {
+                $doctorSelect.append(new Option(doctor.name, doctor.id, false, false));
+            }
+        });
+
+        // Enable/disable based on data availability
+        $doctorSelect.prop('disabled', this.doctorsData.length === 0);
+
+        console.log('Doctor dropdown populated with', this.doctorsData.length, 'doctors');
     }
 
     /**
@@ -6954,6 +7423,37 @@ $(document).ready(function () {
     $('#discountAmount').on('input', function() {
         if (window.entryManager) {
             window.entryManager.updatePricing();
+        }
+    });
+
+    // Bind form submission
+    $('#entryForm').on('submit', function(e) {
+        e.preventDefault();
+        if (window.entryManager) {
+            window.entryManager.saveEntry();
+        }
+    });
+
+    // Bind owner selection change to load patients and doctors
+    $('#ownerAddedBySelect').on('change', function() {
+        const ownerId = $(this).val();
+        if (window.entryManager && ownerId) {
+            window.entryManager.loadPatientsData(ownerId);
+            window.entryManager.loadDoctorsData(ownerId);
+        } else {
+            // Clear dependent dropdowns
+            $('#patientSelect').empty().append('<option value="">Select Owner/User first</option>').prop('disabled', true);
+            $('#doctorSelect').empty().append('<option value="">Select Owner/User first</option>').prop('disabled', true);
+        }
+    });
+
+    // Bind patient selection change to populate patient info
+    $('#patientSelect').on('change', function() {
+        const patientId = $(this).val();
+        if (window.entryManager && patientId) {
+            window.entryManager.populatePatientInfo(patientId);
+        } else {
+            window.entryManager.clearPatientInfo();
         }
     });
 });
