@@ -238,9 +238,17 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="patientSelect">Patient <span class="text-danger">*</span></label>
-                                <select class="form-control select2" id="patientSelect" name="patient_id" required disabled>
-                                    <option value="">Select Owner/User first</option>
-                                </select>
+                                <div class="input-group">
+                                    <select class="form-control select2" id="patientSelect" name="patient_id" required disabled>
+                                        <option value="">Select Owner/User first</option>
+                                    </select>
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-outline-success btn-sm" id="addNewPatientBtn" 
+                                                title="Add New Patient" disabled>
+                                            <i class="fas fa-plus"></i> New
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -287,28 +295,28 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label for="patientName">Patient Name</label>
-                                        <input type="text" class="form-control" id="patientName" name="patient_name" 
+                                        <input type="text" class="form-control patient-field" id="patientName" name="patient_name" 
                                                placeholder="Enter patient name..." readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label for="patientContact">Patient Contact</label>
-                                        <input type="text" class="form-control" id="patientContact" name="patient_contact" 
+                                        <input type="text" class="form-control patient-field" id="patientContact" name="patient_contact" 
                                                placeholder="Phone number or email..." readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="patientAge">Age</label>
-                                        <input type="number" class="form-control" id="patientAge" name="age" 
+                                        <input type="number" class="form-control patient-field" id="patientAge" name="age" 
                                                placeholder="Age" min="0" max="150" readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="patientGender">Gender</label>
-                                        <select class="form-control select2" id="patientGender" name="gender" disabled>
+                                        <select class="form-control select2 patient-field" id="patientGender" name="gender" disabled>
                                             <option value="">Select Gender</option>
                                             <option value="Male">Male</option>
                                             <option value="Female">Female</option>
@@ -319,7 +327,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="patientAddress">Address</label>
-                                        <textarea class="form-control" id="patientAddress" name="patient_address" rows="2" 
+                                        <textarea class="form-control patient-field" id="patientAddress" name="patient_address" rows="2" 
                                                   placeholder="Patient address..." readonly></textarea>
                                     </div>
                                 </div>

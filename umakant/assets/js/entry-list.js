@@ -181,8 +181,8 @@ class EntryManager {
             const response = await $.ajax({
                 url: 'ajax/entry_api_fixed.php',
                 method: 'GET',
-                data: { 
-                    action: 'get', 
+                data: {
+                    action: 'get',
                     id: entryId,
                     secret_key: 'hospital-api-secret-2024'
                 },
@@ -316,13 +316,13 @@ class EntryManager {
             }
 
             // Add custom search functions for all filters
-            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
                 if (settings.nTable.id !== 'entriesTable') {
                     return true;
                 }
-                
+
                 const rowData = settings.aoData[dataIndex]._aData;
-                
+
                 // Main Category Filter
                 const mainCategoryFilter = $('#mainCategoryFilter').val();
                 if (mainCategoryFilter) {
@@ -331,7 +331,7 @@ class EntryManager {
                         return false;
                     }
                 }
-                
+
                 // Status Filter
                 const statusFilter = $('#statusFilter').val();
                 if (statusFilter) {
@@ -340,14 +340,14 @@ class EntryManager {
                         return false;
                     }
                 }
-                
+
                 // Date Filter
                 const dateFilter = $('#dateFilter').val();
                 if (dateFilter) {
                     const entryDate = new Date(rowData.entry_date);
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
-                    
+
                     let showRow = false;
                     switch (dateFilter) {
                         case 'today':
@@ -378,7 +378,7 @@ class EntryManager {
                         return false;
                     }
                 }
-                
+
                 // Patient Filter
                 const patientFilter = $('#patientFilter').val();
                 if (patientFilter) {
@@ -387,7 +387,7 @@ class EntryManager {
                         return false;
                     }
                 }
-                
+
                 // Doctor Filter
                 const doctorFilter = $('#doctorFilter').val();
                 if (doctorFilter) {
@@ -396,7 +396,7 @@ class EntryManager {
                         return false;
                     }
                 }
-                
+
                 return true; // Show row if all filters pass
             });
 
@@ -1932,7 +1932,7 @@ class EntryManager {
             const response = await $.ajax({
                 url: 'ajax/entry_api_fixed.php',
                 method: 'GET',
-                data: { 
+                data: {
                     action: 'stats',
                     secret_key: 'hospital-api-secret-2024'
                 },
@@ -1976,6 +1976,11 @@ class EntryManager {
         // Patient selection change
         $('#patientSelect').on('change', (e) => {
             this.onPatientChange(e.target.value);
+        });
+
+        // Add new patient button click
+        $('#addNewPatientBtn').on('click', () => {
+            this.addNewPatientDirectly();
         });
 
         // Form submission
@@ -2242,7 +2247,7 @@ class EntryManager {
         if (testData) {
             // console.log removed
             // console.log removed
-            
+
             // Set the test selection first
             $testSelect.val(testData.test_id);
             $testSelect.select2('destroy').select2({
@@ -2256,33 +2261,33 @@ class EntryManager {
             const categoryId = testData.category_id || testData.test_category_id || testData.entry_category_id;
             if (categoryId && categoryId != 0) {
                 // console.log removed
-                
+
                 // Ensure category dropdown is populated
                 this.populateRowCategoryDropdown($categorySelect);
-                
+
                 // Set the category value
                 $categorySelect.val(categoryId);
-                
+
                 // Reinitialize Select2 for category
                 $categorySelect.select2('destroy').select2({
                     theme: 'bootstrap4',
                     width: '100%',
                     placeholder: 'Select Category'
                 });
-                
+
                 // Set main category ID if available
                 const mainCategoryId = testData.main_category_id || testData.entry_main_category_id;
                 if (mainCategoryId) {
                     $row.find('.test-main-category-id').val(mainCategoryId);
                 }
-                
+
                 // console.log removed
             }
 
             // Set other fields from the entry data
             $resultInput.val(testData.result_value || '');
             $row.find('.test-price').val(testData.price || 0);
-            
+
             // Set range fields if available
             if (testData.min) $row.find('.test-min').val(testData.min);
             if (testData.max) $row.find('.test-max').val(testData.max);
@@ -2432,7 +2437,7 @@ class EntryManager {
 
         // Update range display
         this.updateRangeDisplay($row, rangeData);
-        
+
         // Recalculate totals after setting price
         this.calculateTotals();
     }
@@ -4345,7 +4350,7 @@ class EntryManager {
         // Apply all updates in batch
         updates.forEach(update => {
             this.updateRangeDisplay(update.$row, update.rangeData);
-          });
+        });
 
         // Performance monitoring
         const endTime = performance.now();
@@ -4359,7 +4364,7 @@ class EntryManager {
      * Reset all test ranges to general ranges (when no patient selected)
      */
     resetAllTestRangesToGeneral() {
-        
+
         $('.test-row').each((index, row) => {
             const $row = $(row);
             const testId = $row.find('.test-select').val();
@@ -4384,9 +4389,31 @@ class EntryManager {
      * Initialize Select2 dropdowns
      */
     initializeSelect2() {
-        $('.select2').select2({
+        // Initialize most Select2 dropdowns with default settings
+        $('.select2:not(#patientSelect)').select2({
             theme: 'bootstrap4',
             width: '100%'
+        });
+
+        // Initialize patient select with custom formatting
+        $('#patientSelect').select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            templateResult: function (option) {
+                if (!option.id) return option.text;
+
+                if (option.id === 'new') {
+                    return $('<span><i class="fas fa-plus text-success mr-1"></i><strong class="text-success">' + option.text + '</strong></span>');
+                }
+
+                return option.text;
+            },
+            templateSelection: function (option) {
+                if (option.id === 'new') {
+                    return $('<span><i class="fas fa-plus text-success mr-1"></i><strong class="text-success">New Patient</strong></span>');
+                }
+                return option.text;
+            }
         });
     }
 
@@ -4402,6 +4429,12 @@ class EntryManager {
         // Clear Select2 selections
         $('.select2').val(null).trigger('change');
 
+        // Reset patient mode to existing patient
+        this.switchToExistingPatientMode();
+
+        // Disable patient and doctor selects initially
+        $('#patientSelect, #doctorSelect, #addNewPatientBtn').prop('disabled', true);
+
         // Reset pricing
         this.calculateTotals();
     }
@@ -4410,10 +4443,10 @@ class EntryManager {
      * Handle owner selection change
      */
     onOwnerChange(ownerId) {
-       
+
         if (ownerId) {
-            // Enable patient and doctor selects
-            $('#patientSelect, #doctorSelect').prop('disabled', false);
+            // Enable patient and doctor selects and new patient button
+            $('#patientSelect, #doctorSelect, #addNewPatientBtn').prop('disabled', false);
 
             // Load patients and doctors for this owner
             this.loadPatientsForOwner(ownerId);
@@ -4421,7 +4454,7 @@ class EntryManager {
         } else {
             // Disable and clear patient and doctor selects only if not in edit mode
             if (!this.currentEditId) {
-                $('#patientSelect, #doctorSelect').prop('disabled', true).val('').trigger('change');
+                $('#patientSelect, #doctorSelect, #addNewPatientBtn').prop('disabled', true).val('').trigger('change');
                 this.clearPatientDetails();
             }
         }
@@ -4433,15 +4466,85 @@ class EntryManager {
     onPatientChange(patientId) {
         ////// console.log removed
 
-        if (patientId) {
-            // Load patient details
+        if (patientId === 'new') {
+            // Switch to new patient mode
+            this.switchToNewPatientMode();
+        } else if (patientId) {
+            // Load existing patient details
+            this.switchToExistingPatientMode();
             this.loadPatientDetails(patientId);
         } else {
             // Clear patient details
             this.clearPatientDetails();
+            this.switchToExistingPatientMode(); // Default mode
             // Reset to general ranges when no patient selected
             this.resetAllTestRangesToGeneral();
         }
+    }
+
+    /**
+     * Switch to new patient mode - enable editing of patient fields
+     */
+    switchToNewPatientMode() {
+        // Update mode indicator
+        $('#patientModeIndicator')
+            .removeClass('badge-info')
+            .addClass('badge-success')
+            .text('New Patient');
+
+        // Enable patient information fields for editing
+        $('#patientName').prop('readonly', false);
+        $('#patientContact').prop('readonly', false);
+        $('#patientAge').prop('readonly', false);
+        $('#patientGender').prop('disabled', false);
+        $('#patientAddress').prop('readonly', false);
+
+        // Clear existing patient data
+        $('#patientName').val('');
+        $('#patientContact').val('');
+        $('#patientAge').val('');
+        $('#patientGender').val('').trigger('change');
+        $('#patientAddress').val('');
+
+        // Add visual indicators for editable fields
+        $('.patient-field').addClass('new-patient-mode');
+
+        // Reset to general ranges for new patient
+        this.resetAllTestRangesToGeneral();
+    }
+
+    /**
+     * Switch to existing patient mode - disable editing of patient fields
+     */
+    switchToExistingPatientMode() {
+        // Update mode indicator
+        $('#patientModeIndicator')
+            .removeClass('badge-success')
+            .addClass('badge-info')
+            .text('Existing Patient');
+
+        // Disable patient information fields
+        $('#patientName').prop('readonly', true);
+        $('#patientContact').prop('readonly', true);
+        $('#patientAge').prop('readonly', true);
+        $('#patientGender').prop('disabled', true);
+        $('#patientAddress').prop('readonly', true);
+
+        // Remove visual indicators
+        $('.patient-field').removeClass('new-patient-mode');
+    }
+
+    /**
+     * Add new patient directly via button click
+     */
+    addNewPatientDirectly() {
+        // Set dropdown to "new" option
+        $('#patientSelect').val('new').trigger('change');
+
+        // Focus on patient name field for immediate input
+        setTimeout(() => {
+            $('#patientName').focus();
+        }, 100);
     }
 
     /**
@@ -4457,8 +4560,15 @@ class EntryManager {
             });
 
             const $select = $('#patientSelect');
+            const $addNewBtn = $('#addNewPatientBtn');
+
             $select.prop('disabled', false);
-            $select.empty().append('<option value="">Select Patient</option>');
+            $addNewBtn.prop('disabled', false);
+
+            // Clear and populate dropdown
+            $select.empty();
+            $select.append('<option value="">Select Patient</option>');
+            $select.append('<option value="new" class="text-success"><i class="fas fa-plus"></i> Add New Patient</option>');
 
             if (response.success && response.data) {
                 response.data.forEach(patient => {
@@ -4524,7 +4634,7 @@ class EntryManager {
 
             if (response.success && response.data) {
                 const patient = response.data;
-                
+
                 $('#patientName').val(patient.name || '');
                 $('#patientContact').val(patient.contact || '');
                 $('#patientAge').val(patient.age || '');
@@ -4557,7 +4667,7 @@ class EntryManager {
      */
     reconcileTestCategoryData(entryTests) {
         try {
-            
+
             const reconciledTests = entryTests.map((entryTest, index) => {
                 // Get current test data
                 const currentTest = this.getCurrentTestCategory(entryTest.test_id);
@@ -4724,13 +4834,13 @@ class EntryManager {
      * View entry details
      */
     async viewEntry(entryId) {
-        
+
         try {
             const response = await $.ajax({
                 url: 'ajax/entry_api_fixed.php',
                 method: 'GET',
-                data: { 
-                    action: 'get', 
+                data: {
+                    action: 'get',
                     id: entryId,
                     secret_key: 'hospital-api-secret-2024'
                 },
@@ -4862,11 +4972,11 @@ class EntryManager {
      * Edit entry
      */
     async editEntry(entryId) {
-        
+
         try {
             // console.log removed
             // console.log removed
-            
+
             // Show loading state
             if (typeof toastr !== 'undefined') {
                 toastr.info('Loading entry data...');
@@ -4876,16 +4986,16 @@ class EntryManager {
             const response = await $.ajax({
                 url: 'ajax/entry_api_fixed.php',
                 method: 'GET',
-                data: { 
-                    action: 'get', 
+                data: {
+                    action: 'get',
                     id: entryId,
                     secret_key: 'hospital-api-secret-2024'
                 },
                 dataType: 'json'
             });
-            
+
             // console.log removed
-            
+
             // Special debugging for entry 17
             if (entryId == 17) {
                 if (response.data.tests) {
@@ -4916,7 +5026,7 @@ class EntryManager {
         } catch (error) {
             // console.error removed
             // console.error removed
-            
+
             let errorMessage = 'Failed to load entry for editing';
             if (error.status === 401) {
                 errorMessage += ' - Authentication failed';
@@ -4932,7 +5042,7 @@ class EntryManager {
                     errorMessage += ': ' + error.responseText.substring(0, 100);
                 }
             }
-            
+
             toastr.error(errorMessage);
         }
     }
@@ -4941,7 +5051,7 @@ class EntryManager {
      * Populate edit form with entry data
      */
     async populateEditForm(entry) {
-      
+
 
         this.currentEditId = entry.id;
 
@@ -5102,8 +5212,8 @@ class EntryManager {
                 const response = await $.ajax({
                     url: 'ajax/entry_api_fixed.php',
                     method: 'POST',
-                    data: { 
-                        action: 'delete', 
+                    data: {
+                        action: 'delete',
                         id: entryId,
                         secret_key: 'hospital-api-secret-2024'
                     },
@@ -5135,8 +5245,24 @@ class EntryManager {
             errors.push('Owner/Added By is required');
         }
 
-        if (!$('#patientSelect').val()) {
+        // Enhanced patient validation
+        const patientId = $('#patientSelect').val();
+        if (!patientId) {
             errors.push('Patient is required');
+        } else if (patientId === 'new') {
+            // Validate new patient fields
+            if (!$('#patientName').val().trim()) {
+                errors.push('Patient Name is required for new patient');
+            }
+            if (!$('#patientContact').val().trim()) {
+                errors.push('Patient Contact is required for new patient');
+            }
+            if (!$('#patientAge').val()) {
+                errors.push('Patient Age is required for new patient');
+            }
+            if (!$('#patientGender').val()) {
+                errors.push('Patient Gender is required for new patient');
+            }
         }
 
         if (!$('#entryDate').val()) {
@@ -5294,7 +5420,7 @@ class EntryManager {
      */
     viewEntry(entryId) {
         // console.log removed
-        
+
         // Show loading state
         $('#entryDetails').html(`
             <div class="text-center p-5">
@@ -5302,16 +5428,16 @@ class EntryManager {
                 <p class="mt-3 text-muted">Loading entry details...</p>
             </div>
         `);
-        
+
         // Show modal
         $('#viewEntryModal').modal('show');
-        
+
         // Load entry data
         $.ajax({
             url: 'ajax/entry_api_fixed.php',
             method: 'GET',
-            data: { 
-                action: 'get', 
+            data: {
+                action: 'get',
                 id: entryId,
                 secret_key: 'hospital-api-secret-2024'
             },
@@ -5407,7 +5533,7 @@ class EntryManager {
             </div>
             ` : ''}
         `;
-        
+
         $('#entryDetails').html(html);
     }
 
@@ -5416,19 +5542,19 @@ class EntryManager {
      */
     editEntry(entryId) {
         // console.log removed
-        
+
         // Set current edit ID
         this.currentEditId = entryId;
-        
+
         // Show loading state in modal
         toastr.info('Loading entry for editing...');
-        
+
         // Load entry data
         $.ajax({
             url: 'ajax/entry_api_fixed.php',
             method: 'GET',
-            data: { 
-                action: 'get', 
+            data: {
+                action: 'get',
                 id: entryId,
                 secret_key: 'hospital-api-secret-2024'
             },
@@ -5449,7 +5575,7 @@ class EntryManager {
             },
             error: (xhr, status, error) => {
                 // console.error removed
-                
+
                 let errorMessage = 'Failed to load entry for editing';
                 if (xhr.status === 404) {
                     errorMessage = 'Entry not found';
@@ -5460,7 +5586,7 @@ class EntryManager {
                 } else if (xhr.status === 0) {
                     errorMessage = 'Network connection failed';
                 }
-                
+
                 toastr.error(errorMessage);
                 this.currentEditId = null;
             }
@@ -5472,12 +5598,12 @@ class EntryManager {
      */
     populateEditForm(entry) {
         // console.log removed
-        
+
         try {
             // Basic fields
             $('#entryId').val(entry.id);
             $('#entryDate').val(entry.entry_date);
-            
+
             // Use Select2 trigger for dropdowns
             if (entry.status) {
                 $('#entryStatus').val(entry.status).trigger('change');
@@ -5488,14 +5614,14 @@ class EntryManager {
             if (entry.referral_source) {
                 $('#referralSource').val(entry.referral_source).trigger('change');
             }
-            
+
             $('#entryNotes').val(entry.notes || '');
-            
+
             // Financial fields
             $('#subtotal').val(entry.subtotal || 0);
             $('#discountAmount').val(entry.discount_amount || 0);
             $('#totalPrice').val(entry.total_price || 0);
-            
+
             // Patient information
             $('#patientName').val(entry.patient_name || '');
             $('#patientContact').val(entry.patient_contact || '');
@@ -5504,7 +5630,7 @@ class EntryManager {
                 $('#patientGender').val(entry.gender).trigger('change');
             }
             $('#patientAddress').val(entry.patient_address || '');
-            
+
             // Owner/Added by - load options first if needed
             if (entry.added_by) {
                 // Check if option exists, if not add it
@@ -5514,7 +5640,7 @@ class EntryManager {
                 }
                 $('#ownerAddedBySelect').val(entry.added_by).trigger('change');
             }
-            
+
             // Patient selection - load options first if needed
             if (entry.patient_id) {
                 // Check if option exists, if not add it
@@ -5524,7 +5650,7 @@ class EntryManager {
                 }
                 $('#patientSelect').val(entry.patient_id).trigger('change');
             }
-            
+
             // Doctor selection - load options first if needed
             if (entry.doctor_id) {
                 // Check if option exists, if not add it
@@ -5534,11 +5660,11 @@ class EntryManager {
                 }
                 $('#doctorSelect').val(entry.doctor_id).trigger('change');
             }
-            
+
             // Clear existing test rows
             $('#testsContainer').empty();
             this.testRowCounter = 0;
-            
+
             // Add test rows if tests exist
             if (entry.tests && entry.tests.length > 0) {
                 // console.log removed
@@ -5551,7 +5677,7 @@ class EntryManager {
                 // Add one empty test row
                 this.addTestRow();
             }
-            
+
             // console.log removed
         } catch (error) {
             // console.error removed
@@ -5565,7 +5691,7 @@ class EntryManager {
     addTestRowWithData(testData = {}) {
         const rowIndex = this.testRowCounter++;
         // console.log removed
-        
+
         const testRow = `
             <div class="test-row" data-row-index="${rowIndex}">
                 <div class="row">
@@ -5607,12 +5733,12 @@ class EntryManager {
                 </div>
             </div>
         `;
-        
+
         $('#testsContainer').append(testRow);
-        
+
         // Get the newly added row
         const $row = $(`.test-row[data-row-index="${rowIndex}"]`);
-        
+
         // Populate category dropdown if we have categories data
         if (this.categoriesData && this.categoriesData.length > 0) {
             const $categorySelect = $row.find('.test-category-select');
@@ -5620,26 +5746,26 @@ class EntryManager {
                 $categorySelect.append(new Option(category.name, category.id, false, false));
             });
         }
-        
+
         // Populate test dropdown if we have tests data
         if (this.testsData && this.testsData.length > 0) {
             const $testSelect = $row.find('.test-select');
-            
+
             // Check if category filter is active
             const selectedCategoryId = $('#modalCategoryFilter').val();
             let filteredTests = this.testsData;
-            
+
             if (selectedCategoryId) {
                 filteredTests = this.testsData.filter(test => {
                     return test.category_id == selectedCategoryId;
                 });
             }
-            
+
             filteredTests.forEach(test => {
                 $testSelect.append(new Option(test.name, test.id, false, false));
             });
         }
-        
+
         // Set the selections after populating dropdowns
         if (testData.test_id) {
             // console.log removed
@@ -5649,7 +5775,7 @@ class EntryManager {
             // console.log removed
             $row.find('.test-category-select').val(testData.category_id).trigger('change');
         }
-        
+
         // Set range values if available
         if (testData.min_range) {
             $row.find('.test-min-range').val(testData.min_range);
@@ -5657,7 +5783,7 @@ class EntryManager {
         if (testData.max_range) {
             $row.find('.test-max-range').val(testData.max_range);
         }
-        
+
         // Bind test selection change event to auto-populate category
         $row.find('.test-select').on('change', (e) => {
             const selectedTestId = $(e.target).val();
@@ -5674,7 +5800,7 @@ class EntryManager {
             $row.remove();
             this.updatePricing();
         });
-        
+
         // console.log removed
     }
 
@@ -5683,17 +5809,17 @@ class EntryManager {
      */
     deleteEntry(entryId) {
         // console.log removed
-        
+
         // Show confirmation modal
         $('#deleteModal').modal('show');
-        
+
         // Bind confirm delete event
         $('#confirmDelete').off('click').on('click', () => {
             $.ajax({
                 url: 'ajax/entry_api_fixed.php',
                 method: 'POST',
-                data: { 
-                    action: 'delete', 
+                data: {
+                    action: 'delete',
                     id: entryId,
                     secret_key: 'hospital-api-secret-2024'
                 },
@@ -5734,7 +5860,7 @@ class EntryManager {
         this.currentEditId = null;
         this.testRowCounter = 0;
         this.updateFilteredTestCount();
-        
+
         // Reset pricing
         $('#subtotal').val('0.00');
         $('#discountAmount').val('0.00');
@@ -5764,22 +5890,22 @@ class EntryManager {
         this.currentEditId = null;
         this.resetForm();
         $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
-        
+
         // Initialize Select2
         this.initializeSelect2();
-        
+
         // Initialize category filter if not already done
         if (this.categoriesData.length > 0) {
             this.populateModalCategoryFilter();
         }
-        
+
         // Populate owner dropdown if not already done
         if (this.ownersData.length > 0) {
             this.populateOwnerDropdown();
         }
-        
+
         $('#entryModal').modal('show');
-        
+
         // Add one empty test row after modal is shown
         setTimeout(() => {
             this.addTestRow();
@@ -5849,7 +5975,7 @@ class EntryManager {
         $('#pendingEntries').text('Loading...');
         $('#completedEntries').text('Loading...');
         $('#todayEntries').text('Loading...');
-        
+
         // This would load actual statistics from the API
         setTimeout(() => {
             $('#totalEntries').text('0');
@@ -5872,7 +5998,7 @@ class EntryManager {
     addTestRowWithData(testData = {}) {
         const rowIndex = this.testRowCounter++;
         // console.log removed
-        
+
         const testRow = `
             <div class="test-row" data-row-index="${rowIndex}">
                 <div class="row">
@@ -5914,20 +6040,20 @@ class EntryManager {
                 </div>
             </div>
         `;
-        
+
         $('#testsContainer').append(testRow);
-        
+
         // Get the newly added row
         const $row = $(`.test-row[data-row-index="${rowIndex}"]`);
-        
+
         // Populate category dropdown
         this.populateTestCategoryDropdown($row.find('.test-category-select'));
-        
+
         // Bind category change event
         $row.find('.test-category-select').on('change', (e) => {
             this.onCategoryChange(e, $row);
         });
-        
+
         // Bind test selection change event
         $row.find('.test-select').on('change', (e) => {
             this.onTestChange(e, $row);
@@ -5949,11 +6075,11 @@ class EntryManager {
             $row.remove();
             this.updatePricing();
         });
-        
+
         // If we have existing data, populate it
         if (testData.category_id) {
             $row.find('.test-category-select').val(testData.category_id).trigger('change');
-            
+
             // Wait a bit for the test dropdown to populate, then set the test
             setTimeout(() => {
                 if (testData.test_id) {
@@ -5961,11 +6087,11 @@ class EntryManager {
                 }
             }, 100);
         }
-        
+
         if (testData.result_value) {
             $row.find('.test-result').val(testData.result_value);
         }
-        
+
         // console.log removed
     }
 
@@ -5974,7 +6100,7 @@ class EntryManager {
      */
     populateTestCategoryDropdown($dropdown) {
         $dropdown.empty().append('<option value="">Select Category</option>');
-        
+
         this.categoriesData.forEach(category => {
             if (category && category.id && category.name) {
                 $dropdown.append(new Option(category.name, category.id, false, false));
@@ -5988,30 +6114,30 @@ class EntryManager {
     onCategoryChange(event, $row) {
         const selectedCategoryId = $(event.target).val();
         const $testSelect = $row.find('.test-select');
-        
+
         // Clear and reset test dropdown
         $testSelect.empty().append('<option value="">Select Test</option>');
-        
+
         if (selectedCategoryId) {
             // Enable test dropdown
             $testSelect.prop('disabled', false);
-            
+
             // Filter tests by selected category
             const filteredTests = this.testsData.filter(test => {
                 return test.category_id == selectedCategoryId;
             });
-            
+
             // Populate test dropdown with filtered tests
             filteredTests.forEach(test => {
                 $testSelect.append(new Option(test.name, test.id, false, false));
             });
-            
+
             // console.log removed
         } else {
             // Disable test dropdown if no category selected
             $testSelect.prop('disabled', true);
         }
-        
+
         // Clear test-related fields
         this.clearTestFields($row);
     }
@@ -6021,18 +6147,18 @@ class EntryManager {
      */
     onTestChange(event, $row) {
         const selectedTestId = $(event.target).val();
-        
+
         if (selectedTestId) {
             const selectedTest = this.testsData.find(test => test.id == selectedTestId);
             if (selectedTest) {
                 // console.log removed
-                
+
                 // Auto-fill unit
                 $row.find('.test-unit').val(selectedTest.unit || '');
-                
+
                 // Auto-fill min/max ranges based on patient demographics
                 this.updateTestRanges($row, selectedTest);
-                
+
                 // Validate result if already entered
                 this.validateTestResult($row, selectedTest);
             }
@@ -6048,10 +6174,10 @@ class EntryManager {
         // Get patient demographics
         const patientAge = parseInt($('#patientAge').val()) || 0;
         const patientGender = $('#patientGender').val() || '';
-        
+
         let minRange = '';
         let maxRange = '';
-        
+
         // Determine appropriate range based on demographics
         if (patientAge < 18) {
             // Child ranges
@@ -6070,11 +6196,11 @@ class EntryManager {
             minRange = test.min_range || '';
             maxRange = test.max_range || '';
         }
-        
+
         // Set the ranges
         $row.find('.test-min-range').val(minRange);
         $row.find('.test-max-range').val(maxRange);
-        
+
         // console.log removed
     }
 
@@ -6087,15 +6213,15 @@ class EntryManager {
         const maxRange = parseFloat($row.find('.test-max-range').val());
         const $indicator = $row.find('.validation-indicator');
         const $resultInput = $row.find('.test-result');
-        
+
         // Clear previous styling
         $indicator.text('').removeClass('text-success text-danger text-warning');
         $resultInput.removeClass('result-normal result-abnormal result-warning');
-        
+
         if (isNaN(resultValue)) {
             return;
         }
-        
+
         if (!isNaN(minRange) && !isNaN(maxRange)) {
             if (resultValue < minRange) {
                 $indicator.text('Below normal range').addClass('text-danger');
@@ -6128,12 +6254,12 @@ class EntryManager {
      */
     updatePricing() {
         let subtotal = 0;
-        
+
         // Calculate subtotal from all test rows
         $('.test-row').each((index, row) => {
             const $row = $(row);
             const testId = $row.find('.test-select').val();
-            
+
             if (testId) {
                 const test = this.testsData.find(t => t.id == testId);
                 if (test && test.price) {
@@ -6141,15 +6267,15 @@ class EntryManager {
                 }
             }
         });
-        
+
         // Update subtotal
         $('#subtotal').val(subtotal.toFixed(2));
-        
+
         // Calculate total (subtotal - discount)
         const discount = parseFloat($('#discountAmount').val()) || 0;
         const total = Math.max(subtotal - discount, 0);
         $('#totalPrice').val(total.toFixed(2));
-        
+
         // console.log removed
     }
 
@@ -6159,34 +6285,34 @@ class EntryManager {
     async saveEntry() {
         try {
             // console.log removed
-            
+
             // Validate form
             if (!this.validateForm()) {
                 return;
             }
-            
+
             // Show loading state
             const $saveButton = $('#entryForm button[type="submit"]');
             const originalText = $saveButton.html();
             $saveButton.html('<i class="fas fa-spinner fa-spin mr-1"></i>Saving...').prop('disabled', true);
-            
+
             // Collect form data
             const formData = this.collectFormData();
             // console.log removed
-            
+
             // Determine if this is add or edit
             const isEdit = this.currentEditId !== null;
             const url = 'ajax/entry_api_fixed.php';
             const action = isEdit ? 'update' : 'save';
-            
+
             // Add action and secret key
             formData.action = action;
             formData.secret_key = 'hospital-api-secret-2024';
-            
+
             if (isEdit) {
                 formData.id = this.currentEditId;
             }
-            
+
             // Submit form
             const response = await $.ajax({
                 url: url,
@@ -6194,26 +6320,26 @@ class EntryManager {
                 data: formData,
                 dataType: 'json'
             });
-            
+
             // console.log removed
-            
+
             if (response && response.success) {
                 toastr.success(isEdit ? 'Entry updated successfully' : 'Entry created successfully');
-                
+
                 // Close modal and refresh table
                 $('#entryModal').modal('hide');
                 this.refreshTable();
                 this.resetForm();
-                
+
             } else {
                 const errorMessage = response && response.message ? response.message : 'Failed to save entry';
                 // console.error removed
                 toastr.error(errorMessage);
             }
-            
+
         } catch (error) {
             // console.error removed
-            
+
             let errorMessage = 'Failed to save entry';
             if (error.responseJSON && error.responseJSON.message) {
                 errorMessage += ': ' + error.responseJSON.message;
@@ -6229,9 +6355,9 @@ class EntryManager {
                     }
                 }
             }
-            
+
             toastr.error(errorMessage);
-            
+
         } finally {
             // Restore save button
             const $saveButton = $('#entryForm button[type="submit"]');
@@ -6245,44 +6371,44 @@ class EntryManager {
     validateForm() {
         let isValid = true;
         const errors = [];
-        
+
         // Check required fields
         const ownerAddedBy = $('#ownerAddedBySelect').val();
         if (!ownerAddedBy) {
             errors.push('Owner/Added By is required');
             isValid = false;
         }
-        
+
         const patientId = $('#patientSelect').val();
         if (!patientId) {
             errors.push('Patient is required');
             isValid = false;
         }
-        
+
         const entryDate = $('#entryDate').val();
         if (!entryDate) {
             errors.push('Entry Date is required');
             isValid = false;
         }
-        
+
         // Check if at least one test is selected
         let hasTests = false;
         $('.test-row').each((index, row) => {
             const $row = $(row);
             const categoryId = $row.find('.test-category-select').val();
             const testId = $row.find('.test-select').val();
-            
+
             if (categoryId && testId) {
                 hasTests = true;
                 return false; // break loop
             }
         });
-        
+
         if (!hasTests) {
             errors.push('At least one test must be selected');
             isValid = false;
         }
-        
+
         // Show validation errors
         if (!isValid) {
             const errorMessage = 'Please fix the following errors:<br>• ' + errors.join('<br>• ');
@@ -6291,7 +6417,7 @@ class EntryManager {
                 escapeHtml: false
             });
         }
-        
+
         return isValid;
     }
 
@@ -6300,29 +6426,45 @@ class EntryManager {
      */
     collectFormData() {
         const formData = {};
-        
+
         // Basic entry data
         formData.owner_added_by = $('#ownerAddedBySelect').val();
-        formData.patient_id = $('#patientSelect').val();
+
+        // Enhanced patient handling
+        const patientId = $('#patientSelect').val();
+        if (patientId === 'new') {
+            // Mark as new patient and include patient data
+            formData.patient_id = null; // Will be created
+            formData.create_new_patient = true;
+            formData.patient_name = $('#patientName').val();
+            formData.patient_contact = $('#patientContact').val();
+            formData.age = $('#patientAge').val();
+            formData.gender = $('#patientGender').val();
+            formData.patient_address = $('#patientAddress').val();
+        } else {
+            // Existing patient
+            formData.patient_id = patientId;
+            formData.create_new_patient = false;
+            // Still include patient data for reference
+            formData.patient_name = $('#patientName').val();
+            formData.patient_contact = $('#patientContact').val();
+            formData.age = $('#patientAge').val();
+            formData.gender = $('#patientGender').val();
+            formData.patient_address = $('#patientAddress').val();
+        }
+
         formData.doctor_id = $('#doctorSelect').val();
         formData.entry_date = $('#entryDate').val();
         formData.status = $('#entryStatus').val();
         formData.priority = $('#priority').val();
         formData.referral_source = $('#referralSource').val();
         formData.notes = $('#entryNotes').val();
-        
+
         // Pricing data
         formData.subtotal = $('#subtotal').val();
         formData.discount_amount = $('#discountAmount').val();
         formData.total_price = $('#totalPrice').val();
-        
-        // Patient data (if available)
-        formData.patient_name = $('#patientName').val();
-        formData.patient_contact = $('#patientContact').val();
-        formData.age = $('#patientAge').val();
-        formData.gender = $('#patientGender').val();
-        formData.patient_address = $('#patientAddress').val();
-        
+
         // Collect test data
         const tests = [];
         $('.test-row').each((index, row) => {
@@ -6333,7 +6475,7 @@ class EntryManager {
             const minRange = $row.find('.test-min-range').val();
             const maxRange = $row.find('.test-max-range').val();
             const unit = $row.find('.test-unit').val();
-            
+
             if (categoryId && testId) {
                 tests.push({
                     category_id: categoryId,
@@ -6345,9 +6487,9 @@ class EntryManager {
                 });
             }
         });
-        
+
         formData.tests = JSON.stringify(tests);
-        
+
         return formData;
     }
 
@@ -6362,9 +6504,9 @@ class EntryManager {
             $('#patientAge').val(patient.age || '');
             $('#patientGender').val(patient.gender || '').trigger('change');
             $('#patientAddress').val(patient.address || '');
-            
+
             // console.log removed
-            
+
             // Update test ranges if any tests are selected
             this.updateAllTestRanges();
         }
@@ -6379,7 +6521,7 @@ class EntryManager {
         $('#patientAge').val('');
         $('#patientGender').val('').trigger('change');
         $('#patientAddress').val('');
-        
+
         // Update test ranges
         this.updateAllTestRanges();
     }
@@ -6391,7 +6533,7 @@ class EntryManager {
         $('.test-row').each((index, row) => {
             const $row = $(row);
             const testId = $row.find('.test-select').val();
-            
+
             if (testId) {
                 const test = this.testsData.find(t => t.id == testId);
                 if (test) {
@@ -6440,15 +6582,15 @@ class EntryManager {
      */
     filterTestsByCategory() {
         const selectedCategoryId = $('#modalCategoryFilter').val();
-        
+
         // Get all test dropdowns in the modal
         $('.test-select').each((index, element) => {
             const $testSelect = $(element);
             const currentValue = $testSelect.val();
-            
+
             // Clear and repopulate the dropdown
             $testSelect.empty().append('<option value="">Select Test</option>');
-            
+
             // Filter tests based on category
             let filteredTests = this.testsData;
             if (selectedCategoryId) {
@@ -6456,18 +6598,18 @@ class EntryManager {
                     return test.category_id == selectedCategoryId;
                 });
             }
-            
+
             // Populate dropdown with filtered tests
             filteredTests.forEach(test => {
                 $testSelect.append(new Option(test.name, test.id, false, false));
             });
-            
+
             // Restore previous selection if it's still available
             if (currentValue && $testSelect.find(`option[value="${currentValue}"]`).length > 0) {
                 $testSelect.val(currentValue);
             }
         });
-        
+
         // console.log removed
     }
 
@@ -6510,16 +6652,16 @@ class EntryManager {
         try {
             // Load tests data
             await this.loadTestsData();
-            
+
             // Load categories data
             await this.loadCategoriesData();
-            
+
             // Load main categories data
             await this.loadMainCategoriesData();
-            
+
             // Load owners data
             await this.loadOwnersData();
-            
+
             // console.log removed
         } catch (error) {
             // console.error removed
@@ -6561,7 +6703,7 @@ class EntryManager {
             const response = await $.ajax({
                 url: 'patho_api/test_category.php',
                 method: 'GET',
-                data: { 
+                data: {
                     action: 'list',
                     secret_key: 'hospital-api-secret-2024'
                 },
@@ -6571,7 +6713,7 @@ class EntryManager {
             if (response && response.success) {
                 this.categoriesData = response.data || [];
                 // console.log removed
-                
+
                 // Populate the modal category filter
                 this.populateModalCategoryFilter();
             } else {
@@ -6632,7 +6774,7 @@ class EntryManager {
         });
 
         // console.log removed
-        
+
         // Update test count
         this.updateFilteredTestCount();
     }
@@ -6653,7 +6795,7 @@ class EntryManager {
             if (response && response.success) {
                 this.ownersData = response.data || [];
                 // console.log removed
-                
+
                 // Populate owner dropdown
                 this.populateOwnerDropdown();
             } else {
@@ -6696,7 +6838,7 @@ class EntryManager {
             const response = await $.ajax({
                 url: 'ajax/patient_api.php',
                 method: 'GET',
-                data: { 
+                data: {
                     action: 'list',
                     owner_id: ownerId
                 },
@@ -6706,7 +6848,7 @@ class EntryManager {
             if (response && response.success) {
                 this.patientsData = response.data || [];
                 // console.log removed
-                
+
                 // Populate patient dropdown
                 this.populatePatientDropdown();
             } else {
@@ -6753,7 +6895,7 @@ class EntryManager {
             const response = await $.ajax({
                 url: 'ajax/doctor_api.php',
                 method: 'GET',
-                data: { 
+                data: {
                     action: 'list',
                     owner_id: ownerId
                 },
@@ -6763,7 +6905,7 @@ class EntryManager {
             if (response && response.success) {
                 this.doctorsData = response.data || [];
                 // console.log removed
-                
+
                 // Populate doctor dropdown
                 this.populateDoctorDropdown();
             } else {
@@ -6815,13 +6957,13 @@ class EntryManager {
 
         try {
             // Add custom search functions for all filters
-            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
                 if (settings.nTable.id !== 'entriesTable') {
                     return true;
                 }
-                
+
                 const rowData = settings.aoData[dataIndex]._aData;
-                
+
                 // Main Category Filter
                 const mainCategoryFilter = $('#mainCategoryFilter').val();
                 if (mainCategoryFilter) {
@@ -6830,7 +6972,7 @@ class EntryManager {
                         return false;
                     }
                 }
-                
+
                 // Status Filter
                 const statusFilter = $('#statusFilter').val();
                 if (statusFilter) {
@@ -6839,14 +6981,14 @@ class EntryManager {
                         return false;
                     }
                 }
-                
+
                 // Date Filter
                 const dateFilter = $('#dateFilter').val();
                 if (dateFilter) {
                     const entryDate = new Date(rowData.entry_date);
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
-                    
+
                     let showRow = false;
                     switch (dateFilter) {
                         case 'today':
@@ -6877,7 +7019,7 @@ class EntryManager {
                         return false;
                     }
                 }
-                
+
                 // Patient Filter
                 const patientFilter = $('#patientFilter').val();
                 if (patientFilter) {
@@ -6886,7 +7028,7 @@ class EntryManager {
                         return false;
                     }
                 }
-                
+
                 // Doctor Filter
                 const doctorFilter = $('#doctorFilter').val();
                 if (doctorFilter) {
@@ -6895,7 +7037,7 @@ class EntryManager {
                         return false;
                     }
                 }
-                
+
                 return true; // Show row if all filters pass
             });
 
@@ -7247,7 +7389,7 @@ $(document).ready(function () {
     loadMainCategoriesFilter();
 
     // Bind filter change events
-    $('#mainCategoryFilter, #statusFilter, #dateFilter').on('change', function() {
+    $('#mainCategoryFilter, #statusFilter, #dateFilter').on('change', function () {
         if (window.entryManager && window.entryManager.entriesTable) {
             window.entryManager.entriesTable.draw();
         }
@@ -7255,9 +7397,9 @@ $(document).ready(function () {
 
     // Bind search input events with debounce
     let searchTimeout;
-    $('#patientFilter, #doctorFilter').on('keyup', function() {
+    $('#patientFilter, #doctorFilter').on('keyup', function () {
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(function() {
+        searchTimeout = setTimeout(function () {
             if (window.entryManager && window.entryManager.entriesTable) {
                 window.entryManager.entriesTable.draw();
             }
@@ -7265,7 +7407,7 @@ $(document).ready(function () {
     });
 
     // Bind modal category filter events
-    $('#modalCategoryFilter').on('change', function() {
+    $('#modalCategoryFilter').on('change', function () {
         if (window.entryManager) {
             window.entryManager.updateFilteredTestCount();
             window.entryManager.filterTestsByCategory();
@@ -7273,21 +7415,21 @@ $(document).ready(function () {
     });
 
     // Bind clear category filter button
-    $('#clearCategoryFilter').on('click', function() {
+    $('#clearCategoryFilter').on('click', function () {
         if (window.entryManager) {
             window.entryManager.clearCategoryFilter();
         }
     });
 
     // Bind discount amount change to update pricing
-    $('#discountAmount').on('input', function() {
+    $('#discountAmount').on('input', function () {
         if (window.entryManager) {
             window.entryManager.updatePricing();
         }
     });
 
     // Bind form submission
-    $('#entryForm').on('submit', function(e) {
+    $('#entryForm').on('submit', function (e) {
         e.preventDefault();
         if (window.entryManager) {
             window.entryManager.saveEntry();
@@ -7295,7 +7437,7 @@ $(document).ready(function () {
     });
 
     // Bind owner selection change to load patients and doctors
-    $('#ownerAddedBySelect').on('change', function() {
+    $('#ownerAddedBySelect').on('change', function () {
         const ownerId = $(this).val();
         if (window.entryManager && ownerId) {
             window.entryManager.loadPatientsData(ownerId);
@@ -7308,7 +7450,7 @@ $(document).ready(function () {
     });
 
     // Bind patient selection change to populate patient info
-    $('#patientSelect').on('change', function() {
+    $('#patientSelect').on('change', function () {
         const patientId = $(this).val();
         if (window.entryManager && patientId) {
             window.entryManager.populatePatientInfo(patientId);
@@ -7327,23 +7469,23 @@ function loadMainCategoriesFilter() {
         method: 'GET',
         data: { action: 'list' },
         dataType: 'json',
-        success: function(response) {
+        success: function (response) {
             if (response && response.success && response.data) {
                 const $filter = $('#mainCategoryFilter');
                 $filter.empty().append('<option value="">All Categories</option>');
-                
-                response.data.forEach(function(category) {
+
+                response.data.forEach(function (category) {
                     if (category && category.id && category.name) {
                         $filter.append(`<option value="${category.name}">${category.name}</option>`);
                     }
                 });
-                
+
                 // console.log removed
             } else {
                 // console.error removed
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             // console.error removed
         }
     });
