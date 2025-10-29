@@ -248,9 +248,17 @@ async function loadInitialData() {
         await loadDoctorsData();
 
         console.log('Initial data loaded successfully');
+        console.log(`Loaded: ${testsData.length} tests, ${categoriesData.length} categories, ${patientsData.length} patients, ${doctorsData.length} doctors`);
+
+        // Enable the Add Entry button once data is loaded
+        $('button[onclick="openAddModal()"]').prop('disabled', false).removeClass('disabled');
+
     } catch (error) {
         console.error('Failed to load initial data:', error);
         showError('Failed to load initial data. Some features may not work properly.');
+
+        // Keep Add Entry button disabled if data loading fails
+        $('button[onclick="openAddModal()"]').prop('disabled', true).addClass('disabled');
     }
 }
 
@@ -502,6 +510,12 @@ function exportEntries() {
 function openAddModal() {
     console.log('Opening add modal...');
 
+    // Check if required data is loaded
+    if (testsData.length === 0 || categoriesData.length === 0) {
+        showError('Please wait for data to load before adding entries');
+        return;
+    }
+
     currentEditId = null;
     resetForm();
 
@@ -605,13 +619,13 @@ function applyGlobalCategoryFilter(categoryId) {
 
         if (categoryId) {
             // Set the category in the row
-            $categorySelect.val(categoryId);
-            // Trigger the category change to filter tests
-            $categorySelect.trigger('change');
+            $categorySelect.val(categoryId).trigger('change');
+            // Update test options for this category
+            updateTestOptions($testSelect, categoryId);
         } else {
             // Clear category selection and show all tests
-            $categorySelect.val('');
-            $categorySelect.trigger('change');
+            $categorySelect.val('').trigger('change');
+            updateTestOptions($testSelect, '');
         }
     });
 }
@@ -629,7 +643,9 @@ function addTestRow(testData = null) {
         return `<option value="${category.id}">${category.name}</option>`;
     }).join('');
 
-    // Create test options (will be filtered by category)
+    console.log(`Creating test row with ${categoriesData.length} categories and ${testsData.length} tests`);
+
+    // Create test options (initially show all tests)
     const testOptions = testsData.map(test => {
         const displayName = `${test.name} [ID: ${test.id}]`;
         return `<option value="${test.id}" data-category-id="${test.category_id || ''}" data-price="${test.price || 0}" data-unit="${test.unit || ''}" data-min="${test.min || ''}" data-max="${test.max || ''}">${displayName}</option>`;
@@ -700,17 +716,23 @@ function addTestRow(testData = null) {
     });
 
     // Initialize Select2 for the new row dropdowns
-    $categorySelect.select2({
-        theme: 'bootstrap4',
-        width: '100%',
-        placeholder: 'Select Category'
-    });
+    try {
+        $categorySelect.select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            placeholder: 'Select Category'
+        });
 
-    $testSelect.select2({
-        theme: 'bootstrap4',
-        width: '100%',
-        placeholder: 'Select Test'
-    });
+        $testSelect.select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            placeholder: 'Select Test'
+        });
+
+        console.log(`Select2 initialized for row ${rowIndex}`);
+    } catch (error) {
+        console.error('Error initializing Select2 for test row:', error);
+    }
 
     // If testData is provided, populate the row (EDIT MODE)
     if (testData) {
@@ -759,35 +781,48 @@ function onCategoryChange(selectElement, $row) {
     console.log('Category changed:', categoryId);
 
     // Clear current test selection
-    $testSelect.val('');
+    $testSelect.val('').trigger('change');
     $row.find('.test-price').val('');
     $row.find('.test-unit').val('');
+    $row.find('.test-min').val('');
+    $row.find('.test-max').val('');
 
-    // Filter tests by category
-    const $testOptions = $testSelect.find('option');
+    // Rebuild test options based on selected category
+    updateTestOptions($testSelect, categoryId);
 
-    if (!categoryId) {
-        // Show all tests if no category selected
-        $testOptions.show();
-    } else {
-        // Hide all options first
-        $testOptions.hide();
+    calculateTotals();
+}
 
-        // Show default option
-        $testOptions.first().show();
+/**
+ * Update test options based on category filter
+ */
+function updateTestOptions($testSelect, categoryId) {
+    // Clear existing options except the first one
+    $testSelect.find('option:not(:first)').remove();
 
-        // Show tests that match the selected category
-        $testOptions.each(function () {
-            const $option = $(this);
-            const testCategoryId = $option.data('category-id');
+    // Filter tests based on category
+    let filteredTests = testsData;
+    if (categoryId) {
+        filteredTests = testsData.filter(test => test.category_id == categoryId);
+    }
 
-            if (testCategoryId == categoryId) {
-                $option.show();
-            }
+    // Add filtered test options
+    filteredTests.forEach(test => {
+        const displayName = `${test.name} [ID: ${test.id}]`;
+        const option = `<option value="${test.id}" data-category-id="${test.category_id || ''}" data-price="${test.price || 0}" data-unit="${test.unit || ''}" data-min="${test.min || ''}" data-max="${test.max || ''}">${displayName}</option>`;
+        $testSelect.append(option);
+    });
+
+    // Refresh Select2 to show updated options
+    if ($testSelect.hasClass('select2-hidden-accessible')) {
+        $testSelect.select2('destroy').select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            placeholder: 'Select Test'
         });
     }
 
-    calculateTotals();
+    console.log(`Updated test options: ${filteredTests.length} tests available`);
 }
 
 /**
@@ -1356,5 +1391,32 @@ function debugFormData() {
     console.log('=== END DEBUG INFO ===');
 }
 
-// Make debug function available globally
+// Make debug functions available globally
 window.debugFormData = debugFormData;
+
+/**
+ * Debug function to test test row functionality
+ */
+function debugTestRows() {
+    console.log('=== TEST ROWS DEBUG ===');
+    console.log('Tests data loaded:', testsData.length);
+    console.log('Categories data loaded:', categoriesData.length);
+    console.log('Current test rows:', $('#testsContainer .test-row').length);
+
+    $('#testsContainer .test-row').each(function (index) {
+        const $row = $(this);
+        const $categorySelect = $row.find('.category-select');
+        const $testSelect = $row.find('.test-select');
+
+        console.log(`Row ${index}:`, {
+            categoryOptions: $categorySelect.find('option').length,
+            testOptions: $testSelect.find('option').length,
+            categoryValue: $categorySelect.val(),
+            testValue: $testSelect.val(),
+            hasSelect2: $categorySelect.hasClass('select2-hidden-accessible')
+        });
+    });
+    console.log('=== END TEST ROWS DEBUG ===');
+}
+
+window.debugTestRows = debugTestRows;
