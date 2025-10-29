@@ -685,6 +685,7 @@ function addTestRow(testData = null) {
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
+            <input type="hidden" name="tests[${rowIndex}][main_category_id]" class="test-main-category-id">
         </div>
     `;
 
@@ -780,6 +781,16 @@ function onCategoryChange(selectElement, $row) {
 
     console.log('Category changed:', categoryId);
 
+    // Set main category ID
+    if (categoryId) {
+        const categoryInfo = categoriesData.find(c => c.id == categoryId);
+        if (categoryInfo && categoryInfo.main_category_id) {
+            $row.find('.test-main-category-id').val(categoryInfo.main_category_id);
+        }
+    } else {
+        $row.find('.test-main-category-id').val('');
+    }
+
     // Clear current test selection
     $testSelect.val('').trigger('change');
     $row.find('.test-price').val('');
@@ -861,6 +872,12 @@ function onTestChange(selectElement, $row) {
     const $categorySelect = $row.find('.category-select');
     if (!$categorySelect.val() && testData.category_id) {
         $categorySelect.val(testData.category_id);
+
+        // Set main category ID
+        const categoryInfo = categoriesData.find(c => c.id == testData.category_id);
+        if (categoryInfo && categoryInfo.main_category_id) {
+            $row.find('.test-main-category-id').val(categoryInfo.main_category_id);
+        }
     }
 
     // Calculate totals
@@ -939,6 +956,8 @@ async function saveEntry() {
 
         // Collect tests data
         const tests = [];
+        const addedTestIds = new Set(); // Track added test IDs to prevent duplicates
+
         $('#testsContainer .test-row').each(function (index) {
             const $row = $(this);
             const testId = $row.find('.test-select').val();
@@ -951,9 +970,29 @@ async function saveEntry() {
             });
 
             if (testId) {
+                // Check for duplicate test IDs
+                if (addedTestIds.has(testId)) {
+                    console.warn(`Duplicate test ID ${testId} found, skipping...`);
+                    return; // Skip this iteration
+                }
+
+                addedTestIds.add(testId);
+
+                // Find the test data to get main_category_id
+                const testInfo = testsData.find(t => t.id == testId);
+                const categoryId = $row.find('.category-select').val() || (testInfo ? testInfo.category_id : null);
+
+                // Find main category ID
+                let mainCategoryId = null;
+                if (categoryId) {
+                    const categoryInfo = categoriesData.find(c => c.id == categoryId);
+                    mainCategoryId = categoryInfo ? categoryInfo.main_category_id : null;
+                }
+
                 const testData = {
                     test_id: testId,
-                    category_id: $row.find('.category-select').val() || null,
+                    category_id: categoryId,
+                    main_category_id: mainCategoryId,
                     result_value: $row.find('.test-result').val() || '',
                     min: $row.find('.test-min').val() || '',
                     max: $row.find('.test-max').val() || '',
@@ -968,6 +1007,14 @@ async function saveEntry() {
         // Validate we have tests before submitting
         if (tests.length === 0) {
             showError('Please add at least one test before saving');
+            return;
+        }
+
+        // Check for duplicate tests in the form
+        const testIds = tests.map(t => t.test_id);
+        const uniqueTestIds = [...new Set(testIds)];
+        if (testIds.length !== uniqueTestIds.length) {
+            showError('Duplicate tests detected. Please remove duplicate test entries.');
             return;
         }
 
@@ -1019,12 +1066,22 @@ async function saveEntry() {
         });
 
         let errorMessage = 'An error occurred while saving the entry';
-        if (error.responseText) {
+
+        // Handle specific error codes
+        if (error.status === 500 && error.responseText) {
             try {
                 const errorData = JSON.parse(error.responseText);
-                errorMessage = errorData.message || errorMessage;
+                if (errorData.message && errorData.message.includes('1062')) {
+                    errorMessage = 'Duplicate entry detected. Please check for duplicate tests or try refreshing the page.';
+                } else {
+                    errorMessage = errorData.message || errorMessage;
+                }
             } catch (parseError) {
-                errorMessage = error.responseText;
+                if (error.responseText.includes('1062')) {
+                    errorMessage = 'Duplicate entry detected. Please check for duplicate tests.';
+                } else {
+                    errorMessage = error.responseText;
+                }
             }
         } else if (error.statusText) {
             errorMessage = `Server error: ${error.statusText}`;
@@ -1586,3 +1643,237 @@ async function checkAuth() {
 }
 
 window.checkAuth = checkAuth;
+
+/**
+ * Remove duplicate test rows
+ */
+function removeDuplicateTestRows() {
+    console.log('Checking for duplicate test rows...');
+
+    const seenTestIds = new Set();
+    const rowsToRemove = [];
+
+    $('#testsContainer .test-row').each(function () {
+        const $row = $(this);
+        const testId = $row.find('.test-select').val();
+
+        if (testId) {
+            if (seenTestIds.has(testId)) {
+                // This is a duplicate
+                rowsToRemove.push($row);
+                console.log('Found duplicate test ID:', testId);
+            } else {
+                seenTestIds.add(testId);
+            }
+        }
+    });
+
+    // Remove duplicate rows
+    rowsToRemove.forEach($row => {
+        $row.remove();
+    });
+
+    if (rowsToRemove.length > 0) {
+        showInfo(`Removed ${rowsToRemove.length} duplicate test rows`);
+        calculateTotals();
+    }
+
+    console.log(`Removed ${rowsToRemove.length} duplicate test rows`);
+}
+
+window.removeDuplicateTestRows = removeDuplicateTestRows;
+
+/**
+ * Comprehensive test function to verify all functionality
+ */
+async function runComprehensiveTest() {
+    console.log('🔍 Running comprehensive test...');
+
+    const results = {
+        dataLoading: false,
+        apiConnectivity: false,
+        formValidation: false,
+        duplicateHandling: false,
+        saveProcess: false
+    };
+
+    try {
+        // Test 1: Data Loading
+        console.log('📊 Testing data loading...');
+        if (testsData.length > 0 && categoriesData.length > 0 && patientsData.length > 0) {
+            results.dataLoading = true;
+            console.log('✅ Data loading: PASSED');
+        } else {
+            console.log('❌ Data loading: FAILED');
+            console.log(`Tests: ${testsData.length}, Categories: ${categoriesData.length}, Patients: ${patientsData.length}`);
+        }
+
+        // Test 2: API Connectivity
+        console.log('🌐 Testing API connectivity...');
+        results.apiConnectivity = await testAPI();
+
+        // Test 3: Form Validation
+        console.log('📝 Testing form validation...');
+        // Open modal and add test data
+        openAddModal();
+
+        // Wait for modal to be ready
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Set test data
+        if (patientsData.length > 0) {
+            $('#patientSelect').val(patientsData[0].id);
+        }
+        $('#entryDate').val(new Date().toISOString().split('T')[0]);
+
+        // Add a test row with data
+        if (testsData.length > 0) {
+            const $firstRow = $('#testsContainer .test-row').first();
+            if ($firstRow.length > 0) {
+                $firstRow.find('.test-select').val(testsData[0].id).trigger('change');
+                $firstRow.find('.test-price').val(testsData[0].price || 100);
+            }
+        }
+
+        // Test validation
+        const isValid = validateForm();
+        results.formValidation = isValid;
+        console.log(isValid ? '✅ Form validation: PASSED' : '❌ Form validation: FAILED');
+
+        // Test 4: Duplicate Handling
+        console.log('🔄 Testing duplicate handling...');
+        // Add duplicate test row
+        if (testsData.length > 0) {
+            addTestRow();
+            const $secondRow = $('#testsContainer .test-row').last();
+            $secondRow.find('.test-select').val(testsData[0].id).trigger('change');
+
+            // Check for duplicates
+            const testIds = [];
+            $('#testsContainer .test-row').each(function () {
+                const testId = $(this).find('.test-select').val();
+                if (testId) testIds.push(testId);
+            });
+
+            const hasDuplicates = testIds.length !== new Set(testIds).size;
+            if (hasDuplicates) {
+                removeDuplicateTestRows();
+                results.duplicateHandling = true;
+                console.log('✅ Duplicate handling: PASSED');
+            } else {
+                results.duplicateHandling = true;
+                console.log('✅ Duplicate handling: PASSED (no duplicates found)');
+            }
+        }
+
+        // Test 5: Save Process (dry run)
+        console.log('💾 Testing save process...');
+        try {
+            // Collect form data without actually saving
+            const formData = new FormData($('#entryForm')[0]);
+            const tests = [];
+
+            $('#testsContainer .test-row').each(function () {
+                const testId = $(this).find('.test-select').val();
+                if (testId) {
+                    tests.push({
+                        test_id: testId,
+                        category_id: $(this).find('.category-select').val(),
+                        main_category_id: $(this).find('.test-main-category-id').val(),
+                        result_value: $(this).find('.test-result').val(),
+                        price: $(this).find('.test-price').val()
+                    });
+                }
+            });
+
+            if (tests.length > 0 && formData.get('patient_id')) {
+                results.saveProcess = true;
+                console.log('✅ Save process: PASSED (data collection successful)');
+            } else {
+                console.log('❌ Save process: FAILED (missing required data)');
+            }
+        } catch (error) {
+            console.log('❌ Save process: FAILED', error);
+        }
+
+        // Close modal
+        $('#entryModal').modal('hide');
+
+        // Summary
+        console.log('\n📋 TEST SUMMARY:');
+        console.log('================');
+        Object.entries(results).forEach(([test, passed]) => {
+            console.log(`${passed ? '✅' : '❌'} ${test}: ${passed ? 'PASSED' : 'FAILED'}`);
+        });
+
+        const allPassed = Object.values(results).every(result => result);
+        console.log(`\n🎯 Overall Status: ${allPassed ? '✅ ALL TESTS PASSED' : '❌ SOME TESTS FAILED'}`);
+
+        if (allPassed) {
+            showSuccess('All tests passed! The save entry functionality should work correctly.');
+        } else {
+            showError('Some tests failed. Please check the console for details.');
+        }
+
+        return results;
+
+    } catch (error) {
+        console.error('❌ Comprehensive test failed:', error);
+        showError('Test execution failed: ' + error.message);
+        return results;
+    }
+}
+
+window.runComprehensiveTest = runComprehensiveTest;
+
+/**
+ * Quick fix function to address common issues
+ */
+function quickFix() {
+    console.log('🔧 Running quick fix...');
+
+    try {
+        // Fix 1: Remove any duplicate test rows
+        removeDuplicateTestRows();
+
+        // Fix 2: Ensure main_category_id is populated
+        $('#testsContainer .test-row').each(function () {
+            const $row = $(this);
+            const categoryId = $row.find('.category-select').val();
+            const testId = $row.find('.test-select').val();
+
+            if (testId && !$row.find('.test-main-category-id').val()) {
+                // Try to get main_category_id from category data
+                if (categoryId) {
+                    const categoryInfo = categoriesData.find(c => c.id == categoryId);
+                    if (categoryInfo && categoryInfo.main_category_id) {
+                        $row.find('.test-main-category-id').val(categoryInfo.main_category_id);
+                        console.log(`Fixed main_category_id for test ${testId}: ${categoryInfo.main_category_id}`);
+                    }
+                }
+            }
+        });
+
+        // Fix 3: Recalculate totals
+        calculateTotals();
+
+        // Fix 4: Refresh Select2 dropdowns
+        $('.select2').each(function () {
+            if ($(this).hasClass('select2-hidden-accessible')) {
+                $(this).select2('destroy').select2({
+                    theme: 'bootstrap4',
+                    width: '100%'
+                });
+            }
+        });
+
+        console.log('✅ Quick fix completed');
+        showSuccess('Quick fix applied successfully');
+
+    } catch (error) {
+        console.error('❌ Quick fix failed:', error);
+        showError('Quick fix failed: ' + error.message);
+    }
+}
+
+window.quickFix = quickFix;

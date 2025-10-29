@@ -1528,6 +1528,8 @@ try {
     echo json_encode(['success' => false, 'message' => 'Fatal error occurred', 'error' => $e->getMessage()]);
 }
 
+
+
 // Ensure we always output something
 if (!headers_sent()) {
     // If we reach here without any output, something went wrong
