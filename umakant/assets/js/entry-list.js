@@ -4399,14 +4399,11 @@ class EntryManager {
         // Apply all updates in batch
         updates.forEach(update => {
             this.updateRangeDisplay(update.$row, update.rangeData);
-            //console.log(`Updated ranges for test ${update.testName}:`, update.rangeData);
-        });
+          });
 
         // Performance monitoring
         const endTime = performance.now();
         const duration = endTime - startTime;
-        //console.log(`Range update completed in ${duration.toFixed(2)}ms for ${updates.length} tests`);
-
         if (duration > 100) {
             console.warn(`Range update took ${duration.toFixed(2)}ms, which exceeds the 100ms target`);
         }
