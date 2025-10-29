@@ -327,26 +327,26 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         </div>
                     </div>
                     
-                    <!-- Main Category Filter Section -->
+                    <!-- Test Category Filter Section -->
                     <div class="card mt-3 mb-3" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); color: white;">
                         <div class="card-body py-2">
                             <div class="row align-items-center">
                                 <div class="col-md-2">
                                     <h6 class="mb-0 text-white">
-                                        <i class="fas fa-filter mr-1"></i> Main Category Filter
+                                        <i class="fas fa-filter mr-1"></i> Test Category Filter
                                     </h6>
                                 </div>
                                 <div class="col-md-3">
-                                    <small class="text-white-50">Filter Tests by Main Category</small>
+                                    <small class="text-white-50">Filter Tests by Category</small>
                                 </div>
                                 <div class="col-md-4">
-                                    <select class="form-control form-control-sm" id="modalMainCategoryFilter" style="background: white; border: none;">
-                                        <option value="">All Main Categories (Show All Tests)</option>
-                                        <!-- Main Categories will be populated via JavaScript -->
+                                    <select class="form-control form-control-sm" id="modalCategoryFilter" style="background: white; border: none;">
+                                        <option value="">All Categories (Show All Tests)</option>
+                                        <!-- Categories will be populated via JavaScript -->
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <button type="button" class="btn btn-outline-light btn-sm" id="clearMainCategoryFilter">
+                                    <button type="button" class="btn btn-outline-light btn-sm" id="clearCategoryFilter">
                                         <i class="fas fa-times mr-1"></i> Clear Filter
                                     </button>
                                 </div>

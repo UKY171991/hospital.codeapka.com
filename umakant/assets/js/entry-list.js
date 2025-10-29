@@ -5759,13 +5759,13 @@ class EntryManager {
         if (this.testsData && this.testsData.length > 0) {
             const $testSelect = $row.find('.test-select');
             
-            // Check if main category filter is active
-            const selectedMainCategoryId = $('#modalMainCategoryFilter').val();
+            // Check if category filter is active
+            const selectedCategoryId = $('#modalCategoryFilter').val();
             let filteredTests = this.testsData;
             
-            if (selectedMainCategoryId) {
+            if (selectedCategoryId) {
                 filteredTests = this.testsData.filter(test => {
-                    return test.main_category_id == selectedMainCategoryId;
+                    return test.category_id == selectedCategoryId;
                 });
             }
             
@@ -5792,6 +5792,17 @@ class EntryManager {
             $row.find('.test-max-range').val(testData.max_range);
         }
         
+        // Bind test selection change event to auto-populate category
+        $row.find('.test-select').on('change', (e) => {
+            const selectedTestId = $(e.target).val();
+            if (selectedTestId) {
+                const selectedTest = this.testsData.find(test => test.id == selectedTestId);
+                if (selectedTest && selectedTest.category_id) {
+                    $row.find('.test-category-select').val(selectedTest.category_id);
+                }
+            }
+        });
+
         // Bind remove event
         $row.find('.remove-test-row').on('click', () => {
             $row.remove();
@@ -5853,7 +5864,7 @@ class EntryManager {
     resetForm() {
         $('#entryForm')[0].reset();
         $('#testsContainer').empty();
-        $('#modalMainCategoryFilter').val('');
+        $('#modalCategoryFilter').val('');
         this.currentEditId = null;
         this.testRowCounter = 0;
         this.updateFilteredTestCount();
@@ -5883,9 +5894,9 @@ class EntryManager {
         this.resetForm();
         $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
         
-        // Initialize main category filter if not already done
-        if (this.mainCategoriesData.length > 0) {
-            this.populateModalMainCategoryFilter();
+        // Initialize category filter if not already done
+        if (this.categoriesData.length > 0) {
+            this.populateModalCategoryFilter();
         }
         
         $('#entryModal').modal('show');
@@ -5933,19 +5944,19 @@ class EntryManager {
     }
 
     /**
-     * Update filtered test count based on main category selection
+     * Update filtered test count based on category selection
      */
     updateFilteredTestCount() {
-        const selectedMainCategoryId = $('#modalMainCategoryFilter').val();
+        const selectedCategoryId = $('#modalCategoryFilter').val();
         let filteredCount = 0;
 
-        if (!selectedMainCategoryId) {
+        if (!selectedCategoryId) {
             // Show all tests if no filter selected
             filteredCount = this.testsData.length;
         } else {
-            // Count tests that belong to the selected main category
+            // Count tests that belong to the selected category
             filteredCount = this.testsData.filter(test => {
-                return test.main_category_id == selectedMainCategoryId;
+                return test.category_id == selectedCategoryId;
             }).length;
         }
 
@@ -5954,10 +5965,10 @@ class EntryManager {
     }
 
     /**
-     * Filter tests in dropdowns based on main category selection
+     * Filter tests in dropdowns based on category selection
      */
-    filterTestsByMainCategory() {
-        const selectedMainCategoryId = $('#modalMainCategoryFilter').val();
+    filterTestsByCategory() {
+        const selectedCategoryId = $('#modalCategoryFilter').val();
         
         // Get all test dropdowns in the modal
         $('.test-select').each((index, element) => {
@@ -5967,11 +5978,11 @@ class EntryManager {
             // Clear and repopulate the dropdown
             $testSelect.empty().append('<option value="">Select Test</option>');
             
-            // Filter tests based on main category
+            // Filter tests based on category
             let filteredTests = this.testsData;
-            if (selectedMainCategoryId) {
+            if (selectedCategoryId) {
                 filteredTests = this.testsData.filter(test => {
-                    return test.main_category_id == selectedMainCategoryId;
+                    return test.category_id == selectedCategoryId;
                 });
             }
             
@@ -5986,14 +5997,14 @@ class EntryManager {
             }
         });
         
-        console.log('Test dropdowns filtered by main category:', selectedMainCategoryId);
+        console.log('Test dropdowns filtered by category:', selectedCategoryId);
     }
 
     /**
-     * Clear main category filter
+     * Clear category filter
      */
-    clearMainCategoryFilter() {
-        $('#modalMainCategoryFilter').val('').trigger('change');
+    clearCategoryFilter() {
+        $('#modalCategoryFilter').val('').trigger('change');
     }
 
     /**
@@ -6086,6 +6097,9 @@ class EntryManager {
             if (response && response.success) {
                 this.categoriesData = response.data || [];
                 console.log('Categories data loaded:', this.categoriesData.length, 'categories');
+                
+                // Populate the modal category filter
+                this.populateModalCategoryFilter();
             } else {
                 console.error('Failed to load categories:', response ? response.message : 'Invalid response');
                 this.categoriesData = [];
@@ -6112,9 +6126,6 @@ class EntryManager {
             if (response && response.success) {
                 this.mainCategoriesData = response.data || [];
                 console.log('Main categories data loaded:', this.mainCategoriesData.length, 'main categories');
-                
-                // Populate the modal main category filter
-                this.populateModalMainCategoryFilter();
             } else {
                 console.error('Failed to load main categories:', response ? response.message : 'Invalid response');
                 this.mainCategoriesData = [];
@@ -6126,27 +6137,27 @@ class EntryManager {
     }
 
     /**
-     * Populate the modal main category filter dropdown
+     * Populate the modal category filter dropdown
      */
-    populateModalMainCategoryFilter() {
-        const $filter = $('#modalMainCategoryFilter');
+    populateModalCategoryFilter() {
+        const $filter = $('#modalCategoryFilter');
         if ($filter.length === 0) {
-            console.warn('Modal main category filter element not found');
+            console.warn('Modal category filter element not found');
             return;
         }
 
         // Clear existing options except the first one
-        $filter.empty().append('<option value="">All Main Categories (Show All Tests)</option>');
+        $filter.empty().append('<option value="">All Categories (Show All Tests)</option>');
 
-        // Add main categories to dropdown
-        this.mainCategoriesData.forEach(category => {
+        // Add categories to dropdown
+        this.categoriesData.forEach(category => {
             if (category && category.id && category.name) {
                 const option = `<option value="${category.id}">${category.name}</option>`;
                 $filter.append(option);
             }
         });
 
-        console.log('Modal main category filter populated with', this.mainCategoriesData.length, 'categories');
+        console.log('Modal category filter populated with', this.categoriesData.length, 'categories');
         
         // Update test count
         this.updateFilteredTestCount();
@@ -6621,18 +6632,18 @@ $(document).ready(function () {
         }, 300);
     });
 
-    // Bind modal main category filter events
-    $('#modalMainCategoryFilter').on('change', function() {
+    // Bind modal category filter events
+    $('#modalCategoryFilter').on('change', function() {
         if (window.entryManager) {
             window.entryManager.updateFilteredTestCount();
-            window.entryManager.filterTestsByMainCategory();
+            window.entryManager.filterTestsByCategory();
         }
     });
 
-    // Bind clear main category filter button
-    $('#clearMainCategoryFilter').on('click', function() {
+    // Bind clear category filter button
+    $('#clearCategoryFilter').on('click', function() {
         if (window.entryManager) {
-            window.entryManager.clearMainCategoryFilter();
+            window.entryManager.clearCategoryFilter();
         }
     });
 });
