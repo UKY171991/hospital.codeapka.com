@@ -4413,8 +4413,7 @@ class EntryManager {
      * Reset all test ranges to general ranges (when no patient selected)
      */
     resetAllTestRangesToGeneral() {
-        //console.log('Resetting all test ranges to general');
-
+        
         $('.test-row').each((index, row) => {
             const $row = $(row);
             const testId = $row.find('.test-select').val();
@@ -4465,8 +4464,7 @@ class EntryManager {
      * Handle owner selection change
      */
     onOwnerChange(ownerId) {
-        //console.log('Owner changed:', ownerId);
-
+       
         if (ownerId) {
             // Enable patient and doctor selects
             $('#patientSelect, #doctorSelect').prop('disabled', false);
@@ -4487,7 +4485,7 @@ class EntryManager {
      * Handle patient selection change
      */
     onPatientChange(patientId) {
-        //console.log('Patient changed:', patientId);
+        ////console.log('Patient changed:', patientId);
 
         if (patientId) {
             // Load patient details
@@ -4505,8 +4503,6 @@ class EntryManager {
      */
     async loadPatientsForOwner(ownerId) {
         try {
-            //console.log('Loading patients for owner:', ownerId);
-
             const response = await $.ajax({
                 url: 'ajax/patient_api.php',
                 method: 'GET',
@@ -4522,9 +4518,8 @@ class EntryManager {
                 response.data.forEach(patient => {
                     $select.append(`<option value="${patient.id}">${patient.name}</option>`);
                 });
-                //console.log('Loaded', response.data.length, 'patients');
             } else {
-                //console.warn('No patients found or API error:', response.message);
+                console.warn('No patients found or API error:', response.message);
             }
 
             // Refresh Select2 if initialized
@@ -4532,7 +4527,7 @@ class EntryManager {
                 $select.trigger('change');
             }
         } catch (error) {
-            //console.error('Error loading patients:', error);
+            console.error('Error loading patients:', error);
         }
     }
 
@@ -4541,8 +4536,6 @@ class EntryManager {
      */
     async loadDoctorsForOwner(ownerId) {
         try {
-            //console.log('Loading doctors for owner:', ownerId);
-
             const response = await $.ajax({
                 url: 'ajax/doctor_api.php',
                 method: 'GET',
@@ -4558,9 +4551,8 @@ class EntryManager {
                 response.data.forEach(doctor => {
                     $select.append(`<option value="${doctor.id}">${doctor.name}</option>`);
                 });
-                //console.log('Loaded', response.data.length, 'doctors');
             } else {
-                //console.warn('No doctors found or API error:', response.message);
+                console.warn('No doctors found or API error:', response.message);
             }
 
             // Refresh Select2 if initialized
@@ -4568,7 +4560,7 @@ class EntryManager {
                 $select.trigger('change');
             }
         } catch (error) {
-            //console.error('Error loading doctors:', error);
+            console.error('Error loading doctors:', error);
         }
     }
 
@@ -4577,8 +4569,6 @@ class EntryManager {
      */
     async loadPatientDetails(patientId) {
         try {
-            //console.log('Loading patient details for ID:', patientId);
-
             const response = await $.ajax({
                 url: 'ajax/patient_api.php',
                 method: 'GET',
@@ -4588,15 +4578,13 @@ class EntryManager {
 
             if (response.success && response.data) {
                 const patient = response.data;
-                //console.log('Patient details loaded:', patient);
-
+                
                 $('#patientName').val(patient.name || '');
                 $('#patientContact').val(patient.contact || '');
                 $('#patientAge').val(patient.age || '');
                 $('#patientGender').val(patient.gender || '').trigger('change');
                 $('#patientAddress').val(patient.address || '');
 
-                // Update all test ranges after patient details are loaded (debounced for performance)
                 setTimeout(() => {
                     this.debouncedRangeUpdate();
                 }, 100); // Small delay to ensure DOM updates are complete
@@ -4623,8 +4611,7 @@ class EntryManager {
      */
     reconcileTestCategoryData(entryTests) {
         try {
-            //console.log('Starting test category data reconciliation...');
-
+            
             const reconciledTests = entryTests.map((entryTest, index) => {
                 // Get current test data
                 const currentTest = this.getCurrentTestCategory(entryTest.test_id);
@@ -4668,7 +4655,6 @@ class EntryManager {
                             reconciledTest.resolved_category_id = currentTest.category_id;
                             reconciledTest.resolved_category_name = currentTest.category_name;
                             reconciledTest.data_source = 'current';
-                            console.log(`Using current test category for test ${entryTest.test_id}: ${currentTest.category_name} (ID: ${currentTest.category_id})`);
                         }
                     }
                 } else {
