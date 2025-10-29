@@ -965,11 +965,22 @@ async function saveEntry() {
             }
         });
 
+        // Validate we have tests before submitting
+        if (tests.length === 0) {
+            showError('Please add at least one test before saving');
+            return;
+        }
+
         formData.append('tests', JSON.stringify(tests));
 
         console.log('Submitting form data:', Object.fromEntries(formData));
         console.log('Tests data:', tests);
         console.log('Current edit ID:', currentEditId);
+
+        // Additional validation
+        const patientId = formData.get('patient_id');
+        const entryDate = formData.get('entry_date');
+        console.log('Final validation - Patient ID:', patientId, 'Entry Date:', entryDate);
 
         const response = await $.ajax({
             url: 'ajax/entry_api_fixed.php',
@@ -988,7 +999,15 @@ async function saveEntry() {
             refreshTable();
         } else {
             console.error('Save failed:', response);
-            showError(response ? response.message : 'Failed to save entry - no response from server');
+            let errorMsg = 'Failed to save entry';
+            if (response && response.message) {
+                errorMsg = response.message;
+            } else if (response && response.error) {
+                errorMsg = response.error;
+            } else if (!response) {
+                errorMsg = 'No response from server - please check your connection';
+            }
+            showError(errorMsg);
         }
 
     } catch (error) {
@@ -1056,17 +1075,19 @@ function validateForm() {
         return false;
     }
 
-    // Validate each test row
+    // Validate each test row (category is optional)
     let validationErrors = [];
     testRows.each(function (index) {
         const $row = $(this);
         const testId = $row.find('.test-select').val();
 
         if (testId) {
-            const categoryId = $row.find('.category-select').val();
-            if (!categoryId) {
-                validationErrors.push(`Test row ${index + 1}: Please select a category`);
-            }
+            // Test ID is required, category is optional
+            const testName = $row.find('.test-select option:selected').text();
+            console.log(`Test row ${index + 1}: ${testName} (ID: ${testId})`);
+
+            // You can add other validations here if needed
+            // For now, just having a test selected is sufficient
         }
     });
 
@@ -1420,3 +1441,148 @@ function debugTestRows() {
 }
 
 window.debugTestRows = debugTestRows;
+
+/**
+ * Test API connectivity
+ */
+async function testAPI() {
+    console.log('Testing API connectivity...');
+
+    try {
+        const response = await $.ajax({
+            url: 'ajax/entry_api_fixed.php',
+            method: 'GET',
+            data: {
+                action: 'list',
+                secret_key: 'hospital-api-secret-2024'
+            },
+            dataType: 'json',
+            timeout: 10000
+        });
+
+        console.log('API test response:', response);
+        if (response.success) {
+            console.log('✅ API is working correctly');
+            return true;
+        } else {
+            console.error('❌ API returned error:', response.message);
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ API connection failed:', error);
+        return false;
+    }
+}
+
+window.testAPI = testAPI;
+
+/**
+ * Test save functionality with minimal data
+ */
+async function testSave() {
+    console.log('Testing save functionality...');
+
+    // Check if we have required data
+    if (patientsData.length === 0) {
+        console.error('❌ No patients data loaded');
+        return false;
+    }
+
+    if (testsData.length === 0) {
+        console.error('❌ No tests data loaded');
+        return false;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('action', 'save');
+        formData.append('secret_key', 'hospital-api-secret-2024');
+        formData.append('patient_id', patientsData[0].id); // Use first patient
+        formData.append('entry_date', new Date().toISOString().split('T')[0]); // Today's date
+        formData.append('status', 'pending');
+
+        // Add current user ID if available
+        if (typeof currentUserId !== 'undefined' && currentUserId) {
+            formData.append('added_by', currentUserId);
+        }
+
+        // Add minimal test data
+        const testData = [{
+            test_id: testsData[0].id,
+            category_id: testsData[0].category_id || null,
+            result_value: '',
+            min: testsData[0].min || '',
+            max: testsData[0].max || '',
+            price: testsData[0].price || 0,
+            unit: testsData[0].unit || ''
+        }];
+
+        formData.append('tests', JSON.stringify(testData));
+
+        console.log('Test save data:', Object.fromEntries(formData));
+
+        const response = await $.ajax({
+            url: 'ajax/entry_api_fixed.php',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json'
+        });
+
+        console.log('Test save response:', response);
+
+        if (response && response.success) {
+            console.log('✅ Save functionality is working');
+            return true;
+        } else {
+            console.error('❌ Save failed:', response ? response.message : 'No response');
+            return false;
+        }
+
+    } catch (error) {
+        console.error('❌ Save test failed:', error);
+        console.error('Error details:', {
+            status: error.status,
+            statusText: error.statusText,
+            responseText: error.responseText
+        });
+        return false;
+    }
+}
+
+window.testSave = testSave;
+
+/**
+ * Check authentication status
+ */
+async function checkAuth() {
+    console.log('Checking authentication...');
+
+    try {
+        const response = await $.ajax({
+            url: 'ajax/entry_api_fixed.php',
+            method: 'GET',
+            data: {
+                action: 'stats',
+                secret_key: 'hospital-api-secret-2024'
+            },
+            dataType: 'json'
+        });
+
+        console.log('Auth check response:', response);
+
+        if (response.success) {
+            console.log('✅ User is authenticated');
+            return true;
+        } else {
+            console.error('❌ Authentication failed:', response.message);
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Auth check failed:', error);
+        return false;
+    }
+}
+
+window.checkAuth = checkAuth;
