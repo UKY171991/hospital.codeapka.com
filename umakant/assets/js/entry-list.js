@@ -4367,8 +4367,6 @@ class EntryManager {
                     }
                 });
             }
-
-            //console.log('Basic functionality ensured');
         } catch (error) {
             //console.error('Error ensuring basic functionality:', error);
         }
@@ -4381,9 +4379,6 @@ class EntryManager {
         const startTime = performance.now();
         const patientAge = parseInt($('#patientAge').val()) || null;
         const patientGender = $('#patientGender').val() || null;
-
-        //console.log('Updating all test ranges for patient:', { age: patientAge, gender: patientGender });
-
         // Batch DOM updates for better performance
         const updates = [];
 
