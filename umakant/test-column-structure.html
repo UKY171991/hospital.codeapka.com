@@ -31,7 +31,7 @@
         
         <!-- Column Headers -->
         <div class="row mb-2">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="column-header">Test Category</div>
             </div>
             <div class="col-md-3">
@@ -40,7 +40,13 @@
             <div class="col-md-2">
                 <div class="column-header">Result</div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
+                <div class="column-header">Min</div>
+            </div>
+            <div class="col-md-1">
+                <div class="column-header">Max</div>
+            </div>
+            <div class="col-md-1">
                 <div class="column-header">Unit</div>
             </div>
             <div class="col-md-1">
@@ -53,7 +59,7 @@
         
         <!-- Sample Test Row 1 -->
         <div class="test-row row mb-2">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select class="form-control">
                     <option>Blood Tests</option>
                 </select>
@@ -64,10 +70,16 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <input type="text" class="form-control" placeholder="Normal" value="Normal">
+                <input type="text" class="form-control" placeholder="Normal" value="7.5">
             </div>
-            <div class="col-md-2">
-                <input type="text" class="form-control" placeholder="Unit" value="cells/μL" readonly>
+            <div class="col-md-1">
+                <input type="text" class="form-control" placeholder="Min" value="4.0" readonly>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control" placeholder="Max" value="11.0" readonly>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control" placeholder="Unit" value="10³/μL" readonly>
             </div>
             <div class="col-md-1">
                 <input type="number" class="form-control" placeholder="0.00" value="500.00">
@@ -81,7 +93,7 @@
         
         <!-- Sample Test Row 2 -->
         <div class="test-row row mb-2">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select class="form-control">
                     <option>Biochemistry</option>
                 </select>
@@ -94,7 +106,13 @@
             <div class="col-md-2">
                 <input type="text" class="form-control" placeholder="Result" value="95">
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
+                <input type="text" class="form-control" placeholder="Min" value="70" readonly>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control" placeholder="Max" value="100" readonly>
+            </div>
+            <div class="col-md-1">
                 <input type="text" class="form-control" placeholder="Unit" value="mg/dL" readonly>
             </div>
             <div class="col-md-1">
@@ -111,18 +129,21 @@
             <h5>✅ Column Structure Verified</h5>
             <p><strong>New Order:</strong></p>
             <ol>
-                <li><strong>Test Category</strong> (3 columns) - Select category first</li>
+                <li><strong>Test Category</strong> (2 columns) - Select category first</li>
                 <li><strong>Test Name</strong> (3 columns) - Filtered by category</li>
                 <li><strong>Result</strong> (2 columns) - Enter test result</li>
-                <li><strong>Unit</strong> (2 columns) - Auto-populated from test data</li>
+                <li><strong>Min</strong> (1 column) - Reference range minimum</li>
+                <li><strong>Max</strong> (1 column) - Reference range maximum</li>
+                <li><strong>Unit</strong> (1 column) - Auto-populated from test data</li>
                 <li><strong>Price</strong> (1 column) - Auto-populated, editable</li>
                 <li><strong>Action</strong> (1 column) - Remove test button</li>
             </ol>
             <p><strong>Benefits:</strong></p>
             <ul>
-                <li>Unit appears immediately after Result for better workflow</li>
-                <li>Logical progression: Category → Test → Result → Unit → Price</li>
-                <li>Improved user experience for data entry</li>
+                <li>Reference ranges (Min/Max) appear immediately after Result for easy comparison</li>
+                <li>Logical progression: Category → Test → Result → Min → Max → Unit → Price</li>
+                <li>Users can quickly see if results are within normal ranges</li>
+                <li>Improved clinical workflow for result interpretation</li>
             </ul>
         </div>
     </div>

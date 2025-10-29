@@ -56,6 +56,7 @@ The entry-list.php page has been completely rewritten to fix all existing issues
 - Status and priority badges
 - Responsive design for mobile devices
 - Export functionality (Excel, PDF, Print)
+- Streamlined interface without statistics cards for cleaner look
 
 ### 3. **Improved User Experience**
 - Loading states and progress indicators
@@ -74,7 +75,8 @@ The entry-list.php page has been completely rewritten to fix all existing issues
 - Category-based test filtering
 - Global category filter for bulk operations
 - Auto-population of category when test is selected
-- Unit column positioned after Result column for better workflow
+- Reference range columns (Min/Max) after Result for clinical validation
+- Unit column positioned after reference ranges for better workflow
 
 ## File Structure
 

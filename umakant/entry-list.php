@@ -40,68 +40,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
     <section class="content">
         <div class="container-fluid">
             
-            <!-- Statistics Cards -->
-            <div class="row mb-4">
-                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
-                    <div class="small-box bg-info">
-                        <div class="inner">
-                            <h3 id="totalEntries">-</h3>
-                            <p>Total Entries</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-clipboard-list"></i>
-                        </div>
-                        <a href="#" class="small-box-footer" onclick="filterByStatus('all')">
-                            More info <i class="fas fa-arrow-circle-right"></i>
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
-                    <div class="small-box bg-warning">
-                        <div class="inner">
-                            <h3 id="pendingEntries">-</h3>
-                            <p>Pending</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <a href="#" class="small-box-footer" onclick="filterByStatus('pending')">
-                            More info <i class="fas fa-arrow-circle-right"></i>
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
-                    <div class="small-box bg-success">
-                        <div class="inner">
-                            <h3 id="completedEntries">-</h3>
-                            <p>Completed</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <a href="#" class="small-box-footer" onclick="filterByStatus('completed')">
-                            More info <i class="fas fa-arrow-circle-right"></i>
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
-                    <div class="small-box bg-danger">
-                        <div class="inner">
-                            <h3 id="todayEntries">-</h3>
-                            <p>Today's Entries</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-calendar-day"></i>
-                        </div>
-                        <a href="#" class="small-box-footer" onclick="filterByDate('today')">
-                            More info <i class="fas fa-arrow-circle-right"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
+
 
             <!-- Main Card -->
             <div class="row">
@@ -287,7 +226,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                     <div class="form-group">
                         <label>Tests <span class="text-danger">*</span></label>
                         <div class="row mb-2">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <small class="text-muted">Test Category</small>
                             </div>
                             <div class="col-md-3">
@@ -296,7 +235,13 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                             <div class="col-md-2">
                                 <small class="text-muted">Result</small>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
+                                <small class="text-muted">Min</small>
+                            </div>
+                            <div class="col-md-1">
+                                <small class="text-muted">Max</small>
+                            </div>
+                            <div class="col-md-1">
                                 <small class="text-muted">Unit</small>
                             </div>
                             <div class="col-md-1">

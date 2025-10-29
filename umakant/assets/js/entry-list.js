@@ -22,7 +22,6 @@ $(document).ready(function () {
     initializeDataTable();
     loadInitialData();
     bindEvents();
-    loadStatistics();
 
     console.log('Entry List Management - Initialized successfully');
 });
@@ -400,34 +399,7 @@ function populateDoctorSelect() {
     }
 }
 
-/**
- * Load statistics for dashboard cards
- */
-async function loadStatistics() {
-    try {
-        const response = await $.ajax({
-            url: 'ajax/entry_api_fixed.php',
-            method: 'GET',
-            data: {
-                action: 'stats',
-                secret_key: 'hospital-api-secret-2024'
-            },
-            dataType: 'json'
-        });
 
-        if (response.success) {
-            const stats = response.data;
-            $('#totalEntries').text(stats.total || 0);
-            $('#pendingEntries').text(stats.pending || 0);
-            $('#completedEntries').text(stats.completed || 0);
-            $('#todayEntries').text(stats.today || 0);
-        } else {
-            console.error('Failed to load statistics:', response);
-        }
-    } catch (error) {
-        console.error('Error loading statistics:', error);
-    }
-}
 
 /**
  * Bind event handlers
@@ -502,19 +474,7 @@ function applyFilters() {
     entriesTable.search(globalSearch.trim()).draw();
 }
 
-/**
- * Filter by status (called from statistics cards)
- */
-function filterByStatus(status) {
-    $('#statusFilter').val(status === 'all' ? '' : status).trigger('change');
-}
 
-/**
- * Filter by date (called from statistics cards)
- */
-function filterByDate(dateRange) {
-    $('#dateFilter').val(dateRange).trigger('change');
-}
 
 /**
  * Refresh the entries table
@@ -522,7 +482,6 @@ function filterByDate(dateRange) {
 function refreshTable() {
     if (entriesTable) {
         entriesTable.ajax.reload();
-        loadStatistics();
         showSuccess('Table refreshed successfully');
     }
 }
@@ -636,12 +595,12 @@ function addTestRow(testData = null) {
     // Create test options (will be filtered by category)
     const testOptions = testsData.map(test => {
         const displayName = `${test.name} [ID: ${test.id}]`;
-        return `<option value="${test.id}" data-category-id="${test.category_id || ''}" data-price="${test.price || 0}" data-unit="${test.unit || ''}">${displayName}</option>`;
+        return `<option value="${test.id}" data-category-id="${test.category_id || ''}" data-price="${test.price || 0}" data-unit="${test.unit || ''}" data-min="${test.min || ''}" data-max="${test.max || ''}">${displayName}</option>`;
     }).join('');
 
     const rowHtml = `
         <div class="test-row row mb-2" data-row-index="${rowIndex}">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select class="form-control category-select" name="tests[${rowIndex}][category_id]">
                     <option value="">Select Category</option>
                     ${categoryOptions}
@@ -656,7 +615,13 @@ function addTestRow(testData = null) {
             <div class="col-md-2">
                 <input type="text" class="form-control test-result" name="tests[${rowIndex}][result_value]" placeholder="Result">
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
+                <input type="text" class="form-control test-min" name="tests[${rowIndex}][min]" placeholder="Min" readonly>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control test-max" name="tests[${rowIndex}][max]" placeholder="Max" readonly>
+            </div>
+            <div class="col-md-1">
                 <input type="text" class="form-control test-unit" name="tests[${rowIndex}][unit]" placeholder="Unit" readonly>
             </div>
             <div class="col-md-1">
@@ -692,6 +657,11 @@ function addTestRow(testData = null) {
         calculateTotals();
     });
 
+    // Bind result validation event
+    $newRow.find('.test-result').on('input blur', function () {
+        validateTestResult(this, $newRow);
+    });
+
     // If testData is provided, populate the row (EDIT MODE)
     if (testData) {
         console.log('Populating test row with data:', testData);
@@ -706,6 +676,8 @@ function addTestRow(testData = null) {
         $newRow.find('.test-result').val(testData.result_value || '');
         $newRow.find('.test-price').val(testData.price || 0);
         $newRow.find('.test-unit').val(testData.unit || '');
+        $newRow.find('.test-min').val(testData.min || '');
+        $newRow.find('.test-max').val(testData.max || '');
 
         // Trigger change to update unit and other fields
         $testSelect.trigger('change');
@@ -779,6 +751,8 @@ function onTestChange(selectElement, $row) {
         // Clear everything if no test selected
         $row.find('.test-price').val('');
         $row.find('.test-unit').val('');
+        $row.find('.test-min').val('');
+        $row.find('.test-max').val('');
         calculateTotals();
         return;
     }
@@ -795,6 +769,8 @@ function onTestChange(selectElement, $row) {
     // Set test details
     $row.find('.test-price').val(testData.price || 0);
     $row.find('.test-unit').val(testData.unit || '');
+    $row.find('.test-min').val(testData.min || '');
+    $row.find('.test-max').val(testData.max || '');
 
     // Auto-select category if not already selected
     const $categorySelect = $row.find('.category-select');
@@ -804,6 +780,28 @@ function onTestChange(selectElement, $row) {
 
     // Calculate totals
     calculateTotals();
+}
+
+/**
+ * Validate test result against min/max ranges
+ */
+function validateTestResult(resultInput, $row) {
+    const $resultInput = $(resultInput);
+    const resultValue = parseFloat($resultInput.val());
+    const minValue = parseFloat($row.find('.test-min').val());
+    const maxValue = parseFloat($row.find('.test-max').val());
+
+    // Clear previous validation classes
+    $resultInput.removeClass('result-normal result-abnormal');
+
+    // Only validate if we have numeric values for result and ranges
+    if (!isNaN(resultValue) && !isNaN(minValue) && !isNaN(maxValue)) {
+        if (resultValue >= minValue && resultValue <= maxValue) {
+            $resultInput.addClass('result-normal');
+        } else {
+            $resultInput.addClass('result-abnormal');
+        }
+    }
 }
 
 /**
@@ -860,6 +858,8 @@ async function saveEntry() {
                     test_id: testId,
                     category_id: $row.find('.category-select').val() || null,
                     result_value: $row.find('.test-result').val(),
+                    min: $row.find('.test-min').val(),
+                    max: $row.find('.test-max').val(),
                     price: parseFloat($row.find('.test-price').val()) || 0,
                     unit: $row.find('.test-unit').val()
                 });
@@ -967,11 +967,13 @@ function displayEntryDetails(entry) {
                 <td>${test.category_name || 'No Category'}</td>
                 <td>${test.test_name || 'Unknown Test'}</td>
                 <td>${test.result_value || 'Pending'}</td>
+                <td>${test.min || '-'}</td>
+                <td>${test.max || '-'}</td>
                 <td>${test.unit || '-'}</td>
                 <td>₹${parseFloat(test.price || 0).toFixed(2)}</td>
             </tr>
         `).join('')
-        : '<tr><td colspan="5" class="text-center text-muted">No tests found</td></tr>';
+        : '<tr><td colspan="7" class="text-center text-muted">No tests found</td></tr>';
 
     const detailsHtml = `
         <div class="row">
@@ -1005,6 +1007,8 @@ function displayEntryDetails(entry) {
                             <th>Category</th>
                             <th>Test Name</th>
                             <th>Result</th>
+                            <th>Min</th>
+                            <th>Max</th>
                             <th>Unit</th>
                             <th>Price</th>
                         </tr>
