@@ -5417,6 +5417,950 @@ class EntryManager {
         printWindow.document.close();
         printWindow.print();
     }
+
+    /**
+     * View entry details
+     */
+    viewEntry(entryId) {
+        console.log('Viewing entry:', entryId);
+        
+        // Show loading state
+        $('#entryDetails').html(`
+            <div class="text-center p-5">
+                <i class="fas fa-spinner fa-spin fa-3x text-muted"></i>
+                <p class="mt-3 text-muted">Loading entry details...</p>
+            </div>
+        `);
+        
+        // Show modal
+        $('#viewEntryModal').modal('show');
+        
+        // Load entry data
+        $.ajax({
+            url: 'ajax/entry_api_fixed.php',
+            method: 'GET',
+            data: { 
+                action: 'get', 
+                id: entryId,
+                secret_key: 'hospital-api-secret-2024'
+            },
+            dataType: 'json',
+            success: (response) => {
+                if (response.success && response.data) {
+                    this.displayEntryDetails(response.data);
+                } else {
+                    $('#entryDetails').html(`
+                        <div class="alert alert-danger">
+                            <h5>Error Loading Entry</h5>
+                            <p>${response.message || 'Failed to load entry details'}</p>
+                        </div>
+                    `);
+                }
+            },
+            error: (xhr, status, error) => {
+                console.error('Error loading entry:', error);
+                $('#entryDetails').html(`
+                    <div class="alert alert-danger">
+                        <h5>Error Loading Entry</h5>
+                        <p>Failed to load entry details. Please try again.</p>
+                    </div>
+                `);
+            }
+        });
+    }
+
+    /**
+     * Display entry details in the view modal
+     */
+    displayEntryDetails(entry) {
+        const html = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Basic Information</h5>
+                    <table class="table table-sm">
+                        <tr><th>Entry ID:</th><td>#${entry.id}</td></tr>
+                        <tr><th>Patient:</th><td>${entry.patient_name || 'N/A'}</td></tr>
+                        <tr><th>Doctor:</th><td>${entry.doctor_name || 'Not assigned'}</td></tr>
+                        <tr><th>Entry Date:</th><td>${entry.entry_date || 'N/A'}</td></tr>
+                        <tr><th>Status:</th><td><span class="badge badge-${entry.status === 'completed' ? 'success' : entry.status === 'pending' ? 'warning' : 'danger'}">${entry.status || 'pending'}</span></td></tr>
+                        <tr><th>Priority:</th><td><span class="badge badge-info">${entry.priority || 'normal'}</span></td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5>Financial Information</h5>
+                    <table class="table table-sm">
+                        <tr><th>Subtotal:</th><td>₹${parseFloat(entry.subtotal || 0).toFixed(2)}</td></tr>
+                        <tr><th>Discount:</th><td>₹${parseFloat(entry.discount_amount || 0).toFixed(2)}</td></tr>
+                        <tr><th>Total Amount:</th><td><strong>₹${parseFloat(entry.total_price || 0).toFixed(2)}</strong></td></tr>
+                        <tr><th>Added By:</th><td>${entry.added_by_full_name || entry.added_by_username || 'Unknown'}</td></tr>
+                    </table>
+                </div>
+            </div>
+            ${entry.tests && entry.tests.length > 0 ? `
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h5>Tests</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Test Name</th>
+                                    <th>Category</th>
+                                    <th>Result</th>
+                                    <th>Unit</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${entry.tests.map(test => `
+                                    <tr>
+                                        <td>${test.test_name || 'N/A'}</td>
+                                        <td><span class="badge badge-secondary">${test.category_name || 'No category'}</span></td>
+                                        <td>${test.result_value || 'Pending'}</td>
+                                        <td>${test.unit || 'N/A'}</td>
+                                        <td><span class="badge badge-${test.status === 'completed' ? 'success' : 'warning'}">${test.status || 'pending'}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            ` : '<div class="alert alert-info">No tests associated with this entry.</div>'}
+            ${entry.notes ? `
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h5>Notes</h5>
+                    <div class="alert alert-light">${entry.notes}</div>
+                </div>
+            </div>
+            ` : ''}
+        `;
+        
+        $('#entryDetails').html(html);
+    }
+
+    /**
+     * Edit entry
+     */
+    editEntry(entryId) {
+        console.log('Editing entry:', entryId);
+        
+        // Set current edit ID
+        this.currentEditId = entryId;
+        
+        // Show loading state in modal
+        toastr.info('Loading entry for editing...');
+        
+        // Load entry data
+        $.ajax({
+            url: 'ajax/entry_api_fixed.php',
+            method: 'GET',
+            data: { 
+                action: 'get', 
+                id: entryId,
+                secret_key: 'hospital-api-secret-2024'
+            },
+            dataType: 'json',
+            success: (response) => {
+                console.log('Edit entry response:', response);
+                if (response && response.success && response.data) {
+                    this.populateEditForm(response.data);
+                    $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
+                    $('#entryModal').modal('show');
+                    toastr.clear();
+                } else {
+                    console.error('Edit entry failed:', response);
+                    const errorMsg = response && response.message ? response.message : 'Failed to load entry for editing';
+                    toastr.error(errorMsg);
+                    this.currentEditId = null;
+                }
+            },
+            error: (xhr, status, error) => {
+                console.error('Error loading entry for edit:', {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    responseText: xhr.responseText,
+                    error: error
+                });
+                
+                let errorMessage = 'Failed to load entry for editing';
+                if (xhr.status === 404) {
+                    errorMessage = 'Entry not found';
+                } else if (xhr.status === 403) {
+                    errorMessage = 'Access denied';
+                } else if (xhr.status === 500) {
+                    errorMessage = 'Server error occurred';
+                } else if (xhr.status === 0) {
+                    errorMessage = 'Network connection failed';
+                }
+                
+                toastr.error(errorMessage);
+                this.currentEditId = null;
+            }
+        });
+    }
+
+    /**
+     * Populate edit form with entry data
+     */
+    populateEditForm(entry) {
+        console.log('Populating edit form with entry:', entry);
+        
+        try {
+            // Basic fields
+            $('#entryId').val(entry.id);
+            $('#entryDate').val(entry.entry_date);
+            
+            // Use Select2 trigger for dropdowns
+            if (entry.status) {
+                $('#entryStatus').val(entry.status).trigger('change');
+            }
+            if (entry.priority) {
+                $('#priority').val(entry.priority).trigger('change');
+            }
+            if (entry.referral_source) {
+                $('#referralSource').val(entry.referral_source).trigger('change');
+            }
+            
+            $('#entryNotes').val(entry.notes || '');
+            
+            // Financial fields
+            $('#subtotal').val(entry.subtotal || 0);
+            $('#discountAmount').val(entry.discount_amount || 0);
+            $('#totalPrice').val(entry.total_price || 0);
+            
+            // Patient information
+            $('#patientName').val(entry.patient_name || '');
+            $('#patientContact').val(entry.patient_contact || '');
+            $('#patientAge').val(entry.age || '');
+            if (entry.gender) {
+                $('#patientGender').val(entry.gender).trigger('change');
+            }
+            $('#patientAddress').val(entry.patient_address || '');
+            
+            // Owner/Added by - load options first if needed
+            if (entry.added_by) {
+                // Check if option exists, if not add it
+                if ($('#ownerAddedBySelect option[value="' + entry.added_by + '"]').length === 0) {
+                    const ownerName = entry.added_by_full_name || entry.added_by_username || 'User #' + entry.added_by;
+                    $('#ownerAddedBySelect').append(new Option(ownerName, entry.added_by, false, false));
+                }
+                $('#ownerAddedBySelect').val(entry.added_by).trigger('change');
+            }
+            
+            // Patient selection - load options first if needed
+            if (entry.patient_id) {
+                // Check if option exists, if not add it
+                if ($('#patientSelect option[value="' + entry.patient_id + '"]').length === 0) {
+                    const patientName = entry.patient_name || 'Patient #' + entry.patient_id;
+                    $('#patientSelect').append(new Option(patientName, entry.patient_id, false, false));
+                }
+                $('#patientSelect').val(entry.patient_id).trigger('change');
+            }
+            
+            // Doctor selection - load options first if needed
+            if (entry.doctor_id) {
+                // Check if option exists, if not add it
+                if ($('#doctorSelect option[value="' + entry.doctor_id + '"]').length === 0) {
+                    const doctorName = entry.doctor_name || 'Doctor #' + entry.doctor_id;
+                    $('#doctorSelect').append(new Option(doctorName, entry.doctor_id, false, false));
+                }
+                $('#doctorSelect').val(entry.doctor_id).trigger('change');
+            }
+            
+            // Clear existing test rows
+            $('#testsContainer').empty();
+            this.testRowCounter = 0;
+            
+            // Add test rows if tests exist
+            if (entry.tests && entry.tests.length > 0) {
+                console.log('Adding test rows:', entry.tests.length);
+                entry.tests.forEach((test, index) => {
+                    console.log('Adding test row', index, test);
+                    this.addTestRowWithData(test);
+                });
+            } else {
+                console.log('No tests found, adding empty test row');
+                // Add one empty test row
+                this.addTestRow();
+            }
+            
+            console.log('Edit form populated successfully');
+        } catch (error) {
+            console.error('Error populating edit form:', error);
+            toastr.error('Error populating form data');
+        }
+    }
+
+    /**
+     * Add test row with existing data
+     */
+    addTestRowWithData(testData = {}) {
+        const rowIndex = this.testRowCounter++;
+        console.log('Adding test row with data:', testData, 'Row index:', rowIndex);
+        
+        const testRow = `
+            <div class="test-row" data-row-index="${rowIndex}">
+                <div class="row">
+                    <div class="col-md-2">
+                        <select class="form-control test-category-select" name="test_category_${rowIndex}">
+                            <option value="">Select Category</option>
+                        </select>
+                        <input type="hidden" class="test-main-category-id" name="test_main_category_id_${rowIndex}">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-control test-select" name="test_id_${rowIndex}" required>
+                            <option value="">Select Test</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control test-result" name="test_result_${rowIndex}" 
+                               placeholder="Result" value="${testData.result_value || ''}">
+                        <small class="validation-indicator text-muted"></small>
+                    </div>
+                    <div class="col-md-1">
+                        <input type="number" class="form-control test-min-range" name="test_min_${rowIndex}" 
+                               placeholder="Min" step="0.01" readonly>
+                    </div>
+                    <div class="col-md-1">
+                        <input type="number" class="form-control test-max-range" name="test_max_${rowIndex}" 
+                               placeholder="Max" step="0.01" readonly>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="test-unit-container">
+                            <input type="text" class="form-control test-unit" name="test_unit_${rowIndex}" 
+                                   placeholder="Unit" value="${testData.unit || ''}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-danger btn-sm remove-test-row">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('#testsContainer').append(testRow);
+        
+        // Get the newly added row
+        const $row = $(`.test-row[data-row-index="${rowIndex}"]`);
+        
+        // Populate category dropdown if we have categories data
+        if (this.categoriesData && this.categoriesData.length > 0) {
+            const $categorySelect = $row.find('.test-category-select');
+            this.categoriesData.forEach(category => {
+                $categorySelect.append(new Option(category.name, category.id, false, false));
+            });
+        }
+        
+        // Populate test dropdown if we have tests data
+        if (this.testsData && this.testsData.length > 0) {
+            const $testSelect = $row.find('.test-select');
+            this.testsData.forEach(test => {
+                $testSelect.append(new Option(test.name, test.id, false, false));
+            });
+        }
+        
+        // Set the selections after populating dropdowns
+        if (testData.test_id) {
+            console.log('Setting test selection:', testData.test_id);
+            $row.find('.test-select').val(testData.test_id).trigger('change');
+        }
+        if (testData.category_id) {
+            console.log('Setting category selection:', testData.category_id);
+            $row.find('.test-category-select').val(testData.category_id).trigger('change');
+        }
+        
+        // Set range values if available
+        if (testData.min_range) {
+            $row.find('.test-min-range').val(testData.min_range);
+        }
+        if (testData.max_range) {
+            $row.find('.test-max-range').val(testData.max_range);
+        }
+        
+        // Bind remove event
+        $row.find('.remove-test-row').on('click', () => {
+            $row.remove();
+            this.updatePricing();
+        });
+        
+        console.log('Test row added successfully');
+    }
+
+    /**
+     * Delete entry
+     */
+    deleteEntry(entryId) {
+        console.log('Deleting entry:', entryId);
+        
+        // Show confirmation modal
+        $('#deleteModal').modal('show');
+        
+        // Bind confirm delete event
+        $('#confirmDelete').off('click').on('click', () => {
+            $.ajax({
+                url: 'ajax/entry_api_fixed.php',
+                method: 'POST',
+                data: { 
+                    action: 'delete', 
+                    id: entryId,
+                    secret_key: 'hospital-api-secret-2024'
+                },
+                dataType: 'json',
+                success: (response) => {
+                    if (response.success) {
+                        toastr.success('Entry deleted successfully');
+                        this.refreshTable();
+                        $('#deleteModal').modal('hide');
+                    } else {
+                        toastr.error(response.message || 'Failed to delete entry');
+                    }
+                },
+                error: (xhr, status, error) => {
+                    console.error('Error deleting entry:', error);
+                    toastr.error('Failed to delete entry');
+                }
+            });
+        });
+    }
+
+    /**
+     * Refresh the DataTable
+     */
+    refreshTable() {
+        if (this.entriesTable) {
+            this.entriesTable.ajax.reload();
+        }
+    }
+
+    /**
+     * Reset the form
+     */
+    resetForm() {
+        $('#entryForm')[0].reset();
+        $('#testsContainer').empty();
+        this.currentEditId = null;
+        this.testRowCounter = 0;
+    }
+
+    /**
+     * Add empty test row
+     */
+    addTestRow() {
+        this.addTestRowWithData({});
+    }
+
+    /**
+     * Update pricing calculations
+     */
+    updatePricing() {
+        // This would contain pricing calculation logic
+        // For now, just a placeholder
+        console.log('Updating pricing...');
+    }
+
+    /**
+     * Open add modal
+     */
+    openAddModal() {
+        this.currentEditId = null;
+        this.resetForm();
+        $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
+        $('#entryModal').modal('show');
+        this.addTestRow(); // Add one empty test row
+    }
+
+    /**
+     * Export entries
+     */
+    exportEntries() {
+        toastr.info('Export functionality will be implemented soon');
+    }
+
+    /**
+     * Filter by status
+     */
+    filterByStatus(status) {
+        $('#statusFilter').val(status === 'all' ? '' : status).trigger('change');
+    }
+
+    /**
+     * Filter by date
+     */
+    filterByDate(dateRange) {
+        $('#dateFilter').val(dateRange).trigger('change');
+    }
+
+    /**
+     * Load statistics
+     */
+    loadStatistics() {
+        // Placeholder for statistics loading
+        $('#totalEntries').text('Loading...');
+        $('#pendingEntries').text('Loading...');
+        $('#completedEntries').text('Loading...');
+        $('#todayEntries').text('Loading...');
+        
+        // This would load actual statistics from the API
+        setTimeout(() => {
+            $('#totalEntries').text('0');
+            $('#pendingEntries').text('0');
+            $('#completedEntries').text('0');
+            $('#todayEntries').text('0');
+        }, 1000);
+    }
+
+    /**
+     * Initialize the Entry Manager
+     */
+    init() {
+        console.log('Initializing Entry Manager...');
+
+        // Wait for DOM to be ready
+        $(document).ready(() => {
+            console.log('DOM ready, starting initialization...');
+            try {
+                // Add a small delay to ensure all libraries are loaded
+                setTimeout(() => {
+                    this.initializeDataTable();
+                    this.loadInitialData();
+                    this.loadStatistics();
+                    console.log('Entry Manager initialization complete');
+                }, 100);
+            } catch (error) {
+                console.error('Error during Entry Manager initialization:', error);
+            }
+        });
+    }
+
+    /**
+     * Load initial data (tests, categories, etc.)
+     */
+    async loadInitialData() {
+        console.log('Loading initial data...');
+
+        try {
+            // Load tests data
+            await this.loadTestsData();
+            
+            // Load categories data
+            await this.loadCategoriesData();
+            
+            console.log('Initial data loaded successfully');
+        } catch (error) {
+            console.error('Error loading initial data:', error);
+        }
+    }
+
+    /**
+     * Load tests data from API
+     */
+    async loadTestsData() {
+        try {
+            console.log('Loading tests data...');
+            const response = await $.ajax({
+                url: 'ajax/test_api.php',
+                method: 'GET',
+                data: { action: 'simple_list' },
+                dataType: 'json'
+            });
+
+            if (response && response.success) {
+                this.testsData = response.data || [];
+                console.log('Tests data loaded:', this.testsData.length, 'tests');
+            } else {
+                console.error('Failed to load tests:', response ? response.message : 'Invalid response');
+                this.testsData = [];
+            }
+        } catch (error) {
+            console.error('Error loading tests data:', error);
+            this.testsData = [];
+        }
+    }
+
+    /**
+     * Load categories data from API
+     */
+    async loadCategoriesData() {
+        try {
+            console.log('Loading categories data...');
+            const response = await $.ajax({
+                url: 'patho_api/test_category.php',
+                method: 'GET',
+                data: { 
+                    action: 'list',
+                    secret_key: 'hospital-api-secret-2024'
+                },
+                dataType: 'json'
+            });
+
+            if (response && response.success) {
+                this.categoriesData = response.data || [];
+                console.log('Categories data loaded:', this.categoriesData.length, 'categories');
+            } else {
+                console.error('Failed to load categories:', response ? response.message : 'Invalid response');
+                this.categoriesData = [];
+            }
+        } catch (error) {
+            console.error('Error loading categories data:', error);
+            this.categoriesData = [];
+        }
+    }
+
+    /**
+     * Initialize DataTable with proper configuration
+     */
+    initializeDataTable() {
+        console.log('Initializing DataTable...');
+
+        // Check if the table element exists
+        if ($('#entriesTable').length === 0) {
+            console.error('DataTable element #entriesTable not found');
+            return;
+        }
+
+        try {
+            // Add custom search functions for all filters
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                if (settings.nTable.id !== 'entriesTable') {
+                    return true;
+                }
+                
+                const rowData = settings.aoData[dataIndex]._aData;
+                
+                // Main Category Filter
+                const mainCategoryFilter = $('#mainCategoryFilter').val();
+                if (mainCategoryFilter) {
+                    const mainCategories = rowData.agg_main_test_categories || rowData.main_test_categories || '';
+                    if (!mainCategories || !mainCategories.toLowerCase().includes(mainCategoryFilter.toLowerCase())) {
+                        return false;
+                    }
+                }
+                
+                // Status Filter
+                const statusFilter = $('#statusFilter').val();
+                if (statusFilter) {
+                    const status = rowData.status || '';
+                    if (status.toLowerCase() !== statusFilter.toLowerCase()) {
+                        return false;
+                    }
+                }
+                
+                // Date Filter
+                const dateFilter = $('#dateFilter').val();
+                if (dateFilter) {
+                    const entryDate = new Date(rowData.entry_date);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    let showRow = false;
+                    switch (dateFilter) {
+                        case 'today':
+                            const todayEnd = new Date(today);
+                            todayEnd.setHours(23, 59, 59, 999);
+                            showRow = entryDate >= today && entryDate <= todayEnd;
+                            break;
+                        case 'yesterday':
+                            const yesterday = new Date(today);
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            const yesterdayEnd = new Date(yesterday);
+                            yesterdayEnd.setHours(23, 59, 59, 999);
+                            showRow = entryDate >= yesterday && entryDate <= yesterdayEnd;
+                            break;
+                        case 'this_week':
+                            const weekStart = new Date(today);
+                            weekStart.setDate(today.getDate() - today.getDay());
+                            showRow = entryDate >= weekStart;
+                            break;
+                        case 'this_month':
+                            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                            showRow = entryDate >= monthStart;
+                            break;
+                        default:
+                            showRow = true;
+                    }
+                    if (!showRow) {
+                        return false;
+                    }
+                }
+                
+                // Patient Filter
+                const patientFilter = $('#patientFilter').val();
+                if (patientFilter) {
+                    const patientName = rowData.patient_name || '';
+                    if (!patientName.toLowerCase().includes(patientFilter.toLowerCase())) {
+                        return false;
+                    }
+                }
+                
+                // Doctor Filter
+                const doctorFilter = $('#doctorFilter').val();
+                if (doctorFilter) {
+                    const doctorName = rowData.doctor_name || '';
+                    if (!doctorName.toLowerCase().includes(doctorFilter.toLowerCase())) {
+                        return false;
+                    }
+                }
+                
+                return true; // Show row if all filters pass
+            });
+
+            this.entriesTable = $('#entriesTable').DataTable({
+                processing: true,
+                serverSide: false,
+                ajax: {
+                    url: 'ajax/entry_api_fixed.php',
+                    type: 'GET',
+                    data: {
+                        action: 'list',
+                        secret_key: 'hospital-api-secret-2024'
+                    },
+                    dataSrc: function (json) {
+                        console.log('DataTable received data:', json);
+                        if (json && json.success) {
+                            return json.data || [];
+                        } else {
+                            console.error('API Error:', json ? json.message : 'Invalid response');
+                            return [];
+                        }
+                    },
+                    error: function (xhr, error, thrown) {
+                        console.error('DataTable AJAX Error:', {
+                            error: error,
+                            thrown: thrown,
+                            status: xhr.status,
+                            statusText: xhr.statusText,
+                            responseText: xhr.responseText
+                        });
+                    }
+                },
+                columns: [
+                    {
+                        data: 'id',
+                        title: 'ID',
+                        width: '4%'
+                    },
+                    {
+                        data: 'patient_name',
+                        title: 'Patient',
+                        width: '12%',
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                let html = `<strong>${data || 'N/A'}</strong>`;
+                                if (row.patient_contact) {
+                                    html += `<br><small class="text-muted">${row.patient_contact}</small>`;
+                                }
+                                return html;
+                            }
+                            return data || '';
+                        }
+                    },
+                    {
+                        data: 'doctor_name',
+                        title: 'Doctor',
+                        width: '10%',
+                        render: function (data, type, row) {
+                            return data || '<span class="text-muted">Not assigned</span>';
+                        }
+                    },
+                    {
+                        data: 'test_names',
+                        title: 'Tests',
+                        width: '14%',
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                const testCount = parseInt(row.tests_count) || 0;
+                                const testNames = data || '';
+
+                                if (testCount === 0) {
+                                    return '<span class="text-muted">No tests</span>';
+                                } else if (testCount === 1) {
+                                    return `<span class="badge badge-info">${testCount}</span> ${testNames}`;
+                                } else {
+                                    return `<span class="badge badge-primary">${testCount}</span> ${testNames}`;
+                                }
+                            }
+                            return data || '';
+                        }
+                    },
+                    {
+                        data: 'agg_test_categories',
+                        title: 'Test Category',
+                        width: '12%',
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                const categories = data || row.test_categories || '';
+                                if (!categories) {
+                                    return '<span class="text-muted">No category</span>';
+                                }
+
+                                // Handle multiple categories
+                                const categoryArray = categories.split(',').map(cat => cat.trim()).filter(cat => cat);
+                                const uniqueCategories = [...new Set(categoryArray)];
+
+                                if (uniqueCategories.length === 0) {
+                                    return '<span class="text-muted">No category</span>';
+                                } else if (uniqueCategories.length === 1) {
+                                    return `<span class="badge badge-secondary">${uniqueCategories[0]}</span>`;
+                                } else {
+                                    const displayText = uniqueCategories.slice(0, 2).join(', ');
+                                    const remainingCount = uniqueCategories.length - 2;
+                                    return `<span class="badge badge-secondary" title="${uniqueCategories.join(', ')}">${displayText}${remainingCount > 0 ? ` +${remainingCount}` : ''}</span>`;
+                                }
+                            }
+                            return data || '';
+                        }
+                    },
+                    {
+                        data: 'status',
+                        title: 'Status',
+                        width: '8%',
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                const status = data || 'pending';
+                                const badgeClass = {
+                                    'pending': 'badge-warning',
+                                    'completed': 'badge-success',
+                                    'cancelled': 'badge-danger'
+                                }[status] || 'badge-secondary';
+
+                                return `<span class="badge ${badgeClass}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+                            }
+                            return data || 'pending';
+                        }
+                    },
+                    {
+                        data: 'priority',
+                        title: 'Priority',
+                        width: '8%',
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                const priority = data || 'normal';
+                                const badgeClass = {
+                                    'emergency': 'badge-danger',
+                                    'urgent': 'badge-warning',
+                                    'normal': 'badge-info',
+                                    'routine': 'badge-secondary'
+                                }[priority] || 'badge-secondary';
+
+                                return `<span class="badge ${badgeClass}">${priority.charAt(0).toUpperCase() + priority.slice(1)}</span>`;
+                            }
+                            return data || 'normal';
+                        }
+                    },
+                    {
+                        data: 'total_price',
+                        title: 'Amount',
+                        width: '8%',
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                // Only show amount if there are tests
+                                if (row.tests_count && row.tests_count > 0) {
+                                    // Use total_price if available, otherwise calculate from subtotal
+                                    let amount = parseFloat(data) || 0;
+                                    if (amount === 0 && row.subtotal) {
+                                        amount = parseFloat(row.subtotal) || 0;
+                                        // Subtract discount if available
+                                        const discount = parseFloat(row.discount_amount) || 0;
+                                        amount = Math.max(amount - discount, 0);
+                                    }
+                                    return `₹${amount.toFixed(2)}`;
+                                } else {
+                                    // No tests, show ₹0.00
+                                    return `₹0.00`;
+                                }
+                            }
+                            return data || 0;
+                        }
+                    },
+                    {
+                        data: 'entry_date',
+                        title: 'Date',
+                        width: '8%',
+                        render: function (data, type, row) {
+                            if (type === 'display' && data) {
+                                const date = new Date(data);
+                                return date.toLocaleDateString('en-IN');
+                            }
+                            return data || '';
+                        }
+                    },
+                    {
+                        data: 'added_by_full_name',
+                        title: 'Added By',
+                        width: '8%',
+                        render: function (data, type, row) {
+                            return data || row.added_by_username || 'Unknown';
+                        }
+                    },
+                    {
+                        data: null,
+                        title: 'Actions',
+                        width: '8%',
+                        orderable: false,
+                        render: function (data, type, row) {
+                            if (type === 'display') {
+                                return `
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-info btn-sm" onclick="window.entryManager.viewEntry(${row.id})" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-warning btn-sm" onclick="window.entryManager.editEntry(${row.id})" title="Edit Entry">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="window.entryManager.deleteEntry(${row.id})" title="Delete Entry">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            `;
+                            }
+                            return '';
+                        }
+                    }
+                ],
+                order: [[0, 'desc']], // Order by ID descending (newest first)
+                pageLength: 25,
+                responsive: true,
+                dom: 'Bfrtip',
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 }, // ID
+                    { responsivePriority: 2, targets: 1 }, // Patient
+                    { responsivePriority: 3, targets: -1 }, // Actions
+                    { responsivePriority: 4, targets: 5 }, // Status
+                    { responsivePriority: 5, targets: 3 }  // Tests
+                ],
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        className: 'btn btn-success btn-sm'
+                    },
+                    {
+                        extend: 'pdf',
+                        text: '<i class="fas fa-file-pdf"></i> PDF',
+                        className: 'btn btn-danger btn-sm'
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print"></i> Print',
+                        className: 'btn btn-info btn-sm'
+                    }
+                ],
+                language: {
+                    processing: '<i class="fas fa-spinner fa-spin"></i> Loading entries...',
+                    emptyTable: 'No entries found',
+                    zeroRecords: 'No matching entries found'
+                }
+            });
+
+            console.log('DataTable initialized successfully');
+        } catch (error) {
+            console.error('Error initializing DataTable:', error);
+        }
+    }
 }
 
 // Initialize Entry Manager when page loads
