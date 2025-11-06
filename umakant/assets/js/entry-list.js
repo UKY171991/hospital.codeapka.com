@@ -373,6 +373,40 @@ window.autoDetectBestAPI = autoDetectBestAPI;
 window.testBothAPIs = testBothAPIs;
 window.smartSwitchAPI = smartSwitchAPI;
 
+// Debug functions for troubleshooting
+window.debugFormSubmission = function () {
+    console.log('=== FORM SUBMISSION DEBUG ===');
+    console.log('Form exists:', $('#entryForm').length > 0);
+    console.log('Form HTML:', $('#entryForm')[0]);
+    console.log('Submit button exists:', $('#entryForm button[type="submit"]').length > 0);
+    console.log('Current edit ID:', currentEditId);
+
+    // Try to trigger form submission
+    console.log('Attempting to trigger form submission...');
+    $('#entryForm').trigger('submit');
+};
+
+window.debugSaveEntry = function () {
+    console.log('=== SAVE ENTRY DEBUG ===');
+    try {
+        saveEntry();
+    } catch (error) {
+        console.error('Error calling saveEntry directly:', error);
+    }
+};
+
+window.testFormValidation = function () {
+    console.log('=== FORM VALIDATION DEBUG ===');
+    try {
+        const isValid = validateForm();
+        console.log('Validation result:', isValid);
+        return isValid;
+    } catch (error) {
+        console.error('Validation error:', error);
+        return false;
+    }
+};
+
 /**
  * Enhanced Network Connectivity and User Feedback System
  */
@@ -706,6 +740,34 @@ $(document).ready(function () {
     initializeDataTable();
     loadInitialData();
     bindEvents();
+
+    // Additional debugging for form submission
+    console.log('Checking if entryForm exists:', $('#entryForm').length);
+
+    // Add a backup event handler for the modal
+    $(document).on('shown.bs.modal', '#entryModal', function () {
+        console.log('Entry modal shown, rebinding form events...');
+        console.log('Form in modal:', $('#entryForm', this).length);
+
+        // Ensure form submission is bound
+        $('#entryForm').off('submit.backup').on('submit.backup', function (e) {
+            e.preventDefault();
+            console.log('Backup form submission handler triggered');
+            try {
+                saveEntry();
+            } catch (error) {
+                console.error('Error in backup form submission:', error);
+                showError('An error occurred while submitting the form. Please try again.');
+            }
+        });
+
+        // Also bind to button click as additional fallback
+        $('#entryForm button[type="submit"]').off('click.backup').on('click.backup', function (e) {
+            e.preventDefault();
+            console.log('Save button clicked - triggering form submission');
+            $('#entryForm').trigger('submit');
+        });
+    });
 
     console.log('Entry List Management - Initialized successfully');
 });
@@ -1441,7 +1503,21 @@ function bindEvents() {
     // Form submission
     $('#entryForm').on('submit', function (e) {
         e.preventDefault();
-        saveEntry();
+        console.log('Form submitted, calling saveEntry...');
+        console.log('Form data:', new FormData(this));
+        try {
+            saveEntry();
+        } catch (error) {
+            console.error('Error in form submission:', error);
+            showError('An error occurred while submitting the form. Please try again.');
+        }
+    });
+
+    // Also bind to the Save Entry button directly as a fallback
+    $(document).on('click', '#entryForm button[type="submit"]', function (e) {
+        e.preventDefault();
+        console.log('Save Entry button clicked directly');
+        $('#entryForm').submit();
     });
 
     // Discount amount change
@@ -2123,9 +2199,36 @@ async function saveEntry() {
     console.log('Saving entry...');
 
     try {
-        // Validate form
-        if (!validateForm()) {
-            return;
+        // Validate form with error handling
+        try {
+            if (!validateForm()) {
+                console.log('Form validation failed');
+                return;
+            }
+        } catch (validationError) {
+            console.error('Validation error:', validationError);
+
+            // Fallback validation - check basic required fields
+            const patientId = $('#patientSelect').val();
+            const entryDate = $('#entryDate').val();
+            const hasTests = $('#testsContainer .test-row .test-select').filter(function () {
+                return $(this).val() !== '';
+            }).length > 0;
+
+            if (!patientId) {
+                showError('Please select a patient.');
+                return;
+            }
+            if (!entryDate) {
+                showError('Please select an entry date.');
+                return;
+            }
+            if (!hasTests) {
+                showError('Please add at least one test.');
+                return;
+            }
+
+            console.log('Fallback validation passed, continuing with save...');
         }
 
         // Show loading state
@@ -2638,8 +2741,12 @@ $(document).ready(function () {
 function validateForm() {
     console.log('Validating form...');
 
-    // Clear previous validation states
-    clearValidationErrors();
+    try {
+        // Clear previous validation states
+        clearValidationErrors();
+    } catch (error) {
+        console.error('Error clearing validation errors:', error);
+    }
 
     const validationResult = {
         isValid: true,
