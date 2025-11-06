@@ -5017,4 +5017,120 @@ async function debugAPIResponse() {
 
 // Make functions available globally
 window.refreshTestAggregates = refreshTestAggregates;
-window.debugAPIResponse = debugAPIResponse;
+window.debugAPIResponse = debugAPIResponse;/
+**
+ * Diagnose test data issues
+ */
+async function diagnoseTestData() {
+    try {
+        console.log('=== DIAGNOSING TEST DATA ISSUES ===');
+        
+        const response = await $.ajax({
+            url: 'ajax/diagnose_test_data.php',
+            method: 'GET',
+            dataType: 'json'
+        });
+        
+        if (response.success) {
+            console.log('Diagnosis Results:', response.diagnosis);
+            
+            const d = response.diagnosis;
+            
+            console.log('Tables Status:');
+            Object.entries(d.tables || {}).forEach(([table, status]) => {
+                console.log(`  ${table}: ${status}`);
+            });
+            
+            console.log('Record Counts:');
+            Object.entries(d.counts || {}).forEach(([table, count]) => {
+                console.log(`  ${table}: ${count}`);
+            });
+            
+            if (d.entries_has) {
+                console.log('Entries table has test columns:');
+                Object.entries(d.entries_has).forEach(([col, has]) => {
+                    console.log(`  ${col}: ${has ? 'YES' : 'NO'}`);
+                });
+            }
+            
+            if (d.sample_entries) {
+                console.log('Sample entries:', d.sample_entries);
+            }
+            
+            if (d.sample_entry_tests) {
+                console.log('Sample entry_tests:', d.sample_entry_tests);
+            }
+            
+            // Show user-friendly message
+            let message = 'Diagnosis complete. Check browser console for details.';
+            
+            if (d.counts && d.counts.entries > 0 && d.counts.entry_tests === 0) {
+                message = 'Issue found: You have entries but no test data. Tests need to be added to entries.';
+            } else if (d.counts && d.counts.entries_with_tests === 0 && d.counts.entry_tests > 0) {
+                message = 'Issue found: Test data exists but entries are not properly aggregated. Try "Fix Tests" button.';
+            }
+            
+            showInfo(message);
+            
+        } else {
+            console.error('Diagnosis failed:', response.message);
+            showError('Diagnosis failed: ' + response.message);
+        }
+        
+    } catch (error) {
+        console.error('Error during diagnosis:', error);
+        showError('Failed to run diagnosis');
+    }
+}
+
+// Make function available globally
+window.diagnoseTestData = diagnoseTestData;/**
+ *
+ Add missing test columns to entries table
+ */
+async function addTestColumns() {
+    try {
+        if (!confirm('This will modify the database schema to add missing test columns. Continue?')) {
+            return;
+        }
+        
+        showInfo('Updating database schema, please wait...');
+        
+        const response = await $.ajax({
+            url: 'ajax/add_test_columns.php',
+            method: 'GET',
+            dataType: 'json',
+            timeout: 30000
+        });
+        
+        if (response.success) {
+            showSuccess(response.message);
+            
+            // Show detailed results
+            if (response.results && response.results.length > 0) {
+                console.log('Schema update results:', response.results);
+                
+                let message = '<strong>Schema Update Results:</strong><br>';
+                response.results.forEach(result => {
+                    message += '• ' + result + '<br>';
+                });
+                
+                showInfo(message);
+            }
+            
+            // Refresh the table to show updated data
+            if (entriesTable) {
+                entriesTable.ajax.reload(null, false);
+            }
+        } else {
+            showError(response.message || 'Failed to update database schema');
+        }
+        
+    } catch (error) {
+        console.error('Error updating schema:', error);
+        showError('Failed to update database schema. Please try again.');
+    }
+}
+
+// Make function available globally
+window.addTestColumns = addTestColumns;

@@ -65,6 +65,12 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                                     <button type="button" class="btn btn-warning btn-sm" onclick="refreshTestAggregates()">
                                         <i class="fas fa-tools"></i> Fix Tests
                                     </button>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="diagnoseTestData()">
+                                        <i class="fas fa-bug"></i> Diagnose
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="addTestColumns()">
+                                        <i class="fas fa-database"></i> Fix Schema
+                                    </button>
                                 </div>
                             </div>
                         </div>
