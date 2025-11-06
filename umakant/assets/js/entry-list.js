@@ -1604,6 +1604,12 @@ function resetForm() {
     // Clear global category filter
     $('#globalCategoryFilter').val('');
 
+    // Remove patient info card if it exists
+    $('#patientInfoCard').remove();
+
+    // Reset modal title
+    $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
+
     console.log('Form reset complete');
 }
 
@@ -2224,11 +2230,23 @@ async function saveEntry() {
         console.log('Server response:', response);
 
         // Handle successful response
-        let successMessage = response.message || 'Entry saved successfully';
+        let successMessage;
+        if (currentEditId) {
+            // Get patient name for better context
+            const patientName = $('#patientSelect option:selected').text() || 'Patient';
+            successMessage = `Entry updated successfully for ${patientName}`;
+        } else {
+            successMessage = response.message || 'Entry created successfully';
+        }
 
         // Add duplicate information if any were handled
         if (response.duplicates_skipped && response.duplicates_skipped > 0) {
             successMessage += ` (${response.duplicates_skipped} duplicate tests were automatically removed)`;
+        }
+
+        // Add test count information
+        if (response.tests_processed) {
+            successMessage += ` - ${response.tests_processed} tests processed`;
         }
 
         showSuccess(successMessage);
@@ -3212,6 +3230,11 @@ async function editEntry(id) {
             // Initialize Select2 first
             initializeSelect2();
 
+            // Add patient info card if available
+            if (response.data.patient_name) {
+                addPatientInfoCard(response.data);
+            }
+
             // Then populate the form
             setTimeout(() => {
                 populateEditForm(response.data);
@@ -3223,6 +3246,33 @@ async function editEntry(id) {
         hideLoadingIndicator();
         // Error message is already shown by makeAPIRequest
     }
+}
+
+/**
+ * Add patient information card to the modal for better context
+ */
+function addPatientInfoCard(entry) {
+    const patientInfoHtml = `
+        <div class="alert alert-info mb-3" id="patientInfoCard">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="mb-1"><i class="fas fa-user mr-1"></i>Patient Information</h6>
+                    <p class="mb-1"><strong>Name:</strong> ${entry.patient_name || 'N/A'}</p>
+                    <p class="mb-1"><strong>UHID:</strong> ${entry.patient_uhid || 'N/A'}</p>
+                    ${entry.patient_contact ? `<p class="mb-1"><strong>Contact:</strong> ${entry.patient_contact}</p>` : ''}
+                </div>
+                <div class="col-md-6">
+                    <h6 class="mb-1"><i class="fas fa-stethoscope mr-1"></i>Entry Details</h6>
+                    <p class="mb-1"><strong>Entry ID:</strong> #${entry.id}</p>
+                    <p class="mb-1"><strong>Doctor:</strong> ${entry.doctor_name || 'Not assigned'}</p>
+                    <p class="mb-1"><strong>Tests Count:</strong> ${entry.tests_count || 0}</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Insert after the hidden input field
+    $('#entryId').after(patientInfoHtml);
 }
 
 /**
@@ -3253,6 +3303,12 @@ function populateEditForm(entry) {
     $('#discountAmount').val(parseFloat(entry.discount_amount || 0).toFixed(2));
     $('#totalPrice').val(parseFloat(entry.total_price || 0).toFixed(2));
     $('#entryNotes').val(entry.notes || '');
+
+    // Show patient details in modal header for better context
+    if (entry.patient_name) {
+        const patientInfo = `${entry.patient_name}${entry.patient_uhid ? ` (${entry.patient_uhid})` : ''}`;
+        $('#entryModalLabel').html(`<i class="fas fa-edit mr-1"></i>Edit Entry - ${patientInfo}`);
+    }
 
     console.log('Entry tests data:', entry.tests);
 
@@ -3290,7 +3346,27 @@ function populateEditForm(entry) {
         addTestRow(); // Add at least one empty row
     }
 
+    // Add visual indicators for required fields
+    highlightRequiredFields();
+
     console.log('Edit form population completed');
+}
+
+/**
+ * Highlight required fields for better user experience
+ */
+function highlightRequiredFields() {
+    // Add visual indicators to required fields
+    $('label:contains("*")').addClass('text-danger font-weight-bold');
+
+    // Add tooltips to help users understand what's required
+    $('#patientSelect').attr('title', 'Patient selection is required');
+    $('#entryDate').attr('title', 'Entry date is required');
+
+    // Initialize tooltips if Bootstrap is available
+    if (typeof $().tooltip === 'function') {
+        $('[title]').tooltip();
+    }
 }
 
 /**
@@ -4496,3 +4572,211 @@ async function testBothAPIs() {
 }
 
 window.testBothAPIs = testBothAPIs;
+
+/**
+ * Enhanced Edit Entry with Confirmation for Important Changes
+ */
+function editEntryWithConfirmation(id) {
+    // For entries with completed status, show confirmation
+    const rowData = entriesTable.row(`[data-id="${id}"]`).data();
+
+    if (rowData && rowData.status === 'completed') {
+        if (!confirm('This entry is marked as completed. Are you sure you want to edit it?')) {
+            return;
+        }
+    }
+
+    editEntry(id);
+}
+
+/**
+ * Quick Edit Functions for Common Operations
+ */
+function quickEditStatus(id, newStatus) {
+    if (!confirm(`Change entry status to "${newStatus}"?`)) {
+        return;
+    }
+
+    makeAPIRequest({
+        action: 'save',
+        method: 'POST',
+        data: {
+            id: id,
+            status: newStatus
+        }
+    }).then(response => {
+        showSuccess(`Status updated to ${newStatus}`);
+        refreshTable();
+    }).catch(error => {
+        console.error('Error updating status:', error);
+    });
+}
+
+function quickEditPriority(id, newPriority) {
+    if (!confirm(`Change entry priority to "${newPriority}"?`)) {
+        return;
+    }
+
+    makeAPIRequest({
+        action: 'save',
+        method: 'POST',
+        data: {
+            id: id,
+            priority: newPriority
+        }
+    }).then(response => {
+        showSuccess(`Priority updated to ${newPriority}`);
+        refreshTable();
+    }).catch(error => {
+        console.error('Error updating priority:', error);
+    });
+}
+
+/**
+ * Keyboard Shortcuts for Edit Modal
+ */
+function setupEditKeyboardShortcuts() {
+    $(document).on('keydown', function (e) {
+        // Only when modal is open
+        if ($('#entryModal').hasClass('show')) {
+            // Ctrl+S to save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                $('#entryForm').submit();
+            }
+
+            // Escape to close (if not already handled by Bootstrap)
+            if (e.key === 'Escape' && !e.ctrlKey && !e.altKey) {
+                $('#entryModal').modal('hide');
+            }
+
+            // Ctrl+T to add new test row
+            if (e.ctrlKey && e.key === 't') {
+                e.preventDefault();
+                addTestRow();
+            }
+        }
+    });
+}
+
+// Initialize keyboard shortcuts when document is ready
+$(document).ready(function () {
+    setupEditKeyboardShortcuts();
+});
+
+/**
+ * Auto-save draft functionality for long forms
+ */
+let autoSaveDraftTimer;
+let draftSaveKey = 'entry_draft_';
+
+function enableAutoSaveDraft() {
+    // Clear existing timer
+    if (autoSaveDraftTimer) {
+        clearInterval(autoSaveDraftTimer);
+    }
+
+    // Auto-save every 30 seconds
+    autoSaveDraftTimer = setInterval(() => {
+        if ($('#entryModal').hasClass('show')) {
+            saveDraft();
+        }
+    }, 30000);
+}
+
+function saveDraft() {
+    try {
+        const formData = new FormData($('#entryForm')[0]);
+        const draftData = {};
+
+        // Convert FormData to object
+        for (let [key, value] of formData.entries()) {
+            draftData[key] = value;
+        }
+
+        // Add tests data
+        const tests = [];
+        $('#testsContainer .test-row').each(function () {
+            const $row = $(this);
+            const testId = $row.find('.test-select').val();
+            if (testId) {
+                tests.push({
+                    test_id: testId,
+                    category_id: $row.find('.category-select').val(),
+                    result_value: $row.find('.test-result').val(),
+                    price: $row.find('.test-price').val()
+                });
+            }
+        });
+
+        draftData.tests = tests;
+        draftData.timestamp = Date.now();
+
+        // Save to localStorage
+        const key = draftSaveKey + (currentEditId || 'new');
+        localStorage.setItem(key, JSON.stringify(draftData));
+
+        console.log('Draft saved automatically');
+    } catch (error) {
+        console.error('Error saving draft:', error);
+    }
+}
+
+function loadDraft() {
+    try {
+        const key = draftSaveKey + (currentEditId || 'new');
+        const draftData = localStorage.getItem(key);
+
+        if (draftData) {
+            const data = JSON.parse(draftData);
+            const draftAge = Date.now() - data.timestamp;
+
+            // Only load drafts less than 1 hour old
+            if (draftAge < 3600000) {
+                if (confirm('A draft was found for this entry. Would you like to load it?')) {
+                    // Load the draft data
+                    Object.keys(data).forEach(key => {
+                        if (key !== 'tests' && key !== 'timestamp') {
+                            const $field = $(`[name="${key}"]`);
+                            if ($field.length) {
+                                $field.val(data[key]);
+                            }
+                        }
+                    });
+
+                    // Load tests
+                    if (data.tests && data.tests.length > 0) {
+                        $('#testsContainer').empty();
+                        testRowCounter = 0;
+
+                        data.tests.forEach(test => {
+                            addTestRow(test);
+                        });
+                    }
+
+                    showInfo('Draft loaded successfully');
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading draft:', error);
+    }
+}
+
+function clearDraft() {
+    try {
+        const key = draftSaveKey + (currentEditId || 'new');
+        localStorage.removeItem(key);
+        console.log('Draft cleared');
+    } catch (error) {
+        console.error('Error clearing draft:', error);
+    }
+}
+
+// Make functions available globally
+window.editEntryWithConfirmation = editEntryWithConfirmation;
+window.quickEditStatus = quickEditStatus;
+window.quickEditPriority = quickEditPriority;
+window.saveDraft = saveDraft;
+window.loadDraft = loadDraft;
+window.clearDraft = clearDraft;

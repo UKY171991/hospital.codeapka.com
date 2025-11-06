@@ -530,3 +530,117 @@
     color: #28a745;
     font-size: 0.875rem;
 }
+/* E
+nhanced Edit Modal Styles */
+.modal-xl {
+    max-width: 95%;
+}
+
+#patientInfoCard {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 1px solid #2196f3;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+#patientInfoCard h6 {
+    color: #1976d2;
+    font-weight: 600;
+}
+
+#patientInfoCard p {
+    color: #424242;
+    font-size: 0.9rem;
+}
+
+/* Required field indicators */
+.text-danger.font-weight-bold {
+    font-size: 0.9rem;
+}
+
+/* Test row styling */
+.test-row {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.test-row:hover {
+    background: #e9ecef;
+    border-color: #007bff;
+}
+
+/* Form validation styles */
+.form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-control.is-valid {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Button enhancements */
+.btn-group .btn {
+    border-radius: 4px;
+    margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+/* Loading indicator */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .modal-xl {
+        max-width: 98%;
+        margin: 10px;
+    }
+    
+    #patientInfoCard .row {
+        flex-direction: column;
+    }
+    
+    .test-row .col-md-1,
+    .test-row .col-md-2,
+    .test-row .col-md-3 {
+        margin-bottom: 10px;
+    }
+}
+
+/* Tooltip styling */
+.tooltip {
+    font-size: 0.8rem;
+}
+
+.tooltip-inner {
+    background-color: #333;
+    color: white;
+    border-radius: 4px;
+    padding: 5px 10px;
+}
