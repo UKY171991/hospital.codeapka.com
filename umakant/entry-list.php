@@ -418,4 +418,4 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
     const currentUserDisplayName = <?php echo json_encode($currentUserDisplayName); ?>;
     const currentUserRole = <?php echo json_encode($currentUserRole); ?>;
 </script>
-<script src="assets/js/entry-list.js?v=<?php echo time(); ?>"></script>
+<script src="assets/js/entry-list-minimal.js?v=<?php echo time(); ?>"></script>

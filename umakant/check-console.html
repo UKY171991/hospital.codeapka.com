@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Console Check</title>
+    <script>
+        console.log('=== CONSOLE CHECK START ===');
+        
+        // Check if we can access the page
+        console.log('Page loaded successfully');
+        
+        // Test basic JavaScript
+        try {
+            const testVar = 'test';
+            console.log('Basic JavaScript works:', testVar);
+        } catch (error) {
+            console.error('Basic JavaScript error:', error);
+        }
+        
+        // Test regex
+        try {
+            const regex = /test/g;
+            console.log('Regex test works:', regex);
+        } catch (error) {
+            console.error('Regex error:', error);
+        }
+        
+        // Test template literals
+        try {
+            const template = `Template literal test`;
+            console.log('Template literal works:', template);
+        } catch (error) {
+            console.error('Template literal error:', error);
+        }
+        
+        console.log('=== CONSOLE CHECK END ===');
+    </script>
+</head>
+<body>
+    <h1>Console Check</h1>
+    <p>Check the browser console for results.</p>
+</body>
+</html>

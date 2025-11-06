@@ -4937,146 +4937,146 @@ window.saveDraft = saveDraft;
 window.loadDraft = loadDraft;
 window.clearDraft = clearDraft;
 /
-**
+    **
  * Refresh test aggregates for all entries
- */
+    */
 async function refreshTestAggregates() {
-    try {
-        showInfo('Refreshing test aggregates, please wait...');
-        
-        const response = await $.ajax({
-            url: 'ajax/refresh_test_aggregates.php',
-            method: 'GET',
-            dataType: 'json',
-            timeout: 30000
-        });
-        
-        if (response.success) {
-            showSuccess(response.message);
-            
-            // Show statistics if available
-            if (response.stats) {
-                const stats = response.stats;
-                const message = `
+        try {
+            showInfo('Refreshing test aggregates, please wait...');
+
+            const response = await $.ajax({
+                url: 'ajax/refresh_test_aggregates.php',
+                method: 'GET',
+                dataType: 'json',
+                timeout: 30000
+            });
+
+            if (response.success) {
+                showSuccess(response.message);
+
+                // Show statistics if available
+                if (response.stats) {
+                    const stats = response.stats;
+                    const message = `
                     <strong>Refresh Complete:</strong><br>
                     • Total Entries: ${stats.total_entries}<br>
                     • Entries with Tests: ${stats.entries_with_tests}<br>
                     • Total Test Records: ${stats.total_entry_tests}<br>
                     • Updated Entries: ${stats.updated_entries}
                 `;
-                
-                showInfo(message);
+
+                    showInfo(message);
+                }
+
+                // Refresh the table to show updated data
+                if (entriesTable) {
+                    entriesTable.ajax.reload(null, false);
+                }
+            } else {
+                showError(response.message || 'Failed to refresh test aggregates');
             }
-            
-            // Refresh the table to show updated data
-            if (entriesTable) {
-                entriesTable.ajax.reload(null, false);
-            }
-        } else {
-            showError(response.message || 'Failed to refresh test aggregates');
+
+        } catch (error) {
+            console.error('Error refreshing test aggregates:', error);
+            showError('Failed to refresh test aggregates. Please try again.');
         }
-        
-    } catch (error) {
-        console.error('Error refreshing test aggregates:', error);
-        showError('Failed to refresh test aggregates. Please try again.');
     }
-}
 
 /**
  * Debug function to check API response
  */
 async function debugAPIResponse() {
-    try {
-        console.log('=== DEBUG: Checking API Response ===');
-        
-        const response = await $.ajax({
-            url: API_CONFIG.getURL(),
-            method: 'GET',
-            data: { action: 'list' },
-            dataType: 'json'
-        });
-        
-        console.log('API Response:', response);
-        
-        if (response && response.data && response.data.length > 0) {
-            const firstEntry = response.data[0];
-            console.log('First entry data:', firstEntry);
-            console.log('Test fields:', {
-                tests_count: firstEntry.tests_count,
-                test_names: firstEntry.test_names,
-                test_ids: firstEntry.test_ids,
-                agg_tests_count: firstEntry.agg_tests_count,
-                agg_test_names: firstEntry.agg_test_names
+        try {
+            console.log('=== DEBUG: Checking API Response ===');
+
+            const response = await $.ajax({
+                url: API_CONFIG.getURL(),
+                method: 'GET',
+                data: { action: 'list' },
+                dataType: 'json'
             });
+
+            console.log('API Response:', response);
+
+            if (response && response.data && response.data.length > 0) {
+                const firstEntry = response.data[0];
+                console.log('First entry data:', firstEntry);
+                console.log('Test fields:', {
+                    tests_count: firstEntry.tests_count,
+                    test_names: firstEntry.test_names,
+                    test_ids: firstEntry.test_ids,
+                    agg_tests_count: firstEntry.agg_tests_count,
+                    agg_test_names: firstEntry.agg_test_names
+                });
+            }
+
+        } catch (error) {
+            console.error('Debug API error:', error);
         }
-        
-    } catch (error) {
-        console.error('Debug API error:', error);
     }
-}
 
 // Make functions available globally
 window.refreshTestAggregates = refreshTestAggregates;
 window.debugAPIResponse = debugAPIResponse;/
-**
+    **
  * Diagnose test data issues
- */
+    */
 async function diagnoseTestData() {
     try {
         console.log('=== DIAGNOSING TEST DATA ISSUES ===');
-        
+
         const response = await $.ajax({
             url: 'ajax/diagnose_test_data.php',
             method: 'GET',
             dataType: 'json'
         });
-        
+
         if (response.success) {
             console.log('Diagnosis Results:', response.diagnosis);
-            
+
             const d = response.diagnosis;
-            
+
             console.log('Tables Status:');
             Object.entries(d.tables || {}).forEach(([table, status]) => {
                 console.log(`  ${table}: ${status}`);
             });
-            
+
             console.log('Record Counts:');
             Object.entries(d.counts || {}).forEach(([table, count]) => {
                 console.log(`  ${table}: ${count}`);
             });
-            
+
             if (d.entries_has) {
                 console.log('Entries table has test columns:');
                 Object.entries(d.entries_has).forEach(([col, has]) => {
                     console.log(`  ${col}: ${has ? 'YES' : 'NO'}`);
                 });
             }
-            
+
             if (d.sample_entries) {
                 console.log('Sample entries:', d.sample_entries);
             }
-            
+
             if (d.sample_entry_tests) {
                 console.log('Sample entry_tests:', d.sample_entry_tests);
             }
-            
+
             // Show user-friendly message
             let message = 'Diagnosis complete. Check browser console for details.';
-            
+
             if (d.counts && d.counts.entries > 0 && d.counts.entry_tests === 0) {
                 message = 'Issue found: You have entries but no test data. Tests need to be added to entries.';
             } else if (d.counts && d.counts.entries_with_tests === 0 && d.counts.entry_tests > 0) {
                 message = 'Issue found: Test data exists but entries are not properly aggregated. Try "Fix Tests" button.';
             }
-            
+
             showInfo(message);
-            
+
         } else {
             console.error('Diagnosis failed:', response.message);
             showError('Diagnosis failed: ' + response.message);
         }
-        
+
     } catch (error) {
         console.error('Error during diagnosis:', error);
         showError('Failed to run diagnosis');
@@ -5093,31 +5093,31 @@ async function addTestColumns() {
         if (!confirm('This will modify the database schema to add missing test columns. Continue?')) {
             return;
         }
-        
+
         showInfo('Updating database schema, please wait...');
-        
+
         const response = await $.ajax({
             url: 'ajax/add_test_columns.php',
             method: 'GET',
             dataType: 'json',
             timeout: 30000
         });
-        
+
         if (response.success) {
             showSuccess(response.message);
-            
+
             // Show detailed results
             if (response.results && response.results.length > 0) {
                 console.log('Schema update results:', response.results);
-                
+
                 let message = '<strong>Schema Update Results:</strong><br>';
                 response.results.forEach(result => {
                     message += '• ' + result + '<br>';
                 });
-                
+
                 showInfo(message);
             }
-            
+
             // Refresh the table to show updated data
             if (entriesTable) {
                 entriesTable.ajax.reload(null, false);
@@ -5125,7 +5125,7 @@ async function addTestColumns() {
         } else {
             showError(response.message || 'Failed to update database schema');
         }
-        
+
     } catch (error) {
         console.error('Error updating schema:', error);
         showError('Failed to update database schema. Please try again.');
@@ -5134,3 +5134,1416 @@ async function addTestColumns() {
 
 // Make function available globally
 window.addTestColumns = addTestColumns;
+/
+    **
+ * Missing functions that are referenced in the HTML but not defined
+    */
+
+/**
+ * Refresh test aggregates - Fix test data issues
+ */
+function refreshTestAggregates() {
+    console.log('Refreshing test aggregates...');
+
+    if (confirm('This will refresh test aggregates and may take some time. Continue?')) {
+        showInfo('Refreshing test aggregates...');
+
+        $.ajax({
+            url: 'ajax/refresh_test_aggregates.php',
+            method: 'POST',
+            data: { action: 'refresh' },
+            dataType: 'json',
+            success: function (response) {
+                if (response && response.success) {
+                    showSuccess(response.message || 'Test aggregates refreshed successfully');
+                    refreshTable();
+                } else {
+                    showError(response ? response.message : 'Failed to refresh test aggregates');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error refreshing test aggregates:', error);
+                showError('Failed to refresh test aggregates. Please try again.');
+            }
+        });
+    }
+}
+
+/**
+ * Diagnose test data - Debug test data issues
+ */
+function diagnoseTestData() {
+    console.log('Diagnosing test data...');
+
+    showInfo('Running test data diagnostics...');
+
+    $.ajax({
+        url: 'ajax/diagnose_test_data.php',
+        method: 'GET',
+        data: { action: 'diagnose' },
+        dataType: 'json',
+        success: function (response) {
+            if (response && response.success) {
+                console.log('Diagnostic results:', response.data);
+
+                let message = 'Diagnostic Results:\n';
+                if (response.data) {
+                    Object.entries(response.data).forEach(([key, value]) => {
+                        message += `${key}: ${value}\n`;
+                    });
+                }
+
+                alert(message);
+                showSuccess('Diagnostics completed');
+            } else {
+                showError(response ? response.message : 'Failed to run diagnostics');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Error running diagnostics:', error);
+            showError('Failed to run diagnostics. Please try again.');
+        }
+    });
+}
+
+/**
+ * Add test columns - Fix database schema issues
+ */
+function addTestColumns() {
+    console.log('Adding test columns...');
+
+    if (confirm('This will modify the database schema. This action cannot be undone. Continue?')) {
+        showInfo('Adding missing test columns...');
+
+        $.ajax({
+            url: 'ajax/add_test_columns.php',
+            method: 'POST',
+            data: { action: 'add_columns' },
+            dataType: 'json',
+            success: function (response) {
+                if (response && response.success) {
+                    showSuccess(response.message || 'Test columns added successfully');
+                    refreshTable();
+                } else {
+                    showError(response ? response.message : 'Failed to add test columns');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error adding test columns:', error);
+                showError('Failed to add test columns. Please try again.');
+            }
+        });
+    }
+}
+
+/**
+ * Show warning message
+ */
+function showWarning(message) {
+    if (typeof toastr !== 'undefined') {
+        toastr.warning(message);
+    } else if (typeof userFeedback !== 'undefined') {
+        userFeedback.showMessage(message, 'warning');
+    } else {
+        alert('Warning: ' + message);
+    }
+}
+
+/**
+ * Show loading indicator
+ */
+function showLoadingIndicator(message = 'Loading...') {
+    // Remove existing loading indicator
+    $('.loading-indicator').remove();
+
+    const loadingHtml = `
+        <div class="loading-indicator" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+            <div style="background: white; padding: 20px; border-radius: 8px; text-align: center;">
+                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                <div>${message}</div>
+            </div>
+        </div>
+    `;
+
+    $('body').append(loadingHtml);
+}
+
+/**
+ * Hide loading indicator
+ */
+function hideLoadingIndicator() {
+    $('.loading-indicator').remove();
+}
+
+/**
+ * Cache management functions
+ */
+function cacheData(key, data) {
+    try {
+        const cacheKey = `hospital_${key}`;
+        const cacheData = {
+            data: data,
+            timestamp: Date.now(),
+            expires: Date.now() + (30 * 60 * 1000) // 30 minutes
+        };
+        localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+        console.log(`Cached ${key} data:`, data.length, 'items');
+    } catch (error) {
+        console.warn('Failed to cache data:', error);
+    }
+}
+
+function getCachedData(key) {
+    try {
+        const cacheKey = `hospital_${key}`;
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+            const cacheData = JSON.parse(cached);
+            if (cacheData.expires > Date.now()) {
+                console.log(`Using cached ${key} data:`, cacheData.data.length, 'items');
+                return cacheData.data;
+            } else {
+                localStorage.removeItem(cacheKey);
+                console.log(`Cache expired for ${key}`);
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to get cached data:', error);
+    }
+    return null;
+}
+
+async function loadFromCache() {
+    console.log('Attempting to load data from cache...');
+
+    const cachedTests = getCachedData('tests');
+    const cachedCategories = getCachedData('categories');
+    const cachedPatients = getCachedData('patients');
+    const cachedDoctors = getCachedData('doctors');
+
+    let loaded = false;
+
+    if (cachedTests && cachedTests.length > 0) {
+        testsData = cachedTests;
+        loaded = true;
+    }
+
+    if (cachedCategories && cachedCategories.length > 0) {
+        categoriesData = cachedCategories;
+        loaded = true;
+    }
+
+    if (cachedPatients && cachedPatients.length > 0) {
+        patientsData = cachedPatients;
+        populatePatientSelect();
+    }
+
+    if (cachedDoctors && cachedDoctors.length > 0) {
+        doctorsData = cachedDoctors;
+        populateDoctorSelect();
+    }
+
+    if (loaded) {
+        console.log('Successfully loaded data from cache');
+        return true;
+    }
+
+    console.log('No usable cached data found');
+    return false;
+}
+
+/**
+ * Refresh all dropdowns
+ */
+function refreshAllDropdowns() {
+    console.log('Refreshing all dropdowns...');
+
+    // Refresh patient and doctor dropdowns
+    populatePatientSelect();
+    populateDoctorSelect();
+    populateGlobalCategoryFilter();
+
+    // Refresh Select2 instances
+    $('.select2').each(function () {
+        if ($(this).hasClass('select2-hidden-accessible')) {
+            $(this).trigger('change');
+        }
+    });
+
+    console.log('All dropdowns refreshed');
+}
+
+/**
+ * API switching functions for debugging
+ */
+function switchAPI() {
+    API_CONFIG.useNewAPI = !API_CONFIG.useNewAPI;
+    const apiName = API_CONFIG.useNewAPI ? 'New API (patho_api/entry.php)' : 'Old API (ajax/entry_api_fixed.php)';
+    showInfo(`Switched to ${apiName}`);
+    console.log('API switched to:', API_CONFIG.getURL());
+}
+
+async function autoDetectBestAPI() {
+    showInfo('Testing API endpoints...');
+
+    const newAPIAvailable = await API_CONFIG.isAvailable(API_CONFIG.endpoints.new);
+    const oldAPIAvailable = await API_CONFIG.isAvailable(API_CONFIG.endpoints.old);
+
+    console.log('API availability:', { new: newAPIAvailable, old: oldAPIAvailable });
+
+    if (newAPIAvailable) {
+        API_CONFIG.useNewAPI = true;
+        showSuccess('Using New API (patho_api/entry.php)');
+    } else if (oldAPIAvailable) {
+        API_CONFIG.useNewAPI = false;
+        showSuccess('Using Old API (ajax/entry_api_fixed.php)');
+    } else {
+        showError('No API endpoints are available');
+    }
+}
+
+async function testBothAPIs() {
+    showInfo('Testing both API endpoints...');
+
+    const results = {
+        new: await API_CONFIG.isAvailable(API_CONFIG.endpoints.new),
+        old: await API_CONFIG.isAvailable(API_CONFIG.endpoints.old)
+    };
+
+    console.log('API test results:', results);
+
+    let message = 'API Test Results:\n';
+    message += `New API (${API_CONFIG.endpoints.new}): ${results.new ? 'Available' : 'Not Available'}\n`;
+    message += `Old API (${API_CONFIG.endpoints.old}): ${results.old ? 'Available' : 'Not Available'}`;
+
+    alert(message);
+}
+
+async function smartSwitchAPI() {
+    const currentAPI = API_CONFIG.getURL();
+    const isCurrentAvailable = await API_CONFIG.isAvailable();
+
+    if (!isCurrentAvailable) {
+        console.log('Current API not available, switching...');
+        API_CONFIG.useNewAPI = !API_CONFIG.useNewAPI;
+
+        const newAPI = API_CONFIG.getURL();
+        const isNewAvailable = await API_CONFIG.isAvailable();
+
+        if (isNewAvailable) {
+            showSuccess(`Switched to ${API_CONFIG.useNewAPI ? 'New' : 'Old'} API`);
+        } else {
+            // Switch back
+            API_CONFIG.useNewAPI = !API_CONFIG.useNewAPI;
+            showError('No working API endpoint found');
+        }
+    } else {
+        showInfo('Current API is working fine');
+    }
+}
+
+// Make functions available globally for debugging
+window.refreshTestAggregates = refreshTestAggregates;
+window.diagnoseTestData = diagnoseTestData;
+window.addTestColumns = addTestColumns;
+window.showWarning = showWarning;
+window.showLoadingIndicator = showLoadingIndicator;
+window.hideLoadingIndicator = hideLoadingIndicator;
+window.cacheData = cacheData;
+window.getCachedData = getCachedData;
+window.loadFromCache = loadFromCache;
+window.refreshAllDropdowns = refreshAllDropdowns;
+
+console.log('Missing functions have been added to entry-list.js');/**
+
+ * Additional missing validation and utility functions
+ */
+
+/**
+ * Enhanced form validation with comprehensive error handling
+ */
+function validateForm() {
+    console.log('Validating form...');
+
+    try {
+        // Clear previous validation errors
+        clearValidationErrors();
+
+        const validationResult = {
+            isValid: true,
+            errors: [],
+            warnings: [],
+            fieldErrors: {}
+        };
+
+        // 1. Validate patient selection
+        const patientId = $('#patientSelect').val();
+        console.log('Patient ID:', patientId);
+
+        if (!patientId || patientId === '') {
+            validationResult.isValid = false;
+            validationResult.errors.push('Please select a patient');
+            validationResult.fieldErrors.patient_id = 'Patient selection is required';
+            markFieldAsInvalid('#patientSelect', 'Patient selection is required');
+        } else {
+            markFieldAsValid('#patientSelect');
+        }
+
+        // 2. Validate entry date
+        const entryDate = $('#entryDate').val();
+        console.log('Entry Date:', entryDate);
+
+        if (!entryDate || entryDate === '') {
+            validationResult.isValid = false;
+            validationResult.errors.push('Please select an entry date');
+            validationResult.fieldErrors.entry_date = 'Entry date is required';
+            markFieldAsInvalid('#entryDate', 'Entry date is required');
+        } else {
+            const dateValidation = validateEntryDate(entryDate);
+            if (!dateValidation.valid) {
+                validationResult.isValid = false;
+                validationResult.errors.push(dateValidation.message);
+                validationResult.fieldErrors.entry_date = dateValidation.message;
+                markFieldAsInvalid('#entryDate', dateValidation.message);
+            } else {
+                markFieldAsValid('#entryDate');
+                if (dateValidation.warning) {
+                    validationResult.warnings.push(dateValidation.warning);
+                }
+            }
+        }
+
+        // 3. Validate doctor selection (optional but warn if missing)
+        const doctorId = $('#doctorSelect').val();
+        if (!doctorId || doctorId === '') {
+            validationResult.warnings.push('No doctor assigned to this entry');
+        }
+
+        // 4. Validate test rows
+        const testRows = $('#testsContainer .test-row');
+        console.log('Number of test rows:', testRows.length);
+
+        const validTests = [];
+        const testValidationErrors = [];
+
+        testRows.each(function (index) {
+            const $row = $(this);
+            const testId = $row.find('.test-select').val();
+            const rowNumber = index + 1;
+
+            if (testId && testId !== '') {
+                const testValidation = validateTestRow($row, rowNumber);
+                if (testValidation.valid) {
+                    validTests.push({
+                        testId: testId,
+                        testName: $row.find('.test-select option:selected').text(),
+                        price: parseFloat($row.find('.test-price').val()) || 0
+                    });
+                } else {
+                    testValidationErrors.push(...testValidation.errors);
+                    validationResult.isValid = false;
+                }
+            }
+        });
+
+        // Check if at least one test is selected
+        if (validTests.length === 0) {
+            validationResult.isValid = false;
+            validationResult.errors.push('Please add at least one test');
+            validationResult.fieldErrors.tests = 'At least one test must be selected';
+            showTestContainerError('At least one test must be selected');
+        } else {
+            clearTestContainerError();
+        }
+
+        // Add test-specific errors
+        if (testValidationErrors.length > 0) {
+            validationResult.errors.push(...testValidationErrors);
+        }
+
+        // 5. Check for duplicate tests
+        const duplicateCheck = validateUniqueTests();
+        if (!duplicateCheck.valid) {
+            validationResult.isValid = false;
+            validationResult.errors.push(duplicateCheck.message);
+            validationResult.fieldErrors.duplicate_tests = duplicateCheck.message;
+
+            // Scroll to first duplicate
+            if (duplicateCheck.duplicates.length > 0) {
+                duplicateCheck.duplicates[0].$row[0].scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+
+        // 6. Validate pricing calculations
+        const pricingValidation = validatePricing();
+        if (!pricingValidation.valid) {
+            validationResult.isValid = false;
+            validationResult.errors.push(...pricingValidation.errors);
+            Object.assign(validationResult.fieldErrors, pricingValidation.fieldErrors);
+        }
+
+        // 7. Display validation results
+        if (!validationResult.isValid) {
+            displayValidationErrors(validationResult);
+            console.log('Form validation failed:', validationResult);
+            return false;
+        }
+
+        // Show warnings if any
+        if (validationResult.warnings.length > 0) {
+            showWarning(validationResult.warnings.join('<br>'));
+        }
+
+        console.log('Form validation passed');
+        return true;
+    } catch (error) {
+        console.error('Error in validateForm:', error);
+        showError('Form validation error. Please check your inputs and try again.');
+        return false;
+    }
+}
+
+/**
+ * Validate individual test row
+ */
+function validateTestRow($row, rowNumber) {
+    const result = {
+        valid: true,
+        errors: []
+    };
+
+    const testId = $row.find('.test-select').val();
+    const testName = $row.find('.test-select option:selected').text();
+
+    // Clear previous row validation state
+    $row.removeClass('invalid-test-row');
+
+    if (!testId || testId === '') {
+        result.valid = false;
+        result.errors.push(`Test selection is required in row ${rowNumber}`);
+        $row.addClass('invalid-test-row');
+        return result;
+    }
+
+    // Validate test exists in available tests
+    const testExists = testsData.find(t => t.id == testId);
+    if (!testExists) {
+        result.valid = false;
+        result.errors.push(`Test "${testName}" in row ${rowNumber} is no longer available`);
+        $row.addClass('invalid-test-row');
+        return result;
+    }
+
+    // Validate pricing
+    const price = parseFloat($row.find('.test-price').val());
+    if (isNaN(price) || price < 0) {
+        result.valid = false;
+        result.errors.push(`Invalid price for test "${testName}" in row ${rowNumber}`);
+        markFieldAsInvalid($row.find('.test-price'), 'Price must be a positive number');
+    } else {
+        markFieldAsValid($row.find('.test-price'));
+    }
+
+    // Validate test result if entered
+    const resultValue = $row.find('.test-result').val();
+    if (resultValue && resultValue.trim() !== '') {
+        const resultValidation = validateTestResultValue(resultValue, $row);
+        if (!resultValidation.valid) {
+            // Don't fail validation for result issues, just show warning
+            console.warn(`Test result validation warning for row ${rowNumber}:`, resultValidation.message);
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Validate entry date
+ */
+function validateEntryDate(dateString) {
+    const result = {
+        valid: true,
+        message: '',
+        warning: ''
+    };
+
+    try {
+        const entryDate = new Date(dateString);
+        const today = new Date();
+        const maxFutureDate = new Date();
+        maxFutureDate.setDate(today.getDate() + 30); // Allow up to 30 days in future
+
+        const minPastDate = new Date();
+        minPastDate.setFullYear(today.getFullYear() - 1); // Allow up to 1 year in past
+
+        // Check if date is valid
+        if (isNaN(entryDate.getTime())) {
+            result.valid = false;
+            result.message = 'Please enter a valid date';
+            return result;
+        }
+
+        // Check if date is too far in the past
+        if (entryDate < minPastDate) {
+            result.valid = false;
+            result.message = 'Entry date cannot be more than 1 year in the past';
+            return result;
+        }
+
+        // Check if date is too far in the future
+        if (entryDate > maxFutureDate) {
+            result.valid = false;
+            result.message = 'Entry date cannot be more than 30 days in the future';
+            return result;
+        }
+
+        // Warn if date is in the future
+        if (entryDate > today) {
+            result.warning = 'Entry date is in the future';
+        }
+
+        // Warn if date is more than 7 days old
+        const weekAgo = new Date();
+        weekAgo.setDate(today.getDate() - 7);
+        if (entryDate < weekAgo) {
+            result.warning = 'Entry date is more than a week old';
+        }
+
+    } catch (error) {
+        result.valid = false;
+        result.message = 'Invalid date format';
+    }
+
+    return result;
+}
+
+/**
+ * Validate pricing calculations
+ */
+function validatePricing() {
+    const result = {
+        valid: true,
+        errors: [],
+        fieldErrors: {}
+    };
+
+    // Calculate expected totals
+    let calculatedSubtotal = 0;
+    $('#testsContainer .test-price').each(function () {
+        const price = parseFloat($(this).val()) || 0;
+        calculatedSubtotal += price;
+    });
+
+    const discount = parseFloat($('#discountAmount').val()) || 0;
+    const calculatedTotal = Math.max(calculatedSubtotal - discount, 0);
+
+    // Validate discount
+    if (discount < 0) {
+        result.valid = false;
+        result.errors.push('Discount amount cannot be negative');
+        result.fieldErrors.discount_amount = 'Discount cannot be negative';
+        markFieldAsInvalid('#discountAmount', 'Discount cannot be negative');
+    } else if (discount > calculatedSubtotal) {
+        result.valid = false;
+        result.errors.push('Discount amount cannot exceed subtotal');
+        result.fieldErrors.discount_amount = 'Discount cannot exceed subtotal';
+        markFieldAsInvalid('#discountAmount', 'Discount cannot exceed subtotal');
+    } else {
+        markFieldAsValid('#discountAmount');
+    }
+
+    // Validate subtotal matches calculation
+    const displayedSubtotal = parseFloat($('#subtotal').val()) || 0;
+    if (Math.abs(displayedSubtotal - calculatedSubtotal) > 0.01) {
+        console.warn('Subtotal mismatch detected, recalculating...');
+        calculateTotals(); // Auto-fix the calculation
+    }
+
+    // Validate total
+    const displayedTotal = parseFloat($('#totalPrice').val()) || 0;
+    if (displayedTotal < 0) {
+        result.valid = false;
+        result.errors.push('Total amount cannot be negative');
+        result.fieldErrors.total_price = 'Total cannot be negative';
+    }
+
+    return result;
+}
+
+/**
+ * Mark field as invalid with error message
+ */
+function markFieldAsInvalid($field, message) {
+    $field.addClass('is-invalid').removeClass('is-valid');
+
+    // Remove existing feedback
+    $field.siblings('.invalid-feedback').remove();
+
+    // Add error message
+    if (message) {
+        $field.after(`<div class="invalid-feedback">${message}</div>`);
+    }
+}
+
+/**
+ * Mark field as valid
+ */
+function markFieldAsValid($field) {
+    $field.addClass('is-valid').removeClass('is-invalid');
+    $field.siblings('.invalid-feedback').remove();
+}
+
+/**
+ * Clear all validation errors
+ */
+function clearValidationErrors() {
+    $('.is-invalid').removeClass('is-invalid');
+    $('.is-valid').removeClass('is-valid');
+    $('.invalid-feedback').remove();
+    $('.invalid-test-row').removeClass('invalid-test-row');
+    $('.duplicate-test-row').removeClass('duplicate-test-row');
+    clearTestContainerError();
+}
+
+/**
+ * Show error for test container
+ */
+function showTestContainerError(message) {
+    const $container = $('#testsContainer');
+    $container.addClass('has-error');
+
+    // Remove existing error message
+    $container.siblings('.test-container-error').remove();
+
+    // Add error message
+    $container.after(`<div class="test-container-error alert alert-danger mt-2">${message}</div>`);
+}
+
+/**
+ * Clear test container error
+ */
+function clearTestContainerError() {
+    $('#testsContainer').removeClass('has-error');
+    $('.test-container-error').remove();
+}
+
+/**
+ * Display comprehensive validation errors
+ */
+function displayValidationErrors(validationResult) {
+    if (validationResult.errors.length > 0) {
+        const errorMessage = validationResult.errors.join('<br>');
+        showError(errorMessage);
+    }
+
+    // Log field-specific errors for debugging
+    if (Object.keys(validationResult.fieldErrors).length > 0) {
+        console.error('Field validation errors:', validationResult.fieldErrors);
+    }
+}
+
+/**
+ * Real-time validation for form fields
+ */
+function setupRealTimeValidation() {
+    // Patient selection validation
+    $('#patientSelect').on('change', function () {
+        if ($(this).val()) {
+            markFieldAsValid($(this));
+        } else {
+            markFieldAsInvalid($(this), 'Patient selection is required');
+        }
+    });
+
+    // Entry date validation
+    $('#entryDate').on('change blur', function () {
+        const dateValue = $(this).val();
+        if (!dateValue) {
+            markFieldAsInvalid($(this), 'Entry date is required');
+        } else {
+            const dateValidation = validateEntryDate(dateValue);
+            if (dateValidation.valid) {
+                markFieldAsValid($(this));
+                if (dateValidation.warning) {
+                    showWarning(dateValidation.warning);
+                }
+            } else {
+                markFieldAsInvalid($(this), dateValidation.message);
+            }
+        }
+    });
+
+    // Discount validation
+    $('#discountAmount').on('input blur', function () {
+        const discount = parseFloat($(this).val()) || 0;
+        const subtotal = parseFloat($('#subtotal').val()) || 0;
+
+        if (discount < 0) {
+            markFieldAsInvalid($(this), 'Discount cannot be negative');
+        } else if (discount > subtotal) {
+            markFieldAsInvalid($(this), 'Discount cannot exceed subtotal');
+        } else {
+            markFieldAsValid($(this));
+            calculateTotals(); // Recalculate totals
+        }
+    });
+}
+
+/**
+ * Validate test result value (used by validateTestRow)
+ */
+function validateTestResultValue(resultValue, $row) {
+    const result = {
+        valid: true,
+        message: '',
+        warning: ''
+    };
+
+    // If no result value, it's valid (results are optional)
+    if (!resultValue || resultValue.trim() === '') {
+        return result;
+    }
+
+    const trimmedValue = resultValue.trim();
+
+    // Check if it's a numeric result
+    const numericValue = parseFloat(trimmedValue);
+    if (!isNaN(numericValue)) {
+        // Validate against min/max ranges if available
+        const minValue = parseFloat($row.find('.test-min').val());
+        const maxValue = parseFloat($row.find('.test-max').val());
+
+        if (!isNaN(minValue) && !isNaN(maxValue)) {
+            if (numericValue < minValue) {
+                result.warning = `Result ${numericValue} is below normal range (${minValue}-${maxValue})`;
+            } else if (numericValue > maxValue) {
+                result.warning = `Result ${numericValue} is above normal range (${minValue}-${maxValue})`;
+            }
+        }
+    } else {
+        // Non-numeric result - validate basic format
+        if (trimmedValue.length > 100) {
+            result.valid = false;
+            result.message = 'Result value is too long (maximum 100 characters)';
+        } else if (trimmedValue.length < 1) {
+            result.valid = false;
+            result.message = 'Result value cannot be empty';
+        }
+    }
+
+    return result;
+}
+
+// Make validation functions available globally
+window.validateForm = validateForm;
+window.validateTestRow = validateTestRow;
+window.validateEntryDate = validateEntryDate;
+window.validatePricing = validatePricing;
+window.markFieldAsInvalid = markFieldAsInvalid;
+window.markFieldAsValid = markFieldAsValid;
+window.clearValidationErrors = clearValidationErrors;
+window.setupRealTimeValidation = setupRealTimeValidation;
+
+console.log('Validation functions have been added to entry-list.js');/
+    **
+ * Add CSS for validation and styling
+    */
+function addValidationCSS() {
+        if (!$('#validationCSS').length) {
+            const css = `
+            <style id="validationCSS">
+                /* Duplicate test styling */
+                .duplicate-test-row {
+                    background-color: #fff3cd !important;
+                    border: 2px solid #ffc107 !important;
+                    border-radius: 4px;
+                    animation: duplicateWarning 1s ease-in-out;
+                }
+                
+                .duplicate-test-row .test-select {
+                    border-color: #ffc107 !important;
+                    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
+                }
+                
+                /* Invalid test row styling */
+                .invalid-test-row {
+                    background-color: #f8d7da !important;
+                    border: 2px solid #dc3545 !important;
+                    border-radius: 4px;
+                }
+                
+                /* Test container error styling */
+                .has-error {
+                    border: 2px solid #dc3545;
+                    border-radius: 4px;
+                    padding: 10px;
+                }
+                
+                /* Result validation styling */
+                .result-normal {
+                    background-color: #d4edda !important;
+                    border-color: #28a745 !important;
+                }
+                
+                .result-abnormal {
+                    background-color: #f8d7da !important;
+                    border-color: #dc3545 !important;
+                }
+                
+                /* Loading indicator */
+                .loading-indicator {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.5);
+                    z-index: 9999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .loading-content {
+                    background: white;
+                    padding: 20px;
+                    border-radius: 8px;
+                    text-align: center;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                }
+                
+                /* Animation for duplicate warning */
+                @keyframes duplicateWarning {
+                    0% { background-color: #fff3cd; }
+                    50% { background-color: #ffeaa7; }
+                    100% { background-color: #fff3cd; }
+                }
+                
+                /* DataTable responsive fixes */
+                .table-responsive {
+                    overflow-x: auto;
+                }
+                
+                #entriesTable {
+                    width: 100% !important;
+                }
+                
+                /* Modal fixes */
+                .modal-xl {
+                    max-width: 95%;
+                }
+                
+                /* Form validation styling */
+                .is-invalid {
+                    border-color: #dc3545;
+                    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+                }
+                
+                .is-valid {
+                    border-color: #28a745;
+                    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+                }
+                
+                .invalid-feedback {
+                    display: block;
+                    width: 100%;
+                    margin-top: 0.25rem;
+                    font-size: 0.875em;
+                    color: #dc3545;
+                }
+            </style>
+        `;
+            $('head').append(css);
+            console.log('Validation CSS added');
+        }
+    }
+
+// Initialize CSS when document is ready
+$(document).ready(function () {
+    addValidationCSS();
+});
+
+/**
+ * Enhanced error handling for DataTable
+ */
+function handleDataTableError(xhr, error, thrown) {
+    console.error('DataTable AJAX error details:', {
+        status: xhr.status,
+        statusText: xhr.statusText,
+        responseText: xhr.responseText,
+        error: error,
+        thrown: thrown
+    });
+
+    let errorMessage = 'Failed to load entries. ';
+
+    if (xhr.status === 0) {
+        errorMessage += 'Network connection error.';
+    } else if (xhr.status === 404) {
+        errorMessage += 'API endpoint not found.';
+    } else if (xhr.status === 500) {
+        errorMessage += 'Server error.';
+    } else if (xhr.status === 403) {
+        errorMessage += 'Access denied.';
+    } else {
+        errorMessage += `Server returned ${xhr.status}: ${xhr.statusText}`;
+    }
+
+    showError(errorMessage + ' Please refresh the page or contact support.');
+}
+
+/**
+ * Enhanced DataTable initialization with better error handling
+ */
+function initializeDataTableEnhanced() {
+    console.log('Initializing enhanced DataTable...');
+
+    try {
+        // Destroy existing table if it exists
+        if ($.fn.DataTable.isDataTable('#entriesTable')) {
+            $('#entriesTable').DataTable().destroy();
+        }
+
+        entriesTable = $('#entriesTable').DataTable({
+            processing: true,
+            serverSide: false,
+            ajax: {
+                url: API_CONFIG.getURL(),
+                type: 'GET',
+                data: function () {
+                    const data = { action: 'list' };
+                    const secretKey = API_CONFIG.getSecretKey();
+                    if (secretKey) {
+                        data.secret_key = secretKey;
+                    }
+                    return data;
+                },
+                dataSrc: function (json) {
+                    console.log('DataTable response received:', json);
+
+                    if (!json) {
+                        console.error('No response received from server');
+                        showError('No response from server. Please check your connection.');
+                        return [];
+                    }
+
+                    if (json.success === false) {
+                        console.error('API returned error:', json.message);
+                        showError(json.message || 'Failed to load entries');
+                        return [];
+                    }
+
+                    if (json.success && json.data) {
+                        console.log(`Loaded ${json.data.length} entries successfully`);
+                        return json.data;
+                    }
+
+                    // Fallback: try to use the response directly if it's an array
+                    if (Array.isArray(json)) {
+                        console.log(`Loaded ${json.length} entries (direct array)`);
+                        return json;
+                    }
+
+                    console.warn('Unexpected response format:', json);
+                    showWarning('Unexpected data format received from server');
+                    return [];
+                },
+                error: handleDataTableError
+            },
+            columns: [
+                {
+                    data: 'id',
+                    title: 'ID',
+                    width: '5%',
+                    render: function (data, type, row) {
+                        return data || 'N/A';
+                    }
+                },
+                {
+                    data: 'patient_name',
+                    title: 'Patient',
+                    width: '15%',
+                    render: function (data, type, row) {
+                        if (type === 'display') {
+                            let html = `<strong>${data || 'N/A'}</strong>`;
+                            if (row.patient_contact) {
+                                html += `<br><small class="text-muted">${row.patient_contact}</small>`;
+                            }
+                            if (row.patient_uhid) {
+                                html += `<br><small class="text-info">UHID: ${row.patient_uhid}</small>`;
+                            }
+                            return html;
+                        }
+                        return data || '';
+                    }
+                },
+                {
+                    data: 'doctor_name',
+                    title: 'Doctor',
+                    width: '12%',
+                    render: function (data, type, row) {
+                        return data || '<span class="text-muted">Not assigned</span>';
+                    }
+                },
+                {
+                    data: 'test_names',
+                    title: 'Tests',
+                    width: '20%',
+                    render: function (data, type, row) {
+                        if (type === 'display') {
+                            const testCount = parseInt(row.tests_count) || 0;
+                            const testNames = data || '';
+
+                            if (testCount === 0) {
+                                return '<span class="text-muted">No tests</span>';
+                            } else if (testCount === 1) {
+                                return `<span class="badge badge-info">${testCount}</span> ${testNames}`;
+                            } else {
+                                const shortNames = testNames.length > 50 ? testNames.substring(0, 50) + '...' : testNames;
+                                return `<span class="badge badge-primary">${testCount}</span> ${shortNames}`;
+                            }
+                        }
+                        return data || '';
+                    }
+                },
+                {
+                    data: 'status',
+                    title: 'Status',
+                    width: '10%',
+                    render: function (data, type, row) {
+                        if (type === 'display') {
+                            const status = data || 'pending';
+                            const badgeClass = {
+                                'pending': 'badge-warning',
+                                'completed': 'badge-success',
+                                'cancelled': 'badge-danger'
+                            }[status] || 'badge-secondary';
+
+                            return `<span class="badge ${badgeClass}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+                        }
+                        return data || 'pending';
+                    }
+                },
+                {
+                    data: 'priority',
+                    title: 'Priority',
+                    width: '8%',
+                    render: function (data, type, row) {
+                        if (type === 'display') {
+                            const priority = data || 'normal';
+                            const badgeClass = {
+                                'emergency': 'badge-danger',
+                                'urgent': 'badge-warning',
+                                'normal': 'badge-info',
+                                'routine': 'badge-secondary'
+                            }[priority] || 'badge-secondary';
+
+                            return `<span class="badge ${badgeClass}">${priority.charAt(0).toUpperCase() + priority.slice(1)}</span>`;
+                        }
+                        return data || 'normal';
+                    }
+                },
+                {
+                    data: 'total_price',
+                    title: 'Amount',
+                    width: '10%',
+                    render: function (data, type, row) {
+                        if (type === 'display') {
+                            const amount = parseFloat(data) || 0;
+                            return `₹${amount.toFixed(2)}`;
+                        }
+                        return data || 0;
+                    }
+                },
+                {
+                    data: 'entry_date',
+                    title: 'Date',
+                    width: '10%',
+                    render: function (data, type, row) {
+                        if (type === 'display' && data) {
+                            try {
+                                const date = new Date(data);
+                                return date.toLocaleDateString('en-IN');
+                            } catch (error) {
+                                return data;
+                            }
+                        }
+                        return data || '';
+                    }
+                },
+                {
+                    data: null,
+                    title: 'Actions',
+                    width: '10%',
+                    orderable: false,
+                    render: function (data, type, row) {
+                        if (type === 'display') {
+                            const id = row.id || 'unknown';
+                            return `
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-info btn-sm" onclick="viewEntry(${id})" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-warning btn-sm" onclick="editEntry(${id})" title="Edit Entry">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="deleteEntry(${id})" title="Delete Entry">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                        }
+                        return '';
+                    }
+                }
+            ],
+            order: [[0, 'desc']], // Order by ID descending (newest first)
+            pageLength: 25,
+            responsive: true,
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excel',
+                    text: '<i class="fas fa-file-excel"></i> Excel',
+                    className: 'btn btn-success btn-sm'
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="fas fa-file-pdf"></i> PDF',
+                    className: 'btn btn-danger btn-sm'
+                },
+                {
+                    extend: 'print',
+                    text: '<i class="fas fa-print"></i> Print',
+                    className: 'btn btn-info btn-sm'
+                }
+            ],
+            language: {
+                processing: '<i class="fas fa-spinner fa-spin"></i> Loading entries...',
+                emptyTable: 'No entries found. Click "Add Entry" to create your first entry.',
+                zeroRecords: 'No matching entries found. Try adjusting your filters.',
+                loadingRecords: 'Loading entries...',
+                info: 'Showing _START_ to _END_ of _TOTAL_ entries',
+                infoEmpty: 'No entries available',
+                infoFiltered: '(filtered from _MAX_ total entries)'
+            },
+            drawCallback: function (settings) {
+                console.log('DataTable draw completed. Rows:', settings.fnRecordsDisplay());
+            },
+            initComplete: function (settings, json) {
+                console.log('DataTable initialization completed');
+                console.log('Initial data:', json);
+            }
+        });
+
+        console.log('Enhanced DataTable initialized successfully');
+        return true;
+    } catch (error) {
+        console.error('Failed to initialize enhanced DataTable:', error);
+        showError('Failed to initialize data table. Please refresh the page.');
+        return false;
+    }
+}
+
+// Replace the original DataTable initialization
+window.initializeDataTable = initializeDataTableEnhanced;
+
+console.log('Enhanced DataTable functions added');/**
+ 
+* Fallback initialization and error recovery
+ */
+
+// Add a fallback initialization function
+function initializeFallback() {
+    console.log('Running fallback initialization...');
+
+    // Check if jQuery is loaded
+    if (typeof $ === 'undefined') {
+        console.error('jQuery is not loaded!');
+        alert('jQuery is required but not loaded. Please refresh the page.');
+        return;
+    }
+
+    // Check if DataTables is loaded
+    if (typeof $.fn.DataTable === 'undefined') {
+        console.error('DataTables is not loaded!');
+        alert('DataTables is required but not loaded. Please refresh the page.');
+        return;
+    }
+
+    // Initialize basic DataTable if the enhanced one fails
+    try {
+        if (!entriesTable || !$.fn.DataTable.isDataTable('#entriesTable')) {
+            console.log('Initializing basic DataTable as fallback...');
+
+            entriesTable = $('#entriesTable').DataTable({
+                processing: true,
+                ajax: {
+                    url: 'patho_api/entry.php?action=list',
+                    dataSrc: function (json) {
+                        console.log('Fallback DataTable response:', json);
+                        if (json && json.data) {
+                            return json.data;
+                        }
+                        return [];
+                    },
+                    error: function (xhr, error, thrown) {
+                        console.error('Fallback DataTable error:', error);
+                        $('#entriesTable tbody').html('<tr><td colspan="9" class="text-center text-danger">Failed to load data. Please refresh the page.</td></tr>');
+                    }
+                },
+                columns: [
+                    { data: 'id', defaultContent: 'N/A' },
+                    { data: 'patient_name', defaultContent: 'N/A' },
+                    { data: 'doctor_name', defaultContent: 'Not assigned' },
+                    { data: 'test_names', defaultContent: 'No tests' },
+                    { data: 'status', defaultContent: 'pending' },
+                    { data: 'priority', defaultContent: 'normal' },
+                    { data: 'total_price', defaultContent: '0.00' },
+                    { data: 'entry_date', defaultContent: 'N/A' },
+                    {
+                        data: null,
+                        orderable: false,
+                        defaultContent: '<span class="text-muted">No actions</span>',
+                        render: function (data, type, row) {
+                            if (row && row.id) {
+                                return `
+                                    <button class="btn btn-sm btn-info" onclick="alert('View entry ${row.id}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                `;
+                            }
+                            return '<span class="text-muted">No actions</span>';
+                        }
+                    }
+                ],
+                language: {
+                    processing: 'Loading entries...',
+                    emptyTable: 'No entries found',
+                    zeroRecords: 'No matching entries found'
+                },
+                pageLength: 25,
+                responsive: true
+            });
+
+            console.log('Fallback DataTable initialized successfully');
+        }
+    } catch (error) {
+        console.error('Fallback DataTable initialization failed:', error);
+        $('#entriesTable tbody').html('<tr><td colspan="9" class="text-center text-danger">Failed to initialize table. Please refresh the page.</td></tr>');
+    }
+}
+
+// Add error recovery for missing functions
+function addErrorRecovery() {
+    // Add missing global functions as no-ops to prevent console errors
+    const missingFunctions = [
+        'refreshTestAggregates',
+        'diagnoseTestData',
+        'addTestColumns',
+        'openAddModal',
+        'exportEntries',
+        'refreshTable',
+        'viewEntry',
+        'editEntry',
+        'deleteEntry'
+    ];
+
+    missingFunctions.forEach(funcName => {
+        if (typeof window[funcName] === 'undefined') {
+            window[funcName] = function () {
+                console.warn(`Function ${funcName} called but not fully implemented yet`);
+                alert(`${funcName} feature is being loaded. Please try again in a moment.`);
+            };
+        }
+    });
+
+    console.log('Error recovery functions added');
+}
+
+// Enhanced document ready with error handling
+$(document).ready(function () {
+    console.log('Document ready - starting enhanced initialization...');
+
+    try {
+        // Add error recovery first
+        addErrorRecovery();
+
+        // Try the main initialization
+        if (typeof initializeDataTable === 'function') {
+            console.log('Attempting main DataTable initialization...');
+            const success = initializeDataTable();
+            if (!success) {
+                console.log('Main initialization failed, trying fallback...');
+                setTimeout(initializeFallback, 1000);
+            }
+        } else {
+            console.log('Main initializeDataTable function not found, using fallback...');
+            initializeFallback();
+        }
+
+        // Try to load initial data
+        if (typeof loadInitialData === 'function') {
+            console.log('Loading initial data...');
+            loadInitialData().catch(error => {
+                console.error('Failed to load initial data:', error);
+                // Continue anyway, user can still try to use the interface
+            });
+        } else {
+            console.log('loadInitialData function not found, skipping...');
+        }
+
+        // Try to bind events
+        if (typeof bindEvents === 'function') {
+            console.log('Binding events...');
+            bindEvents();
+        } else {
+            console.log('bindEvents function not found, adding basic event handlers...');
+
+            // Add basic event handlers
+            $('#statusFilter, #dateFilter').on('change', function () {
+                if (entriesTable && typeof entriesTable.draw === 'function') {
+                    entriesTable.draw();
+                }
+            });
+
+            $('#patientFilter, #doctorFilter').on('keyup', function () {
+                if (entriesTable && typeof entriesTable.search === 'function') {
+                    entriesTable.search($(this).val()).draw();
+                }
+            });
+        }
+
+        console.log('Enhanced initialization completed');
+
+    } catch (error) {
+        console.error('Critical error during initialization:', error);
+
+        // Last resort: try basic fallback after a delay
+        setTimeout(() => {
+            console.log('Attempting last resort initialization...');
+            initializeFallback();
+        }, 2000);
+    }
+});
+
+// Add window error handler to catch any remaining issues
+window.addEventListener('error', function (event) {
+    console.error('Global JavaScript error:', {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        error: event.error
+    });
+});
+
+// Add unhandled promise rejection handler
+window.addEventListener('unhandledrejection', function (event) {
+    console.error('Unhandled promise rejection:', event.reason);
+});
+
+console.log('Fallback initialization and error recovery system loaded');
