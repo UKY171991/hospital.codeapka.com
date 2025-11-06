@@ -12,7 +12,7 @@ let doctorsData = [];
 let currentEditId = null;
 let testRowCounter = 0;
 
-// API Configuration
+// Enhanced API Configuration with unified request handling
 const API_CONFIG = {
     // Use the new patho_api/entry.php API (set to false to use ajax/entry_api_fixed.php)
     useNewAPI: true,
@@ -23,6 +23,14 @@ const API_CONFIG = {
         old: 'ajax/entry_api_fixed.php'
     },
 
+    // Request configuration
+    requestConfig: {
+        timeout: 30000,
+        retryAttempts: 3,
+        retryDelay: 1000,
+        retryMultiplier: 2
+    },
+
     // Get current API URL
     getURL: function () {
         return this.useNewAPI ? this.endpoints.new : this.endpoints.old;
@@ -31,8 +39,662 @@ const API_CONFIG = {
     // Get API secret key
     getSecretKey: function () {
         return this.useNewAPI ? null : 'hospital-api-secret-2024';
+    },
+
+    // Check if API is available
+    isAvailable: async function (endpoint = null) {
+        try {
+            const url = endpoint || this.getURL();
+            const response = await $.ajax({
+                url: url,
+                method: 'GET',
+                data: { action: 'stats' },
+                timeout: 5000,
+                dataType: 'json'
+            });
+            return response && (response.success !== false);
+        } catch (error) {
+            return false;
+        }
     }
 };
+
+/**
+ * Unified API Request Handler with enhanced error handling and retry logic
+ */
+class APIRequestHandler {
+    constructor(config = API_CONFIG) {
+        this.config = config;
+        this.requestQueue = [];
+        this.isOnline = navigator.onLine;
+        this.setupNetworkMonitoring();
+    }
+
+    /**
+     * Setup network connectivity monitoring
+     */
+    setupNetworkMonitoring() {
+        window.addEventListener('online', () => {
+            this.isOnline = true;
+            console.log('Network connection restored');
+            this.processQueuedRequests();
+        });
+
+        window.addEventListener('offline', () => {
+            this.isOnline = false;
+            console.log('Network connection lost');
+        });
+    }
+
+    /**
+     * Make API request with retry logic and error handling
+     */
+    async makeRequest(options) {
+        const requestId = this.generateRequestId();
+        console.log(`[${requestId}] Making API request:`, options);
+
+        // Validate options
+        if (!options.action) {
+            throw new Error('Action is required for API requests');
+        }
+
+        // Check network connectivity
+        if (!this.isOnline) {
+            console.warn(`[${requestId}] Network offline, queueing request`);
+            return this.queueRequest(options);
+        }
+
+        const requestOptions = this.prepareRequestOptions(options);
+
+        for (let attempt = 1; attempt <= this.config.requestConfig.retryAttempts; attempt++) {
+            try {
+                console.log(`[${requestId}] Attempt ${attempt}/${this.config.requestConfig.retryAttempts}`);
+
+                const response = await this.executeRequest(requestOptions, requestId);
+
+                // Validate response
+                const validatedResponse = this.validateResponse(response, requestId);
+
+                console.log(`[${requestId}] Request successful on attempt ${attempt}`);
+                return validatedResponse;
+
+            } catch (error) {
+                console.error(`[${requestId}] Attempt ${attempt} failed:`, error);
+
+                // Check if we should retry
+                if (attempt < this.config.requestConfig.retryAttempts && this.shouldRetry(error)) {
+                    const delay = this.calculateRetryDelay(attempt);
+                    console.log(`[${requestId}] Retrying in ${delay}ms...`);
+                    await this.sleep(delay);
+                    continue;
+                } else {
+                    // All retries exhausted or non-retryable error
+                    throw this.enhanceError(error, requestId, attempt);
+                }
+            }
+        }
+    }
+
+    /**
+     * Prepare request options with defaults and authentication
+     */
+    prepareRequestOptions(options) {
+        const requestOptions = {
+            url: options.url || this.config.getURL(),
+            method: options.method || 'GET',
+            timeout: options.timeout || this.config.requestConfig.timeout,
+            dataType: options.dataType || 'json',
+            data: { ...options.data }
+        };
+
+        // Add action if not present
+        if (!requestOptions.data.action && options.action) {
+            requestOptions.data.action = options.action;
+        }
+
+        // Add authentication
+        const secretKey = this.config.getSecretKey();
+        if (secretKey) {
+            if (options.method === 'POST' && options.data instanceof FormData) {
+                options.data.append('secret_key', secretKey);
+            } else {
+                requestOptions.data.secret_key = secretKey;
+            }
+        }
+
+        // Handle FormData for POST requests
+        if (options.method === 'POST' && options.data instanceof FormData) {
+            requestOptions.data = options.data;
+            requestOptions.processData = false;
+            requestOptions.contentType = false;
+        }
+
+        return requestOptions;
+    }
+
+    /**
+     * Execute the actual AJAX request
+     */
+    async executeRequest(options, requestId) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                ...options,
+                success: (data, textStatus, jqXHR) => {
+                    resolve({
+                        data: data,
+                        status: jqXHR.status,
+                        statusText: textStatus,
+                        headers: jqXHR.getAllResponseHeaders()
+                    });
+                },
+                error: (jqXHR, textStatus, errorThrown) => {
+                    const error = new Error(`API request failed: ${textStatus}`);
+                    error.status = jqXHR.status;
+                    error.statusText = textStatus;
+                    error.responseText = jqXHR.responseText;
+                    error.errorThrown = errorThrown;
+                    reject(error);
+                }
+            });
+        });
+    }
+
+    /**
+     * Validate API response
+     */
+    validateResponse(response, requestId) {
+        if (!response || !response.data) {
+            throw new Error('Invalid response format: missing data');
+        }
+
+        const data = response.data;
+
+        // Check for API-level errors
+        if (data.success === false) {
+            const error = new Error(data.message || 'API request failed');
+            error.apiError = true;
+            error.errorCode = data.error_code;
+            error.fieldErrors = data.field_errors;
+            throw error;
+        }
+
+        // Check for authentication errors
+        if (response.status === 401 || (data.message && data.message.includes('Authentication'))) {
+            const error = new Error('Authentication required');
+            error.authError = true;
+            error.status = 401;
+            throw error;
+        }
+
+        return data;
+    }
+
+    /**
+     * Determine if request should be retried
+     */
+    shouldRetry(error) {
+        // Don't retry authentication errors
+        if (error.authError || error.status === 401 || error.status === 403) {
+            return false;
+        }
+
+        // Don't retry client errors (4xx except 401, 403)
+        if (error.status >= 400 && error.status < 500) {
+            return false;
+        }
+
+        // Retry network errors, timeouts, and server errors
+        return true;
+    }
+
+    /**
+     * Calculate retry delay with exponential backoff
+     */
+    calculateRetryDelay(attempt) {
+        const baseDelay = this.config.requestConfig.retryDelay;
+        const multiplier = this.config.requestConfig.retryMultiplier;
+        return baseDelay * Math.pow(multiplier, attempt - 1);
+    }
+
+    /**
+     * Enhance error with additional context
+     */
+    enhanceError(error, requestId, attempts) {
+        const enhancedError = new Error(error.message);
+        enhancedError.originalError = error;
+        enhancedError.requestId = requestId;
+        enhancedError.attempts = attempts;
+        enhancedError.status = error.status;
+        enhancedError.authError = error.authError;
+        enhancedError.apiError = error.apiError;
+        enhancedError.fieldErrors = error.fieldErrors;
+
+        return enhancedError;
+    }
+
+    /**
+     * Queue request for later execution (when network is restored)
+     */
+    queueRequest(options) {
+        return new Promise((resolve, reject) => {
+            this.requestQueue.push({
+                options: options,
+                resolve: resolve,
+                reject: reject,
+                timestamp: Date.now()
+            });
+        });
+    }
+
+    /**
+     * Process queued requests when network is restored
+     */
+    async processQueuedRequests() {
+        console.log(`Processing ${this.requestQueue.length} queued requests`);
+
+        const queue = [...this.requestQueue];
+        this.requestQueue = [];
+
+        for (const queuedRequest of queue) {
+            try {
+                const response = await this.makeRequest(queuedRequest.options);
+                queuedRequest.resolve(response);
+            } catch (error) {
+                queuedRequest.reject(error);
+            }
+        }
+    }
+
+    /**
+     * Generate unique request ID for tracking
+     */
+    generateRequestId() {
+        return 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    /**
+     * Sleep utility for delays
+     */
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+}
+
+// Create global API request handler instance
+const apiHandler = new APIRequestHandler();
+
+/**
+ * Convenience function for making API requests
+ */
+async function makeAPIRequest(options) {
+    try {
+        return await apiHandler.makeRequest(options);
+    } catch (error) {
+        // Handle authentication errors
+        if (error.authError) {
+            console.error('Authentication error:', error.message);
+            showError('Session expired. Please log in again.');
+
+            // Redirect to login page after a delay
+            setTimeout(() => {
+                window.location.href = 'login.php';
+            }, 2000);
+
+            throw error;
+        }
+
+        // Handle API errors with user-friendly messages
+        if (error.apiError) {
+            const message = error.message || 'An error occurred while processing your request';
+            showError(message);
+
+            // Show field-specific errors if available
+            if (error.fieldErrors) {
+                Object.entries(error.fieldErrors).forEach(([field, message]) => {
+                    console.error(`Field error - ${field}: ${message}`);
+                });
+            }
+
+            throw error;
+        }
+
+        // Handle network and other errors
+        console.error('API request failed:', error);
+        showError('Network error. Please check your connection and try again.');
+        throw error;
+    }
+}
+
+// Make functions available globally
+window.makeAPIRequest = makeAPIRequest;
+window.apiHandler = apiHandler;
+window.switchAPI = switchAPI;
+window.autoDetectBestAPI = autoDetectBestAPI;
+window.testBothAPIs = testBothAPIs;
+window.smartSwitchAPI = smartSwitchAPI;
+
+/**
+ * Enhanced Network Connectivity and User Feedback System
+ */
+
+/**
+ * Network status monitoring
+ */
+class NetworkMonitor {
+    constructor() {
+        this.isOnline = navigator.onLine;
+        this.lastOnlineTime = Date.now();
+        this.setupEventListeners();
+        this.startPeriodicCheck();
+    }
+
+    setupEventListeners() {
+        window.addEventListener('online', () => {
+            this.handleOnline();
+        });
+
+        window.addEventListener('offline', () => {
+            this.handleOffline();
+        });
+    }
+
+    handleOnline() {
+        this.isOnline = true;
+        this.lastOnlineTime = Date.now();
+        console.log('Network connection restored');
+
+        showSuccess('Network connection restored');
+
+        // Test API availability when coming back online
+        this.testAPIAvailability();
+
+        // Process any queued requests
+        if (window.apiHandler) {
+            apiHandler.processQueuedRequests();
+        }
+    }
+
+    handleOffline() {
+        this.isOnline = false;
+        console.log('Network connection lost');
+
+        showError('Network connection lost. Some features may not work until connection is restored.');
+    }
+
+    async testAPIAvailability() {
+        try {
+            const isAvailable = await API_CONFIG.isAvailable();
+            if (isAvailable) {
+                console.log('API is available after network restoration');
+            } else {
+                console.warn('API is not available despite network connection');
+                showInfo('Network restored but server may be unavailable');
+            }
+        } catch (error) {
+            console.error('Error testing API availability:', error);
+        }
+    }
+
+    startPeriodicCheck() {
+        setInterval(() => {
+            this.checkConnectivity();
+        }, 30000); // Check every 30 seconds
+    }
+
+    async checkConnectivity() {
+        if (!this.isOnline) return;
+
+        try {
+            // Simple connectivity test
+            const response = await fetch('/favicon.ico', {
+                method: 'HEAD',
+                cache: 'no-cache',
+                timeout: 5000
+            });
+
+            if (!response.ok) {
+                throw new Error('Connectivity test failed');
+            }
+        } catch (error) {
+            console.warn('Periodic connectivity check failed:', error);
+            // Don't show error for periodic checks to avoid spam
+        }
+    }
+
+    getStatus() {
+        return {
+            isOnline: this.isOnline,
+            lastOnlineTime: this.lastOnlineTime,
+            offlineDuration: this.isOnline ? 0 : Date.now() - this.lastOnlineTime
+        };
+    }
+}
+
+// Initialize network monitor
+const networkMonitor = new NetworkMonitor();
+
+/**
+ * Enhanced user feedback system
+ */
+class UserFeedbackSystem {
+    constructor() {
+        this.messageQueue = [];
+        this.isProcessing = false;
+        this.setupStyles();
+    }
+
+    setupStyles() {
+        if (!$('#userFeedbackCSS').length) {
+            const css = `
+                <style id="userFeedbackCSS">
+                    .feedback-toast {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        z-index: 10000;
+                        min-width: 300px;
+                        max-width: 500px;
+                        background: white;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                        border-left: 4px solid #007bff;
+                        animation: slideInRight 0.3s ease-out;
+                    }
+                    
+                    .feedback-toast.success {
+                        border-left-color: #28a745;
+                    }
+                    
+                    .feedback-toast.error {
+                        border-left-color: #dc3545;
+                    }
+                    
+                    .feedback-toast.warning {
+                        border-left-color: #ffc107;
+                    }
+                    
+                    .feedback-toast.info {
+                        border-left-color: #17a2b8;
+                    }
+                    
+                    .feedback-toast-header {
+                        padding: 12px 16px;
+                        border-bottom: 1px solid #e9ecef;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        font-weight: 600;
+                    }
+                    
+                    .feedback-toast-body {
+                        padding: 12px 16px;
+                        color: #333;
+                    }
+                    
+                    .feedback-toast-close {
+                        background: none;
+                        border: none;
+                        font-size: 18px;
+                        cursor: pointer;
+                        color: #999;
+                    }
+                    
+                    .feedback-toast-close:hover {
+                        color: #333;
+                    }
+                    
+                    @keyframes slideInRight {
+                        from {
+                            transform: translateX(100%);
+                            opacity: 0;
+                        }
+                        to {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
+                    }
+                    
+                    @keyframes slideOutRight {
+                        from {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
+                        to {
+                            transform: translateX(100%);
+                            opacity: 0;
+                        }
+                    }
+                    
+                    .feedback-toast.hiding {
+                        animation: slideOutRight 0.3s ease-in;
+                    }
+                </style>
+            `;
+            $('head').append(css);
+        }
+    }
+
+    showMessage(message, type = 'info', duration = 5000) {
+        const messageObj = {
+            id: 'toast_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            message: message,
+            type: type,
+            duration: duration,
+            timestamp: Date.now()
+        };
+
+        this.messageQueue.push(messageObj);
+        this.processQueue();
+    }
+
+    processQueue() {
+        if (this.isProcessing || this.messageQueue.length === 0) return;
+
+        this.isProcessing = true;
+        const messageObj = this.messageQueue.shift();
+        this.displayToast(messageObj);
+    }
+
+    displayToast(messageObj) {
+        const icons = {
+            success: 'fas fa-check-circle',
+            error: 'fas fa-exclamation-circle',
+            warning: 'fas fa-exclamation-triangle',
+            info: 'fas fa-info-circle'
+        };
+
+        const titles = {
+            success: 'Success',
+            error: 'Error',
+            warning: 'Warning',
+            info: 'Information'
+        };
+
+        const toastHtml = `
+            <div id="${messageObj.id}" class="feedback-toast ${messageObj.type}">
+                <div class="feedback-toast-header">
+                    <span><i class="${icons[messageObj.type]} mr-2"></i>${titles[messageObj.type]}</span>
+                    <button class="feedback-toast-close" onclick="userFeedback.closeToast('${messageObj.id}')">&times;</button>
+                </div>
+                <div class="feedback-toast-body">
+                    ${messageObj.message}
+                </div>
+            </div>
+        `;
+
+        $('body').append(toastHtml);
+
+        // Auto-hide after duration
+        if (messageObj.duration > 0) {
+            setTimeout(() => {
+                this.closeToast(messageObj.id);
+            }, messageObj.duration);
+        }
+
+        // Process next message after a short delay
+        setTimeout(() => {
+            this.isProcessing = false;
+            this.processQueue();
+        }, 300);
+    }
+
+    closeToast(toastId) {
+        const $toast = $(`#${toastId}`);
+        if ($toast.length) {
+            $toast.addClass('hiding');
+            setTimeout(() => {
+                $toast.remove();
+            }, 300);
+        }
+    }
+
+    clearAll() {
+        $('.feedback-toast').each(function () {
+            $(this).addClass('hiding');
+            setTimeout(() => {
+                $(this).remove();
+            }, 300);
+        });
+        this.messageQueue = [];
+    }
+}
+
+// Initialize user feedback system
+const userFeedback = new UserFeedbackSystem();
+
+// Override existing message functions to use enhanced system
+const originalShowSuccess = window.showSuccess;
+const originalShowError = window.showError;
+const originalShowInfo = window.showInfo;
+
+window.showSuccess = function (message) {
+    userFeedback.showMessage(message, 'success');
+    if (originalShowSuccess && typeof originalShowSuccess === 'function') {
+        originalShowSuccess(message);
+    }
+};
+
+window.showError = function (message) {
+    userFeedback.showMessage(message, 'error', 8000); // Show errors longer
+    if (originalShowError && typeof originalShowError === 'function') {
+        originalShowError(message);
+    }
+};
+
+window.showInfo = function (message) {
+    userFeedback.showMessage(message, 'info');
+    if (originalShowInfo && typeof originalShowInfo === 'function') {
+        originalShowInfo(message);
+    }
+};
+
+window.showWarning = function (message) {
+    userFeedback.showMessage(message, 'warning');
+};
+
+// Make available globally
+window.networkMonitor = networkMonitor;
+window.userFeedback = userFeedback;
 
 /**
  * Initialize the application
@@ -255,36 +917,117 @@ function initializeDataTable() {
 }
 
 /**
- * Load initial data (tests, patients, doctors)
+ * Load initial data (tests, patients, doctors) with enhanced error handling and retry logic
  */
-async function loadInitialData() {
-    console.log('Loading initial data...');
+async function loadInitialData(retryCount = 0) {
+    const maxRetries = 3;
+    const retryDelay = Math.pow(2, retryCount) * 1000; // Exponential backoff
+
+    console.log(`Loading initial data... (attempt ${retryCount + 1}/${maxRetries + 1})`);
+
+    // Show loading indicator
+    showLoadingIndicator('Loading data, please wait...');
 
     try {
-        // Load tests data
-        await loadTestsData();
+        const loadingResults = {
+            tests: { success: false, data: [], error: null },
+            categories: { success: false, data: [], error: null },
+            patients: { success: false, data: [], error: null },
+            doctors: { success: false, data: [], error: null }
+        };
 
-        // Load categories data
-        await loadCategoriesData();
+        // Load all data with individual error handling
+        const loadingPromises = [
+            loadTestsDataWithRetry().then(result => { loadingResults.tests = result; }),
+            loadCategoriesDataWithRetry().then(result => { loadingResults.categories = result; }),
+            loadPatientsDataWithRetry().then(result => { loadingResults.patients = result; }),
+            loadDoctorsDataWithRetry().then(result => { loadingResults.doctors = result; })
+        ];
 
-        // Load patients data
-        await loadPatientsData();
+        // Wait for all loading operations to complete
+        await Promise.allSettled(loadingPromises);
 
-        // Load doctors data
-        await loadDoctorsData();
+        // Check results and determine success
+        const criticalDataLoaded = loadingResults.tests.success && loadingResults.categories.success;
+        const allDataLoaded = criticalDataLoaded && loadingResults.patients.success && loadingResults.doctors.success;
 
-        console.log('Initial data loaded successfully');
-        console.log(`Loaded: ${testsData.length} tests, ${categoriesData.length} categories, ${patientsData.length} patients, ${doctorsData.length} doctors`);
+        // Update global data arrays
+        testsData = loadingResults.tests.data;
+        categoriesData = loadingResults.categories.data;
+        patientsData = loadingResults.patients.data;
+        doctorsData = loadingResults.doctors.data;
 
-        // Enable the Add Entry button once data is loaded
-        $('button[onclick="openAddModal()"]').prop('disabled', false).removeClass('disabled');
+        // Log results
+        console.log('Data loading results:', {
+            tests: `${testsData.length} loaded (${loadingResults.tests.success ? 'success' : 'failed'})`,
+            categories: `${categoriesData.length} loaded (${loadingResults.categories.success ? 'success' : 'failed'})`,
+            patients: `${patientsData.length} loaded (${loadingResults.patients.success ? 'success' : 'failed'})`,
+            doctors: `${doctorsData.length} loaded (${loadingResults.doctors.success ? 'success' : 'failed'})`
+        });
+
+        if (criticalDataLoaded) {
+            console.log('Initial data loaded successfully');
+
+            // Populate dropdowns
+            populatePatientSelect();
+            populateDoctorSelect();
+
+            // Enable the Add Entry button
+            $('button[onclick="openAddModal()"]').prop('disabled', false).removeClass('disabled');
+
+            // Show success message if all data loaded
+            if (allDataLoaded) {
+                showSuccess('All data loaded successfully');
+            } else {
+                // Show warning for partial data loading
+                const failedItems = [];
+                if (!loadingResults.patients.success) failedItems.push('patients');
+                if (!loadingResults.doctors.success) failedItems.push('doctors');
+                showInfo(`Core data loaded. Some optional data failed to load: ${failedItems.join(', ')}`);
+            }
+
+            hideLoadingIndicator();
+            return true;
+
+        } else {
+            // Critical data failed to load
+            const failedItems = [];
+            if (!loadingResults.tests.success) failedItems.push('tests');
+            if (!loadingResults.categories.success) failedItems.push('categories');
+
+            throw new Error(`Critical data failed to load: ${failedItems.join(', ')}`);
+        }
 
     } catch (error) {
-        console.error('Failed to load initial data:', error);
-        showError('Failed to load initial data. Some features may not work properly.');
+        console.error(`Failed to load initial data (attempt ${retryCount + 1}):`, error);
 
-        // Keep Add Entry button disabled if data loading fails
-        $('button[onclick="openAddModal()"]').prop('disabled', true).addClass('disabled');
+        // Retry logic
+        if (retryCount < maxRetries) {
+            console.log(`Retrying in ${retryDelay}ms...`);
+            showInfo(`Loading failed, retrying in ${retryDelay / 1000} seconds...`);
+
+            setTimeout(() => {
+                loadInitialData(retryCount + 1);
+            }, retryDelay);
+
+            return false;
+        } else {
+            // All retries exhausted
+            console.error('All retry attempts exhausted');
+            hideLoadingIndicator();
+
+            // Try to load from cache as fallback
+            const cacheLoaded = await loadFromCache();
+            if (cacheLoaded) {
+                showInfo('Loaded data from cache. Some features may be limited.');
+                $('button[onclick="openAddModal()"]').prop('disabled', false).removeClass('disabled');
+                return true;
+            } else {
+                showError('Failed to load required data. Please refresh the page or contact support.');
+                $('button[onclick="openAddModal()"]').prop('disabled', true).addClass('disabled');
+                return false;
+            }
+        }
     }
 }
 
@@ -398,38 +1141,283 @@ async function loadDoctorsData() {
 }
 
 /**
- * Populate patient select dropdown
+ * Enhanced loading functions with retry logic and better error handling
  */
-function populatePatientSelect() {
-    const $select = $('#patientSelect');
-    $select.empty().append('<option value="">Select Patient</option>');
 
-    patientsData.forEach(patient => {
-        const displayName = `${patient.name || 'Unknown'} ${patient.uhid ? `(${patient.uhid})` : ''}`;
-        $select.append(`<option value="${patient.id}">${displayName}</option>`);
-    });
+/**
+ * Load tests data with retry logic
+ */
+async function loadTestsDataWithRetry(retryCount = 0) {
+    const maxRetries = 2;
 
-    // Refresh Select2 if initialized
-    if ($select.hasClass('select2-hidden-accessible')) {
-        $select.trigger('change');
+    try {
+        const response = await $.ajax({
+            url: 'ajax/test_api.php',
+            method: 'GET',
+            data: { action: 'simple_list' },
+            dataType: 'json',
+            timeout: 15000
+        });
+
+        if (response && response.success) {
+            const data = response.data || [];
+            console.log(`Loaded ${data.length} tests`);
+
+            // Cache the data
+            cacheData('tests', data);
+
+            return { success: true, data: data, error: null };
+        } else {
+            throw new Error(response?.message || 'Invalid response format');
+        }
+    } catch (error) {
+        console.error(`Error loading tests (attempt ${retryCount + 1}):`, error);
+
+        if (retryCount < maxRetries) {
+            const delay = Math.pow(2, retryCount) * 500;
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return await loadTestsDataWithRetry(retryCount + 1);
+        }
+
+        // Try to load from cache as fallback
+        const cachedData = getCachedData('tests');
+        if (cachedData) {
+            console.log('Using cached tests data');
+            return { success: true, data: cachedData, error: error };
+        }
+
+        return { success: false, data: [], error: error };
     }
 }
 
 /**
- * Populate doctor select dropdown
+ * Load categories data with retry logic
+ */
+async function loadCategoriesDataWithRetry(retryCount = 0) {
+    const maxRetries = 2;
+
+    try {
+        const response = await $.ajax({
+            url: 'patho_api/test_category.php',
+            method: 'GET',
+            data: {
+                action: 'list',
+                all: '1'
+            },
+            dataType: 'json',
+            timeout: 15000
+        });
+
+        if (response && response.success) {
+            const data = response.data || [];
+            console.log(`Loaded ${data.length} categories`);
+
+            // Cache the data
+            cacheData('categories', data);
+
+            return { success: true, data: data, error: null };
+        } else {
+            throw new Error(response?.message || 'Invalid response format');
+        }
+    } catch (error) {
+        console.error(`Error loading categories (attempt ${retryCount + 1}):`, error);
+
+        if (retryCount < maxRetries) {
+            const delay = Math.pow(2, retryCount) * 500;
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return await loadCategoriesDataWithRetry(retryCount + 1);
+        }
+
+        // Try to load from cache as fallback
+        const cachedData = getCachedData('categories');
+        if (cachedData) {
+            console.log('Using cached categories data');
+            return { success: true, data: cachedData, error: error };
+        }
+
+        return { success: false, data: [], error: error };
+    }
+}
+
+/**
+ * Load patients data with retry logic
+ */
+async function loadPatientsDataWithRetry(retryCount = 0) {
+    const maxRetries = 2;
+
+    try {
+        const response = await $.ajax({
+            url: 'ajax/patient_api.php',
+            method: 'GET',
+            data: { action: 'list' },
+            dataType: 'json',
+            timeout: 15000
+        });
+
+        if (response && response.success) {
+            const data = response.data || [];
+            console.log(`Loaded ${data.length} patients`);
+
+            // Cache the data
+            cacheData('patients', data);
+
+            return { success: true, data: data, error: null };
+        } else {
+            throw new Error(response?.message || 'Invalid response format');
+        }
+    } catch (error) {
+        console.error(`Error loading patients (attempt ${retryCount + 1}):`, error);
+
+        if (retryCount < maxRetries) {
+            const delay = Math.pow(2, retryCount) * 500;
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return await loadPatientsDataWithRetry(retryCount + 1);
+        }
+
+        // Try to load from cache as fallback
+        const cachedData = getCachedData('patients');
+        if (cachedData) {
+            console.log('Using cached patients data');
+            return { success: true, data: cachedData, error: error };
+        }
+
+        return { success: false, data: [], error: error };
+    }
+}
+
+/**
+ * Load doctors data with retry logic
+ */
+async function loadDoctorsDataWithRetry(retryCount = 0) {
+    const maxRetries = 2;
+
+    try {
+        const response = await $.ajax({
+            url: 'ajax/doctor_api.php',
+            method: 'GET',
+            data: { action: 'list' },
+            dataType: 'json',
+            timeout: 15000
+        });
+
+        if (response && response.success) {
+            const data = response.data || [];
+            console.log(`Loaded ${data.length} doctors`);
+
+            // Cache the data
+            cacheData('doctors', data);
+
+            return { success: true, data: data, error: null };
+        } else {
+            throw new Error(response?.message || 'Invalid response format');
+        }
+    } catch (error) {
+        console.error(`Error loading doctors (attempt ${retryCount + 1}):`, error);
+
+        if (retryCount < maxRetries) {
+            const delay = Math.pow(2, retryCount) * 500;
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return await loadDoctorsDataWithRetry(retryCount + 1);
+        }
+
+        // Try to load from cache as fallback
+        const cachedData = getCachedData('doctors');
+        if (cachedData) {
+            console.log('Using cached doctors data');
+            return { success: true, data: cachedData, error: error };
+        }
+
+        return { success: false, data: [], error: error };
+    }
+}
+
+/**
+ * Populate patient select dropdown with enhanced error handling
+ */
+function populatePatientSelect() {
+    try {
+        const $select = $('#patientSelect');
+
+        if (!$select.length) {
+            console.warn('Patient select element not found');
+            return false;
+        }
+
+        // Clear and add default option
+        $select.empty().append('<option value="">Select Patient</option>');
+
+        if (!patientsData || patientsData.length === 0) {
+            console.warn('No patients data available');
+            $select.append('<option value="" disabled>No patients available</option>');
+            return false;
+        }
+
+        // Add patient options with validation
+        let addedCount = 0;
+        patientsData.forEach(patient => {
+            if (patient && patient.id && patient.name) {
+                const displayName = `${patient.name} ${patient.uhid ? `(${patient.uhid})` : ''}`;
+                $select.append(`<option value="${patient.id}">${displayName}</option>`);
+                addedCount++;
+            }
+        });
+
+        // Refresh Select2 if initialized
+        if ($select.hasClass('select2-hidden-accessible')) {
+            $select.trigger('change');
+        }
+
+        console.log(`Populated patient select with ${addedCount} patients`);
+        return true;
+
+    } catch (error) {
+        console.error('Error populating patient select:', error);
+        return false;
+    }
+}
+
+/**
+ * Populate doctor select dropdown with enhanced error handling
  */
 function populateDoctorSelect() {
-    const $select = $('#doctorSelect');
-    $select.empty().append('<option value="">Select Doctor</option>');
+    try {
+        const $select = $('#doctorSelect');
 
-    doctorsData.forEach(doctor => {
-        const displayName = `${doctor.name || 'Unknown'} ${doctor.specialization ? `(${doctor.specialization})` : ''}`;
-        $select.append(`<option value="${doctor.id}">${displayName}</option>`);
-    });
+        if (!$select.length) {
+            console.warn('Doctor select element not found');
+            return false;
+        }
 
-    // Refresh Select2 if initialized
-    if ($select.hasClass('select2-hidden-accessible')) {
-        $select.trigger('change');
+        // Clear and add default option
+        $select.empty().append('<option value="">Select Doctor</option>');
+
+        if (!doctorsData || doctorsData.length === 0) {
+            console.warn('No doctors data available');
+            $select.append('<option value="" disabled>No doctors available</option>');
+            return false;
+        }
+
+        // Add doctor options with validation
+        let addedCount = 0;
+        doctorsData.forEach(doctor => {
+            if (doctor && doctor.id && doctor.name) {
+                const displayName = `${doctor.name} ${doctor.specialization ? `(${doctor.specialization})` : ''}`;
+                $select.append(`<option value="${doctor.id}">${displayName}</option>`);
+                addedCount++;
+            }
+        });
+
+        // Refresh Select2 if initialized
+        if ($select.hasClass('select2-hidden-accessible')) {
+            $select.trigger('change');
+        }
+
+        console.log(`Populated doctor select with ${addedCount} doctors`);
+        return true;
+
+    } catch (error) {
+        console.error('Error populating doctor select:', error);
+        return false;
     }
 }
 
@@ -470,6 +1458,9 @@ function bindEvents() {
         $('#globalCategoryFilter').val('');
         applyGlobalCategoryFilter('');
     });
+
+    // Setup real-time validation
+    setupRealTimeValidation();
 
     console.log('Events bound successfully');
 }
@@ -644,15 +1635,39 @@ function initializeSelect2() {
 }
 
 /**
- * Populate global category filter
+ * Populate global category filter with enhanced error handling
  */
 function populateGlobalCategoryFilter() {
-    const $select = $('#globalCategoryFilter');
-    $select.find('option:not(:first)').remove(); // Keep the "All Categories" option
+    try {
+        const $select = $('#globalCategoryFilter');
 
-    categoriesData.forEach(category => {
-        $select.append(`<option value="${category.id}">${category.name}</option>`);
-    });
+        if (!$select.length) {
+            console.warn('Global category filter element not found');
+            return false;
+        }
+
+        // Clear existing options except the first one
+        $select.find('option:not(:first)').remove();
+
+        if (!categoriesData || categoriesData.length === 0) {
+            console.warn('No categories data available for global filter');
+            return false;
+        }
+
+        // Add category options
+        categoriesData.forEach(category => {
+            if (category && category.id && category.name) {
+                $select.append(`<option value="${category.id}">${category.name}</option>`);
+            }
+        });
+
+        console.log(`Populated global category filter with ${categoriesData.length} categories`);
+        return true;
+
+    } catch (error) {
+        console.error('Error populating global category filter:', error);
+        return false;
+    }
 }
 
 /**
@@ -811,21 +1826,70 @@ function addTestRow(testData = null) {
     if (testData) {
         console.log('Populating test row with data:', testData);
 
-        // Set category first if available
-        if (testData.category_id) {
-            $categorySelect.val(testData.category_id);
-            $categorySelect.trigger('change');
-        }
+        // Use setTimeout to ensure Select2 is fully initialized before setting values
+        setTimeout(() => {
+            console.log('Setting test row values for edit mode:', testData);
 
-        $testSelect.val(testData.test_id);
-        $newRow.find('.test-result').val(testData.result_value || '');
-        $newRow.find('.test-price').val(testData.price || 0);
-        $newRow.find('.test-unit').val(testData.unit || '');
-        $newRow.find('.test-min').val(testData.min || '');
-        $newRow.find('.test-max').val(testData.max || '');
+            // Set category first if available
+            if (testData.category_id) {
+                console.log('Setting category:', testData.category_id);
+                $categorySelect.val(testData.category_id);
+                if ($categorySelect.hasClass('select2-hidden-accessible')) {
+                    $categorySelect.trigger('change.select2');
+                } else {
+                    $categorySelect.trigger('change');
+                }
+            }
 
-        // Trigger change to update unit and other fields
-        $testSelect.trigger('change');
+            // Set test selection
+            console.log('Setting test ID:', testData.test_id);
+            $testSelect.val(testData.test_id);
+            if ($testSelect.hasClass('select2-hidden-accessible')) {
+                $testSelect.trigger('change.select2');
+            } else {
+                $testSelect.trigger('change');
+            }
+
+            // Set other test data
+            const resultValue = testData.result_value || '';
+            const priceValue = testData.price || testData.test_price || 0;
+            const unitValue = testData.unit || testData.et_unit || '';
+            const minValue = testData.min || testData.min_male || testData.min_female || '';
+            const maxValue = testData.max || testData.max_male || testData.max_female || '';
+
+            console.log('Setting field values:', {
+                result: resultValue,
+                price: priceValue,
+                unit: unitValue,
+                min: minValue,
+                max: maxValue
+            });
+
+            $newRow.find('.test-result').val(resultValue);
+            $newRow.find('.test-price').val(priceValue);
+            $newRow.find('.test-unit').val(unitValue);
+            $newRow.find('.test-min').val(minValue);
+            $newRow.find('.test-max').val(maxValue);
+
+            console.log('Test row populated successfully with:', {
+                category_id: testData.category_id,
+                test_id: testData.test_id,
+                result_value: resultValue,
+                price: priceValue,
+                unit: unitValue
+            });
+
+            // Verify the values were set correctly
+            setTimeout(() => {
+                console.log('Verification - Values after setting:', {
+                    category: $categorySelect.val(),
+                    test: $testSelect.val(),
+                    result: $newRow.find('.test-result').val(),
+                    price: $newRow.find('.test-price').val(),
+                    unit: $newRow.find('.test-unit').val()
+                });
+            }, 50);
+        }, 100);
     }
 }
 
@@ -909,11 +1973,13 @@ function updateTestOptions($testSelect, categoryId) {
 }
 
 /**
- * Handle test selection change
+ * Handle test selection change with duplicate detection
  */
 function onTestChange(selectElement, $row) {
     const $select = $(selectElement);
     const testId = $select.val();
+
+    console.log('Test selection changed:', testId);
 
     if (!testId) {
         // Clear everything if no test selected
@@ -921,35 +1987,73 @@ function onTestChange(selectElement, $row) {
         $row.find('.test-unit').val('');
         $row.find('.test-min').val('');
         $row.find('.test-max').val('');
+        $row.removeClass('duplicate-test-row');
         calculateTotals();
         return;
+    }
+
+    // Skip duplicate check if we're in edit mode and populating existing data
+    const isEditMode = currentEditId !== null;
+    if (!isEditMode) {
+        // Check for duplicates before proceeding (only in add mode)
+        if (!preventDuplicateSelection($select)) {
+            return; // Duplicate detected and reverted
+        }
     }
 
     // Find the test data
     const testData = testsData.find(t => t.id == testId);
     if (!testData) {
         console.error('Test not found:', testId);
+        showError(`Test with ID ${testId} not found in available tests`);
+        $select.val('').trigger('change');
         return;
     }
 
     console.log('Test selected:', testData);
 
-    // Set test details
-    $row.find('.test-price').val(testData.price || 0);
-    $row.find('.test-unit').val(testData.unit || '');
-    $row.find('.test-min').val(testData.min || '');
-    $row.find('.test-max').val(testData.max || '');
+    // Only auto-populate test details if the fields are empty (to preserve edit data)
+    const $priceField = $row.find('.test-price');
+    const $unitField = $row.find('.test-unit');
+    const $minField = $row.find('.test-min');
+    const $maxField = $row.find('.test-max');
+
+    if (!$priceField.val() || $priceField.val() == '0') {
+        $priceField.val(testData.price || 0);
+    }
+    if (!$unitField.val()) {
+        $unitField.val(testData.unit || '');
+    }
+    if (!$minField.val()) {
+        $minField.val(testData.min || '');
+    }
+    if (!$maxField.val()) {
+        $maxField.val(testData.max || '');
+    }
 
     // Auto-select category if not already selected
     const $categorySelect = $row.find('.category-select');
     if (!$categorySelect.val() && testData.category_id) {
         $categorySelect.val(testData.category_id);
+        if ($categorySelect.hasClass('select2-hidden-accessible')) {
+            $categorySelect.trigger('change.select2');
+        }
 
         // Set main category ID
         const categoryInfo = categoriesData.find(c => c.id == testData.category_id);
         if (categoryInfo && categoryInfo.main_category_id) {
             $row.find('.test-main-category-id').val(categoryInfo.main_category_id);
         }
+    }
+
+    // Remove duplicate styling since this is now a valid selection
+    $row.removeClass('duplicate-test-row');
+
+    // Check for real-time duplicates (in case of race conditions) - only in add mode
+    if (!isEditMode) {
+        setTimeout(() => {
+            checkForDuplicatesRealTime($row);
+        }, 100);
     }
 
     // Calculate totals
@@ -1110,65 +2214,49 @@ async function saveEntry() {
             formData.append('secret_key', secretKey);
         }
 
-        const response = await $.ajax({
-            url: API_CONFIG.getURL(),
+        // Use enhanced API handler for better error handling
+        const response = await makeAPIRequest({
+            action: 'save',
             method: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json'
+            data: formData
         });
 
         console.log('Server response:', response);
 
-        if (response && response.success) {
-            showSuccess(response.message || 'Entry saved successfully');
-            $('#entryModal').modal('hide');
-            refreshTable();
-        } else {
-            console.error('Save failed:', response);
-            let errorMsg = 'Failed to save entry';
-            if (response && response.message) {
-                errorMsg = response.message;
-            } else if (response && response.error) {
-                errorMsg = response.error;
-            } else if (!response) {
-                errorMsg = 'No response from server - please check your connection';
-            }
-            showError(errorMsg);
+        // Handle successful response
+        let successMessage = response.message || 'Entry saved successfully';
+
+        // Add duplicate information if any were handled
+        if (response.duplicates_skipped && response.duplicates_skipped > 0) {
+            successMessage += ` (${response.duplicates_skipped} duplicate tests were automatically removed)`;
+        }
+
+        showSuccess(successMessage);
+        $('#entryModal').modal('hide');
+        refreshTable();
+
+        // Log additional response information
+        if (response.tests_processed) {
+            console.log(`Successfully processed ${response.tests_processed} tests`);
         }
 
     } catch (error) {
         console.error('Error saving entry:', error);
-        console.error('Error details:', {
-            status: error.status,
-            statusText: error.statusText,
-            responseText: error.responseText
-        });
 
-        let errorMessage = 'An error occurred while saving the entry';
-
-        // Handle specific error codes
-        if (error.status === 500 && error.responseText) {
-            try {
-                const errorData = JSON.parse(error.responseText);
-                if (errorData.message && errorData.message.includes('1062')) {
-                    errorMessage = 'Duplicate entry detected. Please check for duplicate tests or try refreshing the page.';
-                } else {
-                    errorMessage = errorData.message || errorMessage;
-                }
-            } catch (parseError) {
-                if (error.responseText.includes('1062')) {
-                    errorMessage = 'Duplicate entry detected. Please check for duplicate tests.';
-                } else {
-                    errorMessage = error.responseText;
-                }
-            }
-        } else if (error.statusText) {
-            errorMessage = `Server error: ${error.statusText}`;
+        // Enhanced error handling is now handled by makeAPIRequest
+        // Just log additional details for debugging
+        if (error.requestId) {
+            console.error(`Request ID: ${error.requestId}, Attempts: ${error.attempts}`);
         }
 
-        showError(errorMessage);
+        // The error message has already been shown by makeAPIRequest
+        // Just log the technical details for debugging
+        console.error('Technical error details:', {
+            status: error.status,
+            authError: error.authError,
+            apiError: error.apiError,
+            fieldErrors: error.fieldErrors
+        });
     } finally {
         // Restore button state
         const $submitBtn = $('#entryForm button[type="submit"]');
@@ -1177,61 +2265,482 @@ async function saveEntry() {
 }
 
 /**
- * Validate form before submission
+ * Enhanced Duplicate Test Prevention System
  */
-function validateForm() {
-    console.log('Validating form...');
 
-    // Check if patient is selected
-    const patientId = $('#patientSelect').val();
-    console.log('Patient ID:', patientId);
-    if (!patientId) {
-        showError('Please select a patient');
-        return false;
-    }
+/**
+ * Validate that no duplicate tests exist in the current form
+ */
+function validateUniqueTests() {
+    console.log('Validating unique tests...');
 
-    // Check entry date
-    const entryDate = $('#entryDate').val();
-    console.log('Entry date:', entryDate);
-    if (!entryDate) {
-        showError('Please select an entry date');
-        return false;
-    }
+    const testIds = [];
+    const duplicates = [];
+    const testRows = [];
 
-    // Check if at least one test is selected
-    const testRows = $('#testsContainer .test-row');
-    console.log('Number of test rows:', testRows.length);
-
-    const hasTests = testRows.filter(function () {
-        const testId = $(this).find('.test-select').val();
-        return testId && testId !== '';
-    }).length > 0;
-
-    console.log('Has valid tests:', hasTests);
-    if (!hasTests) {
-        showError('Please add at least one test');
-        return false;
-    }
-
-    // Validate each test row (category is optional)
-    let validationErrors = [];
-    testRows.each(function (index) {
+    $('#testsContainer .test-row').each(function (index) {
         const $row = $(this);
         const testId = $row.find('.test-select').val();
 
         if (testId) {
-            // Test ID is required, category is optional
-            const testName = $row.find('.test-select option:selected').text();
-            console.log(`Test row ${index + 1}: ${testName} (ID: ${testId})`);
+            const rowInfo = {
+                index: index,
+                testId: testId,
+                testName: $row.find('.test-select option:selected').text(),
+                $row: $row
+            };
 
-            // You can add other validations here if needed
-            // For now, just having a test selected is sufficient
+            if (testIds.includes(testId)) {
+                duplicates.push(rowInfo);
+                // Also mark the original as duplicate
+                const originalIndex = testIds.indexOf(testId);
+                if (!duplicates.find(d => d.index === originalIndex)) {
+                    duplicates.push(testRows[originalIndex]);
+                }
+            } else {
+                testIds.push(testId);
+            }
+
+            testRows.push(rowInfo);
         }
     });
 
-    if (validationErrors.length > 0) {
-        showError(validationErrors.join('<br>'));
+    // Visual feedback for duplicates
+    $('#testsContainer .test-row').removeClass('duplicate-test-row');
+    duplicates.forEach(duplicate => {
+        duplicate.$row.addClass('duplicate-test-row');
+    });
+
+    if (duplicates.length > 0) {
+        console.log('Duplicate tests found:', duplicates);
+        return {
+            valid: false,
+            duplicates: duplicates,
+            message: `Duplicate tests detected: ${duplicates.map(d => d.testName).join(', ')}`
+        };
+    }
+
+    console.log('No duplicate tests found');
+    return { valid: true, duplicates: [], message: '' };
+}
+
+/**
+ * Real-time duplicate detection as tests are selected
+ */
+function checkForDuplicatesRealTime($changedRow) {
+    const changedTestId = $changedRow.find('.test-select').val();
+
+    if (!changedTestId) {
+        $changedRow.removeClass('duplicate-test-row');
+        return;
+    }
+
+    let duplicateFound = false;
+
+    $('#testsContainer .test-row').each(function () {
+        const $row = $(this);
+        const testId = $row.find('.test-select').val();
+
+        if (testId === changedTestId) {
+            if ($row[0] !== $changedRow[0]) {
+                // Found a duplicate
+                $row.addClass('duplicate-test-row');
+                $changedRow.addClass('duplicate-test-row');
+                duplicateFound = true;
+            }
+        } else {
+            // Remove duplicate class if this row is not a duplicate
+            const otherDuplicates = $('#testsContainer .test-row').not($row).filter(function () {
+                return $(this).find('.test-select').val() === testId;
+            });
+
+            if (otherDuplicates.length === 0) {
+                $row.removeClass('duplicate-test-row');
+            }
+        }
+    });
+
+    if (duplicateFound) {
+        const testName = $changedRow.find('.test-select option:selected').text();
+        showDuplicateWarning(`Duplicate test detected: ${testName}`);
+    }
+}
+
+/**
+ * Show duplicate warning message
+ */
+function showDuplicateWarning(message) {
+    // Remove existing warning
+    $('.duplicate-warning').remove();
+
+    // Create warning element
+    const warningHtml = `
+        <div class="alert alert-warning alert-dismissible fade show duplicate-warning" role="alert">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            ${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    `;
+
+    // Insert warning before tests container
+    $('#testsContainer').before(warningHtml);
+
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        $('.duplicate-warning').fadeOut();
+    }, 5000);
+}
+
+/**
+ * Remove duplicate test rows automatically
+ */
+function removeDuplicateTestRows() {
+    console.log('Checking for duplicate test rows...');
+
+    const seenTestIds = new Set();
+    const rowsToRemove = [];
+    let duplicatesFound = 0;
+
+    $('#testsContainer .test-row').each(function () {
+        const $row = $(this);
+        const testId = $row.find('.test-select').val();
+
+        if (testId) {
+            if (seenTestIds.has(testId)) {
+                // This is a duplicate
+                rowsToRemove.push({
+                    $row: $row,
+                    testId: testId,
+                    testName: $row.find('.test-select option:selected').text()
+                });
+                duplicatesFound++;
+                console.log('Found duplicate test ID:', testId);
+            } else {
+                seenTestIds.add(testId);
+            }
+        }
+    });
+
+    if (rowsToRemove.length > 0) {
+        // Show confirmation dialog
+        const testNames = rowsToRemove.map(item => item.testName).join(', ');
+        const confirmMessage = `Found ${duplicatesFound} duplicate test(s): ${testNames}\n\nDo you want to remove the duplicates?`;
+
+        if (confirm(confirmMessage)) {
+            // Remove duplicate rows
+            rowsToRemove.forEach(item => {
+                item.$row.fadeOut(300, function () {
+                    $(this).remove();
+                    calculateTotals();
+                });
+            });
+
+            showSuccess(`Removed ${duplicatesFound} duplicate test rows`);
+
+            // Ensure at least one test row exists
+            setTimeout(() => {
+                if ($('#testsContainer .test-row').length === 0) {
+                    addTestRow();
+                }
+            }, 400);
+        }
+    } else {
+        showInfo('No duplicate test rows found');
+    }
+
+    console.log(`Checked for duplicates: ${duplicatesFound} found`);
+    return duplicatesFound;
+}
+
+/**
+ * Prevent duplicate test selection in dropdowns
+ */
+function preventDuplicateSelection($testSelect) {
+    const selectedTestId = $testSelect.val();
+
+    if (!selectedTestId) return;
+
+    // Check if this test is already selected in another row
+    const duplicateExists = $('#testsContainer .test-row').not($testSelect.closest('.test-row')).find('.test-select').filter(function () {
+        return $(this).val() === selectedTestId;
+    }).length > 0;
+
+    if (duplicateExists) {
+        // Revert the selection
+        $testSelect.val('').trigger('change');
+
+        const testName = $testSelect.find(`option[value="${selectedTestId}"]`).text();
+        showError(`Test "${testName}" is already selected in another row. Please choose a different test.`);
+
         return false;
+    }
+
+    return true;
+}
+
+/**
+ * Add CSS for duplicate test styling and form validation
+ */
+function addValidationCSS() {
+    if (!$('#validationCSS').length) {
+        const css = `
+            <style id="validationCSS">
+                /* Duplicate test styling */
+                .duplicate-test-row {
+                    background-color: #fff3cd !important;
+                    border: 2px solid #ffc107 !important;
+                    border-radius: 4px;
+                    animation: duplicateWarning 1s ease-in-out;
+                }
+                
+                .duplicate-test-row .test-select {
+                    border-color: #ffc107 !important;
+                    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
+                }
+                
+                @keyframes duplicateWarning {
+                    0% { background-color: #f8d7da; }
+                    50% { background-color: #fff3cd; }
+                    100% { background-color: #fff3cd; }
+                }
+                
+                .duplicate-warning {
+                    margin-bottom: 15px;
+                    border-left: 4px solid #ffc107;
+                }
+                
+                /* Invalid test row styling */
+                .invalid-test-row {
+                    background-color: #f8d7da !important;
+                    border: 2px solid #dc3545 !important;
+                    border-radius: 4px;
+                    animation: invalidWarning 1s ease-in-out;
+                }
+                
+                @keyframes invalidWarning {
+                    0% { background-color: #f8d7da; }
+                    50% { background-color: #f5c6cb; }
+                    100% { background-color: #f8d7da; }
+                }
+                
+                /* Form validation styling */
+                .is-invalid {
+                    border-color: #dc3545 !important;
+                    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+                }
+                
+                .is-valid {
+                    border-color: #28a745 !important;
+                    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+                }
+                
+                .invalid-feedback {
+                    display: block !important;
+                    width: 100%;
+                    margin-top: 0.25rem;
+                    font-size: 0.875em;
+                    color: #dc3545;
+                }
+                
+                /* Test container error styling */
+                .has-error {
+                    border: 2px dashed #dc3545;
+                    border-radius: 4px;
+                    padding: 10px;
+                    background-color: rgba(220, 53, 69, 0.05);
+                }
+                
+                .test-container-error {
+                    margin-top: 10px !important;
+                    font-size: 0.9em;
+                }
+                
+                /* Test result validation styling */
+                .result-normal {
+                    border-color: #28a745 !important;
+                    background-color: rgba(40, 167, 69, 0.1) !important;
+                }
+                
+                .result-abnormal {
+                    border-color: #ffc107 !important;
+                    background-color: rgba(255, 193, 7, 0.1) !important;
+                }
+                
+                /* Real-time validation feedback */
+                .validation-pending {
+                    border-color: #17a2b8 !important;
+                    box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25) !important;
+                }
+                
+                /* Validation success animation */
+                @keyframes validationSuccess {
+                    0% { border-color: #28a745; box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25); }
+                    50% { border-color: #20c997; box-shadow: 0 0 0 0.4rem rgba(32, 201, 151, 0.35); }
+                    100% { border-color: #28a745; box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25); }
+                }
+                
+                .validation-success {
+                    animation: validationSuccess 0.6s ease-in-out;
+                }
+                
+                /* Validation error animation */
+                @keyframes validationError {
+                    0% { transform: translateX(0); }
+                    25% { transform: translateX(-5px); }
+                    75% { transform: translateX(5px); }
+                    100% { transform: translateX(0); }
+                }
+                
+                .validation-error {
+                    animation: validationError 0.5s ease-in-out;
+                }
+            </style>
+        `;
+        $('head').append(css);
+    }
+}
+
+// Initialize validation CSS
+$(document).ready(function () {
+    addValidationCSS();
+});
+
+/**
+ * Enhanced form validation with comprehensive checks and real-time feedback
+ */
+function validateForm() {
+    console.log('Validating form...');
+
+    // Clear previous validation states
+    clearValidationErrors();
+
+    const validationResult = {
+        isValid: true,
+        errors: [],
+        fieldErrors: {},
+        warnings: []
+    };
+
+    // 1. Validate patient selection
+    const patientId = $('#patientSelect').val();
+    console.log('Patient ID:', patientId);
+    if (!patientId || patientId === '') {
+        validationResult.isValid = false;
+        validationResult.errors.push('Please select a patient');
+        validationResult.fieldErrors.patient_id = 'Patient selection is required';
+        markFieldAsInvalid('#patientSelect', 'Patient selection is required');
+    } else {
+        markFieldAsValid('#patientSelect');
+    }
+
+    // 2. Validate entry date
+    const entryDate = $('#entryDate').val();
+    console.log('Entry date:', entryDate);
+    if (!entryDate || entryDate === '') {
+        validationResult.isValid = false;
+        validationResult.errors.push('Please select an entry date');
+        validationResult.fieldErrors.entry_date = 'Entry date is required';
+        markFieldAsInvalid('#entryDate', 'Entry date is required');
+    } else {
+        // Validate date format and range
+        const dateValidation = validateEntryDate(entryDate);
+        if (!dateValidation.valid) {
+            validationResult.isValid = false;
+            validationResult.errors.push(dateValidation.message);
+            validationResult.fieldErrors.entry_date = dateValidation.message;
+            markFieldAsInvalid('#entryDate', dateValidation.message);
+        } else {
+            markFieldAsValid('#entryDate');
+            if (dateValidation.warning) {
+                validationResult.warnings.push(dateValidation.warning);
+            }
+        }
+    }
+
+    // 3. Validate doctor selection (optional but warn if not selected)
+    const doctorId = $('#doctorSelect').val();
+    if (!doctorId || doctorId === '') {
+        validationResult.warnings.push('No doctor assigned to this entry');
+    }
+
+    // 4. Validate test rows
+    const testRows = $('#testsContainer .test-row');
+    console.log('Number of test rows:', testRows.length);
+
+    const validTests = [];
+    const testValidationErrors = [];
+
+    testRows.each(function (index) {
+        const $row = $(this);
+        const testId = $row.find('.test-select').val();
+        const rowNumber = index + 1;
+
+        if (testId && testId !== '') {
+            const testValidation = validateTestRow($row, rowNumber);
+            if (testValidation.valid) {
+                validTests.push({
+                    testId: testId,
+                    testName: $row.find('.test-select option:selected').text(),
+                    price: parseFloat($row.find('.test-price').val()) || 0
+                });
+            } else {
+                testValidationErrors.push(...testValidation.errors);
+                validationResult.isValid = false;
+            }
+        }
+    });
+
+    // Check if at least one test is selected
+    if (validTests.length === 0) {
+        validationResult.isValid = false;
+        validationResult.errors.push('Please add at least one test');
+        validationResult.fieldErrors.tests = 'At least one test must be selected';
+        showTestContainerError('At least one test must be selected');
+    } else {
+        clearTestContainerError();
+    }
+
+    // Add test-specific errors
+    if (testValidationErrors.length > 0) {
+        validationResult.errors.push(...testValidationErrors);
+    }
+
+    // 5. Check for duplicate tests
+    const duplicateCheck = validateUniqueTests();
+    if (!duplicateCheck.valid) {
+        validationResult.isValid = false;
+        validationResult.errors.push(duplicateCheck.message);
+        validationResult.fieldErrors.duplicate_tests = duplicateCheck.message;
+
+        // Scroll to first duplicate
+        if (duplicateCheck.duplicates.length > 0) {
+            duplicateCheck.duplicates[0].$row[0].scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+    }
+
+    // 6. Validate pricing calculations
+    const pricingValidation = validatePricing();
+    if (!pricingValidation.valid) {
+        validationResult.isValid = false;
+        validationResult.errors.push(...pricingValidation.errors);
+        Object.assign(validationResult.fieldErrors, pricingValidation.fieldErrors);
+    }
+
+    // 7. Display validation results
+    if (!validationResult.isValid) {
+        displayValidationErrors(validationResult);
+        console.log('Form validation failed:', validationResult);
+        return false;
+    }
+
+    // Show warnings if any
+    if (validationResult.warnings.length > 0) {
+        showWarning(validationResult.warnings.join('<br>'));
     }
 
     console.log('Form validation passed');
@@ -1239,44 +2748,363 @@ function validateForm() {
 }
 
 /**
- * View entry details
+ * Validate individual test row
  */
-function viewEntry(id) {
-    console.log('Viewing entry:', id);
-
-    // Show modal
-    $('#viewEntryModal').modal('show');
-
-    // Load entry data
-    const requestData = {
-        action: 'get',
-        id: id
+function validateTestRow($row, rowNumber) {
+    const result = {
+        valid: true,
+        errors: []
     };
 
-    const secretKey = API_CONFIG.getSecretKey();
-    if (secretKey) {
-        requestData.secret_key = secretKey;
+    const testId = $row.find('.test-select').val();
+    const testName = $row.find('.test-select option:selected').text();
+
+    // Clear previous row validation state
+    $row.removeClass('invalid-test-row');
+
+    if (!testId || testId === '') {
+        result.valid = false;
+        result.errors.push(`Test selection is required in row ${rowNumber}`);
+        $row.addClass('invalid-test-row');
+        return result;
     }
 
-    $.ajax({
-        url: API_CONFIG.getURL(),
-        method: 'GET',
-        data: requestData,
-        dataType: 'json',
-        success: function (response) {
-            if (response.success) {
-                displayEntryDetails(response.data);
-            } else {
-                showError(response.message || 'Failed to load entry details');
-                $('#viewEntryModal').modal('hide');
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error('Error loading entry:', error);
-            showError('Failed to load entry details');
-            $('#viewEntryModal').modal('hide');
+    // Validate test exists in available tests
+    const testExists = testsData.find(t => t.id == testId);
+    if (!testExists) {
+        result.valid = false;
+        result.errors.push(`Test "${testName}" in row ${rowNumber} is no longer available`);
+        $row.addClass('invalid-test-row');
+        return result;
+    }
+
+    // Validate pricing
+    const price = parseFloat($row.find('.test-price').val());
+    if (isNaN(price) || price < 0) {
+        result.valid = false;
+        result.errors.push(`Invalid price for test "${testName}" in row ${rowNumber}`);
+        markFieldAsInvalid($row.find('.test-price'), 'Price must be a positive number');
+    } else {
+        markFieldAsValid($row.find('.test-price'));
+    }
+
+    // Validate test result if entered
+    const resultValue = $row.find('.test-result').val();
+    if (resultValue && resultValue.trim() !== '') {
+        const resultValidation = validateTestResultValue(resultValue, $row);
+        if (!resultValidation.valid) {
+            // Don't fail validation for result issues, just show warning
+            console.warn(`Test result validation warning for row ${rowNumber}:`, resultValidation.message);
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Validate entry date
+ */
+function validateEntryDate(dateString) {
+    const result = {
+        valid: true,
+        message: '',
+        warning: ''
+    };
+
+    try {
+        const entryDate = new Date(dateString);
+        const today = new Date();
+        const maxFutureDate = new Date();
+        maxFutureDate.setDate(today.getDate() + 30); // Allow up to 30 days in future
+
+        const minPastDate = new Date();
+        minPastDate.setFullYear(today.getFullYear() - 1); // Allow up to 1 year in past
+
+        // Check if date is valid
+        if (isNaN(entryDate.getTime())) {
+            result.valid = false;
+            result.message = 'Please enter a valid date';
+            return result;
+        }
+
+        // Check if date is too far in the past
+        if (entryDate < minPastDate) {
+            result.valid = false;
+            result.message = 'Entry date cannot be more than 1 year in the past';
+            return result;
+        }
+
+        // Check if date is too far in the future
+        if (entryDate > maxFutureDate) {
+            result.valid = false;
+            result.message = 'Entry date cannot be more than 30 days in the future';
+            return result;
+        }
+
+        // Warn if date is in the future
+        if (entryDate > today) {
+            result.warning = 'Entry date is in the future';
+        }
+
+        // Warn if date is more than 7 days old
+        const weekAgo = new Date();
+        weekAgo.setDate(today.getDate() - 7);
+        if (entryDate < weekAgo) {
+            result.warning = 'Entry date is more than a week old';
+        }
+
+    } catch (error) {
+        result.valid = false;
+        result.message = 'Invalid date format';
+    }
+
+    return result;
+}
+
+/**
+ * Validate pricing calculations
+ */
+function validatePricing() {
+    const result = {
+        valid: true,
+        errors: [],
+        fieldErrors: {}
+    };
+
+    // Calculate expected totals
+    let calculatedSubtotal = 0;
+    $('#testsContainer .test-price').each(function () {
+        const price = parseFloat($(this).val()) || 0;
+        calculatedSubtotal += price;
+    });
+
+    const discount = parseFloat($('#discountAmount').val()) || 0;
+    const calculatedTotal = Math.max(calculatedSubtotal - discount, 0);
+
+    // Validate discount
+    if (discount < 0) {
+        result.valid = false;
+        result.errors.push('Discount amount cannot be negative');
+        result.fieldErrors.discount_amount = 'Discount cannot be negative';
+        markFieldAsInvalid('#discountAmount', 'Discount cannot be negative');
+    } else if (discount > calculatedSubtotal) {
+        result.valid = false;
+        result.errors.push('Discount amount cannot exceed subtotal');
+        result.fieldErrors.discount_amount = 'Discount cannot exceed subtotal';
+        markFieldAsInvalid('#discountAmount', 'Discount cannot exceed subtotal');
+    } else {
+        markFieldAsValid('#discountAmount');
+    }
+
+    // Validate subtotal matches calculation
+    const displayedSubtotal = parseFloat($('#subtotal').val()) || 0;
+    if (Math.abs(displayedSubtotal - calculatedSubtotal) > 0.01) {
+        console.warn('Subtotal mismatch detected, recalculating...');
+        calculateTotals(); // Auto-fix the calculation
+    }
+
+    // Validate total
+    const displayedTotal = parseFloat($('#totalPrice').val()) || 0;
+    if (displayedTotal < 0) {
+        result.valid = false;
+        result.errors.push('Total amount cannot be negative');
+        result.fieldErrors.total_price = 'Total cannot be negative';
+    }
+
+    return result;
+}
+
+/**
+ * Mark field as invalid with error message
+ */
+function markFieldAsInvalid($field, message) {
+    $field.addClass('is-invalid').removeClass('is-valid');
+
+    // Remove existing feedback
+    $field.siblings('.invalid-feedback').remove();
+
+    // Add error message
+    if (message) {
+        $field.after(`<div class="invalid-feedback">${message}</div>`);
+    }
+}
+
+/**
+ * Mark field as valid
+ */
+function markFieldAsValid($field) {
+    $field.addClass('is-valid').removeClass('is-invalid');
+    $field.siblings('.invalid-feedback').remove();
+}
+
+/**
+ * Clear all validation errors
+ */
+function clearValidationErrors() {
+    $('.is-invalid').removeClass('is-invalid');
+    $('.is-valid').removeClass('is-valid');
+    $('.invalid-feedback').remove();
+    $('.invalid-test-row').removeClass('invalid-test-row');
+    $('.duplicate-test-row').removeClass('duplicate-test-row');
+    clearTestContainerError();
+}
+
+/**
+ * Show error for test container
+ */
+function showTestContainerError(message) {
+    const $container = $('#testsContainer');
+    $container.addClass('has-error');
+
+    // Remove existing error message
+    $container.siblings('.test-container-error').remove();
+
+    // Add error message
+    $container.after(`<div class="test-container-error alert alert-danger mt-2">${message}</div>`);
+}
+
+/**
+ * Clear test container error
+ */
+function clearTestContainerError() {
+    $('#testsContainer').removeClass('has-error');
+    $('.test-container-error').remove();
+}
+
+/**
+ * Display comprehensive validation errors
+ */
+function displayValidationErrors(validationResult) {
+    if (validationResult.errors.length > 0) {
+        const errorMessage = validationResult.errors.join('<br>');
+        showError(errorMessage);
+    }
+
+    // Log field-specific errors for debugging
+    if (Object.keys(validationResult.fieldErrors).length > 0) {
+        console.error('Field validation errors:', validationResult.fieldErrors);
+    }
+}
+
+/**
+ * Real-time validation for form fields
+ */
+function setupRealTimeValidation() {
+    // Patient selection validation
+    $('#patientSelect').on('change', function () {
+        if ($(this).val()) {
+            markFieldAsValid($(this));
+        } else {
+            markFieldAsInvalid($(this), 'Patient selection is required');
         }
     });
+
+    // Entry date validation
+    $('#entryDate').on('change blur', function () {
+        const dateValue = $(this).val();
+        if (!dateValue) {
+            markFieldAsInvalid($(this), 'Entry date is required');
+        } else {
+            const dateValidation = validateEntryDate(dateValue);
+            if (dateValidation.valid) {
+                markFieldAsValid($(this));
+                if (dateValidation.warning) {
+                    showWarning(dateValidation.warning);
+                }
+            } else {
+                markFieldAsInvalid($(this), dateValidation.message);
+            }
+        }
+    });
+
+    // Discount validation
+    $('#discountAmount').on('input blur', function () {
+        const discount = parseFloat($(this).val()) || 0;
+        const subtotal = parseFloat($('#subtotal').val()) || 0;
+
+        if (discount < 0) {
+            markFieldAsInvalid($(this), 'Discount cannot be negative');
+        } else if (discount > subtotal) {
+            markFieldAsInvalid($(this), 'Discount cannot exceed subtotal');
+        } else {
+            markFieldAsValid($(this));
+            calculateTotals(); // Recalculate totals
+        }
+    });
+}
+
+/**
+ * Validate test result value (used by validateTestRow)
+ */
+function validateTestResultValue(resultValue, $row) {
+    const result = {
+        valid: true,
+        message: '',
+        warning: ''
+    };
+
+    // If no result value, it's valid (results are optional)
+    if (!resultValue || resultValue.trim() === '') {
+        return result;
+    }
+
+    const trimmedValue = resultValue.trim();
+
+    // Check if it's a numeric result
+    const numericValue = parseFloat(trimmedValue);
+    if (!isNaN(numericValue)) {
+        // Validate against min/max ranges if available
+        const minValue = parseFloat($row.find('.test-min').val());
+        const maxValue = parseFloat($row.find('.test-max').val());
+
+        if (!isNaN(minValue) && !isNaN(maxValue)) {
+            if (numericValue < minValue) {
+                result.warning = `Result ${numericValue} is below normal range (${minValue}-${maxValue})`;
+            } else if (numericValue > maxValue) {
+                result.warning = `Result ${numericValue} is above normal range (${minValue}-${maxValue})`;
+            }
+        }
+    } else {
+        // Non-numeric result - validate basic format
+        if (trimmedValue.length > 100) {
+            result.valid = false;
+            result.message = 'Result value is too long (maximum 100 characters)';
+        } else if (trimmedValue.length < 1) {
+            result.valid = false;
+            result.message = 'Result value cannot be empty';
+        }
+    }
+
+    return result;
+}
+
+/**
+ * View entry details
+ */
+async function viewEntry(id) {
+    console.log('Viewing entry:', id);
+
+    try {
+        // Show modal
+        $('#viewEntryModal').modal('show');
+
+        // Show loading indicator in modal
+        $('#entryDetails').html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading entry details...</div>');
+
+        // Load entry data using enhanced API handler
+        const response = await makeAPIRequest({
+            action: 'get',
+            data: { id: id }
+        });
+
+        console.log('Entry details loaded:', response);
+        displayEntryDetails(response.data);
+
+    } catch (error) {
+        console.error('Error loading entry:', error);
+        $('#viewEntryModal').modal('hide');
+        // Error message is already shown by makeAPIRequest
+    }
 }
 
 /**
@@ -1351,45 +3179,50 @@ function displayEntryDetails(entry) {
 /**
  * Edit entry
  */
-function editEntry(id) {
+async function editEntry(id) {
     console.log('Editing entry:', id);
 
-    currentEditId = id;
-    resetForm();
+    try {
+        currentEditId = id;
+        resetForm();
 
-    // Update modal title
-    $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
+        // Update modal title
+        $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
 
-    // Load entry data
-    const requestData = {
-        action: 'get',
-        id: id
-    };
+        // Show loading state
+        showLoadingIndicator('Loading entry data for editing...');
 
-    const secretKey = API_CONFIG.getSecretKey();
-    if (secretKey) {
-        requestData.secret_key = secretKey;
-    }
+        // Load entry data using enhanced API handler
+        const response = await makeAPIRequest({
+            action: 'get',
+            data: { id: id }
+        });
 
-    $.ajax({
-        url: API_CONFIG.getURL(),
-        method: 'GET',
-        data: requestData,
-        dataType: 'json',
-        success: function (response) {
-            if (response.success) {
+        console.log('Entry data loaded for editing:', response);
+
+        hideLoadingIndicator();
+
+        // Show modal first
+        $('#entryModal').modal('show');
+
+        // Wait for modal to be fully shown before populating
+        $('#entryModal').off('shown.bs.modal.edit').on('shown.bs.modal.edit', function () {
+            console.log('Modal shown, initializing for edit...');
+
+            // Initialize Select2 first
+            initializeSelect2();
+
+            // Then populate the form
+            setTimeout(() => {
                 populateEditForm(response.data);
-                $('#entryModal').modal('show');
-                initializeSelect2();
-            } else {
-                showError(response.message || 'Failed to load entry for editing');
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error('Error loading entry for edit:', error);
-            showError('Failed to load entry for editing');
-        }
-    });
+            }, 200);
+        });
+
+    } catch (error) {
+        console.error('Error loading entry for edit:', error);
+        hideLoadingIndicator();
+        // Error message is already shown by makeAPIRequest
+    }
 }
 
 /**
@@ -1400,8 +3233,18 @@ function populateEditForm(entry) {
 
     // Set basic fields
     $('#entryId').val(entry.id);
+
+    // Set patient and doctor with Select2 trigger
     $('#patientSelect').val(entry.patient_id);
+    if ($('#patientSelect').hasClass('select2-hidden-accessible')) {
+        $('#patientSelect').trigger('change.select2');
+    }
+
     $('#doctorSelect').val(entry.doctor_id);
+    if ($('#doctorSelect').hasClass('select2-hidden-accessible')) {
+        $('#doctorSelect').trigger('change.select2');
+    }
+
     $('#entryDate').val(entry.entry_date ? entry.entry_date.split(' ')[0] : '');
     $('#entryStatus').val(entry.status || 'pending');
     $('#priority').val(entry.priority || 'normal');
@@ -1411,22 +3254,43 @@ function populateEditForm(entry) {
     $('#totalPrice').val(parseFloat(entry.total_price || 0).toFixed(2));
     $('#entryNotes').val(entry.notes || '');
 
+    console.log('Entry tests data:', entry.tests);
+
+    // Clear existing test rows
+    $('#testsContainer').empty();
+    testRowCounter = 0;
+
     // Add test rows
     if (entry.tests && entry.tests.length > 0) {
-        entry.tests.forEach(test => {
+        console.log(`Adding ${entry.tests.length} test rows for editing`);
+
+        entry.tests.forEach((test, index) => {
+            console.log(`Processing test ${index + 1}:`, test);
+
             // Ensure category_id is available for proper row population
             if (!test.category_id && test.test_id) {
                 // Find category from test data
                 const testData = testsData.find(t => t.id == test.test_id);
                 if (testData && testData.category_id) {
                     test.category_id = testData.category_id;
+                    console.log(`Found category ${testData.category_id} for test ${test.test_id}`);
                 }
             }
+
+            // Add the test row with data
             addTestRow(test);
         });
+
+        // Recalculate totals after all tests are added
+        setTimeout(() => {
+            calculateTotals();
+        }, 500);
     } else {
+        console.log('No tests found, adding empty row');
         addTestRow(); // Add at least one empty row
     }
+
+    console.log('Edit form population completed');
 }
 
 /**
@@ -1439,36 +3303,34 @@ function deleteEntry(id) {
     $('#deleteModal').modal('show');
 
     // Handle delete confirmation
-    $('#confirmDelete').off('click').on('click', function () {
-        const requestData = {
-            action: 'delete',
-            id: id
-        };
+    $('#confirmDelete').off('click').on('click', async function () {
+        try {
+            // Show loading state
+            const $deleteBtn = $(this);
+            const originalText = $deleteBtn.html();
+            $deleteBtn.html('<i class="fas fa-spinner fa-spin"></i> Deleting...').prop('disabled', true);
 
-        const secretKey = API_CONFIG.getSecretKey();
-        if (secretKey) {
-            requestData.secret_key = secretKey;
+            // Delete entry using enhanced API handler
+            const response = await makeAPIRequest({
+                action: 'delete',
+                method: 'POST',
+                data: { id: id }
+            });
+
+            console.log('Entry deleted successfully:', response);
+
+            showSuccess(response.message || 'Entry deleted successfully');
+            $('#deleteModal').modal('hide');
+            refreshTable();
+
+        } catch (error) {
+            console.error('Error deleting entry:', error);
+            // Error message is already shown by makeAPIRequest
+        } finally {
+            // Restore button state
+            const $deleteBtn = $('#confirmDelete');
+            $deleteBtn.html('Delete').prop('disabled', false);
         }
-
-        $.ajax({
-            url: API_CONFIG.getURL(),
-            method: 'POST',
-            data: requestData,
-            dataType: 'json',
-            success: function (response) {
-                if (response.success) {
-                    showSuccess(response.message || 'Entry deleted successfully');
-                    $('#deleteModal').modal('hide');
-                    refreshTable();
-                } else {
-                    showError(response.message || 'Failed to delete entry');
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error('Error deleting entry:', error);
-                showError('Failed to delete entry');
-            }
-        });
     });
 }
 
@@ -2020,86 +3882,145 @@ function quickFix() {
 window.quickFix = quickFix;
 
 /**
- * Refresh all dropdowns with current data
+ * Refresh all dropdowns with current data - Enhanced version
  */
 function refreshAllDropdowns() {
     console.log('🔄 Refreshing all dropdowns...');
 
     try {
-        // Check if data is loaded
-        if (categoriesData.length === 0 || testsData.length === 0) {
-            console.log('Data not loaded, attempting to reload...');
-            loadInitialData().then(() => {
-                console.log('Data reloaded, refreshing dropdowns again...');
-                refreshAllDropdowns();
+        // Validate data availability
+        const dataStatus = {
+            categories: categoriesData && categoriesData.length > 0,
+            tests: testsData && testsData.length > 0,
+            patients: patientsData && patientsData.length > 0,
+            doctors: doctorsData && doctorsData.length > 0
+        };
+
+        console.log('Data status:', dataStatus);
+
+        // If critical data is missing, attempt to reload
+        if (!dataStatus.categories || !dataStatus.tests) {
+            console.log('Critical data missing, attempting to reload...');
+            showInfo('Reloading data, please wait...');
+
+            loadInitialData().then((success) => {
+                if (success) {
+                    console.log('Data reloaded successfully, refreshing dropdowns...');
+                    setTimeout(() => refreshAllDropdowns(), 500);
+                } else {
+                    showError('Failed to reload data. Please refresh the page.');
+                }
             });
-            return;
+            return false;
         }
 
-        console.log(`Refreshing with ${categoriesData.length} categories and ${testsData.length} tests`);
+        console.log(`Refreshing with ${categoriesData.length} categories, ${testsData.length} tests, ${patientsData.length} patients, ${doctorsData.length} doctors`);
+
+        let refreshedRows = 0;
+        let errors = [];
 
         // Refresh each test row
         $('#testsContainer .test-row').each(function (index) {
-            const $row = $(this);
-            const $categorySelect = $row.find('.category-select');
-            const $testSelect = $row.find('.test-select');
+            try {
+                const $row = $(this);
+                const $categorySelect = $row.find('.category-select');
+                const $testSelect = $row.find('.test-select');
 
-            // Store current values
-            const currentCategory = $categorySelect.val();
-            const currentTest = $testSelect.val();
+                // Store current values
+                const currentCategory = $categorySelect.val();
+                const currentTest = $testSelect.val();
 
-            console.log(`Refreshing row ${index}: category=${currentCategory}, test=${currentTest}`);
+                console.log(`Refreshing row ${index}: category=${currentCategory}, test=${currentTest}`);
 
-            // Rebuild category options
-            $categorySelect.find('option:not(:first)').remove();
-            categoriesData.forEach(category => {
-                $categorySelect.append(`<option value="${category.id}">${category.name}</option>`);
-            });
-
-            // Rebuild test options
-            $testSelect.find('option:not(:first)').remove();
-            testsData.forEach(test => {
-                const displayName = `${test.name} [ID: ${test.id}]`;
-                $testSelect.append(`<option value="${test.id}" data-category-id="${test.category_id || ''}" data-price="${test.price || 0}" data-unit="${test.unit || ''}" data-min="${test.min || ''}" data-max="${test.max || ''}">${displayName}</option>`);
-            });
-
-            // Restore values
-            if (currentCategory) {
-                $categorySelect.val(currentCategory);
-            }
-            if (currentTest) {
-                $testSelect.val(currentTest);
-            }
-
-            // Refresh Select2
-            if ($categorySelect.hasClass('select2-hidden-accessible')) {
-                $categorySelect.select2('destroy').select2({
-                    theme: 'bootstrap4',
-                    width: '100%',
-                    placeholder: 'Select Category',
-                    allowClear: true
+                // Rebuild category options with validation
+                $categorySelect.find('option:not(:first)').remove();
+                categoriesData.forEach(category => {
+                    if (category && category.id && category.name) {
+                        $categorySelect.append(`<option value="${category.id}">${category.name}</option>`);
+                    }
                 });
-            }
 
-            if ($testSelect.hasClass('select2-hidden-accessible')) {
-                $testSelect.select2('destroy').select2({
-                    theme: 'bootstrap4',
-                    width: '100%',
-                    placeholder: 'Select Test',
-                    allowClear: true
+                // Rebuild test options with validation
+                $testSelect.find('option:not(:first)').remove();
+                testsData.forEach(test => {
+                    if (test && test.id && test.name) {
+                        const displayName = `${test.name} [ID: ${test.id}]`;
+                        const option = `<option value="${test.id}" 
+                            data-category-id="${test.category_id || ''}" 
+                            data-price="${test.price || 0}" 
+                            data-unit="${test.unit || ''}" 
+                            data-min="${test.min || ''}" 
+                            data-max="${test.max || ''}">${displayName}</option>`;
+                        $testSelect.append(option);
+                    }
                 });
+
+                // Restore values if they still exist
+                if (currentCategory && $categorySelect.find(`option[value="${currentCategory}"]`).length) {
+                    $categorySelect.val(currentCategory);
+                }
+                if (currentTest && $testSelect.find(`option[value="${currentTest}"]`).length) {
+                    $testSelect.val(currentTest);
+                }
+
+                // Refresh Select2 with error handling
+                try {
+                    if ($categorySelect.hasClass('select2-hidden-accessible')) {
+                        $categorySelect.select2('destroy');
+                    }
+                    $categorySelect.select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        placeholder: 'Select Category',
+                        allowClear: true
+                    });
+
+                    if ($testSelect.hasClass('select2-hidden-accessible')) {
+                        $testSelect.select2('destroy');
+                    }
+                    $testSelect.select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        placeholder: 'Select Test',
+                        allowClear: true
+                    });
+                } catch (select2Error) {
+                    console.warn(`Select2 refresh failed for row ${index}:`, select2Error);
+                }
+
+                refreshedRows++;
+
+            } catch (rowError) {
+                console.error(`Error refreshing row ${index}:`, rowError);
+                errors.push(`Row ${index}: ${rowError.message}`);
             }
         });
 
-        // Refresh global category filter
-        populateGlobalCategoryFilter();
+        // Refresh main dropdowns
+        try {
+            populatePatientSelect();
+            populateDoctorSelect();
+            populateGlobalCategoryFilter();
+        } catch (mainDropdownError) {
+            console.error('Error refreshing main dropdowns:', mainDropdownError);
+            errors.push(`Main dropdowns: ${mainDropdownError.message}`);
+        }
 
-        console.log('✅ All dropdowns refreshed successfully');
-        showSuccess('Dropdowns refreshed with latest data');
+        // Report results
+        if (errors.length === 0) {
+            console.log(`✅ Successfully refreshed ${refreshedRows} test rows and main dropdowns`);
+            showSuccess(`Dropdowns refreshed successfully (${refreshedRows} test rows)`);
+            return true;
+        } else {
+            console.warn(`⚠️ Refreshed ${refreshedRows} rows with ${errors.length} errors:`, errors);
+            showInfo(`Dropdowns partially refreshed. ${errors.length} errors occurred.`);
+            return false;
+        }
 
     } catch (error) {
-        console.error('❌ Error refreshing dropdowns:', error);
+        console.error('❌ Critical error refreshing dropdowns:', error);
         showError('Failed to refresh dropdowns: ' + error.message);
+        return false;
     }
 }
 
@@ -2140,25 +4061,388 @@ async function forceReloadData() {
 window.forceReloadData = forceReloadData;
 
 /**
- * Switch between old and new API
+ * Enhanced API endpoint switching with automatic testing and fallback
  */
-function switchAPI(useNew = true) {
+async function switchAPI(useNew = true, skipTest = false) {
     console.log(`🔄 Switching to ${useNew ? 'NEW' : 'OLD'} API...`);
 
+    const previousAPI = API_CONFIG.useNewAPI;
     API_CONFIG.useNewAPI = useNew;
 
     console.log(`Current API: ${API_CONFIG.getURL()}`);
     console.log(`Secret Key: ${API_CONFIG.getSecretKey() || 'None (new API)'}`);
 
-    // Refresh the DataTable to use new API
-    if (entriesTable) {
-        entriesTable.ajax.reload();
+    // Test the API endpoint if not skipping
+    if (!skipTest) {
+        showInfo('Testing API endpoint...');
+
+        try {
+            const isAvailable = await API_CONFIG.isAvailable();
+
+            if (!isAvailable) {
+                console.warn(`${useNew ? 'New' : 'Old'} API is not available`);
+
+                // Revert to previous API
+                API_CONFIG.useNewAPI = previousAPI;
+
+                showError(`${useNew ? 'New' : 'Old'} API is not available. Reverted to ${previousAPI ? 'new' : 'old'} API.`);
+                return false;
+            }
+
+            console.log(`✅ ${useNew ? 'New' : 'Old'} API is available and working`);
+
+        } catch (error) {
+            console.error(`Error testing ${useNew ? 'new' : 'old'} API:`, error);
+
+            // Revert to previous API
+            API_CONFIG.useNewAPI = previousAPI;
+
+            showError(`Failed to test ${useNew ? 'new' : 'old'} API. Reverted to ${previousAPI ? 'new' : 'old'} API.`);
+            return false;
+        }
     }
 
-    showSuccess(`Switched to ${useNew ? 'new patho_api/entry.php' : 'old ajax/entry_api_fixed.php'} API`);
+    // Refresh the DataTable to use new API
+    if (entriesTable) {
+        try {
+            entriesTable.ajax.reload();
+        } catch (error) {
+            console.error('Error reloading DataTable:', error);
+        }
+    }
+
+    // Update API handler configuration
+    if (window.apiHandler) {
+        apiHandler.config = API_CONFIG;
+    }
+
+    const apiName = useNew ? 'new patho_api/entry.php' : 'old ajax/entry_api_fixed.php';
+    showSuccess(`Successfully switched to ${apiName} API`);
+
+    return true;
+}
+
+/**
+ * Automatically detect and switch to the best available API
+ */
+async function autoDetectBestAPI() {
+    console.log('🔍 Auto-detecting best available API...');
+    showInfo('Detecting best API endpoint...');
+
+    try {
+        // Test new API first
+        console.log('Testing new API...');
+        const newAPIAvailable = await API_CONFIG.isAvailable(API_CONFIG.endpoints.new);
+
+        if (newAPIAvailable) {
+            console.log('✅ New API is available');
+            const switched = await switchAPI(true, true); // Skip test since we already tested
+            if (switched) {
+                showSuccess('Using new API (patho_api/entry.php)');
+                return 'new';
+            }
+        }
+
+        // Test old API as fallback
+        console.log('Testing old API...');
+        const oldAPIAvailable = await API_CONFIG.isAvailable(API_CONFIG.endpoints.old);
+
+        if (oldAPIAvailable) {
+            console.log('✅ Old API is available');
+            const switched = await switchAPI(false, true); // Skip test since we already tested
+            if (switched) {
+                showInfo('Using old API (ajax/entry_api_fixed.php) as fallback');
+                return 'old';
+            }
+        }
+
+        // Neither API is available
+        console.error('❌ Neither API endpoint is available');
+        showError('No API endpoints are available. Please check server configuration.');
+        return null;
+
+    } catch (error) {
+        console.error('Error during API auto-detection:', error);
+        showError('Failed to detect available APIs. Using default configuration.');
+        return null;
+    }
+}
+
+/**
+ * Test both API endpoints and return availability status
+ */
+async function testBothAPIs() {
+    console.log('🔍 Testing both API endpoints...');
+
+    const results = {
+        new: { available: false, error: null, responseTime: null },
+        old: { available: false, error: null, responseTime: null }
+    };
+
+    // Test new API
+    try {
+        const startTime = Date.now();
+        results.new.available = await API_CONFIG.isAvailable(API_CONFIG.endpoints.new);
+        results.new.responseTime = Date.now() - startTime;
+        console.log(`New API: ${results.new.available ? 'Available' : 'Not available'} (${results.new.responseTime}ms)`);
+    } catch (error) {
+        results.new.error = error.message;
+        console.error('New API test failed:', error);
+    }
+
+    // Test old API
+    try {
+        const startTime = Date.now();
+        results.old.available = await API_CONFIG.isAvailable(API_CONFIG.endpoints.old);
+        results.old.responseTime = Date.now() - startTime;
+        console.log(`Old API: ${results.old.available ? 'Available' : 'Not available'} (${results.old.responseTime}ms)`);
+    } catch (error) {
+        results.old.error = error.message;
+        console.error('Old API test failed:', error);
+    }
+
+    // Summary
+    console.log('\n📋 API Test Results:');
+    console.log('==================');
+    console.log(`New API (${API_CONFIG.endpoints.new}): ${results.new.available ? '✅ Available' : '❌ Not Available'} ${results.new.responseTime ? `(${results.new.responseTime}ms)` : ''}`);
+    console.log(`Old API (${API_CONFIG.endpoints.old}): ${results.old.available ? '✅ Available' : '❌ Not Available'} ${results.old.responseTime ? `(${results.old.responseTime}ms)` : ''}`);
+
+    // Recommend best API
+    if (results.new.available && results.old.available) {
+        const faster = results.new.responseTime <= results.old.responseTime ? 'new' : 'old';
+        console.log(`\n🎯 Recommendation: Use ${faster} API (faster response time)`);
+
+        showSuccess(`Both APIs available. New API: ${results.new.responseTime}ms, Old API: ${results.old.responseTime}ms`);
+    } else if (results.new.available) {
+        console.log('\n🎯 Recommendation: Use new API');
+        showSuccess('New API is available and working');
+    } else if (results.old.available) {
+        console.log('\n⚠️ Fallback: Use old API');
+        showInfo('Only old API is available');
+    } else {
+        console.log('\n❌ No APIs available');
+        showError('No API endpoints are working');
+    }
+
+    return results;
+}
+
+/**
+ * Smart API switching with automatic fallback
+ */
+async function smartSwitchAPI(preferNew = true) {
+    console.log(`🧠 Smart API switching (prefer ${preferNew ? 'new' : 'old'})...`);
+
+    try {
+        const testResults = await testBothAPIs();
+
+        // Try preferred API first
+        const preferredAPI = preferNew ? 'new' : 'old';
+        const fallbackAPI = preferNew ? 'old' : 'new';
+
+        if (testResults[preferredAPI].available) {
+            const success = await switchAPI(preferNew, true);
+            if (success) {
+                return preferredAPI;
+            }
+        }
+
+        // Try fallback API
+        if (testResults[fallbackAPI].available) {
+            console.log(`Preferred API not available, switching to ${fallbackAPI} API`);
+            const success = await switchAPI(!preferNew, true);
+            if (success) {
+                return fallbackAPI;
+            }
+        }
+
+        // No APIs available
+        showError('No working API endpoints found');
+        return null;
+
+    } catch (error) {
+        console.error('Smart API switching failed:', error);
+        showError('Failed to switch APIs automatically');
+        return null;
+    }
 }
 
 window.switchAPI = switchAPI;
+
+/**
+ * Data caching functions for improved reliability
+ */
+
+/**
+ * Cache data in localStorage with timestamp
+ */
+function cacheData(key, data) {
+    try {
+        const cacheItem = {
+            data: data,
+            timestamp: Date.now(),
+            version: '1.0'
+        };
+        localStorage.setItem(`entrySystem_${key}`, JSON.stringify(cacheItem));
+        console.log(`Cached ${key} data (${Array.isArray(data) ? data.length : 'N/A'} items)`);
+    } catch (error) {
+        console.warn(`Failed to cache ${key} data:`, error);
+    }
+}
+
+/**
+ * Get cached data if it's still valid (within 1 hour)
+ */
+function getCachedData(key) {
+    try {
+        const cached = localStorage.getItem(`entrySystem_${key}`);
+        if (!cached) return null;
+
+        const cacheItem = JSON.parse(cached);
+        const maxAge = 60 * 60 * 1000; // 1 hour
+
+        if (Date.now() - cacheItem.timestamp < maxAge) {
+            console.log(`Using cached ${key} data (${Array.isArray(cacheItem.data) ? cacheItem.data.length : 'N/A'} items)`);
+            return cacheItem.data;
+        } else {
+            // Cache expired, remove it
+            localStorage.removeItem(`entrySystem_${key}`);
+            return null;
+        }
+    } catch (error) {
+        console.warn(`Failed to get cached ${key} data:`, error);
+        return null;
+    }
+}
+
+/**
+ * Clear all cached data
+ */
+function clearCache() {
+    try {
+        const keys = ['tests', 'categories', 'patients', 'doctors'];
+        keys.forEach(key => {
+            localStorage.removeItem(`entrySystem_${key}`);
+        });
+        console.log('Cache cleared successfully');
+        showSuccess('Cache cleared successfully');
+    } catch (error) {
+        console.error('Failed to clear cache:', error);
+        showError('Failed to clear cache');
+    }
+}
+
+/**
+ * Load data from cache as fallback
+ */
+async function loadFromCache() {
+    console.log('Attempting to load data from cache...');
+
+    try {
+        const cachedTests = getCachedData('tests');
+        const cachedCategories = getCachedData('categories');
+        const cachedPatients = getCachedData('patients');
+        const cachedDoctors = getCachedData('doctors');
+
+        if (cachedTests && cachedCategories) {
+            testsData = cachedTests;
+            categoriesData = cachedCategories;
+            patientsData = cachedPatients || [];
+            doctorsData = cachedDoctors || [];
+
+            // Populate dropdowns
+            populatePatientSelect();
+            populateDoctorSelect();
+
+            console.log('Successfully loaded data from cache');
+            return true;
+        } else {
+            console.log('Insufficient cached data available');
+            return false;
+        }
+    } catch (error) {
+        console.error('Failed to load from cache:', error);
+        return false;
+    }
+}
+
+/**
+ * Loading indicator functions
+ */
+
+/**
+ * Show loading indicator
+ */
+function showLoadingIndicator(message = 'Loading...') {
+    // Remove existing indicator
+    hideLoadingIndicator();
+
+    // Create loading overlay
+    const loadingHtml = `
+        <div id="loadingIndicator" class="loading-overlay">
+            <div class="loading-content">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <div class="loading-message mt-2">${message}</div>
+            </div>
+        </div>
+    `;
+
+    $('body').append(loadingHtml);
+
+    // Add CSS if not already present
+    if (!$('#loadingIndicatorCSS').length) {
+        const css = `
+            <style id="loadingIndicatorCSS">
+                .loading-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 9999;
+                }
+                .loading-content {
+                    background: white;
+                    padding: 20px;
+                    border-radius: 8px;
+                    text-align: center;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                }
+                .loading-message {
+                    color: #333;
+                    font-weight: 500;
+                }
+            </style>
+        `;
+        $('head').append(css);
+    }
+}
+
+/**
+ * Hide loading indicator
+ */
+function hideLoadingIndicator() {
+    $('#loadingIndicator').remove();
+}
+
+/**
+ * Update loading indicator message
+ */
+function updateLoadingMessage(message) {
+    $('#loadingIndicator .loading-message').text(message);
+}
+
+// Make cache functions available globally
+window.cacheData = cacheData;
+window.getCachedData = getCachedData;
+window.clearCache = clearCache;
+window.loadFromCache = loadFromCache;
 
 /**
  * Test both APIs
