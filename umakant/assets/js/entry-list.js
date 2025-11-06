@@ -1565,6 +1565,9 @@ function openAddModal() {
         // Initialize Select2 dropdowns
         initializeSelect2();
 
+        // Ensure all main form fields are editable
+        ensureFieldsEditable();
+
         // Add first test row if none exist
         if ($('#testsContainer .test-row').length === 0) {
             console.log('Adding first test row...');
@@ -1625,11 +1628,15 @@ function initializeSelect2() {
             }
         });
 
-        // Initialize Select2 dropdowns
+        // Initialize Select2 dropdowns with proper configuration
         $('.select2').select2({
             theme: 'bootstrap4',
-            width: '100%'
+            width: '100%',
+            disabled: false // Ensure Select2 dropdowns are not disabled
         });
+
+        // Ensure main form Select2 dropdowns are enabled
+        $('#patientSelect, #doctorSelect').select2('enable', true);
 
         // Populate global category filter
         populateGlobalCategoryFilter();
@@ -3230,6 +3237,9 @@ async function editEntry(id) {
             // Initialize Select2 first
             initializeSelect2();
 
+            // Ensure all main form fields are editable
+            ensureFieldsEditable();
+
             // Add patient info card if available
             if (response.data.patient_name) {
                 addPatientInfoCard(response.data);
@@ -3246,6 +3256,35 @@ async function editEntry(id) {
         hideLoadingIndicator();
         // Error message is already shown by makeAPIRequest
     }
+}
+
+/**
+ * Ensure all main form fields above Global Category Filter are editable
+ */
+function ensureFieldsEditable() {
+    console.log('Ensuring all main form fields are editable...');
+
+    // Remove readonly and disabled attributes from main form fields
+    const mainFields = ['#patientSelect', '#doctorSelect', '#entryDate', '#entryStatus'];
+
+    mainFields.forEach(fieldId => {
+        const $field = $(fieldId);
+        $field.prop('readonly', false)
+            .prop('disabled', false)
+            .removeClass('readonly disabled');
+
+        // For select2 fields, ensure they are enabled
+        if ($field.hasClass('select2-hidden-accessible')) {
+            $field.select2('enable', true);
+        }
+
+        console.log(`Field ${fieldId} made editable`);
+    });
+
+    // Also ensure priority and referral source are editable
+    $('#priority, #referralSource').prop('readonly', false).prop('disabled', false);
+
+    console.log('All main form fields are now editable');
 }
 
 /**
@@ -3283,6 +3322,16 @@ function populateEditForm(entry) {
 
     // Set basic fields
     $('#entryId').val(entry.id);
+
+    // Ensure all main form fields are editable (remove any readonly/disabled attributes)
+    $('#patientSelect, #doctorSelect, #entryDate, #entryStatus').prop('readonly', false).prop('disabled', false);
+
+    // Debug: Log field states
+    console.log('Field states after making editable:');
+    console.log('Patient Select - readonly:', $('#patientSelect').prop('readonly'), 'disabled:', $('#patientSelect').prop('disabled'));
+    console.log('Doctor Select - readonly:', $('#doctorSelect').prop('readonly'), 'disabled:', $('#doctorSelect').prop('disabled'));
+    console.log('Entry Date - readonly:', $('#entryDate').prop('readonly'), 'disabled:', $('#entryDate').prop('disabled'));
+    console.log('Entry Status - readonly:', $('#entryStatus').prop('readonly'), 'disabled:', $('#entryStatus').prop('disabled'));
 
     // Set patient and doctor with Select2 trigger
     $('#patientSelect').val(entry.patient_id);

@@ -189,6 +189,41 @@
     opacity: 1;
 }
 
+/* Ensure main form fields above Global Category Filter are always editable */
+#patientSelect, #doctorSelect, #entryDate, #entryStatus, #priority, #referralSource {
+    background-color: white !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Override any readonly styling for main fields */
+#patientSelect[readonly], #doctorSelect[readonly], #entryDate[readonly], #entryStatus[readonly] {
+    background-color: white !important;
+    cursor: pointer !important;
+}
+
+/* Add subtle border to indicate editable fields */
+.modal-body .row:first-child .form-control {
+    border: 2px solid #007bff !important;
+    border-radius: 4px;
+}
+
+.modal-body .row:first-child .form-control:focus {
+    border-color: #0056b3 !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+}
+
+/* Ensure Select2 containers for main fields are also styled */
+.modal-body .row:first-child .select2-container .select2-selection {
+    border: 2px solid #007bff !important;
+    background-color: white !important;
+}
+
+.modal-body .row:first-child .select2-container--focus .select2-selection {
+    border-color: #0056b3 !important;
+}
+
 /* Test Rows */
 .test-row {
     background-color: #f8f9fa;
