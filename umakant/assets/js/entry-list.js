@@ -4936,3 +4936,85 @@ window.quickEditPriority = quickEditPriority;
 window.saveDraft = saveDraft;
 window.loadDraft = loadDraft;
 window.clearDraft = clearDraft;
+/
+**
+ * Refresh test aggregates for all entries
+ */
+async function refreshTestAggregates() {
+    try {
+        showInfo('Refreshing test aggregates, please wait...');
+        
+        const response = await $.ajax({
+            url: 'ajax/refresh_test_aggregates.php',
+            method: 'GET',
+            dataType: 'json',
+            timeout: 30000
+        });
+        
+        if (response.success) {
+            showSuccess(response.message);
+            
+            // Show statistics if available
+            if (response.stats) {
+                const stats = response.stats;
+                const message = `
+                    <strong>Refresh Complete:</strong><br>
+                    • Total Entries: ${stats.total_entries}<br>
+                    • Entries with Tests: ${stats.entries_with_tests}<br>
+                    • Total Test Records: ${stats.total_entry_tests}<br>
+                    • Updated Entries: ${stats.updated_entries}
+                `;
+                
+                showInfo(message);
+            }
+            
+            // Refresh the table to show updated data
+            if (entriesTable) {
+                entriesTable.ajax.reload(null, false);
+            }
+        } else {
+            showError(response.message || 'Failed to refresh test aggregates');
+        }
+        
+    } catch (error) {
+        console.error('Error refreshing test aggregates:', error);
+        showError('Failed to refresh test aggregates. Please try again.');
+    }
+}
+
+/**
+ * Debug function to check API response
+ */
+async function debugAPIResponse() {
+    try {
+        console.log('=== DEBUG: Checking API Response ===');
+        
+        const response = await $.ajax({
+            url: API_CONFIG.getURL(),
+            method: 'GET',
+            data: { action: 'list' },
+            dataType: 'json'
+        });
+        
+        console.log('API Response:', response);
+        
+        if (response && response.data && response.data.length > 0) {
+            const firstEntry = response.data[0];
+            console.log('First entry data:', firstEntry);
+            console.log('Test fields:', {
+                tests_count: firstEntry.tests_count,
+                test_names: firstEntry.test_names,
+                test_ids: firstEntry.test_ids,
+                agg_tests_count: firstEntry.agg_tests_count,
+                agg_test_names: firstEntry.agg_test_names
+            });
+        }
+        
+    } catch (error) {
+        console.error('Debug API error:', error);
+    }
+}
+
+// Make functions available globally
+window.refreshTestAggregates = refreshTestAggregates;
+window.debugAPIResponse = debugAPIResponse;
