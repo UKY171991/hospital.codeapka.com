@@ -166,10 +166,397 @@ function showInfo(message) {
 }
 
 /**
- * Placeholder functions for buttons
+ * Modal and form functions
  */
 function openAddModal() {
-    alert('Add Entry feature is being loaded. Please refresh the page and try again.');
+    console.log('Opening Add Entry modal...');
+    
+    // Reset form
+    resetForm();
+    
+    // Update modal title
+    $('#entryModalLabel').html('<i class="fas fa-plus mr-1"></i>Add New Entry');
+    
+    // Show modal
+    $('#entryModal').modal('show');
+    
+    // Load initial data when modal is shown
+    $('#entryModal').off('shown.bs.modal').on('shown.bs.modal', function () {
+        console.log('Modal shown, loading data...');
+        loadModalData();
+    });
+}
+
+function resetForm() {
+    console.log('Resetting form...');
+    
+    // Reset form fields
+    $('#entryForm')[0].reset();
+    $('#entryId').val('');
+    
+    // Clear tests container
+    $('#testsContainer').empty();
+    
+    // Reset totals
+    $('#subtotal').val('0.00');
+    $('#discountAmount').val('0.00');
+    $('#totalPrice').val('0.00');
+    
+    // Set default date
+    $('#entryDate').val(new Date().toISOString().split('T')[0]);
+}
+
+function loadModalData() {
+    console.log('Loading modal data...');
+    
+    // Load patients
+    loadPatients();
+    
+    // Load doctors  
+    loadDoctors();
+    
+    // Load tests and categories
+    loadTestsAndCategories();
+    
+    // Add initial test row
+    setTimeout(() => {
+        addTestRow();
+    }, 500);
+}
+
+function loadPatients() {
+    console.log('Loading patients...');
+    
+    $.ajax({
+        url: 'ajax/patient_api.php',
+        method: 'GET',
+        data: { action: 'list' },
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success && response.data) {
+                populatePatientSelect(response.data);
+            } else {
+                console.error('Failed to load patients:', response);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading patients:', error);
+        }
+    });
+}
+
+function loadDoctors() {
+    console.log('Loading doctors...');
+    
+    $.ajax({
+        url: 'ajax/doctor_api.php',
+        method: 'GET',
+        data: { action: 'list' },
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success && response.data) {
+                populateDoctorSelect(response.data);
+            } else {
+                console.error('Failed to load doctors:', response);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading doctors:', error);
+        }
+    });
+}
+
+function loadTestsAndCategories() {
+    console.log('Loading tests and categories...');
+    
+    // Load tests
+    $.ajax({
+        url: 'ajax/test_api.php',
+        method: 'GET',
+        data: { action: 'simple_list' },
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success && response.data) {
+                testsData = response.data;
+                console.log('Loaded tests:', testsData.length);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading tests:', error);
+        }
+    });
+    
+    // Load categories
+    $.ajax({
+        url: 'patho_api/test_category.php',
+        method: 'GET',
+        data: { action: 'list', all: '1' },
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success && response.data) {
+                categoriesData = response.data;
+                console.log('Loaded categories:', categoriesData.length);
+                populateGlobalCategoryFilter();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading categories:', error);
+        }
+    });
+}
+
+function populatePatientSelect(patients) {
+    const $select = $('#patientSelect');
+    $select.empty().append('<option value="">Select Patient</option>');
+    
+    patients.forEach(patient => {
+        if (patient && patient.id && patient.name) {
+            const displayName = `${patient.name}${patient.uhid ? ` (${patient.uhid})` : ''}`;
+            $select.append(`<option value="${patient.id}">${displayName}</option>`);
+        }
+    });
+    
+    // Initialize Select2 if available
+    if (typeof $.fn.select2 !== 'undefined') {
+        $select.select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            placeholder: 'Select Patient'
+        });
+    }
+}
+
+function populateDoctorSelect(doctors) {
+    const $select = $('#doctorSelect');
+    $select.empty().append('<option value="">Select Doctor</option>');
+    
+    doctors.forEach(doctor => {
+        if (doctor && doctor.id && doctor.name) {
+            const displayName = `${doctor.name}${doctor.specialization ? ` (${doctor.specialization})` : ''}`;
+            $select.append(`<option value="${doctor.id}">${displayName}</option>`);
+        }
+    });
+    
+    // Initialize Select2 if available
+    if (typeof $.fn.select2 !== 'undefined') {
+        $select.select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            placeholder: 'Select Doctor'
+        });
+    }
+}
+
+function populateGlobalCategoryFilter() {
+    const $select = $('#globalCategoryFilter');
+    $select.find('option:not(:first)').remove();
+    
+    categoriesData.forEach(category => {
+        if (category && category.id && category.name) {
+            $select.append(`<option value="${category.id}">${category.name}</option>`);
+        }
+    });
+}
+
+let testRowCounter = 0;
+
+function addTestRow() {
+    console.log('Adding test row...');
+    
+    const rowIndex = testRowCounter++;
+    
+    // Create category options
+    let categoryOptions = '<option value="">Select Category</option>';
+    if (categoriesData && categoriesData.length > 0) {
+        categoriesData.forEach(category => {
+            categoryOptions += `<option value="${category.id}">${category.name}</option>`;
+        });
+    }
+    
+    // Create test options
+    let testOptions = '<option value="">Select Test</option>';
+    if (testsData && testsData.length > 0) {
+        testsData.forEach(test => {
+            const displayName = `${test.name} [ID: ${test.id}]`;
+            testOptions += `<option value="${test.id}" data-price="${test.price || 0}" data-unit="${test.unit || ''}">${displayName}</option>`;
+        });
+    }
+    
+    const rowHtml = `
+        <div class="test-row row mb-2" data-row-index="${rowIndex}">
+            <div class="col-md-2">
+                <select class="form-control category-select" name="tests[${rowIndex}][category_id]">
+                    ${categoryOptions}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-control test-select" name="tests[${rowIndex}][test_id]" required>
+                    ${testOptions}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control test-result" name="tests[${rowIndex}][result_value]" placeholder="Result">
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control test-min" name="tests[${rowIndex}][min]" placeholder="Min" readonly>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control test-max" name="tests[${rowIndex}][max]" placeholder="Max" readonly>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control test-unit" name="tests[${rowIndex}][unit]" placeholder="Unit" readonly>
+            </div>
+            <div class="col-md-1">
+                <input type="number" class="form-control test-price" name="tests[${rowIndex}][price]" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger btn-sm remove-test-btn" onclick="removeTestRow(this)" title="Remove Test">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    $('#testsContainer').append(rowHtml);
+    
+    // Bind events for the new row
+    const $newRow = $(`.test-row[data-row-index="${rowIndex}"]`);
+    
+    // Test selection change
+    $newRow.find('.test-select').on('change', function() {
+        const testId = $(this).val();
+        if (testId && testsData) {
+            const test = testsData.find(t => t.id == testId);
+            if (test) {
+                $newRow.find('.test-price').val(test.price || 0);
+                $newRow.find('.test-unit').val(test.unit || '');
+                $newRow.find('.test-min').val(test.min || '');
+                $newRow.find('.test-max').val(test.max || '');
+                calculateTotals();
+            }
+        }
+    });
+    
+    // Price change
+    $newRow.find('.test-price').on('input', calculateTotals);
+}
+
+function removeTestRow(button) {
+    $(button).closest('.test-row').remove();
+    calculateTotals();
+    
+    // Ensure at least one test row exists
+    if ($('#testsContainer .test-row').length === 0) {
+        addTestRow();
+    }
+}
+
+function calculateTotals() {
+    let subtotal = 0;
+    
+    $('#testsContainer .test-price').each(function() {
+        const price = parseFloat($(this).val()) || 0;
+        subtotal += price;
+    });
+    
+    const discount = parseFloat($('#discountAmount').val()) || 0;
+    const total = Math.max(subtotal - discount, 0);
+    
+    $('#subtotal').val(subtotal.toFixed(2));
+    $('#totalPrice').val(total.toFixed(2));
+}
+
+// Bind form submission
+$(document).on('submit', '#entryForm', function(e) {
+    e.preventDefault();
+    saveEntry();
+});
+
+// Bind discount change
+$(document).on('input', '#discountAmount', calculateTotals);
+
+function saveEntry() {
+    console.log('Saving entry...');
+    
+    // Basic validation
+    const patientId = $('#patientSelect').val();
+    const entryDate = $('#entryDate').val();
+    const hasTests = $('#testsContainer .test-row .test-select').filter(function() {
+        return $(this).val() !== '';
+    }).length > 0;
+    
+    if (!patientId) {
+        showError('Please select a patient.');
+        return;
+    }
+    
+    if (!entryDate) {
+        showError('Please select an entry date.');
+        return;
+    }
+    
+    if (!hasTests) {
+        showError('Please add at least one test.');
+        return;
+    }
+    
+    // Show loading
+    const $submitBtn = $('#entryForm button[type="submit"]');
+    const originalText = $submitBtn.html();
+    $submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
+    
+    // Prepare form data
+    const formData = new FormData($('#entryForm')[0]);
+    formData.append('action', 'save');
+    
+    // Collect tests data
+    const tests = [];
+    $('#testsContainer .test-row').each(function() {
+        const $row = $(this);
+        const testId = $row.find('.test-select').val();
+        
+        if (testId) {
+            tests.push({
+                test_id: testId,
+                result_value: $row.find('.test-result').val() || '',
+                price: parseFloat($row.find('.test-price').val()) || 0,
+                unit: $row.find('.test-unit').val() || '',
+                min: $row.find('.test-min').val() || '',
+                max: $row.find('.test-max').val() || ''
+            });
+        }
+    });
+    
+    formData.append('tests', JSON.stringify(tests));
+    
+    // Submit to API
+    $.ajax({
+        url: 'patho_api/entry.php',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(response) {
+            console.log('Save response:', response);
+            
+            if (response && response.success) {
+                showSuccess(response.message || 'Entry saved successfully');
+                $('#entryModal').modal('hide');
+                refreshTable();
+            } else {
+                showError(response ? response.message : 'Failed to save entry');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Save error:', error);
+            showError('Failed to save entry. Please try again.');
+        },
+        complete: function() {
+            // Restore button
+            $submitBtn.html(originalText).prop('disabled', false);
+        }
+    });
 }
 
 function refreshTable() {
@@ -196,17 +583,226 @@ function addTestColumns() {
 }
 
 function viewEntry(id) {
-    alert(`View Entry ${id} feature is being loaded. Please refresh the page and try again.`);
+    console.log('Viewing entry:', id);
+    
+    // Show modal
+    $('#viewEntryModal').modal('show');
+    
+    // Load entry data
+    $('#entryDetails').html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading entry details...</div>');
+    
+    $.ajax({
+        url: 'patho_api/entry.php',
+        method: 'GET',
+        data: { action: 'get', id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success && response.data) {
+                displayEntryDetails(response.data);
+            } else {
+                $('#entryDetails').html('<div class="alert alert-danger">Failed to load entry details.</div>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading entry:', error);
+            $('#entryDetails').html('<div class="alert alert-danger">Error loading entry details.</div>');
+        }
+    });
+}
+
+function displayEntryDetails(entry) {
+    const testsHtml = entry.tests && entry.tests.length > 0
+        ? entry.tests.map(test => `
+            <tr>
+                <td>${test.test_name || 'Unknown Test'}</td>
+                <td>${test.result_value || 'Pending'}</td>
+                <td>${test.unit || '-'}</td>
+                <td>₹${parseFloat(test.price || 0).toFixed(2)}</td>
+            </tr>
+        `).join('')
+        : '<tr><td colspan="4" class="text-center text-muted">No tests found</td></tr>';
+
+    const detailsHtml = `
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Entry Information</h5>
+                <table class="table table-sm">
+                    <tr><th>Entry ID:</th><td>${entry.id}</td></tr>
+                    <tr><th>Patient:</th><td>${entry.patient_name || 'N/A'}</td></tr>
+                    <tr><th>Doctor:</th><td>${entry.doctor_name || 'Not assigned'}</td></tr>
+                    <tr><th>Entry Date:</th><td>${entry.entry_date ? new Date(entry.entry_date).toLocaleDateString('en-IN') : 'N/A'}</td></tr>
+                    <tr><th>Status:</th><td><span class="badge badge-${entry.status === 'completed' ? 'success' : entry.status === 'cancelled' ? 'danger' : 'warning'}">${entry.status || 'pending'}</span></td></tr>
+                    <tr><th>Priority:</th><td><span class="badge badge-info">${entry.priority || 'normal'}</span></td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h5>Pricing Information</h5>
+                <table class="table table-sm">
+                    <tr><th>Subtotal:</th><td>₹${parseFloat(entry.subtotal || 0).toFixed(2)}</td></tr>
+                    <tr><th>Discount:</th><td>₹${parseFloat(entry.discount_amount || 0).toFixed(2)}</td></tr>
+                    <tr><th>Total Amount:</th><td><strong>₹${parseFloat(entry.total_price || 0).toFixed(2)}</strong></td></tr>
+                </table>
+                ${entry.notes ? `<h6>Notes:</h6><p class="text-muted">${entry.notes}</p>` : ''}
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <h5>Tests</h5>
+                <table class="table table-bordered table-sm">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Test Name</th>
+                            <th>Result</th>
+                            <th>Unit</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${testsHtml}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    $('#entryDetails').html(detailsHtml);
 }
 
 function editEntry(id) {
-    alert(`Edit Entry ${id} feature is being loaded. Please refresh the page and try again.`);
+    console.log('Editing entry:', id);
+    
+    // Load entry data first
+    $.ajax({
+        url: 'patho_api/entry.php',
+        method: 'GET',
+        data: { action: 'get', id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success && response.data) {
+                populateEditForm(response.data);
+                $('#entryModalLabel').html('<i class="fas fa-edit mr-1"></i>Edit Entry');
+                $('#entryModal').modal('show');
+            } else {
+                showError('Failed to load entry for editing');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading entry for edit:', error);
+            showError('Error loading entry for editing');
+        }
+    });
+}
+
+function populateEditForm(entry) {
+    console.log('Populating edit form with:', entry);
+    
+    // Load modal data first
+    loadModalData();
+    
+    // Wait a bit for data to load, then populate
+    setTimeout(() => {
+        // Set basic fields
+        $('#entryId').val(entry.id);
+        $('#patientSelect').val(entry.patient_id);
+        $('#doctorSelect').val(entry.doctor_id);
+        $('#entryDate').val(entry.entry_date ? entry.entry_date.split(' ')[0] : '');
+        $('#entryStatus').val(entry.status || 'pending');
+        $('#priority').val(entry.priority || 'normal');
+        $('#subtotal').val(parseFloat(entry.subtotal || 0).toFixed(2));
+        $('#discountAmount').val(parseFloat(entry.discount_amount || 0).toFixed(2));
+        $('#totalPrice').val(parseFloat(entry.total_price || 0).toFixed(2));
+        $('#entryNotes').val(entry.notes || '');
+        
+        // Trigger Select2 updates if available
+        if (typeof $.fn.select2 !== 'undefined') {
+            $('#patientSelect, #doctorSelect').trigger('change');
+        }
+        
+        // Clear and populate test rows
+        $('#testsContainer').empty();
+        testRowCounter = 0;
+        
+        if (entry.tests && entry.tests.length > 0) {
+            entry.tests.forEach(test => {
+                addTestRowWithData(test);
+            });
+        } else {
+            addTestRow();
+        }
+    }, 1000);
+}
+
+function addTestRowWithData(testData) {
+    addTestRow();
+    
+    // Get the last added row
+    const $lastRow = $('#testsContainer .test-row').last();
+    
+    // Populate with data
+    setTimeout(() => {
+        $lastRow.find('.test-select').val(testData.test_id).trigger('change');
+        $lastRow.find('.test-result').val(testData.result_value || '');
+        $lastRow.find('.test-price').val(testData.price || 0);
+        $lastRow.find('.test-unit').val(testData.unit || '');
+        $lastRow.find('.test-min').val(testData.min || '');
+        $lastRow.find('.test-max').val(testData.max || '');
+    }, 100);
 }
 
 function deleteEntry(id) {
-    if (confirm(`Are you sure you want to delete entry ${id}?`)) {
-        alert(`Delete Entry ${id} feature is being loaded. Please refresh the page and try again.`);
+    if (confirm(`Are you sure you want to delete entry ${id}? This action cannot be undone.`)) {
+        console.log('Deleting entry:', id);
+        
+        $.ajax({
+            url: 'patho_api/entry.php',
+            method: 'POST',
+            data: { 
+                action: 'delete', 
+                id: id 
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response && response.success) {
+                    showSuccess(response.message || 'Entry deleted successfully');
+                    refreshTable();
+                } else {
+                    showError(response ? response.message : 'Failed to delete entry');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error deleting entry:', error);
+                showError('Error deleting entry');
+            }
+        });
     }
+}
+
+function printEntryDetails() {
+    const printContent = $('#entryDetails').html();
+    const printWindow = window.open('', '_blank');
+    
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Entry Details</title>
+            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+            <style>
+                body { font-family: Arial, sans-serif; }
+                .badge { color: #000 !important; border: 1px solid #000; }
+                @media print { .no-print { display: none; } }
+            </style>
+        </head>
+        <body>
+            <div class="container mt-3">
+                <h2 class="text-center mb-4">Entry Details</h2>
+                ${printContent}
+            </div>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.print();
 }
 
 /**
@@ -233,6 +829,17 @@ $(document).ready(function () {
             }
         });
 
+        // Global category filter events
+        $('#globalCategoryFilter').on('change', function () {
+            const categoryId = $(this).val();
+            applyGlobalCategoryFilter(categoryId);
+        });
+
+        $('#clearGlobalCategoryFilter').on('click', function () {
+            $('#globalCategoryFilter').val('');
+            applyGlobalCategoryFilter('');
+        });
+
         console.log('Minimal initialization completed successfully');
 
     } catch (error) {
@@ -240,6 +847,42 @@ $(document).ready(function () {
         showError('Failed to initialize the page. Please refresh and try again.');
     }
 });
+
+function applyGlobalCategoryFilter(categoryId) {
+    console.log('Applying global category filter:', categoryId);
+    
+    // Update all existing test rows
+    $('#testsContainer .test-row').each(function () {
+        const $row = $(this);
+        const $testSelect = $row.find('.test-select');
+        
+        // Clear current selection
+        $testSelect.val('').trigger('change');
+        
+        // Update test options based on category
+        updateTestOptions($testSelect, categoryId);
+    });
+}
+
+function updateTestOptions($testSelect, categoryId) {
+    // Clear existing options except the first one
+    $testSelect.find('option:not(:first)').remove();
+    
+    // Filter tests based on category
+    let filteredTests = testsData || [];
+    if (categoryId && testsData) {
+        filteredTests = testsData.filter(test => test.category_id == categoryId);
+    }
+    
+    // Add filtered test options
+    filteredTests.forEach(test => {
+        const displayName = `${test.name} [ID: ${test.id}]`;
+        const option = `<option value="${test.id}" data-price="${test.price || 0}" data-unit="${test.unit || ''}">${displayName}</option>`;
+        $testSelect.append(option);
+    });
+    
+    console.log(`Updated test options: ${filteredTests.length} tests available`);
+}
 
 // Make functions available globally
 window.initializeDataTable = initializeDataTable;
@@ -252,5 +895,46 @@ window.addTestColumns = addTestColumns;
 window.viewEntry = viewEntry;
 window.editEntry = editEntry;
 window.deleteEntry = deleteEntry;
+window.addTestRow = addTestRow;
+window.removeTestRow = removeTestRow;
+window.printEntryDetails = printEntryDetails;
 
-console.log('Minimal Entry List Management loaded successfully');
+console.log('Minimal Entry List Management loaded successfully');/**
+
+ * Debug and troubleshooting functions
+ */
+function debugModal() {
+    console.log('=== MODAL DEBUG ===');
+    console.log('Modal element exists:', $('#entryModal').length > 0);
+    console.log('Bootstrap modal available:', typeof $.fn.modal !== 'undefined');
+    console.log('Form element exists:', $('#entryForm').length > 0);
+    console.log('Patient select exists:', $('#patientSelect').length > 0);
+    console.log('Tests container exists:', $('#testsContainer').length > 0);
+    console.log('Tests data loaded:', testsData.length);
+    console.log('Categories data loaded:', categoriesData.length);
+    console.log('=== END DEBUG ===');
+}
+
+function testModal() {
+    console.log('Testing modal functionality...');
+    
+    // Test basic modal show
+    try {
+        $('#entryModal').modal('show');
+        console.log('Modal show: SUCCESS');
+        
+        setTimeout(() => {
+            $('#entryModal').modal('hide');
+            console.log('Modal hide: SUCCESS');
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Modal test failed:', error);
+    }
+}
+
+// Make debug functions available globally
+window.debugModal = debugModal;
+window.testModal = testModal;
+
+console.log('Entry List Management - Minimal version loaded with modal functionality');
