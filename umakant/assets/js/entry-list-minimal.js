@@ -27,7 +27,10 @@ function initializeDataTable() {
             ajax: {
                 url: 'patho_api/entry.php',
                 type: 'GET',
-                data: { action: 'list' },
+                data: { 
+                    action: 'list',
+                    secret_key: 'hospital-api-secret-2024'
+                },
                 dataSrc: function (json) {
                     console.log('DataTable response:', json);
                     if (json && json.success && json.data) {
@@ -139,30 +142,80 @@ function initializeDataTable() {
 }
 
 /**
- * Simple message functions
+ * Enhanced message functions with better notifications
  */
 function showError(message) {
+    console.error('Error:', message);
+    
     if (typeof toastr !== 'undefined') {
         toastr.error(message);
     } else {
-        alert('Error: ' + message);
+        // Create custom notification
+        showCustomNotification(message, 'error');
     }
 }
 
 function showSuccess(message) {
+    console.log('Success:', message);
+    
     if (typeof toastr !== 'undefined') {
         toastr.success(message);
     } else {
-        alert(message);
+        // Create custom notification
+        showCustomNotification(message, 'success');
     }
 }
 
 function showInfo(message) {
+    console.info('Info:', message);
+    
     if (typeof toastr !== 'undefined') {
         toastr.info(message);
     } else {
-        alert(message);
+        // Create custom notification
+        showCustomNotification(message, 'info');
     }
+}
+
+function showCustomNotification(message, type = 'info') {
+    // Remove existing notifications
+    $('.custom-notification').remove();
+    
+    const typeClasses = {
+        'error': 'alert-danger',
+        'success': 'alert-success',
+        'info': 'alert-info',
+        'warning': 'alert-warning'
+    };
+    
+    const icons = {
+        'error': 'fas fa-exclamation-circle',
+        'success': 'fas fa-check-circle',
+        'info': 'fas fa-info-circle',
+        'warning': 'fas fa-exclamation-triangle'
+    };
+    
+    const alertClass = typeClasses[type] || 'alert-info';
+    const icon = icons[type] || 'fas fa-info-circle';
+    
+    const notificationHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show custom-notification" 
+             style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; max-width: 500px;">
+            <i class="${icon} mr-2"></i>
+            ${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    `;
+    
+    $('body').append(notificationHtml);
+    
+    // Auto-hide after 5 seconds for success/info, 8 seconds for errors
+    const duration = type === 'error' ? 8000 : 5000;
+    setTimeout(() => {
+        $('.custom-notification').fadeOut();
+    }, duration);
 }
 
 /**
@@ -485,6 +538,12 @@ function saveEntry() {
         return $(this).val() !== '';
     }).length > 0;
     
+    console.log('Validation check:', {
+        patientId: patientId,
+        entryDate: entryDate,
+        hasTests: hasTests
+    });
+    
     if (!patientId) {
         showError('Please select a patient.');
         return;
@@ -509,6 +568,14 @@ function saveEntry() {
     const formData = new FormData($('#entryForm')[0]);
     formData.append('action', 'save');
     
+    // Add authentication
+    formData.append('secret_key', 'hospital-api-secret-2024');
+    
+    // Add current user ID if available
+    if (typeof currentUserId !== 'undefined' && currentUserId) {
+        formData.append('added_by', currentUserId);
+    }
+    
     // Collect tests data
     const tests = [];
     $('#testsContainer .test-row').each(function() {
@@ -529,6 +596,14 @@ function saveEntry() {
     
     formData.append('tests', JSON.stringify(tests));
     
+    console.log('Submitting data:', {
+        action: 'save',
+        patient_id: patientId,
+        entry_date: entryDate,
+        tests_count: tests.length,
+        tests: tests
+    });
+    
     // Submit to API
     $.ajax({
         url: 'patho_api/entry.php',
@@ -545,12 +620,49 @@ function saveEntry() {
                 $('#entryModal').modal('hide');
                 refreshTable();
             } else {
-                showError(response ? response.message : 'Failed to save entry');
+                console.error('API returned error:', response);
+                const errorMessage = response ? (response.message || 'Unknown error occurred') : 'Failed to save entry';
+                showError(errorMessage);
+                
+                // Show detailed error if available
+                if (response && response.errors) {
+                    console.error('Detailed errors:', response.errors);
+                }
             }
         },
         error: function(xhr, status, error) {
-            console.error('Save error:', error);
-            showError('Failed to save entry. Please try again.');
+            console.error('AJAX Save error:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText,
+                error: error
+            });
+            
+            let errorMessage = 'Failed to save entry. ';
+            
+            if (xhr.status === 0) {
+                errorMessage += 'Network connection error.';
+            } else if (xhr.status === 404) {
+                errorMessage += 'API endpoint not found.';
+            } else if (xhr.status === 500) {
+                errorMessage += 'Server error.';
+            } else if (xhr.status === 403) {
+                errorMessage += 'Access denied.';
+            } else {
+                errorMessage += `Server returned ${xhr.status}: ${xhr.statusText}`;
+            }
+            
+            // Try to parse error response
+            try {
+                const errorResponse = JSON.parse(xhr.responseText);
+                if (errorResponse && errorResponse.message) {
+                    errorMessage = errorResponse.message;
+                }
+            } catch (e) {
+                // Response is not JSON, use default message
+            }
+            
+            showError(errorMessage);
         },
         complete: function() {
             // Restore button
@@ -594,7 +706,11 @@ function viewEntry(id) {
     $.ajax({
         url: 'patho_api/entry.php',
         method: 'GET',
-        data: { action: 'get', id: id },
+        data: { 
+            action: 'get', 
+            id: id,
+            secret_key: 'hospital-api-secret-2024'
+        },
         dataType: 'json',
         success: function(response) {
             if (response && response.success && response.data) {
@@ -675,7 +791,11 @@ function editEntry(id) {
     $.ajax({
         url: 'patho_api/entry.php',
         method: 'GET',
-        data: { action: 'get', id: id },
+        data: { 
+            action: 'get', 
+            id: id,
+            secret_key: 'hospital-api-secret-2024'
+        },
         dataType: 'json',
         success: function(response) {
             if (response && response.success && response.data) {
@@ -758,7 +878,8 @@ function deleteEntry(id) {
             method: 'POST',
             data: { 
                 action: 'delete', 
-                id: id 
+                id: id,
+                secret_key: 'hospital-api-secret-2024'
             },
             dataType: 'json',
             success: function(response) {
@@ -937,4 +1058,100 @@ function testModal() {
 window.debugModal = debugModal;
 window.testModal = testModal;
 
-console.log('Entry List Management - Minimal version loaded with modal functionality');
+console.log('Entry List Management - Minimal version loaded with modal functionality');/**
+
+ * Enhanced debug and troubleshooting functions
+ */
+function testAPI() {
+    console.log('Testing API connection...');
+    
+    // Test basic API connectivity
+    $.ajax({
+        url: 'patho_api/entry.php',
+        method: 'GET',
+        data: { 
+            action: 'stats',
+            secret_key: 'hospital-api-secret-2024'
+        },
+        dataType: 'json',
+        success: function(response) {
+            console.log('API Test - SUCCESS:', response);
+            showSuccess('API connection is working');
+        },
+        error: function(xhr, status, error) {
+            console.error('API Test - FAILED:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText,
+                error: error
+            });
+            showError('API connection failed: ' + error);
+        }
+    });
+}
+
+function debugSaveForm() {
+    console.log('=== SAVE FORM DEBUG ===');
+    
+    // Check form data
+    const formData = new FormData($('#entryForm')[0]);
+    console.log('Form data entries:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+    }
+    
+    // Check validation
+    const patientId = $('#patientSelect').val();
+    const entryDate = $('#entryDate').val();
+    const hasTests = $('#testsContainer .test-row .test-select').filter(function() {
+        return $(this).val() !== '';
+    }).length > 0;
+    
+    console.log('Validation status:', {
+        patientId: patientId,
+        entryDate: entryDate,
+        hasTests: hasTests,
+        testRowsCount: $('#testsContainer .test-row').length
+    });
+    
+    // Check tests data
+    const tests = [];
+    $('#testsContainer .test-row').each(function(index) {
+        const $row = $(this);
+        const testId = $row.find('.test-select').val();
+        
+        console.log(`Test row ${index}:`, {
+            testId: testId,
+            result: $row.find('.test-result').val(),
+            price: $row.find('.test-price').val(),
+            unit: $row.find('.test-unit').val()
+        });
+        
+        if (testId) {
+            tests.push({
+                test_id: testId,
+                result_value: $row.find('.test-result').val() || '',
+                price: parseFloat($row.find('.test-price').val()) || 0,
+                unit: $row.find('.test-unit').val() || ''
+            });
+        }
+    });
+    
+    console.log('Tests to be saved:', tests);
+    console.log('=== END DEBUG ===');
+}
+
+function testSaveWithDebug() {
+    console.log('Testing save with debug...');
+    debugSaveForm();
+    
+    // Try to save
+    if (confirm('Do you want to proceed with the save test?')) {
+        saveEntry();
+    }
+}
+
+// Make additional debug functions available globally
+window.testAPI = testAPI;
+window.debugSaveForm = debugSaveForm;
+window.testSaveWithDebug = testSaveWithDebug;
