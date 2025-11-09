@@ -257,6 +257,11 @@ function resetForm() {
     
     // Set default date
     $('#entryDate').val(new Date().toISOString().split('T')[0]);
+    
+    // Reset date slot and service location
+    $('#dateSlot').val('');
+    $('#serviceLocation').val('');
+    $('#collectionAddress').val('');
 }
 
 function loadModalData() {
@@ -475,18 +480,67 @@ function addTestRow() {
     // Bind events for the new row
     const $newRow = $(`.test-row[data-row-index="${rowIndex}"]`);
     
+    // Category selection change
+    $newRow.find('.category-select').on('change', function() {
+        const categoryId = $(this).val();
+        const $testSelect = $newRow.find('.test-select');
+        
+        console.log('Category selected:', categoryId);
+        
+        // Clear current test selection
+        $testSelect.val('');
+        
+        // Update test options based on selected category
+        updateTestOptions($testSelect, categoryId);
+        
+        // Clear test details
+        $newRow.find('.test-price').val('');
+        $newRow.find('.test-unit').val('');
+        $newRow.find('.test-min').val('');
+        $newRow.find('.test-max').val('');
+        
+        calculateTotals();
+    });
+    
     // Test selection change
     $newRow.find('.test-select').on('change', function() {
         const testId = $(this).val();
+        console.log('Test selected:', testId);
+        
         if (testId && testsData) {
-            const test = testsData.find(t => t.id == testId);
+            const test = testsData.find(t => String(t.id) === String(testId));
+            console.log('Found test data:', test);
+            
             if (test) {
+                // Auto-select category if not already selected
+                const $categorySelect = $newRow.find('.category-select');
+                if (!$categorySelect.val() && test.category_id) {
+                    $categorySelect.val(test.category_id);
+                    console.log('Auto-selected category:', test.category_id);
+                }
+                
+                // Populate test details
                 $newRow.find('.test-price').val(test.price || 0);
                 $newRow.find('.test-unit').val(test.unit || '');
                 $newRow.find('.test-min').val(test.min || '');
                 $newRow.find('.test-max').val(test.max || '');
+                
+                console.log('Populated test details:', {
+                    price: test.price,
+                    unit: test.unit,
+                    min: test.min,
+                    max: test.max
+                });
+                
                 calculateTotals();
             }
+        } else {
+            // Clear fields if no test selected
+            $newRow.find('.test-price').val('');
+            $newRow.find('.test-unit').val('');
+            $newRow.find('.test-min').val('');
+            $newRow.find('.test-max').val('');
+            calculateTotals();
         }
     });
     
@@ -581,10 +635,21 @@ function saveEntry() {
     $('#testsContainer .test-row').each(function() {
         const $row = $(this);
         const testId = $row.find('.test-select').val();
+        const categoryId = $row.find('.category-select').val();
         
         if (testId) {
+            // Find category_id from test data if not selected in dropdown
+            let finalCategoryId = categoryId;
+            if (!finalCategoryId && testsData) {
+                const testInfo = testsData.find(t => t.id == testId);
+                if (testInfo && testInfo.category_id) {
+                    finalCategoryId = testInfo.category_id;
+                }
+            }
+            
             tests.push({
                 test_id: testId,
+                category_id: finalCategoryId || null,
                 result_value: $row.find('.test-result').val() || '',
                 price: parseFloat($row.find('.test-price').val()) || 0,
                 unit: $row.find('.test-unit').val() || '',
@@ -749,6 +814,9 @@ function displayEntryDetails(entry) {
                     <tr><th>Entry Date:</th><td>${entry.entry_date ? new Date(entry.entry_date).toLocaleDateString('en-IN') : 'N/A'}</td></tr>
                     <tr><th>Status:</th><td><span class="badge badge-${entry.status === 'completed' ? 'success' : entry.status === 'cancelled' ? 'danger' : 'warning'}">${entry.status || 'pending'}</span></td></tr>
                     <tr><th>Priority:</th><td><span class="badge badge-info">${entry.priority || 'normal'}</span></td></tr>
+                    ${entry.date_slot ? `<tr><th><i class="fas fa-calendar-alt mr-1"></i>Date Slot:</th><td>${entry.date_slot}</td></tr>` : ''}
+                    ${entry.service_location ? `<tr><th><i class="fas fa-map-marker-alt mr-1"></i>Service Location:</th><td>${entry.service_location}</td></tr>` : ''}
+                    ${entry.collection_address ? `<tr><th><i class="fas fa-home mr-1"></i>Collection Address:</th><td>${entry.collection_address}</td></tr>` : ''}
                 </table>
             </div>
             <div class="col-md-6">
@@ -828,6 +896,9 @@ function populateEditForm(entry) {
         $('#entryDate').val(entry.entry_date ? entry.entry_date.split(' ')[0] : '');
         $('#entryStatus').val(entry.status || 'pending');
         $('#priority').val(entry.priority || 'normal');
+        $('#dateSlot').val(entry.date_slot || '');
+        $('#serviceLocation').val(entry.service_location || '');
+        $('#collectionAddress').val(entry.collection_address || '');
         $('#subtotal').val(parseFloat(entry.subtotal || 0).toFixed(2));
         $('#discountAmount').val(parseFloat(entry.discount_amount || 0).toFixed(2));
         $('#totalPrice').val(parseFloat(entry.total_price || 0).toFixed(2));
@@ -860,12 +931,20 @@ function addTestRowWithData(testData) {
     
     // Populate with data
     setTimeout(() => {
+        // Set category first if available
+        if (testData.category_id) {
+            $lastRow.find('.category-select').val(testData.category_id).trigger('change');
+        }
+        
+        // Then set test (this will auto-populate other fields)
         $lastRow.find('.test-select').val(testData.test_id).trigger('change');
+        
+        // Override with specific data from the entry
         $lastRow.find('.test-result').val(testData.result_value || '');
-        $lastRow.find('.test-price').val(testData.price || 0);
-        $lastRow.find('.test-unit').val(testData.unit || '');
-        $lastRow.find('.test-min').val(testData.min || '');
-        $lastRow.find('.test-max').val(testData.max || '');
+        $lastRow.find('.test-price').val(testData.price || testData.test_price || 0);
+        $lastRow.find('.test-unit').val(testData.unit || testData.et_unit || '');
+        $lastRow.find('.test-min').val(testData.min || testData.min_male || testData.min_female || '');
+        $lastRow.find('.test-max').val(testData.max || testData.max_male || testData.max_female || '');
     }, 100);
 }
 
@@ -961,6 +1040,20 @@ $(document).ready(function () {
             applyGlobalCategoryFilter('');
         });
 
+        // Service location change event
+        $(document).on('change', '#serviceLocation', function () {
+            const location = $(this).val();
+            const $addressField = $('#collectionAddress').closest('.form-group');
+            
+            if (location === 'home') {
+                $addressField.show();
+                $('#collectionAddress').attr('required', true);
+            } else {
+                $addressField.hide();
+                $('#collectionAddress').attr('required', false);
+            }
+        });
+
         console.log('Minimal initialization completed successfully');
 
     } catch (error) {
@@ -992,17 +1085,19 @@ function updateTestOptions($testSelect, categoryId) {
     // Filter tests based on category
     let filteredTests = testsData || [];
     if (categoryId && testsData) {
-        filteredTests = testsData.filter(test => test.category_id == categoryId);
+        // Convert both to strings for comparison to handle type mismatches
+        filteredTests = testsData.filter(test => String(test.category_id) === String(categoryId));
+        console.log(`Filtering tests by category ${categoryId}: found ${filteredTests.length} tests`);
     }
     
     // Add filtered test options
     filteredTests.forEach(test => {
         const displayName = `${test.name} [ID: ${test.id}]`;
-        const option = `<option value="${test.id}" data-price="${test.price || 0}" data-unit="${test.unit || ''}">${displayName}</option>`;
+        const option = `<option value="${test.id}" data-price="${test.price || 0}" data-unit="${test.unit || ''}" data-min="${test.min || ''}" data-max="${test.max || ''}">${displayName}</option>`;
         $testSelect.append(option);
     });
     
-    console.log(`Updated test options: ${filteredTests.length} tests available`);
+    console.log(`Updated test options: ${filteredTests.length} tests available for category ${categoryId || 'all'}`);
 }
 
 // Make functions available globally
@@ -1119,17 +1214,29 @@ function debugSaveForm() {
     $('#testsContainer .test-row').each(function(index) {
         const $row = $(this);
         const testId = $row.find('.test-select').val();
+        const categoryId = $row.find('.category-select').val();
         
         console.log(`Test row ${index}:`, {
             testId: testId,
+            categoryId: categoryId,
             result: $row.find('.test-result').val(),
             price: $row.find('.test-price').val(),
             unit: $row.find('.test-unit').val()
         });
         
         if (testId) {
+            // Find category_id from test data if not selected in dropdown
+            let finalCategoryId = categoryId;
+            if (!finalCategoryId && testsData) {
+                const testInfo = testsData.find(t => t.id == testId);
+                if (testInfo && testInfo.category_id) {
+                    finalCategoryId = testInfo.category_id;
+                }
+            }
+            
             tests.push({
                 test_id: testId,
+                category_id: finalCategoryId || null,
                 result_value: $row.find('.test-result').val() || '',
                 price: parseFloat($row.find('.test-price').val()) || 0,
                 unit: $row.find('.test-unit').val() || ''

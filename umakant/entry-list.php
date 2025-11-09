@@ -202,6 +202,42 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                         </div>
                     </div>
 
+                    <!-- Date Slot and Service Location Row -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="dateSlot"><i class="fas fa-calendar-alt mr-1"></i>Date Slot</label>
+                                <select class="form-control" id="dateSlot" name="date_slot">
+                                    <option value="">Select Date Slot</option>
+                                    <option value="morning">Morning (9:00 AM - 12:00 PM)</option>
+                                    <option value="afternoon">Afternoon (12:00 PM - 3:00 PM)</option>
+                                    <option value="evening">Evening (3:00 PM - 6:00 PM)</option>
+                                    <option value="night">Night (6:00 PM - 9:00 PM)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="serviceLocation"><i class="fas fa-map-marker-alt mr-1"></i>Service Location</label>
+                                <select class="form-control" id="serviceLocation" name="service_location">
+                                    <option value="">Select Service Location</option>
+                                    <option value="lab">Laboratory</option>
+                                    <option value="home">Home Collection</option>
+                                    <option value="hospital">Hospital</option>
+                                    <option value="clinic">Clinic</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="collectionAddress"><i class="fas fa-home mr-1"></i>Collection Address</label>
+                                <input type="text" class="form-control" id="collectionAddress" name="collection_address" 
+                                       placeholder="Enter address for home collection">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Global Category Filter -->
                     <div class="card mt-3 mb-3" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); color: white;">
                         <div class="card-body py-2">

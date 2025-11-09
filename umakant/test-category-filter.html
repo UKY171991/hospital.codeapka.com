@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Category Filter Debug</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-row {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        select, input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+        #debug-output {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Test Category Filter Debug</h1>
+    <p>This page helps debug the category → test filtering issue.</p>
+    
+    <div class="test-row">
+        <label>1. Select Test Category:</label>
+        <select id="categorySelect">
+            <option value="">Select Category</option>
+        </select>
+        
+        <label>2. Select Test Name:</label>
+        <select id="testSelect">
+            <option value="">Select Test</option>
+        </select>
+        
+        <label>Test Details:</label>
+        <input type="text" id="testPrice" placeholder="Price" readonly>
+        <input type="text" id="testUnit" placeholder="Unit" readonly>
+        <input type="text" id="testMin" placeholder="Min" readonly>
+        <input type="text" id="testMax" placeholder="Max" readonly>
+    </div>
+    
+    <div id="debug-output">Loading data...</div>
+    
+    <script>
+        let testsData = [];
+        let categoriesData = [];
+        
+        function log(message, type = 'info') {
+            const output = $('#debug-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+            output.append(`<div class="${className}">[${timestamp}] ${message}</div>`);
+        }
+        
+        function loadCategories() {
+            log('Loading categories...');
+            $.ajax({
+                url: 'patho_api/test_category.php',
+                method: 'GET',
+                data: { action: 'list', all: '1' },
+                dataType: 'json',
+                success: function(response) {
+                    if (response && response.success && response.data) {
+                        categoriesData = response.data;
+                        log(`✓ Loaded ${categoriesData.length} categories`, 'success');
+                        
+                        // Populate category dropdown
+                        categoriesData.forEach(cat => {
+                            $('#categorySelect').append(`<option value="${cat.id}">${cat.name}</option>`);
+                        });
+                    } else {
+                        log('✗ Failed to load categories', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    log(`✗ Error loading categories: ${error}`, 'error');
+                }
+            });
+        }
+        
+        function loadTests() {
+            log('Loading tests...');
+            $.ajax({
+                url: 'ajax/test_api.php',
+                method: 'GET',
+                data: { action: 'simple_list' },
+                dataType: 'json',
+                success: function(response) {
+                    if (response && response.success && response.data) {
+                        testsData = response.data;
+                        log(`✓ Loaded ${testsData.length} tests`, 'success');
+                        
+                        // Show sample test data
+                        if (testsData.length > 0) {
+                            log(`Sample test: ${JSON.stringify(testsData[0])}`);
+                        }
+                        
+                        // Populate all tests initially
+                        updateTestDropdown('');
+                    } else {
+                        log('✗ Failed to load tests', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    log(`✗ Error loading tests: ${error}`, 'error');
+                }
+            });
+        }
+        
+        function updateTestDropdown(categoryId) {
+            const $testSelect = $('#testSelect');
+            $testSelect.find('option:not(:first)').remove();
+            
+            let filteredTests = testsData;
+            if (categoryId) {
+                filteredTests = testsData.filter(test => String(test.category_id) === String(categoryId));
+                log(`Filtering by category ${categoryId}: found ${filteredTests.length} tests`, 'success');
+            } else {
+                log(`Showing all ${filteredTests.length} tests`);
+            }
+            
+            filteredTests.forEach(test => {
+                $testSelect.append(`<option value="${test.id}">${test.name} [ID: ${test.id}]</option>`);
+            });
+        }
+        
+        // Event handlers
+        $('#categorySelect').on('change', function() {
+            const categoryId = $(this).val();
+            log(`Category selected: ${categoryId || 'All'}`);
+            $('#testSelect').val('');
+            updateTestDropdown(categoryId);
+        });
+        
+        $('#testSelect').on('change', function() {
+            const testId = $(this).val();
+            log(`Test selected: ${testId}`);
+            
+            if (testId) {
+                const test = testsData.find(t => String(t.id) === String(testId));
+                if (test) {
+                    log(`Test details: ${JSON.stringify(test)}`, 'success');
+                    $('#testPrice').val(test.price || '');
+                    $('#testUnit').val(test.unit || '');
+                    $('#testMin').val(test.min || '');
+                    $('#testMax').val(test.max || '');
+                } else {
+                    log('✗ Test not found in data', 'error');
+                }
+            } else {
+                $('#testPrice, #testUnit, #testMin, #testMax').val('');
+            }
+        });
+        
+        // Initialize
+        $(document).ready(function() {
+            log('Initializing debug page...');
+            $('#debug-output').empty();
+            loadCategories();
+            loadTests();
+        });
+    </script>
+</body>
+</html>
