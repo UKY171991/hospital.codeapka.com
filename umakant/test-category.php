@@ -120,6 +120,9 @@ $current_username = $_SESSION['username'] ?? 'You';
                                 <option value="">Select Main Category</option>
                             </select>
                         </div>
+                        <small class="form-text text-muted">
+                            <i class="fas fa-info-circle"></i> Main category is required. If no options appear, please <a href="main-test-category.php" target="_blank">add a main category first</a>.
+                        </small>
                     </div>
 
                     <div class="form-group">
@@ -281,6 +284,14 @@ $(function(){
 
     // Save, edit, delete handlers
     $('#saveCategoryBtn').click(function(){
+        // Validate main category is selected
+        var mainCategoryId = $('#mainCategory').val();
+        if (!mainCategoryId || mainCategoryId === '') {
+            toastr.error('Please select a Main Category first. You need to add a main category before creating a test category.');
+            $('#mainCategory').focus();
+            return;
+        }
+        
         var data=$('#categoryForm').serialize() + '&action=save';
         $.post(TEST_CATEGORY_API, data, function(resp){
             if(resp.success){

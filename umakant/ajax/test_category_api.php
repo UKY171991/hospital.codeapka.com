@@ -72,6 +72,10 @@ if ($action === 'save') {
     if ($name === '') {
         json_response(['success' => false, 'message' => 'Name is required'], 400);
     }
+    
+    if ($main_category_id === '' || $main_category_id === null) {
+        json_response(['success' => false, 'message' => 'Main Category is required. Please add a main category first.'], 400);
+    }
 
     if ($id) {
         try {
