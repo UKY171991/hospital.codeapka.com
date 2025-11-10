@@ -1011,11 +1011,46 @@ try {
                             continue;
                         }
                         
+                        // Get main_category_id from the test's category if not provided
+                        $mainCategoryId = $test['main_category_id'] ?? null;
+                        $categoryId = $test['category_id'] ?? null;
+                        
+                        // If main_category_id is not set, try to get it from the category
+                        if (empty($mainCategoryId) && !empty($categoryId)) {
+                            $catStmt = $pdo->prepare("SELECT main_category_id FROM categories WHERE id = ?");
+                            $catStmt->execute([$categoryId]);
+                            $catRow = $catStmt->fetch(PDO::FETCH_ASSOC);
+                            if ($catRow && !empty($catRow['main_category_id'])) {
+                                $mainCategoryId = $catRow['main_category_id'];
+                                error_log("Retrieved main_category_id $mainCategoryId from category $categoryId");
+                            }
+                        }
+                        
+                        // If still no main_category_id, get it from the test itself
+                        if (empty($mainCategoryId)) {
+                            $testStmt = $pdo->prepare("SELECT t.main_category_id, c.main_category_id as cat_main_id 
+                                                       FROM tests t 
+                                                       LEFT JOIN categories c ON t.category_id = c.id 
+                                                       WHERE t.id = ?");
+                            $testStmt->execute([$testId]);
+                            $testRow = $testStmt->fetch(PDO::FETCH_ASSOC);
+                            if ($testRow) {
+                                $mainCategoryId = $testRow['main_category_id'] ?? $testRow['cat_main_id'] ?? null;
+                                error_log("Retrieved main_category_id $mainCategoryId from test $testId");
+                            }
+                        }
+                        
+                        // If STILL no main_category_id, this is an error - we need one
+                        if (empty($mainCategoryId)) {
+                            error_log("ERROR: Cannot save test $testId - no main_category_id found. Category needs a main category.");
+                            throw new Exception("Test category must have a main category assigned. Please update the test category first.");
+                        }
+                        
                         $testData = [
                             'entry_id' => $savedEntryId,
                             'test_id' => $testId,
-                            'category_id' => $test['category_id'] ?? null,
-                            'main_category_id' => $test['main_category_id'] ?? null,
+                            'category_id' => $categoryId,
+                            'main_category_id' => $mainCategoryId,
                             'result_value' => $test['result_value'] ?? null,
                             'unit' => $test['unit'] ?? null,
                             'remarks' => $test['remarks'] ?? null,
