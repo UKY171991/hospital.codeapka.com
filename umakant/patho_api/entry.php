@@ -330,8 +330,8 @@ function handleSave($pdo, $config, $user_data) {
                     $testData = [
                         'entry_id' => $entry_id,
                         'test_id' => $testId,
-                        'category_id' => $test['category_id'] ?? null,
-                        'main_category_id' => $test['main_category_id'] ?? null,
+                        'category_id' => $test['category_id'] ?? 0,
+                        'main_category_id' => $test['main_category_id'] ?? 0,
                         'result_value' => $test['result_value'] ?? null,
                         'unit' => $test['unit'] ?? null,
                         'remarks' => $test['remarks'] ?? null,
