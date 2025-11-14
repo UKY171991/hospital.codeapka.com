@@ -797,11 +797,13 @@ function displayEntryDetails(entry) {
             <tr>
                 <td>${test.test_name || 'Unknown Test'}</td>
                 <td>${test.result_value || 'Pending'}</td>
+                <td>${test.min || '-'}</td>
+                <td>${test.max || '-'}</td>
                 <td>${test.unit || '-'}</td>
                 <td>₹${parseFloat(test.price || 0).toFixed(2)}</td>
             </tr>
         `).join('')
-        : '<tr><td colspan="4" class="text-center text-muted">No tests found</td></tr>';
+        : '<tr><td colspan="6" class="text-center text-muted">No tests found</td></tr>';
 
     const detailsHtml = `
         <div class="row">
@@ -837,6 +839,8 @@ function displayEntryDetails(entry) {
                         <tr>
                             <th>Test Name</th>
                             <th>Result</th>
+                            <th>Min</th>
+                            <th>Max</th>
                             <th>Unit</th>
                             <th>Price</th>
                         </tr>
