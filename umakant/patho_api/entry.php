@@ -29,7 +29,8 @@ $entity_config = [
     'allowed_fields' => [
         'server_id', 'patient_id', 'doctor_id', 'test_id', 'entry_date', 'result_value',
         'unit', 'remarks', 'status', 'added_by', 'price', 'discount_amount', 'total_price',
-        'reported_date', 'result_status', 'grouped', 'tests_count', 'test_ids', 'test_names', 'test_results'
+        'reported_date', 'result_status', 'grouped', 'tests_count', 'test_ids', 'test_names', 'test_results',
+        'priority', 'referral_source', 'notes', 'subtotal'
     ]
 ];
 
@@ -238,14 +239,14 @@ function handleSave($pdo, $config, $user_data) {
     $data['added_by'] = $data['added_by'] ?? $user_data['user_id'];
     $data['entry_date'] = empty($data['entry_date']) ? date('Y-m-d') : date('Y-m-d', strtotime($data['entry_date']));
     
-    // Handle optional fields
+    // Handle optional fields with defaults
     $data['status'] = $data['status'] ?? 'pending';
-    $data['priority'] = $input['priority'] ?? 'normal';
-    $data['referral_source'] = $input['referral_source'] ?? null;
-    $data['notes'] = $input['notes'] ?? null;
-    $data['subtotal'] = (float)($input['subtotal'] ?? 0);
-    $data['discount_amount'] = (float)($input['discount_amount'] ?? 0);
-    $data['total_price'] = (float)($input['total_price'] ?? 0);
+    $data['priority'] = $data['priority'] ?? 'normal';
+    $data['referral_source'] = $data['referral_source'] ?? null;
+    $data['notes'] = $data['notes'] ?? null;
+    $data['subtotal'] = (float)($data['subtotal'] ?? 0);
+    $data['discount_amount'] = (float)($data['discount_amount'] ?? 0);
+    $data['total_price'] = (float)($data['total_price'] ?? 0);
 
     try {
         $pdo->beginTransaction();
