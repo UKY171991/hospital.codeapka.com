@@ -411,11 +411,20 @@ function handleSave($pdo, $config, $user_data) {
                     
                     $insertedTestIds[] = $testId;
                     
+                    // Fetch test details from database to get category_id and main_category_id
+                    $testInfoStmt = $pdo->prepare("SELECT category_id, main_category_id FROM tests WHERE id = ?");
+                    $testInfoStmt->execute([$testId]);
+                    $testInfo = $testInfoStmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    // Use provided category_id or fetch from test table
+                    $categoryId = $test['category_id'] ?? ($testInfo['category_id'] ?? 0);
+                    $mainCategoryId = $test['main_category_id'] ?? ($testInfo['main_category_id'] ?? 0);
+                    
                     $testData = [
                         'entry_id' => $entry_id,
                         'test_id' => $testId,
-                        'category_id' => $test['category_id'] ?? 0,
-                        'main_category_id' => $test['main_category_id'] ?? 0,
+                        'category_id' => (int)$categoryId,
+                        'main_category_id' => (int)$mainCategoryId,
                         'result_value' => $test['result_value'] ?? null,
                         'unit' => $test['unit'] ?? null,
                         'remarks' => $test['remarks'] ?? null,
@@ -436,9 +445,11 @@ function handleSave($pdo, $config, $user_data) {
                     if ($result) {
                         $insertedTestId = $pdo->lastInsertId();
                         $testsProcessed++;
-                        error_log("Successfully inserted test with ID: $insertedTestId for entry: $entry_id");
+                        error_log("Successfully inserted test with ID: $insertedTestId for entry: $entry_id (test_id: $testId, category: $categoryId, main_category: $mainCategoryId)");
                     } else {
-                        error_log("Failed to insert test $index: " . json_encode($testStmt->errorInfo()));
+                        $errorInfo = $testStmt->errorInfo();
+                        error_log("Failed to insert test $index (test_id: $testId): " . json_encode($errorInfo));
+                        throw new Exception("Failed to insert test: " . $errorInfo[2]);
                     }
                 }
             }

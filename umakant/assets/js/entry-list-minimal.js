@@ -638,23 +638,32 @@ function saveEntry() {
         const categoryId = $row.find('.category-select').val();
         
         if (testId) {
-            // Find category_id from test data if not selected in dropdown
+            // Find category_id and main_category_id from test data if not selected in dropdown
             let finalCategoryId = categoryId;
-            if (!finalCategoryId && testsData) {
+            let mainCategoryId = null;
+            
+            if (testsData) {
                 const testInfo = testsData.find(t => t.id == testId);
-                if (testInfo && testInfo.category_id) {
-                    finalCategoryId = testInfo.category_id;
+                if (testInfo) {
+                    if (!finalCategoryId && testInfo.category_id) {
+                        finalCategoryId = testInfo.category_id;
+                    }
+                    if (testInfo.main_category_id) {
+                        mainCategoryId = testInfo.main_category_id;
+                    }
                 }
             }
             
             tests.push({
                 test_id: testId,
-                category_id: finalCategoryId || null,
+                category_id: finalCategoryId || 0,
+                main_category_id: mainCategoryId || 0,
                 result_value: $row.find('.test-result').val() || '',
                 price: parseFloat($row.find('.test-price').val()) || 0,
                 unit: $row.find('.test-unit').val() || '',
-                min: $row.find('.test-min').val() || '',
-                max: $row.find('.test-max').val() || ''
+                discount_amount: 0,
+                status: 'pending',
+                remarks: null
             });
         }
     });
