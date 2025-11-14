@@ -29,7 +29,8 @@ $entity_config = [
     'allowed_fields' => [
         'owner_id', 'server_id', 'patient_id', 'doctor_id', 'entry_date', 'status', 
         'priority', 'referral_source', 'subtotal', 'discount_amount', 'total_price',
-        'payment_status', 'notes', 'added_by', 'created_at', 'updated_at'
+        'payment_status', 'notes', 'added_by', 'created_at', 'updated_at',
+        'date_slot', 'service_location', 'collection_address'
     ]
 ];
 
@@ -247,6 +248,9 @@ function handleSave($pdo, $config, $user_data) {
     $data['discount_amount'] = (float)($data['discount_amount'] ?? 0);
     $data['total_price'] = (float)($data['total_price'] ?? 0);
     $data['payment_status'] = $data['payment_status'] ?? 'pending';
+    $data['date_slot'] = $data['date_slot'] ?? null;
+    $data['service_location'] = $data['service_location'] ?? null;
+    $data['collection_address'] = $data['collection_address'] ?? null;
 
     try {
         $pdo->beginTransaction();

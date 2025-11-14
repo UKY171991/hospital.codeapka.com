@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Nov 14, 2025 at 06:27 AM
+-- Generation Time: Nov 14, 2025 at 06:41 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -296,6 +296,9 @@ CREATE TABLE `entries` (
   `patient_id` int(11) DEFAULT NULL,
   `doctor_id` int(11) DEFAULT NULL,
   `entry_date` datetime DEFAULT NULL,
+  `date_slot` varchar(50) DEFAULT NULL COMMENT 'Time slot: morning/afternoon/evening/night',
+  `service_location` varchar(100) DEFAULT NULL COMMENT 'Service location: lab/home/hospital/clinic/other',
+  `collection_address` text DEFAULT NULL COMMENT 'Address for home collection',
   `status` varchar(50) NOT NULL DEFAULT 'pending',
   `priority` varchar(50) DEFAULT 'normal',
   `referral_source` varchar(100) DEFAULT NULL,
@@ -313,26 +316,26 @@ CREATE TABLE `entries` (
 -- Dumping data for table `entries`
 --
 
-INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`, `entry_date`, `status`, `priority`, `referral_source`, `subtotal`, `discount_amount`, `total_price`, `payment_status`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
-(1, 1, NULL, 3, NULL, '2025-10-06 00:00:00', 'pending', 'normal', NULL, 100.00, 20.00, 100.00, 'pending', NULL, 1, '2025-10-06 14:13:29', NULL),
-(2, 2, NULL, 2, NULL, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 100.00, 0.00, 60.00, 'pending', NULL, 2, '2025-10-06 15:53:42', NULL),
-(5, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, 200.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 16:21:47', NULL),
-(6, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, 1080.00, 100.00, 980.00, 'pending', NULL, 1, '2025-10-06 16:40:50', NULL),
-(7, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, 400.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 17:12:12', NULL),
-(9, 2, NULL, 2, NULL, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 500.00, 0.00, 300.00, 'pending', NULL, 2, '2025-10-08 11:21:38', '2025-10-28 09:15:50'),
-(10, 1, NULL, 3, NULL, '2025-10-26 00:00:00', 'pending', 'normal', NULL, 600.00, 0.00, 340.00, 'pending', NULL, 1, '2025-10-08 17:09:55', '2025-10-26 08:41:20'),
-(15, 1, NULL, 3, NULL, '2025-10-26 00:00:00', 'pending', 'normal', NULL, 1080.00, 0.00, 1080.00, 'pending', NULL, 1, '2025-10-09 08:16:19', '2025-10-26 06:13:36'),
-(17, 1, NULL, 27, NULL, '2025-10-27 00:00:00', 'pending', 'normal', '', 1380.00, 20.00, 1360.00, 'pending', '', 1, '2025-10-09 08:30:36', '2025-10-28 09:14:18'),
-(19, NULL, NULL, 21, NULL, '1981-01-19 00:00:00', 'cancelled', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:03:20', NULL),
-(20, NULL, NULL, 21, NULL, '1981-01-19 00:00:00', 'cancelled', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:03:34', NULL),
-(21, NULL, NULL, 21, NULL, '1981-01-19 00:00:00', 'cancelled', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:03:40', NULL),
-(22, NULL, NULL, 24, NULL, '2011-12-09 00:00:00', 'cancelled', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:19:24', NULL),
-(23, NULL, NULL, 24, NULL, '1981-08-12 00:00:00', 'pending', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:22:13', NULL),
-(24, NULL, NULL, 27, NULL, '2010-12-08 00:00:00', 'completed', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:26:33', NULL),
-(25, NULL, NULL, 27, NULL, '2010-12-08 00:00:00', 'completed', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:26:40', NULL),
-(26, NULL, NULL, 27, NULL, '2010-12-08 00:00:00', 'completed', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:27:27', NULL),
-(27, NULL, NULL, 19, 333, '2004-02-23 00:00:00', 'cancelled', 'normal', '', 600.00, 0.00, 600.00, 'pending', '', 1, '2025-10-29 15:33:05', '2025-11-06 15:40:56'),
-(28, NULL, NULL, 22, 337, '1983-03-29 00:00:00', 'pending', 'normal', '', 600.00, 0.00, 600.00, 'pending', '', 1, '2025-10-29 15:49:25', '2025-11-14 11:55:45');
+INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`, `entry_date`, `date_slot`, `service_location`, `collection_address`, `status`, `priority`, `referral_source`, `subtotal`, `discount_amount`, `total_price`, `payment_status`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
+(1, 1, NULL, 3, NULL, '2025-10-06 00:00:00', NULL, NULL, NULL, 'pending', 'normal', NULL, 100.00, 20.00, 100.00, 'pending', NULL, 1, '2025-10-06 14:13:29', NULL),
+(2, 2, NULL, 2, NULL, '2025-10-08 00:00:00', NULL, NULL, NULL, 'pending', 'normal', NULL, 100.00, 0.00, 60.00, 'pending', NULL, 2, '2025-10-06 15:53:42', NULL),
+(5, 1, NULL, 3, NULL, '2025-10-05 00:00:00', NULL, NULL, NULL, 'completed', 'normal', NULL, 200.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 16:21:47', NULL),
+(6, 1, NULL, 3, NULL, '2025-10-05 00:00:00', NULL, NULL, NULL, 'completed', 'normal', NULL, 1080.00, 100.00, 980.00, 'pending', NULL, 1, '2025-10-06 16:40:50', NULL),
+(7, 1, NULL, 3, NULL, '2025-10-05 00:00:00', NULL, NULL, NULL, 'completed', 'normal', NULL, 400.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 17:12:12', NULL),
+(9, 2, NULL, 2, NULL, '2025-10-08 00:00:00', NULL, NULL, NULL, 'pending', 'normal', NULL, 500.00, 0.00, 300.00, 'pending', NULL, 2, '2025-10-08 11:21:38', '2025-10-28 09:15:50'),
+(10, 1, NULL, 3, NULL, '2025-10-26 00:00:00', NULL, NULL, NULL, 'pending', 'normal', NULL, 600.00, 0.00, 340.00, 'pending', NULL, 1, '2025-10-08 17:09:55', '2025-10-26 08:41:20'),
+(15, 1, NULL, 3, NULL, '2025-10-26 00:00:00', NULL, NULL, NULL, 'pending', 'normal', NULL, 1080.00, 0.00, 1080.00, 'pending', NULL, 1, '2025-10-09 08:16:19', '2025-10-26 06:13:36'),
+(17, 1, NULL, 27, NULL, '2025-10-27 00:00:00', NULL, NULL, NULL, 'pending', 'normal', '', 1380.00, 20.00, 1360.00, 'pending', '', 1, '2025-10-09 08:30:36', '2025-10-28 09:14:18'),
+(19, NULL, NULL, 21, NULL, '1981-01-19 00:00:00', NULL, NULL, NULL, 'cancelled', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:03:20', NULL),
+(20, NULL, NULL, 21, NULL, '1981-01-19 00:00:00', NULL, NULL, NULL, 'cancelled', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:03:34', NULL),
+(21, NULL, NULL, 21, NULL, '1981-01-19 00:00:00', NULL, NULL, NULL, 'cancelled', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:03:40', NULL),
+(22, NULL, NULL, 24, NULL, '2011-12-09 00:00:00', NULL, NULL, NULL, 'cancelled', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:19:24', NULL),
+(23, NULL, NULL, 24, NULL, '1981-08-12 00:00:00', NULL, NULL, NULL, 'pending', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:22:13', NULL),
+(24, NULL, NULL, 27, NULL, '2010-12-08 00:00:00', NULL, NULL, NULL, 'completed', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:26:33', NULL),
+(25, NULL, NULL, 27, NULL, '2010-12-08 00:00:00', NULL, NULL, NULL, 'completed', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:26:40', NULL),
+(26, NULL, NULL, 27, NULL, '2010-12-08 00:00:00', NULL, NULL, NULL, 'completed', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:27:27', NULL),
+(27, NULL, NULL, 19, 333, '2004-02-23 00:00:00', NULL, NULL, NULL, 'cancelled', 'normal', '', 600.00, 0.00, 600.00, 'pending', '', 1, '2025-10-29 15:33:05', '2025-11-06 15:40:56'),
+(28, NULL, NULL, 22, 337, '1983-03-29 00:00:00', NULL, NULL, NULL, 'pending', 'normal', '', 600.00, 0.00, 600.00, 'pending', '', 1, '2025-10-29 15:49:25', '2025-11-14 12:01:18');
 
 -- --------------------------------------------------------
 
@@ -370,8 +373,8 @@ INSERT INTO `entry_tests` (`id`, `entry_id`, `test_id`, `category_id`, `main_cat
 (104, 9, 2, 6, 1, '', 'etc', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-28 14:45:50'),
 (116, 27, 6, 5, 1, '', 'ttt', NULL, 'pending', 300.00, 0.00, 300.00, '2025-11-06 15:40:56'),
 (117, 27, 7, 10, 3, '', 'ggrr', NULL, 'pending', 300.00, 0.00, 300.00, '2025-11-06 15:40:56'),
-(126, 28, 7, 10, 0, '22', 'ggrr', NULL, 'pending', 300.00, 0.00, 300.00, '2025-11-14 11:55:45'),
-(127, 28, 6, 5, 0, '55', 'ttt', NULL, 'pending', 300.00, 0.00, 300.00, '2025-11-14 11:55:45');
+(128, 28, 7, 10, 0, '22', 'ggrr', NULL, 'pending', 300.00, 0.00, 300.00, '2025-11-14 12:01:18'),
+(129, 28, 6, 5, 0, '55', 'ttt', NULL, 'pending', 300.00, 0.00, 300.00, '2025-11-14 12:01:18');
 
 -- --------------------------------------------------------
 
@@ -945,7 +948,7 @@ ALTER TABLE `entries`
 -- AUTO_INCREMENT for table `entry_tests`
 --
 ALTER TABLE `entry_tests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
 
 --
 -- AUTO_INCREMENT for table `main_test_categories`
