@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 28, 2025 at 02:37 AM
+-- Generation Time: Nov 14, 2025 at 06:27 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -46,8 +46,8 @@ INSERT INTO `categories` (`id`, `name`, `description`, `main_category_id`, `adde
 (5, 'erfg  hh', 'qws', 1, 1, '2025-09-27 10:30:03', '2025-10-15 11:19:16'),
 (6, 'Sydnee Levine hh', 'Eos et in lorem non', 1, 1, '2025-09-28 10:02:38', '2025-10-15 11:19:10'),
 (8, 'ttt', '', 1, 1, '2025-10-15 11:19:03', '2025-10-15 11:19:03'),
-(9, 'sdfgfgb', 'derfg', 3, 1, '2025-10-24 07:21:52', '2025-10-25 23:20:31'),
-(10, 'gggg', '', 3, 1, '2025-10-25 10:16:00', '2025-10-25 23:20:23');
+(9, 'sdfgfgb', 'derfg', 3, 1, '2025-10-24 07:21:52', '2025-11-10 00:51:58'),
+(10, 'gggg', '', 3, 1, '2025-10-25 10:16:00', '2025-11-10 00:51:54');
 
 -- --------------------------------------------------------
 
@@ -78,141 +78,18 @@ CREATE TABLE `doctors` (
 --
 
 INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specialization`, `hospital`, `contact_no`, `phone`, `email`, `address`, `registration_no`, `percent`, `added_by`, `created_at`, `updated_at`) VALUES
-(6, NULL, 'Wade Solomon', '', '', 'Quas nostrud quibusd', 'Assumenda et suscipi', '', '', 'Ipsum labore eaque a', '', 57.00, 1, '2025-09-27 17:08:37', '2025-10-10 12:38:34'),
-(7, NULL, 'Constance Conrad', NULL, NULL, 'Nostrud obcaecati co', 'Ipsa iusto totam oc', NULL, NULL, 'Porro eum irure odio', NULL, 60.00, 1, '2025-09-27 17:10:52', '2025-09-27 17:10:52'),
-(8, NULL, 'Sylvester Harmon', NULL, NULL, 'Quia et repellendus', 'Cum occaecat dicta u', NULL, NULL, 'Fugiat quas reiciend', NULL, 24.00, 1, '2025-09-27 17:13:41', '2025-09-27 17:13:41'),
-(9, NULL, 'sdef', NULL, NULL, 'qw', 'qw', NULL, NULL, 'qw', NULL, 4.00, 1, '2025-09-27 17:18:42', '2025-09-27 17:18:42'),
-(10, NULL, 'Malcolm Callahan', NULL, NULL, 'Vero qui esse omnis', 'Quis consectetur si', NULL, NULL, 'Adipisicing nobis te', NULL, 34.00, 1, '2025-09-27 17:19:16', '2025-09-27 17:19:16'),
-(11, NULL, 'Candace Lowe', NULL, NULL, 'Sunt cum expedita l', 'Rerum qui id fuga E', NULL, NULL, 'Cumque soluta sint', NULL, 83.00, 1, '2025-09-27 17:26:52', '2025-09-27 17:26:52'),
-(12, NULL, 'Alma Cooke', NULL, NULL, 'Quia et rerum totam', 'Cupiditate sunt et', NULL, NULL, 'Dolor soluta quibusd', NULL, 96.00, 1, '2025-09-27 17:27:21', '2025-09-27 17:27:21'),
-(13, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, 'Ea vero eos et aut t', NULL, 44.00, 2, '2025-09-28 11:32:44', '2025-09-28 11:32:44'),
-(14, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, 'Tempore proident s', NULL, 41.00, 2, '2025-09-28 11:41:15', '2025-09-28 11:41:15'),
-(15, NULL, 'ASD', NULL, NULL, 'QW', 'Q', NULL, NULL, 'Q', NULL, 4.00, 1, '2025-09-28 11:44:10', '2025-10-17 16:38:21'),
-(16, NULL, 'Dr. API Test 1760266881895', 'MBBS', 'General Medicine', 'Test Hospital', '9876543210', NULL, 'test@example.com', NULL, NULL, 10.00, 1, NULL, NULL),
-(17, NULL, 'Dr. API Test 1760266881895', NULL, NULL, 'Test Hospital', '9876543210', NULL, NULL, NULL, NULL, 10.00, 1, NULL, NULL),
-(18, NULL, 'ASD', NULL, NULL, 'QW', 'Q', NULL, NULL, NULL, NULL, 4.00, 1, NULL, NULL),
-(19, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(20, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(21, NULL, 'Alma Cooke', NULL, NULL, 'Quia et rerum totam', 'Cupiditate sunt et', NULL, NULL, NULL, NULL, 96.00, 1, NULL, NULL),
-(22, NULL, 'Candace Lowe', NULL, NULL, 'Sunt cum expedita l', 'Rerum qui id fuga E', NULL, NULL, NULL, NULL, 83.00, 1, NULL, NULL),
-(23, NULL, 'Malcolm Callahan', NULL, NULL, 'Vero qui esse omnis', 'Quis consectetur si', NULL, NULL, NULL, NULL, 34.00, 1, NULL, NULL),
-(24, NULL, 'sdef', NULL, NULL, 'qw', 'qw', NULL, NULL, NULL, NULL, 4.00, 1, NULL, NULL),
-(25, NULL, 'Sylvester Harmon', NULL, NULL, 'Quia et repellendus', 'Cum occaecat dicta u', NULL, NULL, NULL, NULL, 24.00, 1, NULL, NULL),
-(26, NULL, 'Constance Conrad', NULL, NULL, 'Nostrud obcaecati co', 'Ipsa iusto totam oc', NULL, NULL, NULL, NULL, 60.00, 1, NULL, NULL),
-(27, NULL, 'Wade Solomon', NULL, NULL, 'Quas nostrud quibusd', 'Assumenda et suscipi', NULL, NULL, NULL, NULL, 57.00, 1, NULL, NULL),
-(28, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(29, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(30, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(31, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(32, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(33, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(34, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(35, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(36, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(37, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(38, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(39, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(40, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(41, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(42, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(43, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(44, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(45, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(46, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(47, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(48, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(49, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(51, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(52, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(53, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(54, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(55, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(56, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(57, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(58, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(59, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(60, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(61, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(62, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(63, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(64, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(65, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(66, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(67, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(68, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(69, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(70, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(71, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(72, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(73, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, 'Ad beatae rerum sint', NULL, 9.00, 2, '2025-10-17 16:37:52', '2025-10-17 16:37:52'),
-(74, NULL, 'Laura Bond', NULL, NULL, 'Aliqua Nulla ipsum', 'Officia magni ipsum', NULL, NULL, 'Nemo sit quod ea sun', NULL, 16.00, 1, '2025-10-17 16:38:41', '2025-10-17 16:38:41'),
-(75, NULL, 'Elijah Mayo', NULL, NULL, 'Eius veritatis ullam', 'Sed sed eiusmod sequ', NULL, NULL, 'Amet cupiditate ut', NULL, 77.00, 1, '2025-10-17 16:39:35', '2025-10-17 16:39:35'),
-(76, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(77, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(78, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(79, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(80, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(81, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(82, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(83, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(84, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(85, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(86, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(87, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(88, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(89, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(90, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(91, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(92, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(93, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(94, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(95, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(96, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(97, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(98, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(99, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(100, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(101, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(102, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(103, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(104, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(105, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(106, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(107, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(108, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(109, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(110, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(111, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(112, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(113, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(114, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(115, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(116, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(117, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(118, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(119, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(120, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(121, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(122, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(123, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
 (124, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(125, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(126, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
 (127, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
 (128, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(129, NULL, 'Elijah Mayo', NULL, NULL, 'Eius veritatis ullam', 'Sed sed eiusmod sequ', NULL, NULL, NULL, NULL, 77.00, 1, NULL, NULL),
 (130, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
 (131, NULL, 'Laura Bond', NULL, NULL, 'Aliqua Nulla ipsum', 'Officia magni ipsum', NULL, NULL, NULL, NULL, 16.00, 1, NULL, NULL),
-(132, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
 (133, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
 (134, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(135, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
 (136, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
 (137, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
 (138, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
 (139, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
 (140, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(141, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
 (142, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
 (143, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
 (144, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
@@ -403,30 +280,8 @@ INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specializati
 (329, NULL, 'Elijah Mayo', NULL, NULL, 'Eius veritatis ullam', 'Sed sed eiusmod sequ', NULL, NULL, NULL, NULL, 77.00, 1, NULL, NULL),
 (330, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
 (331, NULL, 'Laura Bond', NULL, NULL, 'Aliqua Nulla ipsum', 'Officia magni ipsum', NULL, NULL, NULL, NULL, 16.00, 1, NULL, NULL),
-(332, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
 (333, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(334, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(335, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(336, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(337, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(338, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(339, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(340, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(341, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(346, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, '', NULL, 9.00, 1, NULL, '2025-10-24 07:41:56'),
-(347, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(348, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(352, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, '', NULL, 44.00, 1, NULL, '2025-10-24 07:39:18'),
-(353, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(354, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(355, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(356, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(357, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(358, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(359, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(360, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(361, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(362, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL);
+(337, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -460,14 +315,24 @@ CREATE TABLE `entries` (
 
 INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`, `entry_date`, `status`, `priority`, `referral_source`, `subtotal`, `discount_amount`, `total_price`, `payment_status`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
 (1, 1, NULL, 3, NULL, '2025-10-06 00:00:00', 'pending', 'normal', NULL, 100.00, 20.00, 100.00, 'pending', NULL, 1, '2025-10-06 14:13:29', NULL),
-(2, 2, NULL, 2, 15, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 100.00, 0.00, 60.00, 'pending', NULL, 2, '2025-10-06 15:53:42', NULL),
+(2, 2, NULL, 2, NULL, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 100.00, 0.00, 60.00, 'pending', NULL, 2, '2025-10-06 15:53:42', NULL),
 (5, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, 200.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 16:21:47', NULL),
 (6, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, 1080.00, 100.00, 980.00, 'pending', NULL, 1, '2025-10-06 16:40:50', NULL),
 (7, 1, NULL, 3, NULL, '2025-10-05 00:00:00', 'completed', 'normal', NULL, 400.00, 0.00, 300.00, 'pending', NULL, 1, '2025-10-06 17:12:12', NULL),
-(9, 2, NULL, 2, 14, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 500.00, 0.00, 300.00, 'pending', NULL, 2, '2025-10-08 11:21:38', NULL),
-(10, 1, NULL, 3, 12, '2025-10-26 00:00:00', 'pending', 'normal', NULL, 600.00, 0.00, 340.00, 'pending', NULL, 1, '2025-10-08 17:09:55', '2025-10-26 08:41:20'),
-(15, 1, NULL, 3, 12, '2025-10-26 00:00:00', 'pending', 'normal', NULL, 1080.00, 0.00, 1080.00, 'pending', NULL, 1, '2025-10-09 08:16:19', '2025-10-26 06:13:36'),
-(17, 1, NULL, 27, 362, '2025-10-27 00:00:00', 'pending', 'normal', '', 1380.00, 20.00, 1360.00, 'pending', '', 1, '2025-10-09 08:30:36', '2025-10-27 10:19:22');
+(9, 2, NULL, 2, NULL, '2025-10-08 00:00:00', 'pending', 'normal', NULL, 500.00, 0.00, 300.00, 'pending', NULL, 2, '2025-10-08 11:21:38', '2025-10-28 09:15:50'),
+(10, 1, NULL, 3, NULL, '2025-10-26 00:00:00', 'pending', 'normal', NULL, 600.00, 0.00, 340.00, 'pending', NULL, 1, '2025-10-08 17:09:55', '2025-10-26 08:41:20'),
+(15, 1, NULL, 3, NULL, '2025-10-26 00:00:00', 'pending', 'normal', NULL, 1080.00, 0.00, 1080.00, 'pending', NULL, 1, '2025-10-09 08:16:19', '2025-10-26 06:13:36'),
+(17, 1, NULL, 27, NULL, '2025-10-27 00:00:00', 'pending', 'normal', '', 1380.00, 20.00, 1360.00, 'pending', '', 1, '2025-10-09 08:30:36', '2025-10-28 09:14:18'),
+(19, NULL, NULL, 21, NULL, '1981-01-19 00:00:00', 'cancelled', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:03:20', NULL),
+(20, NULL, NULL, 21, NULL, '1981-01-19 00:00:00', 'cancelled', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:03:34', NULL),
+(21, NULL, NULL, 21, NULL, '1981-01-19 00:00:00', 'cancelled', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:03:40', NULL),
+(22, NULL, NULL, 24, NULL, '2011-12-09 00:00:00', 'cancelled', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:19:24', NULL),
+(23, NULL, NULL, 24, NULL, '1981-08-12 00:00:00', 'pending', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:22:13', NULL),
+(24, NULL, NULL, 27, NULL, '2010-12-08 00:00:00', 'completed', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:26:33', NULL),
+(25, NULL, NULL, 27, NULL, '2010-12-08 00:00:00', 'completed', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:26:40', NULL),
+(26, NULL, NULL, 27, NULL, '2010-12-08 00:00:00', 'completed', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-10-29 15:27:27', NULL),
+(27, NULL, NULL, 19, 333, '2004-02-23 00:00:00', 'cancelled', 'normal', '', 600.00, 0.00, 600.00, 'pending', '', 1, '2025-10-29 15:33:05', '2025-11-06 15:40:56'),
+(28, NULL, NULL, 22, 337, '1983-03-29 00:00:00', 'pending', 'normal', '', 600.00, 0.00, 600.00, 'pending', '', 1, '2025-10-29 15:49:25', '2025-11-14 11:55:45');
 
 -- --------------------------------------------------------
 
@@ -500,9 +365,13 @@ INSERT INTO `entry_tests` (`id`, `entry_id`, `test_id`, `category_id`, `main_cat
 (55, 15, 5, 0, 0, '', 'abc', NULL, 'pending', 0.00, 0.00, 0.00, '2025-10-26 11:43:36'),
 (61, 10, 4, 0, 0, '', 'abc', NULL, 'pending', 980.00, 0.00, 980.00, '2025-10-26 14:11:20'),
 (62, 10, 5, 0, 0, '', 'aaa', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-26 14:11:20'),
-(83, 17, 6, 0, 0, '40', 'ttt', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-27 15:49:22'),
-(84, 17, 4, 0, 0, '', 'abc', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-27 15:49:22'),
-(85, 17, 7, 0, 0, '', 'abc', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-27 15:49:22');
+(102, 17, 7, 10, 3, '', 'ggrr', NULL, 'pending', 300.00, 0.00, 300.00, '2025-10-28 14:44:18'),
+(103, 17, 5, 6, 1, '', 'aaa', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-28 14:44:18'),
+(104, 9, 2, 6, 1, '', 'etc', NULL, 'pending', 100.00, 0.00, 100.00, '2025-10-28 14:45:50'),
+(116, 27, 6, 5, 1, '', 'ttt', NULL, 'pending', 300.00, 0.00, 300.00, '2025-11-06 15:40:56'),
+(117, 27, 7, 10, 3, '', 'ggrr', NULL, 'pending', 300.00, 0.00, 300.00, '2025-11-06 15:40:56'),
+(126, 28, 7, 10, 0, '22', 'ggrr', NULL, 'pending', 300.00, 0.00, 300.00, '2025-11-14 11:55:45'),
+(127, 28, 6, 5, 0, '55', 'ttt', NULL, 'pending', 300.00, 0.00, 300.00, '2025-11-14 11:55:45');
 
 -- --------------------------------------------------------
 
@@ -524,12 +393,12 @@ CREATE TABLE `main_test_categories` (
 --
 
 INSERT INTO `main_test_categories` (`id`, `name`, `description`, `added_by`, `created_at`, `updated_at`) VALUES
-(1, 'C-Reactive protein test', 'The CRP test analyzes the level of C-reactive protein in the bloodstream. The specific protein is made by the liver only. Any heightened levels of the same ...', 1, '2025-10-15 11:18:44', '2025-10-28 01:44:59'),
-(2, 'Complete blood count', 'A complete blood count, also known as a full blood count or full haemogram, is a set of medical laboratory tests that provide information about the cells in a person\'s blood. The CBC indicates the counts of white blood cells, red blood cells and platelets, the concentration of hemoglobin, and the hematocrit.', 1, '2025-10-17 11:15:22', '2025-10-28 01:44:09'),
-(3, 'Lipid panel', 'A lipid profile or lipid panel is a panel of blood tests used to find abnormalities in blood lipid concentrations. The results of this test can identify certain genetic diseases and can determine approximate risks for cardiovascular disease, certain forms of pancreatitis, and other diseases.', 1, '2025-10-23 07:22:34', '2025-10-28 01:43:24'),
-(4, 'Thyroid function tests', 'Thyroid function tests is a collective term for blood tests used to check the function of the thyroid. TFTs may be requested if a patient is thought to suffer from hyperthyroidism or hypothyroidism, or to monitor the effectiveness of either thyroid-suppression or hormone replacement therapy.', 1, '2025-10-28 01:45:27', '2025-10-28 01:45:27'),
-(5, 'Liver panel', 'Liver function tests, also referred to as a hepatic panel or liver panel, are groups of blood tests that provide information about the state of a patient\'s liver. These tests include prothrombin time, activated partial thromboplastin time, albumin, bilirubin, and others.', 1, '2025-10-28 01:45:53', '2025-10-28 01:45:53'),
-(6, 'Basic metabolic panel', 'A basic metabolic panel is a blood test consisting of a set of seven or eight biochemical tests and is one of the most common lab tests ordered by health care providers', 1, '2025-10-28 01:46:19', '2025-10-28 01:46:19'),
+(1, 'C-Reactive protein test', 'The CRP test analyzes the level of C-reactive protein in the bloodstream. The specific protein is made by the liver only. Any heightened levels of the same ...', 1, '2025-10-15 11:18:44', '2025-11-14 04:38:10'),
+(2, 'Complete blood count', 'A complete blood count, also known as a full blood count or full haemogram, is a set of medical laboratory tests that provide information about the cells in a person\'s blood. The CBC indicates the counts of white blood cells, red blood cells and platelets, the concentration of hemoglobin, and the hematocrit.', 1, '2025-10-17 11:15:22', '2025-11-14 04:38:15'),
+(3, 'Lipid panel', 'A lipid profile or lipid panel is a panel of blood tests used to find abnormalities in blood lipid concentrations. The results of this test can identify certain genetic diseases and can determine approximate risks for cardiovascular disease, certain forms of pancreatitis, and other diseases.', 1, '2025-10-23 07:22:34', '2025-11-14 04:38:22'),
+(4, 'Thyroid function tests', 'Thyroid function tests is a collective term for blood tests used to check the function of the thyroid. TFTs may be requested if a patient is thought to suffer from hyperthyroidism or hypothyroidism, or to monitor the effectiveness of either thyroid-suppression or hormone replacement therapy.', 1, '2025-10-28 01:45:27', '2025-11-14 04:38:27'),
+(5, 'Liver panel', 'Liver function tests, also referred to as a hepatic panel or liver panel, are groups of blood tests that provide information about the state of a patient\'s liver. These tests include prothrombin time, activated partial thromboplastin time, albumin, bilirubin, and others.', 1, '2025-10-28 01:45:53', '2025-11-14 04:38:32'),
+(6, 'Basic metabolic panel', 'A basic metabolic panel is a blood test consisting of a set of seven or eight biochemical tests and is one of the most common lab tests ordered by health care providers', 1, '2025-10-28 01:46:19', '2025-11-14 04:38:38'),
 (7, 'Basic metabolic panel', 'A basic metabolic panel is a blood test consisting of a set of seven or eight biochemical tests and is one of the most common lab tests ordered by health care providers.', 1, '2025-10-28 01:47:04', '2025-10-28 01:47:04'),
 (8, 'Erythrocyte sedimentation rate', 'The erythrocyte sedimentation rate is the rate at which red blood cells in anticoagulated whole blood descend in a standardized tube over a period of one hour. It is a common hematology test, and is a non-specific measure of inflammation.', 1, '2025-10-28 01:47:31', '2025-10-28 01:47:31'),
 (9, 'HbA1c test', 'Glycated hemoglobin, also called glycohemoglobin, is a form of hemoglobin that is chemically linked to a sugar. Most monosaccharides, including glucose, galactose, and fructose, spontaneously bond with hemoglobin when they are present in the bloodstream.', 1, '2025-10-28 01:48:10', '2025-10-28 01:48:10'),
@@ -538,17 +407,17 @@ INSERT INTO `main_test_categories` (`id`, `name`, `description`, `added_by`, `cr
 (12, 'Blood glucose test', 'Many types of glucose tests exist and they can be used to estimate blood sugar levels at a given time or, over a longer period of time, to obtain average levels or to see how fast the body is able to normalize changed glucose levels. Eating food for example leads to elevated blood sugar levels.', 1, '2025-10-28 02:02:43', '2025-10-28 02:02:43'),
 (13, 'Calcium blood test', 'Calcium blood test. The calcium blood test is conducted to assess the calcium levels in the bloodstream. Since calcium is a key mineral needed for healthy ...', 1, '2025-10-28 02:03:18', '2025-10-28 02:03:18'),
 (14, 'Electrolyte panel', 'Electrolyte panel. This blood test helps measure the levels of different minerals in your body. Any imbalance in these levels may indicate problems with ...', 1, '2025-10-28 02:04:03', '2025-10-28 02:04:03'),
-(15, 'Hematocrit', 'The hematocrit, also known by several other names, is the volume percentage of red blood cells in blood, measured as part of a blood test. The measurement depends on the number and size of red blood cells. It is normally 40.7–50.3% for males and 36.1–44.3% for females', 1, '2025-10-28 02:04:31', '2025-10-28 02:04:31'),
-(16, 'KFT test', 'Book a lab/blood test online with PharmEasy Labs and get the convenience of home sample collection at affordable price with fast and accurate results.', 1, '2025-10-28 02:04:59', '2025-10-28 02:04:59'),
-(17, 'Platelet', 'Platelets or thrombocytes are a part of blood whose function is to react to bleeding from blood vessel injury by clumping to form a blood clot. Platelets have no cell nucleus; they are fragments of cytoplasm from megakaryocytes which reside in bone marrow or lung tissue, and then enter the circulation.', 1, '2025-10-28 02:05:42', '2025-10-28 02:05:42'),
-(18, 'Thyroid-stimulating hormone', 'Thyroid-stimulating hormone is a pituitary hormone that stimulates the thyroid gland to produce thyroxine, and then triiodothyronine which stimulates the metabolism of almost every tissue in the body.', 1, '2025-10-28 02:06:09', '2025-10-28 02:06:09'),
-(19, 'Creatinine', '', 1, '2025-10-28 02:06:35', '2025-10-28 02:06:35'),
-(20, 'D-dimer test', 'D-dimer test. The D-dimer test is a blood test that checks for, or monitors, blood-clotting problems. Find out what a positive result means for you.', 1, '2025-10-28 02:07:02', '2025-10-28 02:07:02'),
-(21, 'Electrolytes', 'Other electrolytes and metabolites. edit · Electrolytes and metabolites: For iron and copper, some related proteins are also included. Test, Patient type, Lower ...', 1, '2025-10-28 02:07:25', '2025-10-28 02:07:25'),
-(22, 'Folate test', 'Folate test. Folate is an important nutrient for making normal red blood cells. The folate test checks whether you have enough folate in your blood.', 1, '2025-10-28 02:07:53', '2025-10-28 02:07:53'),
-(23, 'Gonorrhea test', 'Your doctor will perform follow-up tests to confirm a diagnosis. The Lifeforce Diagnostic is an at-home blood test designed to gather data on 40+ biomarkers ...', 1, '2025-10-28 02:08:24', '2025-10-28 02:08:24'),
-(24, 'Hemoglobin', 'Hemoglobin is an iron-rich protein in red blood cells that carries oxygen. Hematocrit levels that are too high might mean you\'re dehydrated. Low hematocrit ...', 1, '2025-10-28 02:08:47', '2025-10-28 02:08:47'),
-(25, 'MCV', 'The mean corpuscular volume, or mean cell volume, is a measure of the average volume of a red blood corpuscle. The measure is obtained by multiplying a volume of blood by the proportion of blood that is cellular, and dividing that product by the number of erythrocytes in that volume.', 1, '2025-10-28 02:09:17', '2025-10-28 02:09:17');
+(15, 'Hematocrit', 'The hematocrit, also known by several other names, is the volume percentage of red blood cells in blood, measured as part of a blood test. The measurement depends on the number and size of red blood cells. It is normally 40.7–50.3% for males and 36.1–44.3% for females', 1, '2025-10-28 02:04:31', '2025-11-14 04:37:51'),
+(16, 'KFT test', 'Book a lab/blood test online with PharmEasy Labs and get the convenience of home sample collection at affordable price with fast and accurate results.', 1, '2025-10-28 02:04:59', '2025-11-14 04:37:42'),
+(17, 'Platelet', 'Platelets or thrombocytes are a part of blood whose function is to react to bleeding from blood vessel injury by clumping to form a blood clot. Platelets have no cell nucleus; they are fragments of cytoplasm from megakaryocytes which reside in bone marrow or lung tissue, and then enter the circulation.', 1, '2025-10-28 02:05:42', '2025-11-14 04:37:39'),
+(18, 'Thyroid-stimulating hormone', 'Thyroid-stimulating hormone is a pituitary hormone that stimulates the thyroid gland to produce thyroxine, and then triiodothyronine which stimulates the metabolism of almost every tissue in the body.', 1, '2025-10-28 02:06:09', '2025-11-14 04:37:35'),
+(19, 'Creatinine', '', 1, '2025-10-28 02:06:35', '2025-11-14 04:37:32'),
+(20, 'D-dimer test', 'D-dimer test. The D-dimer test is a blood test that checks for, or monitors, blood-clotting problems. Find out what a positive result means for you.', 1, '2025-10-28 02:07:02', '2025-11-14 04:37:28'),
+(21, 'Electrolytes', 'Other electrolytes and metabolites. edit · Electrolytes and metabolites: For iron and copper, some related proteins are also included. Test, Patient type, Lower ...', 1, '2025-10-28 02:07:25', '2025-11-14 04:37:25'),
+(22, 'Folate test', 'Folate test. Folate is an important nutrient for making normal red blood cells. The folate test checks whether you have enough folate in your blood.', 1, '2025-10-28 02:07:53', '2025-11-14 04:37:14'),
+(23, 'Gonorrhea test', 'Your doctor will perform follow-up tests to confirm a diagnosis. The Lifeforce Diagnostic is an at-home blood test designed to gather data on 40+ biomarkers ...', 1, '2025-10-28 02:08:24', '2025-11-14 04:37:58'),
+(24, 'Hemoglobin', 'Hemoglobin is an iron-rich protein in red blood cells that carries oxygen. Hematocrit levels that are too high might mean you\'re dehydrated. Low hematocrit ...', 1, '2025-10-28 02:08:47', '2025-11-14 04:37:54'),
+(25, 'MCV', 'The mean corpuscular volume, or mean cell volume, is a measure of the average volume of a red blood corpuscle. The measure is obtained by multiplying a volume of blood by the proportion of blood that is cellular, and dividing that product by the number of erythrocytes in that volume.', 1, '2025-10-28 02:09:17', '2025-11-14 04:37:05');
 
 -- --------------------------------------------------------
 
@@ -845,7 +714,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `api_token`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-10-28 06:48:43', '2025-10-26 10:12:00', '', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-11-14 10:36:44', '2025-10-26 10:12:00', '', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
 (2, 'uma', '$2y$12$auavnwTI5hbfkyqCoavijO/i3diGYgDZqt58EzkY6ZkB6M9jTmD9e', 'Uma Yadav', 'umakant171992@gmail.com', 'user', 1, 'Pathology', '2025-09-26 10:13:58', NULL, '2025-12-30 23:59:00', '6dad141b199e8c2ae3021462459c23135244d408778939a4c33c4a969726fde7', '0000-00-00 00:00:00', '2025-10-18 05:36:53');
 
 -- --------------------------------------------------------
@@ -1070,13 +939,13 @@ ALTER TABLE `doctors`
 -- AUTO_INCREMENT for table `entries`
 --
 ALTER TABLE `entries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `entry_tests`
 --
 ALTER TABLE `entry_tests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
 
 --
 -- AUTO_INCREMENT for table `main_test_categories`
