@@ -88,33 +88,96 @@ function handleList($pdo, $config, $user_data) {
         $params = $scopeIds;
     }
 
-    $sql = "SELECT e.*, p.name as patient_name, p.uhid as patient_uhid, d.name as doctor_name, u.username as added_by_username
+    // Enhanced query with all entry fields and test information
+    $sql = "SELECT 
+                e.id,
+                e.owner_id,
+                e.server_id,
+                e.patient_id,
+                e.doctor_id,
+                e.entry_date,
+                e.date_slot,
+                e.service_location,
+                e.collection_address,
+                e.status,
+                e.priority,
+                e.referral_source,
+                e.subtotal,
+                e.discount_amount,
+                e.total_price,
+                e.payment_status,
+                e.notes,
+                e.added_by,
+                e.created_at,
+                e.updated_at,
+                p.name as patient_name,
+                p.uhid as patient_uhid,
+                p.age as patient_age,
+                p.sex as patient_gender,
+                p.contact as patient_contact,
+                d.name as doctor_name,
+                d.specialization as doctor_specialization,
+                d.hospital as doctor_hospital,
+                u.username as added_by_username,
+                u.full_name as added_by_full_name
             FROM {$config['table_name']} e
             LEFT JOIN patients p ON e.patient_id = p.id
             LEFT JOIN doctors d ON e.doctor_id = d.id
-            LEFT JOIN users u ON e.added_by = u.id{$where} ORDER BY e.id DESC";
+            LEFT JOIN users u ON e.added_by = u.id
+            {$where} 
+            ORDER BY e.id DESC";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fetch test names for each entry
+    // Fetch test information for each entry with enhanced details
     foreach ($entries as &$entry) {
         $testStmt = $pdo->prepare("
-            SELECT GROUP_CONCAT(t.name SEPARATOR ', ') as test_names, COUNT(et.id) as tests_count
+            SELECT 
+                GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,
+                COUNT(DISTINCT et.id) as tests_count,
+                GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id SEPARATOR ',') as test_ids,
+                SUM(et.price) as tests_subtotal,
+                SUM(et.discount_amount) as tests_discount,
+                SUM(et.total_price) as tests_total
             FROM entry_tests et
             LEFT JOIN tests t ON et.test_id = t.id
             WHERE et.entry_id = ?
-            GROUP BY et.entry_id
         ");
         $testStmt->execute([$entry['id']]);
         $testData = $testStmt->fetch(PDO::FETCH_ASSOC);
         
+        // Add test information to entry
         $entry['test_names'] = $testData['test_names'] ?? 'No tests';
-        $entry['tests_count'] = $testData['tests_count'] ?? 0;
+        $entry['tests_count'] = (int)($testData['tests_count'] ?? 0);
+        $entry['test_ids'] = $testData['test_ids'] ?? '';
+        
+        // Add calculated test totals (useful for verification)
+        $entry['tests_subtotal'] = (float)($testData['tests_subtotal'] ?? 0);
+        $entry['tests_discount'] = (float)($testData['tests_discount'] ?? 0);
+        $entry['tests_total'] = (float)($testData['tests_total'] ?? 0);
+        
+        // Format numeric fields
+        $entry['subtotal'] = (float)($entry['subtotal'] ?? 0);
+        $entry['discount_amount'] = (float)($entry['discount_amount'] ?? 0);
+        $entry['total_price'] = (float)($entry['total_price'] ?? 0);
+        
+        // Format dates for better display
+        if ($entry['entry_date']) {
+            $entry['entry_date_formatted'] = date('Y-m-d', strtotime($entry['entry_date']));
+        }
+        if ($entry['created_at']) {
+            $entry['created_at_formatted'] = date('Y-m-d H:i:s', strtotime($entry['created_at']));
+        }
     }
 
-    json_response(['success' => true, 'data' => $entries, 'total' => count($entries)]);
+    json_response([
+        'success' => true, 
+        'data' => $entries, 
+        'total' => count($entries),
+        'message' => 'Entries retrieved successfully'
+    ]);
 }
 
 function handleGet($pdo, $config, $user_data) {
