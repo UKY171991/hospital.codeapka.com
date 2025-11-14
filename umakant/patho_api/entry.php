@@ -67,11 +67,59 @@ try {
         case 'debug_all_entries': handleDebugAllEntries($pdo, $user_data); break;
         case 'test_aggregation_sql': handleTestAggregationSQL($pdo, $user_data); break;
         case 'refresh_all_aggregates': handleRefreshAllAggregates($pdo, $user_data); break;
+        case 'debug': handleDebug($pdo, $entity_config, $user_data); break;
         default: json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
     }
 } catch (Exception $e) {
     error_log("Entry API Uncaught Error: " . $e->getMessage());
     json_response(['success' => false, 'message' => 'An internal server error occurred.'], 500);
+}
+
+function handleDebug($pdo, $config, $user_data) {
+    // Get total entries count
+    $totalStmt = $pdo->query("SELECT COUNT(*) as total FROM entries");
+    $totalCount = $totalStmt->fetch(PDO::FETCH_ASSOC)['total'];
+    
+    // Get entries with tests count
+    $withTestsStmt = $pdo->query("
+        SELECT COUNT(DISTINCT e.id) as count 
+        FROM entries e 
+        INNER JOIN entry_tests et ON e.id = et.entry_id
+    ");
+    $withTestsCount = $withTestsStmt->fetch(PDO::FETCH_ASSOC)['count'];
+    
+    // Get user's entries count
+    $scopeIds = getScopedUserIds($pdo, $user_data);
+    $userEntriesCount = 0;
+    if (is_array($scopeIds)) {
+        $placeholders = implode(',', array_fill(0, count($scopeIds), '?'));
+        $userStmt = $pdo->prepare("SELECT COUNT(*) as count FROM entries WHERE added_by IN ($placeholders)");
+        $userStmt->execute($scopeIds);
+        $userEntriesCount = $userStmt->fetch(PDO::FETCH_ASSOC)['count'];
+    }
+    
+    // Get sample entries
+    $sampleStmt = $pdo->query("
+        SELECT e.id, e.patient_id, e.added_by, e.created_at,
+               (SELECT COUNT(*) FROM entry_tests WHERE entry_id = e.id) as tests_count
+        FROM entries e 
+        ORDER BY e.id DESC 
+        LIMIT 5
+    ");
+    $sampleEntries = $sampleStmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    json_response([
+        'success' => true,
+        'debug_info' => [
+            'user_data' => $user_data,
+            'scope_ids' => $scopeIds,
+            'total_entries' => (int)$totalCount,
+            'entries_with_tests' => (int)$withTestsCount,
+            'user_entries_count' => (int)$userEntriesCount,
+            'sample_entries' => $sampleEntries,
+            'database_connected' => true
+        ]
+    ]);
 }
 
 function handleList($pdo, $config, $user_data) {
