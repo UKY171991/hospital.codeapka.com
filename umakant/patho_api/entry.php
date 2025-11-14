@@ -97,6 +97,22 @@ function handleList($pdo, $config, $user_data) {
     $stmt->execute($params);
     $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Fetch test names for each entry
+    foreach ($entries as &$entry) {
+        $testStmt = $pdo->prepare("
+            SELECT GROUP_CONCAT(t.name SEPARATOR ', ') as test_names, COUNT(et.id) as tests_count
+            FROM entry_tests et
+            LEFT JOIN tests t ON et.test_id = t.id
+            WHERE et.entry_id = ?
+            GROUP BY et.entry_id
+        ");
+        $testStmt->execute([$entry['id']]);
+        $testData = $testStmt->fetch(PDO::FETCH_ASSOC);
+        
+        $entry['test_names'] = $testData['test_names'] ?? 'No tests';
+        $entry['tests_count'] = $testData['tests_count'] ?? 0;
+    }
+
     json_response(['success' => true, 'data' => $entries, 'total' => count($entries)]);
 }
 
