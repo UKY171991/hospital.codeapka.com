@@ -1036,17 +1036,85 @@
             {
                 name: 'Entries',
                 file: 'entry.php',
-                description: 'API for managing test entries.',
+                description: 'Comprehensive API for managing test entries with full CRUD operations. Handles patient test entries with multiple tests per entry, pricing, discounts, and test results. Supports entry aggregation, duplicate prevention, and detailed test information including reference ranges.',
                 endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all test entries.' },
-                    { action: 'get', method: 'GET', description: 'Get a single test entry by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a test entry.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a test entry by ID.', params: ['id'] },
-                    { action: 'stats', method: 'GET', description: 'Get test entry statistics.' },
-                    { action: 'add_test', method: 'POST', description: 'Add a test to an entry.' },
-                    { action: 'remove_test', method: 'POST', description: 'Remove a test from an entry.' },
-                    { action: 'get_tests', method: 'GET', description: 'Get all tests for an entry.', params: ['entry_id'] },
-                    { action: 'update_test_result', method: 'POST', description: 'Update a test result.' }
+                    { 
+                        action: 'list', 
+                        method: 'GET', 
+                        description: 'Get all test entries with patient, doctor, and test information. Returns entries with dynamically fetched test names using GROUP_CONCAT. Each entry includes: id, patient details (patient_id, patient_name, patient_uhid), doctor details (doctor_id, doctor_name), test information (test_names, tests_count), pricing (subtotal, discount_amount, total_price), status, priority, dates (entry_date, created_at, updated_at), and metadata (added_by, added_by_username). Filtered by user scope unless admin.' 
+                    },
+                    { 
+                        action: 'get', 
+                        method: 'GET', 
+                        description: 'Get complete details of a single test entry by ID. Returns entry with all fields plus associated tests array. Each test includes: entry_test_id, test_id, test_name, category_id, category_name, result_value, unit, min/max values (general, male, female, child), reference_range, price, discount_amount, total_price, status, remarks, and timestamps. Patient info includes: name, uhid, age, gender, contact, address. Doctor info includes: name, specialization.', 
+                        params: ['id'] 
+                    },
+                    { 
+                        action: 'save', 
+                        method: 'POST', 
+                        description: 'Create new entry or update existing entry with tests. Required: patient_id, tests (JSON array). Optional: id (for update), doctor_id, entry_date, status (pending/completed/cancelled), priority (normal/urgent/emergency/routine), referral_source, notes, subtotal, discount_amount, total_price, date_slot, service_location, collection_address. Tests array format: [{test_id, category_id, main_category_id, result_value, unit, min, max, price, discount_amount, remarks, status}]. Automatically handles: duplicate test prevention, category_id/main_category_id defaults to 0 if not provided, entry aggregate refresh (tests_count, test_names, test_ids), transaction rollback on error. Returns saved entry with all details.' 
+                    },
+                    { 
+                        action: 'update', 
+                        method: 'POST', 
+                        description: 'Alias for save action. Updates existing entry when id is provided. Same parameters as save action.' 
+                    },
+                    { 
+                        action: 'delete', 
+                        method: 'POST', 
+                        description: 'Delete a test entry by ID. Also deletes all associated tests from entry_tests table. Requires delete permission and user scope validation.', 
+                        params: ['id'] 
+                    },
+                    { 
+                        action: 'stats', 
+                        method: 'GET', 
+                        description: 'Get comprehensive entry statistics. Returns: total entries count, pending entries count, completed entries count, today\'s entries count. Useful for dashboard widgets and reporting.' 
+                    },
+                    { 
+                        action: 'add_test', 
+                        method: 'POST', 
+                        description: 'Add a single test to an existing entry. Useful for adding tests after entry creation.', 
+                        params: ['entry_id', 'test_id'] 
+                    },
+                    { 
+                        action: 'remove_test', 
+                        method: 'POST', 
+                        description: 'Remove a test from an entry by entry_test_id. Deletes the test association from entry_tests table.', 
+                        params: ['entry_test_id'] 
+                    },
+                    { 
+                        action: 'get_tests', 
+                        method: 'GET', 
+                        description: 'Get all tests associated with a specific entry. Returns array of tests with test details from tests table.', 
+                        params: ['entry_id'] 
+                    },
+                    { 
+                        action: 'update_test_result', 
+                        method: 'POST', 
+                        description: 'Update test result and related fields for a specific test in an entry. Updatable fields: result_value, unit, remarks, status, price, discount_amount.', 
+                        params: ['entry_test_id'] 
+                    },
+                    { 
+                        action: 'report_list', 
+                        method: 'GET', 
+                        description: 'Get filtered list of test entries for reporting. Supports filters: test_id, doctor_id, status, date_from, date_to. Returns flattened data with one row per test for report generation.' 
+                    },
+                    { 
+                        action: 'cleanup_duplicates', 
+                        method: 'POST', 
+                        description: 'Clean up duplicate test entries (same entry_id and test_id). Keeps oldest entry, deletes duplicates. Returns cleanup statistics. Requires delete permission.' 
+                    },
+                    { 
+                        action: 'refresh_aggregates', 
+                        method: 'POST', 
+                        description: 'Refresh aggregate data for a specific entry (tests_count, test_names, test_ids, total_price). Useful after manual database changes.', 
+                        params: ['entry_id'] 
+                    },
+                    { 
+                        action: 'refresh_all_aggregates', 
+                        method: 'POST', 
+                        description: 'Refresh aggregate data for all entries in the system. Batch operation for data consistency. Returns count of updated entries.' 
+                    }
                 ]
             },
             {
