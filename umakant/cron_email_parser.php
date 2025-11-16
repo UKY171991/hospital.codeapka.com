@@ -27,11 +27,13 @@ if (!is_dir($log_dir)) {
     mkdir($log_dir, 0755, true);
 }
 
+if (!function_exists('writeLog')) {
 function writeLog($message) {
     global $log_file;
     $timestamp = date('Y-m-d H:i:s');
     file_put_contents($log_file, "[$timestamp] $message\n", FILE_APPEND);
     echo "[$timestamp] $message\n";
+}
 }
 
 writeLog("=== Email Parser Cron Job Started ===");
@@ -175,6 +177,7 @@ try {
 /**
  * Get email body content
  */
+if (!function_exists('getEmailBody')) {
 function getEmailBody($connection, $email_number) {
     $body = '';
     
@@ -200,10 +203,12 @@ function getEmailBody($connection, $email_number) {
     
     return $body;
 }
+}
 
 /**
  * Parse email for transaction information
  */
+if (!function_exists('parseTransactionEmail')) {
 function parseTransactionEmail($subject, $body, $from, $date) {
     global $log_file;
     
@@ -211,43 +216,51 @@ function parseTransactionEmail($subject, $body, $from, $date) {
     $body_lower = strtolower($body);
     $combined = $subject_lower . ' ' . $body_lower;
     
-    // Payment keywords for income (expanded list)
-    $income_keywords = [
-        'payment received', 'payment credited', 'money received', 'credited to',
-        'payment successful', 'transaction successful', 'amount credited',
-        'upi credit', 'imps credit', 'neft credit', 'rtgs credit',
-        'paytm payment', 'phonepe payment', 'gpay payment', 'google pay',
-        'credited', 'deposit', 'received', 'incoming',
-        'credit alert', 'account credited', 'money added',
-        'payment confirmation', 'transfer received'
+    // IMPORTANT: Check expense keywords FIRST (more specific)
+    // Then check income keywords
+    // This prevents "debited" from matching "credited"
+    
+    // Payment keywords for expense (CHECK FIRST - more specific)
+    $expense_keywords = [
+        'debited', 'debit alert', 'account debited', 'amount debited',
+        'payment debited', 'transaction debited', 'upi debit', 
+        'imps debit', 'neft debit', 'rtgs debit',
+        'withdrawn', 'withdrawal', 'spent', 'purchase',
+        'bill payment', 'recharge', 'subscription',
+        'money deducted', 'payment made', 'transfer made',
+        'order placed', 'payment processed', 'paid to',
+        'payment sent', 'sent to', 'deducted from'
     ];
     
-    // Payment keywords for expense (expanded list)
-    $expense_keywords = [
-        'payment debited', 'amount debited', 'payment made', 'transaction debited',
-        'purchase', 'bill payment', 'recharge', 'subscription',
-        'upi debit', 'imps debit', 'neft debit', 'rtgs debit',
-        'debited', 'withdrawn', 'spent', 'paid',
-        'debit alert', 'account debited', 'money deducted',
-        'payment processed', 'transfer made', 'order placed'
+    // Payment keywords for income (CHECK SECOND)
+    $income_keywords = [
+        'credited', 'credit alert', 'account credited', 'amount credited',
+        'payment credited', 'payment received', 'money received',
+        'upi credit', 'imps credit', 'neft credit', 'rtgs credit',
+        'deposit', 'deposited', 'received from', 'incoming',
+        'money added', 'payment confirmation', 'transfer received',
+        'credited to', 'received in', 'payment success',
+        'you received', 'you got'
     ];
     
     $is_income = false;
     $is_expense = false;
     $matched_keyword = '';
     
-    foreach ($income_keywords as $keyword) {
+    // Check EXPENSE first (more specific patterns)
+    foreach ($expense_keywords as $keyword) {
         if (strpos($combined, $keyword) !== false) {
-            $is_income = true;
+            $is_expense = true;
             $matched_keyword = $keyword;
             break;
         }
     }
     
-    if (!$is_income) {
-        foreach ($expense_keywords as $keyword) {
+    // Only check INCOME if not already marked as expense
+    if (!$is_expense) {
+        foreach ($income_keywords as $keyword) {
             if (strpos($combined, $keyword) !== false) {
-                $is_expense = true;
+                $is_income = true;
                 $matched_keyword = $keyword;
                 break;
             }
@@ -288,10 +301,12 @@ function parseTransactionEmail($subject, $body, $from, $date) {
         'notes' => 'Auto-imported from email'
     ];
 }
+}
 
 /**
  * Extract amount from text
  */
+if (!function_exists('extractAmount')) {
 function extractAmount($text) {
     // Enhanced patterns for Indian currency (₹ or Rs or INR)
     $patterns = [
@@ -323,10 +338,12 @@ function extractAmount($text) {
     
     return null;
 }
+}
 
 /**
  * Extract payment method
  */
+if (!function_exists('extractPaymentMethod')) {
 function extractPaymentMethod($text) {
     if (strpos($text, 'upi') !== false) return 'UPI';
     if (strpos($text, 'card') !== false || strpos($text, 'debit') !== false || strpos($text, 'credit') !== false) return 'Card';
@@ -338,10 +355,12 @@ function extractPaymentMethod($text) {
     
     return 'Bank Transfer'; // Default
 }
+}
 
 /**
  * Extract description
  */
+if (!function_exists('extractDescription')) {
 function extractDescription($subject, $body) {
     // Clean subject
     $description = trim($subject);
@@ -353,10 +372,12 @@ function extractDescription($subject, $body) {
     
     return $description;
 }
+}
 
 /**
  * Determine category based on keywords
  */
+if (!function_exists('determineCategory')) {
 function determineCategory($text, $is_income) {
     if ($is_income) {
         if (strpos($text, 'consultation') !== false) return 'Consultation';
@@ -377,19 +398,23 @@ function determineCategory($text, $is_income) {
         return 'Other';
     }
 }
+}
 
 /**
  * Check if email already processed
  */
+if (!function_exists('isEmailProcessed')) {
 function isEmailProcessed($pdo, $message_id) {
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM processed_emails WHERE message_id = :message_id");
     $stmt->execute([':message_id' => $message_id]);
     return $stmt->fetchColumn() > 0;
 }
+}
 
 /**
  * Mark email as processed
  */
+if (!function_exists('markEmailAsProcessed')) {
 function markEmailAsProcessed($pdo, $message_id, $type) {
     $stmt = $pdo->prepare("INSERT INTO processed_emails (message_id, transaction_type, processed_at) VALUES (:message_id, :type, NOW())");
     $stmt->execute([
@@ -397,10 +422,12 @@ function markEmailAsProcessed($pdo, $message_id, $type) {
         ':type' => $type
     ]);
 }
+}
 
 /**
  * Insert income record
  */
+if (!function_exists('insertIncome')) {
 function insertIncome($pdo, $transaction) {
     $sql = "INSERT INTO inventory_income (date, category, description, amount, payment_method, notes, created_at)
             VALUES (:date, :category, :description, :amount, :payment_method, :notes, NOW())";
@@ -415,10 +442,12 @@ function insertIncome($pdo, $transaction) {
         ':notes' => $transaction['notes'] . ' | From: ' . $transaction['source_email']
     ]);
 }
+}
 
 /**
  * Insert expense record
  */
+if (!function_exists('insertExpense')) {
 function insertExpense($pdo, $transaction) {
     $sql = "INSERT INTO inventory_expense (date, category, vendor, description, amount, payment_method, notes, created_at)
             VALUES (:date, :category, :vendor, :description, :amount, :payment_method, :notes, NOW())";
