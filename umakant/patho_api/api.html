@@ -877,13 +877,64 @@
             {
                 name: 'Users',
                 file: 'user.php',
-                description: 'API for managing users.',
+                description: 'Comprehensive API for managing system users with role-based access control. Supports user authentication, profile management, and permission handling. Users can have roles: master, admin, doctor, receptionist, lab_technician.',
                 endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all users.' },
-                    { action: 'get', method: 'GET', description: 'Get a single user by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a user.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a user by ID.', params: ['id'] }
-                ]
+                    { 
+                        action: 'list', 
+                        method: 'GET', 
+                        description: 'Get all users with pagination and search support. Returns user data including: id, username, full_name, email, role, status (active/inactive), contact information, and timestamps. Supports DataTables server-side processing with draw, start, length, search parameters. Admin/master can see all users.' 
+                    },
+                    { 
+                        action: 'get', 
+                        method: 'GET', 
+                        description: 'Get detailed information for a single user by ID. Returns complete user profile including: id, username, full_name, email, role, phone, address, status, created_at, updated_at, last_login. Password field is excluded from response for security.', 
+                        params: ['id'] 
+                    },
+                    { 
+                        action: 'save', 
+                        method: 'POST', 
+                        description: 'Create new user or update existing user. Required fields for new user: username, password, full_name, role. Optional fields: email, phone, address, status. For updates: password is optional (only updated if provided), other fields can be updated. Passwords are automatically hashed. Username must be unique.' 
+                    },
+                    { 
+                        action: 'delete', 
+                        method: 'POST', 
+                        description: 'Delete a user by ID. Requires admin/master role. Checks for foreign key constraints (patients, entries, etc.) before deletion. Cannot delete currently logged-in user.', 
+                        params: ['id'] 
+                    },
+                    { 
+                        action: 'stats', 
+                        method: 'GET', 
+                        description: 'Get user statistics including total users, active users, users by role breakdown, and recent registrations.' 
+                    },
+                    { 
+                        action: 'roles', 
+                        method: 'GET', 
+                        description: 'Get list of available user roles for dropdown selections.' 
+                    }
+                ],
+                fields: {
+                    'Core Fields': {
+                        'id': 'int(11) NOT NULL AUTO_INCREMENT - Primary key',
+                        'username': 'varchar(100) NOT NULL UNIQUE - Login username (required, unique)',
+                        'password': 'varchar(255) NOT NULL - Hashed password (bcrypt)',
+                        'full_name': 'varchar(255) NOT NULL - User full name (required)',
+                        'role': 'enum(master,admin,doctor,receptionist,lab_technician) NOT NULL - User role for permissions'
+                    },
+                    'Contact Information': {
+                        'email': 'varchar(255) DEFAULT NULL - Email address',
+                        'phone': 'varchar(20) DEFAULT NULL - Contact phone number',
+                        'address': 'text DEFAULT NULL - Physical address'
+                    },
+                    'Status & Settings': {
+                        'status': 'enum(active,inactive) DEFAULT active - Account status',
+                        'profile_image': 'varchar(255) DEFAULT NULL - Profile picture path'
+                    },
+                    'Audit & Metadata': {
+                        'created_at': 'datetime DEFAULT NULL - Account creation timestamp',
+                        'updated_at': 'datetime DEFAULT NULL - Last profile update timestamp',
+                        'last_login': 'datetime DEFAULT NULL - Last successful login timestamp'
+                    }
+                }
             },
             {
                 name: 'Doctors',
@@ -928,14 +979,62 @@
             {
                 name: 'Patients',
                 file: 'patient.php',
-                description: 'API for managing patients. Shows only current user\'s patients unless admin.',
+                description: 'Comprehensive API for managing patient records with user-based filtering. Each user sees only their own patients unless they have admin/master role. Supports automatic UHID generation, demographic information, and contact details. When updating, added_by field is preserved from original record to prevent duplicate patients.',
                 endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get patients for current user.', params: ['user_id', 'username'] },
-                    { action: 'get', method: 'GET', description: 'Get a single patient by ID (user-filtered).', params: ['id', 'user_id', 'username'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a patient for current user.', params: ['user_id', 'username'] },
-                    { action: 'delete', method: 'POST', description: 'Delete a patient by ID (user-filtered).', params: ['id', 'user_id', 'username'] },
-                    { action: 'stats', method: 'GET', description: 'Get patient statistics for current user.', params: ['user_id', 'username'] }
-                ]
+                    { 
+                        action: 'list', 
+                        method: 'GET', 
+                        description: 'Get patients for current user with pagination and search. Returns patient data including: id, name, uhid, father_husband, mobile, email, age, age_unit, gender/sex, address, contact, added_by, added_by_username, created_at, updated_at. Supports DataTables server-side processing. Admin/master can filter by user_id or username parameter to see other users\' patients.', 
+                        params: ['user_id', 'username'] 
+                    },
+                    { 
+                        action: 'get', 
+                        method: 'GET', 
+                        description: 'Get complete details of a single patient by ID. User-filtered: returns patient only if added_by matches current user (unless admin/master). Returns all patient fields including demographics, contact info, and metadata.', 
+                        params: ['id', 'user_id', 'username'] 
+                    },
+                    { 
+                        action: 'save', 
+                        method: 'POST', 
+                        description: 'Create new patient or update existing patient. Required fields: name, mobile. Optional fields: uhid (auto-generated if not provided), father_husband, email, age, age_unit (years/months/days), gender, address, contact. For new patients: added_by is set to current user, UHID auto-generated as P000001, P000002, etc. For updates: added_by is preserved from original record to prevent duplicates. Gender field is mapped to sex column in database.', 
+                        params: ['user_id', 'username'] 
+                    },
+                    { 
+                        action: 'delete', 
+                        method: 'POST', 
+                        description: 'Delete a patient by ID. User-filtered: can only delete own patients unless admin/master. Checks for associated test entries before deletion - cannot delete patient with existing entries. Returns error if patient has test records.', 
+                        params: ['id', 'user_id', 'username'] 
+                    },
+                    { 
+                        action: 'stats', 
+                        method: 'GET', 
+                        description: 'Get patient statistics for current user including: total patients, patients added today, patients added this week, patients added this month. Admin/master can filter by user_id or username to see other users\' statistics.', 
+                        params: ['user_id', 'username'] 
+                    }
+                ],
+                fields: {
+                    'Core Fields': {
+                        'id': 'int(11) NOT NULL AUTO_INCREMENT - Primary key',
+                        'name': 'varchar(255) NOT NULL - Patient full name (required)',
+                        'uhid': 'varchar(50) DEFAULT NULL - Unique Health ID (auto-generated as P000001, P000002, etc.)',
+                        'father_husband': 'varchar(255) DEFAULT NULL - Father/Husband name',
+                        'age': 'int(11) DEFAULT NULL - Patient age',
+                        'age_unit': 'enum(years,months,days) DEFAULT years - Age unit',
+                        'sex': 'enum(male,female,other) DEFAULT NULL - Gender (mapped from gender field in API)',
+                        'gender': 'Virtual field mapped to sex column - Used in API requests/responses'
+                    },
+                    'Contact Information': {
+                        'mobile': 'varchar(20) NOT NULL - Primary mobile number (required)',
+                        'email': 'varchar(255) DEFAULT NULL - Email address',
+                        'contact': 'varchar(20) DEFAULT NULL - Alternative contact number',
+                        'address': 'text DEFAULT NULL - Residential address'
+                    },
+                    'Audit & Metadata': {
+                        'added_by': 'int(11) DEFAULT NULL - User ID who created the patient (preserved on update)',
+                        'created_at': 'datetime DEFAULT NULL - Registration timestamp',
+                        'updated_at': 'datetime DEFAULT NULL - Last update timestamp'
+                    }
+                }
             },
             {
                 name: 'Tests',
@@ -1041,24 +1140,103 @@
             {
                 name: 'Test Categories',
                 file: 'test_category.php',
-                description: 'API for managing test categories.',
+                description: 'API for managing test categories (sub-categories). Categories are used to organize tests within main categories. Each category belongs to a main test category and can contain multiple tests.',
                 endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all test categories.' },
-                    { action: 'get', method: 'GET', description: 'Get a single test category by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a test category.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a test category by ID.', params: ['id'] }
-                ]
+                    { 
+                        action: 'list', 
+                        method: 'GET', 
+                        description: 'Get all test categories with pagination and search. Returns category data including: id, name, main_category_id, main_category_name, description, display_order, status, added_by, added_by_username, created_at, updated_at. Supports DataTables server-side processing with draw, start, length, search parameters.' 
+                    },
+                    { 
+                        action: 'get', 
+                        method: 'GET', 
+                        description: 'Get detailed information for a single test category by ID. Returns complete category data including main category relationship and associated tests count.', 
+                        params: ['id'] 
+                    },
+                    { 
+                        action: 'save', 
+                        method: 'POST', 
+                        description: 'Create new category or update existing category. Required fields: name, main_category_id. Optional fields: description, display_order (for sorting), status (active/inactive). Auto-sets added_by, created_at, updated_at.' 
+                    },
+                    { 
+                        action: 'delete', 
+                        method: 'POST', 
+                        description: 'Delete a test category by ID. Checks for associated tests before deletion - cannot delete category with existing tests. Returns error if category is in use.', 
+                        params: ['id'] 
+                    },
+                    { 
+                        action: 'stats', 
+                        method: 'GET', 
+                        description: 'Get test category statistics including total categories, active categories, and categories by main category breakdown.' 
+                    }
+                ],
+                fields: {
+                    'Core Fields': {
+                        'id': 'int(11) NOT NULL AUTO_INCREMENT - Primary key',
+                        'name': 'varchar(255) NOT NULL - Category name (required)',
+                        'main_category_id': 'int(11) NOT NULL - Foreign key to main_test_categories table (required)',
+                        'description': 'text DEFAULT NULL - Category description',
+                        'display_order': 'int(11) DEFAULT 0 - Sort order for display',
+                        'status': 'enum(active,inactive) DEFAULT active - Category status'
+                    },
+                    'Audit & Metadata': {
+                        'added_by': 'int(11) DEFAULT NULL - User ID who created the category',
+                        'created_at': 'datetime DEFAULT NULL - Creation timestamp',
+                        'updated_at': 'datetime DEFAULT NULL - Last update timestamp'
+                    }
+                }
             },
             {
                 name: 'Main Test Categories',
                 file: 'main_test_category.php',
-                description: 'API for managing main test categories (used by main-test-category.php).',
+                description: 'API for managing main test categories (top-level categories). Main categories are the primary organizational structure for tests. Each main category can contain multiple sub-categories and tests. Examples: Hematology, Biochemistry, Microbiology, Radiology.',
                 endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all main test categories.' },
-                    { action: 'get', method: 'GET', description: 'Get a single main category by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a main test category.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a main test category by ID.', params: ['id'] }
-                ]
+                    { 
+                        action: 'list', 
+                        method: 'GET', 
+                        description: 'Get all main test categories with pagination and search. Returns main category data including: id, name, description, display_order, status, icon, color, categories_count (number of sub-categories), tests_count (number of tests), added_by, added_by_username, created_at, updated_at. Supports DataTables server-side processing.' 
+                    },
+                    { 
+                        action: 'get', 
+                        method: 'GET', 
+                        description: 'Get detailed information for a single main category by ID. Returns complete main category data including associated sub-categories list and tests count.', 
+                        params: ['id'] 
+                    },
+                    { 
+                        action: 'save', 
+                        method: 'POST', 
+                        description: 'Create new main category or update existing main category. Required fields: name. Optional fields: description, display_order (for sorting), status (active/inactive), icon (CSS class for icon), color (hex color code for UI). Auto-sets added_by, created_at, updated_at.' 
+                    },
+                    { 
+                        action: 'delete', 
+                        method: 'POST', 
+                        description: 'Delete a main test category by ID. Checks for associated sub-categories and tests before deletion - cannot delete main category with existing categories or tests. Returns error with details if main category is in use.', 
+                        params: ['id'] 
+                    },
+                    { 
+                        action: 'stats', 
+                        method: 'GET', 
+                        description: 'Get main test category statistics including total main categories, active main categories, total sub-categories, and total tests across all main categories.' 
+                    }
+                ],
+                fields: {
+                    'Core Fields': {
+                        'id': 'int(11) NOT NULL AUTO_INCREMENT - Primary key',
+                        'name': 'varchar(255) NOT NULL - Main category name (required)',
+                        'description': 'text DEFAULT NULL - Main category description',
+                        'display_order': 'int(11) DEFAULT 0 - Sort order for display',
+                        'status': 'enum(active,inactive) DEFAULT active - Main category status'
+                    },
+                    'UI & Display': {
+                        'icon': 'varchar(100) DEFAULT NULL - CSS icon class (e.g., fa-flask, fa-microscope)',
+                        'color': 'varchar(20) DEFAULT NULL - Hex color code for UI theming (e.g., #007bff)'
+                    },
+                    'Audit & Metadata': {
+                        'added_by': 'int(11) DEFAULT NULL - User ID who created the main category',
+                        'created_at': 'datetime DEFAULT NULL - Creation timestamp',
+                        'updated_at': 'datetime DEFAULT NULL - Last update timestamp'
+                    }
+                }
             },
             {
                 name: 'Entries',
@@ -1147,24 +1325,129 @@
             {
                 name: 'Notices',
                 file: 'notice.php',
-                description: 'API for managing notices.',
+                description: 'API for managing system notices and announcements. Notices are displayed to users on dashboard or specific pages. Supports priority levels, expiration dates, and target audience filtering.',
                 endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all notices.' },
-                    { action: 'get', method: 'GET', description: 'Get a single notice by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a notice.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a notice by ID.', params: ['id'] }
-                ]
+                    { 
+                        action: 'list', 
+                        method: 'GET', 
+                        description: 'Get all notices with pagination and search. Returns notice data including: id, title, content, notice_type (info/warning/success/danger), priority (low/normal/high/urgent), status (active/inactive), target_roles (comma-separated), start_date, end_date, is_pinned, added_by, added_by_username, created_at, updated_at. Supports DataTables server-side processing. Can filter by status and date range.' 
+                    },
+                    { 
+                        action: 'get', 
+                        method: 'GET', 
+                        description: 'Get detailed information for a single notice by ID. Returns complete notice data including formatted content and metadata.', 
+                        params: ['id'] 
+                    },
+                    { 
+                        action: 'save', 
+                        method: 'POST', 
+                        description: 'Create new notice or update existing notice. Required fields: title, content. Optional fields: notice_type (info/warning/success/danger), priority (low/normal/high/urgent), status (active/inactive), target_roles (array or comma-separated string), start_date, end_date, is_pinned (boolean). Auto-sets added_by, created_at, updated_at.' 
+                    },
+                    { 
+                        action: 'delete', 
+                        method: 'POST', 
+                        description: 'Delete a notice by ID. Requires admin/master role. Soft delete option available to archive instead of permanent deletion.', 
+                        params: ['id'] 
+                    },
+                    { 
+                        action: 'active', 
+                        method: 'GET', 
+                        description: 'Get currently active notices for display. Filters by current date, active status, and user role. Returns notices sorted by priority and pinned status.' 
+                    },
+                    { 
+                        action: 'stats', 
+                        method: 'GET', 
+                        description: 'Get notice statistics including total notices, active notices, expired notices, and notices by type breakdown.' 
+                    }
+                ],
+                fields: {
+                    'Core Fields': {
+                        'id': 'int(11) NOT NULL AUTO_INCREMENT - Primary key',
+                        'title': 'varchar(255) NOT NULL - Notice title (required)',
+                        'content': 'text NOT NULL - Notice content/message (required)',
+                        'notice_type': 'enum(info,warning,success,danger) DEFAULT info - Notice type for styling',
+                        'priority': 'enum(low,normal,high,urgent) DEFAULT normal - Display priority'
+                    },
+                    'Display & Targeting': {
+                        'status': 'enum(active,inactive) DEFAULT active - Notice status',
+                        'target_roles': 'varchar(255) DEFAULT NULL - Comma-separated roles (master,admin,doctor,etc.)',
+                        'is_pinned': 'tinyint(1) DEFAULT 0 - Whether notice is pinned to top',
+                        'start_date': 'datetime DEFAULT NULL - Notice start display date',
+                        'end_date': 'datetime DEFAULT NULL - Notice expiration date'
+                    },
+                    'Audit & Metadata': {
+                        'added_by': 'int(11) DEFAULT NULL - User ID who created the notice',
+                        'created_at': 'datetime DEFAULT NULL - Creation timestamp',
+                        'updated_at': 'datetime DEFAULT NULL - Last update timestamp'
+                    }
+                }
             },
             {
                 name: 'Owners',
                 file: 'owner.php',
-                description: 'API for managing owners.',
+                description: 'API for managing laboratory/clinic owners and stakeholders. Owners represent business owners or partners who have financial interest in the laboratory. Used for commission tracking, profit sharing, and ownership management.',
                 endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all owners.' },
-                    { action: 'get', method: 'GET', description: 'Get a single owner by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update an owner.' },
-                    { action: 'delete', method: 'POST', description: 'Delete an owner by ID.', params: ['id'] }
-                ]
+                    { 
+                        action: 'list', 
+                        method: 'GET', 
+                        description: 'Get all owners with pagination and search. Returns owner data including: id, name, designation, share_percentage, contact_no, email, address, bank_details, status (active/inactive), joining_date, added_by, added_by_username, created_at, updated_at. Supports DataTables server-side processing.' 
+                    },
+                    { 
+                        action: 'get', 
+                        method: 'GET', 
+                        description: 'Get detailed information for a single owner by ID. Returns complete owner data including financial details and transaction history summary.', 
+                        params: ['id'] 
+                    },
+                    { 
+                        action: 'save', 
+                        method: 'POST', 
+                        description: 'Create new owner or update existing owner. Required fields: name. Optional fields: designation, share_percentage (decimal 0-100), contact_no, email, address, bank_details (JSON or text), status (active/inactive), joining_date, pan_number, aadhar_number. Auto-sets added_by, created_at, updated_at. Validates share_percentage sum across all owners.' 
+                    },
+                    { 
+                        action: 'delete', 
+                        method: 'POST', 
+                        description: 'Delete an owner by ID. Requires admin/master role. Checks for associated financial transactions before deletion. Cannot delete owner with existing profit distributions or payments.', 
+                        params: ['id'] 
+                    },
+                    { 
+                        action: 'stats', 
+                        method: 'GET', 
+                        description: 'Get owner statistics including total owners, active owners, total share percentage allocated, and ownership distribution breakdown.' 
+                    },
+                    { 
+                        action: 'financial_summary', 
+                        method: 'GET', 
+                        description: 'Get financial summary for an owner including total profit share, payments received, pending amounts. Useful for owner dashboard and reports.', 
+                        params: ['id'] 
+                    }
+                ],
+                fields: {
+                    'Core Fields': {
+                        'id': 'int(11) NOT NULL AUTO_INCREMENT - Primary key',
+                        'name': 'varchar(255) NOT NULL - Owner full name (required)',
+                        'designation': 'varchar(100) DEFAULT NULL - Owner designation/title',
+                        'share_percentage': 'decimal(5,2) DEFAULT 0.00 - Ownership share percentage (0-100)'
+                    },
+                    'Contact Information': {
+                        'contact_no': 'varchar(20) DEFAULT NULL - Primary contact number',
+                        'email': 'varchar(255) DEFAULT NULL - Email address',
+                        'address': 'text DEFAULT NULL - Physical address'
+                    },
+                    'Financial Details': {
+                        'bank_details': 'text DEFAULT NULL - Bank account information (JSON format)',
+                        'pan_number': 'varchar(20) DEFAULT NULL - PAN card number',
+                        'aadhar_number': 'varchar(20) DEFAULT NULL - Aadhar card number'
+                    },
+                    'Status & Dates': {
+                        'status': 'enum(active,inactive) DEFAULT active - Owner status',
+                        'joining_date': 'date DEFAULT NULL - Date of joining as owner'
+                    },
+                    'Audit & Metadata': {
+                        'added_by': 'int(11) DEFAULT NULL - User ID who created the owner record',
+                        'created_at': 'datetime DEFAULT NULL - Creation timestamp',
+                        'updated_at': 'datetime DEFAULT NULL - Last update timestamp'
+                    }
+                }
             },
             {
                 name: 'Dashboard',
