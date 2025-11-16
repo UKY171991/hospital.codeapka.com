@@ -44,12 +44,35 @@ $gmail_config = [
 ];
 
 try {
+    // Create system_config table if not exists
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `system_config` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `config_key` varchar(100) NOT NULL,
+        `config_value` text NOT NULL,
+        `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `idx_config_key` (`config_key`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    
+    // Create processed_emails table if not exists
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `processed_emails` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `message_id` varchar(255) NOT NULL,
+        `transaction_type` enum('income','expense') NOT NULL,
+        `processed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `idx_message_id` (`message_id`),
+        KEY `idx_processed_at` (`processed_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    
     // Get stored Gmail password
     $stmt = $pdo->query("SELECT config_value FROM system_config WHERE config_key = 'gmail_password' LIMIT 1");
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$result || empty($result['config_value'])) {
         writeLog("ERROR: Gmail password not configured in database");
+        writeLog("Please configure Gmail App Password in: Inventory → Email Parser Settings");
         exit(1);
     }
     
@@ -92,13 +115,15 @@ try {
             $from = isset($header->from[0]) ? $header->from[0]->mailbox . '@' . $header->from[0]->host : '';
             $date = date('Y-m-d', strtotime($header->date));
             
+            writeLog("Processing email: $subject (from: $from)");
+            
             // Get email body
             $body = getEmailBody($connection, $email_number);
             
             // Check if already processed
             $message_id = isset($header->message_id) ? $header->message_id : '';
             if ($message_id && isEmailProcessed($pdo, $message_id)) {
-                writeLog("Email already processed: $subject");
+                writeLog("SKIP: Already processed");
                 $skipped_count++;
                 continue;
             }
@@ -180,31 +205,41 @@ function getEmailBody($connection, $email_number) {
  * Parse email for transaction information
  */
 function parseTransactionEmail($subject, $body, $from, $date) {
+    global $log_file;
+    
     $subject_lower = strtolower($subject);
     $body_lower = strtolower($body);
     $combined = $subject_lower . ' ' . $body_lower;
     
-    // Payment keywords for income
+    // Payment keywords for income (expanded list)
     $income_keywords = [
         'payment received', 'payment credited', 'money received', 'credited to',
         'payment successful', 'transaction successful', 'amount credited',
         'upi credit', 'imps credit', 'neft credit', 'rtgs credit',
-        'paytm payment', 'phonepe payment', 'gpay payment', 'google pay'
+        'paytm payment', 'phonepe payment', 'gpay payment', 'google pay',
+        'credited', 'deposit', 'received', 'incoming',
+        'credit alert', 'account credited', 'money added',
+        'payment confirmation', 'transfer received'
     ];
     
-    // Payment keywords for expense
+    // Payment keywords for expense (expanded list)
     $expense_keywords = [
         'payment debited', 'amount debited', 'payment made', 'transaction debited',
         'purchase', 'bill payment', 'recharge', 'subscription',
-        'upi debit', 'imps debit', 'neft debit', 'rtgs debit'
+        'upi debit', 'imps debit', 'neft debit', 'rtgs debit',
+        'debited', 'withdrawn', 'spent', 'paid',
+        'debit alert', 'account debited', 'money deducted',
+        'payment processed', 'transfer made', 'order placed'
     ];
     
     $is_income = false;
     $is_expense = false;
+    $matched_keyword = '';
     
     foreach ($income_keywords as $keyword) {
         if (strpos($combined, $keyword) !== false) {
             $is_income = true;
+            $matched_keyword = $keyword;
             break;
         }
     }
@@ -213,20 +248,25 @@ function parseTransactionEmail($subject, $body, $from, $date) {
         foreach ($expense_keywords as $keyword) {
             if (strpos($combined, $keyword) !== false) {
                 $is_expense = true;
+                $matched_keyword = $keyword;
                 break;
             }
         }
     }
     
     if (!$is_income && !$is_expense) {
+        writeLog("SKIP: No transaction keywords found in: $subject");
         return null; // Not a transaction email
     }
     
     // Extract amount
     $amount = extractAmount($combined);
     if (!$amount) {
+        writeLog("SKIP: No amount found in: $subject (matched keyword: $matched_keyword)");
         return null; // No amount found
     }
+    
+    writeLog("DETECTED: " . ($is_income ? 'INCOME' : 'EXPENSE') . " - Amount: ₹$amount - Keyword: $matched_keyword");
     
     // Extract payment method
     $payment_method = extractPaymentMethod($combined);
@@ -253,17 +293,31 @@ function parseTransactionEmail($subject, $body, $from, $date) {
  * Extract amount from text
  */
 function extractAmount($text) {
-    // Pattern for Indian currency (₹ or Rs or INR)
+    // Enhanced patterns for Indian currency (₹ or Rs or INR)
     $patterns = [
-        '/(?:rs\.?|inr|₹)\s*([0-9,]+(?:\.[0-9]{2})?)/i',
-        '/([0-9,]+(?:\.[0-9]{2})?)\s*(?:rs\.?|inr|₹)/i',
-        '/amount[:\s]+(?:rs\.?|inr|₹)?\s*([0-9,]+(?:\.[0-9]{2})?)/i'
+        // Rs. 1500, Rs 1500, Rs.1500
+        '/(?:rs\.?|inr|₹)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i',
+        // 1500 Rs, 1500 INR, 1500₹
+        '/([0-9,]+(?:\.[0-9]{1,2})?)\s*(?:rs\.?|inr|₹)/i',
+        // Amount: Rs. 1500, Amount Rs 1500
+        '/amount[:\s]+(?:rs\.?|inr|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i',
+        // Credited/Debited Rs. 1500
+        '/(?:credited|debited|received|paid|sent)[:\s]+(?:rs\.?|inr|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i',
+        // of Rs. 1500, for Rs. 1500
+        '/(?:of|for)[:\s]+(?:rs\.?|inr|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i',
+        // Just numbers with currency nearby (within 10 chars)
+        '/(?:rs\.?|inr|₹).{0,10}?([0-9,]+(?:\.[0-9]{1,2})?)/i',
+        '/([0-9,]+(?:\.[0-9]{1,2})?)(?:.{0,10}?)(?:rs\.?|inr|₹)/i'
     ];
     
     foreach ($patterns as $pattern) {
         if (preg_match($pattern, $text, $matches)) {
             $amount = str_replace(',', '', $matches[1]);
-            return floatval($amount);
+            $amount = floatval($amount);
+            // Validate amount is reasonable (between 1 and 10,000,000)
+            if ($amount >= 1 && $amount <= 10000000) {
+                return $amount;
+            }
         }
     }
     
