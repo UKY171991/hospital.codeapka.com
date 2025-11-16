@@ -187,26 +187,57 @@ function savePassword() {
 }
 
 function runParser() {
-    // Execute the cron script
+    // Execute the cron script directly (exec() is disabled on shared hosting)
     $script_path = realpath(__DIR__ . '/../cron_email_parser.php');
     
     if (!file_exists($script_path)) {
-        throw new Exception('Cron script not found');
+        echo json_encode([
+            'success' => false,
+            'message' => 'Cron script not found at: ' . $script_path
+        ]);
+        return;
     }
     
-    // Run in background
-    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-        // Windows
-        pclose(popen("start /B php \"$script_path\"", "r"));
-    } else {
-        // Linux/Unix
-        exec("php \"$script_path\" > /dev/null 2>&1 &");
+    try {
+        // Capture output
+        ob_start();
+        
+        // Set a flag to indicate web execution
+        $_GET['cron_key'] = 'web_manual_run';
+        
+        // Include and execute the cron script
+        include $script_path;
+        
+        // Get the output
+        $output = ob_get_clean();
+        
+        // Parse the output for summary
+        $lines = explode("\n", $output);
+        $summary = [];
+        foreach ($lines as $line) {
+            if (strpos($line, 'Total Emails:') !== false ||
+                strpos($line, 'Processed:') !== false ||
+                strpos($line, 'Income Records:') !== false ||
+                strpos($line, 'Expense Records:') !== false ||
+                strpos($line, 'Skipped:') !== false) {
+                $summary[] = trim(str_replace(['[', ']'], '', $line));
+            }
+        }
+        
+        echo json_encode([
+            'success' => true,
+            'message' => 'Email parser completed successfully',
+            'summary' => implode(' | ', $summary),
+            'output' => $output
+        ]);
+        
+    } catch (Exception $e) {
+        ob_end_clean();
+        echo json_encode([
+            'success' => false,
+            'message' => 'Parser execution failed: ' . $e->getMessage()
+        ]);
     }
-    
-    echo json_encode([
-        'success' => true,
-        'message' => 'Email parser started. Check logs for progress.'
-    ]);
 }
 
 function testParser() {

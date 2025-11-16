@@ -294,7 +294,17 @@ function runParserNow() {
         timeout: 120000, // 2 minutes
         success: function(response) {
             if (response && response.success) {
-                toastr.success(response.message || 'Parser completed successfully');
+                let message = response.message || 'Parser completed successfully';
+                if (response.summary) {
+                    message += '\n\n' + response.summary;
+                }
+                toastr.success(message);
+                
+                // Show detailed output in logs
+                if (response.output) {
+                    $('#logContent').text(response.output);
+                }
+                
                 loadStats();
                 loadProcessedEmails();
                 refreshLogs();
@@ -302,8 +312,12 @@ function runParserNow() {
                 toastr.error(response.message || 'Parser failed');
             }
         },
-        error: function() {
-            toastr.error('An error occurred while running parser');
+        error: function(xhr, status, error) {
+            let errorMsg = 'An error occurred while running parser';
+            if (xhr.responseText) {
+                errorMsg += ': ' + xhr.responseText.substring(0, 200);
+            }
+            toastr.error(errorMsg);
         }
     });
 }
