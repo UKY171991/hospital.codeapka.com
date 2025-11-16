@@ -216,52 +216,61 @@ function parseTransactionEmail($subject, $body, $from, $date) {
     $body_lower = strtolower($body);
     $combined = $subject_lower . ' ' . $body_lower;
     
-    // IMPORTANT: Check expense keywords FIRST (more specific)
-    // Then check income keywords
-    // This prevents "debited" from matching "credited"
-    
-    // Payment keywords for expense (CHECK FIRST - more specific)
-    $expense_keywords = [
-        'debited', 'debit alert', 'account debited', 'amount debited',
-        'payment debited', 'transaction debited', 'upi debit', 
-        'imps debit', 'neft debit', 'rtgs debit',
-        'withdrawn', 'withdrawal', 'spent', 'purchase',
-        'bill payment', 'recharge', 'subscription',
-        'money deducted', 'payment made', 'transfer made',
-        'order placed', 'payment processed', 'paid to',
-        'payment sent', 'sent to', 'deducted from'
-    ];
-    
-    // Payment keywords for income (CHECK SECOND)
-    $income_keywords = [
-        'credited', 'credit alert', 'account credited', 'amount credited',
-        'payment credited', 'payment received', 'money received',
-        'upi credit', 'imps credit', 'neft credit', 'rtgs credit',
-        'deposit', 'deposited', 'received from', 'incoming',
-        'money added', 'payment confirmation', 'transfer received',
-        'credited to', 'received in', 'payment success',
-        'you received', 'you got'
-    ];
+    // CRITICAL: Use word boundaries to prevent false matches
+    // "debited" should NOT match "credited"
+    // Use \b for word boundaries in regex
     
     $is_income = false;
     $is_expense = false;
     $matched_keyword = '';
     
-    // Check EXPENSE first (more specific patterns)
-    foreach ($expense_keywords as $keyword) {
-        if (strpos($combined, $keyword) !== false) {
+    // EXPENSE patterns (check first - money going OUT)
+    $expense_patterns = [
+        '/\bdebit(ed)?\b/i',           // debited, debit (but not credited)
+        '/\bwithdraw(n|al)?\b/i',      // withdrawn, withdrawal
+        '/\bpurchase(d)?\b/i',         // purchase, purchased
+        '/\bpaid\b/i',                 // paid
+        '/\bspent\b/i',                // spent
+        '/\bbill payment\b/i',         // bill payment
+        '/\brecharge\b/i',             // recharge
+        '/\bsubscription\b/i',         // subscription
+        '/\bdeducted\b/i',             // deducted
+        '/\bpayment made\b/i',         // payment made
+        '/\bsent to\b/i',              // sent to
+        '/\border placed\b/i',         // order placed
+        '/\byou paid\b/i',             // you paid
+        '/\bpayment sent\b/i'          // payment sent
+    ];
+    
+    // INCOME patterns (check second - money coming IN)
+    $income_patterns = [
+        '/\bcredit(ed)?\b/i',          // credited, credit (but not debited)
+        '/\bdeposit(ed)?\b/i',         // deposit, deposited
+        '/\breceived\b/i',             // received
+        '/\bincoming\b/i',             // incoming
+        '/\bmoney added\b/i',          // money added
+        '/\bpayment received\b/i',     // payment received
+        '/\breceived from\b/i',        // received from
+        '/\byou received\b/i',         // you received
+        '/\byou got\b/i',              // you got
+        '/\btransfer received\b/i'     // transfer received
+    ];
+    
+    // Check EXPENSE patterns first
+    foreach ($expense_patterns as $pattern) {
+        if (preg_match($pattern, $combined)) {
             $is_expense = true;
-            $matched_keyword = $keyword;
+            $matched_keyword = $pattern;
             break;
         }
     }
     
-    // Only check INCOME if not already marked as expense
+    // Only check INCOME if NOT expense
     if (!$is_expense) {
-        foreach ($income_keywords as $keyword) {
-            if (strpos($combined, $keyword) !== false) {
+        foreach ($income_patterns as $pattern) {
+            if (preg_match($pattern, $combined)) {
                 $is_income = true;
-                $matched_keyword = $keyword;
+                $matched_keyword = $pattern;
                 break;
             }
         }
