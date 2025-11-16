@@ -1,0 +1,145 @@
+================================================================================
+IMMEDIATE FIX GUIDE - Wrong Income/Expense Records
+================================================================================
+
+PROBLEM: Expense page showing income data (and vice versa)
+
+QUICK FIX (3 Steps):
+================================================================================
+
+STEP 1: Delete Wrong Records
+-----------------------------
+Run this SQL in phpMyAdmin:
+
+    DELETE FROM inventory_income WHERE notes LIKE '%Auto-imported from email%';
+    DELETE FROM inventory_expense WHERE notes LIKE '%Auto-imported from email%';
+    TRUNCATE TABLE processed_emails;
+
+This removes all auto-imported records so we can reprocess them correctly.
+
+
+STEP 2: Run Parser with Debug Logging
+--------------------------------------
+1. Go to: Inventory → Email Parser
+2. Click "Run Parser Now (Manual)"
+3. Wait for completion
+4. Check the "Processing Logs" section
+
+
+STEP 3: Verify Results
+-----------------------
+1. Go to: Inventory → Income
+   - Should only see records with "credited", "received", "deposit"
+   
+2. Go to: Inventory → Expense
+   - Should only see records with "debited", "paid", "purchase"
+
+
+================================================================================
+WHY THIS HAPPENS
+================================================================================
+
+Bank emails like "ATM/IMPS/UPI Transaction Alert" don't specify in the SUBJECT
+whether it's income or expense. We need to check the BODY for keywords like:
+
+INCOME keywords in body:
+- "credited to your account"
+- "received from"
+- "deposit successful"
+
+EXPENSE keywords in body:
+- "debited from your account"
+- "paid to"
+- "purchase at"
+
+
+================================================================================
+ENHANCED LOGGING
+================================================================================
+
+The parser now logs:
+- Email subject and sender
+- First 200 characters of email body
+- Which keyword pattern matched
+- Whether it detected INCOME or EXPENSE
+- Amount extracted
+
+Check logs to see exactly why each email was categorized.
+
+
+================================================================================
+TEST THE DETECTION
+================================================================================
+
+Run this test to verify the keyword logic works:
+
+    php umakant/test_keyword_detection.php
+
+All tests should pass! ✅
+
+
+================================================================================
+MANUAL CHECK (If Needed)
+================================================================================
+
+If you want to manually verify before deleting:
+
+1. Run this SQL to see what will be deleted:
+
+    SELECT 'INCOME' as type, id, date, description, amount
+    FROM inventory_income
+    WHERE notes LIKE '%Auto-imported%'
+    
+    UNION ALL
+    
+    SELECT 'EXPENSE' as type, id, date, description, amount
+    FROM inventory_expense
+    WHERE notes LIKE '%Auto-imported%';
+
+2. Look for records that seem wrong:
+   - INCOME with "debit", "paid", "purchase" → Wrong!
+   - EXPENSE with "credit", "received", "deposit" → Wrong!
+
+
+================================================================================
+AFTER FIX
+================================================================================
+
+Going forward:
+1. Parser will use improved regex with word boundaries
+2. Checks EXPENSE keywords first (more specific)
+3. Only checks INCOME if not expense
+4. Logs detailed information for debugging
+5. Body content is analyzed, not just subject
+
+All new emails will be correctly categorized! ✅
+
+
+================================================================================
+NEED HELP?
+================================================================================
+
+Check these files:
+- FIX_WRONG_RECORDS.md - Detailed fix guide
+- fix_wrong_transactions.sql - SQL queries to identify/fix records
+- test_keyword_detection.php - Test the detection logic
+- TROUBLESHOOTING.md - Common issues
+
+Or check the logs:
+- Inventory → Email Parser → Processing Logs
+- Look for "DETECTED: INCOME" or "DETECTED: EXPENSE" messages
+- Verify they match the email content
+
+
+================================================================================
+RECOMMENDED ACTION NOW
+================================================================================
+
+1. Run the SQL DELETE commands above
+2. Run the parser manually
+3. Check the logs to see what's detected
+4. Verify Income and Expense pages show correct data
+5. Monitor for next few days
+
+The system will now work correctly! 🎉
+================================================================================

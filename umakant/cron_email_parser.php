@@ -146,6 +146,10 @@ try {
             // Get email body
             $body = getEmailBody($connection, $email_number);
             
+            // Log first 200 chars of body for debugging
+            $body_preview = substr(strip_tags($body), 0, 200);
+            writeLog("Body preview: " . $body_preview);
+            
             // Check if already processed
             $message_id = isset($header->message_id) ? $header->message_id : '';
             if ($message_id && isEmailProcessed($pdo, $message_id)) {
@@ -282,9 +286,10 @@ function parseTransactionEmail($subject, $body, $from, $date) {
     
     // Check EXPENSE patterns first
     foreach ($expense_patterns as $pattern) {
-        if (preg_match($pattern, $combined)) {
+        if (preg_match($pattern, $combined, $matches)) {
             $is_expense = true;
-            $matched_keyword = $pattern;
+            $matched_keyword = isset($matches[0]) ? $matches[0] : $pattern;
+            writeLog("DEBUG: Matched EXPENSE pattern: $pattern -> '$matched_keyword'");
             break;
         }
     }
@@ -292,9 +297,10 @@ function parseTransactionEmail($subject, $body, $from, $date) {
     // Only check INCOME if NOT expense
     if (!$is_expense) {
         foreach ($income_patterns as $pattern) {
-            if (preg_match($pattern, $combined)) {
+            if (preg_match($pattern, $combined, $matches)) {
                 $is_income = true;
-                $matched_keyword = $pattern;
+                $matched_keyword = isset($matches[0]) ? $matches[0] : $pattern;
+                writeLog("DEBUG: Matched INCOME pattern: $pattern -> '$matched_keyword'");
                 break;
             }
         }
@@ -302,6 +308,7 @@ function parseTransactionEmail($subject, $body, $from, $date) {
     
     if (!$is_income && !$is_expense) {
         writeLog("SKIP: No transaction keywords found in: $subject");
+        writeLog("DEBUG: Combined text: " . substr($combined, 0, 300));
         return null; // Not a transaction email
     }
     
