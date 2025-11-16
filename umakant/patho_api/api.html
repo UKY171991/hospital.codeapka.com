@@ -888,15 +888,42 @@
             {
                 name: 'Doctors',
                 file: 'doctor.php',
-                description: 'API for managing doctors.',
+                description: 'API for managing doctors. Supports server_id field for multi-server environments. When updating, server_id and added_by are preserved from original record.',
                 endpoints: [
-                    { action: 'list', method: 'GET', description: 'Get all doctors.' },
-                    { action: 'get', method: 'GET', description: 'Get a single doctor by ID.', params: ['id'] },
-                    { action: 'save', method: 'POST', description: 'Create or update a doctor.' },
+                    { action: 'list', method: 'GET', description: 'Get all doctors with server_id, added_by, and other details.' },
+                    { action: 'get', method: 'GET', description: 'Get a single doctor by ID with all fields including server_id.', params: ['id'] },
+                    { action: 'save', method: 'POST', description: 'Create or update a doctor. For new doctors: server_id and added_by can be set. For updates: server_id and added_by are preserved from original record.' },
                     { action: 'specializations', method: 'GET', description: 'Get list of available specializations.' },
                     { action: 'hospitals', method: 'GET', description: 'Get list of available hospitals.' },
-                    { action: 'delete', method: 'POST', description: 'Delete a doctor by ID.', params: ['id'] }
-                ]
+                    { action: 'delete', method: 'POST', description: 'Delete a doctor by ID.', params: ['id'] },
+                    { action: 'stats', method: 'GET', description: 'Get doctor statistics including total, active, specializations, and hospitals count.' },
+                    { action: 'debug', method: 'GET', description: 'Debug endpoint for troubleshooting API issues and checking authentication.' }
+                ],
+                fields: {
+                    'Core Fields': {
+                        'id': 'int(11) NOT NULL AUTO_INCREMENT - Primary key',
+                        'server_id': 'int(11) DEFAULT NULL - Server identifier for multi-server environments (preserved on update)',
+                        'name': 'varchar(255) NOT NULL - Doctor name (required)',
+                        'qualification': 'varchar(255) DEFAULT NULL - Doctor qualifications/degrees',
+                        'specialization': 'varchar(255) DEFAULT NULL - Medical specialization',
+                        'hospital': 'varchar(255) DEFAULT NULL - Associated hospital/clinic',
+                        'registration_no': 'varchar(100) DEFAULT NULL - Medical registration number'
+                    },
+                    'Contact Information': {
+                        'contact_no': 'varchar(20) DEFAULT NULL - Primary contact number',
+                        'phone': 'varchar(20) DEFAULT NULL - Alternative phone number',
+                        'email': 'varchar(255) DEFAULT NULL - Email address',
+                        'address': 'text DEFAULT NULL - Physical address'
+                    },
+                    'Business Settings': {
+                        'percent': 'decimal(5,2) DEFAULT NULL - Commission/referral percentage'
+                    },
+                    'Audit & Metadata': {
+                        'added_by': 'int(11) DEFAULT NULL - User ID who created the doctor (preserved on update)',
+                        'created_at': 'datetime DEFAULT NULL - Creation timestamp',
+                        'updated_at': 'datetime DEFAULT NULL - Last update timestamp'
+                    }
+                }
             },
             {
                 name: 'Patients',
