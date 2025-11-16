@@ -31,7 +31,7 @@ $entity_config = [
         'server_id', 'name', 'qualification', 'specialization', 'hospital',
         'contact_no', 'phone', 'percent', 'email', 'address', 'registration_no', 'added_by'
     ],
-    'list_fields' => 'd.id, d.name, d.hospital, d.contact_no, d.percent, d.added_by, u.username as added_by_username, d.created_at',
+    'list_fields' => 'd.id, d.server_id, d.name, d.hospital, d.contact_no, d.percent, d.added_by, u.username as added_by_username, d.created_at',
     'get_fields' => 'd.*, u.username as added_by_username'
 ];
 
