@@ -280,7 +280,6 @@ function handleSave($pdo, $config, $user_data) {
     }
 
     $data = array_intersect_key($input, array_flip($config['allowed_fields']));
-    $data['added_by'] = $current_user_id; // Always use current user ID
     
     // Map gender to sex column for database storage
     if (isset($data['gender'])) {
@@ -288,9 +287,12 @@ function handleSave($pdo, $config, $user_data) {
         unset($data['gender']);
     }
     
-    // Ensure added_by is always set
-    if (!isset($data['added_by']) || empty($data['added_by'])) {
+    // Only set added_by for NEW patients, not updates
+    if (!$id) {
         $data['added_by'] = $current_user_id;
+    } else {
+        // Remove added_by from update data to preserve original creator
+        unset($data['added_by']);
     }
     
     // Generate UHID if not provided for new patients
