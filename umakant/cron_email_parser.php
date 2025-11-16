@@ -463,6 +463,7 @@ function insertExpense($pdo, $transaction) {
         ':notes' => $transaction['notes']
     ]);
 }
+}
 
 writeLog("=== Email Parser Cron Job Completed ===");
 ?>
