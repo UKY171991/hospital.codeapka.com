@@ -243,7 +243,7 @@ $role = $_SESSION['role'] ?? 'user';
 
         <?php
         // Inventory menu pages
-        $inventoryPages = ['inventory_dashboard.php', 'inventory_income.php', 'inventory_expense.php', 'inventory_client.php'];
+        $inventoryPages = ['inventory_dashboard.php', 'inventory_income.php', 'inventory_expense.php', 'inventory_client.php', 'email_parser_settings.php'];
         $isInventoryActive = in_array($activePage, $inventoryPages);
         ?>
         <li class="nav-item has-treeview <?php echo $isInventoryActive ? 'menu-open' : ''; ?>">
@@ -277,6 +277,12 @@ $role = $_SESSION['role'] ?? 'user';
               <a href="inventory_client.php" class="nav-link <?php echo ($activePage == 'inventory_client.php') ? 'active' : ''; ?>">
                 <i class="fas fa-users nav-icon"></i>
                 <p>Client</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="email_parser_settings.php" class="nav-link <?php echo ($activePage == 'email_parser_settings.php') ? 'active' : ''; ?>">
+                <i class="fas fa-robot nav-icon"></i>
+                <p>Email Parser</p>
               </a>
             </li>
           </ul>

@@ -1,0 +1,189 @@
+================================================================================
+INVENTORY & EMAIL PARSER - QUICK SETUP GUIDE
+================================================================================
+
+STEP 1: IMPORT DATABASE TABLES
+-------------------------------
+1. Open phpMyAdmin
+2. Select your database: u902379465_hospital
+3. Click "Import" tab
+4. Choose file: umakant/inventory_tables.sql
+5. Click "Go" to import
+
+This creates:
+- inventory_clients (Client management)
+- inventory_income (Income records)
+- inventory_expense (Expense records)
+- processed_emails (Email tracking)
+- system_config (Gmail password storage)
+
+STEP 2: ACCESS INVENTORY MODULE
+--------------------------------
+1. Login to admin panel
+2. Look for "Inventory" menu in sidebar (after Email menu)
+3. You'll see 5 submenus:
+   - Inventory Dashboard
+   - Income
+   - Expense
+   - Client
+   - Email Parser
+
+STEP 3: CONFIGURE EMAIL PARSER
+-------------------------------
+1. Get Gmail App Password:
+   - Go to: https://myaccount.google.com/apppasswords
+   - Sign in with your Gmail account
+   - Select "Mail" and generate password
+   - Copy the 16-character password (e.g., "abcd efgh ijkl mnop")
+
+2. Save in System:
+   - Go to: Inventory → Email Parser
+   - Paste the App Password
+   - Click "Save Password"
+
+STEP 4: SETUP CRON JOB (Choose One Method)
+-------------------------------------------
+
+METHOD A - Linux/Unix Cron (Recommended):
+1. Open terminal
+2. Type: crontab -e
+3. Add this line:
+   */5 * * * * php /full/path/to/umakant/cron_email_parser.php
+4. Save and exit
+
+METHOD B - Web Cron (Alternative):
+1. Edit cron_email_parser.php
+2. Change secret key on line 8
+3. Use this URL in your cron service:
+   https://yourdomain.com/umakant/cron_email_parser.php?cron_key=YOUR_SECRET_KEY
+
+METHOD C - Windows Task Scheduler:
+1. Open Task Scheduler
+2. Create Basic Task
+3. Name: "Email Parser"
+4. Trigger: Daily, repeat every 5 minutes
+5. Action: Start a program
+6. Program: C:\path\to\php.exe
+7. Arguments: C:\path\to\umakant\cron_email_parser.php
+
+STEP 5: TEST THE SYSTEM
+------------------------
+1. Go to: Inventory → Email Parser
+2. Click "Run Parser Now (Manual)"
+3. Wait for completion message
+4. Check "Processing Logs" section
+5. Go to: Inventory → Income or Expense
+6. Verify if any records were created
+
+STEP 6: VERIFY GMAIL SETTINGS
+------------------------------
+Make sure in your Gmail account:
+1. IMAP is enabled:
+   - Settings → Forwarding and POP/IMAP
+   - Enable IMAP
+2. Less secure app access is NOT needed (we use App Password)
+
+================================================================================
+CRON JOB URLS (For Reference)
+================================================================================
+
+CLI Command:
+php /path/to/umakant/cron_email_parser.php
+
+Web URL (with secret key):
+https://hospital.codeapka.com/umakant/cron_email_parser.php?cron_key=your_secret_cron_key_12345
+
+IMPORTANT: Change the secret key in cron_email_parser.php for security!
+
+================================================================================
+TESTING EMAIL PARSING
+================================================================================
+
+The parser looks for emails with these patterns:
+
+INCOME EMAILS (will create Income records):
+- Subject: "Payment Received - Rs. 1500"
+- Body: "Your payment of Rs. 1500 has been credited via UPI"
+- Keywords: payment received, credited, payment successful
+
+EXPENSE EMAILS (will create Expense records):
+- Subject: "Bill Payment Successful"
+- Body: "Rs. 2500 has been debited for electricity bill"
+- Keywords: payment debited, bill payment, purchase
+
+To test:
+1. Send yourself a test email with payment keywords
+2. Wait 5 minutes (or run manually)
+3. Check if record was created
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: "Gmail password not configured"
+Solution: Go to Email Parser settings and save your App Password
+
+Problem: "Failed to connect to Gmail"
+Solution: 
+- Verify App Password is correct
+- Check if IMAP is enabled in Gmail
+- Ensure PHP IMAP extension is installed
+
+Problem: "No emails found"
+Solution:
+- Parser only checks last 24 hours
+- Make sure you have payment emails in inbox
+- Check if emails contain recognized keywords
+
+Problem: Cron job not running
+Solution:
+- Verify cron syntax is correct
+- Check server cron logs: /var/log/cron
+- Test manually first: php cron_email_parser.php
+
+Problem: Duplicate records
+Solution:
+- System tracks processed emails automatically
+- Check processed_emails table
+- Each email is processed only once
+
+================================================================================
+SUPPORT FILES
+================================================================================
+
+Documentation:
+- INVENTORY_README.md - Inventory module documentation
+- EMAIL_PARSER_README.md - Email parser detailed guide
+
+Logs Location:
+- umakant/logs/email_parser.log
+
+Database Tables:
+- inventory_clients
+- inventory_income
+- inventory_expense
+- processed_emails
+- system_config
+
+================================================================================
+SECURITY NOTES
+================================================================================
+
+1. NEVER use your actual Gmail password - only use App Passwords
+2. Change the default secret key in cron_email_parser.php
+3. Keep your App Password secure
+4. Regularly check logs for suspicious activity
+5. Consider encrypting the password in database for production
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+After setup:
+1. Add some clients manually
+2. Test email parsing with sample emails
+3. Monitor logs for first few days
+4. Adjust categories/keywords if needed
+5. Set up regular backups of inventory data
+
+================================================================================

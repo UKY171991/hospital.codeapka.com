@@ -1,5 +1,27 @@
 -- Inventory Management Tables
 
+-- Table for tracking processed emails (to avoid duplicates)
+CREATE TABLE IF NOT EXISTS `processed_emails` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `message_id` varchar(255) NOT NULL,
+  `transaction_type` enum('income','expense') NOT NULL,
+  `processed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_message_id` (`message_id`),
+  KEY `idx_processed_at` (`processed_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table for system configuration (to store Gmail password)
+CREATE TABLE IF NOT EXISTS `system_config` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `config_key` varchar(100) NOT NULL,
+  `config_value` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_config_key` (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Table for Clients
 CREATE TABLE IF NOT EXISTS `inventory_clients` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
