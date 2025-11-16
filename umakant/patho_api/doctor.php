@@ -204,9 +204,12 @@ function handleSave($pdo, $config, $user_data) {
     }
 
     $data = array_intersect_key($input, array_flip($config['allowed_fields']));
-    $data['added_by'] = $data['added_by'] ?? $user_data['user_id'];
-
+    
     if ($id) {
+        // For updates, preserve original added_by and server_id
+        unset($data['added_by']);
+        unset($data['server_id']);
+        
         $set_clause = implode(', ', array_map(fn($field) => "`$field` = ?", array_keys($data)));
         $sql = "UPDATE {$config['table_name']} SET $set_clause, updated_at = NOW() WHERE {$config['id_field']} = ?";
         $values = array_merge(array_values($data), [$id]);
@@ -215,6 +218,9 @@ function handleSave($pdo, $config, $user_data) {
         $doctor_id = $id;
         $action_status = 'updated';
     } else {
+        // For new records, set added_by if not provided
+        $data['added_by'] = $data['added_by'] ?? $user_data['user_id'];
+        
         $cols = implode(', ', array_keys($data));
         $placeholders = implode(', ', array_fill(0, count($data), '?'));
         $sql = "INSERT INTO {$config['table_name']} ($cols) VALUES ($placeholders)";
