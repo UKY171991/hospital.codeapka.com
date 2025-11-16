@@ -8,7 +8,7 @@
 // Prevent direct browser access (optional security)
 if (php_sapi_name() !== 'cli' && !isset($_GET['cron_key'])) {
     // Allow web access with secret key
-    $secret_key = 'your_secret_cron_key_12345'; // Change this!
+    $secret_key = 'hospital_parser_2024_secure'; // Your custom secret key
     if (!isset($_GET['cron_key']) || $_GET['cron_key'] !== $secret_key) {
         die('Access denied. This script should be run via cron job.');
     }

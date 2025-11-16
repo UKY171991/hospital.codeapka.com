@@ -59,46 +59,82 @@ try {
 function getStats() {
     global $pdo;
     
-    // Total processed
-    $stmt = $pdo->query("SELECT COUNT(*) as total FROM processed_emails");
-    $total = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    // Income count
-    $stmt = $pdo->query("SELECT COUNT(*) as count FROM processed_emails WHERE transaction_type = 'income'");
-    $income = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
-    
-    // Expense count
-    $stmt = $pdo->query("SELECT COUNT(*) as count FROM processed_emails WHERE transaction_type = 'expense'");
-    $expense = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
-    
-    // Last run
-    $stmt = $pdo->query("SELECT MAX(processed_at) as last_run FROM processed_emails");
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $last_run = $result['last_run'] ? date('Y-m-d H:i:s', strtotime($result['last_run'])) : 'Never';
-    
-    echo json_encode([
-        'success' => true,
-        'data' => [
-            'total_processed' => $total,
-            'income_count' => $income,
-            'expense_count' => $expense,
-            'last_run' => $last_run
-        ]
-    ]);
+    try {
+        // Create table if not exists
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `processed_emails` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `message_id` varchar(255) NOT NULL,
+            `transaction_type` enum('income','expense') NOT NULL,
+            `processed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `idx_message_id` (`message_id`),
+            KEY `idx_processed_at` (`processed_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        
+        // Total processed
+        $stmt = $pdo->query("SELECT COUNT(*) as total FROM processed_emails");
+        $total = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        
+        // Income count
+        $stmt = $pdo->query("SELECT COUNT(*) as count FROM processed_emails WHERE transaction_type = 'income'");
+        $income = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+        
+        // Expense count
+        $stmt = $pdo->query("SELECT COUNT(*) as count FROM processed_emails WHERE transaction_type = 'expense'");
+        $expense = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+        
+        // Last run
+        $stmt = $pdo->query("SELECT MAX(processed_at) as last_run FROM processed_emails");
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $last_run = $result['last_run'] ? date('Y-m-d H:i:s', strtotime($result['last_run'])) : 'Never';
+        
+        echo json_encode([
+            'success' => true,
+            'data' => [
+                'total_processed' => $total,
+                'income_count' => $income,
+                'expense_count' => $expense,
+                'last_run' => $last_run
+            ]
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error getting stats: ' . $e->getMessage()
+        ]);
+    }
 }
 
 function checkPassword() {
     global $pdo;
     
-    $stmt = $pdo->query("SELECT COUNT(*) as count FROM system_config WHERE config_key = 'gmail_password' AND config_value != ''");
-    $configured = $stmt->fetch(PDO::FETCH_ASSOC)['count'] > 0;
-    
-    echo json_encode([
-        'success' => true,
-        'data' => [
-            'configured' => $configured
-        ]
-    ]);
+    try {
+        // Create table if not exists
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `system_config` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `config_key` varchar(100) NOT NULL,
+            `config_value` text NOT NULL,
+            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `idx_config_key` (`config_key`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        
+        $stmt = $pdo->query("SELECT COUNT(*) as count FROM system_config WHERE config_key = 'gmail_password' AND config_value != ''");
+        $configured = $stmt->fetch(PDO::FETCH_ASSOC)['count'] > 0;
+        
+        echo json_encode([
+            'success' => true,
+            'data' => [
+                'configured' => $configured
+            ]
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error checking password: ' . $e->getMessage()
+        ]);
+    }
 }
 
 function savePassword() {
@@ -107,25 +143,47 @@ function savePassword() {
     $password = $_POST['password'] ?? '';
     
     if (empty($password)) {
-        throw new Exception('Password is required');
+        echo json_encode([
+            'success' => false,
+            'message' => 'Password is required'
+        ]);
+        return;
     }
     
-    // Check if exists
-    $stmt = $pdo->query("SELECT COUNT(*) as count FROM system_config WHERE config_key = 'gmail_password'");
-    $exists = $stmt->fetch(PDO::FETCH_ASSOC)['count'] > 0;
-    
-    if ($exists) {
-        $stmt = $pdo->prepare("UPDATE system_config SET config_value = :password, updated_at = NOW() WHERE config_key = 'gmail_password'");
-    } else {
-        $stmt = $pdo->prepare("INSERT INTO system_config (config_key, config_value, created_at) VALUES ('gmail_password', :password, NOW())");
+    try {
+        // Create table if not exists
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `system_config` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `config_key` varchar(100) NOT NULL,
+            `config_value` text NOT NULL,
+            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `idx_config_key` (`config_key`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        
+        // Check if exists
+        $stmt = $pdo->query("SELECT COUNT(*) as count FROM system_config WHERE config_key = 'gmail_password'");
+        $exists = $stmt->fetch(PDO::FETCH_ASSOC)['count'] > 0;
+        
+        if ($exists) {
+            $stmt = $pdo->prepare("UPDATE system_config SET config_value = :password, updated_at = NOW() WHERE config_key = 'gmail_password'");
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO system_config (config_key, config_value, created_at) VALUES ('gmail_password', :password, NOW())");
+        }
+        
+        $stmt->execute([':password' => $password]);
+        
+        echo json_encode([
+            'success' => true,
+            'message' => 'Gmail password saved successfully'
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to save password: ' . $e->getMessage()
+        ]);
     }
-    
-    $stmt->execute([':password' => $password]);
-    
-    echo json_encode([
-        'success' => true,
-        'message' => 'Gmail password saved successfully'
-    ]);
 }
 
 function runParser() {
@@ -269,17 +327,35 @@ function parseTransactionEmail($subject, $body, $from, $date) {
 function getProcessedEmails() {
     global $pdo;
     
-    $limit = intval($_GET['limit'] ?? 10);
-    
-    $stmt = $pdo->prepare("SELECT * FROM processed_emails ORDER BY processed_at DESC LIMIT :limit");
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->execute();
-    $emails = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    echo json_encode([
-        'success' => true,
-        'data' => $emails
-    ]);
+    try {
+        // Create table if not exists
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `processed_emails` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `message_id` varchar(255) NOT NULL,
+            `transaction_type` enum('income','expense') NOT NULL,
+            `processed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `idx_message_id` (`message_id`),
+            KEY `idx_processed_at` (`processed_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        
+        $limit = intval($_GET['limit'] ?? 10);
+        
+        $stmt = $pdo->prepare("SELECT * FROM processed_emails ORDER BY processed_at DESC LIMIT :limit");
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        $emails = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        echo json_encode([
+            'success' => true,
+            'data' => $emails
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => true,
+            'data' => []
+        ]);
+    }
 }
 
 function getLogs() {
