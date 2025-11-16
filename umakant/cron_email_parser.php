@@ -20,18 +20,42 @@ set_time_limit(300); // 5 minutes
 // Include required files
 require_once __DIR__ . '/inc/connection.php';
 
-// Log file
-$log_file = __DIR__ . '/logs/email_parser.log';
+// Initialize log file path
+if (!isset($log_file)) {
+    $log_file = __DIR__ . '/logs/email_parser.log';
+}
+
+// Create log directory if it doesn't exist
 $log_dir = dirname($log_file);
 if (!is_dir($log_dir)) {
-    mkdir($log_dir, 0755, true);
+    @mkdir($log_dir, 0755, true);
+}
+
+// Make sure we can write to the log directory
+if (!is_writable($log_dir)) {
+    @chmod($log_dir, 0755);
 }
 
 if (!function_exists('writeLog')) {
 function writeLog($message) {
     global $log_file;
+    
+    // Ensure log file is set
+    if (empty($log_file)) {
+        $log_file = __DIR__ . '/logs/email_parser.log';
+        $log_dir = dirname($log_file);
+        if (!is_dir($log_dir)) {
+            @mkdir($log_dir, 0755, true);
+        }
+    }
+    
     $timestamp = date('Y-m-d H:i:s');
-    file_put_contents($log_file, "[$timestamp] $message\n", FILE_APPEND);
+    
+    // Try to write to log file, fallback to echo only if it fails
+    if ($log_file && is_writable(dirname($log_file))) {
+        @file_put_contents($log_file, "[$timestamp] $message\n", FILE_APPEND);
+    }
+    
     echo "[$timestamp] $message\n";
 }
 }
