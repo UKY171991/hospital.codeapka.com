@@ -241,6 +241,47 @@ $role = $_SESSION['role'] ?? 'user';
           </ul>
         </li>
 
+        <?php
+        // Inventory menu pages
+        $inventoryPages = ['inventory_dashboard.php', 'inventory_income.php', 'inventory_expense.php', 'inventory_client.php'];
+        $isInventoryActive = in_array($activePage, $inventoryPages);
+        ?>
+        <li class="nav-item has-treeview <?php echo $isInventoryActive ? 'menu-open' : ''; ?>">
+          <a href="#" class="nav-link <?php echo $isInventoryActive ? 'active' : ''; ?>">
+            <i class="nav-icon fas fa-boxes"></i>
+            <p>
+              Inventory
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="inventory_dashboard.php" class="nav-link <?php echo ($activePage == 'inventory_dashboard.php') ? 'active' : ''; ?>">
+                <i class="fas fa-chart-line nav-icon"></i>
+                <p>Inventory Dashboard</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="inventory_income.php" class="nav-link <?php echo ($activePage == 'inventory_income.php') ? 'active' : ''; ?>">
+                <i class="fas fa-arrow-up nav-icon"></i>
+                <p>Income</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="inventory_expense.php" class="nav-link <?php echo ($activePage == 'inventory_expense.php') ? 'active' : ''; ?>">
+                <i class="fas fa-arrow-down nav-icon"></i>
+                <p>Expense</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="inventory_client.php" class="nav-link <?php echo ($activePage == 'inventory_client.php') ? 'active' : ''; ?>">
+                <i class="fas fa-users nav-icon"></i>
+                <p>Client</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
   <!-- Admins menu removed -->
 
   <!-- Logout moved to top navbar for easier access -->
