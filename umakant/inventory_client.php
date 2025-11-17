@@ -249,7 +249,7 @@ function displayClients(clients) {
                 <td>${client.type}</td>
                 <td><span class="badge ${statusClass}">${client.status}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-success" onclick="openWhatsApp('${client.phone}')" title="WhatsApp">
+                    <button class="btn btn-sm btn-success" onclick="openWhatsAppChat('${client.phone}', '${client.name.replace(/'/g, "\\'")}')">
                         <i class="fab fa-whatsapp"></i>
                     </button>
                     <button class="btn btn-sm btn-info" onclick="viewClientDetails(${client.id})" title="View Details">
@@ -435,7 +435,7 @@ function deleteClient(id) {
     });
 }
 
-function openWhatsApp(phone) {
+function openWhatsAppChat(phone, clientName) {
     if (!phone || phone === '-') {
         toastr.error('No phone number available for this client');
         return;
@@ -454,8 +454,12 @@ function openWhatsApp(phone) {
     // Remove + if present
     cleanPhone = cleanPhone.replace('+', '');
     
-    // Open WhatsApp
-    const whatsappUrl = `https://wa.me/${cleanPhone}`;
+    // Optional: Add a greeting message
+    const greeting = `Hello ${clientName}, `;
+    const encodedMessage = encodeURIComponent(greeting);
+    
+    // Open WhatsApp with greeting message
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
 }
 </script>

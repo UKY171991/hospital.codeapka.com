@@ -305,10 +305,13 @@ function displayClients(clients) {
                     <button class="btn btn-sm btn-success" onclick="openWhatsApp('${client.phone}')" title="WhatsApp">
                         <i class="fab fa-whatsapp"></i>
                     </button>
-                    <button class="btn btn-sm btn-primary" onclick="viewClient(${client.id})" title="View Details">
+                    <button class="btn btn-sm btn-primary" onclick="openDirectChat(${client.id}, '${client.name.replace(/'/g, "\\'")}', '${client.phone}')" title="Direct Chat">
+                        <i class="fas fa-comments"></i>
+                    </button>
+                    <button class="btn btn-sm btn-info" onclick="viewClient(${client.id})" title="View Details">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="btn btn-sm btn-info" onclick="editClient(${client.id})" title="Edit">
+                    <button class="btn btn-sm btn-warning" onclick="editClient(${client.id})" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
                     <button class="btn btn-sm btn-danger" onclick="deleteClient(${client.id})" title="Delete">
@@ -541,7 +544,7 @@ function editClientFromView() {
     }, 300);
 }
 
-function openWhatsApp(phone) {
+function openWhatsAppChat(phone, clientName) {
     if (!phone || phone === '-') {
         toastr.error('No phone number available for this client');
         return;
@@ -560,8 +563,12 @@ function openWhatsApp(phone) {
     // Remove + if present
     cleanPhone = cleanPhone.replace('+', '');
     
-    // Open WhatsApp
-    const whatsappUrl = `https://wa.me/${cleanPhone}`;
+    // Optional: Add a greeting message
+    const greeting = `Hello ${clientName}, `;
+    const encodedMessage = encodeURIComponent(greeting);
+    
+    // Open WhatsApp with greeting message
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
 }
 </script>
