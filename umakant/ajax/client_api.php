@@ -76,10 +76,10 @@ try {
     }
     
 } catch (Exception $e) {
-    http_response_code(500);
+    http_response_code(200); // Keep 200 to allow AJAX to process the response
     echo json_encode([
         'success' => false,
-        'message' => 'Server error: ' . $e->getMessage()
+        'message' => $e->getMessage()
     ]);
 }
 
@@ -295,25 +295,53 @@ function updateClient() {
 
 function deleteClient() {
     global $pdo;
+    ensureTablesExist();
     
     $id = intval($_POST['id'] ?? 0);
     
-    // Check if client has tasks
-    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM tasks WHERE client_id = :id");
-    $stmt->execute([':id' => $id]);
-    $count = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
-    
-    if ($count > 0) {
-        throw new Exception('Cannot delete client with existing tasks');
+    if ($id <= 0) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Invalid client ID'
+        ]);
+        return;
     }
     
-    $stmt = $pdo->prepare("DELETE FROM clients WHERE id = :id");
-    $stmt->execute([':id' => $id]);
-    
-    echo json_encode([
-        'success' => true,
-        'message' => 'Client deleted successfully'
-    ]);
+    try {
+        // Check if client has tasks
+        $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM tasks WHERE client_id = :id");
+        $stmt->execute([':id' => $id]);
+        $count = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+        
+        if ($count > 0) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Cannot delete client with existing tasks. Please delete or reassign the tasks first.'
+            ]);
+            return;
+        }
+        
+        // Delete the client
+        $stmt = $pdo->prepare("DELETE FROM clients WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        
+        if ($stmt->rowCount() > 0) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Client deleted successfully'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Client not found'
+            ]);
+        }
+    } catch (PDOException $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Database error: ' . $e->getMessage()
+        ]);
+    }
 }
 
 // Task Functions
@@ -411,15 +439,38 @@ function updateTask() {
 
 function deleteTask() {
     global $pdo;
+    ensureTablesExist();
     
     $id = intval($_POST['id'] ?? 0);
     
-    $stmt = $pdo->prepare("DELETE FROM tasks WHERE id = :id");
-    $stmt->execute([':id' => $id]);
+    if ($id <= 0) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Invalid task ID'
+        ]);
+        return;
+    }
     
-    echo json_encode([
-        'success' => true,
-        'message' => 'Task deleted successfully'
-    ]);
+    try {
+        $stmt = $pdo->prepare("DELETE FROM tasks WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        
+        if ($stmt->rowCount() > 0) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Task deleted successfully'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Task not found'
+            ]);
+        }
+    } catch (PDOException $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Database error: ' . $e->getMessage()
+        ]);
+    }
 }
 ?>
