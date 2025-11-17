@@ -69,12 +69,25 @@ $gmail_config = [
 
 writeLog("=== Email Parser Cron Job Started ===");
 
+// Make $pdo global
+global $pdo;
+
 try {
     // Ensure $pdo is available
-    if (!isset($pdo)) {
+    if (!isset($pdo) || !$pdo) {
         writeLog("ERROR: Database connection not available");
-        exit(1);
+        writeLog("Attempting to reconnect...");
+        
+        // Try to reconnect
+        require_once __DIR__ . '/inc/connection.php';
+        
+        if (!isset($pdo) || !$pdo) {
+            writeLog("ERROR: Failed to establish database connection");
+            exit(1);
+        }
     }
+    
+    writeLog("Database connection established");
     
     // Create system_config table if not exists
     $pdo->exec("CREATE TABLE IF NOT EXISTS `system_config` (
