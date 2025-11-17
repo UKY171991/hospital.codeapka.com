@@ -60,8 +60,6 @@ function writeLog($message) {
 }
 }
 
-writeLog("=== Email Parser Cron Job Started ===");
-
 // Gmail configuration
 $gmail_config = [
     'email' => 'umakant171991@gmail.com',
@@ -69,7 +67,15 @@ $gmail_config = [
     'imap_port' => 993
 ];
 
+writeLog("=== Email Parser Cron Job Started ===");
+
 try {
+    // Ensure $pdo is available
+    if (!isset($pdo)) {
+        writeLog("ERROR: Database connection not available");
+        exit(1);
+    }
+    
     // Create system_config table if not exists
     $pdo->exec("CREATE TABLE IF NOT EXISTS `system_config` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
