@@ -117,8 +117,8 @@ require_once 'inc/sidebar.php';
                     </div>
 
                     <div class="form-group">
-                        <label for="incomeDescription">Description <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="incomeDescription" rows="3" required></textarea>
+                        <label for="incomeDescription">Description</label>
+                        <textarea class="form-control" id="incomeDescription" rows="3"></textarea>
                     </div>
 
                     <div class="row">
