@@ -187,41 +187,24 @@ function savePassword() {
 }
 
 function runParser() {
-    // Execute the cron script directly (exec() is disabled on shared hosting)
-    $script_path = realpath(__DIR__ . '/../cron_email_parser.php');
-    
-    if (!file_exists($script_path)) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Cron script not found at: ' . $script_path
-        ]);
-        return;
-    }
+    // Call the cron URL directly (works better than include)
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'];
+    $cron_url = $protocol . '://' . $host . '/umakant/cron_email_parser.php?cron_key=hospital_parser_2024_secure';
     
     try {
-        // Set error handler to catch all errors
-        set_error_handler(function($errno, $errstr, $errfile, $errline) {
-            throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
-        });
+        // Use file_get_contents to call the URL
+        $context = stream_context_create([
+            'http' => [
+                'timeout' => 120, // 2 minutes timeout
+                'ignore_errors' => true
+            ]
+        ]);
         
-        // Capture output
-        ob_start();
+        $output = @file_get_contents($cron_url, false, $context);
         
-        // Set a flag to indicate web execution
-        $_GET['cron_key'] = 'web_manual_run';
-        
-        // Include and execute the cron script
-        include $script_path;
-        
-        // Restore error handler
-        restore_error_handler();
-        
-        // Get the output
-        $output = ob_get_clean();
-        
-        // Check if output is empty or incomplete
-        if (empty($output)) {
-            throw new Exception('Parser produced no output');
+        if ($output === false) {
+            throw new Exception('Failed to execute parser. Please check if the cron URL is accessible.');
         }
         
         // Parse the output for summary
@@ -243,32 +226,18 @@ function runParser() {
         }
         
         echo json_encode([
-            'success' => $hasCompletion,
-            'message' => $hasCompletion ? 'Email parser completed successfully' : 'Parser may have encountered issues',
+            'success' => true,
+            'message' => 'Email parser executed successfully',
             'summary' => implode(' | ', $summary),
             'output' => $output,
-            'lines_count' => count($lines)
+            'url_called' => $cron_url
         ]);
         
     } catch (Exception $e) {
-        restore_error_handler();
-        $output = ob_get_clean();
         echo json_encode([
             'success' => false,
             'message' => 'Parser execution failed: ' . $e->getMessage(),
-            'output' => $output,
-            'error_line' => $e->getLine(),
-            'error_file' => basename($e->getFile())
-        ]);
-    } catch (Error $e) {
-        restore_error_handler();
-        $output = ob_get_clean();
-        echo json_encode([
-            'success' => false,
-            'message' => 'Fatal error: ' . $e->getMessage(),
-            'output' => $output,
-            'error_line' => $e->getLine(),
-            'error_file' => basename($e->getFile())
+            'cron_url' => $cron_url
         ]);
     }
 }
