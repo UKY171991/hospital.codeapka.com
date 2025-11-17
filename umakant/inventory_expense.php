@@ -51,6 +51,7 @@ require_once 'inc/sidebar.php';
                                         <th>Vendor</th>
                                         <th>Amount</th>
                                         <th>Payment Method</th>
+                                        <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -122,13 +123,13 @@ require_once 'inc/sidebar.php';
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="expenseAmount">Amount (₹) <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" id="expenseAmount" step="0.01" required>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="expensePaymentMethod">Payment Method <span class="text-danger">*</span></label>
                                 <select class="form-control" id="expensePaymentMethod" required>
@@ -138,6 +139,16 @@ require_once 'inc/sidebar.php';
                                     <option value="UPI">UPI</option>
                                     <option value="Bank Transfer">Bank Transfer</option>
                                     <option value="Cheque">Cheque</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="expensePaymentStatus">Payment Status <span class="text-danger">*</span></label>
+                                <select class="form-control" id="expensePaymentStatus" required>
+                                    <option value="Success">Success</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Failed">Failed</option>
                                 </select>
                             </div>
                         </div>
@@ -205,6 +216,12 @@ function displayExpenseRecords(records) {
     }
 
     records.forEach(function(record) {
+        const statusBadge = record.payment_status === 'Success' ? 
+            '<span class="badge badge-success">Success</span>' : 
+            record.payment_status === 'Pending' ? 
+            '<span class="badge badge-warning">Pending</span>' : 
+            '<span class="badge badge-danger">Failed</span>';
+        
         const row = `
             <tr>
                 <td>${record.id}</td>
@@ -214,6 +231,7 @@ function displayExpenseRecords(records) {
                 <td>${record.vendor || '-'}</td>
                 <td>₹${parseFloat(record.amount).toFixed(2)}</td>
                 <td>${record.payment_method}</td>
+                <td>${statusBadge}</td>
                 <td>
                     <button class="btn btn-sm btn-info" onclick="editExpense(${record.id})">
                         <i class="fas fa-edit"></i>
@@ -261,6 +279,7 @@ function editExpense(id) {
                 $('#expenseDescription').val(data.description);
                 $('#expenseAmount').val(data.amount);
                 $('#expensePaymentMethod').val(data.payment_method);
+                $('#expensePaymentStatus').val(data.payment_status || 'Success');
                 $('#expenseInvoiceNumber').val(data.invoice_number);
                 $('#expenseNotes').val(data.notes);
                 $('#expenseModalTitle').text('Edit Expense');
@@ -280,6 +299,7 @@ function saveExpense() {
         description: $('#expenseDescription').val(),
         amount: $('#expenseAmount').val(),
         payment_method: $('#expensePaymentMethod').val(),
+        payment_status: $('#expensePaymentStatus').val(),
         invoice_number: $('#expenseInvoiceNumber').val(),
         notes: $('#expenseNotes').val()
     };

@@ -129,11 +129,19 @@ function ensureTablesExist() {
         `description` text NOT NULL,
         `amount` decimal(10,2) NOT NULL,
         `payment_method` enum('Cash','Card','UPI','Bank Transfer','Cheque') NOT NULL DEFAULT 'Cash',
+        `payment_status` enum('Success','Pending','Failed') NOT NULL DEFAULT 'Success',
         `notes` text DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    
+    // Add payment_status column if it doesn't exist (for existing tables)
+    try {
+        $pdo->exec("ALTER TABLE `inventory_income` ADD COLUMN `payment_status` enum('Success','Pending','Failed') NOT NULL DEFAULT 'Success' AFTER `payment_method`");
+    } catch (Exception $e) {
+        // Column already exists, ignore
+    }
     
     // Create inventory_expense table
     $pdo->exec("CREATE TABLE IF NOT EXISTS `inventory_expense` (
@@ -144,12 +152,20 @@ function ensureTablesExist() {
         `description` text NOT NULL,
         `amount` decimal(10,2) NOT NULL,
         `payment_method` enum('Cash','Card','UPI','Bank Transfer','Cheque') NOT NULL DEFAULT 'Cash',
+        `payment_status` enum('Success','Pending','Failed') NOT NULL DEFAULT 'Success',
         `invoice_number` varchar(100) DEFAULT NULL,
         `notes` text DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    
+    // Add payment_status column if it doesn't exist (for existing tables)
+    try {
+        $pdo->exec("ALTER TABLE `inventory_expense` ADD COLUMN `payment_status` enum('Success','Pending','Failed') NOT NULL DEFAULT 'Success' AFTER `payment_method`");
+    } catch (Exception $e) {
+        // Column already exists, ignore
+    }
 }
 
 // Dashboard Functions
@@ -157,12 +173,12 @@ function getDashboardStats() {
     global $pdo;
     ensureTablesExist();
     
-    // Get total income
-    $stmt = $pdo->query("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income");
+    // Get total income (only successful transactions)
+    $stmt = $pdo->query("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE payment_status = 'Success'");
     $totalIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
-    // Get total expense
-    $stmt = $pdo->query("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense");
+    // Get total expense (only successful transactions)
+    $stmt = $pdo->query("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE payment_status = 'Success'");
     $totalExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
     // Get total clients
@@ -171,33 +187,33 @@ function getDashboardStats() {
     
     // Today's stats
     $today = date('Y-m-d');
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date = :date");
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date = :date AND payment_status = 'Success'");
     $stmt->execute([':date' => $today]);
     $todayIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date = :date");
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date = :date AND payment_status = 'Success'");
     $stmt->execute([':date' => $today]);
     $todayExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
     // This month's stats
     $monthStart = date('Y-m-01');
     $monthEnd = date('Y-m-t');
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date BETWEEN :start AND :end");
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date BETWEEN :start AND :end AND payment_status = 'Success'");
     $stmt->execute([':start' => $monthStart, ':end' => $monthEnd]);
     $monthIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date BETWEEN :start AND :end");
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date BETWEEN :start AND :end AND payment_status = 'Success'");
     $stmt->execute([':start' => $monthStart, ':end' => $monthEnd]);
     $monthExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
     // This year's stats
     $yearStart = date('Y-01-01');
     $yearEnd = date('Y-12-31');
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date BETWEEN :start AND :end");
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date BETWEEN :start AND :end AND payment_status = 'Success'");
     $stmt->execute([':start' => $yearStart, ':end' => $yearEnd]);
     $yearIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date BETWEEN :start AND :end");
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date BETWEEN :start AND :end AND payment_status = 'Success'");
     $stmt->execute([':start' => $yearStart, ':end' => $yearEnd]);
     $yearExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
@@ -296,8 +312,8 @@ function addIncome() {
     global $pdo;
     ensureTablesExist();
     
-    $sql = "INSERT INTO inventory_income (date, category, client_id, description, amount, payment_method, notes, created_at)
-            VALUES (:date, :category, :client_id, :description, :amount, :payment_method, :notes, NOW())";
+    $sql = "INSERT INTO inventory_income (date, category, client_id, description, amount, payment_method, payment_status, notes, created_at)
+            VALUES (:date, :category, :client_id, :description, :amount, :payment_method, :payment_status, :notes, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -307,6 +323,7 @@ function addIncome() {
         ':description' => $_POST['description'],
         ':amount' => $_POST['amount'],
         ':payment_method' => $_POST['payment_method'],
+        ':payment_status' => $_POST['payment_status'] ?? 'Success',
         ':notes' => $_POST['notes'] ?? ''
     ]);
     
@@ -323,7 +340,7 @@ function updateIncome() {
     $sql = "UPDATE inventory_income 
             SET date = :date, category = :category, client_id = :client_id, 
                 description = :description, amount = :amount, payment_method = :payment_method, 
-                notes = :notes, updated_at = NOW()
+                payment_status = :payment_status, notes = :notes, updated_at = NOW()
             WHERE id = :id";
     
     $stmt = $pdo->prepare($sql);
@@ -335,6 +352,7 @@ function updateIncome() {
         ':description' => $_POST['description'],
         ':amount' => $_POST['amount'],
         ':payment_method' => $_POST['payment_method'],
+        ':payment_status' => $_POST['payment_status'] ?? 'Success',
         ':notes' => $_POST['notes'] ?? ''
     ]);
     
@@ -399,8 +417,8 @@ function addExpense() {
     global $pdo;
     ensureTablesExist();
     
-    $sql = "INSERT INTO inventory_expense (date, category, vendor, description, amount, payment_method, invoice_number, notes, created_at)
-            VALUES (:date, :category, :vendor, :description, :amount, :payment_method, :invoice_number, :notes, NOW())";
+    $sql = "INSERT INTO inventory_expense (date, category, vendor, description, amount, payment_method, payment_status, invoice_number, notes, created_at)
+            VALUES (:date, :category, :vendor, :description, :amount, :payment_method, :payment_status, :invoice_number, :notes, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -410,6 +428,7 @@ function addExpense() {
         ':description' => $_POST['description'],
         ':amount' => $_POST['amount'],
         ':payment_method' => $_POST['payment_method'],
+        ':payment_status' => $_POST['payment_status'] ?? 'Success',
         ':invoice_number' => $_POST['invoice_number'] ?? '',
         ':notes' => $_POST['notes'] ?? ''
     ]);
@@ -427,7 +446,7 @@ function updateExpense() {
     $sql = "UPDATE inventory_expense 
             SET date = :date, category = :category, vendor = :vendor, 
                 description = :description, amount = :amount, payment_method = :payment_method, 
-                invoice_number = :invoice_number, notes = :notes, updated_at = NOW()
+                payment_status = :payment_status, invoice_number = :invoice_number, notes = :notes, updated_at = NOW()
             WHERE id = :id";
     
     $stmt = $pdo->prepare($sql);
@@ -439,6 +458,7 @@ function updateExpense() {
         ':description' => $_POST['description'],
         ':amount' => $_POST['amount'],
         ':payment_method' => $_POST['payment_method'],
+        ':payment_status' => $_POST['payment_status'] ?? 'Success',
         ':invoice_number' => $_POST['invoice_number'] ?? '',
         ':notes' => $_POST['notes'] ?? ''
     ]);
@@ -523,8 +543,8 @@ function getClientDetails() {
     $stmt->execute([':id' => $id]);
     $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Get total amount
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE client_id = :id");
+    // Get total amount (only successful transactions)
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE client_id = :id AND payment_status = 'Success'");
     $stmt->execute([':id' => $id]);
     $totalAmount = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
