@@ -85,6 +85,79 @@ require_once 'inc/sidebar.php';
                 </div>
             </div>
 
+            <!-- Period Statistics -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-primary">
+                            <h3 class="card-title">Today</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <small>Income</small>
+                                    <h4 class="text-success" id="todayIncome">₹0</h4>
+                                </div>
+                                <div class="col-6">
+                                    <small>Expense</small>
+                                    <h4 class="text-danger" id="todayExpense">₹0</h4>
+                                </div>
+                            </div>
+                            <hr>
+                            <small>Net: <strong id="todayNet">₹0</strong></small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-info">
+                            <h3 class="card-title">This Month</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <small>Income</small>
+                                    <h4 class="text-success" id="monthIncome">₹0</h4>
+                                    <small class="text-muted">Target: <span id="monthIncomeTarget">₹0</span></small>
+                                </div>
+                                <div class="col-6">
+                                    <small>Expense</small>
+                                    <h4 class="text-danger" id="monthExpense">₹0</h4>
+                                    <small class="text-muted">Target: <span id="monthExpenseTarget">₹0</span></small>
+                                </div>
+                            </div>
+                            <hr>
+                            <small>Net: <strong id="monthNet">₹0</strong></small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-success">
+                            <h3 class="card-title">This Year</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <small>Income</small>
+                                    <h4 class="text-success" id="yearIncome">₹0</h4>
+                                    <small class="text-muted">Target: <span id="yearIncomeTarget">₹0</span></small>
+                                </div>
+                                <div class="col-6">
+                                    <small>Expense</small>
+                                    <h4 class="text-danger" id="yearExpense">₹0</h4>
+                                    <small class="text-muted">Target: <span id="yearExpenseTarget">₹0</span></small>
+                                </div>
+                            </div>
+                            <hr>
+                            <small>Net: <strong id="yearNet">₹0</strong></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Charts Row -->
             <div class="row">
                 <div class="col-md-6">
@@ -168,10 +241,30 @@ function loadDashboardData() {
         dataType: 'json',
         success: function(response) {
             if (response && response.success) {
-                $('#totalIncome').text('₹' + formatNumber(response.data.total_income || 0));
-                $('#totalExpense').text('₹' + formatNumber(response.data.total_expense || 0));
-                $('#netProfit').text('₹' + formatNumber(response.data.net_profit || 0));
-                $('#totalClients').text(response.data.total_clients || 0);
+                const data = response.data;
+                $('#totalIncome').text('₹' + formatNumber(data.total_income || 0));
+                $('#totalExpense').text('₹' + formatNumber(data.total_expense || 0));
+                $('#netProfit').text('₹' + formatNumber(data.net_profit || 0));
+                $('#totalClients').text(data.total_clients || 0);
+                
+                // Today
+                $('#todayIncome').text('₹' + formatNumber(data.today_income || 0));
+                $('#todayExpense').text('₹' + formatNumber(data.today_expense || 0));
+                $('#todayNet').text('₹' + formatNumber((data.today_income || 0) - (data.today_expense || 0)));
+                
+                // Month
+                $('#monthIncome').text('₹' + formatNumber(data.month_income || 0));
+                $('#monthExpense').text('₹' + formatNumber(data.month_expense || 0));
+                $('#monthNet').text('₹' + formatNumber((data.month_income || 0) - (data.month_expense || 0)));
+                $('#monthIncomeTarget').text('₹' + formatNumber(data.month_income_target || 100000));
+                $('#monthExpenseTarget').text('₹' + formatNumber(data.month_expense_target || 80000));
+                
+                // Year
+                $('#yearIncome').text('₹' + formatNumber(data.year_income || 0));
+                $('#yearExpense').text('₹' + formatNumber(data.year_expense || 0));
+                $('#yearNet').text('₹' + formatNumber((data.year_income || 0) - (data.year_expense || 0)));
+                $('#yearIncomeTarget').text('₹' + formatNumber(data.year_income_target || 1200000));
+                $('#yearExpenseTarget').text('₹' + formatNumber(data.year_expense_target || 1000000));
             } else {
                 console.error('Failed to load dashboard stats:', response);
             }

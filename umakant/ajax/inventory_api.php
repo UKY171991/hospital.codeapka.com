@@ -169,13 +169,55 @@ function getDashboardStats() {
     $stmt = $pdo->query("SELECT COUNT(*) as total FROM inventory_clients WHERE status = 'Active'");
     $totalClients = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
+    // Today's stats
+    $today = date('Y-m-d');
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date = :date");
+    $stmt->execute([':date' => $today]);
+    $todayIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date = :date");
+    $stmt->execute([':date' => $today]);
+    $todayExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    
+    // This month's stats
+    $monthStart = date('Y-m-01');
+    $monthEnd = date('Y-m-t');
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date BETWEEN :start AND :end");
+    $stmt->execute([':start' => $monthStart, ':end' => $monthEnd]);
+    $monthIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date BETWEEN :start AND :end");
+    $stmt->execute([':start' => $monthStart, ':end' => $monthEnd]);
+    $monthExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    
+    // This year's stats
+    $yearStart = date('Y-01-01');
+    $yearEnd = date('Y-12-31');
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date BETWEEN :start AND :end");
+    $stmt->execute([':start' => $yearStart, ':end' => $yearEnd]);
+    $yearIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date BETWEEN :start AND :end");
+    $stmt->execute([':start' => $yearStart, ':end' => $yearEnd]);
+    $yearExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    
     echo json_encode([
         'success' => true,
         'data' => [
             'total_income' => $totalIncome,
             'total_expense' => $totalExpense,
             'net_profit' => $totalIncome - $totalExpense,
-            'total_clients' => $totalClients
+            'total_clients' => $totalClients,
+            'today_income' => $todayIncome,
+            'today_expense' => $todayExpense,
+            'month_income' => $monthIncome,
+            'month_expense' => $monthExpense,
+            'month_income_target' => 100000,
+            'month_expense_target' => 80000,
+            'year_income' => $yearIncome,
+            'year_expense' => $yearExpense,
+            'year_income_target' => 1200000,
+            'year_expense_target' => 1000000
         ]
     ]);
 }
