@@ -101,6 +101,29 @@ function getEmailBody($connection, $email_number) {
 if (!function_exists('parseTransactionEmail')) {
 function parseTransactionEmail($subject, $body, $from, $date) {
     global $log_file;
+    
+    // FIRST: Check if email is from a bank or payment app
+    $from_lower = strtolower($from);
+    $trusted_senders = [
+        'bank', 'hdfc', 'icici', 'sbi', 'axis', 'kotak', 'pnb', 'canara', 'boi', 'union',
+        'paytm', 'phonepe', 'gpay', 'googlepay', 'bhim', 'amazonpay',
+        'upi', 'imps', 'neft', 'rtgs',
+        'visa', 'mastercard', 'rupay',
+        'alerts', 'transaction', 'payment'
+    ];
+    
+    $is_trusted = false;
+    foreach ($trusted_senders as $sender) {
+        if (strpos($from_lower, $sender) !== false) {
+            $is_trusted = true;
+            break;
+        }
+    }
+    
+    if (!$is_trusted) {
+        return null; // Skip emails not from banks/payment apps
+    }
+    
     $subject_lower = strtolower($subject);
     $body_lower = strtolower($body);
     $combined = $subject_lower . ' ' . $body_lower;
