@@ -272,17 +272,16 @@ try {
     
     writeLog("Successfully connected to Gmail");
     
-    // Get unprocessed emails (last 24 hours)
-    $since_date = date('d-M-Y', strtotime('-24 hours'));
-    $emails = imap_search($connection, "SINCE \"$since_date\"");
+    // Get ALL emails from inbox
+    $emails = imap_search($connection, "ALL");
     
     if (!$emails) {
-        writeLog("No new emails found in the last 24 hours");
+        writeLog("No emails found in inbox");
         imap_close($connection);
         exit(0);
     }
     
-    writeLog("Found " . count($emails) . " emails to process");
+    writeLog("Found " . count($emails) . " emails in inbox to process");
     
     $processed_count = 0;
     $income_count = 0;
