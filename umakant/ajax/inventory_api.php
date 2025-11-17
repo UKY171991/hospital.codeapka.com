@@ -216,15 +216,10 @@ function getIncomeRecords() {
     global $pdo;
     ensureTablesExist();
     
-    // Only show records with CREDIT keywords (money IN)
+    // Show ALL income records
     $sql = "SELECT i.*, c.name as client_name 
             FROM inventory_income i
             LEFT JOIN inventory_clients c ON i.client_id = c.id
-            WHERE (i.description LIKE '%credit%' 
-                OR i.description LIKE '%received%' 
-                OR i.description LIKE '%deposit%'
-                OR i.description LIKE '%incoming%'
-                OR i.notes NOT LIKE '%Auto-imported%')
             ORDER BY i.date DESC, i.id DESC";
     
     $stmt = $pdo->query($sql);
@@ -326,13 +321,8 @@ function getExpenseRecords() {
     global $pdo;
     ensureTablesExist();
     
-    // Only show records with DEBIT keywords (money OUT)
+    // Show ALL expense records
     $sql = "SELECT * FROM inventory_expense 
-            WHERE (description LIKE '%debit%' 
-                OR description LIKE '%paid%' 
-                OR description LIKE '%purchase%'
-                OR description LIKE '%withdrawn%'
-                OR notes NOT LIKE '%Auto-imported%')
             ORDER BY date DESC, id DESC";
     
     $stmt = $pdo->query($sql);
