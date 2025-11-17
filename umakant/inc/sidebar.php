@@ -288,6 +288,47 @@ $role = $_SESSION['role'] ?? 'user';
           </ul>
         </li>
 
+        <?php
+        // Clients menu pages
+        $clientsPages = ['add_client.php', 'client_list.php', 'add_task.php', 'task_list.php'];
+        $isClientsActive = in_array($activePage, $clientsPages);
+        ?>
+        <li class="nav-item has-treeview <?php echo $isClientsActive ? 'menu-open' : ''; ?>">
+          <a href="#" class="nav-link <?php echo $isClientsActive ? 'active' : ''; ?>">
+            <i class="nav-icon fas fa-user-tie"></i>
+            <p>
+              Clients
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="add_client.php" class="nav-link <?php echo ($activePage == 'add_client.php') ? 'active' : ''; ?>">
+                <i class="fas fa-user-plus nav-icon"></i>
+                <p>Add Client</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="client_list.php" class="nav-link <?php echo ($activePage == 'client_list.php') ? 'active' : ''; ?>">
+                <i class="fas fa-list nav-icon"></i>
+                <p>Client List</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="add_task.php" class="nav-link <?php echo ($activePage == 'add_task.php') ? 'active' : ''; ?>">
+                <i class="fas fa-tasks nav-icon"></i>
+                <p>Add Task</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="task_list.php" class="nav-link <?php echo ($activePage == 'task_list.php') ? 'active' : ''; ?>">
+                <i class="fas fa-clipboard-list nav-icon"></i>
+                <p>Task List</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
   <!-- Admins menu removed -->
 
   <!-- Logout moved to top navbar for easier access -->
