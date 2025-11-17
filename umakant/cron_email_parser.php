@@ -272,16 +272,17 @@ try {
     
     writeLog("Successfully connected to Gmail");
     
-    // Get ALL emails from inbox
-    $emails = imap_search($connection, "ALL");
+    // Get emails from last 7 days (1 week)
+    $since_date = date('d-M-Y', strtotime('-7 days'));
+    $emails = imap_search($connection, "SINCE \"$since_date\"");
     
     if (!$emails) {
-        writeLog("No emails found in inbox");
+        writeLog("No emails found in the last 7 days");
         imap_close($connection);
         exit(0);
     }
     
-    writeLog("Found " . count($emails) . " emails in inbox to process");
+    writeLog("Found " . count($emails) . " emails from last 7 days to process");
     
     $processed_count = 0;
     $income_count = 0;
