@@ -51,6 +51,7 @@ require_once 'inc/sidebar.php';
                                         <th>Client</th>
                                         <th>Amount</th>
                                         <th>Payment Method</th>
+                                        <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -121,13 +122,13 @@ require_once 'inc/sidebar.php';
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="incomeAmount">Amount (₹) <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" id="incomeAmount" step="0.01" required>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="incomePaymentMethod">Payment Method <span class="text-danger">*</span></label>
                                 <select class="form-control" id="incomePaymentMethod" required>
@@ -137,6 +138,16 @@ require_once 'inc/sidebar.php';
                                     <option value="UPI">UPI</option>
                                     <option value="Bank Transfer">Bank Transfer</option>
                                     <option value="Cheque">Cheque</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="incomePaymentStatus">Payment Status <span class="text-danger">*</span></label>
+                                <select class="form-control" id="incomePaymentStatus" required>
+                                    <option value="Success">Success</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Failed">Failed</option>
                                 </select>
                             </div>
                         </div>
@@ -188,7 +199,11 @@ function loadClients() {
     $.ajax({
         url: 'ajax/inventory_api.php',
         type: 'GET',
-        data: { action: 'get_clients' },
+        data: { 
+            action: 'get_clients',
+            _: new Date().getTime()
+        },
+        cache: false,
         dataType: 'json',
         success: function(response) {
             if (response && response.success) {
@@ -198,6 +213,9 @@ function loadClients() {
                     select.append(`<option value="${client.id}">${client.name}</option>`);
                 });
             }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading clients:', error);
         }
     });
 }
@@ -206,26 +224,47 @@ function loadIncomeRecords() {
     $.ajax({
         url: 'ajax/inventory_api.php',
         type: 'GET',
-        data: { action: 'get_income_records' },
+        data: { 
+            action: 'get_income_records',
+            _: new Date().getTime() // Cache buster
+        },
+        cache: false,
         dataType: 'json',
         success: function(response) {
             if (response && response.success) {
                 displayIncomeRecords(response.data);
             }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading income records:', error);
+            toastr.error('Failed to load income records');
         }
     });
 }
 
 function displayIncomeRecords(records) {
+    // Destroy existing DataTable first
+    if ($.fn.DataTable.isDataTable('#incomeTable')) {
+        $('#incomeTable').DataTable().destroy();
+    }
+    
     const tbody = $('#incomeTableBody');
     tbody.empty();
 
     if (!records || records.length === 0) {
-        tbody.append('<tr><td colspan="8" class="text-center">No income records found</td></tr>');
+        tbody.append('<tr><td colspan="9" class="text-center">No income records found</td></tr>');
         return;
     }
 
     records.forEach(function(record) {
+        // Default to 'Success' if payment_status is not set
+        const paymentStatus = record.payment_status || 'Success';
+        const statusBadge = paymentStatus === 'Success' ? 
+            '<span class="badge badge-success">Success</span>' : 
+            paymentStatus === 'Pending' ? 
+            '<span class="badge badge-warning">Pending</span>' : 
+            '<span class="badge badge-danger">Failed</span>';
+        
         const row = `
             <tr>
                 <td>${record.id}</td>
@@ -235,6 +274,7 @@ function displayIncomeRecords(records) {
                 <td>${record.client_name || '-'}</td>
                 <td>₹${parseFloat(record.amount).toFixed(2)}</td>
                 <td>${record.payment_method}</td>
+                <td>${statusBadge}</td>
                 <td>
                     <button class="btn btn-sm btn-info" onclick="editIncome(${record.id})">
                         <i class="fas fa-edit"></i>
@@ -248,13 +288,11 @@ function displayIncomeRecords(records) {
         tbody.append(row);
     });
 
-    // Initialize DataTable
-    if ($.fn.DataTable.isDataTable('#incomeTable')) {
-        $('#incomeTable').DataTable().destroy();
-    }
+    // Initialize DataTable with fresh data
     incomeTable = $('#incomeTable').DataTable({
         responsive: true,
-        order: [[0, 'desc']]
+        order: [[0, 'desc']],
+        destroy: true // Allow reinitialization
     });
 }
 
@@ -271,6 +309,7 @@ function editIncome(id) {
         url: 'ajax/inventory_api.php',
         type: 'GET',
         data: { action: 'get_income', id: id },
+        cache: false,
         dataType: 'json',
         success: function(response) {
             if (response && response.success) {
@@ -282,10 +321,15 @@ function editIncome(id) {
                 $('#incomeDescription').val(data.description);
                 $('#incomeAmount').val(data.amount);
                 $('#incomePaymentMethod').val(data.payment_method);
+                $('#incomePaymentStatus').val(data.payment_status || 'Success');
                 $('#incomeNotes').val(data.notes);
                 $('#incomeModalTitle').text('Edit Income');
                 $('#incomeModal').modal('show');
             }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading income:', error);
+            toastr.error('Failed to load income record');
         }
     });
 }
@@ -300,6 +344,7 @@ function saveIncome() {
         description: $('#incomeDescription').val(),
         amount: $('#incomeAmount').val(),
         payment_method: $('#incomePaymentMethod').val(),
+        payment_status: $('#incomePaymentStatus').val(),
         notes: $('#incomeNotes').val()
     };
 
@@ -307,17 +352,23 @@ function saveIncome() {
         url: 'ajax/inventory_api.php',
         type: 'POST',
         data: formData,
+        cache: false,
         dataType: 'json',
         success: function(response) {
             if (response && response.success) {
                 toastr.success(response.message || 'Income saved successfully');
                 $('#incomeModal').modal('hide');
-                loadIncomeRecords();
+                
+                // Wait for modal to close, then reload data
+                setTimeout(function() {
+                    loadIncomeRecords();
+                }, 300);
             } else {
                 toastr.error(response.message || 'Failed to save income');
             }
         },
-        error: function() {
+        error: function(xhr, status, error) {
+            console.error('Error saving income:', error);
             toastr.error('An error occurred while saving income');
         }
     });
@@ -332,14 +383,22 @@ function deleteIncome(id) {
         url: 'ajax/inventory_api.php',
         type: 'POST',
         data: { action: 'delete_income', id: id },
+        cache: false,
         dataType: 'json',
         success: function(response) {
             if (response && response.success) {
                 toastr.success(response.message || 'Income deleted successfully');
-                loadIncomeRecords();
+                // Reload data immediately
+                setTimeout(function() {
+                    loadIncomeRecords();
+                }, 200);
             } else {
                 toastr.error(response.message || 'Failed to delete income');
             }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error deleting income:', error);
+            toastr.error('An error occurred while deleting income');
         }
     });
 }
