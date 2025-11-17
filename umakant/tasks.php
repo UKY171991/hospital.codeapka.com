@@ -646,12 +646,19 @@ function viewTask(id) {
                 
                 if (screenshots.length > 0) {
                     let screenshotsHtml = '';
-                    screenshots.forEach(screenshot => {
+                    screenshots.forEach((screenshot, index) => {
                         screenshotsHtml += `
-                            <div class="col-md-3 mb-2">
-                                <a href="${screenshot}" target="_blank">
-                                    <img src="${screenshot}" class="img-thumbnail" style="width: 100%; height: 150px; object-fit: cover;">
-                                </a>
+                            <div class="col-md-3 mb-2" id="view-screenshot-${index}">
+                                <div class="card">
+                                    <a href="${screenshot}" target="_blank">
+                                        <img src="${screenshot}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                                    </a>
+                                    <div class="card-body p-2">
+                                        <button type="button" class="btn btn-sm btn-danger btn-block" onclick="deleteSingleScreenshot(${id}, '${screenshot}', ${index})">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         `;
                     });
@@ -678,6 +685,48 @@ function editTaskFromView() {
             editTask(currentViewTaskId);
         }
     }, 300);
+}
+
+function deleteSingleScreenshot(taskId, screenshot, index) {
+    if (!confirm('Are you sure you want to delete this screenshot?')) {
+        return;
+    }
+    
+    $.ajax({
+        url: 'ajax/client_api.php',
+        type: 'POST',
+        data: { 
+            action: 'delete_single_screenshot',
+            task_id: taskId,
+            screenshot: screenshot
+        },
+        cache: false,
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success) {
+                toastr.success('Screenshot deleted successfully');
+                $(`#view-screenshot-${index}`).fadeOut(300, function() {
+                    $(this).remove();
+                    
+                    // Check if there are any screenshots left
+                    if ($('#viewTaskScreenshots .col-md-3').length === 0) {
+                        $('#viewTaskScreenshots').html('<p class="text-muted col-12">No screenshots available</p>');
+                    }
+                });
+                
+                // Reload tasks table
+                setTimeout(function() {
+                    loadTasks();
+                }, 500);
+            } else {
+                toastr.error(response.message || 'Failed to delete screenshot');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error deleting screenshot:', error);
+            toastr.error('An error occurred while deleting screenshot');
+        }
+    });
 }
 </script>
 

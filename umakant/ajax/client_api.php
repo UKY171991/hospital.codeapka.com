@@ -70,6 +70,9 @@ try {
         case 'delete_task':
             deleteTask();
             break;
+        case 'delete_single_screenshot':
+            deleteSingleScreenshot();
+            break;
             
         default:
             throw new Exception('Invalid action specified');
@@ -459,7 +462,7 @@ function updateTask() {
                 return $s !== $screenshot;
             });
             // Delete file
-            $filePath = '../uploads/screenshots/' . basename($screenshot);
+            $filePath = '../' . $screenshot;
             if (file_exists($filePath)) {
                 unlink($filePath);
             }
@@ -517,7 +520,8 @@ function deleteTask() {
             // Delete screenshot files
             $screenshots = json_decode($task['screenshots'] ?? '[]', true);
             foreach ($screenshots as $screenshot) {
-                $filePath = '../uploads/screenshots/' . basename($screenshot);
+                // Handle both relative and absolute paths
+                $filePath = '../' . $screenshot;
                 if (file_exists($filePath)) {
                     unlink($filePath);
                 }
@@ -543,6 +547,69 @@ function deleteTask() {
         echo json_encode([
             'success' => false,
             'message' => 'Database error: ' . $e->getMessage()
+        ]);
+    }
+}
+
+function deleteSingleScreenshot() {
+    global $pdo;
+    
+    $taskId = intval($_POST['task_id'] ?? 0);
+    $screenshot = $_POST['screenshot'] ?? '';
+    
+    if ($taskId <= 0 || empty($screenshot)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Invalid parameters'
+        ]);
+        return;
+    }
+    
+    try {
+        // Get current screenshots
+        $stmt = $pdo->prepare("SELECT screenshots FROM tasks WHERE id = :id");
+        $stmt->execute([':id' => $taskId]);
+        $task = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$task) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Task not found'
+            ]);
+            return;
+        }
+        
+        // Parse screenshots
+        $screenshots = json_decode($task['screenshots'] ?? '[]', true);
+        
+        // Remove the screenshot from array
+        $screenshots = array_filter($screenshots, function($s) use ($screenshot) {
+            return $s !== $screenshot;
+        });
+        $screenshots = array_values($screenshots); // Re-index array
+        
+        // Update database
+        $stmt = $pdo->prepare("UPDATE tasks SET screenshots = :screenshots, updated_at = NOW() WHERE id = :id");
+        $stmt->execute([
+            ':id' => $taskId,
+            ':screenshots' => json_encode($screenshots)
+        ]);
+        
+        // Delete the file
+        $filePath = '../' . $screenshot;
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+        
+        echo json_encode([
+            'success' => true,
+            'message' => 'Screenshot deleted successfully'
+        ]);
+        
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
         ]);
     }
 }
