@@ -85,13 +85,13 @@ require_once 'inc/sidebar.php';
                             </h3>
                         </div>
                         <div class="card-body">
-                            <div class="alert alert-info">
-                                <h5><i class="fas fa-info-circle"></i> Setup Instructions</h5>
+                            <div class="alert alert-info" style="font-size: 11px;">
+                                <h5 style="font-size: 13px;"><i class="fas fa-info-circle"></i> Setup Instructions</h5>
                                 <p>Add this line to your crontab to run the email parser every 5 minutes:</p>
-                                <pre class="bg-dark text-white p-2 rounded">*/5 * * * * php <?php echo realpath(__DIR__); ?>/cron_email_parser.php</pre>
+                                <pre class="bg-dark text-white p-2 rounded" style="font-size: 10px;">*/5 * * * * php <?php echo realpath(__DIR__); ?>/cron_email_parser.php</pre>
                                 
                                 <p class="mt-3">Or use the web URL (with secret key):</p>
-                                <pre class="bg-dark text-white p-2 rounded">*/5 * * * * curl "<?php echo (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']); ?>/cron_email_parser.php?cron_key=your_secret_cron_key_12345"</pre>
+                                <pre class="bg-dark text-white p-2 rounded" style="font-size: 10px;">*/5 * * * * curl "<?php echo (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']); ?>/cron_email_parser.php?cron_key=your_secret_cron_key_12345"</pre>
                                 
                                 <p class="mt-3"><strong>Note:</strong> Change the secret key in cron_email_parser.php for security!</p>
                             </div>
@@ -160,7 +160,7 @@ require_once 'inc/sidebar.php';
                             </div>
                         </div>
                         <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                            <pre id="logContent" class="bg-dark text-white p-3 rounded" style="font-size: 12px;">
+                            <pre id="logContent" class="bg-dark text-white p-3 rounded" style="font-size: 10px;">
 Loading logs...
                             </pre>
                         </div>
@@ -175,7 +175,7 @@ Loading logs...
                             </h3>
                         </div>
                         <div class="card-body">
-                            <table class="table table-sm table-striped">
+                            <table class="table table-sm table-striped" style="font-size: 11px;">
                                 <thead>
                                     <tr>
                                         <th>Date</th>
