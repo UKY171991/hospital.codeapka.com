@@ -97,9 +97,65 @@ try {
     ]);
 }
 
+// Ensure tables exist
+function ensureTablesExist() {
+    global $pdo;
+    
+    // Create inventory_clients table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `inventory_clients` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `name` varchar(255) NOT NULL,
+        `type` enum('Individual','Corporate','Insurance','Government') NOT NULL DEFAULT 'Individual',
+        `email` varchar(255) DEFAULT NULL,
+        `phone` varchar(20) NOT NULL,
+        `address` text DEFAULT NULL,
+        `city` varchar(100) DEFAULT NULL,
+        `state` varchar(100) DEFAULT NULL,
+        `pincode` varchar(10) DEFAULT NULL,
+        `gst_number` varchar(50) DEFAULT NULL,
+        `status` enum('Active','Inactive') NOT NULL DEFAULT 'Active',
+        `notes` text DEFAULT NULL,
+        `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    
+    // Create inventory_income table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `inventory_income` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `date` date NOT NULL,
+        `category` varchar(100) NOT NULL,
+        `client_id` int(11) DEFAULT NULL,
+        `description` text NOT NULL,
+        `amount` decimal(10,2) NOT NULL,
+        `payment_method` enum('Cash','Card','UPI','Bank Transfer','Cheque') NOT NULL DEFAULT 'Cash',
+        `notes` text DEFAULT NULL,
+        `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    
+    // Create inventory_expense table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `inventory_expense` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `date` date NOT NULL,
+        `category` varchar(100) NOT NULL,
+        `vendor` varchar(255) DEFAULT NULL,
+        `description` text NOT NULL,
+        `amount` decimal(10,2) NOT NULL,
+        `payment_method` enum('Cash','Card','UPI','Bank Transfer','Cheque') NOT NULL DEFAULT 'Cash',
+        `invoice_number` varchar(100) DEFAULT NULL,
+        `notes` text DEFAULT NULL,
+        `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+}
+
 // Dashboard Functions
 function getDashboardStats() {
     global $pdo;
+    ensureTablesExist();
     
     // Get total income
     $stmt = $pdo->query("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income");
@@ -158,6 +214,7 @@ function getRecentTransactions() {
 // Income Functions
 function getIncomeRecords() {
     global $pdo;
+    ensureTablesExist();
     
     $sql = "SELECT i.*, c.name as client_name 
             FROM inventory_income i
@@ -194,6 +251,7 @@ function getIncome() {
 
 function addIncome() {
     global $pdo;
+    ensureTablesExist();
     
     $sql = "INSERT INTO inventory_income (date, category, client_id, description, amount, payment_method, notes, created_at)
             VALUES (:date, :category, :client_id, :description, :amount, :payment_method, :notes, NOW())";
@@ -260,6 +318,7 @@ function deleteIncome() {
 // Expense Functions
 function getExpenseRecords() {
     global $pdo;
+    ensureTablesExist();
     
     $sql = "SELECT * FROM inventory_expense ORDER BY date DESC, id DESC";
     
@@ -293,6 +352,7 @@ function getExpense() {
 
 function addExpense() {
     global $pdo;
+    ensureTablesExist();
     
     $sql = "INSERT INTO inventory_expense (date, category, vendor, description, amount, payment_method, invoice_number, notes, created_at)
             VALUES (:date, :category, :vendor, :description, :amount, :payment_method, :invoice_number, :notes, NOW())";
@@ -361,6 +421,7 @@ function deleteExpense() {
 // Client Functions
 function getClients() {
     global $pdo;
+    ensureTablesExist();
     
     $sql = "SELECT * FROM inventory_clients ORDER BY name ASC";
     
@@ -434,6 +495,7 @@ function getClientDetails() {
 
 function addClient() {
     global $pdo;
+    ensureTablesExist();
     
     $sql = "INSERT INTO inventory_clients (name, type, email, phone, address, city, state, pincode, gst_number, status, notes, created_at)
             VALUES (:name, :type, :email, :phone, :address, :city, :state, :pincode, :gst_number, :status, :notes, NOW())";
