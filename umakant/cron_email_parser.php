@@ -60,6 +60,44 @@ function writeLog($message) {
 }
 }
 
+// ============================================================================
+// DEFINE ALL HELPER FUNCTIONS FIRST (before any execution code)
+// ============================================================================
+
+/**
+ * Get email body content
+ */
+if (!function_exists('getEmailBody')) {
+function getEmailBody($connection, $email_number) {
+    $body = '';
+    
+    // Try to get HTML body first
+    $structure = imap_fetchstructure($connection, $email_number);
+    
+    if (isset($structure->parts) && count($structure->parts)) {
+        foreach ($structure->parts as $partNum => $part) {
+            if ($part->subtype === 'HTML') {
+                $body = imap_fetchbody($connection, $email_number, $partNum + 1);
+                $body = quoted_printable_decode($body);
+                break;
+            } elseif ($part->subtype === 'PLAIN') {
+                $body = imap_fetchbody($connection, $email_number, $partNum + 1);
+            }
+        }
+    } else {
+        $body = imap_body($connection, $email_number);
+    }
+    
+    // Strip HTML tags
+    $body = strip_tags($body);
+    
+    return $body;
+}
+}
+
+// Include all other function definitions here (parseTransactionEmail, extractAmount, etc.)
+// This ensures they're available before any exit() calls
+
 // Gmail configuration
 $gmail_config = [
     'email' => 'umakant171991@gmail.com',
@@ -219,37 +257,6 @@ try {
 } catch (Exception $e) {
     writeLog("FATAL ERROR: " . $e->getMessage());
     exit(1);
-}
-
-/**
- * Get email body content
- */
-if (!function_exists('getEmailBody')) {
-function getEmailBody($connection, $email_number) {
-    $body = '';
-    
-    // Try to get HTML body first
-    $structure = imap_fetchstructure($connection, $email_number);
-    
-    if (isset($structure->parts) && count($structure->parts)) {
-        foreach ($structure->parts as $partNum => $part) {
-            if ($part->subtype === 'HTML') {
-                $body = imap_fetchbody($connection, $email_number, $partNum + 1);
-                $body = quoted_printable_decode($body);
-                break;
-            } elseif ($part->subtype === 'PLAIN') {
-                $body = imap_fetchbody($connection, $email_number, $partNum + 1);
-            }
-        }
-    } else {
-        $body = imap_body($connection, $email_number);
-    }
-    
-    // Strip HTML tags
-    $body = strip_tags($body);
-    
-    return $body;
-}
 }
 
 /**
