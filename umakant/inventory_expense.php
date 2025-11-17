@@ -196,29 +196,44 @@ function loadExpenseRecords() {
     $.ajax({
         url: 'ajax/inventory_api.php',
         type: 'GET',
-        data: { action: 'get_expense_records' },
+        data: { 
+            action: 'get_expense_records',
+            _: new Date().getTime() // Cache buster
+        },
+        cache: false,
         dataType: 'json',
         success: function(response) {
             if (response && response.success) {
                 displayExpenseRecords(response.data);
             }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading expenses:', error);
+            toastr.error('Failed to load expense records');
         }
     });
 }
 
 function displayExpenseRecords(records) {
+    // Destroy existing DataTable first
+    if ($.fn.DataTable.isDataTable('#expenseTable')) {
+        $('#expenseTable').DataTable().destroy();
+    }
+    
     const tbody = $('#expenseTableBody');
     tbody.empty();
 
     if (!records || records.length === 0) {
-        tbody.append('<tr><td colspan="8" class="text-center">No expense records found</td></tr>');
+        tbody.append('<tr><td colspan="9" class="text-center">No expense records found</td></tr>');
         return;
     }
 
     records.forEach(function(record) {
-        const statusBadge = record.payment_status === 'Success' ? 
+        // Default to 'Success' if payment_status is not set
+        const paymentStatus = record.payment_status || 'Success';
+        const statusBadge = paymentStatus === 'Success' ? 
             '<span class="badge badge-success">Success</span>' : 
-            record.payment_status === 'Pending' ? 
+            paymentStatus === 'Pending' ? 
             '<span class="badge badge-warning">Pending</span>' : 
             '<span class="badge badge-danger">Failed</span>';
         
@@ -245,13 +260,11 @@ function displayExpenseRecords(records) {
         tbody.append(row);
     });
 
-    // Initialize DataTable
-    if ($.fn.DataTable.isDataTable('#expenseTable')) {
-        $('#expenseTable').DataTable().destroy();
-    }
+    // Initialize DataTable with fresh data
     expenseTable = $('#expenseTable').DataTable({
         responsive: true,
-        order: [[0, 'desc']]
+        order: [[0, 'desc']],
+        destroy: true // Allow reinitialization
     });
 }
 
@@ -308,17 +321,23 @@ function saveExpense() {
         url: 'ajax/inventory_api.php',
         type: 'POST',
         data: formData,
+        cache: false,
         dataType: 'json',
         success: function(response) {
             if (response && response.success) {
                 toastr.success(response.message || 'Expense saved successfully');
                 $('#expenseModal').modal('hide');
-                loadExpenseRecords();
+                
+                // Wait for modal to close, then reload data
+                setTimeout(function() {
+                    loadExpenseRecords();
+                }, 300);
             } else {
                 toastr.error(response.message || 'Failed to save expense');
             }
         },
-        error: function() {
+        error: function(xhr, status, error) {
+            console.error('Error saving expense:', error);
             toastr.error('An error occurred while saving expense');
         }
     });
@@ -333,14 +352,22 @@ function deleteExpense(id) {
         url: 'ajax/inventory_api.php',
         type: 'POST',
         data: { action: 'delete_expense', id: id },
+        cache: false,
         dataType: 'json',
         success: function(response) {
             if (response && response.success) {
                 toastr.success(response.message || 'Expense deleted successfully');
-                loadExpenseRecords();
+                // Reload data immediately
+                setTimeout(function() {
+                    loadExpenseRecords();
+                }, 200);
             } else {
                 toastr.error(response.message || 'Failed to delete expense');
             }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error deleting expense:', error);
+            toastr.error('An error occurred while deleting expense');
         }
     });
 }
