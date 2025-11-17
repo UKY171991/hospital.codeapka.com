@@ -26,6 +26,17 @@ try {
     $action = $_GET['action'] ?? $_POST['action'] ?? '';
     
     switch ($action) {
+        // Dashboard
+        case 'get_dashboard_stats':
+            getDashboardStats();
+            break;
+        case 'get_recent_clients':
+            getRecentClients();
+            break;
+        case 'get_recent_tasks':
+            getRecentTasks();
+            break;
+            
         // Client operations
         case 'get_clients':
             getClients();
@@ -108,6 +119,88 @@ function ensureTablesExist() {
         PRIMARY KEY (`id`),
         KEY `client_id` (`client_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+}
+
+// Dashboard Functions
+function getDashboardStats() {
+    global $pdo;
+    ensureTablesExist();
+    
+    // Total clients
+    $stmt = $pdo->query("SELECT COUNT(*) as total FROM clients");
+    $totalClients = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    
+    // Total tasks
+    $stmt = $pdo->query("SELECT COUNT(*) as total FROM tasks");
+    $totalTasks = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    
+    // Task status counts
+    $stmt = $pdo->query("SELECT 
+        SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending,
+        SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress,
+        SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) as completed,
+        SUM(CASE WHEN status = 'On Hold' THEN 1 ELSE 0 END) as on_hold
+        FROM tasks");
+    $taskStatus = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    // Task priority counts
+    $stmt = $pdo->query("SELECT 
+        SUM(CASE WHEN priority = 'Low' THEN 1 ELSE 0 END) as low,
+        SUM(CASE WHEN priority = 'Medium' THEN 1 ELSE 0 END) as medium,
+        SUM(CASE WHEN priority = 'High' THEN 1 ELSE 0 END) as high,
+        SUM(CASE WHEN priority = 'Urgent' THEN 1 ELSE 0 END) as urgent
+        FROM tasks");
+    $taskPriority = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    echo json_encode([
+        'success' => true,
+        'data' => [
+            'total_clients' => $totalClients,
+            'total_tasks' => $totalTasks,
+            'pending_tasks' => $taskStatus['pending'] ?? 0,
+            'completed_tasks' => $taskStatus['completed'] ?? 0,
+            'task_status' => $taskStatus,
+            'task_priority' => $taskPriority
+        ]
+    ]);
+}
+
+function getRecentClients() {
+    global $pdo;
+    ensureTablesExist();
+    
+    $limit = intval($_GET['limit'] ?? 5);
+    
+    $stmt = $pdo->prepare("SELECT * FROM clients ORDER BY created_at DESC LIMIT :limit");
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    echo json_encode([
+        'success' => true,
+        'data' => $clients
+    ]);
+}
+
+function getRecentTasks() {
+    global $pdo;
+    ensureTablesExist();
+    
+    $limit = intval($_GET['limit'] ?? 5);
+    
+    $stmt = $pdo->prepare("SELECT t.*, c.name as client_name 
+                           FROM tasks t
+                           LEFT JOIN clients c ON t.client_id = c.id
+                           ORDER BY t.created_at DESC 
+                           LIMIT :limit");
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    echo json_encode([
+        'success' => true,
+        'data' => $tasks
+    ]);
 }
 
 // Client Functions
