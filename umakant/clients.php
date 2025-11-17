@@ -302,6 +302,9 @@ function displayClients(clients) {
                 <td>${client.company || '-'}</td>
                 <td>${client.city || '-'}</td>
                 <td>
+                    <button class="btn btn-sm btn-success" onclick="openWhatsApp('${client.phone}')" title="WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </button>
                     <button class="btn btn-sm btn-primary" onclick="viewClient(${client.id})" title="View Details">
                         <i class="fas fa-eye"></i>
                     </button>
@@ -536,6 +539,30 @@ function editClientFromView() {
             editClient(currentViewClientId);
         }
     }, 300);
+}
+
+function openWhatsApp(phone) {
+    if (!phone || phone === '-') {
+        toastr.error('No phone number available for this client');
+        return;
+    }
+    
+    // Remove all non-numeric characters except +
+    let cleanPhone = phone.replace(/[^\d+]/g, '');
+    
+    // Remove leading zeros and add country code if not present
+    if (cleanPhone.startsWith('0')) {
+        cleanPhone = '91' + cleanPhone.substring(1); // Assuming India (+91)
+    } else if (!cleanPhone.startsWith('+') && !cleanPhone.startsWith('91')) {
+        cleanPhone = '91' + cleanPhone;
+    }
+    
+    // Remove + if present
+    cleanPhone = cleanPhone.replace('+', '');
+    
+    // Open WhatsApp
+    const whatsappUrl = `https://wa.me/${cleanPhone}`;
+    window.open(whatsappUrl, '_blank');
 }
 </script>
 
