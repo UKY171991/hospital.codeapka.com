@@ -67,6 +67,95 @@ require_once 'inc/sidebar.php';
     </section>
 </div>
 
+<!-- View Client Modal -->
+<div class="modal fade" id="viewClientModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user mr-2"></i>
+                    Client Details
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary"><i class="fas fa-info-circle mr-2"></i>Basic Information</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td width="40%"><strong>Name:</strong></td>
+                                <td id="viewClientName">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td id="viewClientEmail">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Phone:</strong></td>
+                                <td id="viewClientPhone">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Company:</strong></td>
+                                <td id="viewClientCompany">-</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary"><i class="fas fa-map-marker-alt mr-2"></i>Address Information</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td width="40%"><strong>Address:</strong></td>
+                                <td id="viewClientAddress">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>City:</strong></td>
+                                <td id="viewClientCity">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>State:</strong></td>
+                                <td id="viewClientState">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ZIP Code:</strong></td>
+                                <td id="viewClientZip">-</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6 class="text-primary"><i class="fas fa-sticky-note mr-2"></i>Notes</h6>
+                        <p id="viewClientNotes" class="text-muted">No notes available</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6 class="text-primary"><i class="fas fa-tasks mr-2"></i>Associated Tasks</h6>
+                        <div id="viewClientTasks">
+                            <p class="text-center text-muted">Loading tasks...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-info" onclick="editClientFromView()">
+                    <i class="fas fa-edit mr-1"></i> Edit Client
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Client Modal -->
 <div class="modal fade" id="clientModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
@@ -213,10 +302,13 @@ function displayClients(clients) {
                 <td>${client.company || '-'}</td>
                 <td>${client.city || '-'}</td>
                 <td>
-                    <button class="btn btn-sm btn-info" onclick="editClient(${client.id})">
+                    <button class="btn btn-sm btn-primary" onclick="viewClient(${client.id})" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-info" onclick="editClient(${client.id})" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteClient(${client.id})">
+                    <button class="btn btn-sm btn-danger" onclick="deleteClient(${client.id})" title="Delete">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -336,6 +428,114 @@ function deleteClient(id) {
             toastr.error('An error occurred while deleting client');
         }
     });
+}
+
+let currentViewClientId = null;
+
+function viewClient(id) {
+    currentViewClientId = id;
+    
+    // Load client details
+    $.ajax({
+        url: 'ajax/client_api.php',
+        type: 'GET',
+        data: { action: 'get_client', id: id },
+        cache: false,
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success) {
+                const client = response.data;
+                
+                // Populate basic information
+                $('#viewClientName').text(client.name || '-');
+                $('#viewClientEmail').text(client.email || '-');
+                $('#viewClientPhone').text(client.phone || '-');
+                $('#viewClientCompany').text(client.company || '-');
+                
+                // Populate address information
+                $('#viewClientAddress').text(client.address || '-');
+                $('#viewClientCity').text(client.city || '-');
+                $('#viewClientState').text(client.state || '-');
+                $('#viewClientZip').text(client.zip || '-');
+                
+                // Populate notes
+                $('#viewClientNotes').text(client.notes || 'No notes available');
+                
+                // Load client tasks
+                loadClientTasks(id);
+                
+                // Show modal
+                $('#viewClientModal').modal('show');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading client:', error);
+            toastr.error('Failed to load client details');
+        }
+    });
+}
+
+function loadClientTasks(clientId) {
+    $('#viewClientTasks').html('<p class="text-center text-muted">Loading tasks...</p>');
+    
+    $.ajax({
+        url: 'ajax/client_api.php',
+        type: 'GET',
+        data: { action: 'get_tasks' },
+        cache: false,
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success) {
+                // Filter tasks for this client
+                const clientTasks = response.data.filter(task => task.client_id == clientId);
+                
+                if (clientTasks.length === 0) {
+                    $('#viewClientTasks').html('<p class="text-center text-muted">No tasks found for this client</p>');
+                    return;
+                }
+                
+                let tasksHtml = '<div class="table-responsive"><table class="table table-sm table-bordered">';
+                tasksHtml += '<thead><tr><th>Title</th><th>Priority</th><th>Status</th><th>Due Date</th></tr></thead><tbody>';
+                
+                clientTasks.forEach(function(task) {
+                    const priorityBadge = task.priority === 'Urgent' ? 'badge-danger' :
+                                        task.priority === 'High' ? 'badge-warning' :
+                                        task.priority === 'Medium' ? 'badge-info' : 'badge-secondary';
+                    
+                    const statusBadge = task.status === 'Completed' ? 'badge-success' :
+                                      task.status === 'In Progress' ? 'badge-primary' :
+                                      task.status === 'On Hold' ? 'badge-warning' : 'badge-secondary';
+                    
+                    tasksHtml += `
+                        <tr>
+                            <td>${task.title}</td>
+                            <td><span class="badge ${priorityBadge}">${task.priority}</span></td>
+                            <td><span class="badge ${statusBadge}">${task.status}</span></td>
+                            <td>${task.due_date || '-'}</td>
+                        </tr>
+                    `;
+                });
+                
+                tasksHtml += '</tbody></table></div>';
+                $('#viewClientTasks').html(tasksHtml);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading tasks:', error);
+            $('#viewClientTasks').html('<p class="text-center text-danger">Failed to load tasks</p>');
+        }
+    });
+}
+
+function editClientFromView() {
+    $('#viewClientModal').modal('hide');
+    
+    // Wait for modal to close, then open edit modal
+    setTimeout(function() {
+        if (currentViewClientId) {
+            editClient(currentViewClientId);
+        }
+    }, 300);
 }
 </script>
 
