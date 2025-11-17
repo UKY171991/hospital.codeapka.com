@@ -199,6 +199,11 @@ function runParser() {
     }
     
     try {
+        // Set error handler to catch all errors
+        set_error_handler(function($errno, $errstr, $errfile, $errline) {
+            throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+        });
+        
         // Capture output
         ob_start();
         
@@ -208,12 +213,22 @@ function runParser() {
         // Include and execute the cron script
         include $script_path;
         
+        // Restore error handler
+        restore_error_handler();
+        
         // Get the output
         $output = ob_get_clean();
+        
+        // Check if output is empty or incomplete
+        if (empty($output)) {
+            throw new Exception('Parser produced no output');
+        }
         
         // Parse the output for summary
         $lines = explode("\n", $output);
         $summary = [];
+        $hasCompletion = false;
+        
         foreach ($lines as $line) {
             if (strpos($line, 'Total Emails:') !== false ||
                 strpos($line, 'Processed:') !== false ||
@@ -222,20 +237,38 @@ function runParser() {
                 strpos($line, 'Skipped:') !== false) {
                 $summary[] = trim(str_replace(['[', ']'], '', $line));
             }
+            if (strpos($line, 'Completed') !== false) {
+                $hasCompletion = true;
+            }
         }
         
         echo json_encode([
-            'success' => true,
-            'message' => 'Email parser completed successfully',
+            'success' => $hasCompletion,
+            'message' => $hasCompletion ? 'Email parser completed successfully' : 'Parser may have encountered issues',
             'summary' => implode(' | ', $summary),
-            'output' => $output
+            'output' => $output,
+            'lines_count' => count($lines)
         ]);
         
     } catch (Exception $e) {
-        ob_end_clean();
+        restore_error_handler();
+        $output = ob_get_clean();
         echo json_encode([
             'success' => false,
-            'message' => 'Parser execution failed: ' . $e->getMessage()
+            'message' => 'Parser execution failed: ' . $e->getMessage(),
+            'output' => $output,
+            'error_line' => $e->getLine(),
+            'error_file' => basename($e->getFile())
+        ]);
+    } catch (Error $e) {
+        restore_error_handler();
+        $output = ob_get_clean();
+        echo json_encode([
+            'success' => false,
+            'message' => 'Fatal error: ' . $e->getMessage(),
+            'output' => $output,
+            'error_line' => $e->getLine(),
+            'error_file' => basename($e->getFile())
         ]);
     }
 }
