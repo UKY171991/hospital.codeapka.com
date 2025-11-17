@@ -113,12 +113,26 @@ function ensureTablesExist() {
         `priority` enum('Low','Medium','High','Urgent') NOT NULL DEFAULT 'Medium',
         `status` enum('Pending','In Progress','Completed','On Hold') NOT NULL DEFAULT 'Pending',
         `due_date` date DEFAULT NULL,
+        `website_urls` text DEFAULT NULL,
+        `screenshots` text DEFAULT NULL,
         `notes` text DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`),
         KEY `client_id` (`client_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    
+    // Add website_urls and screenshots columns if they don't exist
+    try {
+        $pdo->exec("ALTER TABLE `tasks` ADD COLUMN `website_urls` text DEFAULT NULL AFTER `due_date`");
+    } catch (Exception $e) {
+        // Column already exists
+    }
+    try {
+        $pdo->exec("ALTER TABLE `tasks` ADD COLUMN `screenshots` text DEFAULT NULL AFTER `website_urls`");
+    } catch (Exception $e) {
+        // Column already exists
+    }
 }
 
 // Dashboard Functions
@@ -389,8 +403,14 @@ function addTask() {
     global $pdo;
     ensureTablesExist();
     
-    $sql = "INSERT INTO tasks (client_id, title, description, priority, status, due_date, notes, created_at)
-            VALUES (:client_id, :title, :description, :priority, :status, :due_date, :notes, NOW())";
+    // Handle file uploads
+    $screenshots = [];
+    if (isset($_FILES['screenshots'])) {
+        $screenshots = handleScreenshotUploads($_FILES['screenshots']);
+    }
+    
+    $sql = "INSERT INTO tasks (client_id, title, description, priority, status, due_date, website_urls, screenshots, notes, created_at)
+            VALUES (:client_id, :title, :description, :priority, :status, :due_date, :website_urls, :screenshots, :notes, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -400,6 +420,8 @@ function addTask() {
         ':priority' => $_POST['priority'],
         ':status' => $_POST['status'],
         ':due_date' => $_POST['due_date'] ?: null,
+        ':website_urls' => $_POST['website_urls'] ?? '',
+        ':screenshots' => json_encode($screenshots),
         ':notes' => $_POST['notes'] ?? ''
     ]);
     
@@ -413,10 +435,42 @@ function addTask() {
 function updateTask() {
     global $pdo;
     
+    // Get existing screenshots
+    $stmt = $pdo->prepare("SELECT screenshots FROM tasks WHERE id = :id");
+    $stmt->execute([':id' => $_POST['id']]);
+    $existingTask = $stmt->fetch(PDO::FETCH_ASSOC);
+    $existingScreenshots = json_decode($existingTask['screenshots'] ?? '[]', true);
+    
+    // Handle new file uploads
+    $newScreenshots = [];
+    if (isset($_FILES['screenshots'])) {
+        $newScreenshots = handleScreenshotUploads($_FILES['screenshots']);
+    }
+    
+    // Merge existing and new screenshots
+    $allScreenshots = array_merge($existingScreenshots, $newScreenshots);
+    
+    // Handle screenshot deletions
+    if (isset($_POST['delete_screenshots'])) {
+        $deleteScreenshots = json_decode($_POST['delete_screenshots'], true);
+        foreach ($deleteScreenshots as $screenshot) {
+            // Remove from array
+            $allScreenshots = array_filter($allScreenshots, function($s) use ($screenshot) {
+                return $s !== $screenshot;
+            });
+            // Delete file
+            $filePath = '../uploads/screenshots/' . basename($screenshot);
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+        }
+        $allScreenshots = array_values($allScreenshots); // Re-index array
+    }
+    
     $sql = "UPDATE tasks 
             SET client_id = :client_id, title = :title, description = :description,
                 priority = :priority, status = :status, due_date = :due_date, 
-                notes = :notes, updated_at = NOW()
+                website_urls = :website_urls, screenshots = :screenshots, notes = :notes, updated_at = NOW()
             WHERE id = :id";
     
     $stmt = $pdo->prepare($sql);
@@ -428,6 +482,8 @@ function updateTask() {
         ':priority' => $_POST['priority'],
         ':status' => $_POST['status'],
         ':due_date' => $_POST['due_date'] ?: null,
+        ':website_urls' => $_POST['website_urls'] ?? '',
+        ':screenshots' => json_encode($allScreenshots),
         ':notes' => $_POST['notes'] ?? ''
     ]);
     
@@ -452,13 +508,30 @@ function deleteTask() {
     }
     
     try {
+        // Get task screenshots before deleting
+        $stmt = $pdo->prepare("SELECT screenshots FROM tasks WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        $task = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($task) {
+            // Delete screenshot files
+            $screenshots = json_decode($task['screenshots'] ?? '[]', true);
+            foreach ($screenshots as $screenshot) {
+                $filePath = '../uploads/screenshots/' . basename($screenshot);
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            }
+        }
+        
+        // Delete task
         $stmt = $pdo->prepare("DELETE FROM tasks WHERE id = :id");
         $stmt->execute([':id' => $id]);
         
         if ($stmt->rowCount() > 0) {
             echo json_encode([
                 'success' => true,
-                'message' => 'Task deleted successfully'
+                'message' => 'Task and associated screenshots deleted successfully'
             ]);
         } else {
             echo json_encode([
@@ -472,5 +545,53 @@ function deleteTask() {
             'message' => 'Database error: ' . $e->getMessage()
         ]);
     }
+}
+
+function handleScreenshotUploads($files) {
+    $uploadedFiles = [];
+    $uploadDir = '../uploads/screenshots/';
+    
+    // Create directory if it doesn't exist
+    if (!file_exists($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+    
+    // Handle multiple file uploads
+    if (is_array($files['name'])) {
+        $fileCount = count($files['name']);
+        for ($i = 0; $i < $fileCount; $i++) {
+            if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                $fileName = time() . '_' . $i . '_' . basename($files['name'][$i]);
+                $targetPath = $uploadDir . $fileName;
+                
+                // Validate file type
+                $fileType = strtolower(pathinfo($targetPath, PATHINFO_EXTENSION));
+                $allowedTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                
+                if (in_array($fileType, $allowedTypes)) {
+                    if (move_uploaded_file($files['tmp_name'][$i], $targetPath)) {
+                        $uploadedFiles[] = 'uploads/screenshots/' . $fileName;
+                    }
+                }
+            }
+        }
+    } else {
+        // Single file upload
+        if ($files['error'] === UPLOAD_ERR_OK) {
+            $fileName = time() . '_' . basename($files['name']);
+            $targetPath = $uploadDir . $fileName;
+            
+            $fileType = strtolower(pathinfo($targetPath, PATHINFO_EXTENSION));
+            $allowedTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            
+            if (in_array($fileType, $allowedTypes)) {
+                if (move_uploaded_file($files['tmp_name'], $targetPath)) {
+                    $uploadedFiles[] = 'uploads/screenshots/' . $fileName;
+                }
+            }
+        }
+    }
+    
+    return $uploadedFiles;
 }
 ?>
