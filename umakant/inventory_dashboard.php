@@ -172,7 +172,16 @@ function loadDashboardData() {
                 $('#totalExpense').text('₹' + formatNumber(response.data.total_expense || 0));
                 $('#netProfit').text('₹' + formatNumber(response.data.net_profit || 0));
                 $('#totalClients').text(response.data.total_clients || 0);
+            } else {
+                console.error('Failed to load dashboard stats:', response);
             }
+        },
+        error: function(xhr, status, error) {
+            console.error('Dashboard stats error:', error);
+            $('#totalIncome').text('₹0');
+            $('#totalExpense').text('₹0');
+            $('#netProfit').text('₹0');
+            $('#totalClients').text('0');
         }
     });
 
@@ -185,7 +194,13 @@ function loadDashboardData() {
         success: function(response) {
             if (response && response.success) {
                 displayRecentTransactions(response.data);
+            } else {
+                displayRecentTransactions([]);
             }
+        },
+        error: function(xhr, status, error) {
+            console.error('Recent transactions error:', error);
+            displayRecentTransactions([]);
         }
     });
 }
