@@ -95,8 +95,107 @@ function getEmailBody($connection, $email_number) {
 }
 }
 
-// Include all other function definitions here (parseTransactionEmail, extractAmount, etc.)
-// This ensures they're available before any exit() calls
+// ALL HELPER FUNCTIONS DEFINED HERE (before any execution code)
+// This ensures they're available even if script exits early
+
+if (!function_exists('parseTransactionEmail')) {
+function parseTransactionEmail($subject, $body, $from, $date) {
+    global $log_file;
+    $subject_lower = strtolower($subject);
+    $body_lower = strtolower($body);
+    $combined = $subject_lower . ' ' . $body_lower;
+    $is_income = false;
+    $is_expense = false;
+    $matched_keyword = '';
+    $expense_patterns = ['/\bdebit(ed)?\b/i', '/\bwithdraw(n|al)?\b/i', '/\bpurchase(d)?\b/i', '/\bpaid\b/i', '/\bspent\b/i', '/\bbill payment\b/i', '/\brecharge\b/i', '/\bsubscription\b/i', '/\bdeducted\b/i', '/\bpayment made\b/i', '/\bsent to\b/i', '/\border placed\b/i', '/\byou paid\b/i', '/\bpayment sent\b/i'];
+    $income_patterns = ['/\bcredit(ed)?\b/i', '/\bdeposit(ed)?\b/i', '/\breceived\b/i', '/\bincoming\b/i', '/\bmoney added\b/i', '/\bpayment received\b/i', '/\breceived from\b/i', '/\byou received\b/i', '/\byou got\b/i', '/\btransfer received\b/i'];
+    foreach ($expense_patterns as $pattern) { if (preg_match($pattern, $combined, $matches)) { $is_expense = true; $matched_keyword = isset($matches[0]) ? $matches[0] : $pattern; break; } }
+    if (!$is_expense) { foreach ($income_patterns as $pattern) { if (preg_match($pattern, $combined, $matches)) { $is_income = true; $matched_keyword = isset($matches[0]) ? $matches[0] : $pattern; break; } } }
+    if (!$is_income && !$is_expense) return null;
+    $amount = extractAmount($combined);
+    if (!$amount) return null;
+    return ['type' => $is_income ? 'income' : 'expense', 'date' => $date, 'category' => determineCategory($combined, $is_income), 'description' => extractDescription($subject, $body), 'amount' => $amount, 'payment_method' => extractPaymentMethod($combined), 'source_email' => $from, 'notes' => 'Auto-imported from email'];
+}
+}
+
+if (!function_exists('extractAmount')) {
+function extractAmount($text) {
+    $patterns = ['/(?:rs\.?|inr|₹)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i', '/([0-9,]+(?:\.[0-9]{1,2})?)\s*(?:rs\.?|inr|₹)/i', '/amount[:\s]+(?:rs\.?|inr|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i', '/(?:credited|debited|received|paid|sent)[:\s]+(?:rs\.?|inr|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i'];
+    foreach ($patterns as $pattern) { if (preg_match($pattern, $text, $matches)) { $amount = floatval(str_replace(',', '', $matches[1])); if ($amount >= 1 && $amount <= 10000000) return $amount; } }
+    return null;
+}
+}
+
+if (!function_exists('extractPaymentMethod')) {
+function extractPaymentMethod($text) {
+    if (strpos($text, 'upi') !== false) return 'UPI';
+    if (strpos($text, 'card') !== false) return 'Card';
+    if (strpos($text, 'neft') !== false || strpos($text, 'rtgs') !== false || strpos($text, 'imps') !== false) return 'Bank Transfer';
+    if (strpos($text, 'cheque') !== false) return 'Cheque';
+    if (strpos($text, 'cash') !== false) return 'Cash';
+    return 'Bank Transfer';
+}
+}
+
+if (!function_exists('extractDescription')) {
+function extractDescription($subject, $body) {
+    $description = trim($subject);
+    if (strlen($description) > 200) $description = substr($description, 0, 197) . '...';
+    return $description;
+}
+}
+
+if (!function_exists('determineCategory')) {
+function determineCategory($text, $is_income) {
+    if ($is_income) {
+        if (strpos($text, 'consultation') !== false) return 'Consultation';
+        if (strpos($text, 'lab') !== false || strpos($text, 'test') !== false) return 'Lab Tests';
+        if (strpos($text, 'pharmacy') !== false) return 'Pharmacy';
+        if (strpos($text, 'surgery') !== false) return 'Surgery';
+        if (strpos($text, 'room') !== false) return 'Room Charges';
+        return 'Other Services';
+    } else {
+        if (strpos($text, 'medical supply') !== false) return 'Medical Supplies';
+        if (strpos($text, 'equipment') !== false) return 'Equipment';
+        if (strpos($text, 'electricity') !== false || strpos($text, 'utility') !== false) return 'Utilities';
+        if (strpos($text, 'salary') !== false) return 'Salaries';
+        if (strpos($text, 'rent') !== false) return 'Rent';
+        if (strpos($text, 'maintenance') !== false) return 'Maintenance';
+        return 'Other';
+    }
+}
+}
+
+if (!function_exists('isEmailProcessed')) {
+function isEmailProcessed($pdo, $message_id) {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM processed_emails WHERE message_id = :message_id");
+    $stmt->execute([':message_id' => $message_id]);
+    return $stmt->fetchColumn() > 0;
+}
+}
+
+if (!function_exists('markEmailAsProcessed')) {
+function markEmailAsProcessed($pdo, $message_id, $type) {
+    $stmt = $pdo->prepare("INSERT INTO processed_emails (message_id, transaction_type, processed_at) VALUES (:message_id, :type, NOW())");
+    $stmt->execute([':message_id' => $message_id, ':type' => $type]);
+}
+}
+
+if (!function_exists('insertIncome')) {
+function insertIncome($pdo, $transaction) {
+    $sql = "INSERT INTO inventory_income (date, category, description, amount, payment_method, notes, created_at) VALUES (:date, :category, :description, :amount, :payment_method, :notes, NOW())";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':date' => $transaction['date'], ':category' => $transaction['category'], ':description' => $transaction['description'], ':amount' => $transaction['amount'], ':payment_method' => $transaction['payment_method'], ':notes' => $transaction['notes'] . ' | From: ' . $transaction['source_email']]);
+}
+}
+
+if (!function_exists('insertExpense')) {
+function insertExpense($pdo, $transaction) {
+    $sql = "INSERT INTO inventory_expense (date, category, vendor, description, amount, payment_method, notes, created_at) VALUES (:date, :category, :vendor, :description, :amount, :payment_method, :notes, NOW())";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':date' => $transaction['date'], ':category' => $transaction['category'], ':vendor' => $transaction['source_email'], ':description' => $transaction['description'], ':amount' => $transaction['amount'], ':payment_method' => $transaction['payment_method'], ':notes' => $transaction['notes']]);
+}
+}
 
 // Gmail configuration
 $gmail_config = [
@@ -257,278 +356,6 @@ try {
 } catch (Exception $e) {
     writeLog("FATAL ERROR: " . $e->getMessage());
     exit(1);
-}
-
-/**
- * Parse email for transaction information
- */
-if (!function_exists('parseTransactionEmail')) {
-function parseTransactionEmail($subject, $body, $from, $date) {
-    global $log_file;
-    
-    $subject_lower = strtolower($subject);
-    $body_lower = strtolower($body);
-    $combined = $subject_lower . ' ' . $body_lower;
-    
-    // CRITICAL: Use word boundaries to prevent false matches
-    // "debited" should NOT match "credited"
-    // Use \b for word boundaries in regex
-    
-    $is_income = false;
-    $is_expense = false;
-    $matched_keyword = '';
-    
-    // EXPENSE patterns (check first - money going OUT)
-    $expense_patterns = [
-        '/\bdebit(ed)?\b/i',           // debited, debit (but not credited)
-        '/\bwithdraw(n|al)?\b/i',      // withdrawn, withdrawal
-        '/\bpurchase(d)?\b/i',         // purchase, purchased
-        '/\bpaid\b/i',                 // paid
-        '/\bspent\b/i',                // spent
-        '/\bbill payment\b/i',         // bill payment
-        '/\brecharge\b/i',             // recharge
-        '/\bsubscription\b/i',         // subscription
-        '/\bdeducted\b/i',             // deducted
-        '/\bpayment made\b/i',         // payment made
-        '/\bsent to\b/i',              // sent to
-        '/\border placed\b/i',         // order placed
-        '/\byou paid\b/i',             // you paid
-        '/\bpayment sent\b/i'          // payment sent
-    ];
-    
-    // INCOME patterns (check second - money coming IN)
-    $income_patterns = [
-        '/\bcredit(ed)?\b/i',          // credited, credit (but not debited)
-        '/\bdeposit(ed)?\b/i',         // deposit, deposited
-        '/\breceived\b/i',             // received
-        '/\bincoming\b/i',             // incoming
-        '/\bmoney added\b/i',          // money added
-        '/\bpayment received\b/i',     // payment received
-        '/\breceived from\b/i',        // received from
-        '/\byou received\b/i',         // you received
-        '/\byou got\b/i',              // you got
-        '/\btransfer received\b/i'     // transfer received
-    ];
-    
-    // Check EXPENSE patterns first
-    foreach ($expense_patterns as $pattern) {
-        if (preg_match($pattern, $combined, $matches)) {
-            $is_expense = true;
-            $matched_keyword = isset($matches[0]) ? $matches[0] : $pattern;
-            writeLog("DEBUG: Matched EXPENSE pattern: $pattern -> '$matched_keyword'");
-            break;
-        }
-    }
-    
-    // Only check INCOME if NOT expense
-    if (!$is_expense) {
-        foreach ($income_patterns as $pattern) {
-            if (preg_match($pattern, $combined, $matches)) {
-                $is_income = true;
-                $matched_keyword = isset($matches[0]) ? $matches[0] : $pattern;
-                writeLog("DEBUG: Matched INCOME pattern: $pattern -> '$matched_keyword'");
-                break;
-            }
-        }
-    }
-    
-    if (!$is_income && !$is_expense) {
-        writeLog("SKIP: No transaction keywords found in: $subject");
-        writeLog("DEBUG: Combined text: " . substr($combined, 0, 300));
-        return null; // Not a transaction email
-    }
-    
-    // Extract amount
-    $amount = extractAmount($combined);
-    if (!$amount) {
-        writeLog("SKIP: No amount found in: $subject (matched keyword: $matched_keyword)");
-        return null; // No amount found
-    }
-    
-    writeLog("DETECTED: " . ($is_income ? 'INCOME' : 'EXPENSE') . " - Amount: ₹$amount - Keyword: $matched_keyword");
-    
-    // Extract payment method
-    $payment_method = extractPaymentMethod($combined);
-    
-    // Extract description
-    $description = extractDescription($subject, $body);
-    
-    // Determine category
-    $category = determineCategory($combined, $is_income);
-    
-    return [
-        'type' => $is_income ? 'income' : 'expense',
-        'date' => $date,
-        'category' => $category,
-        'description' => $description,
-        'amount' => $amount,
-        'payment_method' => $payment_method,
-        'source_email' => $from,
-        'notes' => 'Auto-imported from email'
-    ];
-}
-}
-
-/**
- * Extract amount from text
- */
-if (!function_exists('extractAmount')) {
-function extractAmount($text) {
-    // Enhanced patterns for Indian currency (₹ or Rs or INR)
-    $patterns = [
-        // Rs. 1500, Rs 1500, Rs.1500
-        '/(?:rs\.?|inr|₹)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i',
-        // 1500 Rs, 1500 INR, 1500₹
-        '/([0-9,]+(?:\.[0-9]{1,2})?)\s*(?:rs\.?|inr|₹)/i',
-        // Amount: Rs. 1500, Amount Rs 1500
-        '/amount[:\s]+(?:rs\.?|inr|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i',
-        // Credited/Debited Rs. 1500
-        '/(?:credited|debited|received|paid|sent)[:\s]+(?:rs\.?|inr|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i',
-        // of Rs. 1500, for Rs. 1500
-        '/(?:of|for)[:\s]+(?:rs\.?|inr|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i',
-        // Just numbers with currency nearby (within 10 chars)
-        '/(?:rs\.?|inr|₹).{0,10}?([0-9,]+(?:\.[0-9]{1,2})?)/i',
-        '/([0-9,]+(?:\.[0-9]{1,2})?)(?:.{0,10}?)(?:rs\.?|inr|₹)/i'
-    ];
-    
-    foreach ($patterns as $pattern) {
-        if (preg_match($pattern, $text, $matches)) {
-            $amount = str_replace(',', '', $matches[1]);
-            $amount = floatval($amount);
-            // Validate amount is reasonable (between 1 and 10,000,000)
-            if ($amount >= 1 && $amount <= 10000000) {
-                return $amount;
-            }
-        }
-    }
-    
-    return null;
-}
-}
-
-/**
- * Extract payment method
- */
-if (!function_exists('extractPaymentMethod')) {
-function extractPaymentMethod($text) {
-    if (strpos($text, 'upi') !== false) return 'UPI';
-    if (strpos($text, 'card') !== false || strpos($text, 'debit') !== false || strpos($text, 'credit') !== false) return 'Card';
-    if (strpos($text, 'neft') !== false) return 'Bank Transfer';
-    if (strpos($text, 'rtgs') !== false) return 'Bank Transfer';
-    if (strpos($text, 'imps') !== false) return 'Bank Transfer';
-    if (strpos($text, 'cheque') !== false || strpos($text, 'check') !== false) return 'Cheque';
-    if (strpos($text, 'cash') !== false) return 'Cash';
-    
-    return 'Bank Transfer'; // Default
-}
-}
-
-/**
- * Extract description
- */
-if (!function_exists('extractDescription')) {
-function extractDescription($subject, $body) {
-    // Clean subject
-    $description = trim($subject);
-    
-    // Limit length
-    if (strlen($description) > 200) {
-        $description = substr($description, 0, 197) . '...';
-    }
-    
-    return $description;
-}
-}
-
-/**
- * Determine category based on keywords
- */
-if (!function_exists('determineCategory')) {
-function determineCategory($text, $is_income) {
-    if ($is_income) {
-        if (strpos($text, 'consultation') !== false) return 'Consultation';
-        if (strpos($text, 'lab') !== false || strpos($text, 'test') !== false) return 'Lab Tests';
-        if (strpos($text, 'pharmacy') !== false || strpos($text, 'medicine') !== false) return 'Pharmacy';
-        if (strpos($text, 'surgery') !== false || strpos($text, 'operation') !== false) return 'Surgery';
-        if (strpos($text, 'room') !== false || strpos($text, 'bed') !== false) return 'Room Charges';
-        return 'Other Services';
-    } else {
-        if (strpos($text, 'medical supply') !== false || strpos($text, 'supplies') !== false) return 'Medical Supplies';
-        if (strpos($text, 'equipment') !== false) return 'Equipment';
-        if (strpos($text, 'electricity') !== false || strpos($text, 'water') !== false || strpos($text, 'utility') !== false) return 'Utilities';
-        if (strpos($text, 'salary') !== false || strpos($text, 'wage') !== false) return 'Salaries';
-        if (strpos($text, 'rent') !== false) return 'Rent';
-        if (strpos($text, 'maintenance') !== false || strpos($text, 'repair') !== false) return 'Maintenance';
-        if (strpos($text, 'marketing') !== false || strpos($text, 'advertisement') !== false) return 'Marketing';
-        if (strpos($text, 'transport') !== false || strpos($text, 'fuel') !== false) return 'Transportation';
-        return 'Other';
-    }
-}
-}
-
-/**
- * Check if email already processed
- */
-if (!function_exists('isEmailProcessed')) {
-function isEmailProcessed($pdo, $message_id) {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM processed_emails WHERE message_id = :message_id");
-    $stmt->execute([':message_id' => $message_id]);
-    return $stmt->fetchColumn() > 0;
-}
-}
-
-/**
- * Mark email as processed
- */
-if (!function_exists('markEmailAsProcessed')) {
-function markEmailAsProcessed($pdo, $message_id, $type) {
-    $stmt = $pdo->prepare("INSERT INTO processed_emails (message_id, transaction_type, processed_at) VALUES (:message_id, :type, NOW())");
-    $stmt->execute([
-        ':message_id' => $message_id,
-        ':type' => $type
-    ]);
-}
-}
-
-/**
- * Insert income record
- */
-if (!function_exists('insertIncome')) {
-function insertIncome($pdo, $transaction) {
-    $sql = "INSERT INTO inventory_income (date, category, description, amount, payment_method, notes, created_at)
-            VALUES (:date, :category, :description, :amount, :payment_method, :notes, NOW())";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ':date' => $transaction['date'],
-        ':category' => $transaction['category'],
-        ':description' => $transaction['description'],
-        ':amount' => $transaction['amount'],
-        ':payment_method' => $transaction['payment_method'],
-        ':notes' => $transaction['notes'] . ' | From: ' . $transaction['source_email']
-    ]);
-}
-}
-
-/**
- * Insert expense record
- */
-if (!function_exists('insertExpense')) {
-function insertExpense($pdo, $transaction) {
-    $sql = "INSERT INTO inventory_expense (date, category, vendor, description, amount, payment_method, notes, created_at)
-            VALUES (:date, :category, :vendor, :description, :amount, :payment_method, :notes, NOW())";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ':date' => $transaction['date'],
-        ':category' => $transaction['category'],
-        ':vendor' => $transaction['source_email'],
-        ':description' => $transaction['description'],
-        ':amount' => $transaction['amount'],
-        ':payment_method' => $transaction['payment_method'],
-        ':notes' => $transaction['notes']
-    ]);
-}
 }
 
 writeLog("=== Email Parser Cron Job Completed ===");
