@@ -290,7 +290,7 @@ $role = $_SESSION['role'] ?? 'user';
 
         <?php
         // Clients menu pages
-        $clientsPages = ['add_client.php', 'client_list.php', 'add_task.php', 'task_list.php'];
+        $clientsPages = ['client_dashboard.php', 'clients.php', 'tasks.php'];
         $isClientsActive = in_array($activePage, $clientsPages);
         ?>
         <li class="nav-item has-treeview <?php echo $isClientsActive ? 'menu-open' : ''; ?>">
@@ -303,27 +303,21 @@ $role = $_SESSION['role'] ?? 'user';
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="add_client.php" class="nav-link <?php echo ($activePage == 'add_client.php') ? 'active' : ''; ?>">
-                <i class="fas fa-user-plus nav-icon"></i>
-                <p>Add Client</p>
+              <a href="client_dashboard.php" class="nav-link <?php echo ($activePage == 'client_dashboard.php') ? 'active' : ''; ?>">
+                <i class="fas fa-chart-line nav-icon"></i>
+                <p>Dashboard</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="client_list.php" class="nav-link <?php echo ($activePage == 'client_list.php') ? 'active' : ''; ?>">
-                <i class="fas fa-list nav-icon"></i>
-                <p>Client List</p>
+              <a href="clients.php" class="nav-link <?php echo ($activePage == 'clients.php') ? 'active' : ''; ?>">
+                <i class="fas fa-users nav-icon"></i>
+                <p>Clients</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="add_task.php" class="nav-link <?php echo ($activePage == 'add_task.php') ? 'active' : ''; ?>">
+              <a href="tasks.php" class="nav-link <?php echo ($activePage == 'tasks.php') ? 'active' : ''; ?>">
                 <i class="fas fa-tasks nav-icon"></i>
-                <p>Add Task</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="task_list.php" class="nav-link <?php echo ($activePage == 'task_list.php') ? 'active' : ''; ?>">
-                <i class="fas fa-clipboard-list nav-icon"></i>
-                <p>Task List</p>
+                <p>Tasks</p>
               </a>
             </li>
           </ul>
