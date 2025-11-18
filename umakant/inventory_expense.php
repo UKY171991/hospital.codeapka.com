@@ -44,7 +44,7 @@ require_once 'inc/sidebar.php';
                             <table id="expenseTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>Sr. No.</th>
                                         <th>Date</th>
                                         <th>Category</th>
                                         <th>Description</th>
@@ -228,6 +228,14 @@ function displayExpenseRecords(records) {
         return;
     }
 
+    // Sort records by date (descending - newest first)
+    records.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB - dateA; // Descending order
+    });
+
+    let srNo = 1;
     records.forEach(function(record) {
         // Default to 'Success' if payment_status is not set
         const paymentStatus = record.payment_status || 'Success';
@@ -239,7 +247,7 @@ function displayExpenseRecords(records) {
         
         const row = `
             <tr>
-                <td>${record.id}</td>
+                <td>${srNo++}</td>
                 <td>${record.date}</td>
                 <td>${record.category}</td>
                 <td>${record.description}</td>
@@ -263,8 +271,11 @@ function displayExpenseRecords(records) {
     // Initialize DataTable with fresh data
     expenseTable = $('#expenseTable').DataTable({
         responsive: true,
-        order: [[0, 'desc']],
-        destroy: true // Allow reinitialization
+        order: [[1, 'desc']], // Sort by Date column (descending)
+        destroy: true,
+        columnDefs: [
+            { orderable: false, targets: [0, 8] } // Disable sorting on Sr. No. and Actions
+        ]
     });
 }
 
