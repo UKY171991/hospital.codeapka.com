@@ -322,12 +322,17 @@ function displayClients(clients) {
         return;
     }
 
+    // Calculate task counts for each client and add to client object
     clients.forEach(function(client) {
-        // Count pending and completed tasks for this client
         const clientTasks = allTasks.filter(task => task.client_id == client.id);
-        const pendingTasks = clientTasks.filter(task => task.status === 'Pending' || task.status === 'In Progress').length;
-        const completedTasks = clientTasks.filter(task => task.status === 'Completed').length;
-        
+        client.pendingCount = clientTasks.filter(task => task.status === 'Pending' || task.status === 'In Progress').length;
+        client.completedCount = clientTasks.filter(task => task.status === 'Completed').length;
+    });
+
+    // Sort clients by pending task count (descending - highest first)
+    clients.sort((a, b) => b.pendingCount - a.pendingCount);
+
+    clients.forEach(function(client) {
         const row = `
             <tr>
                 <td>${client.id}</td>
@@ -336,8 +341,8 @@ function displayClients(clients) {
                 <td>${client.phone}</td>
                 <td>${client.company || '-'}</td>
                 <td>${client.city || '-'}</td>
-                <td><span class="badge badge-warning">${pendingTasks}</span></td>
-                <td><span class="badge badge-success">${completedTasks}</span></td>
+                <td><span class="badge badge-warning">${client.pendingCount}</span></td>
+                <td><span class="badge badge-success">${client.completedCount}</span></td>
                 <td>
                     <button class="btn btn-sm btn-success" onclick="openWhatsAppChat('${client.phone}', '${client.name.replace(/'/g, "\\'")}')">
                         <i class="fab fa-whatsapp"></i>
@@ -359,7 +364,7 @@ function displayClients(clients) {
 
     clientTable = $('#clientTable').DataTable({
         responsive: true,
-        order: [[0, 'desc']],
+        order: [[6, 'desc']], // Sort by Pending Tasks column (descending)
         destroy: true
     });
 }
