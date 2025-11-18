@@ -44,7 +44,7 @@ require_once 'inc/sidebar.php';
                             <table id="clientTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>Sr. No.</th>
                                         <th>Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
@@ -237,11 +237,19 @@ function displayClients(clients) {
         return;
     }
 
+    // Sort clients by name in ascending order
+    clients.sort((a, b) => {
+        const nameA = (a.name || '').toLowerCase();
+        const nameB = (b.name || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+    });
+
+    let srNo = 1;
     clients.forEach(function(client) {
         const statusClass = client.status === 'Active' ? 'badge-success' : 'badge-secondary';
         const row = `
             <tr>
-                <td>${client.id}</td>
+                <td>${srNo++}</td>
                 <td>${client.name}</td>
                 <td>${client.email || '-'}</td>
                 <td>${client.phone}</td>
@@ -273,7 +281,10 @@ function displayClients(clients) {
     }
     clientTable = $('#clientTable').DataTable({
         responsive: true,
-        order: [[0, 'desc']]
+        order: [[1, 'asc']], // Sort by Name column (ascending)
+        columnDefs: [
+            { orderable: false, targets: [0, 7] } // Disable sorting on Sr. No. and Actions
+        ]
     });
 }
 
