@@ -50,12 +50,14 @@ require_once 'inc/sidebar.php';
                                         <th>Phone</th>
                                         <th>Company</th>
                                         <th>City</th>
+                                        <th>Pending Tasks</th>
+                                        <th>Completed Tasks</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="clientTableBody">
                                     <tr>
-                                        <td colspan="7" class="text-center">Loading...</td>
+                                        <td colspan="9" class="text-center">Loading...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -257,7 +259,35 @@ $(document).ready(function() {
     });
 });
 
+let allTasks = [];
+
 function loadClients() {
+    // First load tasks
+    $.ajax({
+        url: 'ajax/client_api.php',
+        type: 'GET',
+        data: { 
+            action: 'get_tasks',
+            _: new Date().getTime()
+        },
+        cache: false,
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success) {
+                allTasks = response.data;
+                // Then load clients
+                loadClientsData();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading tasks:', error);
+            // Load clients anyway even if tasks fail
+            loadClientsData();
+        }
+    });
+}
+
+function loadClientsData() {
     $.ajax({
         url: 'ajax/client_api.php',
         type: 'GET',
@@ -288,11 +318,16 @@ function displayClients(clients) {
     tbody.empty();
 
     if (!clients || clients.length === 0) {
-        tbody.append('<tr><td colspan="7" class="text-center">No clients found</td></tr>');
+        tbody.append('<tr><td colspan="9" class="text-center">No clients found</td></tr>');
         return;
     }
 
     clients.forEach(function(client) {
+        // Count pending and completed tasks for this client
+        const clientTasks = allTasks.filter(task => task.client_id == client.id);
+        const pendingTasks = clientTasks.filter(task => task.status === 'Pending' || task.status === 'In Progress').length;
+        const completedTasks = clientTasks.filter(task => task.status === 'Completed').length;
+        
         const row = `
             <tr>
                 <td>${client.id}</td>
@@ -301,6 +336,8 @@ function displayClients(clients) {
                 <td>${client.phone}</td>
                 <td>${client.company || '-'}</td>
                 <td>${client.city || '-'}</td>
+                <td><span class="badge badge-warning">${pendingTasks}</span></td>
+                <td><span class="badge badge-success">${completedTasks}</span></td>
                 <td>
                     <button class="btn btn-sm btn-success" onclick="openWhatsAppChat('${client.phone}', '${client.name.replace(/'/g, "\\'")}')">
                         <i class="fab fa-whatsapp"></i>
