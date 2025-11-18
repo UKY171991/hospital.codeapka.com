@@ -44,7 +44,7 @@ require_once 'inc/sidebar.php';
                             <table id="taskTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>Sr. No.</th>
                                         <th>Title</th>
                                         <th>Client</th>
                                         <th>Priority</th>
@@ -336,6 +336,21 @@ function displayTasks(tasks) {
         return;
     }
 
+    // Sort tasks by status priority: Pending > In Progress > On Hold > Completed
+    const statusOrder = {
+        'Pending': 1,
+        'In Progress': 2,
+        'On Hold': 3,
+        'Completed': 4
+    };
+    
+    tasks.sort((a, b) => {
+        const statusA = statusOrder[a.status] || 5;
+        const statusB = statusOrder[b.status] || 5;
+        return statusA - statusB;
+    });
+
+    let srNo = 1;
     tasks.forEach(function(task) {
         const priorityBadge = task.priority === 'Urgent' ? 
             '<span class="badge badge-danger">Urgent</span>' : 
@@ -355,7 +370,7 @@ function displayTasks(tasks) {
         
         const row = `
             <tr>
-                <td>${task.id}</td>
+                <td>${srNo++}</td>
                 <td>${task.title}</td>
                 <td>${task.client_name || '-'}</td>
                 <td>${priorityBadge}</td>
@@ -379,8 +394,11 @@ function displayTasks(tasks) {
 
     taskTable = $('#taskTable').DataTable({
         responsive: true,
-        order: [[0, 'desc']],
-        destroy: true
+        order: [[4, 'asc']], // Sort by Status column
+        destroy: true,
+        columnDefs: [
+            { orderable: false, targets: [0, 6] } // Disable sorting on Sr. No. and Actions
+        ]
     });
 }
 
