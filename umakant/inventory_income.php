@@ -44,7 +44,7 @@ require_once 'inc/sidebar.php';
                             <table id="incomeTable" class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>Sr. No.</th>
                                         <th>Date</th>
                                         <th>Category</th>
                                         <th>Description</th>
@@ -256,6 +256,17 @@ function displayIncomeRecords(records) {
         return;
     }
 
+    // Sort records by client name (ascending - A to Z)
+    records.sort((a, b) => {
+        const nameA = (a.client_name || '').toLowerCase();
+        const nameB = (b.client_name || '').toLowerCase();
+        if (nameA === '' && nameB === '') return 0;
+        if (nameA === '') return 1; // Put empty names at the end
+        if (nameB === '') return -1;
+        return nameA.localeCompare(nameB);
+    });
+
+    let srNo = 1;
     records.forEach(function(record) {
         // Default to 'Success' if payment_status is not set
         const paymentStatus = record.payment_status || 'Success';
@@ -267,7 +278,7 @@ function displayIncomeRecords(records) {
         
         const row = `
             <tr>
-                <td>${record.id}</td>
+                <td>${srNo++}</td>
                 <td>${record.date}</td>
                 <td>${record.category}</td>
                 <td>${record.description}</td>
@@ -291,8 +302,11 @@ function displayIncomeRecords(records) {
     // Initialize DataTable with fresh data
     incomeTable = $('#incomeTable').DataTable({
         responsive: true,
-        order: [[0, 'desc']],
-        destroy: true // Allow reinitialization
+        order: [[4, 'asc']], // Sort by Client column (ascending)
+        destroy: true,
+        columnDefs: [
+            { orderable: false, targets: [0, 8] } // Disable sorting on Sr. No. and Actions
+        ]
     });
 }
 
