@@ -315,7 +315,7 @@ function displayIncomeRecords(records) {
     // Initialize DataTable with fresh data
     incomeTable = $('#incomeTable').DataTable({
         responsive: true,
-        order: [[4, 'asc']], // Sort by Client column (ascending)
+        order: [[1, 'desc'], [7, 'asc']], // Sort by Date (desc) then Status (asc)
         destroy: true,
         columnDefs: [
             { orderable: false, targets: [0, 8] } // Disable sorting on Sr. No. and Actions
