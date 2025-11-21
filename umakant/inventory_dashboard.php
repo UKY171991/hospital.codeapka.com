@@ -95,12 +95,12 @@ require_once 'inc/sidebar.php';
                                     <i class="fas fa-clock fa-4x text-white"></i>
                                 </div>
                                 <div class="col-md-8">
-                                    <h3 class="text-white mb-0">Pending Amount</h3>
+                                    <h3 class="text-white mb-0">Pending Income Amount</h3>
                                     <h1 class="text-white font-weight-bold" id="pendingAmount">₹0</h1>
-                                    <p class="text-white mb-0">Total pending expenses awaiting payment</p>
+                                    <p class="text-white mb-0">Total pending income awaiting payment</p>
                                 </div>
                                 <div class="col-md-2 text-right">
-                                    <a href="inventory_expense.php" class="btn btn-light btn-lg">
+                                    <a href="inventory_income.php" class="btn btn-light btn-lg">
                                         <i class="fas fa-eye mr-2"></i>View Details
                                     </a>
                                 </div>
