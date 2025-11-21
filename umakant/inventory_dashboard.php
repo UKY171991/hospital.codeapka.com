@@ -85,6 +85,31 @@ require_once 'inc/sidebar.php';
                 </div>
             </div>
 
+            <!-- Pending Amount Card -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card bg-warning">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-2 text-center">
+                                    <i class="fas fa-clock fa-4x text-white"></i>
+                                </div>
+                                <div class="col-md-8">
+                                    <h3 class="text-white mb-0">Pending Amount</h3>
+                                    <h1 class="text-white font-weight-bold" id="pendingAmount">₹0</h1>
+                                    <p class="text-white mb-0">Total pending expenses awaiting payment</p>
+                                </div>
+                                <div class="col-md-2 text-right">
+                                    <a href="inventory_expense.php" class="btn btn-light btn-lg">
+                                        <i class="fas fa-eye mr-2"></i>View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Period Statistics -->
             <div class="row">
                 <div class="col-md-4">
@@ -246,6 +271,7 @@ function loadDashboardData() {
                 $('#totalExpense').text('₹' + formatNumber(data.total_expense || 0));
                 $('#netProfit').text('₹' + formatNumber(data.net_profit || 0));
                 $('#totalClients').text(data.total_clients || 0);
+                $('#pendingAmount').text('₹' + formatNumber(data.pending_amount || 0));
                 
                 // Today
                 $('#todayIncome').text('₹' + formatNumber(data.today_income || 0));

@@ -220,6 +220,10 @@ function getDashboardStats() {
     $stmt->execute([':start' => $yearStart, ':end' => $yearEnd]);
     $yearExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
+    // Get pending amount (expenses with Pending status)
+    $stmt = $pdo->query("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE payment_status = 'Pending'");
+    $pendingAmount = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    
     echo json_encode([
         'success' => true,
         'data' => [
@@ -227,6 +231,7 @@ function getDashboardStats() {
             'total_expense' => $totalExpense,
             'net_profit' => $totalIncome - $totalExpense,
             'total_clients' => $totalClients,
+            'pending_amount' => $pendingAmount,
             'today_income' => $todayIncome,
             'today_expense' => $todayExpense,
             'month_income' => $monthIncome,
