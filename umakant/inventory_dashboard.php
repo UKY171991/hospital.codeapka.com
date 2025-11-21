@@ -86,7 +86,7 @@ require_once 'inc/sidebar.php';
             </div>
 
             <!-- Pending Amount Card -->
-            <div class="row">
+            <div class="row" id="pendingIncomeCard" style="display: none;">
                 <div class="col-lg-12">
                     <div class="card bg-warning">
                         <div class="card-body">
@@ -271,7 +271,15 @@ function loadDashboardData() {
                 $('#totalExpense').text('₹' + formatNumber(data.total_expense || 0));
                 $('#netProfit').text('₹' + formatNumber(data.net_profit || 0));
                 $('#totalClients').text(data.total_clients || 0);
-                $('#pendingAmount').text('₹' + formatNumber(data.pending_amount || 0));
+                
+                // Show/hide pending income card based on amount
+                const pendingAmount = parseFloat(data.pending_amount || 0);
+                if (pendingAmount > 0) {
+                    $('#pendingAmount').text('₹' + formatNumber(pendingAmount));
+                    $('#pendingIncomeCard').show();
+                } else {
+                    $('#pendingIncomeCard').hide();
+                }
                 
                 // Today
                 $('#todayIncome').text('₹' + formatNumber(data.today_income || 0));
