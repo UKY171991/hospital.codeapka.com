@@ -256,14 +256,27 @@ function displayIncomeRecords(records) {
         return;
     }
 
-    // Sort records by client name (ascending - A to Z)
+    // Sort records by date (newest first) and then by status (Pending before Success)
+    const statusOrder = {
+        'Pending': 1,
+        'Failed': 2,
+        'Success': 3
+    };
+    
     records.sort((a, b) => {
-        const nameA = (a.client_name || '').toLowerCase();
-        const nameB = (b.client_name || '').toLowerCase();
-        if (nameA === '' && nameB === '') return 0;
-        if (nameA === '') return 1; // Put empty names at the end
-        if (nameB === '') return -1;
-        return nameA.localeCompare(nameB);
+        // First sort by date (descending - newest first)
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        const dateDiff = dateB - dateA;
+        
+        // If dates are the same, sort by status (Pending first)
+        if (dateDiff === 0) {
+            const statusA = statusOrder[a.payment_status || 'Success'] || 3;
+            const statusB = statusOrder[b.payment_status || 'Success'] || 3;
+            return statusA - statusB;
+        }
+        
+        return dateDiff;
     });
 
     let srNo = 1;
