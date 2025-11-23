@@ -30,30 +30,71 @@ $(document).ready(function() {
                     render: function(data, type, row, meta) {
                         return meta.row + meta.settings._iDisplayStart + 1;
                     },
-                    orderable: false
+                    orderable: false,
+                    width: '50px'
                 },
-                { data: 'id' },
-                { data: 'name' },
-                { data: 'qualification' },
-                { data: 'specialization' },
-                { data: 'hospital' },
-                { data: 'contact_no' },
-                { data: 'phone' },
-                { data: 'email' },
-                { data: 'registration_no' },
+                { 
+                    data: 'id',
+                    width: '60px'
+                },
+                { 
+                    data: 'name',
+                    width: '150px'
+                },
+                { 
+                    data: 'qualification',
+                    width: '120px',
+                    defaultContent: 'N/A'
+                },
+                { 
+                    data: 'specialization',
+                    width: '120px',
+                    defaultContent: 'N/A'
+                },
+                { 
+                    data: 'hospital',
+                    width: '120px',
+                    defaultContent: 'N/A'
+                },
+                { 
+                    data: 'contact_no',
+                    width: '110px',
+                    defaultContent: 'N/A'
+                },
+                { 
+                    data: 'phone',
+                    width: '110px',
+                    defaultContent: 'N/A'
+                },
+                { 
+                    data: 'email',
+                    width: '150px',
+                    defaultContent: 'N/A'
+                },
+                { 
+                    data: 'registration_no',
+                    width: '100px',
+                    defaultContent: 'N/A'
+                },
                 { 
                     data: 'status',
+                    width: '80px',
                     render: function(data, type, row) {
-                        if (!data) data = 'Active'; // Default to Active if null
+                        if (!data) data = 'Active';
                         const statusClass = data === 'Active' ? 'success' : 'danger';
                         const statusIcon = data === 'Active' ? 'check-circle' : 'times-circle';
                         return `<span class="badge badge-${statusClass}"><i class="fas fa-${statusIcon}"></i> ${data}</span>`;
                     },
                     defaultContent: '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Active</span>'
                 },
-                { data: 'added_by_username' },
+                { 
+                    data: 'added_by_username',
+                    width: '100px',
+                    defaultContent: 'N/A'
+                },
                 { 
                     data: 'created_at',
+                    width: '100px',
                     render: function(data) {
                         return data ? new Date(data).toLocaleDateString() : '';
                     }
@@ -61,6 +102,7 @@ $(document).ready(function() {
                 {
                     data: null,
                     orderable: false,
+                    width: '150px',
                     render: function(data, type, row) {
                         const statusBtn = row.status === 'Active' 
                             ? `<button class="btn btn-sm btn-secondary toggle-status-btn" data-id="${row.id}" title="Deactivate"><i class="fas fa-toggle-on"></i></button>`
@@ -85,10 +127,16 @@ $(document).ready(function() {
             ],
             order: [[1, 'desc']],
             pageLength: 25,
-            responsive: true,
+            scrollX: true,
+            autoWidth: false,
             language: {
                 processing: '<i class="fas fa-spinner fa-spin"></i> Loading...'
-            }
+            },
+            columnDefs: [
+                { targets: '_all', className: 'text-center' },
+                { targets: [2], className: 'text-left' },
+                { targets: [8], className: 'text-left' }
+            ]
         });
     }
 

@@ -336,6 +336,7 @@ require_once 'inc/sidebar.php';
 
 .table-responsive {
     border-radius: 0.375rem;
+    overflow-x: auto;
 }
 
 .card-outline.card-primary {
@@ -348,6 +349,28 @@ require_once 'inc/sidebar.php';
 
 .btn-group .btn:last-child {
     margin-right: 0;
+}
+
+#opdDoctorTable {
+    width: 100% !important;
+    white-space: nowrap;
+}
+
+#opdDoctorTable thead th {
+    vertical-align: middle;
+    white-space: nowrap;
+    padding: 12px 8px;
+    font-size: 14px;
+}
+
+#opdDoctorTable tbody td {
+    vertical-align: middle;
+    padding: 8px;
+    font-size: 13px;
+}
+
+#opdDoctorTable_wrapper .dataTables_scroll {
+    overflow-x: auto;
 }
 </style>
 
