@@ -236,6 +236,15 @@ require_once 'inc/sidebar.php';
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label for="doctorAddress">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    Address
+                                </label>
+                                <textarea class="form-control" id="doctorAddress" name="address" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
                                 <label for="doctorStatus">
                                     <i class="fas fa-toggle-on mr-1"></i>
                                     Status <span class="text-danger">*</span>
@@ -244,15 +253,6 @@ require_once 'inc/sidebar.php';
                                     <option value="Active">Active</option>
                                     <option value="Inactive">Inactive</option>
                                 </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="doctorAddress">
-                                    <i class="fas fa-map-marker-alt mr-1"></i>
-                                    Address
-                                </label>
-                                <textarea class="form-control" id="doctorAddress" name="address" rows="1"></textarea>
                             </div>
                         </div>
                     </div>
@@ -310,6 +310,47 @@ require_once 'inc/sidebar.php';
 
 <!-- Page specific JavaScript -->
 <script src="assets/js/opd_doctor.js"></script>
+
+<script>
+// Fix for duplicate status field issue
+$(document).ready(function() {
+    // Clean up any duplicate elements when modal is shown
+    $('#doctorModal').on('show.bs.modal', function() {
+        // Remove any duplicate labels within form groups
+        $('#doctorForm .form-group').each(function() {
+            var $labels = $(this).find('label');
+            if ($labels.length > 1) {
+                console.log('Found duplicate labels, removing extras');
+                $labels.not(':first').remove();
+            }
+        });
+        
+        // Remove any duplicate select elements
+        $('#doctorForm .form-group').each(function() {
+            var $selects = $(this).find('select');
+            if ($selects.length > 1) {
+                console.log('Found duplicate selects, removing extras');
+                $selects.not(':first').remove();
+            }
+        });
+    });
+    
+    // Ensure form is properly reset when modal is hidden
+    $('#doctorModal').on('hidden.bs.modal', function() {
+        $('#doctorForm')[0].reset();
+    });
+    
+    // Additional cleanup on page load
+    setTimeout(function() {
+        $('#doctorForm .form-group').each(function() {
+            var $labels = $(this).find('label');
+            if ($labels.length > 1) {
+                $labels.not(':first').remove();
+            }
+        });
+    }, 100);
+});
+</script>
 
 <style>
 .small-box {
@@ -371,6 +412,17 @@ require_once 'inc/sidebar.php';
 
 #opdDoctorTable_wrapper .dataTables_scroll {
     overflow-x: auto;
+}
+
+/* Ensure proper form rendering */
+#doctorModal .form-group {
+    margin-bottom: 1rem;
+    clear: both;
+}
+
+#doctorModal label {
+    display: block;
+    margin-bottom: 0.5rem;
 }
 </style>
 
