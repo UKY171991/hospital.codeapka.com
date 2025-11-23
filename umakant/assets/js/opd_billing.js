@@ -402,11 +402,8 @@ $(document).ready(function() {
                 if (response.success && response.data) {
                     const bill = response.data;
                     
-                    // Load doctors first, then populate the form
-                    loadDoctors();
-                    
-                    // Wait a bit for doctors to load, then set values
-                    setTimeout(function() {
+                    // Load doctors first, then populate the form with callback
+                    loadDoctors(function() {
                         $('#billingId').val(bill.id);
                         $('#patientName').val(bill.patient_name);
                         $('#patientPhone').val(bill.patient_phone);
@@ -424,7 +421,7 @@ $(document).ready(function() {
                         $('#notes').val(bill.notes);
                         $('#modalTitle').text('Edit Bill');
                         calculateTotals();
-                    }, 300);
+                    });
                     
                     $('#billingModal').modal('show');
                 }
