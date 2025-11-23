@@ -126,6 +126,25 @@ try {
         }
     }
 
+    if ($action === 'get_doctors') {
+        try {
+            // Check if status column exists in opd_doctors table
+            $checkColumn = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'status'");
+            $statusExists = $checkColumn->rowCount() > 0;
+            
+            if ($statusExists) {
+                $stmt = $pdo->query("SELECT id, name, specialization, hospital FROM opd_doctors WHERE status = 'Active' OR status IS NULL ORDER BY name ASC");
+            } else {
+                $stmt = $pdo->query("SELECT id, name, specialization, hospital FROM opd_doctors ORDER BY name ASC");
+            }
+            
+            $doctors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            json_response(['success' => true, 'data' => $doctors]);
+        } catch (PDOException $e) {
+            json_response(['success' => false, 'message' => 'Error fetching doctors: ' . $e->getMessage()], 500);
+        }
+    }
+
     if ($action === 'get' && isset($_GET['id'])) {
         $stmt = $pdo->prepare('SELECT b.*, u.username as added_by_username FROM opd_billing b LEFT JOIN users u ON b.added_by = u.id WHERE b.id = ?');
         $stmt->execute([$_GET['id']]);

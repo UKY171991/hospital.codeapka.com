@@ -6,6 +6,37 @@ $(document).ready(function() {
     // Set today's date as default
     $('#billDate').val(new Date().toISOString().split('T')[0]);
 
+    // Load doctors list
+    function loadDoctors() {
+        $.ajax({
+            url: 'ajax/opd_billing_api.php',
+            type: 'GET',
+            data: { action: 'get_doctors' },
+            success: function(response) {
+                if (response.success && response.data) {
+                    const doctorSelect = $('#doctorName');
+                    doctorSelect.empty();
+                    doctorSelect.append('<option value="">Select Doctor</option>');
+                    
+                    response.data.forEach(function(doctor) {
+                        let displayText = doctor.name;
+                        if (doctor.specialization) {
+                            displayText += ' - ' + doctor.specialization;
+                        }
+                        if (doctor.hospital) {
+                            displayText += ' (' + doctor.hospital + ')';
+                        }
+                        doctorSelect.append(`<option value="${doctor.name}">${displayText}</option>`);
+                    });
+                }
+            },
+            error: function() {
+                console.error('Error loading doctors');
+                toastr.error('Error loading doctors list');
+            }
+        });
+    }
+
     // Initialize DataTable
     function initDataTable() {
         opdBillingTable = $('#opdBillingTable').DataTable({
@@ -205,6 +236,7 @@ $(document).ready(function() {
         $('#billingId').val('');
         $('#billDate').val(new Date().toISOString().split('T')[0]);
         $('#modalTitle').text('Add New Bill');
+        loadDoctors();
         calculateTotals();
         $('#billingModal').modal('show');
     });
@@ -364,23 +396,31 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success && response.data) {
                     const bill = response.data;
-                    $('#billingId').val(bill.id);
-                    $('#patientName').val(bill.patient_name);
-                    $('#patientPhone').val(bill.patient_phone);
-                    $('#patientAge').val(bill.patient_age);
-                    $('#patientGender').val(bill.patient_gender);
-                    $('#doctorName').val(bill.doctor_name);
-                    $('#billDate').val(bill.bill_date);
-                    $('#consultationFee').val(bill.consultation_fee);
-                    $('#medicineCharges').val(bill.medicine_charges);
-                    $('#labCharges').val(bill.lab_charges);
-                    $('#otherCharges').val(bill.other_charges);
-                    $('#discount').val(bill.discount);
-                    $('#paidAmount').val(bill.paid_amount);
-                    $('#paymentMethod').val(bill.payment_method);
-                    $('#notes').val(bill.notes);
-                    $('#modalTitle').text('Edit Bill');
-                    calculateTotals();
+                    
+                    // Load doctors first, then populate the form
+                    loadDoctors();
+                    
+                    // Wait a bit for doctors to load, then set values
+                    setTimeout(function() {
+                        $('#billingId').val(bill.id);
+                        $('#patientName').val(bill.patient_name);
+                        $('#patientPhone').val(bill.patient_phone);
+                        $('#patientAge').val(bill.patient_age);
+                        $('#patientGender').val(bill.patient_gender);
+                        $('#doctorName').val(bill.doctor_name);
+                        $('#billDate').val(bill.bill_date);
+                        $('#consultationFee').val(bill.consultation_fee);
+                        $('#medicineCharges').val(bill.medicine_charges);
+                        $('#labCharges').val(bill.lab_charges);
+                        $('#otherCharges').val(bill.other_charges);
+                        $('#discount').val(bill.discount);
+                        $('#paidAmount').val(bill.paid_amount);
+                        $('#paymentMethod').val(bill.payment_method);
+                        $('#notes').val(bill.notes);
+                        $('#modalTitle').text('Edit Bill');
+                        calculateTotals();
+                    }, 300);
+                    
                     $('#billingModal').modal('show');
                 }
             },
@@ -432,4 +472,5 @@ $(document).ready(function() {
     // Initialize
     initDataTable();
     loadStats();
+    loadDoctors();
 });

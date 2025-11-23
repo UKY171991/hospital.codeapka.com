@@ -203,7 +203,10 @@ require_once 'inc/sidebar.php';
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="doctorName">Doctor Name</label>
-                                <input type="text" class="form-control" id="doctorName" name="doctor_name">
+                                <select class="form-control" id="doctorName" name="doctor_name">
+                                    <option value="">Select Doctor</option>
+                                    <!-- Doctors will be loaded dynamically -->
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-6">
