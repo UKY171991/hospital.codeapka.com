@@ -10,7 +10,7 @@ require_once 'inc/sidebar.php';
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Pathology Dashboard</h1>
+                    <h1><i class="fas fa-tachometer-alt mr-2"></i>Hospital Management Dashboard</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
@@ -26,169 +26,255 @@ require_once 'inc/sidebar.php';
     <section class="content">
         <div class="container-fluid">
             
-            <!-- Loading Indicator -->
-            <div id="dashboard-loading" class="text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="sr-only">Loading...</span>
+            <!-- Module Navigation -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-primary card-outline">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-th mr-2"></i>Quick Access</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                    <a href="opd_dashboard.php" class="btn btn-app btn-block bg-info">
+                                        <i class="fas fa-user-md"></i>
+                                        OPD
+                                    </a>
+                                </div>
+                                <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                    <a href="pathology_reports.php" class="btn btn-app btn-block bg-success">
+                                        <i class="fas fa-flask"></i>
+                                        Pathology
+                                    </a>
+                                </div>
+                                <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                    <a href="clients.php" class="btn btn-app btn-block bg-warning">
+                                        <i class="fas fa-users"></i>
+                                        Clients
+                                    </a>
+                                </div>
+                                <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                    <a href="email_inbox.php" class="btn btn-app btn-block bg-danger">
+                                        <i class="fas fa-envelope"></i>
+                                        Email
+                                    </a>
+                                </div>
+                                <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                    <a href="inventory_dashboard.php" class="btn btn-app btn-block bg-primary">
+                                        <i class="fas fa-boxes"></i>
+                                        Inventory
+                                    </a>
+                                </div>
+                                <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                    <a href="user.php" class="btn btn-app btn-block bg-secondary">
+                                        <i class="fas fa-user-cog"></i>
+                                        Users
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <p class="mt-2">Loading dashboard data...</p>
             </div>
 
-            <!-- Dashboard Content -->
-            <div id="dashboard-content" style="display: none;">
-                
-                <!-- Quick Stats Row -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="fas fa-chart-line mr-2"></i>
-                                    Today's Performance
-                                </h3>
-                                <div class="card-tools">
-                                    <button type="button" class="btn btn-tool" onclick="refreshQuickStats()">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>
+            <!-- OPD Module Stats -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-info">
+                            <h3 class="card-title"><i class="fas fa-user-md mr-2"></i>OPD Module</h3>
+                            <div class="card-tools">
+                                <a href="opd_dashboard.php" class="btn btn-sm btn-light">View Details</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-3 col-6">
+                                    <div class="small-box bg-info">
+                                        <div class="inner">
+                                            <h3 id="opdDoctors">0</h3>
+                                            <p>Doctors</p>
+                                        </div>
+                                        <div class="icon"><i class="fas fa-user-md"></i></div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="row" id="quick-stats-row">
-                                    <!-- Quick stats will be loaded here -->
+                                <div class="col-lg-3 col-6">
+                                    <div class="small-box bg-success">
+                                        <div class="inner">
+                                            <h3 id="opdPatients">0</h3>
+                                            <p>Patients</p>
+                                        </div>
+                                        <div class="icon"><i class="fas fa-user-injured"></i></div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Main Stats Cards -->
-                <div class="row mb-4" id="main-stats-cards">
-                    <!-- Main stats cards will be loaded here -->
-                </div>
-
-                <!-- Charts Row -->
-                <div class="row mb-4">
-                    <!-- Patient Growth Chart -->
-                    <div class="col-lg-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="fas fa-users mr-2"></i>
-                                    Patient Growth
-                                </h3>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="patientGrowthChart" height="300"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Revenue Chart -->
-                    <div class="col-lg-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="fas fa-rupee-sign mr-2"></i>
-                                    Revenue Trends
-                                </h3>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="revenueChart" height="300"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Second Charts Row -->
-                <div class="row mb-4">
-                    <!-- Test Distribution -->
-                    <div class="col-lg-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="fas fa-flask mr-2"></i>
-                                    Test Distribution
-                                </h3>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="testDistributionChart" height="300"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Doctor Performance -->
-                    <div class="col-lg-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="fas fa-user-md mr-2"></i>
-                                    Doctor Performance
-                                </h3>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="doctorPerformanceChart" height="300"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Data Tables Row -->
-                <div class="row mb-4">
-                    <!-- Recent Activities -->
-                    <div class="col-lg-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="fas fa-clock mr-2"></i>
-                                    Recent Activities
-                                </h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="recent-activities">
-                                    <!-- Recent activities will be loaded here -->
+                                <div class="col-lg-3 col-6">
+                                    <div class="small-box bg-warning">
+                                        <div class="inner">
+                                            <h3 id="opdReports">0</h3>
+                                            <p>Reports</p>
+                                        </div>
+                                        <div class="icon"><i class="fas fa-file-medical"></i></div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Top Tests -->
-                    <div class="col-lg-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="fas fa-star mr-2"></i>
-                                    Top Performing Tests
-                                </h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="top-tests">
-                                    <!-- Top tests will be loaded here -->
+                                <div class="col-lg-3 col-6">
+                                    <div class="small-box bg-danger">
+                                        <div class="inner">
+                                            <h3 id="opdRevenue">₹0</h3>
+                                            <p>Revenue</p>
+                                        </div>
+                                        <div class="icon"><i class="fas fa-rupee-sign"></i></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- System Alerts -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                                    System Alerts
-                                </h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="system-alerts">
-                                    <!-- System alerts will be loaded here -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
+
+            <!-- Pathology Module Stats -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-success">
+                            <h3 class="card-title"><i class="fas fa-flask mr-2"></i>Pathology Module</h3>
+                            <div class="card-tools">
+                                <a href="pathology_reports.php" class="btn btn-sm btn-light">View Details</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-6 col-6">
+                                    <div class="small-box bg-success">
+                                        <div class="inner">
+                                            <h3 id="pathoEntries">0</h3>
+                                            <p>Test Entries</p>
+                                        </div>
+                                        <div class="icon"><i class="fas fa-file-medical-alt"></i></div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-6">
+                                    <div class="small-box bg-teal">
+                                        <div class="inner">
+                                            <h3 id="pathoTests">0</h3>
+                                            <p>Available Tests</p>
+                                        </div>
+                                        <div class="icon"><i class="fas fa-flask"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clients & Email Row -->
+            <div class="row mb-4">
+                <!-- Clients Module -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header bg-warning">
+                            <h3 class="card-title"><i class="fas fa-users mr-2"></i>Clients Module</h3>
+                            <div class="card-tools">
+                                <a href="clients.php" class="btn btn-sm btn-light">View Details</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="info-box bg-warning">
+                                        <span class="info-box-icon"><i class="fas fa-users"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Total Clients</span>
+                                            <span class="info-box-number" id="totalClients">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Module -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header bg-danger">
+                            <h3 class="card-title"><i class="fas fa-envelope mr-2"></i>Email Module</h3>
+                            <div class="card-tools">
+                                <a href="email_inbox.php" class="btn btn-sm btn-light">View Details</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="info-box bg-danger">
+                                        <span class="info-box-icon"><i class="fas fa-inbox"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Inbox</span>
+                                            <span class="info-box-number" id="emailInbox">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="info-box bg-warning">
+                                        <span class="info-box-icon"><i class="fas fa-envelope-open"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Unread</span>
+                                            <span class="info-box-number" id="emailUnread">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Module Stats -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-primary">
+                            <h3 class="card-title"><i class="fas fa-boxes mr-2"></i>Inventory Module</h3>
+                            <div class="card-tools">
+                                <a href="inventory_dashboard.php" class="btn btn-sm btn-light">View Details</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-4 col-6">
+                                    <div class="small-box bg-success">
+                                        <div class="inner">
+                                            <h3 id="inventoryIncome">₹0</h3>
+                                            <p>Total Income</p>
+                                        </div>
+                                        <div class="icon"><i class="fas fa-arrow-up"></i></div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-6">
+                                    <div class="small-box bg-danger">
+                                        <div class="inner">
+                                            <h3 id="inventoryExpense">₹0</h3>
+                                            <p>Total Expense</p>
+                                        </div>
+                                        <div class="icon"><i class="fas fa-arrow-down"></i></div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-12">
+                                    <div class="small-box bg-primary">
+                                        <div class="inner">
+                                            <h3 id="inventoryBalance">₹0</h3>
+                                            <p>Balance</p>
+                                        </div>
+                                        <div class="icon"><i class="fas fa-balance-scale"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
         </div>
     </section>
 </div>
@@ -198,444 +284,93 @@ require_once 'inc/sidebar.php';
 
 <!-- Dashboard JavaScript -->
 <script>
-class PathologyDashboard {
-    constructor() {
-        this.apiBase = 'patho_api/dashboard.php';
-        this.secretKey = 'hospital-api-secret-2024';
-        this.charts = {};
-        this.refreshInterval = null;
-        
-        this.init();
-    }
+// Main Hospital Dashboard
+$(document).ready(function() {
+    loadDashboardData();
     
-    async init() {
-        try {
-            await this.loadDashboardData();
-            this.setupAutoRefresh();
-            this.hideLoading();
-        } catch (error) {
-            console.error('Dashboard initialization failed:', error);
-            this.showError('Failed to load dashboard data');
-        }
-    }
-    
-    async loadDashboardData() {
-        // Load all dashboard components
-        await Promise.all([
-            this.loadOverview(),
-            this.loadQuickStats(),
-            this.loadChartsData(),
-            this.loadRecentActivities(),
-            this.loadTopTests(),
-            this.loadSystemAlerts()
-        ]);
-    }
-    
-    async apiCall(action) {
-        // Get user info from session or use test user
-        let url = `${this.apiBase}?action=${action}&secret_key=${this.secretKey}`;
-        
-        // Add user authentication - in a real scenario, this would come from session
-        // For testing, we'll use a default test user
-        url += '&test_user_id=1'; // This should be replaced with actual session user ID
-        
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`API call failed: ${response.statusText}`);
-        }
-        return await response.json();
-    }
-    
-    async loadOverview() {
-        try {
-            const data = await this.apiCall('overview');
-            if (data.success) {
-                this.renderMainStatsCards(data.data.counts);
-            }
-        } catch (error) {
-            console.error('Failed to load overview:', error);
-        }
-    }
-    
-    async loadQuickStats() {
-        try {
-            const data = await this.apiCall('quick_stats');
-            if (data.success) {
-                this.renderQuickStats(data.data);
-            }
-        } catch (error) {
-            console.error('Failed to load quick stats:', error);
-        }
-    }
-    
-    async loadChartsData() {
-        try {
-            const data = await this.apiCall('charts_data');
-            if (data.success) {
-                this.renderCharts(data.data);
-            }
-        } catch (error) {
-            console.error('Failed to load charts data:', error);
-        }
-    }
-    
-    async loadRecentActivities() {
-        try {
-            const data = await this.apiCall('recent_activities');
-            if (data.success) {
-                this.renderRecentActivities(data.data);
-            }
-        } catch (error) {
-            console.error('Failed to load recent activities:', error);
-        }
-    }
-    
-    async loadTopTests() {
-        try {
-            const data = await this.apiCall('top_tests');
-            if (data.success) {
-                this.renderTopTests(data.data);
-            }
-        } catch (error) {
-            console.error('Failed to load top tests:', error);
-        }
-    }
-    
-    async loadSystemAlerts() {
-        try {
-            const data = await this.apiCall('alerts');
-            if (data.success) {
-                this.renderSystemAlerts(data.data);
-            }
-        } catch (error) {
-            console.error('Failed to load system alerts:', error);
-        }
-    }
-    
-    renderMainStatsCards(counts) {
-        const container = document.getElementById('main-stats-cards');
-        const cards = [
-            { title: 'Total Patients', value: counts.patients, icon: 'fas fa-users', color: 'primary' },
-            { title: 'Total Doctors', value: counts.doctors, icon: 'fas fa-user-md', color: 'success' },
-            { title: 'Test Entries', value: counts.entries, icon: 'fas fa-file-medical', color: 'info' },
-            { title: 'Available Tests', value: counts.tests, icon: 'fas fa-flask', color: 'warning' }
-        ];
-        
-        container.innerHTML = cards.map(card => `
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-${card.color}">
-                    <div class="inner">
-                        <h3>${card.value.toLocaleString()}</h3>
-                        <p>${card.title}</p>
-                    </div>
-                    <div class="icon">
-                        <i class="${card.icon}"></i>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-    
-    renderQuickStats(stats) {
-        const container = document.getElementById('quick-stats-row');
-        const quickStats = [
-            { 
-                title: 'Today\'s Patients', 
-                today: stats.today.patients, 
-                yesterday: stats.yesterday.patients,
-                growth: stats.growth.patients 
-            },
-            { 
-                title: 'Today\'s Entries', 
-                today: stats.today.entries, 
-                yesterday: stats.yesterday.entries,
-                growth: stats.growth.entries 
-            },
-            { 
-                title: 'Today\'s Revenue', 
-                today: `₹${stats.today.revenue.toLocaleString()}`, 
-                yesterday: `₹${stats.yesterday.revenue.toLocaleString()}`,
-                growth: stats.growth.revenue 
-            }
-        ];
-        
-        container.innerHTML = quickStats.map(stat => {
-            const growthClass = stat.growth >= 0 ? 'text-success' : 'text-danger';
-            const growthIcon = stat.growth >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
-            
-            return `
-                <div class="col-lg-4 col-md-6">
-                    <div class="info-box">
-                        <div class="info-box-content">
-                            <span class="info-box-text">${stat.title}</span>
-                            <span class="info-box-number">${stat.today}</span>
-                            <div class="progress">
-                                <div class="progress-bar bg-primary" style="width: 70%"></div>
-                            </div>
-                            <span class="progress-description">
-                                <span class="${growthClass}">
-                                    <i class="fas ${growthIcon}"></i> ${Math.abs(stat.growth)}%
-                                </span>
-                                vs yesterday (${stat.yesterday})
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    renderCharts(chartsData) {
-        // Patient Growth Chart
-        this.renderLineChart('patientGrowthChart', chartsData.patient_growth, 'Patient Growth');
-        
-        // Revenue Chart
-        this.renderLineChart('revenueChart', chartsData.revenue_chart, 'Revenue Trends');
-        
-        // Test Distribution Chart
-        this.renderDoughnutChart('testDistributionChart', chartsData.test_distribution, 'Test Distribution');
-        
-        // Doctor Performance Chart
-        this.renderBarChart('doctorPerformanceChart', chartsData.doctor_performance, 'Doctor Performance');
-    }
-    
-    renderLineChart(canvasId, data, title) {
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        
-        if (this.charts[canvasId]) {
-            this.charts[canvasId].destroy();
-        }
-        
-        this.charts[canvasId] = new Chart(ctx, {
-            type: 'line',
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: title
-                    },
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-    
-    renderBarChart(canvasId, data, title) {
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        
-        if (this.charts[canvasId]) {
-            this.charts[canvasId].destroy();
-        }
-        
-        this.charts[canvasId] = new Chart(ctx, {
-            type: 'bar',
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: title
-                    },
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-    
-    renderDoughnutChart(canvasId, data, title) {
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        
-        if (this.charts[canvasId]) {
-            this.charts[canvasId].destroy();
-        }
-        
-        this.charts[canvasId] = new Chart(ctx, {
-            type: 'doughnut',
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: title
-                    },
-                    legend: {
-                        display: true,
-                        position: 'right'
-                    }
-                }
-            }
-        });
-    }
-    
-    renderRecentActivities(activities) {
-        const container = document.getElementById('recent-activities');
-        
-        if (!activities || activities.length === 0) {
-            container.innerHTML = '<p class="text-muted">No recent activities found.</p>';
-            return;
-        }
-        
-        container.innerHTML = `
-            <div class="timeline">
-                ${activities.map(activity => `
-                    <div class="time-label">
-                        <span class="bg-${activity.color}">${this.formatDate(activity.timestamp)}</span>
-                    </div>
-                    <div>
-                        <i class="fas fa-${activity.icon} bg-${activity.color}"></i>
-                        <div class="timeline-item">
-                            <h3 class="timeline-header">${activity.title}</h3>
-                            <div class="timeline-body">
-                                ${activity.description}
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
-    
-    renderTopTests(tests) {
-        const container = document.getElementById('top-tests');
-        
-        if (!tests || tests.length === 0) {
-            container.innerHTML = '<p class="text-muted">No test data available.</p>';
-            return;
-        }
-        
-        container.innerHTML = `
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Test Name</th>
-                            <th>Orders</th>
-                            <th>Revenue</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tests.slice(0, 10).map(test => `
-                            <tr>
-                                <td>${test.name}</td>
-                                <td><span class="badge badge-primary">${test.order_count || 0}</span></td>
-                                <td>₹${(test.total_revenue || 0).toLocaleString()}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-    }
-    
-    renderSystemAlerts(alerts) {
-        const container = document.getElementById('system-alerts');
-        
-        if (!alerts || alerts.length === 0) {
-            container.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>All systems are running normally.</div>';
-            return;
-        }
-        
-        container.innerHTML = alerts.map(alert => {
-            const alertClass = alert.type === 'danger' ? 'alert-danger' : 
-                              alert.type === 'warning' ? 'alert-warning' : 'alert-info';
-            const icon = alert.type === 'danger' ? 'fa-exclamation-triangle' : 
-                        alert.type === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle';
-            
-            return `
-                <div class="alert ${alertClass}">
-                    <i class="fas ${icon} mr-2"></i>
-                    <strong>${alert.title}:</strong> ${alert.message}
-                    ${alert.action ? `<br><small>Action: ${alert.action}</small>` : ''}
-                </div>
-            `;
-        }).join('');
-    }
-    
-    formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-    }
-    
-    setupAutoRefresh() {
-        // Refresh dashboard every 5 minutes
-        this.refreshInterval = setInterval(() => {
-            this.loadQuickStats();
-            this.loadRecentActivities();
-            this.loadSystemAlerts();
-        }, 5 * 60 * 1000);
-    }
-    
-    hideLoading() {
-        document.getElementById('dashboard-loading').style.display = 'none';
-        document.getElementById('dashboard-content').style.display = 'block';
-    }
-    
-    showError(message) {
-        document.getElementById('dashboard-loading').innerHTML = `
-            <div class="alert alert-danger">
-                <i class="fas fa-exclamation-triangle mr-2"></i>
-                ${message}
-                <br>
-                <button class="btn btn-primary mt-2" onclick="location.reload()">
-                    <i class="fas fa-refresh mr-2"></i>Retry
-                </button>
-            </div>
-        `;
-    }
-    
-    destroy() {
-        if (this.refreshInterval) {
-            clearInterval(this.refreshInterval);
-        }
-        
-        // Destroy all charts
-        Object.values(this.charts).forEach(chart => {
-            if (chart) chart.destroy();
-        });
-    }
-}
-
-// Global functions
-function refreshQuickStats() {
-    if (window.dashboard) {
-        window.dashboard.loadQuickStats();
-    }
-}
-
-// Initialize dashboard when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    window.dashboard = new PathologyDashboard();
+    // Auto-refresh every 5 minutes
+    setInterval(loadDashboardData, 300000);
 });
 
-// Cleanup when page unloads
-window.addEventListener('beforeunload', function() {
-    if (window.dashboard) {
-        window.dashboard.destroy();
-    }
-});
+function loadDashboardData() {
+    loadOverviewStats();
+    loadTodayStats();
+}
+
+function loadOverviewStats() {
+    $.ajax({
+        url: 'ajax/main_dashboard_api.php',
+        type: 'GET',
+        data: { action: 'overview' },
+        success: function(response) {
+            if (response.success && response.data) {
+                const data = response.data;
+                
+                // OPD Stats
+                if (data.opd) {
+                    $('#opdDoctors').text(data.opd.doctors || 0);
+                    $('#opdPatients').text(data.opd.patients || 0);
+                    $('#opdReports').text(data.opd.reports || 0);
+                    $('#opdRevenue').text('₹' + parseFloat(data.opd.revenue || 0).toLocaleString());
+                }
+                
+                // Pathology Stats
+                if (data.pathology) {
+                    $('#pathoEntries').text(data.pathology.entries || 0);
+                    $('#pathoTests').text(data.pathology.tests || 0);
+                }
+                
+                // Client Stats
+                if (data.clients) {
+                    $('#totalClients').text(data.clients.total || 0);
+                }
+                
+                // Email Stats
+                if (data.email) {
+                    $('#emailInbox').text(data.email.inbox || 0);
+                    $('#emailUnread').text(data.email.unread || 0);
+                }
+                
+                // Inventory Stats
+                if (data.inventory) {
+                    $('#inventoryIncome').text('₹' + parseFloat(data.inventory.income || 0).toLocaleString());
+                    $('#inventoryExpense').text('₹' + parseFloat(data.inventory.expense || 0).toLocaleString());
+                    const balance = parseFloat(data.inventory.balance || 0);
+                    $('#inventoryBalance').text('₹' + balance.toLocaleString());
+                    
+                    // Change color based on balance
+                    const balanceBox = $('#inventoryBalance').closest('.small-box');
+                    if (balance < 0) {
+                        balanceBox.removeClass('bg-primary bg-success').addClass('bg-danger');
+                    } else if (balance > 0) {
+                        balanceBox.removeClass('bg-primary bg-danger').addClass('bg-success');
+                    }
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading overview stats:', error);
+            toastr.error('Error loading dashboard data');
+        }
+    });
+}
+
+function loadTodayStats() {
+    $.ajax({
+        url: 'ajax/main_dashboard_api.php',
+        type: 'GET',
+        data: { action: 'today_stats' },
+        success: function(response) {
+            if (response.success && response.data) {
+                console.log('Today stats loaded:', response.data);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading today stats:', error);
+        }
+    });
+}
+
 </script>
 
 <!-- Custom Dashboard Styles -->
