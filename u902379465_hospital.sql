@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Nov 17, 2025 at 12:34 PM
+-- Generation Time: Nov 23, 2025 at 02:15 PM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -63,7 +63,15 @@ CREATE TABLE `clients` (
 --
 
 INSERT INTO `clients` (`id`, `name`, `email`, `phone`, `company`, `address`, `city`, `state`, `zip`, `notes`, `created_at`, `updated_at`) VALUES
-(3, 'Amzad', 'info@no.com', '+91 95400 52228', '', '', 'Delhi', 'Delhi', '', '', '2025-11-17 12:17:49', '2025-11-17 12:19:14');
+(3, 'Amzad', '', '+91 95400 52228', '', '', 'Delhi', 'Delhi', '', '', '2025-11-17 12:17:49', '2025-11-18 06:12:46'),
+(4, 'Vishal ', '', '08427722958', '', '', '', 'Punjab', '', '', '2025-11-17 12:44:15', NULL),
+(5, 'Raman', '', '+917087071220', '', '', 'Gurugram', '', '', '', '2025-11-17 15:43:14', NULL),
+(6, 'Dharmendra Bachheriya', '', '+91 83064 02805', '', '', '', '', '', '', '2025-11-17 15:51:53', NULL),
+(7, 'Ezaz From Ireland', '', '+353 87 355 5012', '', '', '', '', '', '', '2025-11-17 15:54:22', NULL),
+(8, 'Pankaj Freelancer', '', '98187 49023', '', '', '', '', '', '', '2025-11-17 15:57:18', NULL),
+(9, 'Brendan Australia', 'info@sketchfurniture.com.au', '+61 414 739 495', '', 'https://sketchfurniture.com.au/', '', '', '', '', '2025-11-17 16:04:20', NULL),
+(10, 'Ravi T', '', '+91 9860900484', '', '', 'Bombay', 'Bombay', '', '', '2025-11-18 06:06:52', NULL),
+(11, 'Gyas', '', '97114 47614', '', '', 'Lucknow', 'UP', '', '', '2025-11-18 07:05:39', '2025-11-22 02:21:10');
 
 -- --------------------------------------------------------
 
@@ -1581,6 +1589,13 @@ CREATE TABLE `email_signatures` (
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `email_signatures`
+--
+
+INSERT INTO `email_signatures` (`id`, `user_id`, `name`, `content`, `is_default`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Umakant Yadav', 'Umakant Yadav\n\nThanks Regards', 0, '2025-11-22 02:48:31', '2025-11-22 02:48:31');
+
 -- --------------------------------------------------------
 
 --
@@ -1685,12 +1700,15 @@ CREATE TABLE `inventory_clients` (
 --
 
 INSERT INTO `inventory_clients` (`id`, `name`, `type`, `email`, `phone`, `address`, `city`, `state`, `pincode`, `gst_number`, `status`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 'John Doe', 'Individual', 'john@example.com', '9876543210', '123 Main St', 'Mumbai', 'Maharashtra', NULL, NULL, 'Active', NULL, '2025-11-16 05:05:49', NULL),
-(2, 'ABC Corporation', 'Corporate', 'contact@abc.com', '9876543211', '456 Business Park', 'Delhi', 'Delhi', NULL, NULL, 'Active', NULL, '2025-11-16 05:05:49', NULL),
 (3, 'Ravi', 'Individual', 'info@xyz.com', '0000000000', '789 Insurance Tower', 'Bangalore', 'Bombay', '', '', 'Active', '', '2025-11-16 05:05:49', '2025-11-17 05:14:04'),
 (4, 'Vishal ', 'Individual', 'john@example.com', '08427722958', '123 Main St', 'Mumbai', 'Punjab', '', '', 'Active', '', '2025-11-16 07:47:46', '2025-11-17 01:01:45'),
 (5, 'Gyas', 'Individual', 'contact@abc.com', '72755 51625', '456 Business Park', 'Delhi', 'Delhi', '', '', 'Active', '', '2025-11-16 07:47:46', '2025-11-17 00:54:05'),
-(6, 'Amzad', 'Individual', 'info@xyz.com', '+91 95400 52228', '789 Insurance Tower', 'Bangalore', 'Delhi', '', '', 'Active', '', '2025-11-16 07:47:46', '2025-11-17 00:55:01');
+(6, 'Amzad', 'Individual', 'info@xyz.com', '+91 95400 52228', '789 Insurance Tower', 'Bangalore', 'Delhi', '', '', 'Active', '', '2025-11-16 07:47:46', '2025-11-17 00:55:01'),
+(7, 'Raman', 'Individual', '', '+917087071220', '', '', '', '', '', 'Active', '', '2025-11-17 15:43:46', NULL),
+(8, 'Dharmendra Bachheriya', 'Individual', '', '+91 83064 02805', '', '', '', '', '', 'Active', '', '2025-11-17 15:51:48', NULL),
+(9, 'Ezaz From Ireland', 'Individual', '', '+353 87 355 5012', '', '', '', '', '', 'Active', '', '2025-11-17 15:54:16', NULL),
+(10, 'Pankaj Freelancer', 'Individual', '', '98187 49023', '', '', '', '', '', 'Active', '', '2025-11-17 15:57:23', NULL),
+(11, 'Brendan Australia', 'Individual', 'info@sketchfurniture.com.au', '+61 414 739 495', 'https://sketchfurniture.com.au/', '', '', '', '', 'Active', '', '2025-11-17 16:04:24', NULL);
 
 -- --------------------------------------------------------
 
@@ -1722,7 +1740,8 @@ INSERT INTO `inventory_expense` (`id`, `date`, `category`, `vendor`, `descriptio
 (12, '2025-11-15', 'Other', 'canarabank@canarabank.com', 'ATM/IMPS/UPI Transaction Alert', 1100.00, 'UPI', 'Success', NULL, 'Auto-imported from email', '2025-11-17 06:24:31', NULL),
 (13, '2025-11-16', 'Other', 'canarabank@canarabank.com', 'ATM/IMPS/UPI Transaction Alert', 1000.00, 'UPI', 'Success', NULL, 'Auto-imported from email', '2025-11-17 06:24:31', NULL),
 (14, '2025-11-17', 'Medical Supplies', 'Dr Tahsheel', 'Sarthak and  saksham madicine', 100.00, 'UPI', 'Success', '', '', '2025-11-17 07:27:26', '2025-11-17 07:38:30'),
-(15, '2025-11-17', 'Other', 'Surylal Maurya', 'Biskit purchage  ', 70.00, 'UPI', 'Success', '', '', '2025-11-17 12:09:19', NULL);
+(15, '2025-11-17', 'Other', 'Surylal Maurya', 'Biskit purchage  ', 70.00, 'UPI', 'Success', '', '', '2025-11-17 12:09:19', NULL),
+(17, '2025-11-21', 'Other', 'Pay by Airtel bank', 'Pay by Airtel bank', 1000.00, 'UPI', 'Success', '', '', '2025-11-21 00:55:00', NULL);
 
 -- --------------------------------------------------------
 
@@ -1743,6 +1762,19 @@ CREATE TABLE `inventory_income` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+--
+-- Dumping data for table `inventory_income`
+--
+
+INSERT INTO `inventory_income` (`id`, `date`, `category`, `client_id`, `description`, `amount`, `payment_method`, `payment_status`, `notes`, `created_at`, `updated_at`) VALUES
+(11, '2025-11-07', 'Other Services', 4, 'sallary', 1925.00, 'UPI', 'Success', '', '2025-11-17 12:45:29', '2025-11-17 12:47:37'),
+(12, '2025-11-01', 'Other Services', 3, 'Sallary', 2000.00, 'UPI', 'Success', '', '2025-11-17 12:46:10', NULL),
+(13, '2025-11-15', 'Other Services', 5, 'Sall', 1079.00, 'UPI', 'Success', '', '2025-11-17 12:47:09', '2025-11-17 12:51:09'),
+(14, '2025-11-21', 'Other Services', 3, '', 4000.00, 'UPI', 'Pending', '', '2025-11-21 01:18:24', '2025-11-22 09:26:51'),
+(15, '2025-11-21', 'Other Services', 4, '', 900.00, 'UPI', 'Pending', '', '2025-11-21 01:32:25', NULL),
+(16, '2025-11-22', 'Other Services', 10, 'Computer software devlopment', 5000.00, 'UPI', 'Pending', '', '2025-11-22 02:22:58', NULL),
+(17, '2025-11-22', 'Other Services', 3, '', 1000.00, 'UPI', 'Success', '', '2025-11-22 09:26:35', NULL);
 
 -- --------------------------------------------------------
 
@@ -1819,6 +1851,29 @@ INSERT INTO `notices` (`id`, `server_id`, `title`, `content`, `start_date`, `end
 (4, NULL, 'Test Notice 084539 UPDATED', 'This is a test notice for duplicate prevention testing', '2025-09-16 06:45:53', NULL, 0, 1, NULL, NULL),
 (5, NULL, 'Test Notice 084539 UPDATED', 'This is a test notice for duplicate prevention testing', '2025-09-16 06:45:53', NULL, 0, 1, NULL, NULL),
 (6, NULL, 'Umakant', 'Test desc', '2025-09-16 06:45:53', '2025-11-29 05:48:00', 1, 1, NULL, '2025-11-16 06:07:02');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `opd_doctors`
+--
+
+CREATE TABLE `opd_doctors` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `qualification` varchar(255) DEFAULT NULL,
+  `specialization` varchar(255) DEFAULT NULL,
+  `hospital` varchar(255) DEFAULT NULL,
+  `contact_no` varchar(20) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `registration_no` varchar(100) DEFAULT NULL,
+  `status` enum('Active','Inactive') DEFAULT 'Active',
+  `added_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -1999,7 +2054,8 @@ INSERT INTO `processed_emails` (`id`, `message_id`, `transaction_type`, `process
 (1, '<0109019a76607135-e7e745e7-7908-4788-b806-263ebf1b2e7a-000000@ap-south-1.amazonses.com>', 'expense', '2025-11-17 06:24:20'),
 (2, '<1344695856.1716094.1763074775385@DCLACBSHOSTPRDAP03>', 'expense', '2025-11-17 06:24:27'),
 (3, '<1292300670.40894.1763249893546@DCLACBSHOSTPRDAP03>', 'expense', '2025-11-17 06:24:31'),
-(4, '<-59381021.1571670.1763268037904@DCLACBSHOSTPRDAP03>', 'expense', '2025-11-17 06:24:31');
+(4, '<-59381021.1571670.1763268037904@DCLACBSHOSTPRDAP03>', 'expense', '2025-11-17 06:24:31'),
+(5, '<0109019a9fda55ba-cd7b0fd1-5694-4b08-9aab-c50fb6e9fe7c-000000@ap-south-1.amazonses.com>', 'expense', '2025-11-20 12:00:28');
 
 -- --------------------------------------------------------
 
@@ -2111,7 +2167,11 @@ CREATE TABLE `tasks` (
 --
 
 INSERT INTO `tasks` (`id`, `client_id`, `title`, `description`, `priority`, `status`, `due_date`, `website_urls`, `screenshots`, `notes`, `created_at`, `updated_at`) VALUES
-(2, 3, 'Website not working', 'Menu issue ', 'Medium', 'Pending', NULL, 'https://allcurepharmacys.com/', '[\"uploads\\/screenshots\\/1763382631_0_Screenshot 2025-11-17 180004.png\",\"uploads\\/screenshots\\/1763382631_1_WhatsApp Image 2025-11-17 at 13.11.52_96a0c113.jpg\",\"uploads\\/screenshots\\/1763382660_0_WhatsApp Image 2025-11-17 at 13.11.52_c70534d2.jpg\"]', '', '2025-11-17 12:21:35', '2025-11-17 12:31:00');
+(2, 3, 'Website not working', 'Menu issue ', 'Medium', 'Pending', '2025-11-20', 'https://allcurepharmacys.com/', '[\"uploads\\/screenshots\\/1763382631_0_Screenshot 2025-11-17 180004.png\"]', '', '2025-11-17 12:21:35', '2025-11-17 12:36:54'),
+(4, 8, 'Resume builders', 'http://resume.devloper.space/', 'Medium', 'Pending', '2025-11-29', 'http://resume.devloper.space/', '[]', '', '2025-11-18 05:53:38', NULL),
+(5, 10, 'Booking Website', 'Studio booking', 'Medium', 'Completed', '2025-11-30', 'https://bombay.devloper.space/\r\nhttps://bombaybeatsstudios.com/', '[]', '', '2025-11-18 06:11:15', '2025-11-21 01:17:06'),
+(6, 10, 'Booking  app', 'Booking app', 'Medium', 'Pending', '2025-11-30', '', '[]', '', '2025-11-18 06:11:55', NULL),
+(7, 11, 'Issue  fixed', 'Marksheet page  issue, Progress card page  issue, result page  issue', 'Medium', 'Completed', '2025-11-15', 'https://iqrapublicschool.com/welcome.html', '[]', '', '2025-11-18 07:06:53', '2025-11-18 07:10:12');
 
 -- --------------------------------------------------------
 
@@ -2176,7 +2236,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `api_token`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-11-17 17:36:58', '2025-10-26 10:12:00', '', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-11-23 19:19:38', '2025-10-26 10:12:00', '', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
 (2, 'uma', '$2y$12$auavnwTI5hbfkyqCoavijO/i3diGYgDZqt58EzkY6ZkB6M9jTmD9e', 'Uma Yadav', 'umakant171992@gmail.com', 'user', 1, 'Pathology', '2025-09-26 10:13:58', '2025-11-17 14:02:35', '2025-12-30 23:59:00', '6dad141b199e8c2ae3021462459c23135244d408778939a4c33c4a969726fde7', '0000-00-00 00:00:00', '2025-10-18 05:36:53');
 
 -- --------------------------------------------------------
@@ -2201,14 +2261,14 @@ CREATE TABLE `user_settings` (
 
 INSERT INTO `user_settings` (`id`, `user_id`, `setting_key`, `setting_value`, `metadata`, `created_at`, `updated_at`) VALUES
 (1, 1, 'gmail_password', 'am5pbWl1aXluam5vcHZrdA==', '{\"type\":\"app\",\"created\":\"2025-10-25 09:22:07\"}', '2025-10-25 09:22:07', '2025-10-25 09:22:07'),
-(2, 1, 'email_default_priority', 'normal', NULL, '2025-11-17 01:04:10', '2025-11-17 01:04:10'),
-(3, 1, 'email_emails_per_page', '100', NULL, '2025-11-17 01:04:10', '2025-11-17 01:04:10'),
-(4, 1, 'email_enable_imap', '1', NULL, '2025-11-17 01:04:10', '2025-11-17 01:04:10'),
-(5, 1, 'email_enable_smtp', '1', NULL, '2025-11-17 01:04:10', '2025-11-17 01:04:10'),
-(6, 1, 'email_auto_refresh', '1', NULL, '2025-11-17 01:04:10', '2025-11-17 01:04:10'),
-(7, 1, 'email_mark_as_read', '0', NULL, '2025-11-17 01:04:10', '2025-11-17 01:04:10'),
-(8, 1, 'email_show_notifications', '1', NULL, '2025-11-17 01:04:10', '2025-11-17 01:04:10'),
-(9, 1, 'email_save_sent_copy', '1', NULL, '2025-11-17 01:04:10', '2025-11-17 01:04:10');
+(2, 1, 'email_default_priority', 'normal', NULL, '2025-11-17 01:04:10', '2025-11-22 02:47:55'),
+(3, 1, 'email_emails_per_page', '100', NULL, '2025-11-17 01:04:10', '2025-11-22 02:47:55'),
+(4, 1, 'email_enable_imap', '1', NULL, '2025-11-17 01:04:10', '2025-11-22 02:47:55'),
+(5, 1, 'email_enable_smtp', '1', NULL, '2025-11-17 01:04:10', '2025-11-22 02:47:55'),
+(6, 1, 'email_auto_refresh', '1', NULL, '2025-11-17 01:04:10', '2025-11-22 02:47:55'),
+(7, 1, 'email_mark_as_read', '1', NULL, '2025-11-17 01:04:10', '2025-11-22 02:47:55'),
+(8, 1, 'email_show_notifications', '1', NULL, '2025-11-17 01:04:10', '2025-11-22 02:47:55'),
+(9, 1, 'email_save_sent_copy', '1', NULL, '2025-11-17 01:04:10', '2025-11-22 02:47:55');
 
 -- --------------------------------------------------------
 
@@ -2341,6 +2401,17 @@ ALTER TABLE `notices`
   ADD KEY `idx_notices_added_by` (`added_by`);
 
 --
+-- Indexes for table `opd_doctors`
+--
+ALTER TABLE `opd_doctors`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_opd_doctors_name` (`name`),
+  ADD KEY `idx_opd_doctors_hospital` (`hospital`),
+  ADD KEY `idx_opd_doctors_added_by` (`added_by`),
+  ADD KEY `idx_opd_doctors_created_at` (`created_at`),
+  ADD KEY `idx_opd_doctors_status` (`status`);
+
+--
 -- Indexes for table `owners`
 --
 ALTER TABLE `owners`
@@ -2467,7 +2538,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `clients`
 --
 ALTER TABLE `clients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `doctors`
@@ -2479,7 +2550,7 @@ ALTER TABLE `doctors`
 -- AUTO_INCREMENT for table `email_signatures`
 --
 ALTER TABLE `email_signatures`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `email_templates`
@@ -2503,19 +2574,19 @@ ALTER TABLE `entry_tests`
 -- AUTO_INCREMENT for table `inventory_clients`
 --
 ALTER TABLE `inventory_clients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `inventory_expense`
 --
 ALTER TABLE `inventory_expense`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `inventory_income`
 --
 ALTER TABLE `inventory_income`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `main_test_categories`
@@ -2528,6 +2599,12 @@ ALTER TABLE `main_test_categories`
 --
 ALTER TABLE `notices`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `opd_doctors`
+--
+ALTER TABLE `opd_doctors`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `owners`
@@ -2557,7 +2634,7 @@ ALTER TABLE `plans`
 -- AUTO_INCREMENT for table `processed_emails`
 --
 ALTER TABLE `processed_emails`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `reports`
@@ -2587,7 +2664,7 @@ ALTER TABLE `system_config`
 -- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `tests`
@@ -2599,13 +2676,13 @@ ALTER TABLE `tests`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `user_settings`
 --
 ALTER TABLE `user_settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `zip_uploads`

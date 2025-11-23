@@ -27,25 +27,36 @@ require_once 'inc/sidebar.php';
         <div class="container-fluid">
             <!-- Stats Row -->
             <div class="row mb-4">
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-2 col-6">
                     <div class="small-box bg-info">
                         <div class="inner">
                             <h3 id="totalDoctors">0</h3>
-                            <p>Total OPD Doctors</p>
+                            <p>Total Doctors</p>
                         </div>
                         <div class="icon">
                             <i class="fas fa-user-md"></i>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-2 col-6">
                     <div class="small-box bg-success">
                         <div class="inner">
                             <h3 id="activeDoctors">0</h3>
-                            <p>Active Doctors</p>
+                            <p>Active</p>
                         </div>
                         <div class="icon">
-                            <i class="fas fa-heartbeat"></i>
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-6">
+                    <div class="small-box bg-danger">
+                        <div class="inner">
+                            <h3 id="inactiveDoctors">0</h3>
+                            <p>Inactive</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-times-circle"></i>
                         </div>
                     </div>
                 </div>
@@ -61,7 +72,7 @@ require_once 'inc/sidebar.php';
                     </div>
                 </div>
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-danger">
+                    <div class="small-box bg-secondary">
                         <div class="inner">
                             <h3 id="hospitals">0</h3>
                             <p>Hospitals</p>
@@ -105,6 +116,7 @@ require_once 'inc/sidebar.php';
                                             <th>Phone</th>
                                             <th>Email</th>
                                             <th>Registration No</th>
+                                            <th>Status</th>
                                             <th>Added By</th>
                                             <th>Created At</th>
                                             <th>Actions</th>
@@ -221,12 +233,28 @@ require_once 'inc/sidebar.php';
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="doctorAddress">
-                            <i class="fas fa-map-marker-alt mr-1"></i>
-                            Address
-                        </label>
-                        <textarea class="form-control" id="doctorAddress" name="address" rows="3"></textarea>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="doctorStatus">
+                                    <i class="fas fa-toggle-on mr-1"></i>
+                                    Status <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-control" id="doctorStatus" name="status" required>
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="doctorAddress">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    Address
+                                </label>
+                                <textarea class="form-control" id="doctorAddress" name="address" rows="1"></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">

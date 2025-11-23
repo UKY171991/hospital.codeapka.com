@@ -72,7 +72,7 @@ try {
         
         try {
             $dataQuery = "SELECT d.id, d.name, d.specialization, d.qualification, d.hospital, 
-                         d.contact_no, d.phone, d.email, d.registration_no, d.address,
+                         d.contact_no, d.phone, d.email, d.registration_no, d.address, d.status,
                          d.added_by, u.username as added_by_username, d.created_at, d.updated_at
                       " . $baseQuery . $whereClause . $orderBy . $limit;
 
@@ -96,8 +96,11 @@ try {
         $totalStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors");
         $total = $totalStmt->fetchColumn();
         
-        $activeStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors WHERE phone IS NOT NULL AND phone != ''");
+        $activeStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors WHERE status = 'Active'");
         $active = $activeStmt->fetchColumn();
+        
+        $inactiveStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors WHERE status = 'Inactive'");
+        $inactive = $inactiveStmt->fetchColumn();
         
         $specializationsStmt = $pdo->query("SELECT COUNT(DISTINCT specialization) FROM opd_doctors WHERE specialization IS NOT NULL AND specialization != ''");
         $specializations = $specializationsStmt->fetchColumn();
@@ -110,6 +113,7 @@ try {
             'data' => [
                 'total' => $total,
                 'active' => $active,
+                'inactive' => $inactive,
                 'specializations' => $specializations,
                 'hospitals' => $hospitals
             ]
@@ -138,6 +142,7 @@ try {
         $email = trim($_POST['email'] ?? '');
         $address = trim($_POST['address'] ?? '');
         $registration_no = trim($_POST['registration_no'] ?? '');
+        $status = trim($_POST['status'] ?? 'Active');
         $added_by = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
 
         if (empty($name)) {
@@ -146,20 +151,38 @@ try {
 
         if ($id) {
             try {
-                $stmt = $pdo->prepare('UPDATE opd_doctors SET name=?, qualification=?, specialization=?, hospital=?, contact_no=?, phone=?, email=?, address=?, registration_no=?, updated_at=NOW() WHERE id=?');
-                $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $id]);
+                $stmt = $pdo->prepare('UPDATE opd_doctors SET name=?, qualification=?, specialization=?, hospital=?, contact_no=?, phone=?, email=?, address=?, registration_no=?, status=?, updated_at=NOW() WHERE id=?');
+                $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $status, $id]);
                 json_response(['success' => true, 'message' => 'OPD Doctor updated successfully']);
             } catch (PDOException $e) {
                 json_response(['success' => false, 'message' => 'Error updating: ' . $e->getMessage()], 500);
             }
         } else {
             try {
-                $stmt = $pdo->prepare('INSERT INTO opd_doctors (name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, added_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
-                $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $added_by]);
+                $stmt = $pdo->prepare('INSERT INTO opd_doctors (name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, status, added_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
+                $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $status, $added_by]);
                 json_response(['success' => true, 'message' => 'OPD Doctor added successfully']);
             } catch (PDOException $e) {
                 json_response(['success' => false, 'message' => 'Error adding: ' . $e->getMessage()], 500);
             }
+        }
+    }
+
+    if ($action === 'toggle_status' && isset($_POST['id'])) {
+        if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'master')) {
+            json_response(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        try {
+            $stmt = $pdo->prepare('UPDATE opd_doctors SET status = IF(status = "Active", "Inactive", "Active"), updated_at = NOW() WHERE id = ?');
+            $stmt->execute([$_POST['id']]);
+            
+            $getStmt = $pdo->prepare('SELECT status FROM opd_doctors WHERE id = ?');
+            $getStmt->execute([$_POST['id']]);
+            $newStatus = $getStmt->fetchColumn();
+            
+            json_response(['success' => true, 'message' => 'Status updated successfully', 'status' => $newStatus]);
+        } catch (PDOException $e) {
+            json_response(['success' => false, 'message' => 'Error updating status: ' . $e->getMessage()], 500);
         }
     }
 

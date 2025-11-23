@@ -36,6 +36,14 @@ $(document).ready(function() {
                 { data: 'phone' },
                 { data: 'email' },
                 { data: 'registration_no' },
+                { 
+                    data: 'status',
+                    render: function(data, type, row) {
+                        const statusClass = data === 'Active' ? 'success' : 'danger';
+                        const statusIcon = data === 'Active' ? 'check-circle' : 'times-circle';
+                        return `<span class="badge badge-${statusClass}"><i class="fas fa-${statusIcon}"></i> ${data}</span>`;
+                    }
+                },
                 { data: 'added_by_username' },
                 { 
                     data: 'created_at',
@@ -47,6 +55,10 @@ $(document).ready(function() {
                     data: null,
                     orderable: false,
                     render: function(data, type, row) {
+                        const statusBtn = row.status === 'Active' 
+                            ? `<button class="btn btn-sm btn-secondary toggle-status-btn" data-id="${row.id}" title="Deactivate"><i class="fas fa-toggle-on"></i></button>`
+                            : `<button class="btn btn-sm btn-success toggle-status-btn" data-id="${row.id}" title="Activate"><i class="fas fa-toggle-off"></i></button>`;
+                        
                         return `
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-info view-btn" data-id="${row.id}" title="View">
@@ -55,6 +67,7 @@ $(document).ready(function() {
                                 <button class="btn btn-sm btn-warning edit-btn" data-id="${row.id}" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
+                                ${statusBtn}
                                 <button class="btn btn-sm btn-danger delete-btn" data-id="${row.id}" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -82,6 +95,7 @@ $(document).ready(function() {
                 if (response.success) {
                     $('#totalDoctors').text(response.data.total);
                     $('#activeDoctors').text(response.data.active);
+                    $('#inactiveDoctors').text(response.data.inactive);
                     $('#specializations').text(response.data.specializations);
                     $('#hospitals').text(response.data.hospitals);
                 }
@@ -139,6 +153,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success && response.data) {
                     const doctor = response.data;
+                    const statusClass = doctor.status === 'Active' ? 'success' : 'danger';
                     let html = `
                         <div class="row">
                             <div class="col-md-6">
@@ -147,6 +162,7 @@ $(document).ready(function() {
                                 <p><strong>Specialization:</strong> ${doctor.specialization || 'N/A'}</p>
                                 <p><strong>Hospital:</strong> ${doctor.hospital || 'N/A'}</p>
                                 <p><strong>Contact No:</strong> ${doctor.contact_no || 'N/A'}</p>
+                                <p><strong>Status:</strong> <span class="badge badge-${statusClass}">${doctor.status || 'N/A'}</span></p>
                             </div>
                             <div class="col-md-6">
                                 <p><strong>Phone:</strong> ${doctor.phone || 'N/A'}</p>
@@ -189,6 +205,7 @@ $(document).ready(function() {
                     $('#doctorEmail').val(doctor.email);
                     $('#doctorRegistration').val(doctor.registration_no);
                     $('#doctorAddress').val(doctor.address);
+                    $('#doctorStatus').val(doctor.status || 'Active');
                     $('#modalTitle').text('Edit OPD Doctor');
                     $('#doctorModal').modal('show');
                 }
@@ -228,6 +245,32 @@ $(document).ready(function() {
                 error: function(xhr) {
                     const response = xhr.responseJSON;
                     toastr.error(response?.message || 'Error deleting doctor');
+                }
+            });
+        }
+    });
+
+    // Toggle status
+    $(document).on('click', '.toggle-status-btn', function() {
+        const id = $(this).data('id');
+        
+        if (confirm('Are you sure you want to change the status of this doctor?')) {
+            $.ajax({
+                url: 'ajax/opd_doctor_api.php',
+                type: 'POST',
+                data: { action: 'toggle_status', id: id },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        opdDoctorTable.ajax.reload();
+                        loadStats();
+                    } else {
+                        toastr.error(response.message || 'Error updating status');
+                    }
+                },
+                error: function(xhr) {
+                    const response = xhr.responseJSON;
+                    toastr.error(response?.message || 'Error updating status');
                 }
             });
         }
