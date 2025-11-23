@@ -7,7 +7,7 @@ $(document).ready(function() {
     $('#billDate').val(new Date().toISOString().split('T')[0]);
 
     // Load doctors list
-    function loadDoctors() {
+    function loadDoctors(callback) {
         $.ajax({
             url: 'ajax/opd_billing_api.php',
             type: 'GET',
@@ -28,6 +28,11 @@ $(document).ready(function() {
                         }
                         doctorSelect.append(`<option value="${doctor.name}">${displayText}</option>`);
                     });
+                    
+                    // Call callback function if provided
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
                 }
             },
             error: function() {
