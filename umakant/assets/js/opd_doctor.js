@@ -14,8 +14,13 @@ $(document).ready(function() {
                 data: function(d) {
                     d.action = 'list';
                 },
+                dataSrc: function(json) {
+                    console.log('API Response:', json);
+                    return json.data;
+                },
                 error: function(xhr, error, thrown) {
                     console.error('DataTable error:', error, thrown);
+                    console.error('Response:', xhr.responseText);
                     toastr.error('Error loading data');
                 }
             },
