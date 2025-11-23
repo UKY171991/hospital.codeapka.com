@@ -71,10 +71,23 @@ try {
         $limit = " LIMIT $start, $length";
         
         try {
-            $dataQuery = "SELECT d.id, d.name, d.specialization, d.qualification, d.hospital, 
-                         d.contact_no, d.phone, d.email, d.registration_no, d.address, d.status,
-                         d.added_by, u.username as added_by_username, d.created_at, d.updated_at
-                      " . $baseQuery . $whereClause . $orderBy . $limit;
+            // Check if status column exists
+            $checkColumn = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'status'");
+            $statusExists = $checkColumn->rowCount() > 0;
+            
+            if ($statusExists) {
+                $dataQuery = "SELECT d.id, d.name, d.specialization, d.qualification, d.hospital, 
+                             d.contact_no, d.phone, d.email, d.registration_no, d.address, 
+                             COALESCE(d.status, 'Active') as status,
+                             d.added_by, u.username as added_by_username, d.created_at, d.updated_at
+                          " . $baseQuery . $whereClause . $orderBy . $limit;
+            } else {
+                $dataQuery = "SELECT d.id, d.name, d.specialization, d.qualification, d.hospital, 
+                             d.contact_no, d.phone, d.email, d.registration_no, d.address, 
+                             'Active' as status,
+                             d.added_by, u.username as added_by_username, d.created_at, d.updated_at
+                          " . $baseQuery . $whereClause . $orderBy . $limit;
+            }
 
             $dataStmt = $pdo->prepare($dataQuery);
             $dataStmt->execute($params);
@@ -93,31 +106,44 @@ try {
     }
     
     if ($action === 'stats') {
-        $totalStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors");
-        $total = $totalStmt->fetchColumn();
-        
-        $activeStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors WHERE status = 'Active'");
-        $active = $activeStmt->fetchColumn();
-        
-        $inactiveStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors WHERE status = 'Inactive'");
-        $inactive = $inactiveStmt->fetchColumn();
-        
-        $specializationsStmt = $pdo->query("SELECT COUNT(DISTINCT specialization) FROM opd_doctors WHERE specialization IS NOT NULL AND specialization != ''");
-        $specializations = $specializationsStmt->fetchColumn();
-        
-        $hospitalsStmt = $pdo->query("SELECT COUNT(DISTINCT hospital) FROM opd_doctors WHERE hospital IS NOT NULL AND hospital != ''");
-        $hospitals = $hospitalsStmt->fetchColumn();
-        
-        json_response([
-            'success' => true,
-            'data' => [
-                'total' => $total,
-                'active' => $active,
-                'inactive' => $inactive,
-                'specializations' => $specializations,
-                'hospitals' => $hospitals
-            ]
-        ]);
+        try {
+            $totalStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors");
+            $total = $totalStmt->fetchColumn();
+            
+            // Check if status column exists
+            $checkColumn = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'status'");
+            $statusExists = $checkColumn->rowCount() > 0;
+            
+            if ($statusExists) {
+                $activeStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors WHERE status = 'Active' OR status IS NULL");
+                $active = $activeStmt->fetchColumn();
+                
+                $inactiveStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors WHERE status = 'Inactive'");
+                $inactive = $inactiveStmt->fetchColumn();
+            } else {
+                $active = $total;
+                $inactive = 0;
+            }
+            
+            $specializationsStmt = $pdo->query("SELECT COUNT(DISTINCT specialization) FROM opd_doctors WHERE specialization IS NOT NULL AND specialization != ''");
+            $specializations = $specializationsStmt->fetchColumn();
+            
+            $hospitalsStmt = $pdo->query("SELECT COUNT(DISTINCT hospital) FROM opd_doctors WHERE hospital IS NOT NULL AND hospital != ''");
+            $hospitals = $hospitalsStmt->fetchColumn();
+            
+            json_response([
+                'success' => true,
+                'data' => [
+                    'total' => $total,
+                    'active' => $active,
+                    'inactive' => $inactive,
+                    'specializations' => $specializations,
+                    'hospitals' => $hospitals
+                ]
+            ]);
+        } catch (PDOException $e) {
+            json_response(['success' => false, 'message' => 'Error fetching stats: ' . $e->getMessage()], 500);
+        }
     }
 
     if ($action === 'get' && isset($_GET['id'])) {

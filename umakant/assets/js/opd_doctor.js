@@ -39,10 +39,12 @@ $(document).ready(function() {
                 { 
                     data: 'status',
                     render: function(data, type, row) {
+                        if (!data) data = 'Active'; // Default to Active if null
                         const statusClass = data === 'Active' ? 'success' : 'danger';
                         const statusIcon = data === 'Active' ? 'check-circle' : 'times-circle';
                         return `<span class="badge badge-${statusClass}"><i class="fas fa-${statusIcon}"></i> ${data}</span>`;
-                    }
+                    },
+                    defaultContent: '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Active</span>'
                 },
                 { data: 'added_by_username' },
                 { 
