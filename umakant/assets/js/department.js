@@ -153,8 +153,14 @@ $(document).ready(function() {
         $.ajax({
             url: 'opd_api/doctors.php',
             type: 'GET',
-            data: { action: 'list', length: 1000 },
+            data: { 
+                action: 'list',
+                start: 0,
+                length: 1000,
+                draw: 1
+            },
             success: function(response) {
+                console.log('Doctors response:', response);
                 if (response.success && response.data) {
                     const doctorSelect = $('#departmentHead');
                     doctorSelect.empty();
@@ -168,13 +174,19 @@ $(document).ready(function() {
                         doctorSelect.append(`<option value="${doctor.name}">${displayText}</option>`);
                     });
                     
+                    console.log('Loaded ' + response.data.length + ' doctors');
+                    
                     if (typeof callback === 'function') {
                         callback();
                     }
+                } else {
+                    console.error('Invalid response format:', response);
                 }
             },
-            error: function() {
-                console.error('Error loading doctors');
+            error: function(xhr, status, error) {
+                console.error('Error loading doctors:', error);
+                console.error('Response:', xhr.responseText);
+                toastr.error('Error loading doctors list');
             }
         });
     }
