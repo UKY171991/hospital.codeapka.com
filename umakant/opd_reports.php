@@ -374,4 +374,7 @@ require_once 'inc/sidebar.php';
 }
 </style>
 
+<!-- Page specific JavaScript -->
+<script src="assets/js/opd_reports.js?v=<?php echo time(); ?>"></script>
+
 <?php require_once 'inc/footer.php'; ?>
