@@ -9,7 +9,7 @@ $(document).ready(function() {
             processing: true,
             serverSide: true,
             ajax: {
-                url: 'ajax/opd_doctor_api.php',
+                url: 'opd_api/doctors.php',
                 type: 'GET',
                 data: function(d) {
                     d.action = 'list';
@@ -143,7 +143,7 @@ $(document).ready(function() {
     // Load statistics
     function loadStats() {
         $.ajax({
-            url: 'ajax/opd_doctor_api.php',
+            url: 'opd_api/doctors.php',
             type: 'GET',
             data: { action: 'stats' },
             success: function(response) {
@@ -177,7 +177,7 @@ $(document).ready(function() {
         const formData = $(this).serialize() + '&action=save';
         
         $.ajax({
-            url: 'ajax/opd_doctor_api.php',
+            url: 'opd_api/doctors.php',
             type: 'POST',
             data: formData,
             success: function(response) {
@@ -202,7 +202,7 @@ $(document).ready(function() {
         const id = $(this).data('id');
         
         $.ajax({
-            url: 'ajax/opd_doctor_api.php',
+            url: 'opd_api/doctors.php',
             type: 'GET',
             data: { action: 'get', id: id },
             success: function(response) {
@@ -244,7 +244,7 @@ $(document).ready(function() {
         const id = $(this).data('id');
         
         $.ajax({
-            url: 'ajax/opd_doctor_api.php',
+            url: 'opd_api/doctors.php',
             type: 'GET',
             data: { action: 'get', id: id },
             success: function(response) {
@@ -285,7 +285,7 @@ $(document).ready(function() {
         
         if (confirm('Are you sure you want to delete this OPD doctor?')) {
             $.ajax({
-                url: 'ajax/opd_doctor_api.php',
+                url: 'opd_api/doctors.php',
                 type: 'POST',
                 data: { action: 'delete', id: id },
                 success: function(response) {
@@ -311,7 +311,7 @@ $(document).ready(function() {
         
         if (confirm('Are you sure you want to change the status of this doctor?')) {
             $.ajax({
-                url: 'ajax/opd_doctor_api.php',
+                url: 'opd_api/doctors.php',
                 type: 'POST',
                 data: { action: 'toggle_status', id: id },
                 success: function(response) {
