@@ -9,6 +9,22 @@ try {
 
     // Dashboard stats
     if ($action === 'stats') {
+        // Check if tables exist
+        $checkTables = $pdo->query("SHOW TABLES LIKE 'opd_doctors'");
+        if ($checkTables->rowCount() === 0) {
+            json_response([
+                'success' => false,
+                'message' => 'OPD tables not found. Please run the SQL schema to create the required tables.',
+                'data' => [
+                    'doctors' => ['total' => 0, 'active' => 0],
+                    'patients' => ['total' => 0, 'today' => 0],
+                    'reports' => ['total' => 0, 'week' => 0],
+                    'billing' => ['total' => 0, 'revenue' => '0.00', 'todayRevenue' => '0.00', 'pending' => '0.00'],
+                    'followUps' => ['upcoming' => 0, 'overdue' => 0]
+                ]
+            ]);
+        }
+        
         // Doctors stats
         $totalDoctorsStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors");
         $totalDoctors = $totalDoctorsStmt->fetchColumn();
@@ -24,37 +40,53 @@ try {
         }
         
         // Patients stats
-        $totalPatientsStmt = $pdo->query("SELECT COUNT(DISTINCT patient_name) FROM opd_reports");
+        $totalPatientsStmt = $pdo->query("SELECT COUNT(*) FROM opd_patients WHERE is_active = 1");
         $totalPatients = $totalPatientsStmt->fetchColumn();
         
-        $todayPatientsStmt = $pdo->query("SELECT COUNT(*) FROM opd_reports WHERE DATE(report_date) = CURDATE()");
+        $todayPatientsStmt = $pdo->query("SELECT COUNT(*) FROM opd_appointments WHERE DATE(appointment_date) = CURDATE()");
         $todayPatients = $todayPatientsStmt->fetchColumn();
         
-        // Reports stats
-        $totalReportsStmt = $pdo->query("SELECT COUNT(*) FROM opd_reports");
+        // Medical Records stats (using opd_medical_records instead of opd_reports)
+        $totalReportsStmt = $pdo->query("SELECT COUNT(*) FROM opd_medical_records");
         $totalReports = $totalReportsStmt->fetchColumn();
         
-        $weekReportsStmt = $pdo->query("SELECT COUNT(*) FROM opd_reports WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
+        $weekReportsStmt = $pdo->query("SELECT COUNT(*) FROM opd_medical_records WHERE record_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
         $weekReports = $weekReportsStmt->fetchColumn();
         
-        // Billing stats
-        $totalBillsStmt = $pdo->query("SELECT COUNT(*) FROM opd_billing");
-        $totalBills = $totalBillsStmt->fetchColumn();
+        // Billing stats (check if opd_billing table exists, otherwise use appointments)
+        $checkBilling = $pdo->query("SHOW TABLES LIKE 'opd_billing'");
+        if ($checkBilling->rowCount() > 0) {
+            $totalBillsStmt = $pdo->query("SELECT COUNT(*) FROM opd_billing");
+            $totalBills = $totalBillsStmt->fetchColumn();
+            
+            $totalRevenueStmt = $pdo->query("SELECT COALESCE(SUM(paid_amount), 0) FROM opd_billing");
+            $totalRevenue = $totalRevenueStmt->fetchColumn();
+            
+            $todayRevenueStmt = $pdo->query("SELECT COALESCE(SUM(paid_amount), 0) FROM opd_billing WHERE DATE(bill_date) = CURDATE()");
+            $todayRevenue = $todayRevenueStmt->fetchColumn();
+            
+            $pendingAmountStmt = $pdo->query("SELECT COALESCE(SUM(balance_amount), 0) FROM opd_billing WHERE payment_status != 'Paid'");
+            $pendingAmount = $pendingAmountStmt->fetchColumn();
+        } else {
+            // Use appointments fee as fallback
+            $totalBillsStmt = $pdo->query("SELECT COUNT(*) FROM opd_appointments WHERE payment_status = 'paid'");
+            $totalBills = $totalBillsStmt->fetchColumn();
+            
+            $totalRevenueStmt = $pdo->query("SELECT COALESCE(SUM(fee), 0) FROM opd_appointments WHERE payment_status = 'paid'");
+            $totalRevenue = $totalRevenueStmt->fetchColumn();
+            
+            $todayRevenueStmt = $pdo->query("SELECT COALESCE(SUM(fee), 0) FROM opd_appointments WHERE payment_status = 'paid' AND DATE(appointment_date) = CURDATE()");
+            $todayRevenue = $todayRevenueStmt->fetchColumn();
+            
+            $pendingAmountStmt = $pdo->query("SELECT COALESCE(SUM(fee), 0) FROM opd_appointments WHERE payment_status = 'pending'");
+            $pendingAmount = $pendingAmountStmt->fetchColumn();
+        }
         
-        $totalRevenueStmt = $pdo->query("SELECT COALESCE(SUM(paid_amount), 0) FROM opd_billing");
-        $totalRevenue = $totalRevenueStmt->fetchColumn();
-        
-        $todayRevenueStmt = $pdo->query("SELECT COALESCE(SUM(paid_amount), 0) FROM opd_billing WHERE DATE(bill_date) = CURDATE()");
-        $todayRevenue = $todayRevenueStmt->fetchColumn();
-        
-        $pendingAmountStmt = $pdo->query("SELECT COALESCE(SUM(balance_amount), 0) FROM opd_billing WHERE payment_status != 'Paid'");
-        $pendingAmount = $pendingAmountStmt->fetchColumn();
-        
-        // Follow-ups
-        $upcomingFollowUpsStmt = $pdo->query("SELECT COUNT(*) FROM opd_reports WHERE follow_up_date >= CURDATE() AND follow_up_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)");
+        // Follow-ups (using appointments for now)
+        $upcomingFollowUpsStmt = $pdo->query("SELECT COUNT(*) FROM opd_appointments WHERE appointment_date >= CURDATE() AND appointment_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) AND status IN ('scheduled', 'confirmed')");
         $upcomingFollowUps = $upcomingFollowUpsStmt->fetchColumn();
         
-        $overdueFollowUpsStmt = $pdo->query("SELECT COUNT(*) FROM opd_reports WHERE follow_up_date < CURDATE()");
+        $overdueFollowUpsStmt = $pdo->query("SELECT COUNT(*) FROM opd_appointments WHERE appointment_date < CURDATE() AND status IN ('scheduled', 'confirmed')");
         $overdueFollowUps = $overdueFollowUpsStmt->fetchColumn();
         
         json_response([
