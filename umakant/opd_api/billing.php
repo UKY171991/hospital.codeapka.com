@@ -7,6 +7,18 @@ session_start();
 try {
     $action = $_REQUEST['action'] ?? 'list';
 
+    // Check if opd_billing table exists
+    $checkTable = $pdo->query("SHOW TABLES LIKE 'opd_billing'");
+    $tableExists = $checkTable->rowCount() > 0;
+    
+    if (!$tableExists && in_array($action, ['list', 'get', 'save', 'delete', 'stats'])) {
+        json_response([
+            'success' => false,
+            'message' => 'OPD Billing table not found. Please run the SQL schema to create the required tables.',
+            'data' => []
+        ]);
+    }
+
     // List bills
     if ($action === 'list') {
         $draw = (int)($_REQUEST['draw'] ?? 1);
@@ -14,7 +26,16 @@ try {
         $length = max(1, min(100, (int)($_REQUEST['length'] ?? 25)));
         $search = trim($_REQUEST['search']['value'] ?? '');
         
-        $baseQuery = "FROM opd_billing b LEFT JOIN users u ON b.added_by = u.id";
+        // Check if added_by column exists
+        $checkAddedBy = $pdo->query("SHOW COLUMNS FROM opd_billing LIKE 'added_by'");
+        $addedByExists = $checkAddedBy->rowCount() > 0;
+        
+        if ($addedByExists) {
+            $baseQuery = "FROM opd_billing b LEFT JOIN users u ON b.added_by = u.id";
+        } else {
+            $baseQuery = "FROM opd_billing b";
+        }
+        
         $whereClause = "";
         $params = [];
         
@@ -34,7 +55,12 @@ try {
         $orderBy = " ORDER BY b.id DESC";
         $limit = " LIMIT $start, $length";
         
-        $dataQuery = "SELECT b.*, u.username as added_by_username " . $baseQuery . $whereClause . $orderBy . $limit;
+        if ($addedByExists) {
+            $dataQuery = "SELECT b.*, u.username as added_by_username " . $baseQuery . $whereClause . $orderBy . $limit;
+        } else {
+            $dataQuery = "SELECT b.*, NULL as added_by_username " . $baseQuery . $whereClause . $orderBy . $limit;
+        }
+        
         $dataStmt = $pdo->prepare($dataQuery);
         $dataStmt->execute($params);
         $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -144,6 +170,12 @@ try {
 
     // Get doctors list
     if ($action === 'get_doctors') {
+        // Check if opd_doctors table exists
+        $checkDoctorsTable = $pdo->query("SHOW TABLES LIKE 'opd_doctors'");
+        if ($checkDoctorsTable->rowCount() === 0) {
+            json_response(['success' => true, 'data' => []]);
+        }
+        
         $checkColumn = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'status'");
         $statusExists = $checkColumn->rowCount() > 0;
         
