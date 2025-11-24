@@ -118,23 +118,43 @@ try {
         ]);
     }
 
-    // Recent reports
+    // Recent reports (medical records)
     if ($action === 'recent_reports') {
-        $stmt = $pdo->query("SELECT id, patient_name, doctor_name, report_date, diagnosis FROM opd_reports ORDER BY report_date DESC, id DESC LIMIT 5");
+        $stmt = $pdo->query("SELECT mr.id, p.name as patient_name, d.name as doctor_name, mr.record_date as report_date, mr.diagnosis 
+                             FROM opd_medical_records mr 
+                             LEFT JOIN opd_patients p ON mr.patient_id = p.id 
+                             LEFT JOIN opd_doctors d ON mr.doctor_id = d.id 
+                             ORDER BY mr.record_date DESC, mr.id DESC LIMIT 5");
         $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
         json_response(['success' => true, 'data' => $reports]);
     }
 
     // Recent bills
     if ($action === 'recent_bills') {
-        $stmt = $pdo->query("SELECT id, patient_name, total_amount, paid_amount, payment_status, bill_date FROM opd_billing ORDER BY bill_date DESC, id DESC LIMIT 5");
+        // Check if opd_billing table exists
+        $checkBilling = $pdo->query("SHOW TABLES LIKE 'opd_billing'");
+        if ($checkBilling->rowCount() > 0) {
+            $stmt = $pdo->query("SELECT id, patient_name, total_amount, paid_amount, payment_status, bill_date FROM opd_billing ORDER BY bill_date DESC, id DESC LIMIT 5");
+        } else {
+            // Use appointments as fallback
+            $stmt = $pdo->query("SELECT a.id, p.name as patient_name, a.fee as total_amount, a.fee as paid_amount, a.payment_status, a.appointment_date as bill_date 
+                                 FROM opd_appointments a 
+                                 LEFT JOIN opd_patients p ON a.patient_id = p.id 
+                                 WHERE a.payment_status = 'paid'
+                                 ORDER BY a.appointment_date DESC, a.id DESC LIMIT 5");
+        }
         $bills = $stmt->fetchAll(PDO::FETCH_ASSOC);
         json_response(['success' => true, 'data' => $bills]);
     }
 
-    // Upcoming follow-ups
+    // Upcoming follow-ups (using appointments)
     if ($action === 'upcoming_followups') {
-        $stmt = $pdo->query("SELECT id, patient_name, doctor_name, follow_up_date FROM opd_reports WHERE follow_up_date >= CURDATE() ORDER BY follow_up_date ASC LIMIT 5");
+        $stmt = $pdo->query("SELECT a.id, p.name as patient_name, d.name as doctor_name, a.appointment_date as follow_up_date 
+                             FROM opd_appointments a 
+                             LEFT JOIN opd_patients p ON a.patient_id = p.id 
+                             LEFT JOIN opd_doctors d ON a.doctor_id = d.id 
+                             WHERE a.appointment_date >= CURDATE() AND a.status IN ('scheduled', 'confirmed')
+                             ORDER BY a.appointment_date ASC LIMIT 5");
         $followups = $stmt->fetchAll(PDO::FETCH_ASSOC);
         json_response(['success' => true, 'data' => $followups]);
     }

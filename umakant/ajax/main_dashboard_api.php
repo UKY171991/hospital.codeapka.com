@@ -22,18 +22,40 @@ try {
         try {
             $stats = [];
             
-            // OPD Stats
-            $opdDoctorsStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors");
-            $stats['opd']['doctors'] = $opdDoctorsStmt->fetchColumn();
-            
-            $opdPatientsStmt = $pdo->query("SELECT COUNT(DISTINCT patient_name) FROM opd_reports");
-            $stats['opd']['patients'] = $opdPatientsStmt->fetchColumn();
-            
-            $opdReportsStmt = $pdo->query("SELECT COUNT(*) FROM opd_reports");
-            $stats['opd']['reports'] = $opdReportsStmt->fetchColumn();
-            
-            $opdRevenueStmt = $pdo->query("SELECT COALESCE(SUM(paid_amount), 0) FROM opd_billing");
-            $stats['opd']['revenue'] = $opdRevenueStmt->fetchColumn();
+            // OPD Stats - check if tables exist first
+            try {
+                $checkOpdTables = $pdo->query("SHOW TABLES LIKE 'opd_doctors'");
+                if ($checkOpdTables->rowCount() > 0) {
+                    $opdDoctorsStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors");
+                    $stats['opd']['doctors'] = $opdDoctorsStmt->fetchColumn();
+                    
+                    $opdPatientsStmt = $pdo->query("SELECT COUNT(*) FROM opd_patients WHERE is_active = 1");
+                    $stats['opd']['patients'] = $opdPatientsStmt->fetchColumn();
+                    
+                    $opdReportsStmt = $pdo->query("SELECT COUNT(*) FROM opd_medical_records");
+                    $stats['opd']['reports'] = $opdReportsStmt->fetchColumn();
+                    
+                    // Check if opd_billing exists, otherwise use appointments
+                    $checkBilling = $pdo->query("SHOW TABLES LIKE 'opd_billing'");
+                    if ($checkBilling->rowCount() > 0) {
+                        $opdRevenueStmt = $pdo->query("SELECT COALESCE(SUM(paid_amount), 0) FROM opd_billing");
+                        $stats['opd']['revenue'] = $opdRevenueStmt->fetchColumn();
+                    } else {
+                        $opdRevenueStmt = $pdo->query("SELECT COALESCE(SUM(fee), 0) FROM opd_appointments WHERE payment_status = 'paid'");
+                        $stats['opd']['revenue'] = $opdRevenueStmt->fetchColumn();
+                    }
+                } else {
+                    $stats['opd']['doctors'] = 0;
+                    $stats['opd']['patients'] = 0;
+                    $stats['opd']['reports'] = 0;
+                    $stats['opd']['revenue'] = 0;
+                }
+            } catch (PDOException $e) {
+                $stats['opd']['doctors'] = 0;
+                $stats['opd']['patients'] = 0;
+                $stats['opd']['reports'] = 0;
+                $stats['opd']['revenue'] = 0;
+            }
             
             // Pathology Stats
             try {
@@ -88,12 +110,30 @@ try {
         try {
             $stats = [];
             
-            // Today's OPD
-            $todayOpdReportsStmt = $pdo->query("SELECT COUNT(*) FROM opd_reports WHERE DATE(report_date) = CURDATE()");
-            $stats['opd']['today_reports'] = $todayOpdReportsStmt->fetchColumn();
-            
-            $todayOpdRevenueStmt = $pdo->query("SELECT COALESCE(SUM(paid_amount), 0) FROM opd_billing WHERE DATE(bill_date) = CURDATE()");
-            $stats['opd']['today_revenue'] = $todayOpdRevenueStmt->fetchColumn();
+            // Today's OPD - check if tables exist
+            try {
+                $checkOpdTables = $pdo->query("SHOW TABLES LIKE 'opd_medical_records'");
+                if ($checkOpdTables->rowCount() > 0) {
+                    $todayOpdReportsStmt = $pdo->query("SELECT COUNT(*) FROM opd_medical_records WHERE DATE(record_date) = CURDATE()");
+                    $stats['opd']['today_reports'] = $todayOpdReportsStmt->fetchColumn();
+                    
+                    // Check if opd_billing exists
+                    $checkBilling = $pdo->query("SHOW TABLES LIKE 'opd_billing'");
+                    if ($checkBilling->rowCount() > 0) {
+                        $todayOpdRevenueStmt = $pdo->query("SELECT COALESCE(SUM(paid_amount), 0) FROM opd_billing WHERE DATE(bill_date) = CURDATE()");
+                        $stats['opd']['today_revenue'] = $todayOpdRevenueStmt->fetchColumn();
+                    } else {
+                        $todayOpdRevenueStmt = $pdo->query("SELECT COALESCE(SUM(fee), 0) FROM opd_appointments WHERE payment_status = 'paid' AND DATE(appointment_date) = CURDATE()");
+                        $stats['opd']['today_revenue'] = $todayOpdRevenueStmt->fetchColumn();
+                    }
+                } else {
+                    $stats['opd']['today_reports'] = 0;
+                    $stats['opd']['today_revenue'] = 0;
+                }
+            } catch (PDOException $e) {
+                $stats['opd']['today_reports'] = 0;
+                $stats['opd']['today_revenue'] = 0;
+            }
             
             // Today's Pathology
             try {
