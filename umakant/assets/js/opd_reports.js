@@ -43,6 +43,11 @@ $(document).ready(function() {
 
     // Initialize DataTable
     function initDataTable() {
+        // Check if DataTable is already initialized
+        if ($.fn.DataTable.isDataTable('#opdReportsTable')) {
+            $('#opdReportsTable').DataTable().destroy();
+        }
+        
         opdReportsTable = $('#opdReportsTable').DataTable({
             processing: true,
             serverSide: true,
