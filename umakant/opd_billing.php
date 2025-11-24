@@ -360,7 +360,7 @@ require_once 'inc/sidebar.php';
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <!-- Page specific JavaScript -->
-<script src="assets/js/opd_billing.js"></script>
+<script src="assets/js/opd_billing.js?v=<?php echo time(); ?>"></script>
 
 <style>
 .small-box {
