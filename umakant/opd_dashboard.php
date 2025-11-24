@@ -292,6 +292,13 @@ require_once 'inc/sidebar.php';
                                     </a>
                                 </div>
                             </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <a href="https://hospital.codeapka.com/umakant/opd_api/docs.php" target="_blank" class="btn btn-info btn-sm">
+                                        <i class="fas fa-book"></i> OPD API Documentation
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
