@@ -302,7 +302,7 @@ require_once 'inc/sidebar.php';
 </div>
 
 <!-- Page specific JavaScript -->
-<script src="assets/js/opd_dashboard.js"></script>
+<script src="assets/js/opd_dashboard.js?v=<?php echo time(); ?>"></script>
 
 <style>
 .small-box {
