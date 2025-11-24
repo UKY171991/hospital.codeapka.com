@@ -29,7 +29,7 @@ $role = $_SESSION['role'] ?? 'user';
     ];
     $isPathologyActive = in_array($activePage, $pathologyPages);
     // OPD menu and its pages - adjust filenames as needed
-    $opdPages = ['opd_dashboard.php', 'opd_patient.php','opd_doctor.php','department.php','appointment.php', 'opd_billing.php', 'opd_reports.php'];
+    $opdPages = ['opd_dashboard.php', 'opd_patient.php','opd_doctor.php','opd_departments.php','opd_specializations.php','opd_appointments.php','opd_appointment_types.php','opd_facilities.php','opd_medical_records.php','opd_prescriptions.php','opd_users.php','department.php','appointment.php', 'opd_billing.php', 'opd_reports.php'];
     $isOpdActive = in_array($activePage, $opdPages);
     ?>
     <nav class="mt-2">
@@ -57,27 +57,63 @@ $role = $_SESSION['role'] ?? 'user';
               </a>
             </li>
             <li class="nav-item">
+              <a href="opd_users.php" class="nav-link <?php echo ($activePage == 'opd_users.php') ? 'active' : ''; ?>">
+                <i class="fas fa-users nav-icon"></i>
+                <p>Users</p>
+              </a>
+            </li>
+            <li class="nav-item">
               <a href="opd_patient.php" class="nav-link <?php echo ($activePage == 'opd_patient.php') ? 'active' : ''; ?>">
-                <i class="fas fa-user nav-icon"></i>
-                <p>Patient</p>
+                <i class="fas fa-user-injured nav-icon"></i>
+                <p>Patients</p>
               </a>
             </li>
             <li class="nav-item">
               <a href="opd_doctor.php" class="nav-link <?php echo ($activePage == 'opd_doctor.php') ? 'active' : ''; ?>">
                 <i class="fas fa-user-md nav-icon"></i>
-                <p>Doctor</p>
+                <p>Doctors</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="department.php" class="nav-link <?php echo ($activePage == 'department.php') ? 'active' : ''; ?>">
+              <a href="opd_departments.php" class="nav-link <?php echo ($activePage == 'opd_departments.php') ? 'active' : ''; ?>">
                 <i class="fas fa-building nav-icon"></i>
-                <p>Department</p>
+                <p>Departments</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="appointment.php" class="nav-link <?php echo ($activePage == 'appointment.php') ? 'active' : ''; ?>">
+              <a href="opd_specializations.php" class="nav-link <?php echo ($activePage == 'opd_specializations.php') ? 'active' : ''; ?>">
+                <i class="fas fa-stethoscope nav-icon"></i>
+                <p>Specializations</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="opd_appointments.php" class="nav-link <?php echo ($activePage == 'opd_appointments.php') ? 'active' : ''; ?>">
                 <i class="fas fa-calendar-check nav-icon"></i>
-                <p>User Appointment</p>
+                <p>Appointments</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="opd_appointment_types.php" class="nav-link <?php echo ($activePage == 'opd_appointment_types.php') ? 'active' : ''; ?>">
+                <i class="fas fa-tags nav-icon"></i>
+                <p>Appointment Types</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="opd_facilities.php" class="nav-link <?php echo ($activePage == 'opd_facilities.php') ? 'active' : ''; ?>">
+                <i class="fas fa-hospital nav-icon"></i>
+                <p>Facilities</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="opd_medical_records.php" class="nav-link <?php echo ($activePage == 'opd_medical_records.php') ? 'active' : ''; ?>">
+                <i class="fas fa-file-medical nav-icon"></i>
+                <p>Medical Records</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="opd_prescriptions.php" class="nav-link <?php echo ($activePage == 'opd_prescriptions.php') ? 'active' : ''; ?>">
+                <i class="fas fa-prescription nav-icon"></i>
+                <p>Prescriptions</p>
               </a>
             </li>
             <li class="nav-item">
