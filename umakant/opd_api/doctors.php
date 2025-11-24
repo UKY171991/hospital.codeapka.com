@@ -14,7 +14,16 @@ try {
         $length = max(1, min(100, (int)($_REQUEST['length'] ?? 25)));
         $search = trim($_REQUEST['search']['value'] ?? '');
         
-        $baseQuery = "FROM opd_doctors d LEFT JOIN users u ON d.added_by = u.id";
+        // Check if added_by column exists
+        $checkAddedBy = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'added_by'");
+        $addedByExists = $checkAddedBy->rowCount() > 0;
+        
+        if ($addedByExists) {
+            $baseQuery = "FROM opd_doctors d LEFT JOIN users u ON d.added_by = u.id";
+        } else {
+            $baseQuery = "FROM opd_doctors d";
+        }
+        
         $whereClause = "";
         $params = [];
         
@@ -37,10 +46,18 @@ try {
         $checkColumn = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'status'");
         $statusExists = $checkColumn->rowCount() > 0;
         
-        if ($statusExists) {
-            $dataQuery = "SELECT d.*, COALESCE(d.status, 'Active') as status, u.username as added_by_username " . $baseQuery . $whereClause . $orderBy . $limit;
+        if ($addedByExists) {
+            if ($statusExists) {
+                $dataQuery = "SELECT d.*, COALESCE(d.status, 'Active') as status, u.username as added_by_username " . $baseQuery . $whereClause . $orderBy . $limit;
+            } else {
+                $dataQuery = "SELECT d.*, 'Active' as status, u.username as added_by_username " . $baseQuery . $whereClause . $orderBy . $limit;
+            }
         } else {
-            $dataQuery = "SELECT d.*, 'Active' as status, u.username as added_by_username " . $baseQuery . $whereClause . $orderBy . $limit;
+            if ($statusExists) {
+                $dataQuery = "SELECT d.*, COALESCE(d.status, 'Active') as status, NULL as added_by_username " . $baseQuery . $whereClause . $orderBy . $limit;
+            } else {
+                $dataQuery = "SELECT d.*, 'Active' as status, NULL as added_by_username " . $baseQuery . $whereClause . $orderBy . $limit;
+            }
         }
 
         $dataStmt = $pdo->prepare($dataQuery);
@@ -58,7 +75,15 @@ try {
 
     // Get single doctor
     if ($action === 'get' && isset($_GET['id'])) {
-        $stmt = $pdo->prepare('SELECT d.*, u.username as added_by_username FROM opd_doctors d LEFT JOIN users u ON d.added_by = u.id WHERE d.id = ?');
+        // Check if added_by column exists
+        $checkAddedBy = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'added_by'");
+        $addedByExists = $checkAddedBy->rowCount() > 0;
+        
+        if ($addedByExists) {
+            $stmt = $pdo->prepare('SELECT d.*, u.username as added_by_username FROM opd_doctors d LEFT JOIN users u ON d.added_by = u.id WHERE d.id = ?');
+        } else {
+            $stmt = $pdo->prepare('SELECT d.*, NULL as added_by_username FROM opd_doctors d WHERE d.id = ?');
+        }
         $stmt->execute([$_GET['id']]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         json_response(['success' => true, 'data' => $row]);
@@ -83,13 +108,22 @@ try {
             json_response(['success' => false, 'message' => 'Doctor name is required'], 400);
         }
 
+        // Check if added_by column exists
+        $checkAddedBy = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'added_by'");
+        $addedByExists = $checkAddedBy->rowCount() > 0;
+
         if ($id) {
             $stmt = $pdo->prepare('UPDATE opd_doctors SET name=?, qualification=?, specialization=?, hospital=?, contact_no=?, phone=?, email=?, address=?, registration_no=?, status=?, updated_at=NOW() WHERE id=?');
             $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $status, $id]);
             json_response(['success' => true, 'message' => 'Doctor updated successfully']);
         } else {
-            $stmt = $pdo->prepare('INSERT INTO opd_doctors (name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, status, added_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
-            $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $status, $added_by]);
+            if ($addedByExists) {
+                $stmt = $pdo->prepare('INSERT INTO opd_doctors (name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, status, added_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
+                $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $status, $added_by]);
+            } else {
+                $stmt = $pdo->prepare('INSERT INTO opd_doctors (name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
+                $stmt->execute([$name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $status]);
+            }
             json_response(['success' => true, 'message' => 'Doctor added successfully']);
         }
     }
