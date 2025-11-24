@@ -9,7 +9,7 @@ $(document).ready(function() {
     // Load doctors list
     function loadDoctors(callback) {
         $.ajax({
-            url: 'ajax/opd_billing_api.php',
+            url: 'opd_api/billing.php',
             type: 'GET',
             data: { action: 'get_doctors' },
             success: function(response) {
@@ -48,7 +48,7 @@ $(document).ready(function() {
             processing: true,
             serverSide: true,
             ajax: {
-                url: 'ajax/opd_billing_api.php',
+                url: 'opd_api/billing.php',
                 type: 'GET',
                 data: function(d) {
                     d.action = 'list';
@@ -187,7 +187,7 @@ $(document).ready(function() {
     // Load statistics
     function loadStats() {
         $.ajax({
-            url: 'ajax/opd_billing_api.php',
+            url: 'opd_api/billing.php',
             type: 'GET',
             data: { action: 'stats' },
             success: function(response) {
@@ -253,7 +253,7 @@ $(document).ready(function() {
         const formData = $(this).serialize() + '&action=save';
         
         $.ajax({
-            url: 'ajax/opd_billing_api.php',
+            url: 'opd_api/billing.php',
             type: 'POST',
             data: formData,
             success: function(response) {
@@ -278,7 +278,7 @@ $(document).ready(function() {
         const id = $(this).data('id');
         
         $.ajax({
-            url: 'ajax/opd_billing_api.php',
+            url: 'opd_api/billing.php',
             type: 'GET',
             data: { action: 'get', id: id },
             success: function(response) {
@@ -395,7 +395,7 @@ $(document).ready(function() {
         const id = $(this).data('id');
         
         $.ajax({
-            url: 'ajax/opd_billing_api.php',
+            url: 'opd_api/billing.php',
             type: 'GET',
             data: { action: 'get', id: id },
             success: function(response) {
@@ -446,7 +446,7 @@ $(document).ready(function() {
         
         if (confirm('Are you sure you want to delete this billing record?')) {
             $.ajax({
-                url: 'ajax/opd_billing_api.php',
+                url: 'opd_api/billing.php',
                 type: 'POST',
                 data: { action: 'delete', id: id },
                 success: function(response) {

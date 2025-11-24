@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPD API Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        .nav {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .nav h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .nav-links a {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .nav-links a:hover {
+            background: #764ba2;
+        }
+        .section {
+            background: white;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        .section h3 {
+            color: #764ba2;
+            margin: 20px 0 10px 0;
+        }
+        .endpoint {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+        .endpoint-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        .method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .method.get {
+            background: #28a745;
+            color: white;
+        }
+        .method.post {
+            background: #007bff;
+            color: white;
+        }
+        .method.delete {
+            background: #dc3545;
+            color: white;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table th,
+        table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        table tr:hover {
+            background: #f8f9fa;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .badge.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .badge.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            margin-top: 40px;
+        }
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+            .nav-links {
+                flex-direction: column;
+            }
+            .section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🏥 OPD API Documentation</h1>
+        <p>Complete API Reference for Outpatient Department Management System</p>
+    </header>
+
+    <div class="container">
+        <div class="nav">
+            <h3>Quick Navigation</h3>
+            <div class="nav-links">
+                <a href="#overview">Overview</a>
+                <a href="#doctors">Doctors API</a>
+                <a href="#billing">Billing API</a>
+                <a href="#reports">Reports API</a>
+                <a href="#patients">Patients API</a>
+                <a href="#dashboard">Dashboard API</a>
+                <a href="#examples">Examples</a>
+            </div>
+        </div>
+
+        <section id="overview" class="section">
+            <h2>📋 Overview</h2>
+            <p>The OPD API provides a comprehensive set of endpoints for managing outpatient department operations including doctors, patients, medical reports, and billing.</p>
+            
+            <h3>Base URL</h3>
+            <code>https://hospital.codeapka.com/umakant/opd_api/</code>
+
+            <h3>Response Format</h3>
+            <p>All endpoints return JSON responses:</p>
+            <pre><code>{
+    "success": true,
+    "data": { ... },
+    "message": "Operation successful"
+}</code></pre>
+
+            <h3>Authentication</h3>
+            <p>Session-based authentication is required for write operations (POST, DELETE).</p>
+        </section>
+
+        <section id="doctors" class="section">
+            <h2>👨‍⚕️ Doctors API</h2>
+            <p><strong>File:</strong> <code>doctors.php</code></p>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=list</code>
+                </div>
+                <p>Get paginated list of doctors (DataTables compatible)</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=get&id={id}</code>
+                </div>
+                <p>Get single doctor details</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method post">POST</span>
+                    <code>?action=save</code>
+                </div>
+                <p>Create or update doctor</p>
+                <p><strong>Fields:</strong> name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, status</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method post">POST</span>
+                    <code>?action=delete&id={id}</code>
+                </div>
+                <p>Delete doctor</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method post">POST</span>
+                    <code>?action=toggle_status&id={id}</code>
+                </div>
+                <p>Toggle doctor active/inactive status</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=stats</code>
+                </div>
+                <p>Get doctor statistics (total, active, inactive, specializations, hospitals)</p>
+            </div>
+        </section>
+
+        <section id="billing" class="section">
+            <h2>💰 Billing API</h2>
+            <p><strong>File:</strong> <code>billing.php</code></p>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=list</code>
+                </div>
+                <p>Get paginated list of bills</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=get&id={id}</code>
+                </div>
+                <p>Get single bill details</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method post">POST</span>
+                    <code>?action=save</code>
+                </div>
+                <p>Create or update bill</p>
+                <p><strong>Fields:</strong> patient_name, patient_phone, patient_age, patient_gender, doctor_name, consultation_fee, medicine_charges, lab_charges, other_charges, discount, paid_amount, payment_method, bill_date, notes</p>
+                <p><strong>Auto-calculated:</strong> total_amount, balance_amount, payment_status</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method post">POST</span>
+                    <code>?action=delete&id={id}</code>
+                </div>
+                <p>Delete bill</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=stats</code>
+                </div>
+                <p>Get billing statistics (total, paid, unpaid, partial, revenue, pending)</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=get_doctors</code>
+                </div>
+                <p>Get list of active doctors</p>
+            </div>
+
+            <h3>Payment Status</h3>
+            <table>
+                <tr>
+                    <th>Status</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><span class="badge success">Paid</span></td>
+                    <td>Full payment received</td>
+                </tr>
+                <tr>
+                    <td><span class="badge warning">Partial</span></td>
+                    <td>Partial payment received</td>
+                </tr>
+                <tr>
+                    <td><span class="badge info">Unpaid</span></td>
+                    <td>No payment received</td>
+                </tr>
+            </table>
+        </section>
+
+        <section id="reports" class="section">
+            <h2>📄 Reports API</h2>
+            <p><strong>File:</strong> <code>reports.php</code></p>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=list</code>
+                </div>
+                <p>Get paginated list of medical reports</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=get&id={id}</code>
+                </div>
+                <p>Get single report details</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method post">POST</span>
+                    <code>?action=save</code>
+                </div>
+                <p>Create or update medical report</p>
+                <p><strong>Fields:</strong> patient_name, patient_phone, patient_age, patient_gender, doctor_name, report_date, diagnosis, symptoms, test_results, prescription, follow_up_date, notes</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method post">POST</span>
+                    <code>?action=delete&id={id}</code>
+                </div>
+                <p>Delete report</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=stats</code>
+                </div>
+                <p>Get report statistics (total, today, week, month)</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=get_doctors</code>
+                </div>
+                <p>Get list of active doctors</p>
+            </div>
+        </section>
+
+        <section id="patients" class="section">
+            <h2>🧑‍⚕️ Patients API</h2>
+            <p><strong>File:</strong> <code>patients.php</code></p>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=list</code>
+                </div>
+                <p>Get list of all patients with visit summary</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=history&name={name}</code>
+                </div>
+                <p>Get patient's complete history (reports + bills)</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=search&query={query}</code>
+                </div>
+                <p>Search patients by name or phone</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=stats</code>
+                </div>
+                <p>Get patient statistics (total, today, week, month)</p>
+            </div>
+        </section>
+
+        <section id="dashboard" class="section">
+            <h2>📊 Dashboard API</h2>
+            <p><strong>File:</strong> <code>dashboard.php</code></p>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=stats</code>
+                </div>
+                <p>Get comprehensive OPD statistics</p>
+                <p><strong>Returns:</strong> doctors, patients, reports, billing, followUps data</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=recent_reports</code>
+                </div>
+                <p>Get 5 most recent medical reports</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=recent_bills</code>
+                </div>
+                <p>Get 5 most recent bills</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=upcoming_followups</code>
+                </div>
+                <p>Get upcoming follow-up appointments</p>
+            </div>
+        </section>
+
+        <section id="examples" class="section">
+            <h2>💻 Code Examples</h2>
+
+            <h3>JavaScript (jQuery)</h3>
+            <pre><code>// Get doctors list
+$.ajax({
+    url: 'opd_api/doctors.php',
+    type: 'GET',
+    data: { action: 'list' },
+    success: function(response) {
+        if (response.success) {
+            console.log(response.data);
+        }
+    }
+});
+
+// Create new bill
+$.ajax({
+    url: 'opd_api/billing.php',
+    type: 'POST',
+    data: {
+        action: 'save',
+        patient_name: 'John Doe',
+        consultation_fee: 500,
+        paid_amount: 500,
+        bill_date: '2025-11-24'
+    },
+    success: function(response) {
+        if (response.success) {
+            alert(response.message);
+        }
+    }
+});
+
+// Get dashboard stats
+$.ajax({
+    url: 'opd_api/dashboard.php',
+    type: 'GET',
+    data: { action: 'stats' },
+    success: function(response) {
+        if (response.success) {
+            $('#totalDoctors').text(response.data.doctors.total);
+            $('#totalRevenue').text('₹' + response.data.billing.revenue);
+        }
+    }
+});</code></pre>
+
+            <h3>PHP</h3>
+            <pre><code>// Get patient history
+$name = 'John Doe';
+$url = "opd_api/patients.php?action=history&name=" . urlencode($name);
+$response = file_get_contents($url);
+$data = json_decode($response, true);
+
+if ($data['success']) {
+    $reports = $data['data']['reports'];
+    $bills = $data['data']['bills'];
+}</code></pre>
+
+            <h3>cURL</h3>
+            <pre><code># Get doctors stats
+curl "https://hospital.codeapka.com/umakant/opd_api/doctors.php?action=stats"
+
+# Create new report
+curl -X POST "https://hospital.codeapka.com/umakant/opd_api/reports.php" \
+  -d "action=save" \
+  -d "patient_name=Jane Doe" \
+  -d "doctor_name=Dr. Smith" \
+  -d "diagnosis=Common Cold" \
+  -d "report_date=2025-11-24"</code></pre>
+        </section>
+
+        <section class="section">
+            <h2>🔒 Security</h2>
+            <ul>
+                <li>All APIs use prepared statements to prevent SQL injection</li>
+                <li>Session-based authentication for write operations</li>
+                <li>Input validation and sanitization</li>
+                <li>Comprehensive error handling</li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <h2>📦 Database Tables</h2>
+            <table>
+                <tr>
+                    <th>Table</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>opd_doctors</code></td>
+                    <td>Doctor information and credentials</td>
+                </tr>
+                <tr>
+                    <td><code>opd_billing</code></td>
+                    <td>Billing records and payments</td>
+                </tr>
+                <tr>
+                    <td><code>opd_reports</code></td>
+                    <td>Medical reports and diagnoses</td>
+                </tr>
+                <tr>
+                    <td><code>users</code></td>
+                    <td>User authentication</td>
+                </tr>
+            </table>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Hospital Management System - OPD API Documentation</p>
+        <p>Version 1.0.0</p>
+    </footer>
+</body>
+</html>

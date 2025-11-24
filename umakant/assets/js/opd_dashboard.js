@@ -12,7 +12,7 @@ $(document).ready(function() {
     // Load statistics
     function loadStats() {
         $.ajax({
-            url: 'ajax/opd_dashboard_api.php',
+            url: 'opd_api/dashboard.php',
             type: 'GET',
             data: { action: 'stats' },
             success: function(response) {
@@ -52,7 +52,7 @@ $(document).ready(function() {
     // Load recent reports
     function loadRecentReports() {
         $.ajax({
-            url: 'ajax/opd_dashboard_api.php',
+            url: 'opd_api/dashboard.php',
             type: 'GET',
             data: { action: 'recent_reports' },
             success: function(response) {
@@ -92,7 +92,7 @@ $(document).ready(function() {
     // Load recent bills
     function loadRecentBills() {
         $.ajax({
-            url: 'ajax/opd_dashboard_api.php',
+            url: 'opd_api/dashboard.php',
             type: 'GET',
             data: { action: 'recent_bills' },
             success: function(response) {
@@ -137,7 +137,7 @@ $(document).ready(function() {
     // Load upcoming follow-ups
     function loadUpcomingFollowUps() {
         $.ajax({
-            url: 'ajax/opd_dashboard_api.php',
+            url: 'opd_api/dashboard.php',
             type: 'GET',
             data: { action: 'upcoming_followups' },
             success: function(response) {

@@ -1,0 +1,141 @@
+<?php
+// opd_api/reports.php - OPD Reports API
+require_once __DIR__ . '/../inc/connection.php';
+require_once __DIR__ . '/../inc/ajax_helpers.php';
+session_start();
+
+try {
+    $action = $_REQUEST['action'] ?? 'list';
+
+    // List reports
+    if ($action === 'list') {
+        $draw = (int)($_REQUEST['draw'] ?? 1);
+        $start = max(0, (int)($_REQUEST['start'] ?? 0));
+        $length = max(1, min(100, (int)($_REQUEST['length'] ?? 25)));
+        $search = trim($_REQUEST['search']['value'] ?? '');
+        
+        $baseQuery = "FROM opd_reports r LEFT JOIN users u ON r.added_by = u.id";
+        $whereClause = "";
+        $params = [];
+        
+        if (!empty($search)) {
+            $whereClause = " WHERE (r.patient_name LIKE ? OR r.patient_phone LIKE ? OR r.doctor_name LIKE ? OR r.diagnosis LIKE ?)";
+            $searchTerm = "%$search%";
+            $params = [$searchTerm, $searchTerm, $searchTerm, $searchTerm];
+        }
+
+        $totalStmt = $pdo->query("SELECT COUNT(*) FROM opd_reports");
+        $totalRecords = $totalStmt->fetchColumn();
+
+        $filteredStmt = $pdo->prepare("SELECT COUNT(*) " . $baseQuery . $whereClause);
+        $filteredStmt->execute($params);
+        $filteredRecords = $filteredStmt->fetchColumn();
+
+        $orderBy = " ORDER BY r.id DESC";
+        $limit = " LIMIT $start, $length";
+        
+        $dataQuery = "SELECT r.*, u.username as added_by_username " . $baseQuery . $whereClause . $orderBy . $limit;
+        $dataStmt = $pdo->prepare($dataQuery);
+        $dataStmt->execute($params);
+        $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        json_response([
+            'draw' => $draw,
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $filteredRecords,
+            'success' => true,
+            'data' => $data
+        ]);
+    }
+
+    // Get single report
+    if ($action === 'get' && isset($_GET['id'])) {
+        $stmt = $pdo->prepare('SELECT r.*, u.username as added_by_username FROM opd_reports r LEFT JOIN users u ON r.added_by = u.id WHERE r.id = ?');
+        $stmt->execute([$_GET['id']]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        json_response(['success' => true, 'data' => $row]);
+    }
+
+    // Save report
+    if ($action === 'save') {
+        $id = $_POST['id'] ?? '';
+        $patient_name = trim($_POST['patient_name'] ?? '');
+        $patient_phone = trim($_POST['patient_phone'] ?? '');
+        $patient_age = !empty($_POST['patient_age']) ? (int)$_POST['patient_age'] : null;
+        $patient_gender = trim($_POST['patient_gender'] ?? '');
+        $doctor_name = trim($_POST['doctor_name'] ?? '');
+        $report_date = trim($_POST['report_date'] ?? date('Y-m-d'));
+        $diagnosis = trim($_POST['diagnosis'] ?? '');
+        $symptoms = trim($_POST['symptoms'] ?? '');
+        $test_results = trim($_POST['test_results'] ?? '');
+        $prescription = trim($_POST['prescription'] ?? '');
+        $follow_up_date = !empty($_POST['follow_up_date']) ? trim($_POST['follow_up_date']) : null;
+        $notes = trim($_POST['notes'] ?? '');
+        $added_by = $_SESSION['user_id'] ?? null;
+
+        if (empty($patient_name)) {
+            json_response(['success' => false, 'message' => 'Patient name is required'], 400);
+        }
+
+        if ($id) {
+            $stmt = $pdo->prepare('UPDATE opd_reports SET patient_name=?, patient_phone=?, patient_age=?, patient_gender=?, doctor_name=?, report_date=?, diagnosis=?, symptoms=?, test_results=?, prescription=?, follow_up_date=?, notes=?, updated_at=NOW() WHERE id=?');
+            $stmt->execute([$patient_name, $patient_phone, $patient_age, $patient_gender, $doctor_name, $report_date, $diagnosis, $symptoms, $test_results, $prescription, $follow_up_date, $notes, $id]);
+            json_response(['success' => true, 'message' => 'Report updated successfully']);
+        } else {
+            $stmt = $pdo->prepare('INSERT INTO opd_reports (patient_name, patient_phone, patient_age, patient_gender, doctor_name, report_date, diagnosis, symptoms, test_results, prescription, follow_up_date, notes, added_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
+            $stmt->execute([$patient_name, $patient_phone, $patient_age, $patient_gender, $doctor_name, $report_date, $diagnosis, $symptoms, $test_results, $prescription, $follow_up_date, $notes, $added_by]);
+            json_response(['success' => true, 'message' => 'Report added successfully']);
+        }
+    }
+
+    // Delete report
+    if ($action === 'delete' && isset($_POST['id'])) {
+        $stmt = $pdo->prepare('DELETE FROM opd_reports WHERE id = ?');
+        $stmt->execute([$_POST['id']]);
+        json_response(['success' => true, 'message' => 'Report deleted successfully']);
+    }
+
+    // Stats
+    if ($action === 'stats') {
+        $totalStmt = $pdo->query("SELECT COUNT(*) FROM opd_reports");
+        $total = $totalStmt->fetchColumn();
+        
+        $todayStmt = $pdo->query("SELECT COUNT(*) FROM opd_reports WHERE DATE(report_date) = CURDATE()");
+        $today = $todayStmt->fetchColumn();
+        
+        $weekStmt = $pdo->query("SELECT COUNT(*) FROM opd_reports WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
+        $week = $weekStmt->fetchColumn();
+        
+        $monthStmt = $pdo->query("SELECT COUNT(*) FROM opd_reports WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)");
+        $month = $monthStmt->fetchColumn();
+        
+        json_response([
+            'success' => true,
+            'data' => [
+                'total' => $total,
+                'today' => $today,
+                'week' => $week,
+                'month' => $month
+            ]
+        ]);
+    }
+
+    // Get doctors list
+    if ($action === 'get_doctors') {
+        $checkColumn = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'status'");
+        $statusExists = $checkColumn->rowCount() > 0;
+        
+        if ($statusExists) {
+            $stmt = $pdo->query("SELECT id, name, specialization, hospital FROM opd_doctors WHERE status = 'Active' OR status IS NULL ORDER BY name ASC");
+        } else {
+            $stmt = $pdo->query("SELECT id, name, specialization, hospital FROM opd_doctors ORDER BY name ASC");
+        }
+        
+        $doctors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        json_response(['success' => true, 'data' => $doctors]);
+    }
+
+    json_response(['success' => false, 'message' => 'Invalid action'], 400);
+} catch (Throwable $t) {
+    json_response(['success' => false, 'message' => 'Server error: ' . $t->getMessage()], 500);
+}
