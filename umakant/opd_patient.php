@@ -83,12 +83,17 @@ require_once 'inc/sidebar.php';
                                 Patient Directory
                             </h3>
                             <div class="card-tools">
-                                <div class="input-group input-group-sm" style="width: 250px;">
-                                    <input type="text" id="searchPatient" class="form-control" placeholder="Search patient...">
-                                    <div class="input-group-append">
-                                        <button type="button" class="btn btn-default">
-                                            <i class="fas fa-search"></i>
-                                        </button>
+                                <div class="d-flex">
+                                    <select id="filterDoctor" class="form-control form-control-sm mr-2" style="width: 200px;">
+                                        <option value="">All Doctors</option>
+                                    </select>
+                                    <div class="input-group input-group-sm" style="width: 250px;">
+                                        <input type="text" id="searchPatient" class="form-control" placeholder="Search patient...">
+                                        <div class="input-group-append">
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

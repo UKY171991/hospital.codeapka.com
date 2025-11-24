@@ -1,11 +1,47 @@
 // OPD Patient Management JavaScript
 $(document).ready(function() {
     let currentPatientName = null;
+    let allPatients = [];
 
     // Load all data
     function loadAllData() {
         loadStats();
+        loadDoctors();
         loadPatients();
+    }
+
+    // Load doctors for filter
+    function loadDoctors() {
+        $.ajax({
+            url: 'opd_api/doctors.php',
+            type: 'GET',
+            data: { action: 'stats' },
+            success: function(response) {
+                if (response.success) {
+                    // Get full list of doctors
+                    $.ajax({
+                        url: 'opd_api/patients.php',
+                        type: 'GET',
+                        data: { action: 'get_doctors' },
+                        success: function(doctorResponse) {
+                            if (doctorResponse.success && doctorResponse.data) {
+                                const doctorSelect = $('#filterDoctor');
+                                doctorSelect.empty();
+                                doctorSelect.append('<option value="">All Doctors</option>');
+                                
+                                doctorResponse.data.forEach(function(doctor) {
+                                    let displayText = doctor.name;
+                                    if (doctor.specialization) {
+                                        displayText += ' - ' + doctor.specialization;
+                                    }
+                                    doctorSelect.append(`<option value="${doctor.name}">${displayText}</option>`);
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+        });
     }
 
     // Load statistics
@@ -29,13 +65,19 @@ $(document).ready(function() {
     }
 
     // Load patients list
-    function loadPatients() {
+    function loadPatients(doctorFilter = '') {
+        const data = { action: 'list' };
+        if (doctorFilter) {
+            data.doctor = doctorFilter;
+        }
+        
         $.ajax({
             url: 'opd_api/patients.php',
             type: 'GET',
-            data: { action: 'list' },
+            data: data,
             success: function(response) {
                 if (response.success && response.data) {
+                    allPatients = response.data;
                     renderPatientsTable(response.data);
                 }
             },
@@ -44,6 +86,12 @@ $(document).ready(function() {
             }
         });
     }
+
+    // Filter by doctor
+    $('#filterDoctor').on('change', function() {
+        const doctorName = $(this).val();
+        loadPatients(doctorName);
+    });
 
     // Render patients table
     function renderPatientsTable(patients) {

@@ -9,19 +9,40 @@ try {
 
     // List patients (from reports)
     if ($action === 'list') {
-        $stmt = $pdo->query("
-            SELECT 
-                patient_name,
-                patient_phone,
-                patient_age,
-                patient_gender,
-                COUNT(*) as visit_count,
-                MAX(report_date) as last_visit,
-                MIN(report_date) as first_visit
-            FROM opd_reports 
-            GROUP BY patient_name, patient_phone
-            ORDER BY last_visit DESC
-        ");
+        $doctorFilter = $_GET['doctor'] ?? '';
+        
+        if (!empty($doctorFilter)) {
+            $stmt = $pdo->prepare("
+                SELECT 
+                    patient_name,
+                    patient_phone,
+                    patient_age,
+                    patient_gender,
+                    COUNT(*) as visit_count,
+                    MAX(report_date) as last_visit,
+                    MIN(report_date) as first_visit
+                FROM opd_reports 
+                WHERE doctor_name = ?
+                GROUP BY patient_name, patient_phone
+                ORDER BY last_visit DESC
+            ");
+            $stmt->execute([$doctorFilter]);
+        } else {
+            $stmt = $pdo->query("
+                SELECT 
+                    patient_name,
+                    patient_phone,
+                    patient_age,
+                    patient_gender,
+                    COUNT(*) as visit_count,
+                    MAX(report_date) as last_visit,
+                    MIN(report_date) as first_visit
+                FROM opd_reports 
+                GROUP BY patient_name, patient_phone
+                ORDER BY last_visit DESC
+            ");
+        }
+        
         $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
         json_response(['success' => true, 'data' => $patients]);
     }
@@ -98,6 +119,25 @@ try {
                 'month' => $month
             ]
         ]);
+    }
+
+    // Get doctors list
+    if ($action === 'get_doctors') {
+        try {
+            $checkColumn = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'status'");
+            $statusExists = $checkColumn->rowCount() > 0;
+            
+            if ($statusExists) {
+                $stmt = $pdo->query("SELECT id, name, specialization, hospital FROM opd_doctors WHERE status = 'Active' OR status IS NULL ORDER BY name ASC");
+            } else {
+                $stmt = $pdo->query("SELECT id, name, specialization, hospital FROM opd_doctors ORDER BY name ASC");
+            }
+            
+            $doctors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            json_response(['success' => true, 'data' => $doctors]);
+        } catch (PDOException $e) {
+            json_response(['success' => false, 'message' => 'Error fetching doctors: ' . $e->getMessage()], 500);
+        }
     }
 
     json_response(['success' => false, 'message' => 'Invalid action'], 400);
