@@ -29,7 +29,7 @@ $role = $_SESSION['role'] ?? 'user';
     ];
     $isPathologyActive = in_array($activePage, $pathologyPages);
     // OPD menu and its pages - adjust filenames as needed
-    $opdPages = ['opd_dashboard.php', 'opd_patient.php','opd_doctor.php','opd_departments.php','opd_specializations.php','opd_appointments.php','opd_appointment_types.php','opd_facilities.php','opd_medical_records.php','opd_prescriptions.php','opd_users.php','department.php','appointment.php', 'opd_billing.php', 'opd_reports.php'];
+    $opdPages = ['opd_dashboard.php', 'opd_patient.php','opd_doctor.php','opd_departments.php','opd_specializations.php','opd_appointments.php','opd_appointment_types.php','opd_facilities.php','opd_medical_records.php','opd_prescriptions.php','opd_users.php', 'opd_billing.php', 'opd_reports.php'];
     $isOpdActive = in_array($activePage, $opdPages);
     ?>
     <nav class="mt-2">
