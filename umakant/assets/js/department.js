@@ -148,12 +148,44 @@ $(document).ready(function() {
         });
     }
 
+    // Load doctors for dropdown
+    function loadDoctors(callback) {
+        $.ajax({
+            url: 'opd_api/doctors.php',
+            type: 'GET',
+            data: { action: 'list', length: 1000 },
+            success: function(response) {
+                if (response.success && response.data) {
+                    const doctorSelect = $('#departmentHead');
+                    doctorSelect.empty();
+                    doctorSelect.append('<option value="">Select Head of Department</option>');
+                    
+                    response.data.forEach(function(doctor) {
+                        let displayText = doctor.name;
+                        if (doctor.specialization) {
+                            displayText += ' - ' + doctor.specialization;
+                        }
+                        doctorSelect.append(`<option value="${doctor.name}">${displayText}</option>`);
+                    });
+                    
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
+                }
+            },
+            error: function() {
+                console.error('Error loading doctors');
+            }
+        });
+    }
+
     // Add new department button
     $('#addDepartmentBtn').click(function() {
         currentDepartmentId = null;
         $('#departmentForm')[0].reset();
         $('#departmentId').val('');
         $('#modalTitle').text('Add New OPD Department');
+        loadDoctors();
         $('#departmentModal').modal('show');
     });
 
@@ -238,15 +270,20 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success && response.data) {
                     const dept = response.data;
-                    $('#departmentId').val(dept.id);
-                    $('#departmentName').val(dept.name);
-                    $('#departmentDescription').val(dept.description);
-                    $('#departmentHead').val(dept.head_of_department);
-                    $('#departmentContact').val(dept.contact_number);
-                    $('#departmentEmail').val(dept.email);
-                    $('#departmentLocation').val(dept.location);
-                    $('#departmentStatus').val(dept.status || 'Active');
-                    $('#modalTitle').text('Edit OPD Department');
+                    
+                    // Load doctors first, then populate form
+                    loadDoctors(function() {
+                        $('#departmentId').val(dept.id);
+                        $('#departmentName').val(dept.name);
+                        $('#departmentDescription').val(dept.description);
+                        $('#departmentHead').val(dept.head_of_department);
+                        $('#departmentContact').val(dept.contact_number);
+                        $('#departmentEmail').val(dept.email);
+                        $('#departmentLocation').val(dept.location);
+                        $('#departmentStatus').val(dept.status || 'Active');
+                        $('#modalTitle').text('Edit OPD Department');
+                    });
+                    
                     $('#departmentModal').modal('show');
                 }
             },
@@ -319,4 +356,5 @@ $(document).ready(function() {
     // Initialize
     initDataTable();
     loadStats();
+    loadDoctors();
 });

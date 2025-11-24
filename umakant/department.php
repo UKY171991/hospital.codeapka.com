@@ -151,7 +151,9 @@ require_once 'inc/sidebar.php';
                                     <i class="fas fa-user-tie mr-1"></i>
                                     Head of Department
                                 </label>
-                                <input type="text" class="form-control" id="departmentHead" name="head_of_department">
+                                <select class="form-control" id="departmentHead" name="head_of_department">
+                                    <option value="">Select Head of Department</option>
+                                </select>
                             </div>
                         </div>
                     </div>
