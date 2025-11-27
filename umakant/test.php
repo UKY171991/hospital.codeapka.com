@@ -399,12 +399,14 @@ function loadCategories(mainCategoryId) {
         if (resp.success) {
             var options = '<option value="">Select Category</option>';
             resp.data.forEach(function(cat) {
-                if (cat.main_category_id == mainCategoryId) {
-                    options += '<option value="' + cat.id + '">' + cat.name + '</option>';
-                }
+                options += '<option value="' + cat.id + '">' + cat.name + '</option>';
             });
             $('#category').html(options);
+        } else {
+            toastr.error('Failed to load categories');
         }
+    }).fail(function() {
+        toastr.error('Error loading categories');
     });
 }
 

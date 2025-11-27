@@ -36,13 +36,28 @@ try{
 
 if ($action === 'list') {
     // Support DataTables format with sequential numbering
-    $stmt = $pdo->query("SELECT c.id, c.name, c.description, c.added_by, u.username as added_by_username, mc.name as main_category_name,
-        (SELECT COUNT(*) FROM tests t WHERE t.category_id = c.id) as test_count
-        FROM {$categories_table} c 
-        LEFT JOIN users u ON c.added_by = u.id 
-        LEFT JOIN main_test_categories mc ON c.main_category_id = mc.id
-        ORDER BY c.id DESC");
-    $rows = $stmt->fetchAll();
+    // Check if filtering by main_category_id
+    $main_category_id = $_REQUEST['main_category_id'] ?? null;
+    
+    if ($main_category_id) {
+        $stmt = $pdo->prepare("SELECT c.id, c.name, c.description, c.main_category_id, c.added_by, u.username as added_by_username, mc.name as main_category_name,
+            (SELECT COUNT(*) FROM tests t WHERE t.category_id = c.id) as test_count
+            FROM {$categories_table} c 
+            LEFT JOIN users u ON c.added_by = u.id 
+            LEFT JOIN main_test_categories mc ON c.main_category_id = mc.id
+            WHERE c.main_category_id = ?
+            ORDER BY c.id DESC");
+        $stmt->execute([$main_category_id]);
+        $rows = $stmt->fetchAll();
+    } else {
+        $stmt = $pdo->query("SELECT c.id, c.name, c.description, c.main_category_id, c.added_by, u.username as added_by_username, mc.name as main_category_name,
+            (SELECT COUNT(*) FROM tests t WHERE t.category_id = c.id) as test_count
+            FROM {$categories_table} c 
+            LEFT JOIN users u ON c.added_by = u.id 
+            LEFT JOIN main_test_categories mc ON c.main_category_id = mc.id
+            ORDER BY c.id DESC");
+        $rows = $stmt->fetchAll();
+    }
     
     // Add sequential numbering
     foreach ($rows as $index => &$row) {
