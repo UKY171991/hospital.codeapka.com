@@ -389,9 +389,10 @@ function loadMainCategories() {
     });
 }
 
-function loadCategories(mainCategoryId) {
+function loadCategories(mainCategoryId, callback) {
     if (!mainCategoryId) {
         $('#category').html('<option value="">Select Category</option>');
+        if (callback) callback();
         return;
     }
     
@@ -402,6 +403,7 @@ function loadCategories(mainCategoryId) {
                 options += '<option value="' + cat.id + '">' + cat.name + '</option>';
             });
             $('#category').html(options);
+            if (callback) callback();
         } else {
             toastr.error('Failed to load categories');
         }
@@ -503,10 +505,10 @@ $(function() {
                 $('#shortcut').val(d.shortcut);
                 $('#mainCategory').val(d.main_category_id);
                 
-                loadCategories(d.main_category_id);
-                setTimeout(function() {
+                // Load categories and set the selected value after they're loaded
+                loadCategories(d.main_category_id, function() {
                     $('#category').val(d.category_id);
-                }, 300);
+                });
                 
                 $('#price').val(d.price);
                 $('#unit').val(d.unit);
