@@ -316,7 +316,7 @@ $current_username = $_SESSION['username'] ?? 'You';
 <script src="assets/js/common.js"></script>
 
 <script>
-const TEST_API = 'patho_api/test.php';
+const TEST_API = 'ajax/test_api.php';
 const CURRENT_USER_ID = <?php echo (int)($current_user_id ?? 0); ?>;
 const CURRENT_USER_ROLE = <?php echo json_encode($current_user_role); ?>;
 
@@ -378,7 +378,7 @@ function loadStats() {
 }
 
 function loadMainCategories() {
-    $.getJSON(TEST_API, { action: 'main_categories' }, function(resp) {
+    $.getJSON('ajax/main_test_category_api.php', { action: 'list' }, function(resp) {
         if (resp.success) {
             var options = '<option value="">Select Main Category</option>';
             resp.data.forEach(function(cat) {
@@ -395,11 +395,13 @@ function loadCategories(mainCategoryId) {
         return;
     }
     
-    $.getJSON(TEST_API, { action: 'categories_by_main', main_category_id: mainCategoryId }, function(resp) {
+    $.getJSON('ajax/test_category_api.php', { action: 'list', main_category_id: mainCategoryId }, function(resp) {
         if (resp.success) {
             var options = '<option value="">Select Category</option>';
             resp.data.forEach(function(cat) {
-                options += '<option value="' + cat.id + '">' + cat.name + '</option>';
+                if (cat.main_category_id == mainCategoryId) {
+                    options += '<option value="' + cat.id + '">' + cat.name + '</option>';
+                }
             });
             $('#category').html(options);
         }
