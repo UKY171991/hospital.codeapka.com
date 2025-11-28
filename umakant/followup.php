@@ -133,7 +133,11 @@ require_once 'inc/sidebar.php';
 <!-- Select2 -->
 <link rel="stylesheet" href="assets/plugins/select2/css/select2.min.css">
 <link rel="stylesheet" href="assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+<!-- Summernote -->
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+
 <script src="assets/plugins/select2/js/select2.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
 
 <script>
 let currentPage = 1;
@@ -143,6 +147,20 @@ $(document).ready(function() {
     // Initialize Select2
     $('.select2').select2({
         theme: 'bootstrap4'
+    });
+
+    // Initialize Summernote
+    $('#remarks').summernote({
+        height: 150,
+        toolbar: [
+            ['style', ['style']],
+            ['font', ['bold', 'underline', 'clear']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['table', ['table']],
+            ['insert', ['link']],
+            ['view', ['fullscreen', 'codeview', 'help']]
+        ]
     });
 
     loadClientsDropdown();
@@ -205,7 +223,7 @@ $(document).ready(function() {
                     $('#followup_date').val(followup.followup_date);
                     $('#next_followup_date').val(followup.next_followup_date);
                     $('#status').val(followup.status);
-                    $('#remarks').val(followup.remarks);
+                    $('#remarks').summernote('code', followup.remarks);
                     
                     // Change UI to Edit Mode
                     $('.card-title').text('Edit Followup');
@@ -265,6 +283,7 @@ function resetForm() {
     $('#followup_id').val('');
     $('#client_id').val('').trigger('change');
     $('#followup_date').val('<?php echo date('Y-m-d'); ?>');
+    $('#remarks').summernote('reset');
     $('.card-title').text('Add New Followup');
     $('button[type="submit"]').text('Add Followup');
     $('#cancelEdit').hide();
