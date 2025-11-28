@@ -33,6 +33,7 @@ require_once 'inc/sidebar.php';
                             <h3 class="card-title">Add New Client</h3>
                         </div>
                         <form id="addClientForm">
+                            <input type="hidden" id="client_id" name="client_id">
                             <div class="card-body">
                                 <div class="form-group">
                                     <label for="name">Name <span class="text-danger">*</span></label>
@@ -53,6 +54,7 @@ require_once 'inc/sidebar.php';
                             </div>
                             <div class="card-footer">
                                 <button type="submit" class="btn btn-primary">Add Client</button>
+                                <button type="button" class="btn btn-default float-right" id="cancelEdit" style="display: none;">Cancel</button>
                             </div>
                         </form>
                     </div>
@@ -102,7 +104,15 @@ $(document).ready(function() {
         e.preventDefault();
         
         const formData = new FormData(this);
-        formData.append('action', 'add_client');
+        const clientId = $('#client_id').val();
+        
+        // Determine action based on whether client_id is present
+        if (clientId) {
+            formData.append('action', 'update_client');
+            formData.append('id', clientId);
+        } else {
+            formData.append('action', 'add_client');
+        }
 
         $.ajax({
             url: 'ajax/followup_client_api.php',
@@ -113,16 +123,51 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     toastr.success(response.message);
-                    $('#addClientForm')[0].reset();
+                    resetForm();
                     loadClients();
                 } else {
-                    toastr.error(response.message || 'Error adding client');
+                    toastr.error(response.message || 'Error saving client');
                 }
             },
             error: function() {
                 toastr.error('Server error occurred');
             }
         });
+    });
+
+    // Edit Client
+    $(document).on('click', '.edit-client', function() {
+        const id = $(this).data('id');
+        $.ajax({
+            url: 'ajax/followup_client_api.php',
+            type: 'GET',
+            data: { action: 'get_client', id: id },
+            success: function(response) {
+                if (response.success) {
+                    const client = response.data;
+                    $('#client_id').val(client.id);
+                    $('#name').val(client.name);
+                    $('#email').val(client.email);
+                    $('#phone').val(client.phone);
+                    $('#company').val(client.company);
+                    
+                    // Change UI to Edit Mode
+                    $('.card-title').text('Edit Client');
+                    $('button[type="submit"]').text('Update Client');
+                    $('#cancelEdit').show();
+                } else {
+                    toastr.error(response.message || 'Error fetching client details');
+                }
+            },
+            error: function() {
+                toastr.error('Server error occurred');
+            }
+        });
+    });
+
+    // Cancel Edit
+    $('#cancelEdit').on('click', function() {
+        resetForm();
     });
 
     // Delete Client
@@ -148,6 +193,14 @@ $(document).ready(function() {
         }
     });
 });
+
+function resetForm() {
+    $('#addClientForm')[0].reset();
+    $('#client_id').val('');
+    $('.card-title').text('Add New Client');
+    $('button[type="submit"]').text('Add Client');
+    $('#cancelEdit').hide();
+}
 
 function loadClients() {
     $('#loadingOverlay').show();
@@ -175,6 +228,9 @@ function loadClients() {
                             <td>${client.email || '-'}</td>
                             <td>${client.company || '-'}</td>
                             <td>
+                                <button class="btn btn-sm btn-info edit-client" data-id="${client.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <button class="btn btn-sm btn-danger delete-client" data-id="${client.id}">
                                     <i class="fas fa-trash"></i>
                                 </button>

@@ -29,8 +29,14 @@ try {
         case 'get_clients':
             getFollowupClients();
             break;
+        case 'get_client':
+            getFollowupClient();
+            break;
         case 'add_client':
             addFollowupClient();
+            break;
+        case 'update_client':
+            updateFollowupClient();
             break;
         case 'delete_client':
             deleteFollowupClient();
@@ -74,6 +80,57 @@ function getFollowupClients() {
     echo json_encode([
         'success' => true,
         'data' => $clients
+    ]);
+}
+
+function getFollowupClient() {
+    global $pdo;
+    
+    $id = intval($_GET['id'] ?? 0);
+    
+    $stmt = $pdo->prepare("SELECT * FROM followup_clients WHERE id = :id");
+    $stmt->execute([':id' => $id]);
+    $client = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$client) {
+        throw new Exception('Client not found');
+    }
+    
+    echo json_encode([
+        'success' => true,
+        'data' => $client
+    ]);
+}
+
+function updateFollowupClient() {
+    global $pdo;
+    ensureTableExists();
+    
+    $id = intval($_POST['id'] ?? 0);
+    if ($id <= 0) {
+        throw new Exception('Invalid client ID');
+    }
+    
+    if (empty($_POST['name']) || empty($_POST['phone'])) {
+        throw new Exception('Name and Phone are required');
+    }
+    
+    $sql = "UPDATE followup_clients 
+            SET name = :name, email = :email, phone = :phone, company = :company, updated_at = NOW()
+            WHERE id = :id";
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        ':id' => $id,
+        ':name' => $_POST['name'],
+        ':email' => $_POST['email'] ?? '',
+        ':phone' => $_POST['phone'],
+        ':company' => $_POST['company'] ?? ''
+    ]);
+    
+    echo json_encode([
+        'success' => true,
+        'message' => 'Client updated successfully'
     ]);
 }
 
