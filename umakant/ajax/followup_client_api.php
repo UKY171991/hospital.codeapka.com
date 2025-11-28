@@ -137,6 +137,26 @@ function updateFollowupClient() {
         throw new Exception('Either Email or Phone is required');
     }
     
+    $email = $_POST['email'] ?? '';
+    $phone = $_POST['phone'] ?? '';
+    
+    // Check for duplicates
+    if (!empty($email)) {
+        $stmt = $pdo->prepare("SELECT id FROM followup_clients WHERE email = :email AND id != :id");
+        $stmt->execute([':email' => $email, ':id' => $id]);
+        if ($stmt->fetch()) {
+            throw new Exception('Email already exists');
+        }
+    }
+    
+    if (!empty($phone)) {
+        $stmt = $pdo->prepare("SELECT id FROM followup_clients WHERE phone = :phone AND id != :id");
+        $stmt->execute([':phone' => $phone, ':id' => $id]);
+        if ($stmt->fetch()) {
+            throw new Exception('Phone already exists');
+        }
+    }
+    
     $sql = "UPDATE followup_clients 
             SET name = :name, email = :email, phone = :phone, company = :company, updated_at = NOW()
             WHERE id = :id";
@@ -145,8 +165,8 @@ function updateFollowupClient() {
     $stmt->execute([
         ':id' => $id,
         ':name' => $_POST['name'],
-        ':email' => $_POST['email'] ?? '',
-        ':phone' => $_POST['phone'] ?? '',
+        ':email' => $email,
+        ':phone' => $phone,
         ':company' => $_POST['company'] ?? ''
     ]);
     
@@ -168,14 +188,34 @@ function addFollowupClient() {
         throw new Exception('Either Email or Phone is required');
     }
     
+    $email = $_POST['email'] ?? '';
+    $phone = $_POST['phone'] ?? '';
+    
+    // Check for duplicates
+    if (!empty($email)) {
+        $stmt = $pdo->prepare("SELECT id FROM followup_clients WHERE email = :email");
+        $stmt->execute([':email' => $email]);
+        if ($stmt->fetch()) {
+            throw new Exception('Email already exists');
+        }
+    }
+    
+    if (!empty($phone)) {
+        $stmt = $pdo->prepare("SELECT id FROM followup_clients WHERE phone = :phone");
+        $stmt->execute([':phone' => $phone]);
+        if ($stmt->fetch()) {
+            throw new Exception('Phone already exists');
+        }
+    }
+    
     $sql = "INSERT INTO followup_clients (name, email, phone, company, created_at)
             VALUES (:name, :email, :phone, :company, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':name' => $_POST['name'],
-        ':email' => $_POST['email'] ?? '',
-        ':phone' => $_POST['phone'] ?? '',
+        ':email' => $email,
+        ':phone' => $phone,
         ':company' => $_POST['company'] ?? ''
     ]);
     
