@@ -44,8 +44,9 @@ require_once 'inc/sidebar.php';
                                     <input type="email" class="form-control" id="email" name="email" placeholder="Enter email">
                                 </div>
                                 <div class="form-group">
-                                    <label for="phone">Phone <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="phone" name="phone" placeholder="Enter phone" required>
+                                    <label for="phone">Phone</label>
+                                    <input type="text" class="form-control" id="phone" name="phone" placeholder="Enter phone">
+                                    <small class="text-muted">Either Email or Phone is required</small>
                                 </div>
                                 <div class="form-group">
                                     <label for="company">Company Name</label>
