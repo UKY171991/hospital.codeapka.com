@@ -104,7 +104,6 @@ require_once 'inc/sidebar.php';
                                         <th>Date</th>
                                         <th>Status</th>
                                         <th>Next Date</th>
-                                        <th>Remarks</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -126,6 +125,26 @@ require_once 'inc/sidebar.php';
             </div>
         </div>
     </section>
+    
+    <!-- View Followup Modal -->
+    <div class="modal fade" id="viewFollowupModal" tabindex="-1" role="dialog" aria-labelledby="viewFollowupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title text-white" id="viewFollowupModalLabel">Followup Details</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="viewFollowupModalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <?php require_once 'inc/footer.php'; ?>
@@ -336,6 +355,11 @@ function loadFollowups(page) {
                     else if (followup.status === 'Not Interested') badgeClass = 'badge-danger';
                     else if (followup.status === 'Call Later') badgeClass = 'badge-warning';
                     else if (followup.status === 'Converted') badgeClass = 'badge-primary';
+                    else if (followup.status === 'Proposal Sent') badgeClass = 'badge-info';
+                    else if (followup.status === 'Quotation Sent') badgeClass = 'badge-info';
+                    else if (followup.status === 'Negotiation') badgeClass = 'badge-warning';
+                    else if (followup.status === 'Project Started') badgeClass = 'badge-success';
+                    else if (followup.status === 'Completed') badgeClass = 'badge-dark';
                     
                     // WhatsApp Link Generation
                     let whatsappBtn = '';
@@ -372,8 +396,10 @@ function loadFollowups(page) {
                             <td>${followup.followup_date}</td>
                             <td><span class="badge ${badgeClass}">${followup.status}</span></td>
                             <td>${followup.next_followup_date || '-'}</td>
-                            <td><small>${followup.remarks || '-'}</small></td>
                             <td>
+                                <button class="btn btn-sm btn-primary view-followup" data-id="${followup.id}" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                                 ${whatsappBtn}
                                 ${emailBtn}
                                 <button class="btn btn-sm btn-info edit-followup" data-id="${followup.id}" title="Edit">
@@ -399,6 +425,99 @@ function loadFollowups(page) {
         }
     });
 }
+
+// View Followup Handler
+$(document).on('click', '.view-followup', function() {
+    const id = $(this).data('id');
+    
+    $.ajax({
+        url: 'ajax/followup_api.php',
+        type: 'GET',
+        data: { action: 'get_followup', id: id },
+        success: function(response) {
+            if (response.success) {
+                const followup = response.data;
+                
+                // Fetch client details
+                $.ajax({
+                    url: 'ajax/followup_api.php',
+                    type: 'GET',
+                    data: { action: 'get_clients_dropdown' },
+                    success: function(clientsResponse) {
+                        let clientName = 'Unknown';
+                        let clientCompany = '';
+                        
+                        if (clientsResponse.success) {
+                            const client = clientsResponse.data.find(c => c.id == followup.client_id);
+                            if (client) {
+                                clientName = client.name;
+                                clientCompany = client.company || '';
+                            }
+                        }
+                        
+                        // Build modal content
+                        const modalContent = `
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label><strong>Client Name:</strong></label>
+                                        <p>${clientName}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label><strong>Company:</strong></label>
+                                        <p>${clientCompany || '-'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label><strong>Followup Date:</strong></label>
+                                        <p>${followup.followup_date}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label><strong>Next Followup Date:</strong></label>
+                                        <p>${followup.next_followup_date || '-'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label><strong>Status:</strong></label>
+                                        <p><span class="badge badge-primary">${followup.status}</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label><strong>Remarks:</strong></label>
+                                        <div class="border p-3 bg-light">
+                                            ${followup.remarks || '<em>No remarks</em>'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        $('#viewFollowupModalBody').html(modalContent);
+                        $('#viewFollowupModal').modal('show');
+                    }
+                });
+            } else {
+                toastr.error(response.message || 'Error fetching followup details');
+            }
+        },
+        error: function() {
+            toastr.error('Server error occurred');
+        }
+    });
+});
 
 // Send Email Handler
 $(document).on('click', '.send-email', function() {
