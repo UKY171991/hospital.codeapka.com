@@ -68,13 +68,44 @@ function ensureTableExists() {
         `client_id` int(11) NOT NULL,
         `followup_date` date NOT NULL,
         `next_followup_date` date DEFAULT NULL,
-        `status` enum('Pending', 'Call Later', 'Interested', 'Not Interested', 'Converted', 'No Answer') NOT NULL DEFAULT 'Pending',
+        `status` varchar(50) NOT NULL DEFAULT 'Pending',
         `remarks` text DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`),
         KEY `client_id` (`client_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    // Update status column to VARCHAR to support new statuses if it was ENUM
+    try {
+        $pdo->exec("ALTER TABLE `followups` MODIFY COLUMN `status` varchar(50) NOT NULL DEFAULT 'Pending'");
+    } catch (Exception $e) {
+        // Ignore if already varchar or other error
+    }
+}
+
+function getStatusMessage($status, $clientName, $remarks, $nextDate) {
+    $baseMessage = "Dear $clientName, ";
+    $nextDateStr = $nextDate ? " Next Followup: $nextDate." : "";
+    
+    switch ($status) {
+        case 'Proposal Sent':
+            return $baseMessage . "We have sent the proposal for your website project. Please review it and let us know your thoughts. Remarks: $remarks.$nextDateStr";
+        case 'Quotation Sent':
+            return $baseMessage . "We have sent the quotation for your website project. We look forward to your feedback. Remarks: $remarks.$nextDateStr";
+        case 'Negotiation':
+            return $baseMessage . "Thank you for discussing the project details. We are reviewing the terms. Remarks: $remarks.$nextDateStr";
+        case 'Project Started':
+            return $baseMessage . "We are excited to start working on your website project! We will keep you updated on the progress. Remarks: $remarks.$nextDateStr";
+        case 'Completed':
+            return $baseMessage . "Your website project has been completed successfully! Thank you for choosing us. Remarks: $remarks.$nextDateStr";
+        case 'Call Later':
+            return $baseMessage . "As discussed, we will call you later regarding your website requirements. Remarks: $remarks.$nextDateStr";
+        case 'Interested':
+            return $baseMessage . "Thank you for your interest in our web development services. We will be in touch shortly. Remarks: $remarks.$nextDateStr";
+        default:
+            return $baseMessage . "Followup Update: $status. Remarks: $remarks.$nextDateStr";
+    }
 }
 
 function getFollowups() {
@@ -165,33 +196,15 @@ function addFollowup() {
     if (isset($_POST['send_email']) && $_POST['send_email'] == '1') {
         $client = getClientDetails($_POST['client_id']);
         if ($client && !empty($client['email'])) {
-            $subject = "Followup Update: " . ($_POST['status'] ?? 'Pending');
-            $body = "Dear " . $client['name'] . ",<br><br>" .
-                    "This is a followup regarding your inquiry.<br>" .
-                    "Status: " . ($_POST['status'] ?? 'Pending') . "<br>" .
-                    "Remarks: " . ($_POST['remarks'] ?? '') . "<br><br>" .
-                    "Next Followup Date: " . ($_POST['next_followup_date'] ?? 'Not scheduled') . "<br><br>" .
-                    "Best Regards,<br>Hospital Management Team";
-            
-            // Use existing Gmail API logic (simplified integration)
-            // In a real scenario, you might want to call the API endpoint or include the file
-            // Here we will just simulate/log it or call a helper if available.
-            // For now, we'll assume the frontend will handle the actual sending via the Gmail API 
-            // OR we can try to send it here if we include the file.
-            // Let's try to include the file and call the function if possible, but it's an API file.
-            // Better approach: Return a flag to frontend to trigger email sending or send it here using a helper.
-            // Given the structure, let's try to send it using a simple mail function here as a fallback/quick implementation
-            // or rely on the frontend to call the email API.
-            // User request: "fallow up will be sent email" -> implies automatic.
-            
-            // Let's try to send using the helper function from gmail_send_api.php if we can include it, 
-            // but it has header() calls and session checks.
-            // Instead, let's use a simple mail() here for now, or just return success.
-            // Actually, let's use the `sendEmailAlternative` logic from `gmail_send_api.php` directly here for simplicity
+            $subject = "Update on your Website Project: " . ($_POST['status'] ?? 'Pending');
+            // Use HTML line breaks for email body
+            $emailBody = getStatusMessage($_POST['status'] ?? 'Pending', $client['name'], $_POST['remarks'] ?? '', $_POST['next_followup_date'] ?? '');
+            $emailBody = nl2br($emailBody); // Convert newlines to <br> if any
+            $emailBody .= "<br><br>Best Regards,<br>Hospital Management Team";
             
             $headers = "From: Hospital Admin <noreply@hospital.codeapka.com>\r\n";
             $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-            @mail($client['email'], $subject, $body, $headers);
+            @mail($client['email'], $subject, $emailBody, $headers);
             $message .= ' and Email sent';
         }
     }
@@ -200,9 +213,7 @@ function addFollowup() {
     if (isset($_POST['send_whatsapp']) && $_POST['send_whatsapp'] == '1') {
         $client = getClientDetails($_POST['client_id']);
         if ($client && !empty($client['phone'])) {
-            $waMessage = "Dear " . $client['name'] . ", Followup Update: " . ($_POST['status'] ?? 'Pending') . 
-                         ". Remarks: " . ($_POST['remarks'] ?? '') . 
-                         ". Next Followup: " . ($_POST['next_followup_date'] ?? 'Not scheduled');
+            $waMessage = getStatusMessage($_POST['status'] ?? 'Pending', $client['name'], $_POST['remarks'] ?? '', $_POST['next_followup_date'] ?? '');
             $whatsappLink = "https://wa.me/" . preg_replace('/[^0-9]/', '', $client['phone']) . "?text=" . urlencode($waMessage);
         }
     }
@@ -255,17 +266,14 @@ function updateFollowup() {
     if (isset($_POST['send_email']) && $_POST['send_email'] == '1') {
         $client = getClientDetails($_POST['client_id']);
         if ($client && !empty($client['email'])) {
-            $subject = "Followup Update: " . ($_POST['status'] ?? 'Pending');
-            $body = "Dear " . $client['name'] . ",<br><br>" .
-                    "This is a followup regarding your inquiry.<br>" .
-                    "Status: " . ($_POST['status'] ?? 'Pending') . "<br>" .
-                    "Remarks: " . ($_POST['remarks'] ?? '') . "<br><br>" .
-                    "Next Followup Date: " . ($_POST['next_followup_date'] ?? 'Not scheduled') . "<br><br>" .
-                    "Best Regards,<br>Hospital Management Team";
+            $subject = "Update on your Website Project: " . ($_POST['status'] ?? 'Pending');
+            $emailBody = getStatusMessage($_POST['status'] ?? 'Pending', $client['name'], $_POST['remarks'] ?? '', $_POST['next_followup_date'] ?? '');
+            $emailBody = nl2br($emailBody);
+            $emailBody .= "<br><br>Best Regards,<br>Hospital Management Team";
             
             $headers = "From: Hospital Admin <noreply@hospital.codeapka.com>\r\n";
             $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-            @mail($client['email'], $subject, $body, $headers);
+            @mail($client['email'], $subject, $emailBody, $headers);
             $message .= ' and Email sent';
         }
     }
@@ -274,9 +282,7 @@ function updateFollowup() {
     if (isset($_POST['send_whatsapp']) && $_POST['send_whatsapp'] == '1') {
         $client = getClientDetails($_POST['client_id']);
         if ($client && !empty($client['phone'])) {
-            $waMessage = "Dear " . $client['name'] . ", Followup Update: " . ($_POST['status'] ?? 'Pending') . 
-                         ". Remarks: " . ($_POST['remarks'] ?? '') . 
-                         ". Next Followup: " . ($_POST['next_followup_date'] ?? 'Not scheduled');
+            $waMessage = getStatusMessage($_POST['status'] ?? 'Pending', $client['name'], $_POST['remarks'] ?? '', $_POST['next_followup_date'] ?? '');
             $whatsappLink = "https://wa.me/" . preg_replace('/[^0-9]/', '', $client['phone']) . "?text=" . urlencode($waMessage);
         }
     }
@@ -343,13 +349,10 @@ function sendEmailNotification() {
         throw new Exception('Client does not have an email address');
     }
     
-    $subject = "Followup Update: " . ($data['status'] ?? 'Pending');
-    $body = "Dear " . $data['client_name'] . ",<br><br>" .
-            "This is a followup regarding your inquiry.<br>" .
-            "Status: " . ($data['status'] ?? 'Pending') . "<br>" .
-            "Remarks: " . ($data['remarks'] ?? '') . "<br><br>" .
-            "Next Followup Date: " . ($data['next_followup_date'] ?? 'Not scheduled') . "<br><br>" .
-            "Best Regards,<br>Hospital Management Team";
+    $subject = "Update on your Website Project: " . ($data['status'] ?? 'Pending');
+    $body = getStatusMessage($data['status'] ?? 'Pending', $data['client_name'], $data['remarks'] ?? '', $data['next_followup_date'] ?? '');
+    $body = nl2br($body);
+    $body .= "<br><br>Best Regards,<br>Hospital Management Team";
     
     $headers = "From: Hospital Admin <noreply@hospital.codeapka.com>\r\n";
     $headers .= "Content-Type: text/html; charset=UTF-8\r\n";

@@ -59,6 +59,11 @@ require_once 'inc/sidebar.php';
                                         <option value="Not Interested">Not Interested</option>
                                         <option value="Converted">Converted</option>
                                         <option value="No Answer">No Answer</option>
+                                        <option value="Proposal Sent">Proposal Sent</option>
+                                        <option value="Quotation Sent">Quotation Sent</option>
+                                        <option value="Negotiation">Negotiation</option>
+                                        <option value="Project Started">Project Started</option>
+                                        <option value="Completed">Completed</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
@@ -317,7 +322,8 @@ function loadFollowups(page) {
                     let whatsappBtn = '';
                     if (followup.client_phone) {
                         const cleanPhone = followup.client_phone.replace(/[^0-9]/g, '');
-                        const waMessage = `Dear ${followup.client_name}, Followup Update: ${followup.status}. Remarks: ${followup.remarks || ''}. Next Followup: ${followup.next_followup_date || 'Not scheduled'}`;
+                        // Simple generic message for list view button
+                        const waMessage = `Dear ${followup.client_name}, this is regarding your website project. Status: ${followup.status}. Remarks: ${followup.remarks || ''}.`;
                         const waLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(waMessage)}`;
                         whatsappBtn = `
                             <a href="${waLink}" target="_blank" class="btn btn-sm btn-success" title="Send WhatsApp">
