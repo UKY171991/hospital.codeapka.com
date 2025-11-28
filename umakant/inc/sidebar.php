@@ -359,6 +359,35 @@ $role = $_SESSION['role'] ?? 'user';
           </ul>
         </li>
 
+        <?php
+        // Followup Clients menu pages
+        $followupPages = ['followup_client.php', 'followup.php'];
+        $isFollowupActive = in_array($activePage, $followupPages);
+        ?>
+        <li class="nav-item has-treeview <?php echo $isFollowupActive ? 'menu-open' : ''; ?>">
+          <a href="#" class="nav-link <?php echo $isFollowupActive ? 'active' : ''; ?>">
+            <i class="nav-icon fas fa-user-clock"></i>
+            <p>
+              Followup Clients
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="followup_client.php" class="nav-link <?php echo ($activePage == 'followup_client.php') ? 'active' : ''; ?>">
+                <i class="fas fa-user nav-icon"></i>
+                <p>Client</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="followup.php" class="nav-link <?php echo ($activePage == 'followup.php') ? 'active' : ''; ?>">
+                <i class="fas fa-clock nav-icon"></i>
+                <p>Followup</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
   <!-- Admins menu removed -->
 
   <!-- Logout moved to top navbar for easier access -->
