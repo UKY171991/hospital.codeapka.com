@@ -313,6 +313,30 @@ function loadFollowups(page) {
                     else if (followup.status === 'Call Later') badgeClass = 'badge-warning';
                     else if (followup.status === 'Converted') badgeClass = 'badge-primary';
                     
+                    // WhatsApp Link Generation
+                    let whatsappBtn = '';
+                    if (followup.client_phone) {
+                        const cleanPhone = followup.client_phone.replace(/[^0-9]/g, '');
+                        const waMessage = `Dear ${followup.client_name}, Followup Update: ${followup.status}. Remarks: ${followup.remarks || ''}. Next Followup: ${followup.next_followup_date || 'Not scheduled'}`;
+                        const waLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(waMessage)}`;
+                        whatsappBtn = `
+                            <a href="${waLink}" target="_blank" class="btn btn-sm btn-success" title="Send WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                        `;
+                    }
+
+                    // Email Button
+                    let emailBtn = '';
+                    // We don't have client_email in the current get_followups response, let's assume we can try to send it anyway
+                    // or we should update get_followups to return email. 
+                    // For now, let's show the button and let the server validate.
+                    emailBtn = `
+                        <button class="btn btn-sm btn-warning send-email" data-id="${followup.id}" title="Send Email">
+                            <i class="fas fa-envelope"></i>
+                        </button>
+                    `;
+
                     const row = `
                         <tr>
                             <td>${srNo}</td>
@@ -325,10 +349,12 @@ function loadFollowups(page) {
                             <td>${followup.next_followup_date || '-'}</td>
                             <td><small>${followup.remarks || '-'}</small></td>
                             <td>
-                                <button class="btn btn-sm btn-info edit-followup" data-id="${followup.id}">
+                                ${whatsappBtn}
+                                ${emailBtn}
+                                <button class="btn btn-sm btn-info edit-followup" data-id="${followup.id}" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn btn-sm btn-danger delete-followup" data-id="${followup.id}">
+                                <button class="btn btn-sm btn-danger delete-followup" data-id="${followup.id}" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -348,6 +374,33 @@ function loadFollowups(page) {
         }
     });
 }
+
+// Send Email Handler
+$(document).on('click', '.send-email', function() {
+    const id = $(this).data('id');
+    const btn = $(this);
+    
+    if (confirm('Send email notification to client?')) {
+        btn.prop('disabled', true);
+        $.ajax({
+            url: 'ajax/followup_api.php',
+            type: 'POST',
+            data: { action: 'send_email_notification', id: id },
+            success: function(response) {
+                btn.prop('disabled', false);
+                if (response.success) {
+                    toastr.success(response.message);
+                } else {
+                    toastr.error(response.message || 'Error sending email');
+                }
+            },
+            error: function() {
+                btn.prop('disabled', false);
+                toastr.error('Server error occurred');
+            }
+        });
+    }
+});
 
 function renderPagination(pagination) {
     const ul = $('#pagination');

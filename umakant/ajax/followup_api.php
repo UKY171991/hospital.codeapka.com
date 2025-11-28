@@ -41,6 +41,9 @@ try {
         case 'delete_followup':
             deleteFollowup();
             break;
+        case 'send_email_notification':
+            sendEmailNotification();
+            break;
         case 'get_clients_dropdown':
             getClientsDropdown();
             break;
@@ -312,6 +315,52 @@ function deleteFollowup() {
         ]);
     } else {
         throw new Exception('Followup not found');
+    }
+}
+
+function sendEmailNotification() {
+    global $pdo;
+    
+    $id = intval($_POST['id'] ?? 0);
+    if ($id <= 0) {
+        throw new Exception('Invalid followup ID');
+    }
+    
+    // Fetch followup and client details
+    $sql = "SELECT f.*, c.name as client_name, c.email as client_email 
+            FROM followups f
+            JOIN followup_clients c ON f.client_id = c.id
+            WHERE f.id = :id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':id' => $id]);
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$data) {
+        throw new Exception('Followup record not found');
+    }
+    
+    if (empty($data['client_email'])) {
+        throw new Exception('Client does not have an email address');
+    }
+    
+    $subject = "Followup Update: " . ($data['status'] ?? 'Pending');
+    $body = "Dear " . $data['client_name'] . ",<br><br>" .
+            "This is a followup regarding your inquiry.<br>" .
+            "Status: " . ($data['status'] ?? 'Pending') . "<br>" .
+            "Remarks: " . ($data['remarks'] ?? '') . "<br><br>" .
+            "Next Followup Date: " . ($data['next_followup_date'] ?? 'Not scheduled') . "<br><br>" .
+            "Best Regards,<br>Hospital Management Team";
+    
+    $headers = "From: Hospital Admin <noreply@hospital.codeapka.com>\r\n";
+    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+    
+    if (mail($data['client_email'], $subject, $body, $headers)) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'Email notification sent successfully'
+        ]);
+    } else {
+        throw new Exception('Failed to send email');
     }
 }
 
