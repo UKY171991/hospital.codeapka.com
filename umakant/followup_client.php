@@ -83,6 +83,11 @@ require_once 'inc/sidebar.php';
                                 </tbody>
                             </table>
                         </div>
+                        <div class="card-footer clearfix">
+                            <ul class="pagination pagination-sm m-0 float-right" id="pagination">
+                                <!-- Pagination links will be loaded here -->
+                            </ul>
+                        </div>
                         <div class="overlay" id="loadingOverlay" style="display: none;">
                             <i class="fas fa-2x fa-sync-alt fa-spin"></i>
                         </div>
@@ -96,12 +101,23 @@ require_once 'inc/sidebar.php';
 <?php require_once 'inc/footer.php'; ?>
 
 <script>
+let currentPage = 1;
+
 $(document).ready(function() {
-    loadClients();
+    loadClients(currentPage);
 
     // Handle Form Submission
     $('#addClientForm').on('submit', function(e) {
         e.preventDefault();
+        
+        // Client-side validation
+        const email = $('#email').val().trim();
+        const phone = $('#phone').val().trim();
+        
+        if (!email && !phone) {
+            toastr.error('Either Email or Phone is required');
+            return;
+        }
         
         const formData = new FormData(this);
         const clientId = $('#client_id').val();
@@ -124,7 +140,7 @@ $(document).ready(function() {
                 if (response.success) {
                     toastr.success(response.message);
                     resetForm();
-                    loadClients();
+                    loadClients(currentPage);
                 } else {
                     toastr.error(response.message || 'Error saving client');
                 }
@@ -181,7 +197,7 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.success) {
                         toastr.success(response.message);
-                        loadClients();
+                        loadClients(currentPage);
                     } else {
                         toastr.error(response.message || 'Error deleting client');
                     }
@@ -190,6 +206,16 @@ $(document).ready(function() {
                     toastr.error('Server error occurred');
                 }
             });
+        }
+    });
+    
+    // Pagination Click
+    $(document).on('click', '.page-link', function(e) {
+        e.preventDefault();
+        const page = $(this).data('page');
+        if (page) {
+            currentPage = page;
+            loadClients(page);
         }
     });
 });
@@ -202,12 +228,12 @@ function resetForm() {
     $('#cancelEdit').hide();
 }
 
-function loadClients() {
+function loadClients(page) {
     $('#loadingOverlay').show();
     $.ajax({
         url: 'ajax/followup_client_api.php',
         type: 'GET',
-        data: { action: 'get_clients' },
+        data: { action: 'get_clients', page: page },
         success: function(response) {
             $('#loadingOverlay').hide();
             if (response.success) {
@@ -216,6 +242,7 @@ function loadClients() {
                 
                 if (response.data.length === 0) {
                     tbody.append('<tr><td colspan="6" class="text-center">No clients found</td></tr>');
+                    $('#pagination').empty();
                     return;
                 }
 
@@ -239,6 +266,8 @@ function loadClients() {
                     `;
                     tbody.append(row);
                 });
+                
+                renderPagination(response.pagination);
             } else {
                 toastr.error(response.message || 'Error loading clients');
             }
@@ -248,5 +277,38 @@ function loadClients() {
             toastr.error('Server error loading clients');
         }
     });
+}
+
+function renderPagination(pagination) {
+    const ul = $('#pagination');
+    ul.empty();
+    
+    if (pagination.total_pages <= 1) return;
+    
+    // Previous
+    const prevDisabled = pagination.current_page === 1 ? 'disabled' : '';
+    ul.append(`
+        <li class="page-item ${prevDisabled}">
+            <a class="page-link" href="#" data-page="${pagination.current_page - 1}">&laquo;</a>
+        </li>
+    `);
+    
+    // Pages
+    for (let i = 1; i <= pagination.total_pages; i++) {
+        const active = i === pagination.current_page ? 'active' : '';
+        ul.append(`
+            <li class="page-item ${active}">
+                <a class="page-link" href="#" data-page="${i}">${i}</a>
+            </li>
+        `);
+    }
+    
+    // Next
+    const nextDisabled = pagination.current_page === pagination.total_pages ? 'disabled' : '';
+    ul.append(`
+        <li class="page-item ${nextDisabled}">
+            <a class="page-link" href="#" data-page="${pagination.current_page + 1}">&raquo;</a>
+        </li>
+    `);
 }
 </script>

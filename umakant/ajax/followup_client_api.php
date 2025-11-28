@@ -73,13 +73,31 @@ function getFollowupClients() {
     global $pdo;
     ensureTableExists();
     
-    $sql = "SELECT * FROM followup_clients ORDER BY created_at DESC";
-    $stmt = $pdo->query($sql);
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $limit = 10;
+    $offset = ($page - 1) * $limit;
+    
+    // Get total count
+    $countStmt = $pdo->query("SELECT COUNT(*) as total FROM followup_clients");
+    $totalRecords = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+    $totalPages = ceil($totalRecords / $limit);
+    
+    // Get records
+    $sql = "SELECT * FROM followup_clients ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
     $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
         'success' => true,
-        'data' => $clients
+        'data' => $clients,
+        'pagination' => [
+            'current_page' => $page,
+            'total_pages' => $totalPages,
+            'total_records' => $totalRecords
+        ]
     ]);
 }
 
@@ -111,8 +129,12 @@ function updateFollowupClient() {
         throw new Exception('Invalid client ID');
     }
     
-    if (empty($_POST['name']) || empty($_POST['phone'])) {
-        throw new Exception('Name and Phone are required');
+    if (empty($_POST['name'])) {
+        throw new Exception('Name is required');
+    }
+    
+    if (empty($_POST['email']) && empty($_POST['phone'])) {
+        throw new Exception('Either Email or Phone is required');
     }
     
     $sql = "UPDATE followup_clients 
@@ -124,7 +146,7 @@ function updateFollowupClient() {
         ':id' => $id,
         ':name' => $_POST['name'],
         ':email' => $_POST['email'] ?? '',
-        ':phone' => $_POST['phone'],
+        ':phone' => $_POST['phone'] ?? '',
         ':company' => $_POST['company'] ?? ''
     ]);
     
@@ -138,8 +160,12 @@ function addFollowupClient() {
     global $pdo;
     ensureTableExists();
     
-    if (empty($_POST['name']) || empty($_POST['phone'])) {
-        throw new Exception('Name and Phone are required');
+    if (empty($_POST['name'])) {
+        throw new Exception('Name is required');
+    }
+    
+    if (empty($_POST['email']) && empty($_POST['phone'])) {
+        throw new Exception('Either Email or Phone is required');
     }
     
     $sql = "INSERT INTO followup_clients (name, email, phone, company, created_at)
@@ -149,7 +175,7 @@ function addFollowupClient() {
     $stmt->execute([
         ':name' => $_POST['name'],
         ':email' => $_POST['email'] ?? '',
-        ':phone' => $_POST['phone'],
+        ':phone' => $_POST['phone'] ?? '',
         ':company' => $_POST['company'] ?? ''
     ]);
     
