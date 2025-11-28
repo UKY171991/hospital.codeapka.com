@@ -71,7 +71,7 @@ require_once 'inc/sidebar.php';
                             <table class="table table-hover text-nowrap" id="clientsTable">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>Sr. No.</th>
                                         <th>Name</th>
                                         <th>Phone</th>
                                         <th>Email</th>
@@ -103,6 +103,7 @@ require_once 'inc/sidebar.php';
 
 <script>
 let currentPage = 1;
+const limit = 10;
 
 $(document).ready(function() {
     loadClients(currentPage);
@@ -247,10 +248,11 @@ function loadClients(page) {
                     return;
                 }
 
-                response.data.forEach(function(client) {
+                response.data.forEach(function(client, index) {
+                    const srNo = (page - 1) * limit + index + 1;
                     const row = `
                         <tr>
-                            <td>${client.id}</td>
+                            <td>${srNo}</td>
                             <td>${client.name}</td>
                             <td>${client.phone}</td>
                             <td>${client.email || '-'}</td>
