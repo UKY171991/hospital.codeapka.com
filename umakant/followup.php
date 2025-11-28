@@ -65,6 +65,16 @@ require_once 'inc/sidebar.php';
                                     <label for="remarks">Remarks</label>
                                     <textarea class="form-control" id="remarks" name="remarks" rows="3" placeholder="Enter remarks"></textarea>
                                 </div>
+                                <div class="form-group">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="send_email" name="send_email" value="1" checked>
+                                        <label class="custom-control-label" for="send_email">Send Email Notification</label>
+                                    </div>
+                                    <div class="custom-control custom-checkbox mt-2">
+                                        <input type="checkbox" class="custom-control-input" id="send_whatsapp" name="send_whatsapp" value="1" checked>
+                                        <label class="custom-control-label" for="send_whatsapp">Send WhatsApp Message</label>
+                                    </div>
+                                </div>
                             </div>
                             <div class="card-footer">
                                 <button type="submit" class="btn btn-primary">Add Followup</button>
@@ -157,6 +167,12 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     toastr.success(response.message);
+                    
+                    // Open WhatsApp if link is provided
+                    if (response.whatsapp_link) {
+                        window.open(response.whatsapp_link, '_blank');
+                    }
+                    
                     resetForm();
                     loadFollowups(currentPage);
                 } else {
