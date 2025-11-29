@@ -328,6 +328,23 @@ function loadClientsDropdown() {
     });
 }
 
+// Helper function to strip HTML tags for WhatsApp messages
+function stripHtmlTags(html) {
+    if (!html) return '';
+    
+    // Create a temporary div element to parse HTML
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    
+    // Get text content (automatically strips tags)
+    let text = temp.textContent || temp.innerText || '';
+    
+    // Remove excessive whitespace
+    text = text.replace(/\s+/g, ' ').trim();
+    
+    return text;
+}
+
 function loadFollowups(page) {
     $('#loadingOverlay').show();
     $.ajax({
@@ -365,8 +382,9 @@ function loadFollowups(page) {
                     let whatsappBtn = '';
                     if (followup.client_phone) {
                         const cleanPhone = followup.client_phone.replace(/[^0-9]/g, '');
-                        // Simple generic message for list view button
-                        const waMessage = `Dear ${followup.client_name}, this is regarding your website project. Status: ${followup.status}. Remarks: ${followup.remarks || ''}.`;
+                        // Clean HTML from remarks for WhatsApp
+                        const cleanRemarks = stripHtmlTags(followup.remarks || '');
+                        const waMessage = `Dear ${followup.client_name}, this is regarding your website project. Status: ${followup.status}. Remarks: ${cleanRemarks}.`;
                         const waLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(waMessage)}`;
                         whatsappBtn = `
                             <a href="${waLink}" target="_blank" class="btn btn-sm btn-success" title="Send WhatsApp">

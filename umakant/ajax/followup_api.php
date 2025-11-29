@@ -88,24 +88,60 @@ function getStatusMessage($status, $clientName, $remarks, $nextDate) {
     $baseMessage = "Dear $clientName, ";
     $nextDateStr = $nextDate ? " Next Followup: $nextDate." : "";
     
+    // Clean HTML from remarks for WhatsApp (plain text)
+    $cleanRemarks = cleanHtmlForWhatsApp($remarks);
+    
     switch ($status) {
         case 'Proposal Sent':
-            return $baseMessage . "We have sent the proposal for your website project. Please review it and let us know your thoughts. Remarks: $remarks.$nextDateStr";
+            return $baseMessage . "We have sent the proposal for your website project. Please review it and let us know your thoughts. Remarks: $cleanRemarks.$nextDateStr";
         case 'Quotation Sent':
-            return $baseMessage . "We have sent the quotation for your website project. We look forward to your feedback. Remarks: $remarks.$nextDateStr";
+            return $baseMessage . "We have sent the quotation for your website project. We look forward to your feedback. Remarks: $cleanRemarks.$nextDateStr";
         case 'Negotiation':
-            return $baseMessage . "Thank you for discussing the project details. We are reviewing the terms. Remarks: $remarks.$nextDateStr";
+            return $baseMessage . "Thank you for discussing the project details. We are reviewing the terms. Remarks: $cleanRemarks.$nextDateStr";
         case 'Project Started':
-            return $baseMessage . "We are excited to start working on your website project! We will keep you updated on the progress. Remarks: $remarks.$nextDateStr";
+            return $baseMessage . "We are excited to start working on your website project! We will keep you updated on the progress. Remarks: $cleanRemarks.$nextDateStr";
         case 'Completed':
-            return $baseMessage . "Your website project has been completed successfully! Thank you for choosing us. Remarks: $remarks.$nextDateStr";
+            return $baseMessage . "Your website project has been completed successfully! Thank you for choosing us. Remarks: $cleanRemarks.$nextDateStr";
         case 'Call Later':
-            return $baseMessage . "As discussed, we will call you later regarding your website requirements. Remarks: $remarks.$nextDateStr";
+            return $baseMessage . "As discussed, we will call you later regarding your website requirements. Remarks: $cleanRemarks.$nextDateStr";
         case 'Interested':
-            return $baseMessage . "Thank you for your interest in our web development services. We will be in touch shortly. Remarks: $remarks.$nextDateStr";
+            return $baseMessage . "Thank you for your interest in our web development services. We will be in touch shortly. Remarks: $cleanRemarks.$nextDateStr";
         default:
-            return $baseMessage . "Followup Update: $status. Remarks: $remarks.$nextDateStr";
+            return $baseMessage . "Followup Update: $status. Remarks: $cleanRemarks.$nextDateStr";
     }
+}
+
+// Helper function to clean HTML for WhatsApp messages
+function cleanHtmlForWhatsApp($html) {
+    if (empty($html)) {
+        return '';
+    }
+    
+    // Convert common HTML tags to plain text equivalents
+    $text = $html;
+    
+    // Convert line breaks to newlines
+    $text = preg_replace('/<br\s*\/?>/i', "\n", $text);
+    $text = preg_replace('/<\/p>/i', "\n\n", $text);
+    $text = preg_replace('/<\/div>/i', "\n", $text);
+    $text = preg_replace('/<\/h[1-6]>/i', "\n\n", $text);
+    $text = preg_replace('/<\/li>/i', "\n", $text);
+    
+    // Convert bold and italic to WhatsApp formatting
+    $text = preg_replace('/<(strong|b)>(.*?)<\/(strong|b)>/i', '*$2*', $text);
+    $text = preg_replace('/<(em|i)>(.*?)<\/(em|i)>/i', '_$2_', $text);
+    
+    // Remove all remaining HTML tags
+    $text = strip_tags($text);
+    
+    // Decode HTML entities
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    
+    // Remove excessive whitespace
+    $text = preg_replace('/\n\s*\n\s*\n/', "\n\n", $text);
+    $text = trim($text);
+    
+    return $text;
 }
 
 function getFollowups() {
