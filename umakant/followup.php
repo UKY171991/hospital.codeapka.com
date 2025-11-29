@@ -384,7 +384,26 @@ function loadFollowups(page) {
                         const cleanPhone = followup.client_phone.replace(/[^0-9]/g, '');
                         // Clean HTML from remarks for WhatsApp
                         const cleanRemarks = stripHtmlTags(followup.remarks || '');
-                        const waMessage = `Dear ${followup.client_name}, this is regarding your website project. Status: ${followup.status}. Remarks: ${cleanRemarks}.`;
+                        
+                        // Build professional WhatsApp message
+                        let waMessage = `🏥 *Hospital Management System*\n\n`;
+                        waMessage += `Dear *${followup.client_name}*,\n\n`;
+                        waMessage += `📌 *Status Update: ${followup.status}*\n\n`;
+                        
+                        if (cleanRemarks) {
+                            waMessage += `📝 *Details:*\n${cleanRemarks}\n\n`;
+                        }
+                        
+                        if (followup.next_followup_date) {
+                            waMessage += `📅 *Next Followup:* ${followup.next_followup_date}\n\n`;
+                        }
+                        
+                        waMessage += `---\n`;
+                        waMessage += `If you have any questions or concerns, please don't hesitate to reach out.\n\n`;
+                        waMessage += `Best Regards,\n*Hospital Management Team*\n`;
+                        waMessage += `📧 Email: info@hospital.codeapka.com\n`;
+                        waMessage += `🌐 Website: https://hospital.codeapka.com`;
+                        
                         const waLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(waMessage)}`;
                         whatsappBtn = `
                             <a href="${waLink}" target="_blank" class="btn btn-sm btn-success" title="Send WhatsApp">

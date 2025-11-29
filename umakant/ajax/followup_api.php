@@ -85,30 +85,90 @@ function ensureTableExists() {
 }
 
 function getStatusMessage($status, $clientName, $remarks, $nextDate) {
-    $baseMessage = "Dear $clientName, ";
-    $nextDateStr = $nextDate ? " Next Followup: $nextDate." : "";
-    
     // Clean HTML from remarks for WhatsApp (plain text)
     $cleanRemarks = cleanHtmlForWhatsApp($remarks);
     
+    // Build professional WhatsApp message
+    $message = "🏥 *Hospital Management System*\n\n";
+    $message .= "Dear *{$clientName}*,\n\n";
+    
+    // Status-specific messages
     switch ($status) {
         case 'Proposal Sent':
-            return $baseMessage . "We have sent the proposal for your website project. Please review it and let us know your thoughts. Remarks: $cleanRemarks.$nextDateStr";
+            $message .= "📋 *Status Update: Proposal Sent*\n\n";
+            $message .= "We have prepared and sent a detailed proposal for your website project. Please take your time to review it carefully.\n\n";
+            break;
+            
         case 'Quotation Sent':
-            return $baseMessage . "We have sent the quotation for your website project. We look forward to your feedback. Remarks: $cleanRemarks.$nextDateStr";
+            $message .= "💰 *Status Update: Quotation Sent*\n\n";
+            $message .= "We have sent you a detailed quotation for your website project. Please review the pricing and scope of work.\n\n";
+            break;
+            
         case 'Negotiation':
-            return $baseMessage . "Thank you for discussing the project details. We are reviewing the terms. Remarks: $cleanRemarks.$nextDateStr";
+            $message .= "🤝 *Status Update: Under Negotiation*\n\n";
+            $message .= "Thank you for your valuable feedback. We are currently reviewing the terms and will get back to you shortly.\n\n";
+            break;
+            
         case 'Project Started':
-            return $baseMessage . "We are excited to start working on your website project! We will keep you updated on the progress. Remarks: $cleanRemarks.$nextDateStr";
+            $message .= "🚀 *Status Update: Project Started*\n\n";
+            $message .= "Great news! We have officially started working on your website project. Our team is excited to bring your vision to life.\n\n";
+            break;
+            
         case 'Completed':
-            return $baseMessage . "Your website project has been completed successfully! Thank you for choosing us. Remarks: $cleanRemarks.$nextDateStr";
+            $message .= "✅ *Status Update: Project Completed*\n\n";
+            $message .= "Congratulations! Your website project has been successfully completed. Thank you for choosing our services.\n\n";
+            break;
+            
         case 'Call Later':
-            return $baseMessage . "As discussed, we will call you later regarding your website requirements. Remarks: $cleanRemarks.$nextDateStr";
+            $message .= "📞 *Status Update: Call Later*\n\n";
+            $message .= "As per our discussion, we will contact you at a more convenient time to discuss your website requirements.\n\n";
+            break;
+            
         case 'Interested':
-            return $baseMessage . "Thank you for your interest in our web development services. We will be in touch shortly. Remarks: $cleanRemarks.$nextDateStr";
+            $message .= "👍 *Status Update: Interest Confirmed*\n\n";
+            $message .= "Thank you for showing interest in our web development services. We are excited to work with you!\n\n";
+            break;
+            
+        case 'Not Interested':
+            $message .= "📝 *Status Update: Not Interested*\n\n";
+            $message .= "Thank you for considering our services. We appreciate your time and wish you all the best.\n\n";
+            break;
+            
+        case 'No Answer':
+            $message .= "📱 *Status Update: No Answer*\n\n";
+            $message .= "We tried to reach you but couldn't connect. Please feel free to call us back at your convenience.\n\n";
+            break;
+            
+        case 'Pending':
+            $message .= "⏳ *Status Update: Pending*\n\n";
+            $message .= "Your inquiry is currently being reviewed by our team. We will get back to you soon.\n\n";
+            break;
+            
         default:
-            return $baseMessage . "Followup Update: $status. Remarks: $cleanRemarks.$nextDateStr";
+            $message .= "📌 *Status Update: {$status}*\n\n";
+            break;
     }
+    
+    // Add remarks if available
+    if (!empty($cleanRemarks)) {
+        $message .= "📝 *Details:*\n";
+        $message .= "{$cleanRemarks}\n\n";
+    }
+    
+    // Add next followup date if available
+    if (!empty($nextDate)) {
+        $message .= "📅 *Next Followup:* {$nextDate}\n\n";
+    }
+    
+    // Professional closing
+    $message .= "---\n";
+    $message .= "If you have any questions or concerns, please don't hesitate to reach out.\n\n";
+    $message .= "Best Regards,\n";
+    $message .= "*Hospital Management Team*\n";
+    $message .= "📧 Email: info@hospital.codeapka.com\n";
+    $message .= "🌐 Website: https://hospital.codeapka.com";
+    
+    return $message;
 }
 
 // Helper function to clean HTML for WhatsApp messages
