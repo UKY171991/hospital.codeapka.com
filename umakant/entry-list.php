@@ -269,41 +269,27 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
 
                     <!-- Tests Section -->
                     <div class="form-group">
-                        <label>Tests <span class="text-danger">*</span></label>
-                        <div class="row mb-2">
-                            <div class="col-md-2">
-                                <small class="text-muted">Test Category</small>
-                            </div>
-                            <div class="col-md-3">
-                                <small class="text-muted">Test Name</small>
-                            </div>
-                            <div class="col-md-2">
-                                <small class="text-muted">Result</small>
-                            </div>
-                            <div class="col-md-1">
-                                <small class="text-muted">Min</small>
-                            </div>
-                            <div class="col-md-1">
-                                <small class="text-muted">Max</small>
-                            </div>
-                            <div class="col-md-1">
-                                <small class="text-muted">Unit</small>
-                            </div>
-                            <div class="col-md-1">
-                                <small class="text-muted">Price</small>
-                            </div>
-                            <div class="col-md-1">
-                                <small class="text-muted">Action</small>
-                            </div>
+                        <label>Tests</label>
+                        <div class="row mb-2 font-weight-bold text-muted small">
+                            <div class="col-md-2">Main Category</div>
+                            <div class="col-md-2">Sub Category</div>
+                            <div class="col-md-2">Test Name</div>
+                            <div class="col-md-2">Result</div>
+                            <div class="col-md-1">Range</div>
+                            <div class="col-md-1">Unit</div>
+                            <div class="col-md-1">Price</div>
+                            <div class="col-md-1">Action</div>
                         </div>
+                        
                         <div id="testsContainer">
-                            <!-- Test rows will be added dynamically -->
+                            <!-- Test rows will be added here -->
                         </div>
-                        <button type="button" class="btn btn-success btn-sm" onclick="addTestRow()">
+                        
+                        <button type="button" class="btn btn-success btn-sm mt-2" onclick="addTestRow()">
                             <i class="fas fa-plus"></i> Add Test
                         </button>
                     </div>
-                    
+
                     <!-- Additional Information Section -->
                     <div class="row">
                         <div class="col-md-6">
@@ -331,7 +317,7 @@ $currentUserRole = $_SESSION['role'] ?? 'user';
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Pricing Information Section -->
                     <div class="card mt-3">
                         <div class="card-header">

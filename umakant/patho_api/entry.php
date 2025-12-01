@@ -68,6 +68,8 @@ try {
         case 'test_aggregation_sql': handleTestAggregationSQL($pdo, $user_data); break;
         case 'refresh_all_aggregates': handleRefreshAllAggregates($pdo, $user_data); break;
         case 'debug': handleDebug($pdo, $entity_config, $user_data); break;
+        case 'fix_schema': handleFixSchema($pdo, $user_data); break;
+        case 'diagnose': handleDiagnose($pdo, $user_data); break;
         default: json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
     }
 } catch (Exception $e) {
@@ -1153,5 +1155,75 @@ function handleRefreshAllAggregates($pdo, $user_data) {
             'error' => $e->getMessage()
         ], 500);
     }
+}
+/**
+ * Handle schema fix
+ */
+function handleFixSchema($pdo, $user_data) {
+    if (!simpleCheckPermission($user_data, 'save')) {
+        json_response(['success' => false, 'message' => 'Permission denied to fix schema'], 403);
+    }
+
+    $updates = [];
+    $errors = [];
+
+    // Fix entries table
+    $entriesColumns = [
+        'tests_count' => "INT DEFAULT 0",
+        'test_ids' => "TEXT",
+        'test_names' => "TEXT",
+        'tests_subtotal' => "DECIMAL(10,2) DEFAULT 0.00",
+        'tests_discount' => "DECIMAL(10,2) DEFAULT 0.00",
+        'tests_total' => "DECIMAL(10,2) DEFAULT 0.00"
+    ];
+
+    foreach ($entriesColumns as $col => $def) {
+        if (!columnExists($pdo, 'entries', $col)) {
+            try {
+                $pdo->exec("ALTER TABLE entries ADD COLUMN $col $def");
+                $updates[] = "Added column '$col' to 'entries' table";
+            } catch (Exception $e) {
+                $errors[] = "Failed to add column '$col' to 'entries': " . $e->getMessage();
+            }
+        }
+    }
+
+    // Fix entry_tests table
+    $entryTestsColumns = [
+        'main_category_id' => "INT DEFAULT 0",
+        'category_id' => "INT DEFAULT 0",
+        'unit' => "VARCHAR(50)",
+        'price' => "DECIMAL(10,2) DEFAULT 0.00",
+        'discount_amount' => "DECIMAL(10,2) DEFAULT 0.00",
+        'total_price' => "DECIMAL(10,2) DEFAULT 0.00",
+        'status' => "ENUM('pending', 'completed', 'cancelled') DEFAULT 'pending'",
+        'remarks' => "TEXT"
+    ];
+
+    foreach ($entryTestsColumns as $col => $def) {
+        if (!columnExists($pdo, 'entry_tests', $col)) {
+            try {
+                $pdo->exec("ALTER TABLE entry_tests ADD COLUMN $col $def");
+                $updates[] = "Added column '$col' to 'entry_tests' table";
+            } catch (Exception $e) {
+                $errors[] = "Failed to add column '$col' to 'entry_tests': " . $e->getMessage();
+            }
+        }
+    }
+
+    json_response([
+        'success' => empty($errors),
+        'message' => empty($updates) ? 'Schema is already up to date' : 'Schema updated successfully',
+        'updates' => $updates,
+        'errors' => $errors
+    ]);
+}
+
+/**
+ * Handle diagnosis
+ */
+function handleDiagnose($pdo, $user_data) {
+    // Reuse handleDebug logic but maybe expand it
+    handleDebug($pdo, [], $user_data);
 }
 ?>
