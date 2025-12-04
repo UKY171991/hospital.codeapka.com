@@ -367,6 +367,9 @@ function displayTasks(tasks) {
             '<span class="badge badge-info">Medium</span>' : 
             '<span class="badge badge-secondary">Low</span>';
         
+        // Get status order for sorting
+        const statusOrderValue = statusOrder[task.status] || 5;
+        
         const statusBadge = task.status === 'Completed' ? 
             '<span class="badge badge-success">Completed</span>' : 
             task.status === 'In Progress' ? 
@@ -381,7 +384,7 @@ function displayTasks(tasks) {
                 <td>${task.title}</td>
                 <td>${task.client_name || '-'}</td>
                 <td>${priorityBadge}</td>
-                <td>${statusBadge}</td>
+                <td data-order="${statusOrderValue}">${statusBadge}</td>
                 <td>${task.due_date || '-'}</td>
                 <td>
                     <button class="btn btn-sm btn-primary" onclick="viewTask(${task.id})" title="View Details">
