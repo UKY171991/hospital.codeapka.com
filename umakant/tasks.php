@@ -336,7 +336,7 @@ function displayTasks(tasks) {
         return;
     }
 
-    // Sort tasks by status priority: Pending > In Progress > On Hold > Completed
+    // Sort tasks by status priority: Pending first, then other statuses, then Completed last
     const statusOrder = {
         'Pending': 1,
         'In Progress': 2,
@@ -347,7 +347,14 @@ function displayTasks(tasks) {
     tasks.sort((a, b) => {
         const statusA = statusOrder[a.status] || 5;
         const statusB = statusOrder[b.status] || 5;
-        return statusA - statusB;
+        const statusDiff = statusA - statusB;
+        
+        // If status is the same, sort by due date (earliest first)
+        if (statusDiff === 0 && a.due_date && b.due_date) {
+            return new Date(a.due_date) - new Date(b.due_date);
+        }
+        
+        return statusDiff;
     });
 
     let srNo = 1;
