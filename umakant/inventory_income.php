@@ -256,7 +256,7 @@ function displayIncomeRecords(records) {
         return;
     }
 
-    // Sort records by date (newest first) and then by status (Pending before Success)
+    // Sort records by status first (Pending before Success), then by date (newest first)
     const statusOrder = {
         'Pending': 1,
         'Failed': 2,
@@ -264,19 +264,19 @@ function displayIncomeRecords(records) {
     };
     
     records.sort((a, b) => {
-        // First sort by date (descending - newest first)
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        const dateDiff = dateB - dateA;
+        // First sort by status (Pending first, then Failed, then Success)
+        const statusA = statusOrder[a.payment_status || 'Success'] || 3;
+        const statusB = statusOrder[b.payment_status || 'Success'] || 3;
+        const statusDiff = statusA - statusB;
         
-        // If dates are the same, sort by status (Pending first)
-        if (dateDiff === 0) {
-            const statusA = statusOrder[a.payment_status || 'Success'] || 3;
-            const statusB = statusOrder[b.payment_status || 'Success'] || 3;
-            return statusA - statusB;
+        // If status is the same, sort by date (descending - newest first)
+        if (statusDiff === 0) {
+            const dateA = new Date(a.date);
+            const dateB = new Date(b.date);
+            return dateB - dateA;
         }
         
-        return dateDiff;
+        return statusDiff;
     });
 
     let srNo = 1;
@@ -315,7 +315,7 @@ function displayIncomeRecords(records) {
     // Initialize DataTable with fresh data
     incomeTable = $('#incomeTable').DataTable({
         responsive: true,
-        order: [[1, 'desc'], [7, 'asc']], // Sort by Date (desc) then Status (asc)
+        order: [[7, 'asc'], [1, 'desc']], // Sort by Status (asc - Pending first) then Date (desc)
         destroy: true,
         columnDefs: [
             { orderable: false, targets: [0, 8] } // Disable sorting on Sr. No. and Actions
