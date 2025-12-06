@@ -319,6 +319,32 @@ try {
     }
   }, 10000); // Show after 10 seconds
 </script>
+
+<style>
+  /* Fix footer social media hover effect */
+  .footer-social .social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.3s ease;
+  }
+  
+  .footer-social .social-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    transform: translateY(-3px);
+  }
+  
+  .footer-social .social-link i {
+    font-size: 16px;
+  }
+</style>
+
 <?php
 if (session_status() === PHP_SESSION_NONE) session_start();
 // Expose minimal user info to frontend scripts for page behaviors (no secrets)
