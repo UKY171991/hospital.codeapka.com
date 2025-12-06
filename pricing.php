@@ -6,68 +6,264 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Pricing — Pathology & Hospital Management</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=2.2">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Page-specific overrides for premium look */
+    :root {
+      --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+      --surface-glass: rgba(255, 255, 255, 0.9);
+      --surface-glass-dark: rgba(255, 255, 255, 0.7);
+    }
+    
+    body {
+      background-color: #f8fafc;
+    }
+
+    .pricing-hero-section {
+      padding: 160px 0 100px;
+      background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.1), transparent 40%),
+                  radial-gradient(circle at bottom left, rgba(6, 182, 212, 0.1), transparent 40%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pricing-card {
+      background: white;
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 24px;
+      padding: 2rem;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+    
+    .pricing-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15);
+      border-color: rgba(79, 70, 229, 0.3);
+    }
+
+    .pricing-card.popular {
+      border: 2px solid #4f46e5;
+      background: linear-gradient(to bottom, #ffffff, #fdfeff);
+      transform: scale(1.02);
+      z-index: 2;
+      box-shadow: 0 25px 50px rgba(79, 70, 229, 0.2);
+    }
+    
+    .pricing-card.popular:hover {
+      transform: scale(1.02) translateY(-10px);
+    }
+
+    .popular-badge {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .plan-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .plan-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: inline-block;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    }
+
+    .price-section {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding: 1.5rem 0;
+      background: rgba(243, 244, 246, 0.5);
+      border-radius: 16px;
+    }
+
+    .amount {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: #1e293b;
+      letter-spacing: -1px;
+    }
+    
+    .currency {
+      font-size: 1.5rem;
+      vertical-align: top;
+      position: relative;
+      top: 10px;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .period {
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+      color: #334155;
+      font-size: 0.95rem;
+    }
+
+    .feature-icon {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+
+    /* Comparison Table Styles */
+    .comparison-table {
+      background: white;
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+      overflow-x: auto;
+    }
+    
+    .table-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      padding: 1.25rem 1rem;
+      border-bottom: 1px solid #f1f5f9;
+      align-items: center;
+      transition: background 0.2s;
+    }
+    
+    .table-row:hover {
+      background: #f8fafc;
+    }
+
+    .table-header {
+      font-weight: 700;
+      color: #1e293b;
+      background: #f8fafc;
+      border-radius: 12px;
+      border-bottom: none;
+    }
+
+    /* FAQ Modern Styles */
+    .faq-item {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+      transition: all 0.3s ease;
+    }
+    
+    .faq-item.active {
+      border-color: #4f46e5;
+      box-shadow: 0 10px 20px rgba(79, 70, 229, 0.1);
+    }
+    
+    .faq-question {
+      padding: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    
+    .faq-toggle {
+      width: 32px;
+      height: 32px;
+      background: #f1f5f9;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      color: #4f46e5;
+    }
+    
+    .faq-item.active .faq-toggle {
+      transform: rotate(45deg);
+      background: #4f46e5;
+      color: white;
+    }
+    
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+      padding: 0 1.5rem;
+      color: #475569;
+      line-height: 1.6;
+    }
+    
+    .faq-item.active .faq-answer {
+      max-height: 200px;
+      padding-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .table-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        text-align: center;
+      }
+      .feature-name {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+    }
+  </style>
 </head>
 <body>
   <?php include_once __DIR__ . '/inc/header.php'; ?>
 
   <main>
     <!-- Hero Section -->
-    <section class="pricing-hero-section">
-      <div class="hero-background">
-        <div class="hero-particles"></div>
-        <div class="hero-gradient"></div>
-      </div>
-      <div class="container">
-        <div class="hero-content"> 
-          <div class="hero-left">
-            <div class="hero-badge">
-              <span class="badge-icon">💎</span>
-              <span class="badge-text">Flexible Pricing Plans</span>
-            </div>
-            <h1 class="hero-title">
-              Simple & 
-              <span class="gradient-text-rainbow glow-text">Transparent Pricing</span>
-            </h1>
-            <p class="hero-description">
-              Choose the perfect plan for your healthcare facility. All plans include core features with options to scale as you grow.
-            </p>
-            <div class="hero-stats">
-              <div class="stat-item">
-                <div class="stat-number">14-Day</div>
-                <div class="stat-label">Free Trial</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-number">No Setup</div>
-                <div class="stat-label">Fees</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-number">24/7</div>
-                <div class="stat-label">Support</div>
-              </div>
+    <section class="pricing-hero-section align-items-center d-flex">
+      <div class="container text-center">
+        <div class="hero-badge mx-auto mb-4 animate-in">
+          <span class="badge-icon">💎</span>
+          <span class="badge-text ps-2">Flexible Pricing Plans</span>
+        </div>
+        <h1 class="hero-title display-3 fw-bold mb-4 animate-in">
+          Simple & <span class="gradient-text-rainbow glow-text">Transparent Pricing</span>
+        </h1>
+        <p class="hero-description lead text-secondary mb-5 mx-auto animate-in" style="max-width: 700px;">
+          Choose the perfect plan for your healthcare facility. All plans include core features with options to scale as you grow. No hidden fees.
+        </p>
+        
+        <div class="d-flex justify-content-center gap-4 hero-stats animate-in">
+          <div class="d-flex align-items-center gap-2">
+            <span class="fs-4">✅</span>
+            <div class="text-start">
+              <div class="fw-bold">14-Day Free Trial</div>
+              <small class="text-muted">No credit card required</small>
             </div>
           </div>
-          <div class="hero-right">
-            <div class="hero-visual">
-              <div class="floating-card main-card">
-                <div class="card-icon">💰</div>
-                <h3>Value-Driven Pricing</h3>
-                <p>Maximum ROI for Your Facility</p>
-                <div class="card-features">
-                  <span>💡 Pay-as-you-grow</span>
-                  <span>🔄 Easy upgrades</span>
-                  <span>📊 Transparent costs</span>
-                </div>
-              </div>
-              <div class="floating-card secondary-card">
-                <div class="mini-icon">⚡</div>
-                <span>Quick Setup</span>
-              </div>
-              <div class="floating-card tertiary-card">
-                <div class="mini-icon">🎯</div>
-                <span>Best Value</span>
-              </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="fs-4">🛡️</span>
+            <div class="text-start">
+              <div class="fw-bold">Secure Payment</div>
+              <small class="text-muted">Encrypted transactions</small>
             </div>
           </div>
         </div>
@@ -75,142 +271,133 @@
     </section>
 
     <!-- Pricing Plans -->
-    <section class="pricing-plans-section">
+    <section class="pricing-plans-section py-5">
       <div class="container">
-      <div class="section-header">
-          <div class="section-badge">💎 Pricing Plans</div>
-          <h2>Choose Your Perfect Plan</h2>
-          <p>Flexible solutions tailored to your facility's needs and budget</p>
-        </div>
-        <div class="pricing-toggle">
-          <span class="toggle-label">Billing Cycle:</span>
-          <div class="toggle-buttons">
-            <button class="toggle-btn active" data-period="monthly">Monthly</button>
-            <button class="toggle-btn" data-period="yearly">Yearly <span class="discount">Save 20%</span></button>
-          </div>
-        </div>
-        <div class="container-fluid">
+        <!-- Plans Included Here -->
+        <div class="container-fluid animate-in">
           <?php include __DIR__ . '/umakant/public_plans.php'; ?>
         </div>
       </div>
     </section>
 
     <!-- Features Comparison -->
-    <section class="features-comparison-section">
+    <section class="features-comparison-section py-5 bg-light">
       <div class="container">
-        <div class="section-header">
-          <div class="section-badge">📊 Feature Comparison</div>
-          <h2>Compare All Features</h2>
-          <p>See what's included in each plan</p>
+        <div class="section-header text-center mb-5 animate-in">
+          <h2 class="fw-bold">Compare All Features</h2>
+          <p class="text-secondary">Detailed breakdown of what's included in each plan</p>
         </div>
-        <div class="comparison-table">
-          <div class="table-header">
+        <div class="comparison-table animate-in">
+          <div class="table-row table-header">
             <div class="feature-name">Features</div>
-            <div class="plan-name">Starter</div>
-            <div class="plan-name">Professional</div>
-            <div class="plan-name">Enterprise</div>
+            <div class="plan-name text-center">Starter</div>
+            <div class="plan-name text-center">Professional</div>
+            <div class="plan-name text-center">Enterprise</div>
           </div>
           <div class="table-row">
             <div class="feature-name">Users</div>
-            <div class="feature-value">Up to 10</div>
-            <div class="feature-value">Up to 50</div>
-            <div class="feature-value">Unlimited</div>
+            <div class="feature-value text-center text-secondary">Up to 10</div>
+            <div class="feature-value text-center fw-bold">Up to 50</div>
+            <div class="feature-value text-center text-primary fw-bold">Unlimited</div>
           </div>
           <div class="table-row">
             <div class="feature-name">Patient Records</div>
-            <div class="feature-value">✓</div>
-            <div class="feature-value">✓</div>
-            <div class="feature-value">✓</div>
+            <div class="feature-value text-center text-success">✓</div>
+            <div class="feature-value text-center text-success">✓</div>
+            <div class="feature-value text-center text-success">✓</div>
           </div>
           <div class="table-row">
             <div class="feature-name">Appointments</div>
-            <div class="feature-value">✓</div>
-            <div class="feature-value">✓</div>
-            <div class="feature-value">✓</div>
+            <div class="feature-value text-center text-success">✓</div>
+            <div class="feature-value text-center text-success">✓</div>
+            <div class="feature-value text-center text-success">✓</div>
           </div>
           <div class="table-row">
             <div class="feature-name">Inventory Management</div>
-            <div class="feature-value">✗</div>
-            <div class="feature-value">✓</div>
-            <div class="feature-value">✓</div>
+            <div class="feature-value text-center text-muted">✗</div>
+            <div class="feature-value text-center text-success">✓</div>
+            <div class="feature-value text-center text-success">✓</div>
           </div>
           <div class="table-row">
             <div class="feature-name">Billing & Invoicing</div>
-            <div class="feature-value">✗</div>
-            <div class="feature-value">✓</div>
-            <div class="feature-value">✓</div>
+            <div class="feature-value text-center text-muted">✗</div>
+            <div class="feature-value text-center text-success">✓</div>
+            <div class="feature-value text-center text-success">✓</div>
           </div>
           <div class="table-row">
             <div class="feature-name">Advanced Analytics</div>
-            <div class="feature-value">✗</div>
-            <div class="feature-value">✓</div>
-            <div class="feature-value">✓</div>
+            <div class="feature-value text-center text-muted">✗</div>
+            <div class="feature-value text-center text-success">✓</div>
+            <div class="feature-value text-center text-success">✓</div>
           </div>
           <div class="table-row">
             <div class="feature-name">Multi-location</div>
-            <div class="feature-value">✗</div>
-            <div class="feature-value">✗</div>
-            <div class="feature-value">✓</div>
+            <div class="feature-value text-center text-muted">✗</div>
+            <div class="feature-value text-center text-muted">✗</div>
+            <div class="feature-value text-center text-success">✓</div>
           </div>
           <div class="table-row">
             <div class="feature-name">Custom Integrations</div>
-            <div class="feature-value">✗</div>
-            <div class="feature-value">✗</div>
-            <div class="feature-value">✓</div>
+            <div class="feature-value text-center text-muted">✗</div>
+            <div class="feature-value text-center text-muted">✗</div>
+            <div class="feature-value text-center text-success">✓</div>
           </div>
           <div class="table-row">
             <div class="feature-name">Support</div>
-            <div class="feature-value">Email</div>
-            <div class="feature-value">Priority</div>
-            <div class="feature-value">Dedicated</div>
-        </div>
+            <div class="feature-value text-center">Email</div>
+            <div class="feature-value text-center fw-bold">Priority</div>
+            <div class="feature-value text-center text-primary fw-bold">Dedicated Manager</div>
           </div>
         </div>
+      </div>
     </section>
     
     <!-- FAQ Section -->
-    <section class="pricing-faq-section">
+    <section class="pricing-faq-section py-5">
       <div class="container">
-        <div class="section-header">
-          <div class="section-badge">❓ FAQ</div>
-          <h2>Frequently Asked Questions</h2>
-          <p>Everything you need to know about our pricing</p>
+        <div class="section-header text-center mb-5 animate-in">
+          <h2 class="fw-bold">Frequently Asked Questions</h2>
+          <p class="text-secondary">Everything you need to know about our pricing</p>
         </div>
-        <div class="faq-grid">
-          <div class="faq-item">
-            <div class="faq-question">
-              <h3>Can I change my plan later?</h3>
-              <span class="faq-toggle">+</span>
-            </div>
-            <div class="faq-answer">
-              <p>Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately.</p>
-            </div>
-          </div>
-          <div class="faq-item">
-            <div class="faq-question">
-              <h3>Is there a setup fee?</h3>
-              <span class="faq-toggle">+</span>
-            </div>
-            <div class="faq-answer">
-              <p>No setup fees! We believe in transparent pricing with no hidden costs.</p>
-            </div>
-          </div>
-          <div class="faq-item">
-            <div class="faq-question">
-              <h3>What's included in the free trial?</h3>
-              <span class="faq-toggle">+</span>
-            </div>
-            <div class="faq-answer">
-              <p>Your 14-day free trial includes all Professional plan features with full support.</p>
-            </div>
-          </div>
-          <div class="faq-item">
-            <div class="faq-question">
-              <h3>Do you offer custom pricing?</h3>
-              <span class="faq-toggle">+</span>
-            </div>
-            <div class="faq-answer">
-              <p>Yes, for Enterprise customers we offer custom pricing based on your specific needs.</p>
+        <div class="row justify-content-center">
+          <div class="col-lg-8">
+            <div class="faq-grid animate-in">
+              <div class="faq-item">
+                <div class="faq-question">
+                  <span>Can I change my plan later?</span>
+                  <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                  <p>Yes! You can upgrade or downgrade your plan at any time directly from your dashboard. Changes take effect immediately, and we'll prorate any payments.</p>
+                </div>
+              </div>
+              <div class="faq-item">
+                <div class="faq-question">
+                  <span>Is there a setup fee?</span>
+                  <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                  <p>No setup fees! We believe in transparent pricing with no hidden costs. You only pay the subscription fee for your chosen plan.</p>
+                </div>
+              </div>
+              <div class="faq-item">
+                <div class="faq-question">
+                  <span>What's included in the free trial?</span>
+                  <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                  <p>Your 14-day free trial includes all features of the Professional plan, allowing you to fully test our comprehensive solution before committing.</p>
+                </div>
+              </div>
+              <div class="faq-item">
+                <div class="faq-question">
+                  <span>Do you offer custom pricing for large organizations?</span>
+                  <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                  <p>Yes, for Enterprise customers with multiple locations or specific requirements, we offer custom pricing packages. Please contact our sales team for a quote.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -218,23 +405,21 @@
     </section>
     
     <!-- CTA Section -->
-    <section class="cta-section">
+    <section class="cta-section py-5 mb-5">
       <div class="container">
-        <div class="cta-card">
-          <div class="cta-content">
-            <div class="cta-icon">🚀</div>
-            <h2>Ready to Get Started?</h2>
-            <p>Join hundreds of healthcare facilities that trust us with their management needs. Start your free trial today.</p>
-            <div class="cta-buttons">
-              <a href="contact.php" class="btn-primary">Start Free Trial</a>
-              <a href="contact.php" class="btn-secondary">Contact Sales</a>
-            </div>
-            <div class="cta-features">
-              <span>✅ 14-Day Free Trial</span>
-              <span>✅ No Credit Card Required</span>
-              <span>✅ Cancel Anytime</span>
+        <div class="cta-card p-5 text-center text-white rounded-5 animate-in" style="background: var(--primary-gradient); position: relative; overflow: hidden;">
+          <div style="position: relative; z-index: 2;">
+            <div class="display-3 mb-3">🚀</div>
+            <h2 class="fw-bold mb-3">Ready to Get Started?</h2>
+            <p class="lead mb-4 opacity-75">Join hundreds of healthcare facilities. Start your transformation today.</p>
+            <div class="d-flex justify-content-center gap-3">
+              <a href="contact.php" class="btn btn-light btn-lg px-4 fw-bold text-primary shadow-sm hover-lift">Start Free Trial</a>
+              <a href="contact.php" class="btn btn-outline-light btn-lg px-4 fw-bold hover-lift">Contact Sales</a>
             </div>
           </div>
+          <!-- Decorative Background Elements -->
+          <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+          <div style="position: absolute; bottom: -50px; left: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
         </div>
       </div>
     </section>
@@ -242,8 +427,9 @@
 
   <?php include_once __DIR__ . '/inc/footer.php'; ?>
 
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script>
-    // Enhanced animations and interactions
+    // Intersection Observer for fade-in animations
     const observerOptions = {
       threshold: 0.1,
       rootMargin: '0px 0px -50px 0px'
@@ -253,84 +439,35 @@
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('animate-in');
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
         }
       });
     }, observerOptions);
 
-    // Observe all elements for animation
-    document.querySelectorAll('.pricing-card, .faq-item, .table-row').forEach(el => {
+    // Initial styles for animation
+    document.querySelectorAll('.animate-in').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(20px)';
+      el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
       observer.observe(el);
     });
 
-    // Floating animation for hero cards
-    const floatingCards = document.querySelectorAll('.floating-card');
-    floatingCards.forEach((card, index) => {
-      card.style.animationDelay = `${index * 0.2}s`;
-    });
-
-    // Enhanced button interactions
-    document.querySelectorAll('.btn-primary, .btn-secondary, .plan-btn').forEach(button => {
-      button.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-4px) scale(1.02)';
-      });
-      
-      button.addEventListener('mouseleave', function() {
-        this.style.transform = 'translateY(0) scale(1)';
-      });
-    });
-
-    // Pricing toggle functionality
-    document.querySelectorAll('.toggle-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        // Remove active class from all buttons
-        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-        // Add active class to clicked button
-        this.classList.add('active');
-        
-        // Update pricing display based on period
-        const period = this.dataset.period;
-        updatePricing(period);
-      });
-    });
-
-    function updatePricing(period) {
-      const prices = {
-        monthly: {
-          starter: 99,
-          professional: 299,
-          enterprise: 599
-        },
-        yearly: {
-          starter: 79,
-          professional: 239,
-          enterprise: 479
-        }
-      };
-      
-      const amounts = document.querySelectorAll('.amount');
-      amounts[0].textContent = prices[period].starter;
-      amounts[1].textContent = prices[period].professional;
-      amounts[2].textContent = prices[period].enterprise;
-      
-      const periods = document.querySelectorAll('.period');
-      periods.forEach(periodEl => {
-        periodEl.textContent = period === 'yearly' ? '/month (billed yearly)' : '/month';
-      });
-    }
-
-    // FAQ Toggle functionality
+    // FAQ Toggle
     document.querySelectorAll('.faq-question').forEach(question => {
       question.addEventListener('click', function() {
         const faqItem = this.parentElement;
-        const answer = faqItem.querySelector('.faq-answer');
-        const toggle = this.querySelector('.faq-toggle');
+        const isActive = faqItem.classList.contains('active');
         
-        if (faqItem.classList.contains('active')) {
-          faqItem.classList.remove('active');
-          toggle.textContent = '+';
-        } else {
+        // Close all others
+        document.querySelectorAll('.faq-item').forEach(item => {
+          item.classList.remove('active');
+          item.querySelector('.faq-toggle').textContent = '+';
+        });
+
+        if (!isActive) {
           faqItem.classList.add('active');
-          toggle.textContent = '−';
+          this.querySelector('.faq-toggle').textContent = '−';
         }
       });
     });
