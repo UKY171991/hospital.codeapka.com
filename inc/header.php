@@ -73,6 +73,12 @@
             </a>
           </li>
           <li class="nav-item">
+            <a class="nav-link <?php echo ($page=='downloads') ? 'active' : '' ?>" href="downloads.php">
+              <span class="nav-icon">📥</span>
+              Downloads
+            </a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link <?php echo ($page=='contact') ? 'active' : '' ?>" href="contact.php">
               <span class="nav-icon">📞</span>
               Contact
