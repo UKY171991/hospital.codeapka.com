@@ -55,45 +55,7 @@
           </li>
         </ul>
         
-        <!-- Enhanced Header Actions -->
-        <div class="d-flex align-items-center ms-3">
-          <!-- Search Button -->
-          <button class="search-btn me-2" type="button" data-bs-toggle="modal" data-bs-target="#searchModal" title="Search">
-            <span class="search-icon">🔍</span>
-          </button>
-        
-        </div>
       </div>
     </nav>
   </div>
 </header>
-
-<!-- Search Modal -->
-<div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content search-modal">
-      <div class="modal-header border-0">
-        <h5 class="modal-title" id="searchModalLabel">Search Our Platform</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="search-form">
-          <input type="text" class="form-control search-input" placeholder="Search for features, documentation, or help..." autofocus>
-          <button class="search-submit" type="submit">
-            <span class="search-icon">🔍</span>
-          </button>
-        </div>
-        <div class="search-suggestions">
-          <h6>Popular Searches:</h6>
-          <div class="suggestion-tags">
-            <span class="suggestion-tag">Patient Records</span>
-            <span class="suggestion-tag">Billing System</span>
-            <span class="suggestion-tag">User Management</span>
-            <span class="suggestion-tag">Reports</span>
-            <span class="suggestion-tag">API Documentation</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
