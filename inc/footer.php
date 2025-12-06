@@ -69,7 +69,6 @@ try {
               <li><a href="#features">Patient Management</a></li>
               <li><a href="#features">Billing & Inventory</a></li>
               <li><a href="#features">Security & Compliance</a></li>
-              <li><a href="umakant/index.php">Admin Portal</a></li>
             </ul>
           </div>
           
