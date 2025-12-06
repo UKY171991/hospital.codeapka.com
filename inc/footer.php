@@ -1,5 +1,35 @@
 <?php
 // Shared footer
+// Fetch owner contact details for footer
+$footerPhone = '+1 (555) 123-4567'; // Default
+$footerWhatsapp = '+1 (555) 123-4567'; // Default
+$footerEmail = 'support@hospital.codeapka.com'; // Default
+
+try {
+    // Include database connection if not already included
+    if (!isset($pdo)) {
+        require_once __DIR__ . '/../umakant/inc/connection.php';
+    }
+    
+    // Fetch the first owner record for footer contact info
+    $stmt = $pdo->query("SELECT phone, whatsapp, email FROM owners ORDER BY id ASC LIMIT 1");
+    $owner = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($owner) {
+        if (!empty($owner['phone'])) {
+            $footerPhone = $owner['phone'];
+        }
+        if (!empty($owner['whatsapp'])) {
+            $footerWhatsapp = $owner['whatsapp'];
+        }
+        if (!empty($owner['email'])) {
+            $footerEmail = $owner['email'];
+        }
+    }
+} catch (Exception $e) {
+    // Silently fail and use defaults
+    error_log("Footer owner fetch error: " . $e->getMessage());
+}
 ?>
 <footer class="site-footer">
   <div class="container">
@@ -54,15 +84,15 @@
             <div class="footer-contact">
               <div class="contact-item mb-3">
                 <i class="fas fa-phone-alt text-primary me-2"></i>
-                <a href="tel:+15551234567" class="text-white text-decoration-none">+1 (555) 123-4567</a>
+                <a href="tel:<?php echo preg_replace('/[^0-9+]/', '', $footerPhone); ?>" class="text-white text-decoration-none"><?php echo htmlspecialchars($footerPhone); ?></a>
               </div>
               <div class="contact-item mb-3">
                 <i class="fab fa-whatsapp text-success me-2"></i>
-                <a href="https://wa.me/15551234567" target="_blank" class="text-white text-decoration-none">+1 (555) 123-4567</a>
+                <a href="https://wa.me/<?php echo preg_replace('/[^0-9]/', '', $footerWhatsapp); ?>" target="_blank" class="text-white text-decoration-none"><?php echo htmlspecialchars($footerWhatsapp); ?></a>
               </div>
               <div class="contact-item">
                 <i class="fas fa-envelope text-info me-2"></i>
-                <a href="mailto:support@hospital.codeapka.com" class="text-white text-decoration-none">support@hospital.codeapka.com</a>
+                <a href="mailto:<?php echo htmlspecialchars($footerEmail); ?>" class="text-white text-decoration-none"><?php echo htmlspecialchars($footerEmail); ?></a>
               </div>
             </div>
           </div>
