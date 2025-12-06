@@ -29,37 +29,6 @@
             </a>
           </li>
           
-          <!-- Solutions Dropdown -->
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="solutionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <span class="nav-icon">⚕️</span>
-              Solutions
-            </a>
-            <ul class="dropdown-menu modern-dropdown" aria-labelledby="solutionsDropdown">
-              <li><a class="dropdown-item" href="#features">
-                <span class="dropdown-icon">📋</span>
-                <div>
-                  <strong>Patient Management</strong>
-                  <small>Complete EHR system</small>
-                </div>
-              </a></li>
-              <li><a class="dropdown-item" href="#features">
-                <span class="dropdown-icon">💰</span>
-                <div>
-                  <strong>Billing & Inventory</strong>
-                  <small>Automated billing system</small>
-                </div>
-              </a></li>
-              <li><a class="dropdown-item" href="#features">
-                <span class="dropdown-icon">🔒</span>
-                <div>
-                  <strong>Security & Compliance</strong>
-                  <small>HIPAA compliant platform</small>
-                </div>
-              </a></li>
-            </ul>
-          </li>
-          
           <li class="nav-item">
             <a class="nav-link <?php echo ($page=='about') ? 'active' : '' ?>" href="about.php">
               <span class="nav-icon">ℹ️</span>
