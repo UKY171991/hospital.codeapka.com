@@ -1,476 +1,165 @@
 <?php $page = 'home'; ?>
-<?php
-// Try to fetch the uploaded releases list from the umakant area
-function sanitize_upload_html($html){
-  if (!$html) return '';
-  // Remove script tags entirely
-  $html = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $html);
-
-  // If a full document is returned, try to extract the body content
-  if (stripos($html, '<body') !== false) {
-    if (preg_match('/<body[^>]*>(.*?)<\/body>/is', $html, $m)) {
-      $html = $m[1];
-    }
-  } else {
-    // Remove head and html wrappers if present
-    $html = preg_replace('/<head[^>]*>.*?<\/head>/is', '', $html);
-    $html = preg_replace('/<\/?html[^>]*>/is', '', $html);
-  }
-
-  // Trim and return
-  return trim($html);
-}
-
-function fetch_upload_list_html(){
-  // Directly include our updated public_upload_list.php file
-  $localPath = __DIR__ . '/umakant/public_upload_list.php';
-  if (is_readable($localPath)) {
-    ob_start();
-    try { 
-      include $localPath; 
-    } catch (Throwable $e) { 
-      return '<div class="releases-empty">Error loading releases: ' . $e->getMessage() . '</div>';
-    }
-    $out = ob_get_clean();
-    if ($out) return $out;
-  }
-
-  // Fallback to HTTP request if direct include fails
-  $host = $_SERVER['HTTP_HOST'] ?? 'hospital.codeapka.com';
-  $url = 'https://' . $host . '/umakant/public_upload_list.php';
-
-  // Try cURL first
-  if (function_exists('curl_version')) {
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    $resp = curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    if ($resp !== false && $code >= 200 && $code < 400) {
-      return sanitize_upload_html($resp);
-    }
-  }
-
-  // Fallback to file_get_contents if allow_url_fopen is enabled
-  if (ini_get('allow_url_fopen')) {
-    $context = stream_context_create(['http' => ['timeout' => 5]]);
-    $resp = @file_get_contents($url, false, $context);
-    if ($resp !== false) return sanitize_upload_html($resp);
-  }
-
-  return '<div class="releases-empty">No releases available at this time.</div>';
-}
-
-$uploadListHtml = fetch_upload_list_html();
-?>
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Welcome — Advanced Pathology & Hospital Management System</title>
+  <title>Welcome — Pathology & Hospital Management</title>
   <meta name="description" content="Transform your healthcare operations with our comprehensive hospital management system. Trusted by 500+ facilities worldwide.">
-  <meta name="keywords" content="hospital management, pathology software, healthcare technology, patient records, medical billing">
-  <meta name="author" content="Hospital Management System">
   
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://hospital.codeapka.com/">
-  <meta property="og:title" content="Advanced Hospital Management System">
-  <meta property="og:description" content="Transform your healthcare operations with our comprehensive management system">
-  <meta property="og:image" content="https://hospital.codeapka.com/assets/images/og-image.jpg">
-
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://hospital.codeapka.com/">
-  <meta property="twitter:title" content="Advanced Hospital Management System">
-  <meta property="twitter:description" content="Transform your healthcare operations with our comprehensive management system">
-  <meta property="twitter:image" content="https://hospital.codeapka.com/assets/images/og-image.jpg">
-
-  <!-- Preload critical resources -->
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" as="style">
-  <link rel="preload" href="assets/css/style.css" as="style">
-  
-  <!-- CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-  <link rel="stylesheet" href="assets/css/style.css?v=2.1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=2.2">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  
-  <!-- Performance optimizations -->
-  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-  <link rel="dns-prefetch" href="//fonts.googleapis.com">
 </head>
 <body>
   <?php include_once __DIR__ . '/inc/header.php'; ?>
 
   <main>
     <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="hero-background">
-        <div class="hero-particles"></div>
-        <div class="hero-gradient"></div>
-        <div class="particles-bg">
-          <div class="particle"></div>
-          <div class="particle"></div>
-          <div class="particle"></div>
-          <div class="particle"></div>
-          <div class="particle"></div>
-          <div class="particle"></div>
-          <div class="particle"></div>
-          <div class="particle"></div>
-          <div class="particle"></div>
-        </div>
+    <section class="hero-section position-relative overflow-hidden d-flex align-items-center" style="min-height: 600px; padding-top: 120px; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
+      <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
       </div>
-      <div class="container">
-        <div class="hero-content">
-          <div class="hero-left">
-            <div class="hero-badge">
-              <span class="badge-icon">🏆</span>
-              <span class="badge-text">Trusted by 500+ Healthcare Facilities</span>
-            </div>
-            <h1 class="hero-title">
-              Transform Your 
-              <span class="gradient-text-rainbow glow-text">Healthcare Operations</span>
+      <div class="container position-relative z-1">
+        <div class="row align-items-center">
+          <div class="col-lg-6 text-white">
+            <span class="badge rounded-pill mb-3 px-3 py-2 border border-light" style="background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(5px); color: #fff;">
+              <i class="fas fa-award me-2"></i> Trusted by 500+ Healthcare Facilities
+            </span>
+            <h1 class="display-3 fw-bold mb-3">
+              Transform Your <span class="text-warning">Healthcare Operations</span>
             </h1>
-            <p class="hero-description">
-              Streamline workflows, enhance patient care, and boost efficiency with our comprehensive hospital management system designed for modern healthcare facilities.
+            <p class="lead mb-4 opacity-90">
+              Streamline workflows, enhance patient care, and boost efficiency with our comprehensive hospital management system.
             </p>
-            <div class="hero-buttons">
-              <a href="#features" class="btn-primary btn-magnetic ripple">
-                <span class="btn-icon">✨</span>
-                Explore Features
+            <div class="d-flex gap-3 mb-4 flex-wrap">
+              <a href="pricing.php" class="btn btn-light btn-lg px-4 fw-bold shadow-sm hover-lift" style="color: #1e3a8a;">
+                <i class="fas fa-rocket me-2"></i> Get Started
               </a>
-              <a href="contact.php" class="btn-secondary btn-magnetic ripple">
-                <span class="btn-icon">📅</span>
-                Schedule Demo
+              <a href="contact.php" class="btn btn-outline-light btn-lg px-4 fw-bold hover-lift">
+                <i class="fas fa-calendar me-2"></i> Schedule Demo
               </a>
             </div>
-            <div class="hero-stats">
-              <div class="stat-item">
-                <div class="stat-number">99.9%</div>
-                <div class="stat-label">Uptime</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-number">24/7</div>
-                <div class="stat-label">Support</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-number">500+</div>
-                <div class="stat-label">Facilities</div>
-              </div>
-            </div>
-          </div>
-          <div class="hero-right">
-            <div class="hero-visual">
-              <div class="floating-card main-card">
-                <div class="card-icon">🏥</div>
-                <h3>Advanced Healthcare Management</h3>
-                <p>AI-Powered • Secure • Scalable</p>
-                <div class="card-features">
-                  <span>📊 Real-time Analytics</span>
-                  <span>🔒 HIPAA Compliant</span>
-                  <span>⚡ Lightning Fast</span>
+            
+            <!-- Stats -->
+            <div class="row g-3 mt-4">
+              <div class="col-4">
+                <div class="text-center">
+                  <h4 class="fw-bold mb-0">99.9%</h4>
+                  <small class="opacity-75">Uptime</small>
                 </div>
               </div>
-              <div class="floating-card secondary-card">
-                <div class="mini-icon">📋</div>
-                <span>Patient Records</span>
+              <div class="col-4">
+                <div class="text-center">
+                  <h4 class="fw-bold mb-0">24/7</h4>
+                  <small class="opacity-75">Support</small>
+                </div>
               </div>
-              <div class="floating-card tertiary-card">
-                <div class="mini-icon">💰</div>
-                <span>Billing System</span>
+              <div class="col-4">
+                <div class="text-center">
+                  <h4 class="fw-bold mb-0">500+</h4>
+                  <small class="opacity-75">Facilities</small>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Trust Indicators -->
-    <section class="trust-section">
-      <div class="container">
-        <div class="trust-grid stagger-animation">
-          <div class="trust-item card-hover-glow">
-            <div class="trust-icon pulse-glow">🔒</div>
-            <h4>HIPAA Compliant</h4>
-            <p>Full compliance with healthcare data regulations</p>
-          </div>
-          <div class="trust-item card-hover-glow">
-            <div class="trust-icon pulse-glow">🛡️</div>
-            <h4>ISO 27001</h4>
-            <p>Enterprise-grade security standards</p>
-          </div>
-          <div class="trust-item card-hover-glow">
-            <div class="trust-icon pulse-glow">⚡</div>
-            <h4>99.9% Uptime</h4>
-            <p>Reliable performance you can count on</p>
-          </div>
-          <div class="trust-item card-hover-glow">
-            <div class="trust-icon pulse-glow">🌐</div>
-            <h4>Global Support</h4>
-            <p>24/7 support across all time zones</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Live Statistics Counter -->
-    <section class="stats-counter-section">
-      <div class="container">
-        <div class="stats-counter-grid">
-          <div class="counter-item">
-            <div class="counter-icon">🏥</div>
-            <div class="counter-number" data-target="500">0</div>
-            <div class="counter-label">Healthcare Facilities</div>
-          </div>
-          <div class="counter-item">
-            <div class="counter-icon">👥</div>
-            <div class="counter-number" data-target="50000">0</div>
-            <div class="counter-label">Active Users</div>
-          </div>
-          <div class="counter-item">
-            <div class="counter-icon">📊</div>
-            <div class="counter-number" data-target="1000000">0</div>
-            <div class="counter-label">Patient Records</div>
-          </div>
-          <div class="counter-item">
-            <div class="counter-icon">🌍</div>
-            <div class="counter-number" data-target="25">0</div>
-            <div class="counter-label">Countries Served</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Client Logos Section -->
-    <section class="clients-section">
-      <div class="container">
-        <div class="section-header">
-          <h2>Trusted by Leading Healthcare Organizations</h2>
-          <p>Join the growing community of healthcare professionals who rely on our platform</p>
-        </div>
-        <div class="clients-carousel">
-          <div class="client-logo">
-            <div class="logo-placeholder">🏥 City General</div>
-          </div>
-          <div class="client-logo">
-            <div class="logo-placeholder">⚕️ Regional Medical</div>
-          </div>
-          <div class="client-logo">
-            <div class="logo-placeholder">🩺 Health Plus</div>
-          </div>
-          <div class="client-logo">
-            <div class="logo-placeholder">🏥 Metro Hospital</div>
-          </div>
-          <div class="client-logo">
-            <div class="logo-placeholder">⚕️ Care Center</div>
-          </div>
-          <div class="client-logo">
-            <div class="logo-placeholder">🩺 Wellness Clinic</div>
+          
+          <div class="col-lg-6 d-none d-lg-block">
+            <div class="text-center">
+              <div class="card border-0 shadow-lg p-4" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
+                <div class="card-body">
+                  <div class="display-1 mb-3">🏥</div>
+                  <h4 class="fw-bold mb-3">Advanced Healthcare Management</h4>
+                  <p class="text-muted mb-4">AI-Powered • Secure • Scalable</p>
+                  <div class="d-flex flex-column gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="fas fa-check-circle text-success"></i>
+                      <span>Real-time Analytics</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="fas fa-check-circle text-success"></i>
+                      <span>HIPAA Compliant</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="fas fa-check-circle text-success"></i>
+                      <span>Lightning Fast</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="features-section">
+    <section class="py-5 bg-light" id="features">
       <div class="container">
-        <div class="section-header">
-          <div class="section-badge">✨ Core Features</div>
-          <h2>Powerful Features for Modern Healthcare</h2>
-          <p>Everything you need to manage your healthcare facility efficiently and securely</p>
+        <div class="text-center mb-5">
+          <h2 class="fw-bold mb-3">Powerful Features</h2>
+          <p class="text-muted">Everything you need to manage your healthcare facility</p>
         </div>
-        <div class="features-grid stagger-animation">
-          <div class="feature-card card-hover-lift interactive-hover">
-            <div class="feature-icon">
-              <span>📋</span>
-            </div>
-            <h3>Patient Records</h3>
-            <p>Centralized EHR for quick access to patient history, visits and reports with advanced search capabilities.</p>
-            <div class="feature-tags">
-              <span>EHR Integration</span>
-              <span>Advanced Search</span>
-              <span>Secure Access</span>
-            </div>
-            <div class="feature-action">
-              <a href="#" class="learn-more">Learn More →</a>
-            </div>
-          </div>
-          <div class="feature-card card-hover-lift interactive-hover">
-            <div class="feature-icon">
-              <span>💰</span>
-            </div>
-            <h3>Billing & Inventory</h3>
-            <p>Integrated billing, invoices and stock control for consumables with real-time tracking.</p>
-            <div class="feature-tags">
-              <span>Auto Billing</span>
-              <span>Stock Tracking</span>
-              <span>Real-time Data</span>
-            </div>
-            <div class="feature-action">
-              <a href="#" class="learn-more">Learn More →</a>
-            </div>
-          </div>
-          <div class="feature-card card-hover-lift interactive-hover">
-            <div class="feature-icon">
-              <span>🔒</span>
-            </div>
-            <h3>Secure Access</h3>
-            <p>Role-based access controls and audit logs to meet compliance needs with multi-factor authentication.</p>
-            <div class="feature-tags">
-              <span>Role-based Access</span>
-              <span>Audit Logs</span>
-              <span>MFA Support</span>
-            </div>
-            <div class="feature-action">
-              <a href="#" class="learn-more">Learn More →</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Latest Releases -->
-    <section class="releases-section">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-badge">🆕 Latest Updates</div>
-          <h2>Latest Releases</h2>
-          <p>Stay up-to-date with our latest software updates and features</p>
-        </div>
-        <div class="releases-card">
-          <div class="releases-header">
-            <h3>Software Releases</h3>
-            <p>Access our most recent updates and enhancements to the platform.</p>
-          </div>
-          <div class="releases-content">
-            <?php echo $uploadListHtml; ?>
-          </div>
-          <div class="releases-footer">
-            <a href="#" class="btn-outline">View All Updates</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Pricing Section -->
-    <section class="pricing-section">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-badge">💎 Pricing Plans</div>
-          <h2>Choose Your Perfect Plan</h2>
-          <p>Flexible solutions tailored to your facility's needs</p>
-        </div>
-        <div class="pricing-content">
-          <div class="pricing-intro">
-            <h3>All plans include core features with options to customize based on your facility's requirements.</h3>
-          </div>
-          <div class="container-fluid">
-            <?php include __DIR__ . '/umakant/public_plans.php'; ?>
-          </div>
-          <div class="pricing-contact">
-            <h4>Need Help Choosing a Plan?</h4>
-            <p>Our team is here to help you find the perfect solution for your healthcare facility.</p>
-            <div class="contact-options">
-              <?php 
-              $whatsapp_number = trim(file_get_contents(__DIR__ . '/get_whatsapp.php'));
-              ?>
-              <a href="https://wa.me/<?php echo urlencode($whatsapp_number); ?>?text=Hi! I'm interested in your hospital management plans. Can you help me choose the right one?" 
-                 class="whatsapp-btn" 
-                 target="_blank" 
-                 rel="noopener noreferrer">
-                <span class="whatsapp-icon">📱</span>
-                Chat on WhatsApp
-              </a>
-              <a href="contact.php" class="contact-btn">
-                Contact Sales Team
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Testimonials -->
-    <section class="testimonials-section">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-badge">💬 Success Stories</div>
-          <h2>What Our Clients Say</h2>
-          <p>Real feedback from healthcare professionals using our platform</p>
-        </div>
-        <div class="testimonials-grid">
-          <div class="testimonial-card">
-            <div class="testimonial-content">
-              <div class="quote-icon">"</div>
-              <p>This platform has revolutionized our hospital operations. The efficiency gains are incredible and the support team is always helpful.</p>
-            </div>
-            <div class="testimonial-author">
-              <div class="author-avatar">👨‍⚕️</div>
-              <div class="author-info">
-                <div class="author-name">Dr. Sarah Johnson</div>
-                <div class="author-title">Chief Medical Officer</div>
-                <div class="author-hospital">City General Hospital</div>
+        
+        <div class="row g-4">
+          <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body p-4 text-center">
+                <div class="display-4 mb-3">📋</div>
+                <h5 class="fw-bold mb-3">Patient Management</h5>
+                <p class="text-muted">Complete EHR system with patient records, history, and appointments</p>
               </div>
             </div>
           </div>
-          <div class="testimonial-card">
-            <div class="testimonial-content">
-              <div class="quote-icon">"</div>
-              <p>The patient management features are intuitive and the support team is always helpful. Highly recommended for any healthcare facility.</p>
-            </div>
-            <div class="testimonial-author">
-              <div class="author-avatar">👩‍⚕️</div>
-              <div class="author-info">
-                <div class="author-name">Dr. Michael Chen</div>
-                <div class="author-title">Hospital Administrator</div>
-                <div class="author-hospital">Regional Medical Center</div>
+          
+          <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body p-4 text-center">
+                <div class="display-4 mb-3">💰</div>
+                <h5 class="fw-bold mb-3">Billing & Inventory</h5>
+                <p class="text-muted">Automated billing, invoicing, and inventory management</p>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Newsletter Section -->
-    <section class="newsletter-section">
-      <div class="container">
-        <div class="newsletter-card glass-card">
-          <div class="newsletter-content">
-            <div class="newsletter-icon pulse-glow">📧</div>
-            <h2>Stay Updated with Healthcare Innovation</h2>
-            <p>Get the latest updates on healthcare technology, industry insights, and platform enhancements delivered to your inbox.</p>
-            <form class="newsletter-form" id="newsletterForm">
-              <div class="form-group">
-                <input type="email" class="form-control newsletter-input" placeholder="Enter your email address" required>
-                <button type="submit" class="newsletter-btn btn-magnetic ripple">
-                  <span class="btn-text">Subscribe</span>
-                  <span class="btn-icon">→</span>
-                </button>
+          
+          <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body p-4 text-center">
+                <div class="display-4 mb-3">📊</div>
+                <h5 class="fw-bold mb-3">Analytics & Reports</h5>
+                <p class="text-muted">Real-time insights and comprehensive reporting tools</p>
               </div>
-              <div class="newsletter-privacy">
-                <small>We respect your privacy. Unsubscribe at any time.</small>
+            </div>
+          </div>
+          
+          <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body p-4 text-center">
+                <div class="display-4 mb-3">🔒</div>
+                <h5 class="fw-bold mb-3">Security & Compliance</h5>
+                <p class="text-muted">HIPAA compliant with enterprise-grade security</p>
               </div>
-            </form>
-            <div class="newsletter-benefits">
-              <div class="benefit-item">
-                <span class="benefit-icon">📊</span>
-                <span>Industry Reports</span>
+            </div>
+          </div>
+          
+          <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body p-4 text-center">
+                <div class="display-4 mb-3">📱</div>
+                <h5 class="fw-bold mb-3">Mobile Access</h5>
+                <p class="text-muted">Access your system anywhere, anytime on any device</p>
               </div>
-              <div class="benefit-item">
-                <span class="benefit-icon">🔔</span>
-                <span>Feature Updates</span>
-              </div>
-              <div class="benefit-item">
-                <span class="benefit-icon">💡</span>
-                <span>Best Practices</span>
+            </div>
+          </div>
+          
+          <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body p-4 text-center">
+                <div class="display-4 mb-3">🤝</div>
+                <h5 class="fw-bold mb-3">24/7 Support</h5>
+                <p class="text-muted">Round-the-clock support from our expert team</p>
               </div>
             </div>
           </div>
@@ -479,23 +168,21 @@ $uploadListHtml = fetch_upload_list_html();
     </section>
 
     <!-- CTA Section -->
-    <section class="cta-section">
+    <section class="cta-section py-5 mb-5">
       <div class="container">
-        <div class="cta-card">
-          <div class="cta-content">
-            <div class="cta-icon">🚀</div>
-            <h2>Ready to Transform Your Healthcare Facility?</h2>
-            <p>Join hundreds of healthcare providers who have revolutionized their operations with our platform. Schedule a demo today and see the difference.</p>
-            <div class="cta-buttons">
-              <a href="contact.php" class="btn-primary btn-magnetic ripple">Schedule a Demo</a>
-              <a href="about.php" class="btn-secondary btn-magnetic ripple">Learn More</a>
-            </div>
-            <div class="cta-features">
-              <span>✅ 14-Day Free Trial</span>
-              <span>✅ No Setup Fees</span>
-              <span>✅ 24/7 Support</span>
+        <div class="cta-card p-5 text-center text-white rounded-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative; overflow: hidden;">
+          <div style="position: relative; z-index: 2;">
+            <div class="display-3 mb-3">🚀</div>
+            <h2 class="fw-bold mb-3">Ready to Transform Your Healthcare Facility?</h2>
+            <p class="lead mb-4 opacity-90">Join hundreds of healthcare providers who have revolutionized their operations.</p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+              <a href="pricing.php" class="btn btn-light btn-lg px-4 fw-bold shadow-sm hover-lift" style="color: #667eea;">View Pricing</a>
+              <a href="contact.php" class="btn btn-outline-light btn-lg px-4 fw-bold hover-lift">Contact Sales</a>
             </div>
           </div>
+          <!-- Decorative Background Elements -->
+          <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+          <div style="position: absolute; bottom: -50px; left: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
         </div>
       </div>
     </section>
@@ -504,225 +191,50 @@ $uploadListHtml = fetch_upload_list_html();
   <?php include_once __DIR__ . '/inc/footer.php'; ?>
 
   <script>
-    // Enhanced animations and interactions
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-
+    // Simple fade-in animation
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('animate-in');
-          
-          // Trigger counter animation
-          if (entry.target.classList.contains('stats-counter-section')) {
-            animateCounters();
-          }
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
         }
       });
-    }, observerOptions);
+    }, { threshold: 0.1 });
 
-    // Observe all elements for animation
-    document.querySelectorAll('.feature-card, .testimonial-card, .trust-item, .stats-counter-section, .client-logo').forEach(el => {
+    document.querySelectorAll('.card, .cta-card').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(20px)';
+      el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
       observer.observe(el);
     });
-
-    // Counter Animation
-    function animateCounters() {
-      const counters = document.querySelectorAll('.counter-number');
-      counters.forEach(counter => {
-        const target = parseInt(counter.getAttribute('data-target'));
-        const increment = target / 100;
-        let current = 0;
-        
-        const updateCounter = () => {
-          if (current < target) {
-            current += increment;
-            counter.textContent = Math.floor(current).toLocaleString();
-            requestAnimationFrame(updateCounter);
-          } else {
-            counter.textContent = target.toLocaleString();
-            counter.classList.add('animate');
-          }
-        };
-        
-        updateCounter();
-      });
-    }
-
-    // Floating animation for hero cards
-    const floatingCards = document.querySelectorAll('.floating-card');
-    floatingCards.forEach((card, index) => {
-      card.style.animationDelay = `${index * 0.2}s`;
-    });
-
-    // Enhanced button interactions
-    document.querySelectorAll('.btn-primary, .btn-secondary, .whatsapp-btn, .newsletter-btn').forEach(button => {
-      button.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-4px) scale(1.02)';
-      });
-      
-      button.addEventListener('mouseleave', function() {
-        this.style.transform = 'translateY(0) scale(1)';
-      });
-    });
-
-    // Newsletter Form Handling
-    document.getElementById('newsletterForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const email = this.querySelector('input[type="email"]').value;
-      const btn = this.querySelector('.newsletter-btn');
-      const originalText = btn.innerHTML;
-      
-      // Show loading state
-      btn.innerHTML = '<span class="btn-text">Subscribing...</span><span class="btn-icon">⏳</span>';
-      btn.disabled = true;
-      
-      // Simulate API call
-      setTimeout(() => {
-        btn.innerHTML = '<span class="btn-text">Subscribed!</span><span class="btn-icon">✅</span>';
-        btn.style.background = 'var(--gradient-success)';
-        
-        setTimeout(() => {
-          btn.innerHTML = originalText;
-          btn.disabled = false;
-          btn.style.background = 'var(--gradient-primary)';
-          this.reset();
-        }, 2000);
-      }, 1500);
-    });
-
-    // Search Modal Functionality
-    document.addEventListener('DOMContentLoaded', function() {
-      const searchInput = document.querySelector('.search-input');
-      const suggestionTags = document.querySelectorAll('.suggestion-tag');
-      
-      // Handle suggestion tag clicks
-      suggestionTags.forEach(tag => {
-        tag.addEventListener('click', function() {
-          searchInput.value = this.textContent;
-          searchInput.focus();
-        });
-      });
-      
-      // Handle search form submission
-      document.querySelector('.search-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const query = searchInput.value.trim();
-        if (query) {
-          // Simulate search functionality
-          console.log('Searching for:', query);
-          // In a real implementation, you would perform the search here
-        }
-      });
-    });
-
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
-        }
-      });
-    });
-
-    // Client logos infinite scroll animation
-    const clientsCarousel = document.querySelector('.clients-carousel');
-    if (clientsCarousel) {
-      let scrollAmount = 0;
-      const scrollSpeed = 0.5;
-      
-      function autoScroll() {
-        scrollAmount += scrollSpeed;
-        if (scrollAmount >= clientsCarousel.scrollWidth / 2) {
-          scrollAmount = 0;
-        }
-        clientsCarousel.style.transform = `translateX(-${scrollAmount}px)`;
-        requestAnimationFrame(autoScroll);
-      }
-      
-      // Uncomment the line below to enable auto-scrolling
-      // autoScroll();
-    }
-
-    // Performance: Lazy load images
-    if ('IntersectionObserver' in window) {
-      const imageObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            if (img.dataset.src) {
-              img.src = img.dataset.src;
-              img.removeAttribute('data-src');
-              imageObserver.unobserve(img);
-            }
-          }
-        });
-      });
-
-      document.querySelectorAll('img[data-src]').forEach(img => {
-        imageObserver.observe(img);
-      });
-    }
-
-    // Progressive enhancement for form validation
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-      form.addEventListener('submit', function(e) {
-        const requiredFields = form.querySelectorAll('[required]');
-        let isValid = true;
-        
-        requiredFields.forEach(field => {
-          if (!field.value.trim()) {
-            isValid = false;
-            field.classList.add('is-invalid');
-          } else {
-            field.classList.remove('is-invalid');
-          }
-        });
-        
-        if (!isValid) {
-          e.preventDefault();
-          const firstInvalid = form.querySelector('.is-invalid');
-          if (firstInvalid) {
-            firstInvalid.focus();
-            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }
-      });
-    });
-
-    // Add loading states for better UX
-    window.addEventListener('load', function() {
-      document.body.classList.add('loaded');
-    });
   </script>
-
-  <!-- Service Worker for PWA capabilities -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js')
-          .then(function(registration) {
-            console.log('SW registered: ', registration);
-          })
-          .catch(function(registrationError) {
-            console.log('SW registration failed: ', registrationError);
-          });
-      });
+  
+  <style>
+    .floating-shapes .shape {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
     }
-  </script>
-
-  <!-- Analytics placeholder (replace with your analytics code) -->
-  <script>
-    // Google Analytics or other analytics code would go here
-    // gtag('config', 'GA_TRACKING_ID');
-  </script>
+    .shape-1 {
+      width: 400px;
+      height: 400px;
+      top: -150px;
+      left: -100px;
+    }
+    .shape-2 {
+      width: 300px;
+      height: 300px;
+      bottom: -100px;
+      right: -100px;
+    }
+    .hover-lift {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-lift:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+  </style>
 </body>
 </html>
