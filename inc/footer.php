@@ -86,13 +86,9 @@ try {
                 <i class="fas fa-phone-alt text-primary me-2"></i>
                 <a href="tel:<?php echo preg_replace('/[^0-9+]/', '', $footerPhone); ?>" class="text-white text-decoration-none"><?php echo htmlspecialchars($footerPhone); ?></a>
               </div>
-              <div class="contact-item mb-3">
+              <div class="contact-item">
                 <i class="fab fa-whatsapp text-success me-2"></i>
                 <a href="https://wa.me/<?php echo preg_replace('/[^0-9]/', '', $footerWhatsapp); ?>" target="_blank" class="text-white text-decoration-none"><?php echo htmlspecialchars($footerWhatsapp); ?></a>
-              </div>
-              <div class="contact-item">
-                <i class="fas fa-envelope text-info me-2"></i>
-                <a href="mailto:<?php echo htmlspecialchars($footerEmail); ?>" class="text-white text-decoration-none"><?php echo htmlspecialchars($footerEmail); ?></a>
               </div>
             </div>
           </div>
