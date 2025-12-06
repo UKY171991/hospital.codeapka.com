@@ -16,7 +16,8 @@
 
   <main>
     <!-- Hero Section -->
-    <section class="pricing-hero-section align-items-center d-flex position-relative overflow-hidden" style="min-height: 400px; padding-top: 120px;">
+    <!-- Hero Section -->
+    <section class="contact-hero-section position-relative overflow-hidden d-flex align-items-center" style="min-height: 400px; padding-top: 120px; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
       <div class="floating-shapes">
         <div class="shape shape-1"></div>
         <div class="shape shape-2"></div>
@@ -26,7 +27,7 @@
           <i class="fas fa-headset me-2"></i> 24/7 Support Available
         </span>
         <h1 class="display-3 fw-bold mb-3" data-aos="fade-up" data-aos-delay="100">
-          Get In <span class="text-gradient-warning">Touch</span>
+          Get In <span class="text-warning">Touch</span>
         </h1>
         <p class="lead mb-4 opacity-90 mx-auto" style="max-width: 600px;" data-aos="fade-up" data-aos-delay="200">
           Have questions about our hospital management system? Our team is ready to help you transform your healthcare facility.
