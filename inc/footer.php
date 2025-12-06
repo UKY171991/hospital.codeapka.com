@@ -50,20 +50,20 @@
           </div>
           
           <div class="footer-column">
-            <h4>Connect With Us</h4>
-            <div class="footer-social">
-              <a href="#" class="social-link" title="Twitter" aria-label="Follow us on Twitter">
-                <i class="fab fa-twitter"></i>
-              </a>
-              <a href="#" class="social-link" title="LinkedIn" aria-label="Connect on LinkedIn">
-                <i class="fab fa-linkedin-in"></i>
-              </a>
-              <a href="#" class="social-link" title="Facebook" aria-label="Like us on Facebook">
-                <i class="fab fa-facebook-f"></i>
-              </a>
-              <a href="#" class="social-link" title="Instagram" aria-label="Follow us on Instagram">
-                <i class="fab fa-instagram"></i>
-              </a>
+            <h4>Contact Info</h4>
+            <div class="footer-contact">
+              <div class="contact-item mb-3">
+                <i class="fas fa-phone-alt text-primary me-2"></i>
+                <a href="tel:+15551234567" class="text-white text-decoration-none">+1 (555) 123-4567</a>
+              </div>
+              <div class="contact-item mb-3">
+                <i class="fab fa-whatsapp text-success me-2"></i>
+                <a href="https://wa.me/15551234567" target="_blank" class="text-white text-decoration-none">+1 (555) 123-4567</a>
+              </div>
+              <div class="contact-item">
+                <i class="fas fa-envelope text-info me-2"></i>
+                <a href="mailto:support@hospital.codeapka.com" class="text-white text-decoration-none">support@hospital.codeapka.com</a>
+              </div>
             </div>
           </div>
         </div>
