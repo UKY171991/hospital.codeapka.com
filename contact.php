@@ -23,7 +23,7 @@
         <div class="shape shape-2"></div>
       </div>
       <div class="container text-center text-white position-relative z-1">
-        <span class="badge bg-white bg-opacity-20 backdrop-blur text-white px-3 py-2 rounded-pill mb-3 border border-white border-opacity-25" data-aos="fade-down">
+        <span class="badge rounded-pill mb-3 px-3 py-2 border border-light" style="background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(5px); color: #fff;" data-aos="fade-down">
           <i class="fas fa-headset me-2"></i> 24/7 Support Available
         </span>
         <h1 class="display-3 fw-bold mb-3" data-aos="fade-up" data-aos-delay="100">
