@@ -4968,9 +4968,9 @@ html {
   display: flex;
   align-items: center;
   justify-content: space-evenly;
-}/
-* ===== ENHANCED LAYOUT FIXES ===== */
+}
 
+/ *=====ENHANCED LAYOUT FIXES=====*/
 /* Fix Container Max-Width and Spacing */
 .container {
   max-width: 1400px;
@@ -5477,11 +5477,11 @@ section:nth-child(odd) {
   .container {
     padding: 0 1.5rem;
   }
-  
+
   .hero-content {
     gap: 4rem;
   }
-  
+
   .section-header h2 {
     font-size: 3rem;
   }
@@ -5493,11 +5493,11 @@ section:nth-child(odd) {
     gap: 3rem;
     text-align: center;
   }
-  
+
   .hero-title {
     font-size: 3rem;
   }
-  
+
   .features-grid,
   .trust-grid,
   .story-grid,
@@ -5510,12 +5510,12 @@ section:nth-child(odd) {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
   }
-  
+
   .pricing-grid {
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 2rem;
   }
-  
+
   .pricing-card.popular {
     transform: none;
   }
@@ -5525,7 +5525,7 @@ section:nth-child(odd) {
   section {
     padding: 4rem 0;
   }
-  
+
   .hero-section,
   .about-hero-section,
   .contact-hero-section,
@@ -5533,19 +5533,19 @@ section:nth-child(odd) {
     min-height: 70vh;
     padding: 4rem 0;
   }
-  
+
   .hero-title {
     font-size: 2.5rem;
   }
-  
+
   .section-header h2 {
     font-size: 2.5rem;
   }
-  
+
   .section-header p {
     font-size: 1.125rem;
   }
-  
+
   .feature-card,
   .trust-item,
   .story-card,
@@ -5558,7 +5558,7 @@ section:nth-child(odd) {
   .stat-card {
     padding: 2.5rem;
   }
-  
+
   .features-grid,
   .trust-grid,
   .story-grid,
@@ -5572,13 +5572,13 @@ section:nth-child(odd) {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-  
+
   .hero-buttons {
     flex-direction: column;
     align-items: center;
     gap: 1rem;
   }
-  
+
   .hero-stats {
     justify-content: center;
     gap: 2rem;
@@ -5589,15 +5589,15 @@ section:nth-child(odd) {
   .container {
     padding: 0 1rem;
   }
-  
+
   .hero-title {
     font-size: 2rem;
   }
-  
+
   .section-header h2 {
     font-size: 2rem;
   }
-  
+
   .feature-card,
   .trust-item,
   .story-card,
@@ -5610,11 +5610,11 @@ section:nth-child(odd) {
   .stat-card {
     padding: 2rem;
   }
-  
+
   .amount {
     font-size: 3.5rem;
   }
-  
+
   .plan-header h3 {
     font-size: 1.75rem;
   }
@@ -5622,6 +5622,7 @@ section:nth-child(odd) {
 
 /* Enhanced Print Styles */
 @media print {
+
   .hero-background,
   .cta-section,
   .newsletter-section,
@@ -5629,7 +5630,7 @@ section:nth-child(odd) {
   .particles-bg {
     display: none !important;
   }
-  
+
   .hero-section,
   .about-hero-section,
   .contact-hero-section,
@@ -5639,13 +5640,13 @@ section:nth-child(odd) {
     min-height: auto !important;
     padding: 2rem 0 !important;
   }
-  
+
   .section-badge {
     background: none !important;
     color: black !important;
     border: 1px solid black;
   }
-  
+
   .pricing-card,
   .feature-card {
     break-inside: avoid;
@@ -5665,6 +5666,7 @@ section:nth-child(odd) {
 
 /* Enhanced High Contrast Mode */
 @media (prefers-contrast: high) {
+
   .feature-card,
   .trust-item,
   .story-card,
@@ -5677,7 +5679,7 @@ section:nth-child(odd) {
   .stat-card {
     border: 3px solid var(--gray-900);
   }
-  
+
   .plan-btn {
     border: 2px solid var(--white);
   }
@@ -5709,8 +5711,13 @@ section:nth-child(odd) {
 }
 
 @keyframes loading-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 /* Enhanced Error States */
@@ -5747,11 +5754,14 @@ section:nth-child(odd) {
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
   }
-}/*
+}
+
+/*
  ===== ENHANCED PRICING SECTION ===== */
 
 /* Pricing Plans Row Layout */
@@ -5763,7 +5773,7 @@ section:nth-child(odd) {
   align-items: stretch;
 }
 
-.pricing-plans-row > div {
+.pricing-plans-row>div {
   padding: 0 15px;
   margin-bottom: 30px;
   display: flex;
@@ -6119,7 +6129,7 @@ section:nth-child(odd) {
 
 /* Responsive Pricing Layout */
 @media (max-width: 1200px) {
-  .pricing-plans-row > div[class*="col-lg-3"] {
+  .pricing-plans-row>div[class*="col-lg-3"] {
     flex: 0 0 50%;
     max-width: 50%;
   }
@@ -6130,63 +6140,64 @@ section:nth-child(odd) {
     transform: none;
     margin-bottom: 2rem;
   }
-  
+
   .pricing-plans-row {
     margin: 0;
   }
-  
-  .pricing-plans-row > div {
+
+  .pricing-plans-row>div {
     padding: 0;
     margin-bottom: 2rem;
   }
-  
+
   .pricing-card {
     min-height: auto;
   }
-  
+
   .plan-header {
     padding: 2rem 1.5rem 1rem;
   }
-  
+
   .price-section,
   .plan-features,
   .plan-action {
     padding: 1.5rem;
   }
-  
+
   .qr-section {
     padding: 1rem 1.5rem;
   }
 }
 
 @media (max-width: 768px) {
-  .pricing-plans-row > div {
+  .pricing-plans-row>div {
     flex: 0 0 100%;
     max-width: 100%;
   }
-  
+
   .plan-header h3 {
     font-size: 1.75rem;
   }
-  
+
   .amount {
     font-size: 3rem;
   }
-  
+
   .currency {
     font-size: 1.25rem;
   }
-  
+
   .period {
     font-size: 1rem;
   }
-  
+
   .contact-price {
     font-size: 1.75rem;
   }
 }
 
 @media (max-width: 576px) {
+
   .plan-header,
   .price-section,
   .plan-features,
@@ -6194,29 +6205,236 @@ section:nth-child(odd) {
   .qr-section {
     padding: 1rem;
   }
-  
+
   .plan-header h3 {
     font-size: 1.5rem;
   }
-  
-  .amount {
-    font-size: 2.5rem;
+}
+
+/* Page-specific overrides for premium look */
+:root {
+  --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+  --surface-glass: rgba(255, 255, 255, 0.9);
+  --surface-glass-dark: rgba(255, 255, 255, 0.7);
+}
+
+body {
+  background-color: #f8fafc;
+}
+
+.pricing-hero-section {
+  padding: 160px 0 100px;
+  background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.1), transparent 40%),
+    radial-gradient(circle at bottom left, rgba(6, 182, 212, 0.1), transparent 40%);
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-card {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 24px;
+  padding: 2rem;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.pricing-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15);
+  border-color: rgba(79, 70, 229, 0.3);
+}
+
+.pricing-card.popular {
+  border: 2px solid #4f46e5;
+  background: linear-gradient(to bottom, #ffffff, #fdfeff);
+  transform: scale(1.02);
+  z-index: 2;
+  box-shadow: 0 25px 50px rgba(79, 70, 229, 0.2);
+}
+
+.pricing-card.popular:hover {
+  transform: scale(1.02) translateY(-10px);
+}
+
+.popular-badge {
+  background: var(--primary-gradient);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.plan-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.plan-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: inline-block;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.price-section {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem 0;
+  background: rgba(243, 244, 246, 0.5);
+  border-radius: 16px;
+}
+
+.amount {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -1px;
+}
+
+.currency {
+  font-size: 1.5rem;
+  vertical-align: top;
+  position: relative;
+  top: 10px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.period {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+.feature-icon {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* Comparison Table Styles */
+.comparison-table {
+  background: white;
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.table-row:hover {
+  background: #f8fafc;
+}
+
+.table-header {
+  font-weight: 700;
+  color: #1e293b;
+  background: #f8fafc;
+  border-radius: 12px;
+  border-bottom: none;
+}
+
+/* FAQ Modern Styles */
+.faq-item {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+}
+
+.faq-item.active {
+  border-color: #4f46e5;
+  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.1);
+}
+
+.faq-question {
+  padding: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.faq-toggle {
+  width: 32px;
+  height: 32px;
+  background: #f1f5f9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  color: #4f46e5;
+}
+
+.faq-item.active .faq-toggle {
+  transform: rotate(45deg);
+  background: #4f46e5;
+  color: white;
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  padding: 0 1.5rem;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.faq-item.active .faq-answer {
+  max-height: 200px;
+  padding-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    text-align: center;
   }
-  
-  .popular-badge {
-    font-size: 0.75rem;
-    padding: 0.5rem 1rem;
-  }
-  
-  .feature-item {
-    padding: 0.5rem 0.75rem;
-  }
-  
-  .qr-thumb {
-    width: 100px;
-    height: 100px;
+
+  .feature-name {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
   }
 }
+
 
 /* Print Styles for Pricing */
 @media print {
@@ -6226,12 +6444,12 @@ section:nth-child(odd) {
     box-shadow: none;
     border: 2px solid var(--gray-900);
   }
-  
+
   .popular-badge {
     background: var(--gray-900) !important;
     color: var(--white) !important;
   }
-  
+
   .qr-section {
     display: none;
   }
