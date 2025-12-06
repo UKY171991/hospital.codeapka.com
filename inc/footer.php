@@ -13,24 +13,9 @@
               <div class="brand-subtitle">Advanced Healthcare Solutions</div>
             </div>
           </div>
-          <p class="footer-description">
-            Transforming healthcare through innovative technology solutions. 
+          <p>Transforming healthcare through innovative technology solutions. 
             Trusted by 500+ healthcare facilities worldwide.
           </p>
-          <div class="footer-social">
-            <a href="#" class="social-link" title="Twitter" aria-label="Follow us on Twitter">
-              <span class="social-icon">🐦</span>
-            </a>
-            <a href="#" class="social-link" title="LinkedIn" aria-label="Connect on LinkedIn">
-              <span class="social-icon">💼</span>
-            </a>
-            <a href="#" class="social-link" title="Facebook" aria-label="Like us on Facebook">
-              <span class="social-icon">📘</span>
-            </a>
-            <a href="#" class="social-link" title="Instagram" aria-label="Follow us on Instagram">
-              <span class="social-icon">📷</span>
-            </a>
-          </div>
         </div>
         
         <div class="footer-links">
@@ -62,6 +47,24 @@
               <li><a href="hipaa.php">HIPAA Compliance</a></li>
               <li><a href="security.php">Security</a></li>
             </ul>
+          </div>
+          
+          <div class="footer-column">
+            <h4>Connect With Us</h4>
+            <div class="footer-social">
+              <a href="#" class="social-link" title="Twitter" aria-label="Follow us on Twitter">
+                <i class="fab fa-twitter"></i>
+              </a>
+              <a href="#" class="social-link" title="LinkedIn" aria-label="Connect on LinkedIn">
+                <i class="fab fa-linkedin-in"></i>
+              </a>
+              <a href="#" class="social-link" title="Facebook" aria-label="Like us on Facebook">
+                <i class="fab fa-facebook-f"></i>
+              </a>
+              <a href="#" class="social-link" title="Instagram" aria-label="Follow us on Instagram">
+                <i class="fab fa-instagram"></i>
+              </a>
+            </div>
           </div>
         </div>
       </div>
