@@ -46,6 +46,20 @@ try {
           <p>Transforming healthcare through innovative technology solutions. 
             Trusted by 500+ healthcare facilities worldwide.
           </p>
+          <div class="footer-social mt-3">
+            <a href="#" class="social-link me-2" title="Facebook" aria-label="Follow us on Facebook">
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#" class="social-link me-2" title="Twitter" aria-label="Follow us on Twitter">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="social-link me-2" title="LinkedIn" aria-label="Connect on LinkedIn">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+            <a href="#" class="social-link" title="Instagram" aria-label="Follow us on Instagram">
+              <i class="fab fa-instagram"></i>
+            </a>
+          </div>
         </div>
         
         <div class="footer-links">
