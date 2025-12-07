@@ -16,9 +16,9 @@ $(document).ready(function () {
             },
             columns: [
                 {
-                    data: 'id',
+                    data: null,
                     render: function (data, type, row, meta) {
-                        return data ? data : meta.row + 1;
+                        return meta.row + 1;
                     }
                 },
                 {
