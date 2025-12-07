@@ -28,7 +28,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $body .= "Message:\n$message\n";
     
     // Headers
-    $headers = "From: $email_from" . "\r\n" .
+    // Use a domain-specific email address for the 'From' header to improve deliverability
+    $from_header = "noreply@hospital.codeapka.com"; 
+    $headers = "From: $from_header" . "\r\n" .
                "Reply-To: $email_from" . "\r\n" .
                "X-Mailer: PHP/" . phpversion();
     
