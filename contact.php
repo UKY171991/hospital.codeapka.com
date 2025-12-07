@@ -229,6 +229,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
   </main>
 
+  <!-- Toast Container -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header">
+        <strong class="me-auto" id="toastTitle">Notification</strong>
+        <small>Just now</small>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body" id="toastMessage">
+        <!-- Message will be injected here -->
+      </div>
+    </div>
+  </div>
+
   <?php include_once __DIR__ . '/inc/footer.php'; ?>
 
   <!-- Enhanced JavaScript -->
@@ -271,28 +285,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           method: 'POST',
           body: formData
       })
+      fetch('contact.php', {
+          method: 'POST',
+          body: formData
+      })
       .then(response => response.json())
       .then(data => {
+          const toastEl = document.getElementById('liveToast');
+          const toastTitle = document.getElementById('toastTitle');
+          const toastBody = document.getElementById('toastMessage');
+          const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastEl);
+          
           if (data.status === 'success') {
-              responseDiv.innerHTML = `<div class="alert alert-success alert-dismissible fade show" role="alert">
-                                        <strong>Success!</strong> ${data.message}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                       </div>`;
+              // Configure for success
+              toastEl.classList.remove('text-bg-danger');
+              toastEl.classList.add('text-bg-success');
+              // Close button needs to be white if background is dark/colored usually, but default looks okay or we add btn-close-white
+              toastEl.querySelector('.btn-close').classList.add('btn-close-white');
+              
+              toastTitle.textContent = 'Success';
+              toastBody.textContent = data.message;
+              
               form.reset();
               form.classList.remove('was-validated');
           } else {
-              responseDiv.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                        <strong>Error!</strong> ${data.message}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                       </div>`;
+              // Configure for error
+              toastEl.classList.remove('text-bg-success');
+              toastEl.classList.add('text-bg-danger');
+              toastEl.querySelector('.btn-close').classList.add('btn-close-white');
+              
+              toastTitle.textContent = 'Error';
+              toastBody.textContent = data.message;
           }
+          toastBootstrap.show();
       })
       .catch(error => {
           console.error('Error:', error);
-          responseDiv.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    <strong>Error!</strong> Something went wrong. Please check your connection and try again.
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                   </div>`;
+          const toastEl = document.getElementById('liveToast');
+          const toastTitle = document.getElementById('toastTitle');
+          const toastBody = document.getElementById('toastMessage');
+          const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastEl);
+          
+          toastEl.classList.remove('text-bg-success');
+          toastEl.classList.add('text-bg-danger');
+          toastEl.querySelector('.btn-close').classList.add('btn-close-white');
+          
+          toastTitle.textContent = 'Error';
+          toastBody.textContent = 'Something went wrong. Please check your connection and try again.';
+          toastBootstrap.show();
       })
       .finally(() => {
           btn.disabled = false;
