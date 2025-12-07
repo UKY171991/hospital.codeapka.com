@@ -1,10 +1,14 @@
 <?php
 $page = 'contact';
-$alert_message = '';
-// Set timezone to ensure correct time is picked up
-date_default_timezone_set('Asia/Kolkata'); 
 
+// Handle AJAX Request
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Set headers for JSON response
+    header('Content-Type: application/json');
+    
+    // Set timezone
+    date_default_timezone_set('Asia/Kolkata'); 
+    
     $to = "uky171991@gmail.com";
     $request_subject = $_POST['subject'] ?? 'General Inquiry';
     $current_time = date('Y-m-d H:i:s');
@@ -30,16 +34,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     // Send email
     if (mail($to, $email_subject, $body, $headers)) {
-        $alert_message = '<div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <strong>Success!</strong> Your message has been sent successfully.
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                          </div>';
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Thank you! Your message has been sent successfully.'
+        ]);
     } else {
-        $alert_message = '<div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <strong>Error!</strong> There was a problem sending your message. Please try again later.
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                          </div>';
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'There was a problem sending your message. Please try again later.'
+        ]);
     }
+    // Stop execution so we don't return the rest of the HTML
+    exit;
 }
 ?>
 <!doctype html>
@@ -105,8 +111,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <p class="text-muted small">We usually respond within 24 hours.</p>
               </div>
               <div class="card-body p-4 p-md-5 pt-2">
-                <?php if(!empty($alert_message)) echo $alert_message; ?>
-                <form action="" method="POST" class="contact-form needs-validation" novalidate>
+                <div id="form-response"></div>
+                <!-- Form modified to simple ID for selection, action handled by JS -->
+                <form id="contactForm" class="contact-form needs-validation" novalidate>
                   <div class="row g-3">
                     <div class="col-md-6">
                       <div class="form-floating">
@@ -234,15 +241,61 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       offset: 50
     });
 
-    // Form submission stub
-    document.querySelector('.contact-form').addEventListener('submit', function(e) {
+    // Form submission with AJAX
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const form = this;
+      
       // Basic validation check
-      if(!this.checkValidity()){
-          e.preventDefault();
+      if(!form.checkValidity()){
           e.stopPropagation();
-          this.classList.add('was-validated');
+          form.classList.add('was-validated');
+          return;
       }
-      // Allowed to submit to PHP
+      
+      const btn = form.querySelector('button[type="submit"]');
+      const originalBtnText = btn.innerHTML;
+      const responseDiv = document.getElementById('form-response');
+      
+      // Loading state
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Sending...';
+      responseDiv.innerHTML = ''; // Clear previous messages
+      
+      const formData = new FormData(form);
+      
+      fetch('contact.php', {
+          method: 'POST',
+          body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.status === 'success') {
+              responseDiv.innerHTML = `<div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <strong>Success!</strong> ${data.message}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                       </div>`;
+              form.reset();
+              form.classList.remove('was-validated');
+          } else {
+              responseDiv.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <strong>Error!</strong> ${data.message}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                       </div>`;
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          responseDiv.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <strong>Error!</strong> Something went wrong. Please check your connection and try again.
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                   </div>`;
+      })
+      .finally(() => {
+          btn.disabled = false;
+          btn.innerHTML = originalBtnText;
+      });
     });
 
     // Floating shapes effect
