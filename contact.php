@@ -1,4 +1,47 @@
-<?php $page = 'contact'; ?>
+<?php
+$page = 'contact';
+$alert_message = '';
+// Set timezone to ensure correct time is picked up
+date_default_timezone_set('Asia/Kolkata'); 
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $to = "uky171991@gmail.com";
+    $request_subject = $_POST['subject'] ?? 'General Inquiry';
+    $current_time = date('Y-m-d H:i:s');
+    $email_subject = "Contact Form: $request_subject - Sent at $current_time";
+    
+    $fname = strip_tags($_POST['first_name'] ?? '');
+    $lname = strip_tags($_POST['last_name'] ?? '');
+    $email_from = filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL);
+    $phone = strip_tags($_POST['phone'] ?? '');
+    $message = strip_tags($_POST['message'] ?? '');
+    
+    $body = "You have received a new message from the contact form.\n\n";
+    $body .= "Name: $fname $lname\n";
+    $body .= "Email: $email_from\n";
+    $body .= "Phone: $phone\n";
+    $body .= "Selected Subject: $request_subject\n";
+    $body .= "Message:\n$message\n";
+    
+    // Headers
+    $headers = "From: $email_from" . "\r\n" .
+               "Reply-To: $email_from" . "\r\n" .
+               "X-Mailer: PHP/" . phpversion();
+    
+    // Send email
+    if (mail($to, $email_subject, $body, $headers)) {
+        $alert_message = '<div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <strong>Success!</strong> Your message has been sent successfully.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                          </div>';
+    } else {
+        $alert_message = '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong>Error!</strong> There was a problem sending your message. Please try again later.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                          </div>';
+    }
+}
+?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -62,35 +105,36 @@
                 <p class="text-muted small">We usually respond within 24 hours.</p>
               </div>
               <div class="card-body p-4 p-md-5 pt-2">
-                <form action="#" method="POST" class="contact-form needs-validation" novalidate>
+                <?php if(!empty($alert_message)) echo $alert_message; ?>
+                <form action="" method="POST" class="contact-form needs-validation" novalidate>
                   <div class="row g-3">
                     <div class="col-md-6">
                       <div class="form-floating">
-                        <input type="text" class="form-control bg-light border-0" id="firstName" placeholder="John" required>
+                        <input type="text" class="form-control bg-light border-0" id="firstName" name="first_name" placeholder="John" required>
                         <label for="firstName">First Name</label>
                       </div>
                     </div>
                     <div class="col-md-6">
                       <div class="form-floating">
-                        <input type="text" class="form-control bg-light border-0" id="lastName" placeholder="Doe" required>
+                        <input type="text" class="form-control bg-light border-0" id="lastName" name="last_name" placeholder="Doe" required>
                         <label for="lastName">Last Name</label>
                       </div>
                     </div>
                     <div class="col-md-6">
                       <div class="form-floating">
-                        <input type="email" class="form-control bg-light border-0" id="email" placeholder="name@example.com" required>
+                        <input type="email" class="form-control bg-light border-0" id="email" name="email" placeholder="name@example.com" required>
                         <label for="email">Email Address</label>
                       </div>
                     </div>
                     <div class="col-md-6">
                       <div class="form-floating">
-                        <input type="tel" class="form-control bg-light border-0" id="phone" placeholder="+1234567890">
+                        <input type="tel" class="form-control bg-light border-0" id="phone" name="phone" placeholder="+1234567890">
                         <label for="phone">Phone (Optional)</label>
                       </div>
                     </div>
                     <div class="col-12">
                       <div class="form-floating">
-                        <select class="form-select bg-light border-0" id="subject" required>
+                        <select class="form-select bg-light border-0" id="subject" name="subject" required>
                           <option value="" selected disabled>Select a topic...</option>
                           <option value="demo">Request a Demo</option>
                           <option value="pricing">Pricing Inquiry</option>
@@ -102,7 +146,7 @@
                     </div>
                     <div class="col-12">
                       <div class="form-floating">
-                        <textarea class="form-control bg-light border-0" placeholder="Type your message here..." id="message" style="height: 150px" required></textarea>
+                        <textarea class="form-control bg-light border-0" placeholder="Type your message here..." id="message" name="message" style="height: 150px" required></textarea>
                         <label for="message">Message</label>
                       </div>
                     </div>
@@ -192,27 +236,13 @@
 
     // Form submission stub
     document.querySelector('.contact-form').addEventListener('submit', function(e) {
-      e.preventDefault();
       // Basic validation check
       if(!this.checkValidity()){
+          e.preventDefault();
           e.stopPropagation();
           this.classList.add('was-validated');
-          return;
       }
-      
-      const btn = this.querySelector('button[type="submit"]');
-      const originalText = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Sending...';
-      
-      // Simulate network request
-      setTimeout(() => {
-        alert('Thank you! Your message has been sent successfully.');
-        this.reset();
-        this.classList.remove('was-validated');
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-      }, 1500);
+      // Allowed to submit to PHP
     });
 
     // Floating shapes effect
