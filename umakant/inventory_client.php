@@ -182,7 +182,7 @@ require_once 'inc/sidebar.php';
 
 <!-- Client Details Modal -->
 <div class="modal fade" id="clientDetailsModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
                 <h5 class="modal-title">
@@ -336,7 +336,20 @@ function viewClientDetails(id) {
         success: function(response) {
             if (response && response.success) {
                 const client = response.data.client;
-                const transactions = response.data.transactions || [];
+                let transactions = response.data.transactions || [];
+                
+                // Sort transactions: pending first, then completed
+                transactions.sort((a, b) => {
+                    const statusOrder = { 'Pending': 0, 'Completed': 1 };
+                    const statusA = statusOrder[a.status] !== undefined ? statusOrder[a.status] : 2;
+                    const statusB = statusOrder[b.status] !== undefined ? statusOrder[b.status] : 2;
+                    
+                    if (statusA !== statusB) {
+                        return statusA - statusB;
+                    }
+                    // If same status, sort by date (newest first)
+                    return new Date(b.date) - new Date(a.date);
+                });
                 
                 let html = `
                     <div class="row">
@@ -360,23 +373,52 @@ function viewClientDetails(id) {
                                 <tr><th>Total Transactions:</th><td>${transactions.length}</td></tr>
                                 <tr><th>Total Amount:</th><td>₹${response.data.total_amount || 0}</td></tr>
                             </table>
-                            <h6 class="mt-3">Recent Transactions</h6>
-                            <div style="max-height: 200px; overflow-y: auto;">
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <h5>All Transactions</h5>
+                            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-sm table-bordered table-hover">
+                                    <thead class="thead-light" style="position: sticky; top: 0; background: #f8f9fa; z-index: 1;">
+                                        <tr>
+                                            <th>Sr.</th>
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
                 `;
 
                 if (transactions.length > 0) {
+                    let srNo = 1;
                     transactions.forEach(function(trans) {
-                        html += `<div class="border-bottom py-2">
-                            <small><strong>${trans.date}</strong> - ${trans.type}<br>
-                            ${trans.description}<br>
-                            <strong>₹${trans.amount}</strong></small>
-                        </div>`;
+                        const statusBadge = trans.status === 'Pending' 
+                            ? '<span class="badge badge-warning">Pending</span>' 
+                            : '<span class="badge badge-success">Completed</span>';
+                        
+                        html += `
+                            <tr>
+                                <td>${srNo++}</td>
+                                <td>${trans.date}</td>
+                                <td>${trans.type}</td>
+                                <td>${trans.description || '-'}</td>
+                                <td><strong>₹${trans.amount}</strong></td>
+                                <td>${statusBadge}</td>
+                            </tr>
+                        `;
                     });
                 } else {
-                    html += '<p class="text-muted">No transactions found</p>';
+                    html += '<tr><td colspan="6" class="text-center text-muted">No transactions found</td></tr>';
                 }
 
                 html += `
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
