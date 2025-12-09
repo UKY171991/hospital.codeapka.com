@@ -357,6 +357,25 @@ $(document).ready(function() {
     });
 });
 
+// Format date to DD-MM-YYYY
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+}
+
+// Format amount with commas
+function formatAmount(amount) {
+    if (!amount) return '0.00';
+    return parseFloat(amount).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
 function loadClients() {
     $.ajax({
         url: 'ajax/inventory_api.php',
@@ -531,7 +550,7 @@ function viewClientDetails(id) {
                             </div>
                             <div class="summary-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
                                 <h6><i class="fas fa-rupee-sign mr-2"></i>Total Amount</h6>
-                                <div class="value">₹${response.data.total_amount || 0}</div>
+                                <div class="value">₹${formatAmount(response.data.total_amount)}</div>
                             </div>
                         </div>
                     </div>
@@ -567,10 +586,10 @@ function viewClientDetails(id) {
                         html += `
                             <tr>
                                 <td class="text-center"><strong>${srNo++}</strong></td>
-                                <td>${trans.date}</td>
+                                <td>${formatDate(trans.date)}</td>
                                 <td>${typeIcon}${trans.type}</td>
                                 <td>${trans.description || '-'}</td>
-                                <td class="amount-cell">₹${trans.amount}</td>
+                                <td class="amount-cell">₹${formatAmount(trans.amount)}</td>
                                 <td class="text-center">${statusBadge}</td>
                             </tr>
                         `;

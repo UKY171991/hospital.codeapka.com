@@ -540,18 +540,27 @@ function getClientDetails() {
         throw new Exception('Client not found');
     }
     
-    // Get client transactions
+    // Get ALL client transactions with payment status
     $stmt = $pdo->prepare("
-        SELECT 'income' as type, date, description, amount 
+        SELECT 'income' as type, date, description, amount, payment_status as status
         FROM inventory_income 
         WHERE client_id = :id 
-        ORDER BY date DESC 
-        LIMIT 10
+        ORDER BY date DESC
     ");
     $stmt->execute([':id' => $id]);
     $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Get total amount (only successful transactions)
+    // Map payment_status to status for consistency
+    foreach ($transactions as &$trans) {
+        if ($trans['status'] === 'Success') {
+            $trans['status'] = 'Completed';
+        } else if ($trans['status'] === 'Failed') {
+            $trans['status'] = 'Pending';
+        }
+        // 'Pending' stays as 'Pending'
+    }
+    
+    // Get total amount (only successful/completed transactions)
     $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE client_id = :id AND payment_status = 'Success'");
     $stmt->execute([':id' => $id]);
     $totalAmount = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
@@ -561,7 +570,7 @@ function getClientDetails() {
         'data' => [
             'client' => $client,
             'transactions' => $transactions,
-            'total_amount' => $totalAmount
+            'total_amount' => number_format($totalAmount, 2, '.', '')
         ]
     ]);
 }
