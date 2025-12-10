@@ -203,6 +203,93 @@ require_once 'inc/sidebar.php';
     </div>
 </div>
 
+<!-- Edit Transaction Modal -->
+<div class="modal fade" id="editTransactionModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" style="border-radius: 15px; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; padding: 20px 30px;">
+                <h5 class="modal-title text-white" style="font-weight: 600;">
+                    <i class="fas fa-edit mr-2"></i>
+                    Edit Transaction
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" style="opacity: 1; text-shadow: none;">
+                    <span style="font-size: 2rem;">&times;</span>
+                </button>
+            </div>
+            <form id="editTransactionForm">
+                <div class="modal-body" style="padding: 30px;">
+                    <input type="hidden" id="editTransactionId">
+                    <input type="hidden" id="editTransactionType">
+                    <input type="hidden" id="editClientId">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="editDate">Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="editDate" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="editAmount">Amount <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" class="form-control" id="editAmount" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editCategory">Category <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editCategory" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editDescription">Description</label>
+                        <textarea class="form-control" id="editDescription" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="editPaymentMethod">Payment Method <span class="text-danger">*</span></label>
+                                <select class="form-control" id="editPaymentMethod" required>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Card">Card</option>
+                                    <option value="UPI">UPI</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Cheque">Cheque</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="editPaymentStatus">Payment Status <span class="text-danger">*</span></label>
+                                <select class="form-control" id="editPaymentStatus" required>
+                                    <option value="Success">Completed</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Failed">Failed</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editNotes">Notes</label>
+                        <textarea class="form-control" id="editNotes" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 15px 30px;">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                        <i class="fas fa-save mr-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
 .client-info-card {
     background: white;
@@ -384,6 +471,11 @@ $(document).ready(function() {
         e.preventDefault();
         saveClient();
     });
+    
+    $('#editTransactionForm').on('submit', function(e) {
+        e.preventDefault();
+        saveTransaction();
+    });
 });
 
 // Format date to DD-MM-YYYY
@@ -516,6 +608,9 @@ function editClient(id) {
 }
 
 function viewClientDetails(id) {
+    // Store client ID for later use
+    $('#editClientId').val(id);
+    
     $('#clientDetailsBody').html('<div class="text-center" style="padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #667eea;"></i><p class="mt-3" style="color: #6c757d;">Loading client details...</p></div>');
     $('#clientDetailsModal').modal('show');
 
@@ -745,15 +840,90 @@ function openWhatsAppChat(phone, clientName) {
 }
 
 function editTransaction(id, type) {
-    // Close the client details modal
-    $('#clientDetailsModal').modal('hide');
+    // Store the transaction details for later use
+    $('#editTransactionId').val(id);
+    $('#editTransactionType').val(type);
     
-    // Redirect to the appropriate page based on transaction type
+    // Get transaction details
+    const action = type === 'income' ? 'get_income' : 'get_expense';
+    
+    $.ajax({
+        url: 'ajax/inventory_api.php',
+        type: 'GET',
+        data: { action: action, id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success) {
+                const data = response.data;
+                
+                // Populate the form
+                $('#editDate').val(data.date);
+                $('#editAmount').val(data.amount);
+                $('#editCategory').val(data.category);
+                $('#editDescription').val(data.description || '');
+                $('#editPaymentMethod').val(data.payment_method || 'Cash');
+                $('#editPaymentStatus').val(data.payment_status || 'Success');
+                $('#editNotes').val(data.notes || '');
+                
+                // Show the edit modal
+                $('#editTransactionModal').modal('show');
+            } else {
+                toastr.error('Failed to load transaction details');
+            }
+        },
+        error: function() {
+            toastr.error('An error occurred while loading transaction details');
+        }
+    });
+}
+
+function saveTransaction() {
+    const id = $('#editTransactionId').val();
+    const type = $('#editTransactionType').val();
+    const action = type === 'income' ? 'update_income' : 'update_expense';
+    
+    const formData = {
+        action: action,
+        id: id,
+        date: $('#editDate').val(),
+        amount: $('#editAmount').val(),
+        category: $('#editCategory').val(),
+        description: $('#editDescription').val(),
+        payment_method: $('#editPaymentMethod').val(),
+        payment_status: $('#editPaymentStatus').val(),
+        notes: $('#editNotes').val()
+    };
+    
+    // Add client_id for income transactions
     if (type === 'income') {
-        window.location.href = 'inventory_income.php?edit=' + id;
-    } else if (type === 'expense') {
-        window.location.href = 'inventory_expense.php?edit=' + id;
+        formData.client_id = $('#editClientId').val();
+    } else {
+        formData.vendor = ''; // For expense transactions
     }
+    
+    $.ajax({
+        url: 'ajax/inventory_api.php',
+        type: 'POST',
+        data: formData,
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success) {
+                toastr.success(response.message || 'Transaction updated successfully');
+                $('#editTransactionModal').modal('hide');
+                
+                // Reload the client details to show updated data
+                const clientId = $('#editClientId').val();
+                if (clientId) {
+                    viewClientDetails(clientId);
+                }
+            } else {
+                toastr.error(response.message || 'Failed to update transaction');
+            }
+        },
+        error: function() {
+            toastr.error('An error occurred while updating transaction');
+        }
+    });
 }
 
 function deleteTransaction(id, type, clientId) {
