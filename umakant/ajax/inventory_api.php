@@ -22,6 +22,7 @@ try {
     }
 
     require_once '../inc/connection.php';
+    require_once '../inc/auth.php';
     
     $action = $_GET['action'] ?? $_POST['action'] ?? '';
     
@@ -118,10 +119,18 @@ function ensureTablesExist() {
         `gst_number` varchar(50) DEFAULT NULL,
         `status` enum('Active','Inactive') NOT NULL DEFAULT 'Active',
         `notes` text DEFAULT NULL,
+        `added_by` int(11) DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    
+    // Add added_by column if it doesn't exist (for existing tables)
+    try {
+        $pdo->exec("ALTER TABLE `inventory_clients` ADD COLUMN `added_by` int(11) DEFAULT NULL AFTER `notes`");
+    } catch (Exception $e) {
+        // Column already exists, ignore
+    }
     
     // Create inventory_income table
     $pdo->exec("CREATE TABLE IF NOT EXISTS `inventory_income` (
@@ -134,6 +143,7 @@ function ensureTablesExist() {
         `payment_method` enum('Cash','Card','UPI','Bank Transfer','Cheque') NOT NULL DEFAULT 'Cash',
         `payment_status` enum('Success','Pending','Failed') NOT NULL DEFAULT 'Success',
         `notes` text DEFAULT NULL,
+        `added_by` int(11) DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
@@ -142,6 +152,13 @@ function ensureTablesExist() {
     // Add payment_status column if it doesn't exist (for existing tables)
     try {
         $pdo->exec("ALTER TABLE `inventory_income` ADD COLUMN `payment_status` enum('Success','Pending','Failed') NOT NULL DEFAULT 'Success' AFTER `payment_method`");
+    } catch (Exception $e) {
+        // Column already exists, ignore
+    }
+    
+    // Add added_by column if it doesn't exist (for existing tables)
+    try {
+        $pdo->exec("ALTER TABLE `inventory_income` ADD COLUMN `added_by` int(11) DEFAULT NULL AFTER `notes`");
     } catch (Exception $e) {
         // Column already exists, ignore
     }
@@ -496,9 +513,27 @@ function getClients() {
     global $pdo;
     ensureTablesExist();
     
-    $sql = "SELECT * FROM inventory_clients ORDER BY name ASC";
+    if (isMaster()) {
+        // Master can see all clients
+        $sql = "SELECT * FROM inventory_clients ORDER BY name ASC";
+        $stmt = $pdo->query($sql);
+    } elseif (isAdmin()) {
+        // Admin can see only clients added by their users
+        $allowedUsers = getUsersUnderAdmin($pdo);
+        if (empty($allowedUsers)) {
+            echo json_encode(['success' => true, 'data' => []]);
+            return;
+        }
+        $placeholders = str_repeat('?,', count($allowedUsers) - 1) . '?';
+        $sql = "SELECT * FROM inventory_clients WHERE added_by IN ($placeholders) ORDER BY name ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($allowedUsers);
+    } else {
+        // Other roles have no access
+        echo json_encode(['success' => true, 'data' => []]);
+        return;
+    }
     
-    $stmt = $pdo->query($sql);
     $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
@@ -579,8 +614,8 @@ function addClient() {
     global $pdo;
     ensureTablesExist();
     
-    $sql = "INSERT INTO inventory_clients (name, type, email, phone, address, city, state, pincode, gst_number, status, notes, created_at)
-            VALUES (:name, :type, :email, :phone, :address, :city, :state, :pincode, :gst_number, :status, :notes, NOW())";
+    $sql = "INSERT INTO inventory_clients (name, type, email, phone, address, city, state, pincode, gst_number, status, notes, added_by, created_at)
+            VALUES (:name, :type, :email, :phone, :address, :city, :state, :pincode, :gst_number, :status, :notes, :added_by, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -594,7 +629,8 @@ function addClient() {
         ':pincode' => $_POST['pincode'] ?? '',
         ':gst_number' => $_POST['gst_number'] ?? '',
         ':status' => $_POST['status'] ?? 'Active',
-        ':notes' => $_POST['notes'] ?? ''
+        ':notes' => $_POST['notes'] ?? '',
+        ':added_by' => getCurrentUserId()
     ]);
     
     echo json_encode([

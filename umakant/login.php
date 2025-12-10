@@ -9,6 +9,18 @@ if (isset($_SESSION['user_id'])) {
 
 $error = '';
 
+// Check for error messages from auth.php
+if (isset($_GET['error'])) {
+    switch ($_GET['error']) {
+        case 'access_denied':
+            $error = 'Access denied. User role is not allowed to access the admin panel.';
+            break;
+        case 'invalid_role':
+            $error = 'Invalid user role. Please contact administrator.';
+            break;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // detect AJAX either via X-Requested-With or explicit ajax param
     $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || (!empty($_REQUEST['ajax']) && $_REQUEST['ajax'] == 1);
@@ -30,29 +42,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($user && password_verify($password, $user['password'])) {
-                // Update last login (MySQL)
-                $updateStmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
-                $updateStmt->execute([$user['id']]);
+                // Check if user role is allowed to access admin panel
+                if ($user['role'] === 'user') {
+                    $error = 'Access denied. User role is not allowed to access the admin panel.';
+                    if ($isAjax) { header('Content-Type: application/json'); echo json_encode(['success'=>false,'message'=>$error]); exit; }
+                } else if (!in_array($user['role'], ['master', 'admin'])) {
+                    $error = 'Invalid user role. Please contact administrator.';
+                    if ($isAjax) { header('Content-Type: application/json'); echo json_encode(['success'=>false,'message'=>$error]); exit; }
+                } else {
+                    // Update last login (MySQL)
+                    $updateStmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+                    $updateStmt->execute([$user['id']]);
 
-                // Set session variables (include a few helpful fields)
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['username'] = $user['username'];
-                $_SESSION['role'] = $user['role'];
-                $_SESSION['full_name'] = $user['full_name'] ?? '';
-                $_SESSION['email'] = $user['email'] ?? '';
-                $_SESSION['created_at'] = $user['created_at'] ?? '';
-                $_SESSION['updated_at'] = $user['updated_at'] ?? '';
-                // map expire_date from DB into session key 'expire' for backward compatibility
-                $_SESSION['expire'] = $user['expire_date'] ?? '';
-                $_SESSION['added_by'] = $user['added_by'] ?? null;
+                    // Set session variables (include a few helpful fields)
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['username'] = $user['username'];
+                    $_SESSION['role'] = $user['role'];
+                    $_SESSION['full_name'] = $user['full_name'] ?? '';
+                    $_SESSION['email'] = $user['email'] ?? '';
+                    $_SESSION['created_at'] = $user['created_at'] ?? '';
+                    $_SESSION['updated_at'] = $user['updated_at'] ?? '';
+                    // map expire_date from DB into session key 'expire' for backward compatibility
+                    $_SESSION['expire'] = $user['expire_date'] ?? '';
+                    $_SESSION['added_by'] = $user['added_by'] ?? null;
 
-                if ($isAjax) {
-                    header('Content-Type: application/json');
-                    echo json_encode(['success'=>true,'message'=>'Login successful','redirect'=>'dashboard.php']);
+                    if ($isAjax) {
+                        header('Content-Type: application/json');
+                        echo json_encode(['success'=>true,'message'=>'Login successful','redirect'=>'dashboard.php']);
+                        exit();
+                    }
+                    header('Location: dashboard.php');
                     exit();
                 }
-                header('Location: dashboard.php');
-                exit();
             } else {
                 $error = 'Invalid username or password';
                 if ($isAjax) { header('Content-Type: application/json'); echo json_encode(['success'=>false,'message'=>$error]); exit; }
