@@ -343,6 +343,35 @@ require_once 'inc/sidebar.php';
     color: #dee2e6;
     margin-bottom: 15px;
 }
+
+.transaction-table .btn-sm {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    margin: 0 2px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.transaction-table .btn-warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border: none;
+    color: white;
+}
+
+.transaction-table .btn-warning:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(240, 147, 251, 0.4);
+}
+
+.transaction-table .btn-danger {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    border: none;
+}
+
+.transaction-table .btn-danger:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(255, 107, 107, 0.4);
+}
 </style>
 
 <script>
@@ -569,6 +598,7 @@ function viewClientDetails(id) {
                                                 <th>Description</th>
                                                 <th style="width: 130px;">Amount</th>
                                                 <th style="width: 120px;">Status</th>
+                                                <th style="width: 120px;">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -591,13 +621,21 @@ function viewClientDetails(id) {
                                 <td>${trans.description || '-'}</td>
                                 <td class="amount-cell">₹${formatAmount(trans.amount)}</td>
                                 <td class="text-center">${statusBadge}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-warning" onclick="editTransaction(${trans.id}, '${trans.type}')" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteTransaction(${trans.id}, '${trans.type}', ${client.id})" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
                             </tr>
                         `;
                     });
                 } else {
                     html += `
                         <tr>
-                            <td colspan="6" class="no-transactions">
+                            <td colspan="7" class="no-transactions">
                                 <i class="fas fa-inbox"></i>
                                 <p class="mb-0">No transactions found</p>
                             </td>
@@ -704,6 +742,45 @@ function openWhatsAppChat(phone, clientName) {
     // Open WhatsApp with greeting message
     const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
+}
+
+function editTransaction(id, type) {
+    // Close the client details modal
+    $('#clientDetailsModal').modal('hide');
+    
+    // Redirect to the appropriate page based on transaction type
+    if (type === 'income') {
+        window.location.href = 'inventory_income.php?edit=' + id;
+    } else if (type === 'expense') {
+        window.location.href = 'inventory_expense.php?edit=' + id;
+    }
+}
+
+function deleteTransaction(id, type, clientId) {
+    if (!confirm('Are you sure you want to delete this transaction?')) {
+        return;
+    }
+    
+    const action = type === 'income' ? 'delete_income' : 'delete_expense';
+    
+    $.ajax({
+        url: 'ajax/inventory_api.php',
+        type: 'POST',
+        data: { action: action, id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success) {
+                toastr.success(response.message || 'Transaction deleted successfully');
+                // Reload the client details
+                viewClientDetails(clientId);
+            } else {
+                toastr.error(response.message || 'Failed to delete transaction');
+            }
+        },
+        error: function() {
+            toastr.error('An error occurred while deleting transaction');
+        }
+    });
 }
 </script>
 

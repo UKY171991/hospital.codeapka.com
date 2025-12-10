@@ -542,7 +542,7 @@ function getClientDetails() {
     
     // Get ALL client transactions with payment status
     $stmt = $pdo->prepare("
-        SELECT 'income' as type, date, description, amount, payment_status as status
+        SELECT id, 'income' as type, date, description, amount, payment_status as status
         FROM inventory_income 
         WHERE client_id = :id 
         ORDER BY date DESC
