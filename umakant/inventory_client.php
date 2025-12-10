@@ -46,9 +46,7 @@ require_once 'inc/sidebar.php';
                                     <tr>
                                         <th>Sr. No.</th>
                                         <th>Name</th>
-                                        <th>Email</th>
                                         <th>Phone</th>
-                                        <th>Address</th>
                                         <th>Type</th>
                                         <th>Status</th>
                                         <th>Actions</th>
@@ -56,7 +54,7 @@ require_once 'inc/sidebar.php';
                                 </thead>
                                 <tbody id="clientTableBody">
                                     <tr>
-                                        <td colspan="8" class="text-center">Loading...</td>
+                                        <td colspan="6" class="text-center">Loading...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -516,7 +514,7 @@ function displayClients(clients) {
     tbody.empty();
 
     if (!clients || clients.length === 0) {
-        tbody.append('<tr><td colspan="8" class="text-center">No clients found</td></tr>');
+        tbody.append('<tr><td colspan="6" class="text-center">No clients found</td></tr>');
         return;
     }
 
@@ -534,10 +532,8 @@ function displayClients(clients) {
             <tr>
                 <td>${srNo++}</td>
                 <td>${client.name}</td>
-                <td>${client.email || '-'}</td>
                 <td>${client.phone}</td>
-                <td>${client.address || '-'}</td>
-                <td>${client.type}</td>
+                <td><span class="badge badge-primary">${client.type}</span></td>
                 <td><span class="badge ${statusClass}">${client.status}</span></td>
                 <td>
                     <button class="btn btn-sm btn-success" onclick="openWhatsAppChat('${client.phone}', '${client.name.replace(/'/g, "\\'")}')">
@@ -566,7 +562,7 @@ function displayClients(clients) {
         responsive: true,
         order: [[1, 'asc']], // Sort by Name column (ascending)
         columnDefs: [
-            { orderable: false, targets: [0, 7] } // Disable sorting on Sr. No. and Actions
+            { orderable: false, targets: [0, 5] } // Disable sorting on Sr. No. and Actions
         ]
     });
 }
