@@ -175,6 +175,7 @@ function ensureTablesExist() {
         `payment_status` enum('Success','Pending','Failed') NOT NULL DEFAULT 'Success',
         `invoice_number` varchar(100) DEFAULT NULL,
         `notes` text DEFAULT NULL,
+        `added_by` int(11) DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
@@ -186,6 +187,13 @@ function ensureTablesExist() {
     } catch (Exception $e) {
         // Column already exists, ignore
     }
+    
+    // Add added_by column if it doesn't exist (for existing tables)
+    try {
+        $pdo->exec("ALTER TABLE `inventory_expense` ADD COLUMN `added_by` int(11) DEFAULT NULL AFTER `notes`");
+    } catch (Exception $e) {
+        // Column already exists, ignore
+    }
 }
 
 // Dashboard Functions
@@ -193,52 +201,103 @@ function getDashboardStats() {
     global $pdo;
     ensureTablesExist();
     
+    // Build WHERE clause based on user role
+    $whereClause = "";
+    $params = [];
+    
+    if (isMaster()) {
+        // Master can see all data - no filter
+        $whereClause = "";
+    } elseif (isAdmin()) {
+        // Admin can see only data added by their users
+        $allowedUsers = getUsersUnderAdmin($pdo);
+        if (empty($allowedUsers)) {
+            // No users under this admin, return zero stats
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'total_income' => 0, 'total_expense' => 0, 'net_profit' => 0,
+                    'total_clients' => 0, 'pending_amount' => 0, 'today_income' => 0,
+                    'today_expense' => 0, 'month_income' => 0, 'month_expense' => 0,
+                    'month_income_target' => 100000, 'month_expense_target' => 80000,
+                    'year_income' => 0, 'year_expense' => 0,
+                    'year_income_target' => 1200000, 'year_expense_target' => 1000000
+                ]
+            ]);
+            return;
+        }
+        $placeholders = str_repeat('?,', count($allowedUsers) - 1) . '?';
+        $whereClause = " AND added_by IN ($placeholders)";
+        $params = $allowedUsers;
+    }
+    
     // Get total income (only successful transactions)
-    $stmt = $pdo->query("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE payment_status = 'Success'");
+    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE payment_status = 'Success'" . $whereClause;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $totalIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
     // Get total expense (only successful transactions)
-    $stmt = $pdo->query("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE payment_status = 'Success'");
+    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE payment_status = 'Success'" . $whereClause;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $totalExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
     // Get total clients
-    $stmt = $pdo->query("SELECT COUNT(*) as total FROM inventory_clients WHERE status = 'Active'");
+    $clientWhereClause = isMaster() ? "" : (isAdmin() ? " AND added_by IN ($placeholders)" : " AND 1=0");
+    $sql = "SELECT COUNT(*) as total FROM inventory_clients WHERE status = 'Active'" . $clientWhereClause;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $totalClients = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
     // Today's stats
     $today = date('Y-m-d');
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date = :date AND payment_status = 'Success'");
-    $stmt->execute([':date' => $today]);
+    $todayParams = array_merge([':date' => $today], $params);
+    
+    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date = :date AND payment_status = 'Success'" . $whereClause;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($todayParams);
     $todayIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date = :date AND payment_status = 'Success'");
-    $stmt->execute([':date' => $today]);
+    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date = :date AND payment_status = 'Success'" . $whereClause;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($todayParams);
     $todayExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
     // This month's stats
     $monthStart = date('Y-m-01');
     $monthEnd = date('Y-m-t');
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date BETWEEN :start AND :end AND payment_status = 'Success'");
-    $stmt->execute([':start' => $monthStart, ':end' => $monthEnd]);
+    $monthParams = array_merge([':start' => $monthStart, ':end' => $monthEnd], $params);
+    
+    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date BETWEEN :start AND :end AND payment_status = 'Success'" . $whereClause;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($monthParams);
     $monthIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date BETWEEN :start AND :end AND payment_status = 'Success'");
-    $stmt->execute([':start' => $monthStart, ':end' => $monthEnd]);
+    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date BETWEEN :start AND :end AND payment_status = 'Success'" . $whereClause;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($monthParams);
     $monthExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
     // This year's stats
     $yearStart = date('Y-01-01');
     $yearEnd = date('Y-12-31');
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date BETWEEN :start AND :end AND payment_status = 'Success'");
-    $stmt->execute([':start' => $yearStart, ':end' => $yearEnd]);
+    $yearParams = array_merge([':start' => $yearStart, ':end' => $yearEnd], $params);
+    
+    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date BETWEEN :start AND :end AND payment_status = 'Success'" . $whereClause;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($yearParams);
     $yearIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date BETWEEN :start AND :end AND payment_status = 'Success'");
-    $stmt->execute([':start' => $yearStart, ':end' => $yearEnd]);
+    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date BETWEEN :start AND :end AND payment_status = 'Success'" . $whereClause;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($yearParams);
     $yearExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
     // Get pending amount (income with Pending status)
-    $stmt = $pdo->query("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE payment_status = 'Pending'");
+    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE payment_status = 'Pending'" . $whereClause;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $pendingAmount = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
     echo json_encode([
@@ -268,24 +327,56 @@ function getRecentTransactions() {
     
     $limit = intval($_GET['limit'] ?? 10);
     
-    $sql = "
-        (SELECT 'income' as type, i.id, i.date, i.category, i.description, i.amount, c.name as client_name
-         FROM inventory_income i
-         LEFT JOIN inventory_clients c ON i.client_id = c.id
-         ORDER BY i.date DESC, i.id DESC
-         LIMIT :limit)
-        UNION ALL
-        (SELECT 'expense' as type, e.id, e.date, e.category, e.description, e.amount, e.vendor as client_name
-         FROM inventory_expense e
-         ORDER BY e.date DESC, e.id DESC
-         LIMIT :limit)
-        ORDER BY date DESC, id DESC
-        LIMIT :limit
-    ";
+    if (isMaster()) {
+        // Master can see all transactions
+        $sql = "
+            (SELECT 'income' as type, i.id, i.date, i.category, i.description, i.amount, c.name as client_name
+             FROM inventory_income i
+             LEFT JOIN inventory_clients c ON i.client_id = c.id
+             ORDER BY i.date DESC, i.id DESC
+             LIMIT :limit)
+            UNION ALL
+            (SELECT 'expense' as type, e.id, e.date, e.category, e.description, e.amount, e.vendor as client_name
+             FROM inventory_expense e
+             ORDER BY e.date DESC, e.id DESC
+             LIMIT :limit)
+            ORDER BY date DESC, id DESC
+            LIMIT :limit
+        ";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+    } elseif (isAdmin()) {
+        // Admin can see only transactions added by their users
+        $allowedUsers = getUsersUnderAdmin($pdo);
+        if (empty($allowedUsers)) {
+            echo json_encode(['success' => true, 'data' => []]);
+            return;
+        }
+        $placeholders = str_repeat('?,', count($allowedUsers) - 1) . '?';
+        $sql = "
+            (SELECT 'income' as type, i.id, i.date, i.category, i.description, i.amount, c.name as client_name
+             FROM inventory_income i
+             LEFT JOIN inventory_clients c ON i.client_id = c.id
+             WHERE i.added_by IN ($placeholders)
+             ORDER BY i.date DESC, i.id DESC
+             LIMIT $limit)
+            UNION ALL
+            (SELECT 'expense' as type, e.id, e.date, e.category, e.description, e.amount, e.vendor as client_name
+             FROM inventory_expense e
+             WHERE e.added_by IN ($placeholders)
+             ORDER BY e.date DESC, e.id DESC
+             LIMIT $limit)
+            ORDER BY date DESC, id DESC
+            LIMIT $limit
+        ";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(array_merge($allowedUsers, $allowedUsers));
+    } else {
+        echo json_encode(['success' => true, 'data' => []]);
+        return;
+    }
     
-    $stmt = $pdo->prepare($sql);
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->execute();
     $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
@@ -299,13 +390,34 @@ function getIncomeRecords() {
     global $pdo;
     ensureTablesExist();
     
-    // Show ALL income records
-    $sql = "SELECT i.*, c.name as client_name 
-            FROM inventory_income i
-            LEFT JOIN inventory_clients c ON i.client_id = c.id
-            ORDER BY i.date DESC, i.id DESC";
+    if (isMaster()) {
+        // Master can see all income records
+        $sql = "SELECT i.*, c.name as client_name 
+                FROM inventory_income i
+                LEFT JOIN inventory_clients c ON i.client_id = c.id
+                ORDER BY i.date DESC, i.id DESC";
+        $stmt = $pdo->query($sql);
+    } elseif (isAdmin()) {
+        // Admin can see only income records added by their users
+        $allowedUsers = getUsersUnderAdmin($pdo);
+        if (empty($allowedUsers)) {
+            echo json_encode(['success' => true, 'data' => []]);
+            return;
+        }
+        $placeholders = str_repeat('?,', count($allowedUsers) - 1) . '?';
+        $sql = "SELECT i.*, c.name as client_name 
+                FROM inventory_income i
+                LEFT JOIN inventory_clients c ON i.client_id = c.id
+                WHERE i.added_by IN ($placeholders)
+                ORDER BY i.date DESC, i.id DESC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($allowedUsers);
+    } else {
+        // Other roles have no access
+        echo json_encode(['success' => true, 'data' => []]);
+        return;
+    }
     
-    $stmt = $pdo->query($sql);
     $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
@@ -337,8 +449,8 @@ function addIncome() {
     global $pdo;
     ensureTablesExist();
     
-    $sql = "INSERT INTO inventory_income (date, category, client_id, description, amount, payment_method, payment_status, notes, created_at)
-            VALUES (:date, :category, :client_id, :description, :amount, :payment_method, :payment_status, :notes, NOW())";
+    $sql = "INSERT INTO inventory_income (date, category, client_id, description, amount, payment_method, payment_status, notes, added_by, created_at)
+            VALUES (:date, :category, :client_id, :description, :amount, :payment_method, :payment_status, :notes, :added_by, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -349,7 +461,8 @@ function addIncome() {
         ':amount' => $_POST['amount'],
         ':payment_method' => $_POST['payment_method'],
         ':payment_status' => $_POST['payment_status'] ?? 'Success',
-        ':notes' => $_POST['notes'] ?? ''
+        ':notes' => $_POST['notes'] ?? '',
+        ':added_by' => getCurrentUserId()
     ]);
     
     echo json_encode([
@@ -406,11 +519,29 @@ function getExpenseRecords() {
     global $pdo;
     ensureTablesExist();
     
-    // Show ALL expense records
-    $sql = "SELECT * FROM inventory_expense 
-            ORDER BY date DESC, id DESC";
+    if (isMaster()) {
+        // Master can see all expense records
+        $sql = "SELECT * FROM inventory_expense ORDER BY date DESC, id DESC";
+        $stmt = $pdo->query($sql);
+    } elseif (isAdmin()) {
+        // Admin can see only expense records added by their users
+        $allowedUsers = getUsersUnderAdmin($pdo);
+        if (empty($allowedUsers)) {
+            echo json_encode(['success' => true, 'data' => []]);
+            return;
+        }
+        $placeholders = str_repeat('?,', count($allowedUsers) - 1) . '?';
+        $sql = "SELECT * FROM inventory_expense 
+                WHERE added_by IN ($placeholders)
+                ORDER BY date DESC, id DESC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($allowedUsers);
+    } else {
+        // Other roles have no access
+        echo json_encode(['success' => true, 'data' => []]);
+        return;
+    }
     
-    $stmt = $pdo->query($sql);
     $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
@@ -442,8 +573,8 @@ function addExpense() {
     global $pdo;
     ensureTablesExist();
     
-    $sql = "INSERT INTO inventory_expense (date, category, vendor, description, amount, payment_method, payment_status, invoice_number, notes, created_at)
-            VALUES (:date, :category, :vendor, :description, :amount, :payment_method, :payment_status, :invoice_number, :notes, NOW())";
+    $sql = "INSERT INTO inventory_expense (date, category, vendor, description, amount, payment_method, payment_status, invoice_number, notes, added_by, created_at)
+            VALUES (:date, :category, :vendor, :description, :amount, :payment_method, :payment_status, :invoice_number, :notes, :added_by, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -455,7 +586,8 @@ function addExpense() {
         ':payment_method' => $_POST['payment_method'],
         ':payment_status' => $_POST['payment_status'] ?? 'Success',
         ':invoice_number' => $_POST['invoice_number'] ?? '',
-        ':notes' => $_POST['notes'] ?? ''
+        ':notes' => $_POST['notes'] ?? '',
+        ':added_by' => getCurrentUserId()
     ]);
     
     echo json_encode([
@@ -566,24 +698,60 @@ function getClientDetails() {
     
     $id = intval($_GET['id'] ?? 0);
     
-    // Get client info
-    $stmt = $pdo->prepare("SELECT * FROM inventory_clients WHERE id = :id");
-    $stmt->execute([':id' => $id]);
+    // Check if user has access to this client
+    if (isMaster()) {
+        // Master can see all clients
+        $stmt = $pdo->prepare("SELECT * FROM inventory_clients WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+    } elseif (isAdmin()) {
+        // Admin can see only clients added by their users
+        $allowedUsers = getUsersUnderAdmin($pdo);
+        if (empty($allowedUsers)) {
+            throw new Exception('Client not found');
+        }
+        $placeholders = str_repeat('?,', count($allowedUsers) - 1) . '?';
+        $stmt = $pdo->prepare("SELECT * FROM inventory_clients WHERE id = :id AND added_by IN ($placeholders)");
+        $params = array_merge([':id' => $id], $allowedUsers);
+        $stmt->execute($params);
+    } else {
+        throw new Exception('Access denied');
+    }
+    
     $client = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$client) {
         throw new Exception('Client not found');
     }
     
-    // Get ALL client transactions with payment status
-    $stmt = $pdo->prepare("
-        SELECT id, 'income' as type, date, description, amount, payment_status as status
-        FROM inventory_income 
-        WHERE client_id = :id 
-        ORDER BY date DESC
-    ");
-    $stmt->execute([':id' => $id]);
-    $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Get client transactions with role-based filtering
+    if (isMaster()) {
+        // Master can see all transactions for this client
+        $stmt = $pdo->prepare("
+            SELECT id, 'income' as type, date, description, amount, payment_status as status
+            FROM inventory_income 
+            WHERE client_id = :id 
+            ORDER BY date DESC
+        ");
+        $stmt->execute([':id' => $id]);
+    } elseif (isAdmin()) {
+        // Admin can see only transactions added by their users
+        $allowedUsers = getUsersUnderAdmin($pdo);
+        if (empty($allowedUsers)) {
+            $transactions = [];
+        } else {
+            $placeholders = str_repeat('?,', count($allowedUsers) - 1) . '?';
+            $stmt = $pdo->prepare("
+                SELECT id, 'income' as type, date, description, amount, payment_status as status
+                FROM inventory_income 
+                WHERE client_id = :id AND added_by IN ($placeholders)
+                ORDER BY date DESC
+            ");
+            $params = array_merge([':id' => $id], $allowedUsers);
+            $stmt->execute($params);
+        }
+    }
+    
+    $transactions = isset($stmt) ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
     
     // Map payment_status to status for consistency
     foreach ($transactions as &$trans) {
@@ -595,10 +763,23 @@ function getClientDetails() {
         // 'Pending' stays as 'Pending'
     }
     
-    // Get total amount (only successful/completed transactions)
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE client_id = :id AND payment_status = 'Success'");
-    $stmt->execute([':id' => $id]);
-    $totalAmount = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    // Get total amount (only successful/completed transactions) with role filtering
+    if (isMaster()) {
+        $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE client_id = :id AND payment_status = 'Success'");
+        $stmt->execute([':id' => $id]);
+    } elseif (isAdmin()) {
+        $allowedUsers = getUsersUnderAdmin($pdo);
+        if (empty($allowedUsers)) {
+            $totalAmount = 0;
+        } else {
+            $placeholders = str_repeat('?,', count($allowedUsers) - 1) . '?';
+            $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE client_id = :id AND payment_status = 'Success' AND added_by IN ($placeholders)");
+            $params = array_merge([':id' => $id], $allowedUsers);
+            $stmt->execute($params);
+        }
+    }
+    
+    $totalAmount = isset($stmt) ? $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
     
     echo json_encode([
         'success' => true,
