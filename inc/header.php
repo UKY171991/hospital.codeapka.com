@@ -1,3 +1,6 @@
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6456645363857524"
+     crossorigin="anonymous"></script>
+
 <?php
 // Shared header: expects $page variable to be set (e.g. 'home','about','contact','pricing')
 ?>
