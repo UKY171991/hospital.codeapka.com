@@ -61,6 +61,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css?v=2.2">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
   <?php include_once __DIR__ . '/inc/header.php'; ?>
