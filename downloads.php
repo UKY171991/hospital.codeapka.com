@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Downloads — Advanced Pathology & Hospital Management System</title>
   <meta name="description" content="Download the latest software releases and updates for the Hospital Management System.">
+  <meta name="keywords" content="hospital management download, healthcare software download, medical system updates, pathology lab software, hospital administration software download">
   
   <!-- CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">

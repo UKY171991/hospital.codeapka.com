@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Welcome — Pathology & Hospital Management</title>
   <meta name="description" content="Transform your healthcare operations with our comprehensive hospital management system. Trusted by 500+ facilities worldwide.">
+  <meta name="keywords" content="hospital management system, pathology lab, healthcare software, medical management, patient records, hospital administration, healthcare operations, medical billing, hospital software">
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">

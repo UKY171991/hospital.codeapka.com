@@ -5,6 +5,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Pricing — Pathology & Hospital Management</title>
+  <meta name="description" content="Explore flexible and transparent pricing plans for our hospital management system. Choose the perfect plan for your healthcare facility.">
+  <meta name="keywords" content="hospital management pricing, healthcare software cost, medical system plans, pathology lab pricing, hospital administration pricing, healthcare software packages">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css?v=2.2">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">

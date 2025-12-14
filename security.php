@@ -5,6 +5,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Security — Pathology & Hospital Management</title>
+  <meta name="description" content="Discover our comprehensive security measures and protocols that protect your healthcare data and ensure system reliability.">
+  <meta name="keywords" content="healthcare security, hospital management security, medical data protection, pathology lab security, hospital administration security, patient data safety">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css?v=2.2">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">

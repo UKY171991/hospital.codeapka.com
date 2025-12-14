@@ -5,6 +5,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Privacy Policy — Pathology & Hospital Management</title>
+  <meta name="description" content="Read our comprehensive privacy policy to understand how we protect your data and ensure compliance with healthcare privacy regulations.">
+  <meta name="keywords" content="privacy policy, healthcare privacy, data protection, hospital management privacy, patient data security, HIPAA compliance, medical privacy">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css?v=2.2">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
