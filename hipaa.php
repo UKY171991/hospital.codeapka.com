@@ -8,6 +8,7 @@
   <meta name="description" content="Learn about our HIPAA compliance measures and how we ensure the security and privacy of patient health information.">
   <meta name="keywords" content="HIPAA compliance, healthcare security, patient data protection, hospital management HIPAA, medical privacy compliance, pathology lab security">
   <link rel="canonical" href="https://hospital.codeapka.com/hipaa.php">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css?v=2.2">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">

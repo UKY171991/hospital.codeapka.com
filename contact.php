@@ -59,6 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <meta name="description" content="Get in touch with our team for inquiries, support, or to schedule a demo of our hospital management system.">
   <meta name="keywords" content="hospital management contact, healthcare software support, medical system demo, hospital administration contact, pathology lab support">
   <link rel="canonical" href="https://hospital.codeapka.com/contact.php">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">

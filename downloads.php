@@ -8,6 +8,7 @@
   <meta name="description" content="Download the latest software releases and updates for the Hospital Management System.">
   <meta name="keywords" content="hospital management download, healthcare software download, medical system updates, pathology lab software, hospital administration software download">
   <link rel="canonical" href="https://hospital.codeapka.com/downloads.php">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   
   <!-- CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
