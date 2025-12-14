@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+
+# Allow search engines to crawl all pages
+Allow: /index.php
+Allow: /about.php
+Allow: /contact.php
+Allow: /pricing.php
+Allow: /downloads.php
+Allow: /privacy.php
+Allow: /terms.php
+Allow: /hipaa.php
+Allow: /security.php
+Allow: /assets/
+Allow: /favicon.svg
+Allow: /favicon.ico
+
+# Disallow admin and system directories
+Disallow: /umakant/
+Disallow: /inc/
+Disallow: /*.sql$
+Disallow: /*.log$
+
+# Sitemap location
+Sitemap: https://hospital.codeapka.com/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1
