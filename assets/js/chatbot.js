@@ -209,5 +209,8 @@ class HospitalChatbot {
 
 // Initialize chatbot when page loads
 document.addEventListener('DOMContentLoaded', () => {
-  new HospitalChatbot();
+  // Check if chatbot already exists to prevent duplicates
+  if (!document.querySelector('.ai-chatbot')) {
+    new HospitalChatbot();
+  }
 });
