@@ -59,7 +59,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="favicon.svg">
   <link rel="shortcut icon" type="image/x-icon" href="favicon.svg">
-  <link rel="stylesheet" href="assets/css/chatbot.css">
 </head>
 <body>
   <?php include_once __DIR__ . '/inc/header.php'; ?>
@@ -285,6 +284,5 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     }
   </style>
-  <script src="assets/js/chatbot.js"></script>
 </body>
 </html>
