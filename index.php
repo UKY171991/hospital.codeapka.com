@@ -10,6 +10,49 @@
   <link rel="canonical" href="https://hospital.codeapka.com/">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Pathology & Hospital Management",
+    "url": "https://hospital.codeapka.com",
+    "logo": "https://hospital.codeapka.com/favicon.svg",
+    "description": "Comprehensive hospital management system and healthcare software solutions for medical facilities worldwide.",
+    "foundingDate": "2010",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "IN"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+91-XXXXXXXXXX",
+      "contactType": "customer service",
+      "availableLanguage": ["English", "Hindi"]
+    },
+    "sameAs": [
+      "https://hospital.codeapka.com"
+    ],
+    "serviceType": "Healthcare Software Development",
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Hospital Management Solutions",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "name": "Hospital Management System",
+          "description": "Complete hospital administration and patient management software"
+        },
+        {
+          "@type": "Offer", 
+          "name": "Pathology Lab Software",
+          "description": "Specialized software for pathology laboratory operations"
+        }
+      ]
+    }
+  }
+  </script>
+  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="assets/css/style.css?v=2.2">

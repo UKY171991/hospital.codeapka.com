@@ -9,6 +9,28 @@
   <meta name="keywords" content="hospital management pricing, healthcare software cost, medical system plans, pathology lab pricing, hospital administration pricing, healthcare software packages">
   <link rel="canonical" href="https://hospital.codeapka.com/pricing.php">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Hospital Management Pricing Plans",
+    "description": "Explore flexible and transparent pricing plans for our hospital management system. Choose the perfect plan for your healthcare facility.",
+    "url": "https://hospital.codeapka.com/pricing.php",
+    "mainEntity": {
+      "@type": "Organization",
+      "name": "Pathology & Hospital Management",
+      "url": "https://hospital.codeapka.com",
+      "logo": "https://hospital.codeapka.com/favicon.svg",
+      "offers": {
+        "@type": "AggregateOffer",
+        "name": "Hospital Management Software Plans",
+        "description": "Flexible pricing plans for healthcare facilities of all sizes"
+      }
+    }
+  }
+  </script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css?v=2.2">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
