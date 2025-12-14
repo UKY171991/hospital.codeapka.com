@@ -7,6 +7,7 @@
   <title>Terms of Service — Pathology & Hospital Management</title>
   <meta name="description" content="Review our terms of service to understand the terms and conditions for using our hospital management system.">
   <meta name="keywords" content="terms of service, hospital management terms, healthcare software terms, medical system conditions, pathology lab terms, hospital administration terms">
+  <link rel="canonical" href="https://hospital.codeapka.com/terms.php">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css?v=2.2">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
