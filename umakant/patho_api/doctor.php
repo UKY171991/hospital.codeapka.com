@@ -88,6 +88,9 @@ try {
         case 'stats':
             handleStats($pdo, $user_data);
             break;
+        case 'cleanup_duplicates':
+            handleCleanupDuplicates($pdo, $user_data);
+            break;
         case 'debug':
             handleDebug($pdo, $user_data);
             break;
@@ -183,19 +186,7 @@ function handleSave($pdo, $config, $user_data) {
 
     $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
     $id = $input['id'] ?? null;
-
-    if ($id) { // Update
-        $stmt = $pdo->prepare("SELECT added_by FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
-        $stmt->execute([$id]);
-        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$existing) {
-            json_response(['success' => false, 'message' => 'Doctor not found'], 404);
-        }
-        $scopeIds = getScopedUserIds($pdo, $user_data);
-        if (is_array($scopeIds) && !in_array((int)$existing['added_by'], $scopeIds, true)) {
-            json_response(['success' => false, 'message' => 'Permission denied to update this doctor'], 403);
-        }
-    }
+    $server_id = $input['server_id'] ?? null;
 
     foreach ($config['required_fields'] as $field) {
         if (empty($input[$field])) {
@@ -205,7 +196,54 @@ function handleSave($pdo, $config, $user_data) {
 
     $data = array_intersect_key($input, array_flip($config['allowed_fields']));
     
-    if ($id) {
+    // Check for duplicates based on key fields
+    $duplicateCheck = checkForDuplicates($pdo, $data, $user_data['user_id'], $server_id, $id);
+    
+    if ($duplicateCheck['has_duplicates']) {
+        // Clean up duplicates first
+        cleanupDuplicates($pdo, $duplicateCheck['duplicate_ids'], $user_data['user_id']);
+        
+        // If we found an existing record to update
+        if ($duplicateCheck['existing_id']) {
+            $id = $duplicateCheck['existing_id'];
+        }
+    }
+    
+    if ($id) { // Update existing record
+        $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $stmt->execute([$id]);
+        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$existing) {
+            json_response(['success' => false, 'message' => 'Doctor not found'], 404);
+        }
+        
+        $scopeIds = getScopedUserIds($pdo, $user_data);
+        if (is_array($scopeIds) && !in_array((int)$existing['added_by'], $scopeIds, true)) {
+            json_response(['success' => false, 'message' => 'Permission denied to update this doctor'], 403);
+        }
+        
+        // Check if data has actually changed
+        $hasChanges = false;
+        foreach ($data as $key => $newValue) {
+            $oldValue = $existing[$key] ?? null;
+            if ($oldValue !== $newValue) {
+                $hasChanges = true;
+                break;
+            }
+        }
+        
+        if (!$hasChanges) {
+            // No changes needed, return existing data
+            json_response([
+                'success' => true,
+                'message' => 'Doctor data is already up to date',
+                'data' => $existing,
+                'id' => $id,
+                'updated' => false
+            ]);
+        }
+        
         // For updates, preserve original added_by and server_id
         unset($data['added_by']);
         unset($data['server_id']);
@@ -217,8 +255,9 @@ function handleSave($pdo, $config, $user_data) {
         $stmt->execute($values);
         $doctor_id = $id;
         $action_status = 'updated';
+        
     } else {
-        // For new records, set added_by if not provided
+        // Insert new record
         $data['added_by'] = $data['added_by'] ?? $user_data['user_id'];
         
         $cols = implode(', ', array_keys($data));
@@ -238,7 +277,8 @@ function handleSave($pdo, $config, $user_data) {
         'success' => true,
         'message' => "Doctor {$action_status} successfully",
         'data' => $saved_doctor,
-        'id' => $doctor_id
+        'id' => $doctor_id,
+        'updated' => ($action_status === 'updated')
     ]);
 }
 
@@ -471,6 +511,109 @@ function handleHospitals($pdo, $user_data) {
 }
 
 /**
+ * Handle manual cleanup of duplicate doctor records
+ */
+function handleCleanupDuplicates($pdo, $user_data) {
+    if (!simpleCheckPermission($user_data, 'delete')) {
+        json_response(['success' => false, 'message' => 'Permission denied to cleanup duplicates'], 403);
+    }
+
+    $userId = $user_data['user_id'];
+    $scopeIds = getScopedUserIds($pdo, $user_data);
+    
+    // Build user scope condition
+    if (is_array($scopeIds)) {
+        $placeholders = implode(',', array_fill(0, count($scopeIds), '?'));
+        $userCondition = "added_by IN ($placeholders)";
+        $userParams = $scopeIds;
+    } else {
+        $userCondition = "1=1"; // Admin can see all
+        $userParams = [];
+    }
+
+    try {
+        // Find potential duplicates by grouping on key fields
+        $sql = "
+            SELECT GROUP_CONCAT(id) as duplicate_ids, 
+                   COUNT(*) as duplicate_count,
+                   name, contact_no, email, registration_no, server_id,
+                   MAX(created_at) as latest_created_at
+            FROM doctors 
+            WHERE $userCondition
+            AND (name IS NOT NULL AND name != '' OR contact_no IS NOT NULL AND contact_no != '')
+            GROUP BY name, contact_no, email, registration_no, server_id
+            HAVING duplicate_count > 1
+            ORDER BY duplicate_count DESC, latest_created_at DESC
+        ";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($userParams);
+        $duplicateGroups = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $totalDuplicates = 0;
+        $totalCleaned = 0;
+        $cleanupResults = [];
+        
+        foreach ($duplicateGroups as $group) {
+            $duplicateIds = explode(',', $group['duplicate_ids']);
+            $totalDuplicates += count($duplicateIds);
+            
+            // Keep the most recent one, delete the rest
+            $primaryId = array_shift($duplicateIds); // Remove first (most recent) from duplicates
+            
+            if (!empty($duplicateIds)) {
+                $cleanupResult = [
+                    'group_info' => [
+                        'name' => $group['name'],
+                        'contact_no' => $group['contact_no'],
+                        'duplicate_count' => $group['duplicate_count']
+                    ],
+                    'kept_id' => $primaryId,
+                    'deleted_ids' => $duplicateIds,
+                    'deleted_count' => 0
+                ];
+                
+                // Delete duplicates one by one to check constraints
+                foreach ($duplicateIds as $duplicateId) {
+                    $constraintCheck = checkDoctorConstraints($pdo, $duplicateId);
+                    if ($constraintCheck['can_delete']) {
+                        $stmt = $pdo->prepare("DELETE FROM doctors WHERE id = ?");
+                        $stmt->execute([$duplicateId]);
+                        $deleted = $stmt->rowCount();
+                        if ($deleted > 0) {
+                            $totalCleaned++;
+                            $cleanupResult['deleted_count']++;
+                        }
+                    } else {
+                        $cleanupResult['skipped_ids'][] = [
+                            'id' => $duplicateId,
+                            'reason' => $constraintCheck['reason']
+                        ];
+                    }
+                }
+                
+                $cleanupResults[] = $cleanupResult;
+            }
+        }
+        
+        json_response([
+            'success' => true,
+            'message' => "Duplicate cleanup completed",
+            'data' => [
+                'total_duplicate_groups' => count($duplicateGroups),
+                'total_duplicates_found' => $totalDuplicates,
+                'total_duplicates_cleaned' => $totalCleaned,
+                'cleanup_results' => $cleanupResults
+            ]
+        ]);
+        
+    } catch (Exception $e) {
+        error_log("Error in cleanup duplicates: " . $e->getMessage());
+        json_response(['success' => false, 'message' => 'Error during cleanup: ' . $e->getMessage()], 500);
+    }
+}
+
+/**
  * Debug endpoint to help troubleshoot API issues
  */
 function handleDebug($pdo, $user_data) {
@@ -521,4 +664,105 @@ function handleDebug($pdo, $user_data) {
 
     json_response($debugInfo);
 }
+
+/**
+ * Check for duplicate doctor records based on key fields
+ */
+function checkForDuplicates($pdo, $data, $userId, $serverId = null, $excludeId = null) {
+    $duplicateFields = ['name', 'contact_no', 'email', 'registration_no'];
+    $conditions = [];
+    $params = [];
+    
+    // Build conditions for each field that has a value
+    foreach ($duplicateFields as $field) {
+        if (!empty($data[$field])) {
+            $conditions[] = "$field = ?";
+            $params[] = $data[$field];
+        }
+    }
+    
+    if (empty($conditions)) {
+        return ['has_duplicates' => false, 'duplicate_ids' => [], 'existing_id' => null];
+    }
+    
+    // Add user scope condition
+    $conditions[] = "added_by = ?";
+    $params[] = $userId;
+    
+    // Add server_id condition if provided
+    if ($serverId !== null) {
+        $conditions[] = "(server_id = ? OR server_id IS NULL)";
+        $params[] = $serverId;
+    }
+    
+    // Exclude current ID if updating
+    if ($excludeId) {
+        $conditions[] = "id != ?";
+        $params[] = $excludeId;
+    }
+    
+    $whereClause = implode(' AND ', $conditions);
+    $sql = "SELECT id, name, contact_no, email, registration_no, server_id, created_at FROM doctors WHERE $whereClause ORDER BY created_at DESC";
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $duplicates = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    if (empty($duplicates)) {
+        return ['has_duplicates' => false, 'duplicate_ids' => [], 'existing_id' => null];
+    }
+    
+    // Keep the most recent record as the primary one
+    $primaryRecord = $duplicates[0];
+    $duplicateIds = [];
+    
+    // Find all other duplicates (excluding the most recent one)
+    foreach ($duplicates as $index => $record) {
+        if ($index > 0) { // Skip the first (most recent) record
+            $duplicateIds[] = $record['id'];
+        }
+    }
+    
+    return [
+        'has_duplicates' => true,
+        'duplicate_ids' => $duplicateIds,
+        'existing_id' => $primaryRecord['id'],
+        'primary_record' => $primaryRecord
+    ];
+}
+
+/**
+ * Clean up duplicate doctor records
+ */
+function cleanupDuplicates($pdo, $duplicateIds, $userId) {
+    if (empty($duplicateIds)) {
+        return;
+    }
+    
+    $placeholders = implode(',', array_fill(0, count($duplicateIds), '?'));
+    
+    try {
+        $deletedCount = 0;
+        // Check for foreign key constraints before deletion
+        foreach ($duplicateIds as $doctorId) {
+            $constraintCheck = checkDoctorConstraints($pdo, $doctorId);
+            if (!$constraintCheck['can_delete']) {
+                error_log("Cannot cleanup duplicate doctor ID $doctorId due to constraints: " . $constraintCheck['reason']);
+                continue; // Skip this doctor but try others
+            }
+            
+            // Delete this specific duplicate
+            $stmt = $pdo->prepare("DELETE FROM doctors WHERE id = ? AND added_by = ?");
+            $stmt->execute([$doctorId, $userId]);
+            $deletedCount += $stmt->rowCount();
+        }
+        if ($deletedCount > 0) {
+            error_log("Cleaned up $deletedCount duplicate doctor records for user $userId");
+        }
+        
+    } catch (Exception $e) {
+        error_log("Error cleaning up duplicate doctors: " . $e->getMessage());
+    }
+}
+
 ?>
