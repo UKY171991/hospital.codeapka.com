@@ -25,7 +25,7 @@ try{
         }
 
         if ($hasTable) {
-            $stmt = $pdo->query("SELECT z.id, z.file_name, z.original_name, z.relative_path, z.mime_type, z.file_size, z.uploaded_by, z.status, z.created_at, u.username AS uploaded_by_username FROM zip_uploads z LEFT JOIN users u ON z.uploaded_by = u.id ORDER BY z.created_at DESC");
+            $stmt = $pdo->query("SELECT z.id, z.file_name, z.original_name, z.relative_path, z.mime_type, z.file_size, z.uploaded_by, z.status, z.created_at, u.username AS uploaded_by_username FROM zip_uploads z LEFT JOIN users u ON z.uploaded_by = u.id ORDER BY z.created_at DESC, z.id DESC");
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } else {
             if ($uploadsDir && is_dir($uploadsDir)) {

@@ -204,7 +204,7 @@
             }
           }
         ],
-        order: [[3, 'desc']], // Sort by date descending
+        order: [], // Disable initial sorting since data is pre-sorted from server
         language: {
           emptyTable: "No downloads available at the moment."
         },
