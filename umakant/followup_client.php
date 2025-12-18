@@ -158,6 +158,87 @@ $(document).ready(function() {
         });
     });
 
+    // View Client
+    $(document).on('click', '.view-client', function() {
+        const id = $(this).data('id');
+        $.ajax({
+            url: 'ajax/followup_client_api.php',
+            type: 'GET',
+            data: { action: 'get_client', id: id },
+            success: function(response) {
+                if (response.success) {
+                    const client = response.data;
+                    const modal = `
+                        <div class="modal fade" id="viewClientModal" tabindex="-1" role="dialog">
+                            <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Client Details</h5>
+                                        <button type="button" class="close" data-dismiss="modal">
+                                            <span>&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p><strong>Name:</strong> ${client.name}</p>
+                                                <p><strong>Phone:</strong> ${client.phone}</p>
+                                                <p><strong>Email:</strong> ${client.email || 'N/A'}</p>
+                                                <p><strong>Company:</strong> ${client.company || 'N/A'}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p><strong>Followup Message:</strong></p>
+                                                <p>${client.followup_message || 'N/A'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Remove existing modal if any
+                    $('#viewClientModal').remove();
+                    $('body').append(modal);
+                    $('#viewClientModal').modal('show');
+                } else {
+                    toastr.error(response.message || 'Error fetching client details');
+                }
+            },
+            error: function() {
+                toastr.error('Server error occurred');
+            }
+        });
+    });
+
+    // WhatsApp Client
+    $(document).on('click', '.whatsapp-client', function() {
+        const phone = $(this).data('phone');
+        if (!phone) {
+            toastr.error('Phone number not available');
+            return;
+        }
+        
+        // Remove any non-digit characters
+        const cleanPhone = phone.replace(/\D/g, '');
+        const whatsappUrl = `https://wa.me/${cleanPhone}`;
+        window.open(whatsappUrl, '_blank');
+    });
+
+    // Email Client
+    $(document).on('click', '.email-client', function() {
+        const email = $(this).data('email');
+        if (!email) {
+            toastr.error('Email address not available');
+            return;
+        }
+        
+        window.location.href = `mailto:${email}`;
+    });
+
     // Edit Client
     $(document).on('click', '.edit-client', function() {
         const id = $(this).data('id');
@@ -265,10 +346,19 @@ function loadClients(page) {
                             <td>${client.company || '-'}</td>
                             <td>${client.followup_message ? (client.followup_message.length > 50 ? client.followup_message.substring(0, 50) + '...' : client.followup_message) : '-'}</td>
                             <td>
-                                <button class="btn btn-sm btn-info edit-client" data-id="${client.id}">
+                                <button class="btn btn-sm btn-info view-client" data-id="${client.id}" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-success whatsapp-client" data-phone="${client.phone}" title="WhatsApp">
+                                    <i class="fab fa-whatsapp"></i>
+                                </button>
+                                <button class="btn btn-sm btn-warning email-client" data-email="${client.email}" title="Email">
+                                    <i class="fas fa-envelope"></i>
+                                </button>
+                                <button class="btn btn-sm btn-primary edit-client" data-id="${client.id}" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn btn-sm btn-danger delete-client" data-id="${client.id}">
+                                <button class="btn btn-sm btn-danger delete-client" data-id="${client.id}" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
