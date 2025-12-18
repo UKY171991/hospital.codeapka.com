@@ -79,8 +79,6 @@ require_once 'inc/sidebar.php';
                                         <th>Name</th>
                                         <th>Phone</th>
                                         <th>Email</th>
-                                        <th>Company</th>
-                                        <th>Followup Message</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -330,7 +328,7 @@ function loadClients(page) {
                 tbody.empty();
                 
                 if (response.data.length === 0) {
-                    tbody.append('<tr><td colspan="7" class="text-center">No clients found</td></tr>');
+                    tbody.append('<tr><td colspan="5" class="text-center">No clients found</td></tr>');
                     $('#pagination').empty();
                     return;
                 }
@@ -343,8 +341,6 @@ function loadClients(page) {
                             <td>${client.name}</td>
                             <td>${client.phone}</td>
                             <td>${client.email || '-'}</td>
-                            <td>${client.company || '-'}</td>
-                            <td>${client.followup_message ? (client.followup_message.length > 50 ? client.followup_message.substring(0, 50) + '...' : client.followup_message) : '-'}</td>
                             <td>
                                 <button class="btn btn-sm btn-info view-client" data-id="${client.id}" title="View">
                                     <i class="fas fa-eye"></i>
