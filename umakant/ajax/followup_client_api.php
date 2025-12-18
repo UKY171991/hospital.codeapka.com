@@ -63,10 +63,14 @@ function ensureTableExists() {
         `email` varchar(255) DEFAULT NULL,
         `phone` varchar(20) NOT NULL,
         `company` varchar(255) DEFAULT NULL,
+        `followup_message` text DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    
+    // Add followup_message column if it doesn't exist
+    $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `followup_message` text DEFAULT NULL AFTER `company`");
 }
 
 function getFollowupClients() {
@@ -158,7 +162,7 @@ function updateFollowupClient() {
     }
     
     $sql = "UPDATE followup_clients 
-            SET name = :name, email = :email, phone = :phone, company = :company, updated_at = NOW()
+            SET name = :name, email = :email, phone = :phone, company = :company, followup_message = :followup_message, updated_at = NOW()
             WHERE id = :id";
     
     $stmt = $pdo->prepare($sql);
@@ -167,7 +171,8 @@ function updateFollowupClient() {
         ':name' => $_POST['name'],
         ':email' => $email,
         ':phone' => $phone,
-        ':company' => $_POST['company'] ?? ''
+        ':company' => $_POST['company'] ?? '',
+        ':followup_message' => $_POST['followup_message'] ?? ''
     ]);
     
     echo json_encode([
@@ -208,15 +213,16 @@ function addFollowupClient() {
         }
     }
     
-    $sql = "INSERT INTO followup_clients (name, email, phone, company, created_at)
-            VALUES (:name, :email, :phone, :company, NOW())";
+    $sql = "INSERT INTO followup_clients (name, email, phone, company, followup_message, created_at)
+            VALUES (:name, :email, :phone, :company, :followup_message, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':name' => $_POST['name'],
         ':email' => $email,
         ':phone' => $phone,
-        ':company' => $_POST['company'] ?? ''
+        ':company' => $_POST['company'] ?? '',
+        ':followup_message' => $_POST['followup_message'] ?? ''
     ]);
     
     echo json_encode([

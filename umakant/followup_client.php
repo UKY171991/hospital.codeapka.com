@@ -52,6 +52,10 @@ require_once 'inc/sidebar.php';
                                     <label for="company">Company Name</label>
                                     <input type="text" class="form-control" id="company" name="company" placeholder="Enter company name">
                                 </div>
+                                <div class="form-group">
+                                    <label for="followup_message">Followup Message</label>
+                                    <textarea class="form-control" id="followup_message" name="followup_message" placeholder="Enter followup message" rows="3"></textarea>
+                                </div>
                             </div>
                             <div class="card-footer">
                                 <button type="submit" class="btn btn-primary">Add Client</button>
@@ -76,6 +80,7 @@ require_once 'inc/sidebar.php';
                                         <th>Phone</th>
                                         <th>Email</th>
                                         <th>Company</th>
+                                        <th>Followup Message</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -168,6 +173,7 @@ $(document).ready(function() {
                     $('#email').val(client.email);
                     $('#phone').val(client.phone);
                     $('#company').val(client.company);
+                    $('#followup_message').val(client.followup_message);
                     
                     // Change UI to Edit Mode
                     $('.card-title').text('Edit Client');
@@ -243,7 +249,7 @@ function loadClients(page) {
                 tbody.empty();
                 
                 if (response.data.length === 0) {
-                    tbody.append('<tr><td colspan="6" class="text-center">No clients found</td></tr>');
+                    tbody.append('<tr><td colspan="7" class="text-center">No clients found</td></tr>');
                     $('#pagination').empty();
                     return;
                 }
@@ -257,6 +263,7 @@ function loadClients(page) {
                             <td>${client.phone}</td>
                             <td>${client.email || '-'}</td>
                             <td>${client.company || '-'}</td>
+                            <td>${client.followup_message ? (client.followup_message.length > 50 ? client.followup_message.substring(0, 50) + '...' : client.followup_message) : '-'}</td>
                             <td>
                                 <button class="btn btn-sm btn-info edit-client" data-id="${client.id}">
                                     <i class="fas fa-edit"></i>
