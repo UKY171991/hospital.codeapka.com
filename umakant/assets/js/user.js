@@ -510,7 +510,7 @@ function populateViewUserModal(user) {
                 </label>
                 <div class="info-value">
                     <small class="text-muted">
-                        User ID: ${user.id} | 
+                        User ID: ${user.name} | 
                         Added by: ${user.added_by || 'System'} | 
                         Status: <span class="badge badge-${statusClass} badge-sm">${statusText}</span>
                     </small>
