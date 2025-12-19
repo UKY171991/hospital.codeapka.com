@@ -64,6 +64,7 @@ function ensureTableExists() {
         `phone` varchar(20) NOT NULL,
         `company` varchar(255) DEFAULT NULL,
         `followup_message` text DEFAULT NULL,
+        `added_by` int(11) DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
@@ -71,27 +72,53 @@ function ensureTableExists() {
     
     // Add followup_message column if it doesn't exist
     $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `followup_message` text DEFAULT NULL AFTER `company`");
+    
+    // Add added_by column if it doesn't exist
+    try {
+        $pdo->exec("ALTER TABLE followup_clients ADD COLUMN `added_by` int(11) DEFAULT NULL AFTER `followup_message`");
+    } catch (Exception $e) {
+        // Column already exists
+    }
 }
 
 function getFollowupClients() {
     global $pdo;
     ensureTableExists();
     
+    // Get user role and ID from session
+    $userRole = $_SESSION['role'] ?? 'user';
+    $userId = $_SESSION['user_id'] ?? null;
+    
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $limit = 10;
     $offset = ($page - 1) * $limit;
     
-    // Get total count
-    $countStmt = $pdo->query("SELECT COUNT(*) as total FROM followup_clients");
-    $totalRecords = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+    // Get total count - filtered by role
+    if ($userRole === 'master') {
+        $countStmt = $pdo->query("SELECT COUNT(*) as total FROM followup_clients");
+        $totalRecords = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+    } else {
+        $countStmt = $pdo->prepare("SELECT COUNT(*) as total FROM followup_clients WHERE added_by = :user_id");
+        $countStmt->execute([':user_id' => $userId]);
+        $totalRecords = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
     $totalPages = ceil($totalRecords / $limit);
     
-    // Get records
-    $sql = "SELECT * FROM followup_clients ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
-    $stmt = $pdo->prepare($sql);
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $stmt->execute();
+    // Get records - filtered by role
+    if ($userRole === 'master') {
+        $sql = "SELECT * FROM followup_clients ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+    } else {
+        $sql = "SELECT * FROM followup_clients WHERE added_by = :user_id ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+    }
     $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
@@ -110,8 +137,18 @@ function getFollowupClient() {
     
     $id = intval($_GET['id'] ?? 0);
     
-    $stmt = $pdo->prepare("SELECT * FROM followup_clients WHERE id = :id");
-    $stmt->execute([':id' => $id]);
+    // Get user role and ID from session
+    $userRole = $_SESSION['role'] ?? 'user';
+    $userId = $_SESSION['user_id'] ?? null;
+    
+    // Build query based on user role
+    if ($userRole === 'master') {
+        $stmt = $pdo->prepare("SELECT * FROM followup_clients WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+    } else {
+        $stmt = $pdo->prepare("SELECT * FROM followup_clients WHERE id = :id AND added_by = :user_id");
+        $stmt->execute([':id' => $id, ':user_id' => $userId]);
+    }
     $client = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$client) {
@@ -213,8 +250,8 @@ function addFollowupClient() {
         }
     }
     
-    $sql = "INSERT INTO followup_clients (name, email, phone, company, followup_message, created_at)
-            VALUES (:name, :email, :phone, :company, :followup_message, NOW())";
+    $sql = "INSERT INTO followup_clients (name, email, phone, company, followup_message, added_by, created_at)
+            VALUES (:name, :email, :phone, :company, :followup_message, :added_by, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -222,7 +259,8 @@ function addFollowupClient() {
         ':email' => $email,
         ':phone' => $phone,
         ':company' => $_POST['company'] ?? '',
-        ':followup_message' => $_POST['followup_message'] ?? ''
+        ':followup_message' => $_POST['followup_message'] ?? '',
+        ':added_by' => $_SESSION['user_id'] ?? null
     ]);
     
     echo json_encode([

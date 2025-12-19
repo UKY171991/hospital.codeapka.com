@@ -208,26 +208,51 @@ function getFollowups() {
     global $pdo;
     ensureTableExists();
     
+    // Get user role and ID from session
+    $userRole = $_SESSION['role'] ?? 'user';
+    $userId = $_SESSION['user_id'] ?? null;
+    
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $limit = 10;
     $offset = ($page - 1) * $limit;
     
-    // Get total count
-    $countStmt = $pdo->query("SELECT COUNT(*) as total FROM followups");
-    $totalRecords = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+    // Get total count - filtered by role
+    if ($userRole === 'master') {
+        $countStmt = $pdo->query("SELECT COUNT(*) as total FROM followups");
+        $totalRecords = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+    } else {
+        $countStmt = $pdo->prepare("SELECT COUNT(*) as total FROM followups f 
+                                   JOIN followup_clients c ON f.client_id = c.id 
+                                   WHERE c.added_by = :user_id");
+        $countStmt->execute([':user_id' => $userId]);
+        $totalRecords = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
     $totalPages = ceil($totalRecords / $limit);
     
-    // Get records with client details
-    $sql = "SELECT f.*, c.name as client_name, c.phone as client_phone, c.company as client_company 
-            FROM followups f
-            LEFT JOIN followup_clients c ON f.client_id = c.id
-            ORDER BY f.created_at DESC 
-            LIMIT :limit OFFSET :offset";
-            
-    $stmt = $pdo->prepare($sql);
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $stmt->execute();
+    // Get records with client details - filtered by role
+    if ($userRole === 'master') {
+        $sql = "SELECT f.*, c.name as client_name, c.phone as client_phone, c.company as client_company 
+                FROM followups f
+                LEFT JOIN followup_clients c ON f.client_id = c.id
+                ORDER BY f.created_at DESC 
+                LIMIT :limit OFFSET :offset";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+    } else {
+        $sql = "SELECT f.*, c.name as client_name, c.phone as client_phone, c.company as client_company 
+                FROM followups f
+                LEFT JOIN followup_clients c ON f.client_id = c.id
+                WHERE c.added_by = :user_id
+                ORDER BY f.created_at DESC 
+                LIMIT :limit OFFSET :offset";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+    }
     $followups = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
@@ -246,8 +271,20 @@ function getFollowup() {
     
     $id = intval($_GET['id'] ?? 0);
     
-    $stmt = $pdo->prepare("SELECT * FROM followups WHERE id = :id");
-    $stmt->execute([':id' => $id]);
+    // Get user role and ID from session
+    $userRole = $_SESSION['role'] ?? 'user';
+    $userId = $_SESSION['user_id'] ?? null;
+    
+    // Build query based on user role
+    if ($userRole === 'master') {
+        $stmt = $pdo->prepare("SELECT * FROM followups WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+    } else {
+        $stmt = $pdo->prepare("SELECT f.* FROM followups f 
+                               JOIN followup_clients c ON f.client_id = c.id 
+                               WHERE f.id = :id AND c.added_by = :user_id");
+        $stmt->execute([':id' => $id, ':user_id' => $userId]);
+    }
     $followup = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$followup) {
@@ -466,6 +503,10 @@ function sendEmailNotification() {
 function getClientsDropdown() {
     global $pdo;
     
+    // Get user role and ID from session
+    $userRole = $_SESSION['role'] ?? 'user';
+    $userId = $_SESSION['user_id'] ?? null;
+    
     // Ensure followup_clients table exists (it should, but good to be safe)
     $pdo->exec("CREATE TABLE IF NOT EXISTS `followup_clients` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -478,8 +519,15 @@ function getClientsDropdown() {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     
-    $sql = "SELECT id, name, company FROM followup_clients ORDER BY name ASC";
-    $stmt = $pdo->query($sql);
+    // Build query based on user role
+    if ($userRole === 'master') {
+        $sql = "SELECT id, name, company FROM followup_clients ORDER BY name ASC";
+        $stmt = $pdo->query($sql);
+    } else {
+        $sql = "SELECT id, name, company FROM followup_clients WHERE added_by = :user_id ORDER BY name ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':user_id' => $userId]);
+    }
     $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
