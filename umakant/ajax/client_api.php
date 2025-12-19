@@ -102,10 +102,18 @@ function ensureTablesExist() {
         `state` varchar(100) DEFAULT NULL,
         `zip` varchar(10) DEFAULT NULL,
         `notes` text DEFAULT NULL,
+        `added_by` int(11) DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    
+    // Add added_by column if it doesn't exist
+    try {
+        $pdo->exec("ALTER TABLE `clients` ADD COLUMN `added_by` int(11) DEFAULT NULL AFTER `notes`");
+    } catch (Exception $e) {
+        // Column already exists
+    }
     
     // Create tasks table
     $pdo->exec("CREATE TABLE IF NOT EXISTS `tasks` (
@@ -143,31 +151,75 @@ function getDashboardStats() {
     global $pdo;
     ensureTablesExist();
     
-    // Total clients
-    $stmt = $pdo->query("SELECT COUNT(*) as total FROM clients");
-    $totalClients = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    // Get user role and ID from session
+    $userRole = $_SESSION['role'] ?? 'user';
+    $userId = $_SESSION['user_id'] ?? null;
     
-    // Total tasks
-    $stmt = $pdo->query("SELECT COUNT(*) as total FROM tasks");
-    $totalTasks = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    // Total clients - filtered by role
+    if ($userRole === 'master') {
+        $stmt = $pdo->query("SELECT COUNT(*) as total FROM clients");
+        $totalClients = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    } else {
+        $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM clients WHERE added_by = :user_id");
+        $stmt->execute([':user_id' => $userId]);
+        $totalClients = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
     
-    // Task status counts
-    $stmt = $pdo->query("SELECT 
-        SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending,
-        SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress,
-        SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) as completed,
-        SUM(CASE WHEN status = 'On Hold' THEN 1 ELSE 0 END) as on_hold
-        FROM tasks");
-    $taskStatus = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Total tasks - filtered by client access
+    if ($userRole === 'master') {
+        $stmt = $pdo->query("SELECT COUNT(*) as total FROM tasks");
+        $totalTasks = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    } else {
+        $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM tasks t 
+                               JOIN clients c ON t.client_id = c.id 
+                               WHERE c.added_by = :user_id");
+        $stmt->execute([':user_id' => $userId]);
+        $totalTasks = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
     
-    // Task priority counts
-    $stmt = $pdo->query("SELECT 
-        SUM(CASE WHEN priority = 'Low' THEN 1 ELSE 0 END) as low,
-        SUM(CASE WHEN priority = 'Medium' THEN 1 ELSE 0 END) as medium,
-        SUM(CASE WHEN priority = 'High' THEN 1 ELSE 0 END) as high,
-        SUM(CASE WHEN priority = 'Urgent' THEN 1 ELSE 0 END) as urgent
-        FROM tasks");
-    $taskPriority = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Task status counts - filtered by client access
+    if ($userRole === 'master') {
+        $stmt = $pdo->query("SELECT 
+            SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress,
+            SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) as completed,
+            SUM(CASE WHEN status = 'On Hold' THEN 1 ELSE 0 END) as on_hold
+            FROM tasks");
+        $taskStatus = $stmt->fetch(PDO::FETCH_ASSOC);
+    } else {
+        $stmt = $pdo->prepare("SELECT 
+            SUM(CASE WHEN t.status = 'Pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN t.status = 'In Progress' THEN 1 ELSE 0 END) as in_progress,
+            SUM(CASE WHEN t.status = 'Completed' THEN 1 ELSE 0 END) as completed,
+            SUM(CASE WHEN t.status = 'On Hold' THEN 1 ELSE 0 END) as on_hold
+            FROM tasks t
+            JOIN clients c ON t.client_id = c.id 
+            WHERE c.added_by = :user_id");
+        $stmt->execute([':user_id' => $userId]);
+        $taskStatus = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    
+    // Task priority counts - filtered by client access
+    if ($userRole === 'master') {
+        $stmt = $pdo->query("SELECT 
+            SUM(CASE WHEN priority = 'Low' THEN 1 ELSE 0 END) as low,
+            SUM(CASE WHEN priority = 'Medium' THEN 1 ELSE 0 END) as medium,
+            SUM(CASE WHEN priority = 'High' THEN 1 ELSE 0 END) as high,
+            SUM(CASE WHEN priority = 'Urgent' THEN 1 ELSE 0 END) as urgent
+            FROM tasks");
+        $taskPriority = $stmt->fetch(PDO::FETCH_ASSOC);
+    } else {
+        $stmt = $pdo->prepare("SELECT 
+            SUM(CASE WHEN t.priority = 'Low' THEN 1 ELSE 0 END) as low,
+            SUM(CASE WHEN t.priority = 'Medium' THEN 1 ELSE 0 END) as medium,
+            SUM(CASE WHEN t.priority = 'High' THEN 1 ELSE 0 END) as high,
+            SUM(CASE WHEN t.priority = 'Urgent' THEN 1 ELSE 0 END) as urgent
+            FROM tasks t
+            JOIN clients c ON t.client_id = c.id 
+            WHERE c.added_by = :user_id");
+        $stmt->execute([':user_id' => $userId]);
+        $taskPriority = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
     
     echo json_encode([
         'success' => true,
@@ -188,9 +240,26 @@ function getRecentClients() {
     
     $limit = intval($_GET['limit'] ?? 5);
     
-    $stmt = $pdo->prepare("SELECT * FROM clients ORDER BY created_at DESC LIMIT :limit");
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->execute();
+    // Get user role and ID from session
+    $userRole = $_SESSION['role'] ?? 'user';
+    $userId = $_SESSION['user_id'] ?? null;
+    
+    // Build query based on user role
+    if ($userRole === 'master') {
+        // Master can see all clients
+        $sql = "SELECT * FROM clients ORDER BY created_at DESC LIMIT :limit";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+    } else {
+        // Admin and other roles can only see their own clients
+        $sql = "SELECT * FROM clients WHERE added_by = :user_id ORDER BY created_at DESC LIMIT :limit";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+    
     $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
@@ -205,13 +274,35 @@ function getRecentTasks() {
     
     $limit = intval($_GET['limit'] ?? 5);
     
-    $stmt = $pdo->prepare("SELECT t.*, c.name as client_name 
-                           FROM tasks t
-                           LEFT JOIN clients c ON t.client_id = c.id
-                           ORDER BY t.created_at DESC 
-                           LIMIT :limit");
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->execute();
+    // Get user role and ID from session
+    $userRole = $_SESSION['role'] ?? 'user';
+    $userId = $_SESSION['user_id'] ?? null;
+    
+    // Build query based on user role
+    if ($userRole === 'master') {
+        // Master can see all tasks
+        $sql = "SELECT t.*, c.name as client_name 
+                               FROM tasks t
+                               LEFT JOIN clients c ON t.client_id = c.id
+                               ORDER BY t.created_at DESC 
+                               LIMIT :limit";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+    } else {
+        // Admin and other roles can only see tasks for their own clients
+        $sql = "SELECT t.*, c.name as client_name 
+                               FROM tasks t
+                               LEFT JOIN clients c ON t.client_id = c.id
+                               WHERE c.added_by = :user_id
+                               ORDER BY t.created_at DESC 
+                               LIMIT :limit";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+    
     $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
@@ -225,8 +316,22 @@ function getClients() {
     global $pdo;
     ensureTablesExist();
     
-    $sql = "SELECT * FROM clients ORDER BY name ASC";
-    $stmt = $pdo->query($sql);
+    // Get user role and ID from session
+    $userRole = $_SESSION['role'] ?? 'user';
+    $userId = $_SESSION['user_id'] ?? null;
+    
+    // Build query based on user role
+    if ($userRole === 'master') {
+        // Master can see all clients
+        $sql = "SELECT * FROM clients ORDER BY name ASC";
+        $stmt = $pdo->query($sql);
+    } else {
+        // Admin and other roles can only see their own clients
+        $sql = "SELECT * FROM clients WHERE added_by = :user_id ORDER BY name ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':user_id' => $userId]);
+    }
+    
     $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
@@ -258,8 +363,8 @@ function addClient() {
     global $pdo;
     ensureTablesExist();
     
-    $sql = "INSERT INTO clients (name, email, phone, company, address, city, state, zip, notes, created_at)
-            VALUES (:name, :email, :phone, :company, :address, :city, :state, :zip, :notes, NOW())";
+    $sql = "INSERT INTO clients (name, email, phone, company, address, city, state, zip, notes, added_by, created_at)
+            VALUES (:name, :email, :phone, :company, :address, :city, :state, :zip, :notes, :added_by, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -271,7 +376,8 @@ function addClient() {
         ':city' => $_POST['city'] ?? '',
         ':state' => $_POST['state'] ?? '',
         ':zip' => $_POST['zip'] ?? '',
-        ':notes' => $_POST['notes'] ?? ''
+        ':notes' => $_POST['notes'] ?? '',
+        ':added_by' => $_SESSION['user_id'] ?? null
     ]);
     
     echo json_encode([
@@ -366,12 +472,29 @@ function getTasks() {
     global $pdo;
     ensureTablesExist();
     
-    $sql = "SELECT t.*, c.name as client_name 
-            FROM tasks t
-            LEFT JOIN clients c ON t.client_id = c.id
-            ORDER BY t.created_at DESC";
+    // Get user role and ID from session
+    $userRole = $_SESSION['role'] ?? 'user';
+    $userId = $_SESSION['user_id'] ?? null;
     
-    $stmt = $pdo->query($sql);
+    // Build query based on user role
+    if ($userRole === 'master') {
+        // Master can see all tasks
+        $sql = "SELECT t.*, c.name as client_name 
+                FROM tasks t
+                LEFT JOIN clients c ON t.client_id = c.id
+                ORDER BY t.created_at DESC";
+        $stmt = $pdo->query($sql);
+    } else {
+        // Admin and other roles can only see tasks for their own clients
+        $sql = "SELECT t.*, c.name as client_name 
+                FROM tasks t
+                LEFT JOIN clients c ON t.client_id = c.id
+                WHERE c.added_by = :user_id
+                ORDER BY t.created_at DESC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':user_id' => $userId]);
+    }
+    
     $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
