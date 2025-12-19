@@ -64,7 +64,6 @@ function ensureTableExists() {
         `phone` varchar(20) NOT NULL,
         `company` varchar(255) DEFAULT NULL,
         `followup_message` text DEFAULT NULL,
-        `added_by` int(11) DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
@@ -74,11 +73,7 @@ function ensureTableExists() {
     $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `followup_message` text DEFAULT NULL AFTER `company`");
     
     // Add added_by column if it doesn't exist
-    try {
-        $pdo->exec("ALTER TABLE followup_clients ADD COLUMN `added_by` int(11) DEFAULT NULL AFTER `followup_message`");
-    } catch (Exception $e) {
-        // Column already exists
-    }
+    $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `added_by` int(11) DEFAULT NULL AFTER `followup_message`");
 }
 
 function getFollowupClients() {
