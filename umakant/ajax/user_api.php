@@ -63,8 +63,6 @@ function buildUserSelectColumns(array $baseColumns) {
     $columns[] = userTableHasColumn('is_active') ? 'is_active' : 'NULL AS is_active';
     $columns[] = userTableHasColumn('last_login') ? 'last_login' : 'NULL AS last_login';
     $columns[] = userTableHasColumn('expire_date') ? 'expire_date' : 'NULL AS expire_date';
-    $columns[] = 'added_by';
-    $columns[] = 'creator.username AS added_by_user_name';
 
     return $columns;
 }
@@ -93,7 +91,7 @@ if ($action === 'list') {
         $viewerId = $_SESSION['user_id'] ?? null;
 
         // Base query
-        $baseQuery = "FROM users LEFT JOIN users creator ON users.added_by = creator.id";
+        $baseQuery = "FROM users";
         $whereClause = "";
         $params = [];
         
@@ -155,7 +153,7 @@ if ($action === 'list') {
     // Simple list request (non-DataTables clients)
     $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'password', 'role', 'added_by']);
     $query = "SELECT " . implode(', ', $selectColumns) .
-             " FROM users LEFT JOIN users creator ON users.added_by = creator.id ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
+             " FROM users ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
 
     $stmt = $pdo->prepare($query);
     $stmt->execute();
@@ -186,7 +184,7 @@ if ($action === 'list_simple') {
 
     $selectColumns = buildUserSelectColumns(['id', 'username', 'full_name', 'email', 'password', 'role', 'added_by']);
     $query = "SELECT " . implode(', ', $selectColumns) .
-             " FROM users LEFT JOIN users creator ON users.added_by = creator.id" . $whereClause . " ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
+             " FROM users" . $whereClause . " ORDER BY full_name IS NULL, full_name = '', full_name ASC, username ASC";
 
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
@@ -208,7 +206,7 @@ if ($action === 'get' && isset($_GET['id'])) {
     $viewerRole = $_SESSION['role'] ?? 'user';
     $viewerId = $_SESSION['user_id'] ?? null;
     $selectColumns = buildUserSelectColumns(['id', 'username', 'email', 'full_name', 'password', 'role', 'added_by']);
-    $stmt = $pdo->prepare('SELECT ' . implode(', ', $selectColumns) . ' FROM users LEFT JOIN users creator ON users.added_by = creator.id WHERE users.id = ?');
+    $stmt = $pdo->prepare('SELECT ' . implode(', ', $selectColumns) . ' FROM users WHERE id = ?');
     $stmt->execute([$_GET['id']]);
     $row = $stmt->fetch();
     if (!$row) json_response(['success' => false, 'message' => 'User not found'],404);
