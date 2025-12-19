@@ -234,7 +234,72 @@ $(document).ready(function() {
             return;
         }
         
-        window.location.href = `mailto:${email}`;
+        const modal = `
+            <div class="modal fade" id="sendEmailModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Send Email</h5>
+                            <button type="button" class="close" data-dismiss="modal">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                        <form id="sendEmailForm">
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label for="emailTo">To:</label>
+                                    <input type="email" class="form-control" id="emailTo" name="to" value="${email}" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="emailSubject">Subject:</label>
+                                    <input type="text" class="form-control" id="emailSubject" name="subject" placeholder="Enter email subject" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="emailMessage">Message:</label>
+                                    <textarea class="form-control" id="emailMessage" name="message" placeholder="Enter your message" rows="6" required></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Send Email</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        $('#sendEmailModal').remove();
+        $('body').append(modal);
+        $('#sendEmailModal').modal('show');
+    });
+
+    // Handle Email Form Submission
+    $(document).on('submit', '#sendEmailForm', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        formData.append('action', 'send_email');
+        
+        $.ajax({
+            url: 'ajax/send_email_api.php',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                    $('#sendEmailModal').modal('hide');
+                } else {
+                    toastr.error(response.message || 'Error sending email');
+                }
+            },
+            error: function() {
+                toastr.error('Server error occurred');
+            }
+        });
     });
 
     // Edit Client
