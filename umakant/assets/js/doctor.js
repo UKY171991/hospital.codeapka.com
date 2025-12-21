@@ -362,35 +362,30 @@ function saveDoctorData() {
                 // Comprehensive cleanup of all loading states
                 clearAllLoadingStates();
                 
-                // Enhanced table reload with multiple approaches
                 console.log('Attempting to reload table...');
+                console.log('API Response:', response);
                 
-                // Check if DataTable instance exists
-                if (typeof doctorsDataTable !== 'undefined' && doctorsDataTable) {
-                    console.log('DataTable instance found, reloading...');
-                    
-                    // Force clear cache and reload
-                    doctorsDataTable.ajax.reload(function() {
-                        console.log('Table reload completed');
-                        // Force a redraw after reload
-                        setTimeout(() => {
+                // Force table reload with a more reliable approach
+                setTimeout(() => {
+                    if (typeof doctorsDataTable !== 'undefined' && doctorsDataTable) {
+                        console.log('DataTable instance found, forcing reload...');
+                        
+                        // Clear any internal DataTables cache
+                        doctorsDataTable.clear();
+                        
+                        // Force ajax reload with cache busting
+                        doctorsDataTable.ajax.url('patho_api/doctor.php?_t=' + new Date().getTime()).load(function() {
+                            console.log('Table data loaded successfully');
+                            // Force redraw to ensure UI updates
                             doctorsDataTable.draw();
-                            console.log('Table redraw completed');
-                        }, 100);
-                    }, false);
-                    
-                    // Additional fallback reload
-                    setTimeout(() => {
-                        if (doctorsDataTable) {
-                            doctorsDataTable.ajax.reload(null, false);
                             clearAllLoadingStates();
-                        }
-                    }, 500);
-                } else {
-                    console.error('DataTable instance not found, reinitializing...');
-                    // Reinitialize the entire table if instance is lost
-                    initializeDataTable();
-                }
+                        }, false);
+                        
+                    } else {
+                        console.log('Reinitializing DataTable...');
+                        initializeDataTable();
+                    }
+                }, 300); // Delay to ensure modal is fully hidden
                 
                 loadStats(); // Update stats after save
             } else {
