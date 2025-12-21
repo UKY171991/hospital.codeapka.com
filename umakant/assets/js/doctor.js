@@ -23,12 +23,12 @@ function setupEventListeners() {
 
     // Specialization filter
     $('#specializationFilter').on('change', function() {
-        doctorsDataTable.ajax.reload(); // Reload data with new filter
+        doctorsDataTable.ajax.reload(null, false); // Reload data with new filter without resetting pagination
     });
 
     // Hospital filter
     $('#hospitalFilter').on('change', function() {
-        doctorsDataTable.ajax.reload(); // Reload data with new filter
+        doctorsDataTable.ajax.reload(null, false); // Reload data with new filter without resetting pagination
     });
 
     // Records per page change - DataTables handles this automatically with lengthMenu
@@ -69,6 +69,7 @@ function initializeDataTable() {
             url: 'patho_api/doctor.php',
             type: 'GET',
             dataType: 'json',
+            cache: false, // Disable caching to ensure fresh data
             data: function(d) {
                 // DataTables sends its own parameters, we add our custom filters
                 d.action = 'list';
@@ -349,7 +350,7 @@ function saveDoctorData() {
             if (response.success) {
                 showAlert(id ? 'Doctor updated successfully!' : 'Doctor added successfully!', 'success');
                 $('#doctorModal').modal('hide');
-                doctorsDataTable.ajax.reload(); // Reload DataTables after save
+                doctorsDataTable.ajax.reload(null, false); // Reload DataTables after save without resetting pagination
                 loadStats(); // Update stats after save
             } else {
                 showAlert('Error: ' + (response.message || 'Unknown error'), 'error');
@@ -394,7 +395,7 @@ function performDeleteDoctor(id) {
         success: function(response) {
             if (response.success) {
                 showAlert('Doctor deleted successfully!', 'success');
-                doctorsDataTable.ajax.reload(); // Reload DataTables after delete
+                doctorsDataTable.ajax.reload(null, false); // Reload DataTables after delete without resetting pagination
                 loadStats(); // Update stats after delete
             }
             else {
