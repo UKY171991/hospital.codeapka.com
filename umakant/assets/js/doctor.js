@@ -353,25 +353,40 @@ function saveDoctorData() {
             if (response.success) {
                 showAlert(id ? 'Doctor updated successfully!' : 'Doctor added successfully!', 'success');
                 $('#doctorModal').modal('hide');
-                doctorsDataTable.ajax.reload(null, false); // Reload DataTables after save without resetting pagination
                 
-                // Fallback: Force table redraw if reload doesn't work
+                // Clear any loading overlays from the table
+                $('.overlay').remove();
+                
+                // Force immediate table refresh with multiple approaches
+                doctorsDataTable.ajax.reload(null, false);
+                
+                // Additional fallback to ensure table updates
                 setTimeout(() => {
                     if (doctorsDataTable) {
                         doctorsDataTable.draw();
+                        // Clear any remaining loading states
+                        $('.table-responsive .overlay').remove();
                     }
-                }, 500);
+                }, 300);
                 
                 loadStats(); // Update stats after save
             } else {
                 showAlert('Error: ' + (response.message || 'Unknown error'), 'error');
+                // Clear loading states on error as well
+                $('.overlay').remove();
             }
         },
         error: function(xhr, status, error) {
             showAlert('Failed to save doctor data. ' + (xhr.responseJSON?.message || error), 'error');
+            // Clear loading states on error
+            $('.overlay').remove();
         },
         complete: function() {
             submitBtn.html(originalText).prop('disabled', false);
+            // Ensure all loading states are cleared when request completes
+            setTimeout(() => {
+                $('.overlay').remove();
+            }, 100);
         }
     });
 }
@@ -506,12 +521,20 @@ function exportDoctors() {
 // View modal functions
 function editDoctorFromView() {
     // Get the current doctor ID from the view modal content
-    // We need to extract it from the displayed content or store it when viewing
     const doctorId = $('#viewDoctorModal').data('doctor-id');
     if (doctorId) {
-        // Close view modal and open edit modal
+        // Hide view modal first
         $('#viewDoctorModal').modal('hide');
-        editDoctor(doctorId);
+        
+        // Wait for modal to fully hide before showing edit modal
+        $('#viewDoctorModal').on('hidden.bs.modal', function () {
+            // Clear any loading states from view modal
+            utils.hideLoading('#viewDoctorModal .modal-body');
+            // Open edit modal
+            editDoctor(doctorId);
+            // Remove the event listener to prevent multiple calls
+            $(this).off('hidden.bs.modal');
+        });
     } else {
         showAlert('Unable to determine doctor ID for editing', 'error');
     }
