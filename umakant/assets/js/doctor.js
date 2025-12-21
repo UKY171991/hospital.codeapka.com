@@ -288,6 +288,9 @@ function viewDoctor(id) {
         .done(function(response) {
             if (response.success) {
                 const doctor = response.data;
+                // Store doctor ID in modal data for editDoctorFromView function
+                $('#viewDoctorModal').data('doctor-id', doctor.id);
+                
                 const content = `
                     <div class="row">
                         <div class="col-md-6">
@@ -347,11 +350,9 @@ function saveDoctorData() {
         processData: false,
         contentType: false, // Important for FormData
         success: function(response) {
-            console.log('Save response:', response); // Debug log
             if (response.success) {
                 showAlert(id ? 'Doctor updated successfully!' : 'Doctor added successfully!', 'success');
                 $('#doctorModal').modal('hide');
-                console.log('Reloading DataTable...'); // Debug log
                 doctorsDataTable.ajax.reload(null, false); // Reload DataTables after save without resetting pagination
                 
                 // Fallback: Force table redraw if reload doesn't work
@@ -367,7 +368,6 @@ function saveDoctorData() {
             }
         },
         error: function(xhr, status, error) {
-            console.error('AJAX Error:', xhr.responseText, status, error); // Debug log
             showAlert('Failed to save doctor data. ' + (xhr.responseJSON?.message || error), 'error');
         },
         complete: function() {
@@ -501,6 +501,46 @@ function bulkDeleteDoctors() {
 function exportDoctors() {
     // Implement export all doctors logic here
     // Export all doctors data
+}
+
+// View modal functions
+function editDoctorFromView() {
+    // Get the current doctor ID from the view modal content
+    // We need to extract it from the displayed content or store it when viewing
+    const doctorId = $('#viewDoctorModal').data('doctor-id');
+    if (doctorId) {
+        // Close view modal and open edit modal
+        $('#viewDoctorModal').modal('hide');
+        editDoctor(doctorId);
+    } else {
+        showAlert('Unable to determine doctor ID for editing', 'error');
+    }
+}
+
+function printDoctorDetails() {
+    // Print the doctor details from the view modal
+    const printContent = $('#viewDoctorContent').html();
+    if (printContent) {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Doctor Details</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        td { padding: 8px; border-bottom: 1px solid #ddd; }
+                        .font-weight-bold { font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    ${printContent}
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+    }
 }
 
 // Helper function to generate avatar (assuming utils.js provides this)
