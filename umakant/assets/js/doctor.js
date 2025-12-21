@@ -78,6 +78,8 @@ function initializeDataTable() {
                 d.search = d.search.value; // DataTables global search
                 d.specialization = $('#specializationFilter').val();
                 d.hospital = $('#hospitalFilter').val();
+                // Add cache-busting parameter
+                d._t = new Date().getTime();
             },
             dataSrc: function(json) {
                 // Map API response to DataTables format
@@ -360,17 +362,35 @@ function saveDoctorData() {
                 // Comprehensive cleanup of all loading states
                 clearAllLoadingStates();
                 
-                // Force immediate table refresh
-                doctorsDataTable.ajax.reload(null, false);
+                // Enhanced table reload with multiple approaches
+                console.log('Attempting to reload table...');
                 
-                // Additional cleanup after table reload
-                setTimeout(() => {
-                    clearAllLoadingStates();
-                    // Force table redraw if needed
-                    if (doctorsDataTable) {
-                        doctorsDataTable.draw();
-                    }
-                }, 200);
+                // Check if DataTable instance exists
+                if (typeof doctorsDataTable !== 'undefined' && doctorsDataTable) {
+                    console.log('DataTable instance found, reloading...');
+                    
+                    // Force clear cache and reload
+                    doctorsDataTable.ajax.reload(function() {
+                        console.log('Table reload completed');
+                        // Force a redraw after reload
+                        setTimeout(() => {
+                            doctorsDataTable.draw();
+                            console.log('Table redraw completed');
+                        }, 100);
+                    }, false);
+                    
+                    // Additional fallback reload
+                    setTimeout(() => {
+                        if (doctorsDataTable) {
+                            doctorsDataTable.ajax.reload(null, false);
+                            clearAllLoadingStates();
+                        }
+                    }, 500);
+                } else {
+                    console.error('DataTable instance not found, reinitializing...');
+                    // Reinitialize the entire table if instance is lost
+                    initializeDataTable();
+                }
                 
                 loadStats(); // Update stats after save
             } else {
