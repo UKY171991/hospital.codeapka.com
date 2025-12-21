@@ -368,39 +368,18 @@ function saveDoctorData() {
                 // Try complete table reinitialization as the most reliable approach
                 setTimeout(() => {
                     try {
-                        // Destroy existing DataTable completely
+                        // Destroy existing DataTable completely but keep the HTML structure
                         if ($.fn.DataTable.isDataTable('#doctorsTable')) {
                             $('#doctorsTable').DataTable().destroy(true);
                             console.log('DataTable destroyed completely');
                         }
                         
-                        // Clear all table content
+                        // Clear only the table body content, keep the header intact
                         $('#doctorsTableBody').empty();
-                        $('#doctorsTable thead').empty();
                         
-                        // Rebuild table header
-                        const tableHeader = `
-                            <tr>
-                                <th>Sr. No.</th>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Hospital</th>
-                                <th>Contact No</th>
-                                <th>Phone</th>
-                                <th>Email</th>
-                                <th>Percent</th>
-                                <th>Added By</th>
-                                <th>Created At</th>
-                                <th>Actions</th>
-                            </tr>
-                        `;
-                        $('#doctorsTable thead').html(tableHeader);
-                        
-                        // Reinitialize the entire DataTable
-                        setTimeout(() => {
-                            initializeDataTable();
-                            console.log('DataTable completely reinitialized');
-                        }, 100);
+                        // Reinitialize the DataTable with existing header
+                        initializeDataTable();
+                        console.log('DataTable completely reinitialized');
                         
                     } catch (error) {
                         console.error('Error during table reinitialization:', error);
