@@ -106,7 +106,7 @@
     <!-- Right navbar links -->
     <ul class="navbar-nav ml-auto">
       <li class="nav-item d-none d-sm-inline-block">
-        <a class="nav-link" href="#">Profile</a>
+        <a class="nav-link" href="user.php">Profile</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="logout.php" id="topLogout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
