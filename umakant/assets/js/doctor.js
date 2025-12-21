@@ -79,7 +79,6 @@ function initializeDataTable() {
                 d.hospital = $('#hospitalFilter').val();
             },
             dataSrc: function(json) {
-                console.log("API Response (dataSrc):", json); // Log entire JSON response
                 // Map API response to DataTables format
                 if (!json.success) {
                     console.error("API returned an error:", json.message);
@@ -117,7 +116,6 @@ function initializeDataTable() {
                 data: null, // Use null for Sr. No. as it's not directly from data
                 orderable: false,
                 render: function (data, type, row, meta) {
-                    console.log("Rendering Sr. No. for row:", row); // Debugging
                     // Calculate serial number based on current page and row index
                     return meta.row + meta.settings._iDisplayStart + 1;
                 }
@@ -126,7 +124,6 @@ function initializeDataTable() {
             {
                 data: 'name',
                 render: function(data, type, row) {
-                    console.log("Rendering Name for row:", row); // Debugging
                     const avatar = utils.generateAvatar(row.name || '', 'bg-info'); // Ensure name is not null/undefined
                     return `
                         <div class="d-flex align-items-center">
@@ -156,7 +153,6 @@ function initializeDataTable() {
                 data: null,
                 orderable: false,
                 render: function(data, type, row) {
-                    console.log("Rendering Actions for row:", row); // Debugging
                     return `
                         <div class="btn-group" role="group">
                             <button class="btn btn-info btn-sm" onclick="viewDoctor(${row.id})" title="View">
