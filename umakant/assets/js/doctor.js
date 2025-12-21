@@ -469,7 +469,7 @@ function bulkExportDoctors() {
     }
     
     // Implement bulk export logic here
-    console.log('Exporting doctors:', selectedIds);
+    // Export selectedIds array
 }
 
 function bulkDeleteDoctors() {
@@ -484,12 +484,12 @@ function bulkDeleteDoctors() {
     }
     
     // Implement bulk delete logic here
-    console.log('Deleting doctors:', selectedIds);
+    // Delete selectedIds array
 }
 
 function exportDoctors() {
     // Implement export all doctors logic here
-    console.log('Exporting all doctors');
+    // Export all doctors data
 }
 
 // Helper function to generate avatar (assuming utils.js provides this)
