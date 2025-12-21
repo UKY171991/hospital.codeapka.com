@@ -90,8 +90,15 @@ function initializeDataTable() {
                     console.warn("API returned no data array.");
                     return [];
                 }
-                json.recordsTotal = json.pagination.total;
-                json.recordsFiltered = json.pagination.total; // Assuming server-side filtering is applied
+                // Fix: Check if pagination exists before accessing total
+                if (json.pagination && json.pagination.total) {
+                    json.recordsTotal = json.pagination.total;
+                    json.recordsFiltered = json.pagination.total;
+                } else {
+                    // Fallback if pagination is not provided
+                    json.recordsTotal = json.data ? json.data.length : 0;
+                    json.recordsFiltered = json.data ? json.data.length : 0;
+                }
                 return json.data;
             },
             error: function(xhr, error, thrown) {
@@ -451,13 +458,62 @@ function formatDateTime(dateString) {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
 }
 
+// Bulk selection functions
+function selectAllDoctors() {
+    const checkboxes = $('#doctorsTable tbody input[type="checkbox"]');
+    checkboxes.prop('checked', true);
+    updateSelectedCount();
+}
+
+function deselectAllDoctors() {
+    const checkboxes = $('#doctorsTable tbody input[type="checkbox"]');
+    checkboxes.prop('checked', false);
+    updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    const selected = $('#doctorsTable tbody input[type="checkbox"]:checked').length;
+    $('.selected-count').text(selected);
+}
+
+function bulkExportDoctors() {
+    const selectedIds = [];
+    $('#doctorsTable tbody input[type="checkbox"]:checked').each(function() {
+        selectedIds.push($(this).data('id'));
+    });
+    
+    if (selectedIds.length === 0) {
+        showAlert('Please select at least one doctor to export.', 'error');
+        return;
+    }
+    
+    // Implement bulk export logic here
+    console.log('Exporting doctors:', selectedIds);
+}
+
+function bulkDeleteDoctors() {
+    const selectedIds = [];
+    $('#doctorsTable tbody input[type="checkbox"]:checked').each(function() {
+        selectedIds.push($(this).data('id'));
+    });
+    
+    if (selectedIds.length === 0) {
+        showAlert('Please select at least one doctor to delete.', 'error');
+        return;
+    }
+    
+    // Implement bulk delete logic here
+    console.log('Deleting doctors:', selectedIds);
+}
+
+function exportDoctors() {
+    // Implement export all doctors logic here
+    console.log('Exporting all doctors');
+}
+
 // Helper function to generate avatar (assuming utils.js provides this)
 // If utils.js is not available or doesn't have this, you might need to implement it here.
 // For now, assuming utils.generateAvatar exists.
-// function generateAvatar(name, bgColorClass) {
-//     const initials = name ? name.charAt(0).toUpperCase() : '?';
-//     return `<div class="avatar-circle ${bgColorClass}">${initials}</div>`;
-// }
 
 // Placeholder for utils.debounce and utils.initTooltips if not defined elsewhere
 // if (typeof utils === 'undefined') {
@@ -516,10 +572,7 @@ function formatDateTime(dateString) {
 //                 if (value && rule.minLength && value.length < rule.minLength) {
 //                     errors.push(`${rule.label || field} must be at least ${rule.minLength} characters long.`);
 //                 }
-//                 if (value && rule.type === 'email' && !/^[^
-// @]+@[^
-// @]+\.[^
-// @]+$/.test(value)) {
+//                 if (value && rule.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
 //                     errors.push(`Invalid ${rule.label || field} format.`);
 //                 }
 //                 // Add more validation types as needed
