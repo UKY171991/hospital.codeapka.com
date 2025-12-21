@@ -196,16 +196,47 @@ function handleSave($pdo, $config, $user_data) {
 
     $data = array_intersect_key($input, array_flip($config['allowed_fields']));
     
-    // Check for duplicates based on key fields
-    $duplicateCheck = checkForDuplicates($pdo, $data, $user_data['user_id'], $server_id, $id);
-    
-    if ($duplicateCheck['has_duplicates']) {
-        // Clean up duplicates first
-        cleanupDuplicates($pdo, $duplicateCheck['duplicate_ids'], $user_data['user_id']);
+    // For updates, be more aggressive about preventing duplicates
+    if ($id) {
+        // First check if this exact record exists
+        $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
+        $stmt->execute([$id]);
+        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        // If we found an existing record to update
-        if ($duplicateCheck['existing_id']) {
-            $id = $duplicateCheck['existing_id'];
+        if (!$existing) {
+            json_response(['success' => false, 'message' => 'Doctor not found for update'], 404);
+        }
+        
+        $scopeIds = getScopedUserIds($pdo, $user_data);
+        if (is_array($scopeIds) && !in_array((int)$existing['added_by'], $scopeIds, true)) {
+            json_response(['success' => false, 'message' => 'Permission denied to update this doctor'], 403);
+        }
+        
+        // Check for duplicates excluding current record
+        $duplicateCheck = checkForDuplicates($pdo, $data, $user_data['user_id'], $server_id, $id);
+        
+        if ($duplicateCheck['has_duplicates']) {
+            // If duplicates exist, update the primary existing record instead of creating new
+            $existingId = $duplicateCheck['existing_id'];
+            if ($existingId && $existingId != $id) {
+                // Update the existing record instead of the current one
+                $id = $existingId;
+                // Clean up the old record
+                deleteDoctorRecord($pdo, $config['table_name'], $config['id_field'], $input['id'], $user_data['user_id']);
+            }
+        }
+    } else {
+        // For new records, check duplicates normally
+        $duplicateCheck = checkForDuplicates($pdo, $data, $user_data['user_id'], $server_id, $id);
+        
+        if ($duplicateCheck['has_duplicates']) {
+            // Clean up duplicates first
+            cleanupDuplicates($pdo, $duplicateCheck['duplicate_ids'], $user_data['user_id']);
+            
+            // If we found an existing record to update
+            if ($duplicateCheck['existing_id']) {
+                $id = $duplicateCheck['existing_id'];
+            }
         }
     }
     
@@ -734,6 +765,11 @@ function checkForDuplicates($pdo, $data, $userId, $serverId = null, $excludeId =
 /**
  * Clean up duplicate doctor records
  */
+function deleteDoctorRecord($pdo, $table, $idField, $id, $userId) {
+    $stmt = $pdo->prepare("DELETE FROM $table WHERE $idField = ? AND added_by = ?");
+    return $stmt->execute([$id, $userId]);
+}
+
 function cleanupDuplicates($pdo, $duplicateIds, $userId) {
     if (empty($duplicateIds)) {
         return;

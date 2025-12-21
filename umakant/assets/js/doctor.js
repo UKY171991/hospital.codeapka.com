@@ -337,6 +337,14 @@ function viewDoctor(id) {
 }
 
 function saveDoctorData() {
+    // Prevent multiple submissions
+    if (window.isSubmitting) {
+        console.log('Form already submitting, preventing duplicate submission');
+        return;
+    }
+    
+    window.isSubmitting = true;
+    
     const formData = new FormData($('#doctorForm')[0]);
     const id = $('#doctorId').val();
     const method = id ? 'POST' : 'POST'; // patho_api uses POST for both create and update (upsert)
@@ -382,6 +390,8 @@ function saveDoctorData() {
         },
         complete: function() {
             submitBtn.html(originalText).prop('disabled', false);
+            // Reset submission flag
+            window.isSubmitting = false;
             // Ensure all loading states are cleared when request completes
             setTimeout(() => {
                 clearAllLoadingStates();
