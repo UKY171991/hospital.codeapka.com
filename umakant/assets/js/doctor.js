@@ -135,18 +135,15 @@ function initializeDataTable() {
                             </div>
                             <div>
                                 <div class="font-weight-bold">${row.name || '-'}</div>
-                                ${row.registration_no ? `<small class="text-muted">Reg: ${row.registration_no}</small>` : ''}
                             </div>
                         </div>
                     `;
                 }
             },
-            { data: 'qualification', defaultContent: '-' },
             { data: 'hospital', defaultContent: '-' },
             { data: 'contact_no', defaultContent: '-' },
             { data: 'phone', defaultContent: '-' },
             { data: 'email', defaultContent: '-' },
-            { data: 'registration_no', defaultContent: '-' },
             { data: 'percent', defaultContent: '-' },
             { data: 'added_by_username', defaultContent: '-' },
             { 
