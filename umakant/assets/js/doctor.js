@@ -362,34 +362,14 @@ function saveDoctorData() {
                 // Comprehensive cleanup of all loading states
                 clearAllLoadingStates();
                 
-                console.log('Attempting to reload table...');
+                console.log('Update successful, reloading page to ensure fresh data...');
                 console.log('API Response:', response);
                 
-                // Try complete table reinitialization as the most reliable approach
+                // Use page reload as the most reliable solution
                 setTimeout(() => {
-                    try {
-                        // Destroy existing DataTable completely but keep the HTML structure
-                        if ($.fn.DataTable.isDataTable('#doctorsTable')) {
-                            $('#doctorsTable').DataTable().destroy(true);
-                            console.log('DataTable destroyed completely');
-                        }
-                        
-                        // Clear only the table body content, keep the header intact
-                        $('#doctorsTableBody').empty();
-                        
-                        // Reinitialize the DataTable with existing header
-                        initializeDataTable();
-                        console.log('DataTable completely reinitialized');
-                        
-                    } catch (error) {
-                        console.error('Error during table reinitialization:', error);
-                        // Ultimate fallback: reload the page
-                        console.log('Falling back to page reload');
-                        window.location.reload();
-                    }
-                }, 500); // Longer delay to ensure modal is fully hidden
+                    window.location.reload();
+                }, 1000); // Give user time to see the success message
                 
-                loadStats(); // Update stats after save
             } else {
                 showAlert('Error: ' + (response.message || 'Unknown error'), 'error');
                 clearAllLoadingStates();
