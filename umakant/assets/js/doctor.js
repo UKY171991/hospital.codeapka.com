@@ -347,17 +347,28 @@ function saveDoctorData() {
         processData: false,
         contentType: false, // Important for FormData
         success: function(response) {
+            console.log('Save response:', response); // Debug log
             if (response.success) {
                 showAlert(id ? 'Doctor updated successfully!' : 'Doctor added successfully!', 'success');
                 $('#doctorModal').modal('hide');
+                console.log('Reloading DataTable...'); // Debug log
                 doctorsDataTable.ajax.reload(null, false); // Reload DataTables after save without resetting pagination
+                
+                // Fallback: Force table redraw if reload doesn't work
+                setTimeout(() => {
+                    if (doctorsDataTable) {
+                        doctorsDataTable.draw();
+                    }
+                }, 500);
+                
                 loadStats(); // Update stats after save
             } else {
                 showAlert('Error: ' + (response.message || 'Unknown error'), 'error');
             }
         },
-        error: function() {
-            showAlert('Failed to save doctor data.', 'error');
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', xhr.responseText, status, error); // Debug log
+            showAlert('Failed to save doctor data. ' + (xhr.responseJSON?.message || error), 'error');
         },
         complete: function() {
             submitBtn.html(originalText).prop('disabled', false);
