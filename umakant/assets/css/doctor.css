@@ -133,6 +133,36 @@
     }
 }
 
+/* Enhanced Modal Header Styles */
+.modal-header.bg-gradient-primary .d-flex {
+    width: 100%;
+}
+
+.modal-icon-wrapper {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.modal-title-wrapper {
+    flex: 1;
+}
+
+.modal-title-wrapper h5 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.modal-title-wrapper small {
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+
 /* Enhanced Modal Styles */
 .modal-content {
     border: none;

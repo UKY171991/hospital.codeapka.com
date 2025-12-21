@@ -217,12 +217,19 @@ require_once 'inc/sidebar.php';
 <div class="modal fade" id="doctorModal" tabindex="-1" role="dialog" aria-labelledby="doctorModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content shadow-lg">
-            <div class="modal-header bg-gradient-primary text-white">
-                <h5 class="modal-title" id="doctorModalLabel">
-                    <i class="fas fa-user-md mr-2"></i>
-                    <span id="modalTitle">Add New Doctor</span>
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+            <div class="modal-header bg-gradient-primary text-white py-3">
+                <div class="d-flex align-items-center">
+                    <div class="modal-icon-wrapper mr-3">
+                        <i class="fas fa-user-md fa-2x"></i>
+                    </div>
+                    <div class="modal-title-wrapper">
+                        <h5 class="modal-title mb-0" id="doctorModalLabel">
+                            <span id="modalTitle">Add New Doctor</span>
+                        </h5>
+                        <small class="text-white-50">Fill in the doctor information below</small>
+                    </div>
+                </div>
+                <button type="button" class="close text-white ml-auto" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -230,21 +237,22 @@ require_once 'inc/sidebar.php';
                 <div class="modal-body p-4">
                     <input type="hidden" id="doctorId" name="id">
                     
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                    <!-- Row 1: Name & Qualification -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label for="doctorName" class="form-label fw-bold">
-                                    <i class="fas fa-user mr-1 text-primary"></i>
+                                    <i class="fas fa-user mr-2 text-primary"></i>
                                     Doctor Name <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" class="form-control form-control-lg" id="doctorName" name="name" required 
                                        placeholder="Enter doctor's full name">
                             </div>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label for="doctorQualification" class="form-label fw-bold">
-                                    <i class="fas fa-graduation-cap mr-1 text-primary"></i>
+                                    <i class="fas fa-graduation-cap mr-2 text-primary"></i>
                                     Qualification
                                 </label>
                                 <input type="text" class="form-control form-control-lg" id="doctorQualification" name="qualification" 
@@ -253,104 +261,92 @@ require_once 'inc/sidebar.php';
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                    <!-- Row 2: Specialization & Hospital -->
+                    <div class="row mb-3">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="doctorSpecialization">
-                                    <i class="fas fa-stethoscope mr-1"></i>
+                                <label for="doctorSpecialization" class="form-label fw-bold">
+                                    <i class="fas fa-stethoscope mr-2 text-primary"></i>
                                     Specialization
                                 </label>
-                                <input type="text" class="form-control" id="doctorSpecialization" name="specialization">
+                                <input type="text" class="form-control form-control-lg" id="doctorSpecialization" name="specialization" 
+                                       placeholder="e.g., Cardiology, Neurology">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="doctorHospital">
-                                    <i class="fas fa-hospital mr-1"></i>
+                                <label for="doctorHospital" class="form-label fw-bold">
+                                    <i class="fas fa-hospital mr-2 text-primary"></i>
                                     Hospital
                                 </label>
-                                <input type="text" class="form-control" id="doctorHospital" name="hospital">
+                                <input type="text" class="form-control form-control-lg" id="doctorHospital" name="hospital" 
+                                       placeholder="Hospital name">
                             </div>
                         </div>
                     </div>
 
-                    <div class="row">
+                    <!-- Row 3: Contact Number & Phone -->
+                    <div class="row mb-3">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="doctorContact">
-                                    <i class="fas fa-phone mr-1"></i>
+                                <label for="doctorContact" class="form-label fw-bold">
+                                    <i class="fas fa-phone mr-2 text-primary"></i>
                                     Contact Number
                                 </label>
-                                <input type="text" class="form-control" id="doctorContact" name="contact_no">
+                                <input type="text" class="form-control form-control-lg" id="doctorContact" name="contact_no" 
+                                       placeholder="Primary contact number">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="doctorPhone">
-                                    <i class="fas fa-mobile-alt mr-1"></i>
+                                <label for="doctorPhone" class="form-label fw-bold">
+                                    <i class="fas fa-mobile-alt mr-2 text-primary"></i>
                                     Phone
                                 </label>
-                                <input type="text" class="form-control" id="doctorPhone" name="phone">
+                                <input type="text" class="form-control form-control-lg" id="doctorPhone" name="phone" 
+                                       placeholder="Mobile number">
                             </div>
                         </div>
                     </div>
 
-                    <div class="row">
+                    <!-- Row 4: Email & Percent -->
+                    <div class="row mb-3">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="doctorEmail">
-                                    <i class="fas fa-envelope mr-1"></i>
+                                <label for="doctorEmail" class="form-label fw-bold">
+                                    <i class="fas fa-envelope mr-2 text-primary"></i>
                                     Email
                                 </label>
-                                <input type="email" class="form-control" id="doctorEmail" name="email">
+                                <input type="email" class="form-control form-control-lg" id="doctorEmail" name="email" 
+                                       placeholder="doctor@example.com">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="doctorPercent">
-                                    <i class="fas fa-percentage mr-1"></i>
-                                    Commission Percentage
+                                <label for="doctorPercent" class="form-label fw-bold">
+                                    <i class="fas fa-percentage mr-2 text-primary"></i>
+                                    Commission (%)
                                 </label>
-                                <input type="number" class="form-control" id="doctorPercent" name="percent" min="0" max="100" step="0.01">
+                                <input type="number" class="form-control form-control-lg" id="doctorPercent" name="percent" 
+                                       placeholder="0" min="0" max="100">
                             </div>
                         </div>
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="doctorRegistration">
-                                    <i class="fas fa-id-card mr-1"></i>
-                                    Registration Number
-                                </label>
-                                <input type="text" class="form-control" id="doctorRegistration" name="registration_no">
-                            </div>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="doctorAddress">
-                            <i class="fas fa-map-marker-alt mr-1"></i>
-                            Address
-                        </label>
-                        <textarea class="form-control" id="doctorAddress" name="address" rows="3"></textarea>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancel
+                        <i class="fas fa-times mr-2"></i>Cancel
                     </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Doctor
+                        <i class="fas fa-save mr-2"></i>Save Doctor
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<!-- View Doctor Modal -->
+                            <!-- View Doctor Modal -->
 <div class="modal fade view-modal modal-enhanced" id="viewDoctorModal" tabindex="-1" role="dialog" aria-labelledby="viewDoctorModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
