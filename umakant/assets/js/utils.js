@@ -55,10 +55,7 @@ var utils = {
             if (value && rule.minLength && value.length < rule.minLength) {
                 errors.push(`${rule.label || field} must be at least ${rule.minLength} characters long.`);
             }
-            if (value && rule.type === 'email' && !/^[^
-@]+@[^
-@]+\.[^
-@]+$/.test(value)) {
+            if (value && rule.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
                 errors.push(`Invalid ${rule.label || field} format.`);
             }
             // Add more validation types as needed
