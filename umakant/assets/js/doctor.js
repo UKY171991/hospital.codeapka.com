@@ -339,6 +339,9 @@ function saveDoctorData() {
     const id = $('#doctorId').val();
     const method = id ? 'POST' : 'POST'; // patho_api uses POST for both create and update (upsert)
 
+    // Clear any existing loading states first
+    clearAllLoadingStates();
+    
     const submitBtn = $('#doctorForm button[type="submit"]');
     const originalText = submitBtn.html();
     submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
@@ -535,6 +538,7 @@ function clearAllLoadingStates() {
     // Clear any loading states in table cells
     $('#doctorsTable td').removeClass('loading');
     $('#doctorsTable td .fa-spinner').remove();
+    $('#doctorsTable td .spinner-border').remove();
     
     // Clear loading states in modals
     utils.hideLoading('#doctorModal .modal-body');
@@ -542,6 +546,18 @@ function clearAllLoadingStates() {
     
     // Clear any global loading states
     $('body').removeClass('loading');
+    
+    // Aggressive cleanup - remove any elements with loading classes
+    $('[class*="loading"]').remove();
+    $('[class*="spinner"]').remove();
+    
+    // Reset submit buttons if they're stuck
+    $('button[type="submit"]').each(function() {
+        if ($(this).find('.fa-spinner').length > 0) {
+            $(this).find('.fa-spinner').remove();
+            $(this).prop('disabled', false);
+        }
+    });
 }
 
 // View modal functions
