@@ -366,7 +366,7 @@ require_once 'inc/sidebar.php';
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">
                     <i class="fas fa-times"></i> Close
                 </button>
                 <button type="button" class="btn btn-warning" onclick="editDoctorFromView()">
