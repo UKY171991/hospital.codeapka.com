@@ -181,7 +181,6 @@ require_once 'inc/sidebar.php';
                                             <th>ID</th>
                                             <th>Name</th>
                                             <th>Qualification</th>
-                                            <th>Specialization</th>
                                             <th>Hospital</th>
                                             <th>Contact No</th>
                                             <th>Phone</th>

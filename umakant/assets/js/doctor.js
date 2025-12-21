@@ -142,13 +142,6 @@ function initializeDataTable() {
                 }
             },
             { data: 'qualification', defaultContent: '-' },
-            {
-                data: 'specialization',
-                render: function(data, type, row) { // Added row parameter for consistency
-                    console.log("Rendering Specialization for row:", row); // Debugging
-                    return data ? `<span class="badge badge-info">${data}</span>` : '-';
-                }
-            },
             { data: 'hospital', defaultContent: '-' },
             { data: 'contact_no', defaultContent: '-' },
             { data: 'phone', defaultContent: '-' },
