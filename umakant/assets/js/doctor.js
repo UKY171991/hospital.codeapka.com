@@ -365,27 +365,50 @@ function saveDoctorData() {
                 console.log('Attempting to reload table...');
                 console.log('API Response:', response);
                 
-                // Force table reload with a more reliable approach
+                // Try complete table reinitialization as the most reliable approach
                 setTimeout(() => {
-                    if (typeof doctorsDataTable !== 'undefined' && doctorsDataTable) {
-                        console.log('DataTable instance found, forcing reload...');
+                    try {
+                        // Destroy existing DataTable completely
+                        if ($.fn.DataTable.isDataTable('#doctorsTable')) {
+                            $('#doctorsTable').DataTable().destroy(true);
+                            console.log('DataTable destroyed completely');
+                        }
                         
-                        // Clear any internal DataTables cache
-                        doctorsDataTable.clear();
+                        // Clear all table content
+                        $('#doctorsTableBody').empty();
+                        $('#doctorsTable thead').empty();
                         
-                        // Force ajax reload with cache busting
-                        doctorsDataTable.ajax.url('patho_api/doctor.php?_t=' + new Date().getTime()).load(function() {
-                            console.log('Table data loaded successfully');
-                            // Force redraw to ensure UI updates
-                            doctorsDataTable.draw();
-                            clearAllLoadingStates();
-                        }, false);
+                        // Rebuild table header
+                        const tableHeader = `
+                            <tr>
+                                <th>Sr. No.</th>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Hospital</th>
+                                <th>Contact No</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Percent</th>
+                                <th>Added By</th>
+                                <th>Created At</th>
+                                <th>Actions</th>
+                            </tr>
+                        `;
+                        $('#doctorsTable thead').html(tableHeader);
                         
-                    } else {
-                        console.log('Reinitializing DataTable...');
-                        initializeDataTable();
+                        // Reinitialize the entire DataTable
+                        setTimeout(() => {
+                            initializeDataTable();
+                            console.log('DataTable completely reinitialized');
+                        }, 100);
+                        
+                    } catch (error) {
+                        console.error('Error during table reinitialization:', error);
+                        // Ultimate fallback: reload the page
+                        console.log('Falling back to page reload');
+                        window.location.reload();
                     }
-                }, 300); // Delay to ensure modal is fully hidden
+                }, 500); // Longer delay to ensure modal is fully hidden
                 
                 loadStats(); // Update stats after save
             } else {
