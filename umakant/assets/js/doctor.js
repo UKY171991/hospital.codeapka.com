@@ -152,12 +152,6 @@ function initializeDataTable() {
                     return data ? new Date(data).toLocaleDateString() : '-';
                 }
             },
-            { 
-                data: 'updated_at',
-                render: function(data, type, row) {
-                    return data ? new Date(data).toLocaleDateString() : '-';
-                }
-            },
             {
                 data: null,
                 orderable: false,
@@ -171,7 +165,7 @@ function initializeDataTable() {
                             <button class="btn btn-warning btn-sm" onclick="editDoctor(${row.id})" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteDoctor(${row.id}, '${row.name || ''}')" title="Delete"> // Ensure name is not null/undefined
+                            <button class="btn btn-danger btn-sm" onclick="deleteDoctor(${row.id}, '${row.name || ''}')" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>

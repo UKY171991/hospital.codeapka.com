@@ -187,7 +187,6 @@ require_once 'inc/sidebar.php';
                                             <th>Percent</th>
                                             <th>Added By</th>
                                             <th>Created At</th>
-                                            <th>Updated At</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
