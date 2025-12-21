@@ -138,6 +138,13 @@ try{
         // ignore DB errors; still return success for file upload
     }
 
+    // Send email notification to all users about new software upload
+    try{
+        sendUploadNotificationEmails($pdo, $orig, $safeName, $uploaded_by);
+    }catch(Throwable $e){
+        // ignore email errors; still return success for file upload
+    }
+
     echo json_encode(['success'=>true,'file_name'=>$safeName,'original_name'=>$orig,'relative_path'=>$relative]);
     ob_end_flush();
     exit;
