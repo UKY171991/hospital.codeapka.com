@@ -196,7 +196,7 @@ function handleSave($pdo, $config, $user_data) {
 
     $data = array_intersect_key($input, array_flip($config['allowed_fields']));
     
-    // For updates, be more aggressive about preventing duplicates
+    // For updates, be more conservative about duplicate handling
     if ($id) {
         // First check if this exact record exists
         $stmt = $pdo->prepare("SELECT * FROM {$config['table_name']} WHERE {$config['id_field']} = ?");
@@ -212,19 +212,9 @@ function handleSave($pdo, $config, $user_data) {
             json_response(['success' => false, 'message' => 'Permission denied to update this doctor'], 403);
         }
         
-        // Check for duplicates excluding current record
-        $duplicateCheck = checkForDuplicates($pdo, $data, $user_data['user_id'], $server_id, $id);
+        // For updates, skip duplicate checking to avoid overwriting other records
+        // Just proceed with the update of the specific record
         
-        if ($duplicateCheck['has_duplicates']) {
-            // If duplicates exist, update the primary existing record instead of creating new
-            $existingId = $duplicateCheck['existing_id'];
-            if ($existingId && $existingId != $id) {
-                // Update the existing record instead of the current one
-                $id = $existingId;
-                // Clean up the old record
-                deleteDoctorRecord($pdo, $config['table_name'], $config['id_field'], $input['id'], $user_data['user_id']);
-            }
-        }
     } else {
         // For new records, check duplicates normally
         $duplicateCheck = checkForDuplicates($pdo, $data, $user_data['user_id'], $server_id, $id);
