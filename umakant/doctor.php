@@ -213,11 +213,11 @@ require_once 'inc/sidebar.php';
 </div>
 <!-- /.content-wrapper -->
 
-<!-- Doctor Modal -->
+<!-- Add/Edit Doctor Modal -->
 <div class="modal fade" id="doctorModal" tabindex="-1" role="dialog" aria-labelledby="doctorModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-gradient-primary text-white">
                 <h5 class="modal-title" id="doctorModalLabel">
                     <i class="fas fa-user-md mr-2"></i>
                     <span id="modalTitle">Add New Doctor</span>
@@ -227,31 +227,34 @@ require_once 'inc/sidebar.php';
                 </button>
             </div>
             <form id="doctorForm">
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <input type="hidden" id="doctorId" name="id">
                     
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-6 mb-3">
                             <div class="form-group">
-                                <label for="doctorName">
-                                    <i class="fas fa-user mr-1"></i>
+                                <label for="doctorName" class="form-label fw-bold">
+                                    <i class="fas fa-user mr-1 text-primary"></i>
                                     Doctor Name <span class="text-danger">*</span>
                                 </label>
-                                <input type="text" class="form-control" id="doctorName" name="name" required>
+                                <input type="text" class="form-control form-control-lg" id="doctorName" name="name" required 
+                                       placeholder="Enter doctor's full name">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 mb-3">
                             <div class="form-group">
-                                <label for="doctorQualification">
-                                    <i class="fas fa-graduation-cap mr-1"></i>
+                                <label for="doctorQualification" class="form-label fw-bold">
+                                    <i class="fas fa-graduation-cap mr-1 text-primary"></i>
                                     Qualification
                                 </label>
-                                <input type="text" class="form-control" id="doctorQualification" name="qualification">
+                                <input type="text" class="form-control form-control-lg" id="doctorQualification" name="qualification" 
+                                       placeholder="e.g., MBBS, MD, MS">
                             </div>
                         </div>
                     </div>
 
                     <div class="row">
+                        <div class="col-md-6 mb-3">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="doctorSpecialization">
