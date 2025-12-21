@@ -354,38 +354,37 @@ function saveDoctorData() {
                 showAlert(id ? 'Doctor updated successfully!' : 'Doctor added successfully!', 'success');
                 $('#doctorModal').modal('hide');
                 
-                // Clear any loading overlays from the table
-                $('.overlay').remove();
+                // Comprehensive cleanup of all loading states
+                clearAllLoadingStates();
                 
-                // Force immediate table refresh with multiple approaches
+                // Force immediate table refresh
                 doctorsDataTable.ajax.reload(null, false);
                 
-                // Additional fallback to ensure table updates
+                // Additional cleanup after table reload
                 setTimeout(() => {
+                    clearAllLoadingStates();
+                    // Force table redraw if needed
                     if (doctorsDataTable) {
                         doctorsDataTable.draw();
-                        // Clear any remaining loading states
-                        $('.table-responsive .overlay').remove();
                     }
-                }, 300);
+                }, 200);
                 
                 loadStats(); // Update stats after save
             } else {
                 showAlert('Error: ' + (response.message || 'Unknown error'), 'error');
-                // Clear loading states on error as well
-                $('.overlay').remove();
+                clearAllLoadingStates();
             }
         },
         error: function(xhr, status, error) {
             showAlert('Failed to save doctor data. ' + (xhr.responseJSON?.message || error), 'error');
-            // Clear loading states on error
-            $('.overlay').remove();
+            // Clear all loading states on error
+            clearAllLoadingStates();
         },
         complete: function() {
             submitBtn.html(originalText).prop('disabled', false);
             // Ensure all loading states are cleared when request completes
             setTimeout(() => {
-                $('.overlay').remove();
+                clearAllLoadingStates();
             }, 100);
         }
     });
@@ -419,15 +418,17 @@ function performDeleteDoctor(id) {
         url: `patho_api/doctor.php?id=${id}`,
         type: 'DELETE',
         success: function(response) {
-            if (response.success) {
-                showAlert('Doctor deleted successfully!', 'success');
-                doctorsDataTable.ajax.reload(null, false); // Reload DataTables after delete without resetting pagination
-                loadStats(); // Update stats after delete
-            }
-            else {
-                showAlert('Error deleting doctor: ' + (response.message || 'Unknown error'), 'error');
-            }
-        },
+                if (response.success) {
+                    showAlert('Doctor deleted successfully!', 'success');
+                    clearAllLoadingStates(); // Clear any loading states
+                    doctorsDataTable.ajax.reload(null, false); // Reload DataTables after delete without resetting pagination
+                    loadStats(); // Update stats after delete
+                }
+                else {
+                    showAlert('Error deleting doctor: ' + (response.message || 'Unknown error'), 'error');
+                    clearAllLoadingStates(); // Clear loading states on error
+                }
+            },
         error: function() {
             showAlert('Failed to delete doctor.', 'error');
         }
@@ -516,6 +517,31 @@ function bulkDeleteDoctors() {
 function exportDoctors() {
     // Implement export all doctors logic here
     // Export all doctors data
+}
+
+// Helper function to clear all loading states
+function clearAllLoadingStates() {
+    // Remove all types of loading indicators
+    $('.overlay').remove();
+    $('.loading').remove();
+    $('.spinner-border').remove();
+    $('.fa-spinner').remove();
+    $('.fa-spin').removeClass('fa-spin');
+    
+    // Clear DataTables processing indicators
+    $('#doctorsTable_processing').remove();
+    $('.dataTables_processing').remove();
+    
+    // Clear any loading states in table cells
+    $('#doctorsTable td').removeClass('loading');
+    $('#doctorsTable td .fa-spinner').remove();
+    
+    // Clear loading states in modals
+    utils.hideLoading('#doctorModal .modal-body');
+    utils.hideLoading('#viewDoctorModal .modal-body');
+    
+    // Clear any global loading states
+    $('body').removeClass('loading');
 }
 
 // View modal functions
