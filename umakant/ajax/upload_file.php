@@ -154,3 +154,57 @@ try{
     ob_end_flush();
     exit;
 }
+
+function sendUploadNotificationEmails($pdo, $originalName, $fileName, $uploadedBy) {
+    try {
+        $stmt = $pdo->prepare("SELECT id, username, full_name, email FROM users WHERE email IS NOT NULL AND email != ''");
+        $stmt->execute();
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        if (empty($users)) return;
+        
+        $downloadUrl = "https://hospital.codeapka.com/downloads.php";
+        $subject = "New Software Upload: " . htmlspecialchars($originalName);
+        
+        $uploaderName = "Admin";
+        if ($uploadedBy) {
+            try {
+                $uploaderStmt = $pdo->prepare("SELECT username, full_name FROM users WHERE id = ?");
+                $uploaderStmt->execute([$uploadedBy]);
+                $uploader = $uploaderStmt->fetch();
+                if ($uploader) $uploaderName = $uploader['full_name'] ?: $uploader['username'];
+            } catch (Throwable $e) {}
+        }
+        
+        foreach ($users as $user) {
+            $email = trim($user['email']);
+            
+            // Skip invalid emails
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) continue;
+            
+            $userName = $user['full_name'] ?: $user['username'];
+            
+            $message = "
+            <html><body style='font-family: Arial;'>
+                <h2 style='color: #4f46e5;'>New Software Available</h2>
+                <p>Hi {$userName},</p>
+                <p>A new software has been uploaded by {$uploaderName}:</p>
+                <div style='background: #f8f9fa; padding: 15px; border-left: 4px solid #4f46e5; margin: 20px 0;'>
+                    <strong>File:</strong> {$originalName}<br>
+                    <strong>Download:</strong> <a href='{$downloadUrl}'>{$downloadUrl}</a>
+                </div>
+                <p>Visit the downloads page to access this new software.</p>
+                <p>Thank you,<br>Hospital Management System</p>
+            </body></html>";
+            
+            $headers = "MIME-Version: 1.0\r\n";
+            $headers .= "Content-type:text/html;charset=UTF-8\r\n";
+            $headers .= 'From: Hospital Admin <noreply@hospital.codeapka.com>' . "\r\n";
+            
+            mail($email, $subject, $message, $headers);
+        }
+        
+    } catch (Throwable $e) {
+        // Log error if needed
+    }
+}
