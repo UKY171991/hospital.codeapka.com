@@ -370,13 +370,52 @@ function saveDoctorData() {
                 // Comprehensive cleanup of all loading states
                 clearAllLoadingStates();
                 
-                console.log('Update successful, reloading page to ensure fresh data...');
+                console.log('Update successful, reloading table...');
                 console.log('API Response:', response);
                 
-                // Use page reload as the most reliable solution
+                // Force table reload with proper approach
                 setTimeout(() => {
-                    window.location.reload();
-                }, 1000); // Give user time to see the success message
+                    if (typeof doctorsDataTable !== 'undefined' && doctorsDataTable) {
+                        console.log('Reloading DataTable...');
+                        console.log('Current DataTable state:', doctorsDataTable);
+                        
+                        // Clear any existing data first
+                        doctorsDataTable.clear().draw();
+                        
+                        // Force reload with cache busting
+                        doctorsDataTable.ajax.reload(function(json) {
+                            console.log('Table reload completed');
+                            console.log('Data returned:', json);
+                            
+                            // Check if data was returned
+                            if (json && json.data && json.data.length > 0) {
+                                console.log('Data rows returned:', json.data.length);
+                            } else {
+                                console.warn('No data returned from API');
+                            }
+                            
+                            // Force redraw to ensure data is displayed
+                            doctorsDataTable.draw();
+                            
+                            // Clear any remaining loading states
+                            clearAllLoadingStates();
+                            
+                            // Additional safety check - if table still empty, try reinitialization
+                            setTimeout(() => {
+                                if ($('#doctorsTable tbody tr').length === 0) {
+                                    console.warn('Table still empty, attempting reinitialization...');
+                                    doctorsDataTable.destroy();
+                                    initializeDataTable();
+                                }
+                            }, 1000);
+                            
+                        }, false);
+                        
+                    } else {
+                        console.log('DataTable not found, initializing...');
+                        initializeDataTable();
+                    }
+                }, 500); // Wait for modal to fully hide
                 
             } else {
                 showAlert('Error: ' + (response.message || 'Unknown error'), 'error');
