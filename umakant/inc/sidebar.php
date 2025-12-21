@@ -23,7 +23,7 @@ $role = $_SESSION['role'] ?? 'user';
     <?php
     // Pages to include under Pathology
     $pathologyPages = [
-      'index.php','doctors.php','patient.php','owner.php',
+      'index.php','doctors.php','doctor.php','patient.php','owner.php',
       'main-test-category.php','test-category.php','test.php','upload_zip.php','upload_list.php',
       'entry-list.php','plan.php','notice.php','pathology_reports.php'
     ];
@@ -148,7 +148,7 @@ $role = $_SESSION['role'] ?? 'user';
             </li>
 
             <li class="nav-item">
-              <a href="doctors.php" class="nav-link <?php echo ($activePage == 'doctors.php') ? 'active' : ''; ?>">
+              <a href="doctors.php" class="nav-link <?php echo ($activePage == 'doctors.php' || $activePage == 'doctor.php') ? 'active' : ''; ?>">
                 <i class="fas fa-user-md nav-icon"></i>
                 <p>Doctors</p>
               </a>
