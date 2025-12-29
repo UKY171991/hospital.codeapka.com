@@ -85,86 +85,66 @@ function ensureTableExists() {
 }
 
 function getStatusMessage($status, $clientName, $remarks, $nextDate) {
-    // Clean HTML from remarks for WhatsApp (plain text)
+    // Clean HTML from remarks for WhatsApp
     $cleanRemarks = cleanHtmlForWhatsApp($remarks);
     
-    // Build professional WhatsApp message
-    $message = "*Hospital Management System*\n";
-    $message .= "--------------------------------\n";
-    $message .= "Dear *{$clientName}*,\n\n";
+    // Always start with the Client Name from details
+    $message = "Dear *{$clientName}*,\n\n";
     
-    // Status-specific messages
-    switch ($status) {
-        case 'Proposal Sent':
-            $message .= "📋 *Status: Proposal Sent*\n\n";
-            $message .= "We have sent the comprehensive proposal for your project. Please review the attached details.\n\n";
-            break;
-            
-        case 'Quotation Sent':
-            $message .= "💰 *Status: Quotation Sent*\n\n";
-            $message .= "We have forwarded the quotation as requested. Kindly review the pricing and scope.\n\n";
-            break;
-            
-        case 'Negotiation':
-            $message .= "🤝 *Status: Under Negotiation*\n\n";
-            $message .= "We are reviewing the terms discussed and will revert shortly.\n\n";
-            break;
-            
-        case 'Project Started':
-            $message .= "🚀 *Status: Project Started*\n\n";
-            $message .= "We are excited to announce that work on your project has officially begun!\n\n";
-            break;
-            
-        case 'Completed':
-            $message .= "✅ *Status: Completed*\n\n";
-            $message .= "Your project has been successfully completed. Thank you for your trust.\n\n";
-            break;
-            
-        case 'Call Later':
-            $message .= "📞 *Status: Call Later*\n\n";
-            $message .= "We will connect with you at a more convenient time as discussed.\n\n";
-            break;
-            
-        case 'Interested':
-            $message .= "👍 *Status: Interest Confirmed*\n\n";
-            $message .= "Thank you for your interest. We look forward to collaborating with you.\n\n";
-            break;
-            
-        case 'Not Interested':
-            $message .= "📝 *Status: Update*\n\n";
-            $message .= "Thank you for your time. We wish you the best in your future endeavors.\n\n";
-            break;
-             
-        case 'No Answer':
-            $message .= "aaa *Status: No Answer*\n\n";
-            $message .= "We tried reaching you. Please call us back when free.\n\n";
-            break;
-            
-        case 'Pending':
-            $message .= "⏳ *Status: Pending*\n\n";
-            $message .= "Your inquiry is under review.\n\n";
-            break;
-            
-        default:
-            $message .= "📌 *Status: {$status}*\n\n";
-            break;
-    }
-    
-    // Add remarks if available
     if (!empty($cleanRemarks)) {
-        $message .= "*Details:*\n";
-        $message .= "{$cleanRemarks}\n\n";
+        // If we have template content (remarks), use ONLY that
+        // Try to remove generic greetings from the template content to avoid duplication
+        // Matches "Dear Sir/Madam,", "Hello,", "Hi,", etc. at the start
+        $cleanRemarks = preg_replace('/^\s*(Dear|Hello|Hi|Greetings)\s+.*?(,|!|\.)\s*/mi', '', $cleanRemarks);
+        $cleanRemarks = trim($cleanRemarks);
+        
+        $message .= $cleanRemarks;
+    } else {
+        // Fallback: If no remarks/template, use the Default Status Message
+        switch ($status) {
+            case 'Proposal Sent':
+                $message .= "We have sent the comprehensive proposal for your project. Please review the attached details.";
+                break;
+            case 'Quotation Sent':
+                $message .= "We have forwarded the quotation as requested. Kindly review the pricing and scope.";
+                break;
+            case 'Negotiation':
+                $message .= "We are reviewing the terms discussed and will revert shortly.";
+                break;
+            case 'Project Started':
+                $message .= "We are excited to announce that work on your project has officially begun!";
+                break;
+            case 'Completed':
+                $message .= "Your project has been successfully completed. Thank you for your trust.";
+                break;
+            case 'Call Later':
+                $message .= "We will connect with you at a more convenient time as discussed.";
+                break;
+            case 'Interested':
+                $message .= "Thank you for your interest. We look forward to collaborating with you.";
+                break;
+            case 'Not Interested':
+                $message .= "Thank you for your time. We wish you the best in your future endeavors.";
+                break;
+            case 'No Answer':
+                $message .= "We tried reaching you. Please call us back when free.";
+                break;
+            case 'Pending':
+                $message .= "Your inquiry is under review.";
+                break;
+            default:
+                $message .= "Status Update: {$status}";
+                break;
+        }
+        
+        // Add footer only for default messages
+        $message .= "\n\nBest Regards,\n*Hospital Management Team*";
     }
     
-    // Add next followup date if available
+    // Optional: Add Next Followup Date if set (as a useful footer info, typically good to have)
     if (!empty($nextDate)) {
-        $message .= "📅 *Next Followup:* {$nextDate}\n\n";
+        $message .= "\n\n📅 *Next Call:* {$nextDate}";
     }
-    
-    // Professional closing
-    $message .= "--------------------------------\n";
-    $message .= "*Hospital Management Team*\n";
-    $message .= "🌐 hospital.codeapka.com\n";
     
     return $message;
 }
