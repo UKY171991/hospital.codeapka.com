@@ -141,10 +141,7 @@ function getStatusMessage($status, $clientName, $remarks, $nextDate) {
         $message .= "\n\nBest Regards,\n*Hospital Management Team*";
     }
     
-    // Optional: Add Next Followup Date if set (as a useful footer info, typically good to have)
-    if (!empty($nextDate)) {
-        $message .= "\n\n📅 *Next Call:* {$nextDate}";
-    }
+    // Next Call date is for admin reference only, do not send to client.
     
     return $message;
 }
