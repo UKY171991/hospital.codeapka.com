@@ -89,69 +89,70 @@ function getStatusMessage($status, $clientName, $remarks, $nextDate) {
     $cleanRemarks = cleanHtmlForWhatsApp($remarks);
     
     // Build professional WhatsApp message
-    $message = "🏥 *Hospital Management System*\n\n";
+    $message = "*Hospital Management System*\n";
+    $message .= "--------------------------------\n";
     $message .= "Dear *{$clientName}*,\n\n";
     
     // Status-specific messages
     switch ($status) {
         case 'Proposal Sent':
-            $message .= "📋 *Status Update: Proposal Sent*\n\n";
-            $message .= "We have prepared and sent a detailed proposal for your website project. Please take your time to review it carefully.\n\n";
+            $message .= "📋 *Status: Proposal Sent*\n\n";
+            $message .= "We have sent the comprehensive proposal for your project. Please review the attached details.\n\n";
             break;
             
         case 'Quotation Sent':
-            $message .= "💰 *Status Update: Quotation Sent*\n\n";
-            $message .= "We have sent you a detailed quotation for your website project. Please review the pricing and scope of work.\n\n";
+            $message .= "💰 *Status: Quotation Sent*\n\n";
+            $message .= "We have forwarded the quotation as requested. Kindly review the pricing and scope.\n\n";
             break;
             
         case 'Negotiation':
-            $message .= "🤝 *Status Update: Under Negotiation*\n\n";
-            $message .= "Thank you for your valuable feedback. We are currently reviewing the terms and will get back to you shortly.\n\n";
+            $message .= "🤝 *Status: Under Negotiation*\n\n";
+            $message .= "We are reviewing the terms discussed and will revert shortly.\n\n";
             break;
             
         case 'Project Started':
-            $message .= "🚀 *Status Update: Project Started*\n\n";
-            $message .= "Great news! We have officially started working on your website project. Our team is excited to bring your vision to life.\n\n";
+            $message .= "🚀 *Status: Project Started*\n\n";
+            $message .= "We are excited to announce that work on your project has officially begun!\n\n";
             break;
             
         case 'Completed':
-            $message .= "✅ *Status Update: Project Completed*\n\n";
-            $message .= "Congratulations! Your website project has been successfully completed. Thank you for choosing our services.\n\n";
+            $message .= "✅ *Status: Completed*\n\n";
+            $message .= "Your project has been successfully completed. Thank you for your trust.\n\n";
             break;
             
         case 'Call Later':
-            $message .= "📞 *Status Update: Call Later*\n\n";
-            $message .= "As per our discussion, we will contact you at a more convenient time to discuss your website requirements.\n\n";
+            $message .= "📞 *Status: Call Later*\n\n";
+            $message .= "We will connect with you at a more convenient time as discussed.\n\n";
             break;
             
         case 'Interested':
-            $message .= "👍 *Status Update: Interest Confirmed*\n\n";
-            $message .= "Thank you for showing interest in our web development services. We are excited to work with you!\n\n";
+            $message .= "👍 *Status: Interest Confirmed*\n\n";
+            $message .= "Thank you for your interest. We look forward to collaborating with you.\n\n";
             break;
             
         case 'Not Interested':
-            $message .= "📝 *Status Update: Not Interested*\n\n";
-            $message .= "Thank you for considering our services. We appreciate your time and wish you all the best.\n\n";
+            $message .= "📝 *Status: Update*\n\n";
+            $message .= "Thank you for your time. We wish you the best in your future endeavors.\n\n";
             break;
-            
+             
         case 'No Answer':
-            $message .= "📱 *Status Update: No Answer*\n\n";
-            $message .= "We tried to reach you but couldn't connect. Please feel free to call us back at your convenience.\n\n";
+            $message .= "aaa *Status: No Answer*\n\n";
+            $message .= "We tried reaching you. Please call us back when free.\n\n";
             break;
             
         case 'Pending':
-            $message .= "⏳ *Status Update: Pending*\n\n";
-            $message .= "Your inquiry is currently being reviewed by our team. We will get back to you soon.\n\n";
+            $message .= "⏳ *Status: Pending*\n\n";
+            $message .= "Your inquiry is under review.\n\n";
             break;
             
         default:
-            $message .= "📌 *Status Update: {$status}*\n\n";
+            $message .= "📌 *Status: {$status}*\n\n";
             break;
     }
     
     // Add remarks if available
     if (!empty($cleanRemarks)) {
-        $message .= "📝 *Details:*\n";
+        $message .= "*Details:*\n";
         $message .= "{$cleanRemarks}\n\n";
     }
     
@@ -161,12 +162,9 @@ function getStatusMessage($status, $clientName, $remarks, $nextDate) {
     }
     
     // Professional closing
-    $message .= "---\n";
-    $message .= "If you have any questions or concerns, please don't hesitate to reach out.\n\n";
-    $message .= "Best Regards,\n";
+    $message .= "--------------------------------\n";
     $message .= "*Hospital Management Team*\n";
-    $message .= "📧 Email: info@hospital.codeapka.com\n";
-    $message .= "🌐 Website: https://hospital.codeapka.com";
+    $message .= "🌐 hospital.codeapka.com\n";
     
     return $message;
 }
@@ -177,31 +175,49 @@ function cleanHtmlForWhatsApp($html) {
         return '';
     }
     
-    // Convert common HTML tags to plain text equivalents
     $text = $html;
     
-    // Convert line breaks to newlines
+    // Decode entities first to handle &nbsp; etc correctly
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    
+    // Replace non-breaking spaces with normal spaces
+    $text = str_replace("\xc2\xa0", ' ', $text); // UTF-8 nbsp
+    $text = str_replace("&nbsp;", ' ', $text);
+    
+    // Explicitly handle lists
+    $text = str_replace('<li>', "\n• ", $text);
+    $text = str_replace('</li>', "", $text);
+    $text = str_replace('<ul>', "\n", $text);
+    $text = str_replace('</ul>', "\n", $text);
+    $text = str_replace('<ol>', "\n", $text);
+    $text = str_replace('</ol>', "\n", $text);
+    
+    // Handle Breaks and Paragraphs
     $text = preg_replace('/<br\s*\/?>/i', "\n", $text);
     $text = preg_replace('/<\/p>/i', "\n\n", $text);
     $text = preg_replace('/<\/div>/i', "\n", $text);
     $text = preg_replace('/<\/h[1-6]>/i', "\n\n", $text);
-    $text = preg_replace('/<\/li>/i', "\n", $text);
     
-    // Convert bold and italic to WhatsApp formatting
+    // Handle Table rows (convert to lines)
+    $text = preg_replace('/<\/tr>/i', "\n", $text);
+    $text = preg_replace('/<\/td>/i', " | ", $text);
+    
+    // Bold/Strong/Italic
     $text = preg_replace('/<(strong|b)>(.*?)<\/(strong|b)>/i', '*$2*', $text);
     $text = preg_replace('/<(em|i)>(.*?)<\/(em|i)>/i', '_$2_', $text);
     
-    // Remove all remaining HTML tags
+    // Strip all remaining tags
     $text = strip_tags($text);
     
-    // Decode HTML entities
-    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    // Final cleanup of whitespace
+    // Replace multiple newlines with double newline
+    $text = preg_replace("/\n\s*\n\s*\n/", "\n\n", $text);
+    // Remove leading/trailing whitespace from each line
+    $lines = explode("\n", $text);
+    $lines = array_map('trim', $lines);
+    $text = implode("\n", $lines);
     
-    // Remove excessive whitespace
-    $text = preg_replace('/\n\s*\n\s*\n/', "\n\n", $text);
-    $text = trim($text);
-    
-    return $text;
+    return trim($text);
 }
 
 function getFollowups() {
