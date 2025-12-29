@@ -41,6 +41,9 @@ try {
         case 'delete_followup':
             deleteFollowup();
             break;
+        case 'update_remarks':
+            updateRemarks();
+            break;
         case 'send_email_notification':
             sendEmailNotification();
             break;
@@ -417,6 +420,26 @@ function updateFollowup() {
         'success' => true,
         'message' => $message,
         'whatsapp_link' => $whatsappLink
+    ]);
+}
+
+function updateRemarks() {
+    global $pdo;
+    ensureTableExists();
+    
+    $id = intval($_POST['id'] ?? 0);
+    $remarks = $_POST['remarks'] ?? '';
+    
+    if ($id <= 0) {
+        throw new Exception('Invalid followup ID');
+    }
+    
+    $stmt = $pdo->prepare("UPDATE followups SET remarks = :remarks, updated_at = NOW() WHERE id = :id");
+    $stmt->execute([':remarks' => $remarks, ':id' => $id]);
+    
+    echo json_encode([
+        'success' => true,
+        'message' => 'Remarks updated successfully'
     ]);
 }
 

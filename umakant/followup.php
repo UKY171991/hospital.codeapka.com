@@ -582,16 +582,32 @@ $(document).on('click', '.view-followup', function() {
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label><strong>Remarks:</strong></label>
-                                        <div class="border p-3 bg-light">
-                                            ${followup.remarks || '<em>No remarks</em>'}
-                                        </div>
+                                        <label><strong>Remarks (Editable):</strong></label>
+                                        <textarea id="view_remarks_${followup.id}" class="form-control summernote-view">${followup.remarks || ''}</textarea>
+                                        <button class="btn btn-success mt-2 save-remarks-btn" data-id="${followup.id}">
+                                            <i class="fas fa-save"></i> Save Remarks
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         `;
                         
                         $('#viewFollowupModalBody').html(modalContent);
+                        
+                        // Initialize Summernote for the view modal
+                        $(`#view_remarks_${followup.id}`).summernote({
+                            height: 150,
+                            toolbar: [
+                                ['style', ['style']],
+                                ['font', ['bold', 'underline', 'clear']],
+                                ['color', ['color']],
+                                ['para', ['ul', 'ol', 'paragraph']],
+                                ['table', ['table']],
+                                ['insert', ['link']],
+                                ['view', ['fullscreen', 'codeview', 'help']]
+                            ]
+                        });
+                        
                         $('#viewFollowupModal').modal('show');
                     }
                 });
@@ -600,6 +616,41 @@ $(document).on('click', '.view-followup', function() {
             }
         },
         error: function() {
+            toastr.error('Server error occurred');
+        }
+    });
+});
+
+// Save Remarks directly from View Modal
+$(document).on('click', '.save-remarks-btn', function() {
+    const id = $(this).data('id');
+    const remarks = $(`#view_remarks_${id}`).val(); // Summernote syncs to textarea usually or use code
+    const actualRemarks = $(`#view_remarks_${id}`).summernote('code');
+    
+    const btn = $(this);
+    const originalText = btn.html();
+    
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+    
+    $.ajax({
+        url: 'ajax/followup_api.php',
+        type: 'POST',
+        data: { 
+            action: 'update_remarks', 
+            id: id, 
+            remarks: actualRemarks 
+        },
+        success: function(response) {
+            btn.prop('disabled', false).html(originalText);
+            if (response.success) {
+                toastr.success(response.message);
+                loadFollowups(currentPage); // Refresh list to show new snippet
+            } else {
+                toastr.error(response.message || 'Error updating remarks');
+            }
+        },
+        error: function() {
+            btn.prop('disabled', false).html(originalText);
             toastr.error('Server error occurred');
         }
     });
