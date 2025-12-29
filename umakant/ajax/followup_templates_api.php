@@ -64,8 +64,47 @@ function ensureTableExists() {
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         `created_by` int(11) DEFAULT NULL,
-        PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    // Check if table is empty
+    $stmt = $pdo->query("SELECT COUNT(*) FROM followup_templates");
+    if ($stmt->fetchColumn() == 0) {
+        $defaultTemplates = [
+            [
+                'name' => 'Introduction / First Contact',
+                'content' => "<p><strong>Dear Sir/Madam,</strong></p><p>I hope this message finds you well.</p><p>I am reaching out from <strong>CodeApka</strong> regarding our comprehensive <strong>Hospital Management System</strong>. Our software is designed to streamline administrative tasks, manage patient records efficiently, and improve overall hospital operations.</p><p>I would love to schedule a brief call or demo to show you how our solution can benefit your institution.</p><p>Best Regards,<br>Sales Team</p>"
+            ],
+            [
+                'name' => 'Missed Call / No Answer',
+                'content' => "<p><strong>Hello,</strong></p><p>I tried reaching you earlier today regarding your interest in our Hospital Management System but missed you.</p><p>Please let me know a convenient time to call you back, or feel free to reply to this message.</p><p>Looking forward to connecting.</p><p>Best Regards,<br>Sales Team</p>"
+            ],
+            [
+                'name' => 'Proposal Sent',
+                'content' => "<p><strong>Dear Client,</strong></p><p>It was a pleasure speaking with you.</p><p>As discussed, I have sent the detailed proposal for the Hospital Management System to your email. It outlines the features, benefits, and implementation plan tailored to your needs.</p><p>Please review it at your convenience and let me know if you have any questions.</p><p>Best Regards,<br>Sales Team</p>"
+            ],
+            [
+                'name' => 'Quotation Followup',
+                'content' => "<p><strong>Hi,</strong></p><p>I am writing to follow up on the quotation we sent recently. Have you had a chance to review it?</p><p>If you need any clarification on the pricing or features, please don't hesitate to ask. We are keen to work with you.</p><p>Best Regards,<br>Sales Team</p>"
+            ],
+            [
+                'name' => 'Meeting Request',
+                'content' => "<p><strong>Hello,</strong></p><p>I would like to request a short meeting to demonstrate the key features of our Hospital Management System. Seeing the software in action will give you a better understanding of its capabilities.</p><p>Are you available sometime this week for a 15-minute demo?</p><p>Best Regards,<br>Sales Team</p>"
+            ],
+            [
+                'name' => 'Check-in (Long time no hear)',
+                'content' => "<p><strong>Hello,</strong></p><p>I hope you are doing well.</p><p>I just wanted to circle back regarding our previous discussion about the Hospital Management System. Are you still interested in proceeding, or do you have any other requirements we should consider?</p><p>Looking forward to your update.</p><p>Best Regards,<br>Sales Team</p>"
+            ],
+            [
+                'name' => 'Onboarding / Welcome',
+                'content' => "<p><strong>Dear New Partner,</strong></p><p>Welcome aboard! We are thrilled to start this journey with you.</p><p>Our team is now initiating the setup process for your Hospital Management System. We will be in touch shortly with the next steps and timeline.</p><p>Thank you for choosing us.</p><p>Best Regards,<br>Sales Team</p>"
+            ]
+        ];
+
+        $insertStmt = $pdo->prepare("INSERT INTO followup_templates (template_name, content, created_at) VALUES (:name, :content, NOW())");
+        foreach ($defaultTemplates as $tpl) {
+            $insertStmt->execute([':name' => $tpl['name'], ':content' => $tpl['content']]);
+        }
+    }
 }
 
 function getTemplates() {
