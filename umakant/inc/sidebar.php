@@ -361,7 +361,7 @@ $role = $_SESSION['role'] ?? 'user';
 
         <?php
         // Followup Clients menu pages
-        $followupPages = ['followup_client.php', 'followup.php'];
+        $followupPages = ['followup_client.php', 'followup.php', 'followup_templates.php'];
         $isFollowupActive = in_array($activePage, $followupPages);
         ?>
         <li class="nav-item has-treeview <?php echo $isFollowupActive ? 'menu-open' : ''; ?>">
@@ -385,8 +385,15 @@ $role = $_SESSION['role'] ?? 'user';
                 <p>Followup</p>
               </a>
             </li>
+            <li class="nav-item">
+              <a href="followup_templates.php" class="nav-link <?php echo ($activePage == 'followup_templates.php') ? 'active' : ''; ?>">
+                <i class="fas fa-file-alt nav-icon"></i>
+                <p>Templates</p>
+              </a>
+            </li>
           </ul>
         </li>
+
 
   <!-- Admins menu removed -->
 

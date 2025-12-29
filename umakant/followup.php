@@ -67,6 +67,12 @@ require_once 'inc/sidebar.php';
                                     </select>
                                 </div>
                                 <div class="form-group">
+                                    <label for="template_id">Use Template</label>
+                                    <select class="form-control select2" id="template_id" style="width: 100%;">
+                                        <option value="">Select Template</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
                                     <label for="remarks">Remarks</label>
                                     <textarea class="form-control" id="remarks" name="remarks" rows="3" placeholder="Enter remarks"></textarea>
                                 </div>
@@ -183,7 +189,30 @@ $(document).ready(function() {
     });
 
     loadClientsDropdown();
+    loadTemplatesDropdown();
     loadFollowups(currentPage);
+
+    // Template Selection Handler
+    $('#template_id').on('change', function() {
+        const id = $(this).val();
+        if (id) {
+            $.ajax({
+                url: 'ajax/followup_templates_api.php',
+                type: 'GET',
+                data: { action: 'get_template', id: id },
+                success: function(response) {
+                    if (response.success) {
+                         $('#remarks').summernote('code', response.data.content);
+                    } else {
+                        toastr.error('Error loading template');
+                    }
+                },
+                error: function() {
+                    toastr.error('Server error loading template');
+                }
+            });
+        }
+    });
 
     // Handle Form Submission
     $('#addFollowupForm').on('submit', function(e) {
@@ -322,6 +351,26 @@ function loadClientsDropdown() {
                 response.data.forEach(function(client) {
                     const companyText = client.company ? ` (${client.company})` : '';
                     select.append(`<option value="${client.id}">${client.name}${companyText}</option>`);
+                });
+            }
+        }
+    });
+}
+
+function loadTemplatesDropdown() {
+    $.ajax({
+        url: 'ajax/followup_templates_api.php',
+        type: 'GET',
+        // Fetch specific fields to optimize if needed, but the current API returns *
+        data: { action: 'get_templates' }, 
+        success: function(response) {
+            if (response.success) {
+                const select = $('#template_id');
+                // Keep the first option
+                select.find('option:not(:first)').remove();
+                
+                response.data.forEach(function(template) {
+                    select.append(`<option value="${template.id}">${template.template_name}</option>`);
                 });
             }
         }
