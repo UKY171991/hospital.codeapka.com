@@ -54,7 +54,7 @@ require_once 'inc/sidebar.php';
                                         <th>Phone</th>
                                         <th>Email</th>
                                         <th>Company</th>
-                                        <th>Followup Message</th>
+                                        <th>Followup Title</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -108,6 +108,10 @@ require_once 'inc/sidebar.php';
                             <div class="form-group">
                                 <label for="company">Company Name</label>
                                 <input type="text" class="form-control" id="company" name="company" placeholder="Enter company name">
+                            </div>
+                            <div class="form-group">
+                                <label for="followup_title">Followup Title</label>
+                                <input type="text" class="form-control" id="followup_title" name="followup_title" placeholder="Enter message title">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -189,6 +193,8 @@ $(document).ready(function() {
         if (id) {
             const template = templates.find(t => t.id == id);
             if (template) {
+                // Set Title automatically
+                $('#followup_title').val(template.template_name);
                 // Remove HTML tags for plain textarea
                 const cleanContent = template.content.replace(/<[^>]*>?/gm, '');
                 $('#followup_message').val(cleanContent);
@@ -274,6 +280,7 @@ $(document).ready(function() {
                                                 <p><strong>Phone:</strong> ${client.phone}</p>
                                                 <p><strong>Email:</strong> ${client.email || 'N/A'}</p>
                                                 <p><strong>Company:</strong> ${client.company || 'N/A'}</p>
+                                                <p><strong>Followup Title:</strong> ${client.followup_title || 'N/A'}</p>
                                             </div>
                                             <div class="col-md-6">
                                                 <p><strong>Followup Message:</strong></p>
@@ -401,6 +408,7 @@ $(document).ready(function() {
                     $('#email').val(client.email);
                     $('#phone').val(client.phone);
                     $('#company').val(client.company);
+                    $('#followup_title').val(client.followup_title);
                     $('#followup_message').val(client.followup_message);
                     
                     $('#addClientModalLabel').text('Edit Client');
@@ -490,10 +498,7 @@ function loadClients(page) {
                             <td>${client.phone}</td>
                             <td>${client.email || '-'}</td>
                             <td>${client.company || '-'}</td>
-                            <td title="${client.followup_message || ''}">
-                                ${truncatedMessage}
-                                ${client.followup_message ? '<button class="btn btn-xs btn-link copy-msg" title="Copy Message"><i class="fas fa-copy"></i></button>' : ''}
-                            </td>
+                            <td>${client.followup_title || '-'}</td>
                             <td>
                                 <button class="btn btn-xs btn-info view-client" data-id="${client.id}" title="View">
                                     <i class="fas fa-eye"></i>

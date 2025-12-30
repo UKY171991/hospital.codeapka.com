@@ -69,11 +69,11 @@ function ensureTableExists() {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     
-    // Add followup_message column if it doesn't exist
-    $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `followup_message` text DEFAULT NULL AFTER `company`");
-    
     // Add added_by column if it doesn't exist
     $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `added_by` int(11) DEFAULT NULL AFTER `followup_message`");
+
+    // Add followup_title column if it doesn't exist
+    $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `followup_title` varchar(255) DEFAULT NULL AFTER `followup_message`");
 }
 
 function getFollowupClients() {
@@ -205,7 +205,8 @@ function updateFollowupClient() {
     // But since phone is already checked globally, this is redundant unless we allow same phone for different names.
     
     $sql = "UPDATE followup_clients 
-            SET name = :name, email = :email, phone = :phone, company = :company, followup_message = :followup_message, updated_at = NOW()
+            SET name = :name, email = :email, phone = :phone, company = :company, 
+                followup_message = :followup_message, followup_title = :followup_title, updated_at = NOW()
             WHERE id = :id";
     
     $stmt = $pdo->prepare($sql);
@@ -215,7 +216,8 @@ function updateFollowupClient() {
         ':email' => $email,
         ':phone' => $phone,
         ':company' => $_POST['company'] ?? '',
-        ':followup_message' => $_POST['followup_message'] ?? ''
+        ':followup_message' => $_POST['followup_message'] ?? '',
+        ':followup_title' => $_POST['followup_title'] ?? ''
     ]);
     
     echo json_encode([
@@ -260,8 +262,8 @@ function addFollowupClient() {
     // Check if a client with the same name and phone/email already exists
     // (This is mostly covered by the above, but good for clarity)
     
-    $sql = "INSERT INTO followup_clients (name, email, phone, company, followup_message, added_by, created_at)
-            VALUES (:name, :email, :phone, :company, :followup_message, :added_by, NOW())";
+    $sql = "INSERT INTO followup_clients (name, email, phone, company, followup_message, followup_title, added_by, created_at)
+            VALUES (:name, :email, :phone, :company, :followup_message, :followup_title, :added_by, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -270,6 +272,7 @@ function addFollowupClient() {
         ':phone' => $phone,
         ':company' => $_POST['company'] ?? '',
         ':followup_message' => $_POST['followup_message'] ?? '',
+        ':followup_title' => $_POST['followup_title'] ?? '',
         ':added_by' => $_SESSION['user_id'] ?? null
     ]);
     
