@@ -380,12 +380,6 @@ $role = $_SESSION['role'] ?? 'user';
               </a>
             </li>
             <li class="nav-item">
-              <a href="followup.php" class="nav-link <?php echo ($activePage == 'followup.php') ? 'active' : ''; ?>">
-                <i class="fas fa-clock nav-icon"></i>
-                <p>Followup</p>
-              </a>
-            </li>
-            <li class="nav-item">
               <a href="followup_templates.php" class="nav-link <?php echo ($activePage == 'followup_templates.php') ? 'active' : ''; ?>">
                 <i class="fas fa-file-alt nav-icon"></i>
                 <p>Templates</p>
