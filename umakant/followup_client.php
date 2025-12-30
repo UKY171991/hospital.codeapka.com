@@ -160,6 +160,25 @@ $(document).ready(function() {
     loadClients(currentPage);
     loadTemplates();
 
+    function htmlToPlain(html) {
+        if (!html) return '';
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // Handle line breaks and block elements
+        const elements = tempDiv.querySelectorAll('p, div, br, li, h1, h2, h3, h4, h5, h6');
+        elements.forEach(el => {
+            if (el.tagName.toLowerCase() === 'br') {
+                el.after(document.createTextNode('\n'));
+            } else {
+                el.after(document.createTextNode('\n'));
+            }
+        });
+
+        let text = tempDiv.textContent || tempDiv.innerText || "";
+        return text.trim().replace(/\n\s*\n/g, '\n\n');
+    }
+
     // Open Modal for Add
     $('#openAddClientModal').on('click', function() {
         resetForm();
@@ -212,9 +231,8 @@ $(document).ready(function() {
             if (template) {
                 // Set Title automatically
                 $('#followup_title').val(template.template_name);
-                // Remove HTML tags for plain textarea
-                const cleanContent = template.content.replace(/<[^>]*>?/gm, '');
-                $('#followup_message').val(cleanContent);
+                // Remove HTML tags properly for plain textarea
+                $('#followup_message').val(htmlToPlain(template.content));
             }
         }
     });
@@ -603,8 +621,7 @@ $(document).ready(function() {
                 const template = templates.find(t => t.id == id);
                 if (template) {
                     $('#emailSubject').val(template.template_name);
-                    const cleanContent = template.content.replace(/<[^>]*>?/gm, '');
-                    $('#emailMessage').val(`Dear ${name},\n\n` + cleanContent);
+                    $('#emailMessage').val(`Dear ${name},\n\n` + htmlToPlain(template.content));
                 }
             }
         });

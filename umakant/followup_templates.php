@@ -247,11 +247,14 @@ function loadTemplates(page) {
                 response.data.forEach(function(template, index) {
                     const srNo = (page - 1) * limit + index + 1;
                     
-                    // Strip HTML for preview
-                    const div = document.createElement("div");
-                    div.innerHTML = template.content;
-                    let text = div.textContent || div.innerText || "";
-                    if (text.length > 50) text = text.substring(0, 50) + '...';
+                    // Strip HTML for preview properly
+                    const tempDiv = document.createElement("div");
+                    tempDiv.innerHTML = template.content;
+                    // Add spaces for block elements before stripping
+                    const blocks = tempDiv.querySelectorAll('p, div, br, li');
+                    blocks.forEach(b => b.after(' '));
+                    let text = tempDiv.textContent || tempDiv.innerText || "";
+                    if (text.length > 80) text = text.substring(0, 80) + '...';
                     
                     const row = `
                         <tr>
