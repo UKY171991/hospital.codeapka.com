@@ -352,9 +352,19 @@ function updateResponse() {
     $stmt = $pdo->prepare("INSERT INTO client_responses (client_id, response_message, created_at) VALUES (:client_id, :response, NOW())");
     $stmt->execute([':client_id' => $id, ':response' => $response]);
     
-    // Also update last response in main table for reference
-    $stmt = $pdo->prepare("UPDATE followup_clients SET response_message = :response, updated_at = NOW() WHERE id = :id");
-    $stmt->execute([':response' => $response, ':id' => $id]);
+    // Also update last response and next followup date in main table for reference
+    $next_followup_date = !empty($_POST['next_followup_date']) ? $_POST['next_followup_date'] : null;
+    $sql = "UPDATE followup_clients SET response_message = :response, updated_at = NOW()";
+    $params = [':response' => $response, ':id' => $id];
+    
+    if ($next_followup_date) {
+        $sql .= ", next_followup_date = :next_followup_date";
+        $params[':next_followup_date'] = $next_followup_date;
+    }
+    
+    $sql .= " WHERE id = :id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     
     echo json_encode(['success' => true, 'message' => 'Response added successfully']);
 }

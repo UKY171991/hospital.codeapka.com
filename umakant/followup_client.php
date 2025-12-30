@@ -337,9 +337,9 @@ $(document).ready(function() {
                                             <div class="col-md-4">
                                                 <div class="p-3 bg-light rounded shadow-sm h-100 border-left border-success">
                                                     <small class="text-muted d-block text-uppercase font-weight-bold mb-1">Followup & Activity</small>
-                                                    <p class="mb-1 text-success font-weight-bold"><i class="fas fa-bullseye mr-1"></i> ${client.followup_title || 'No Title Set'}</p>
-                                                    <p class="mb-1 text-danger small font-weight-bold"><i class="fas fa-calendar-check mr-1"></i> Next: ${client.next_followup_date ? new Date(client.next_followup_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not Set'}</p>
-                                                    <p class="mb-0 text-secondary small"><i class="fas fa-clock mr-1"></i> Activity: ${client.updated_at ? new Date(client.updated_at).toLocaleDateString() : (client.created_at ? new Date(client.created_at).toLocaleDateString() : 'N/A')}</p>
+                                                    <p class="mb-1 text-success font-weight-bold" id="modal_followup_title"><i class="fas fa-bullseye mr-1"></i> ${client.followup_title || 'No Title Set'}</p>
+                                                    <p class="mb-1 text-danger small font-weight-bold" id="modal_next_followup_date"><i class="fas fa-calendar-check mr-1"></i> Next: ${client.next_followup_date ? new Date(client.next_followup_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not Set'}</p>
+                                                    <p class="mb-0 text-secondary small" id="modal_last_activity"><i class="fas fa-clock mr-1"></i> Activity: ${client.updated_at ? new Date(client.updated_at).toLocaleDateString() : (client.created_at ? new Date(client.created_at).toLocaleDateString() : 'N/A')}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -355,7 +355,16 @@ $(document).ready(function() {
                                                     <textarea class="form-control border-0 bg-light-soft" id="detail_response_message" rows="3" 
                                                         style="resize: none; border-radius: 8px; font-size: 0.95rem;" 
                                                         placeholder="Type the client's response or feedback here..."></textarea>
-                                                    <div class="mt-3 d-flex justify-content-end">
+                                                    <div class="mt-3 d-flex flex-wrap align-items-center">
+                                                        <div class="mr-auto mb-2 mb-md-0">
+                                                            <div class="input-group input-group-sm">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text bg-white border-right-0"><i class="fas fa-calendar-alt text-primary"></i></span>
+                                                                </div>
+                                                                <input type="date" class="form-control border-left-0 pl-0" id="detail_next_followup_date" 
+                                                                    value="${client.next_followup_date || ''}" style="width: 140px; border-radius: 0 4px 4px 0;">
+                                                            </div>
+                                                        </div>
                                                         <button class="btn btn-secondary btn-sm mr-2 d-none" id="cancelResponseEditBtn">
                                                             <i class="fas fa-times"></i> Cancel
                                                         </button>
@@ -463,6 +472,11 @@ $(document).ready(function() {
         const action = responseId ? 'edit_response' : 'update_response';
         const data = { action: action, response_message: response };
         if (responseId) data.id = responseId; else data.id = clientId;
+        
+        // Add next followup date if it's a new response log
+        if (!responseId) {
+            data.next_followup_date = $('#detail_next_followup_date').val();
+        }
 
         $.ajax({
             url: 'ajax/followup_client_api.php',
@@ -470,7 +484,15 @@ $(document).ready(function() {
             data: data,
             success: function(res) {
                 if (res.success) {
-                    toastr.success(res.message);
+                    if (!responseId) {
+                        const newDate = $('#detail_next_followup_date').val();
+                        if (newDate) {
+                            const formattedDate = new Date(newDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                            $('#modal_next_followup_date').html(`<i class="fas fa-calendar-check mr-1"></i> Next: ${formattedDate}`);
+                        }
+                        $('#modal_last_activity').html(`<i class="fas fa-clock mr-1"></i> Activity: ${new Date().toLocaleDateString()}`);
+                    }
+                    
                     $('#detail_response_message').val('');
                     $('#editing_response_id').val('');
                     $('#saveResponseBtn').html('<i class="fas fa-save"></i> Save Response');
