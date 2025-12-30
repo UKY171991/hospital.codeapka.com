@@ -134,7 +134,7 @@ function getFollowupClients() {
     $totalPages = ceil($totalRecords / $limit);
     
     // Get records
-    $sql = "SELECT * FROM followup_clients $whereSql ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+    $sql = "SELECT * FROM followup_clients $whereSql ORDER BY COALESCE(updated_at, created_at) DESC LIMIT :limit OFFSET :offset";
     $stmt = $pdo->prepare($sql);
     foreach ($params as $key => $val) {
         $stmt->bindValue($key, $val);
