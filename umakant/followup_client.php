@@ -490,7 +490,9 @@ $(document).ready(function() {
                         const newDate = $('#detail_next_followup_date').val();
                         if (newDate) {
                             const formattedDate = new Date(newDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                            $('#modal_next_followup_date').html(`<i class="fas fa-calendar-check mr-1"></i> Next: ${formattedDate}`);
+                            $('#modal_next_followup_date').html(`<i class="fas fa-calendar-check mr-1"></i> Next: ${formattedDate}`).removeClass('text-muted').addClass('text-danger');
+                        } else {
+                            $('#modal_next_followup_date').html('<i class="fas fa-calendar-check mr-1"></i> Next: Not Set').removeClass('text-danger').addClass('text-muted');
                         }
                         $('#modal_last_activity').html(`<i class="fas fa-clock mr-1"></i> Activity: ${new Date().toLocaleDateString()}`);
                     }

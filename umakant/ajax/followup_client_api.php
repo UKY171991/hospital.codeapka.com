@@ -69,21 +69,39 @@ try {
 function ensureTableExists() {
     global $pdo;
     
+    // Create main table with all initial columns
     $pdo->exec("CREATE TABLE IF NOT EXISTS `followup_clients` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `name` varchar(255) NOT NULL,
         `email` varchar(255) DEFAULT NULL,
         `phone` varchar(20) NOT NULL,
         `company` varchar(255) DEFAULT NULL,
+        `followup_title` varchar(255) DEFAULT NULL,
         `followup_message` text DEFAULT NULL,
+        `response_message` text DEFAULT NULL,
+        `next_followup_date` date DEFAULT NULL,
+        `added_by` int(11) DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     
-    // Add columns if they don't exist
-    $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `response_message` text DEFAULT NULL AFTER `followup_title`");
-    $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `next_followup_date` date DEFAULT NULL AFTER `response_message`");
+    // Manually check and add columns if they are missing (more compatible than IF NOT EXISTS)
+    $stmt = $pdo->query("DESC followup_clients");
+    $columns = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    
+    if (!in_array('followup_title', $columns)) {
+        $pdo->exec("ALTER TABLE followup_clients ADD COLUMN `followup_title` varchar(255) DEFAULT NULL AFTER `company`");
+    }
+    if (!in_array('response_message', $columns)) {
+        $pdo->exec("ALTER TABLE followup_clients ADD COLUMN `response_message` text DEFAULT NULL AFTER `followup_message`");
+    }
+    if (!in_array('next_followup_date', $columns)) {
+        $pdo->exec("ALTER TABLE followup_clients ADD COLUMN `next_followup_date` date DEFAULT NULL AFTER `response_message`");
+    }
+    if (!in_array('added_by', $columns)) {
+        $pdo->exec("ALTER TABLE followup_clients ADD COLUMN `added_by` int(11) DEFAULT NULL AFTER `next_followup_date`");
+    }
 
     // Create client_responses table for history
     $pdo->exec("CREATE TABLE IF NOT EXISTS `client_responses` (
@@ -359,21 +377,21 @@ function updateResponse() {
     }
     
     // Update main table
-    $sql = "UPDATE followup_clients SET updated_at = NOW()";
+    $sqlParts = ["updated_at = NOW()"];
     $params = [':id' => $id];
     
     if (!empty($response)) {
-        $sql .= ", response_message = :response";
+        $sqlParts[] = "response_message = :response";
         $params[':response'] = $response;
     }
     
     // Always update date if it was sent (could be null/cleared)
     if (isset($_POST['next_followup_date'])) {
-        $sql .= ", next_followup_date = :next_followup_date";
+        $sqlParts[] = "next_followup_date = :next_followup_date";
         $params[':next_followup_date'] = $next_followup_date;
     }
     
-    $sql .= " WHERE id = :id";
+    $sql = "UPDATE followup_clients SET " . implode(", ", $sqlParts) . " WHERE id = :id";
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     
