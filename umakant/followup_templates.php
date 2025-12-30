@@ -26,47 +26,23 @@ require_once 'inc/sidebar.php';
     <section class="content">
         <div class="container-fluid">
             <div class="row">
-                <!-- Add/Edit Template Form -->
-                <div class="col-md-4">
-                    <div class="card card-primary">
-                        <div class="card-header">
-                            <h3 class="card-title">Add New Template</h3>
-                        </div>
-                        <form id="addTemplateForm">
-                            <input type="hidden" id="template_id" name="template_id">
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <label for="template_name">Template Name <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="template_name" name="template_name" placeholder="E.g., Welcome Message" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="content">Template Content <span class="text-danger">*</span></label>
-                                    <textarea class="form-control" id="content" name="content" rows="6" placeholder="Enter template content" required></textarea>
-                                    <small class="form-text text-muted">You can use this content in followups.</small>
-                                </div>
-                            </div>
-                            <div class="card-footer">
-                                <button type="submit" class="btn btn-primary">Save Template</button>
-                                <button type="button" class="btn btn-default float-right" id="cancelEdit" style="display: none;">Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
                 <!-- Template List -->
-                <div class="col-md-8">
-                    <div class="card">
-                        <div class="card-header">
+                <div class="col-md-12">
+                    <div class="card card-outline card-primary shadow-sm">
+                        <div class="card-header d-flex align-items-center">
                             <h3 class="card-title">Template List</h3>
+                            <button type="button" class="btn btn-primary btn-sm ml-auto" id="openAddTemplateModal">
+                                <i class="fas fa-plus mr-1"></i> Add New Template
+                            </button>
                         </div>
                         <div class="card-body table-responsive p-0">
                             <table class="table table-hover text-nowrap" id="templatesTable">
-                                <thead>
+                                <thead class="bg-light">
                                     <tr>
                                         <th>Sr. No.</th>
                                         <th>Name</th>
                                         <th>Content Preview</th>
-                                        <th>Action</th>
+                                        <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -80,13 +56,47 @@ require_once 'inc/sidebar.php';
                             </ul>
                         </div>
                         <div class="overlay" id="loadingOverlay" style="display: none;">
-                            <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+                            <i class="fas fa-2x fa-sync-alt fa-spin text-primary"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- Add/Edit Template Modal -->
+    <div class="modal fade" id="templateModal" tabindex="-1" role="dialog" aria-labelledby="templateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white py-3">
+                    <h5 class="modal-title font-weight-bold" id="templateModalLabel">Add New Template</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="addTemplateForm">
+                    <div class="modal-body p-4">
+                        <input type="hidden" id="template_id" name="template_id">
+                        <div class="form-group mb-4">
+                            <label for="template_name" class="font-weight-bold">Template Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg border-primary" id="template_name" name="template_name" placeholder="E.g., Welcome Message" required>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label for="content" class="font-weight-bold">Template Content <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="content" name="content" rows="10" placeholder="Enter template content" required></textarea>
+                            <small class="form-text text-muted mt-2">
+                                <i class="fas fa-info-circle mr-1"></i> You can use this content in followups. HTML and basic styling are supported.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light border-0">
+                        <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary px-4 font-weight-bold" id="saveTemplateBtn">Save Template</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <?php require_once 'inc/footer.php'; ?>
@@ -102,7 +112,8 @@ const limit = 10;
 $(document).ready(function() {
     // Initialize Summernote
     $('#content').summernote({
-        height: 200,
+        height: 250,
+        placeholder: 'Write your template content here...',
         toolbar: [
             ['style', ['style']],
             ['font', ['bold', 'underline', 'clear']],
@@ -115,10 +126,20 @@ $(document).ready(function() {
 
     loadTemplates(currentPage);
 
+    // Open Modal for Add
+    $('#openAddTemplateModal').on('click', function() {
+        resetForm();
+        $('#templateModal').modal('show');
+    });
+
     // Handle Form Submission
     $('#addTemplateForm').on('submit', function(e) {
         e.preventDefault();
         
+        const $btn = $('#saveTemplateBtn');
+        const originalBtnText = $btn.text();
+        $btn.prop('disabled', true).text('Saving...');
+
         const formData = new FormData(this);
         const templateId = $('#template_id').val();
         
@@ -133,11 +154,12 @@ $(document).ready(function() {
             url: 'ajax/followup_templates_api.php',
             type: 'POST',
             data: formData,
-            processData: false, // Important for FormData with Summernote content potentially? FormData handles it.
+            processData: false,
             contentType: false,
             success: function(response) {
                 if (response.success) {
                     toastr.success(response.message);
+                    $('#templateModal').modal('hide');
                     resetForm();
                     loadTemplates(currentPage);
                 } else {
@@ -146,6 +168,9 @@ $(document).ready(function() {
             },
             error: function() {
                 toastr.error('Server error occurred');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).text(originalBtnText);
             }
         });
     });
@@ -160,14 +185,15 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     const template = response.data;
+                    resetForm();
                     $('#template_id').val(template.id);
                     $('#template_name').val(template.template_name);
                     $('#content').summernote('code', template.content);
                     
                     // Change UI to Edit Mode
-                    $('.card-title').text('Edit Template');
-                    $('button[type="submit"]').text('Update Template');
-                    $('#cancelEdit').show();
+                    $('#templateModalLabel').text('Edit Template');
+                    $('#saveTemplateBtn').text('Update Template');
+                    $('#templateModal').modal('show');
                 } else {
                     toastr.error(response.message || 'Error fetching template details');
                 }
@@ -176,11 +202,6 @@ $(document).ready(function() {
                 toastr.error('Server error occurred');
             }
         });
-    });
-
-    // Cancel Edit
-    $('#cancelEdit').on('click', function() {
-        resetForm();
     });
 
     // Delete Template
@@ -221,9 +242,8 @@ function resetForm() {
     $('#addTemplateForm')[0].reset();
     $('#template_id').val('');
     $('#content').summernote('reset');
-    $('.card-title').text('Add New Template');
-    $('button[type="submit"]').text('Save Template');
-    $('#cancelEdit').hide();
+    $('#templateModalLabel').text('Add New Template');
+    $('#saveTemplateBtn').text('Save Template');
 }
 
 function loadTemplates(page) {
