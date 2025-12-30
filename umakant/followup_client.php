@@ -122,10 +122,9 @@ require_once 'inc/sidebar.php';
                                     <!-- Templates will be loaded here -->
                                 </select>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group d-none">
                                 <label for="followup_message">Followup Message</label>
                                 <textarea class="form-control" id="followup_message" name="followup_message" placeholder="Enter followup message" rows="8"></textarea>
-                                <small class="text-muted">Selecting a template will populate this field.</small>
                             </div>
                         </div>
                     </div>
@@ -410,6 +409,12 @@ $(document).ready(function() {
                     $('#company').val(client.company);
                     $('#followup_title').val(client.followup_title);
                     $('#followup_message').val(client.followup_message);
+                    
+                    // Try to select the template automatically based on title
+                    if (client.followup_title && templates.length > 0) {
+                        const tpl = templates.find(t => t.template_name === client.followup_title);
+                        if (tpl) $('#templateSelector').val(tpl.id);
+                    }
                     
                     $('#addClientModalLabel').text('Edit Client');
                     $('#saveClientBtn').text('Update Client');
