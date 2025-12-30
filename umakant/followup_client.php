@@ -138,6 +138,16 @@ require_once 'inc/sidebar.php';
     </div>
 </div>
 
+<style>
+.bg-gradient-info { background: linear-gradient(45deg, #17a2b8, #117a8b); }
+.bg-light-soft { background-color: #f8f9fa !important; border: 1px solid #e9ecef !important; }
+#detail_response_message:focus { background-color: #fff !important; box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25) !important; border-color: #17a2b8 !important; }
+.btn-link:hover { text-decoration: none; transform: scale(1.1); transition: 0.2s; }
+.modal-content { border-radius: 12px; overflow: hidden; }
+#responseHistoryTable thead th { border-top: 0; font-size: 0.85rem; letter-spacing: 0.5px; }
+.history-count { vertical-align: middle; font-size: 0.75rem; padding: 0.35em 0.65em; }
+</style>
+
 <?php require_once 'inc/footer.php'; ?>
 
 <script>
@@ -265,66 +275,88 @@ $(document).ready(function() {
                     const modal = `
                         <div class="modal fade" id="viewClientModal" tabindex="-1" role="dialog">
                             <div class="modal-dialog modal-lg" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-info">
-                                        <h5 class="modal-title">Client Details</h5>
+                                <div class="modal-content border-0 shadow-lg">
+                                    <div class="modal-header bg-gradient-info text-white py-3">
+                                        <h5 class="modal-title font-weight-bold">
+                                            <i class="fas fa-user-circle mr-2"></i> Client Information & Feedback
+                                        </h5>
                                         <button type="button" class="close text-white" data-dismiss="modal">
                                             <span>&times;</span>
                                         </button>
                                     </div>
-                                    <div class="modal-body">
-                                        <div class="row mb-3">
+                                    <div class="modal-body p-4">
+                                        <!-- Quick Info Cards -->
+                                        <div class="row mb-4">
                                             <div class="col-md-4">
-                                                <p><strong>Name:</strong> ${client.name}</p>
-                                                <p><strong>Phone:</strong> ${client.phone}</p>
+                                                <div class="p-3 bg-light rounded shadow-sm h-100 border-left border-info">
+                                                    <small class="text-muted d-block text-uppercase font-weight-bold mb-1">Name & Contact</small>
+                                                    <p class="mb-1"><strong><i class="fas fa-user text-info mr-1"></i> ${client.name}</strong></p>
+                                                    <p class="mb-0 text-secondary small"><i class="fas fa-phone-alt mr-1"></i> ${client.phone}</p>
+                                                </div>
                                             </div>
                                             <div class="col-md-4">
-                                                <p><strong>Email:</strong> ${client.email || 'N/A'}</p>
-                                                <p><strong>Company:</strong> ${client.company || 'N/A'}</p>
+                                                <div class="p-3 bg-light rounded shadow-sm h-100 border-left border-warning">
+                                                    <small class="text-muted d-block text-uppercase font-weight-bold mb-1">Company & Email</small>
+                                                    <p class="mb-1"><i class="fas fa-building text-warning mr-1"></i> ${client.company || 'N/A'}</p>
+                                                    <p class="mb-0 text-secondary small"><i class="fas fa-envelope mr-1"></i> ${client.email || 'N/A'}</p>
+                                                </div>
                                             </div>
                                             <div class="col-md-4">
-                                                <p><strong>Followup Title:</strong> ${client.followup_title || 'N/A'}</p>
+                                                <div class="p-3 bg-light rounded shadow-sm h-100 border-left border-success">
+                                                    <small class="text-muted d-block text-uppercase font-weight-bold mb-1">Current Followup</small>
+                                                    <p class="mb-1 text-success font-weight-bold"><i class="fas fa-bullseye mr-1"></i> ${client.followup_title || 'No Title Set'}</p>
+                                                    <p class="mb-0 text-secondary small"><i class="fas fa-clock mr-1"></i> Last Activity: ${client.updated_at ? new Date(client.updated_at).toLocaleDateString() : 'N/A'}</p>
+                                                </div>
                                             </div>
                                         </div>
-                                        <hr>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <h6><strong>Response Message:</strong></h6>
-                                                <div class="form-group">
+
+                                        <!-- Response Submission Area -->
+                                        <div class="card border-primary mb-4 shadow-sm">
+                                            <div class="card-header bg-light py-2">
+                                                <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-comment-dots mr-2"></i> Log New Response</h6>
+                                            </div>
+                                            <div class="card-body p-3">
+                                                <div class="form-group mb-0">
                                                     <input type="hidden" id="editing_response_id" value="">
-                                                    <textarea class="form-control mb-2" id="detail_response_message" rows="3" placeholder="Enter response from client..."></textarea>
-                                                    <button class="btn btn-sm btn-success float-right" id="saveResponseBtn" data-id="${client.id}">
-                                                        <i class="fas fa-save"></i> Save Response
-                                                    </button>
-                                                    <button class="btn btn-sm btn-secondary float-right mr-2 d-none" id="cancelResponseEditBtn">
-                                                        Cancel
-                                                    </button>
+                                                    <textarea class="form-control border-0 bg-light-soft" id="detail_response_message" rows="3" 
+                                                        style="resize: none; border-radius: 8px; font-size: 0.95rem;" 
+                                                        placeholder="Type the client's response or feedback here..."></textarea>
+                                                    <div class="mt-3 d-flex justify-content-end">
+                                                        <button class="btn btn-secondary btn-sm mr-2 d-none" id="cancelResponseEditBtn">
+                                                            <i class="fas fa-times"></i> Cancel
+                                                        </button>
+                                                        <button class="btn btn-primary btn-sm px-4 shadow-sm" id="saveResponseBtn" data-id="${client.id}">
+                                                            <i class="fas fa-save mr-1"></i> Save Response
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <hr>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <h6><strong>Response History:</strong></h6>
-                                                <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
-                                                    <table class="table table-sm table-bordered" id="responseHistoryTable">
-                                                        <thead class="bg-light">
-                                                            <tr>
-                                                                <th style="width: 25%">Date & Time</th>
-                                                                <th>Message</th>
-                                                                <th style="width: 15%">Action</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr><td colspan="2" class="text-center">Loading history...</td></tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+
+                                        <!-- History Section -->
+                                        <div class="response-history-section">
+                                            <h6 class="font-weight-bold mb-3 d-flex align-items-center">
+                                                <i class="fas fa-history text-muted mr-2"></i> Response History
+                                                <span class="badge badge-secondary ml-2 history-count"></span>
+                                            </h6>
+                                            <div class="table-responsive rounded border shadow-sm" style="max-height: 250px; overflow-y: auto;">
+                                                <table class="table table-hover table-sm mb-0" id="responseHistoryTable">
+                                                    <thead class="bg-dark text-white">
+                                                        <tr>
+                                                            <th class="py-2 pl-3" style="width: 25%">Date & Time</th>
+                                                            <th class="py-2">Message</th>
+                                                            <th class="py-2 pr-3 text-center" style="width: 15%">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr><td colspan="3" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin mr-2"></i> Loading history...</td></tr>
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <div class="modal-footer bg-light py-2">
+                                        <button type="button" class="btn btn-secondary btn-sm px-4" data-dismiss="modal">Close</button>
                                     </div>
                                 </div>
                             </div>
@@ -347,24 +379,30 @@ $(document).ready(function() {
             success: function(res) {
                 if (res.success) {
                     const tbody = $('#responseHistoryTable tbody');
+                    $('.history-count').text(res.data.length);
                     tbody.empty();
                     if (res.data.length === 0) {
-                        tbody.append('<tr><td colspan="2" class="text-center text-muted">No response history found</td></tr>');
+                        tbody.append('<tr><td colspan="3" class="text-center py-4 text-muted">No response history found for this client.</td></tr>');
                         return;
                     }
                     res.data.forEach(item => {
-                        const date = new Date(item.created_at).toLocaleString();
+                        const date = new Date(item.created_at).toLocaleString('en-US', { 
+                            month: 'short', day: 'numeric', year: 'numeric', 
+                            hour: '2-digit', minute: '2-digit' 
+                        });
                         tbody.append(`
                             <tr data-id="${item.id}" data-message="${item.response_message.replace(/"/g, '&quot;')}">
-                                <td class="small">${date}</td>
-                                <td style="white-space: pre-wrap;">${item.response_message}</td>
-                                <td>
-                                    <button class="btn btn-xs btn-primary edit-detail-response" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-xs btn-danger delete-detail-response" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                <td class="small text-muted pl-3 py-2 border-bottom">${date}</td>
+                                <td class="py-2 border-bottom" style="white-space: pre-wrap; font-size: 0.9rem;">${item.response_message}</td>
+                                <td class="text-center py-2 border-bottom pr-3">
+                                    <div class="btn-group">
+                                        <button class="btn btn-link btn-sm text-primary edit-detail-response px-2" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-link btn-sm text-danger delete-detail-response px-2" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         `);
