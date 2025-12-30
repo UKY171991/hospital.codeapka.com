@@ -510,7 +510,7 @@ $(document).ready(function() {
     $(document).on('click', '.whatsapp-client', function() {
         const phone = $(this).attr('data-phone');
         const tr = $(this).closest('tr');
-        const title = tr.data('title');
+        const name = tr.data('name');
         const message = tr.data('message');
         
         if (!phone) {
@@ -518,8 +518,7 @@ $(document).ready(function() {
             return;
         }
         
-        let fullMessage = '';
-        if (title) fullMessage += `*${title}*\n\n`;
+        let fullMessage = `Dear ${name},\n\n`;
         fullMessage += message || '';
         
         const cleanPhone = phone.replace(/\D/g, '');
@@ -531,6 +530,7 @@ $(document).ready(function() {
     $(document).on('click', '.email-client', function() {
         const email = $(this).data('email');
         const tr = $(this).closest('tr');
+        const name = tr.data('name');
         const title = tr.data('title');
         const message = tr.data('message');
         
@@ -538,6 +538,8 @@ $(document).ready(function() {
             toastr.error('Email address not available');
             return;
         }
+        
+        let personalizedMessage = `Dear ${name},\n\n${message || ''}`;
         
         let templateOptions = '<option value="">-- Change Template (Optional) --</option>';
         templates.forEach(tpl => {
@@ -578,7 +580,7 @@ $(document).ready(function() {
                                 </div>
                                 <div class="form-group">
                                     <label class="font-weight-bold text-muted small text-uppercase">Message Body:</label>
-                                    <textarea class="form-control" id="emailMessage" name="message" placeholder="Type your message..." rows="8" required>${message || ''}</textarea>
+                                    <textarea class="form-control" id="emailMessage" name="message" placeholder="Type your message..." rows="8" required>${personalizedMessage}</textarea>
                                 </div>
                             </div>
                             <div class="modal-footer bg-light">
@@ -602,7 +604,7 @@ $(document).ready(function() {
                 if (template) {
                     $('#emailSubject').val(template.template_name);
                     const cleanContent = template.content.replace(/<[^>]*>?/gm, '');
-                    $('#emailMessage').val(cleanContent);
+                    $('#emailMessage').val(`Dear ${name},\n\n` + cleanContent);
                 }
             }
         });
@@ -741,7 +743,10 @@ function loadClients(page) {
                 response.data.forEach(function(client, index) {
                     const srNo = (page - 1) * limit + index + 1;
                     const row = `
-                        <tr data-message="${(client.followup_message || '').replace(/"/g, '&quot;')}" data-title="${(client.followup_title || '').replace(/"/g, '&quot;')}">
+                        <tr data-message="${(client.followup_message || '').replace(/"/g, '&quot;')}" 
+                            data-title="${(client.followup_title || '').replace(/"/g, '&quot;')}"
+                            data-name="${(client.name || '').replace(/"/g, '&quot;')}"
+                            data-company="${(client.company || '').replace(/"/g, '&quot;')}">
                             <td>${srNo}</td>
                             <td>${client.name}</td>
                             <td>${client.phone}</td>
