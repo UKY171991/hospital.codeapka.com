@@ -412,12 +412,21 @@ function getResponses() {
 function editResponse() {
     global $pdo;
     $id = intval($_POST['id'] ?? 0);
+    $clientId = intval($_POST['client_id'] ?? 0);
     $response = $_POST['response_message'] ?? '';
+    $next_followup_date = !empty($_POST['next_followup_date']) ? $_POST['next_followup_date'] : null;
+    
     if ($id <= 0) throw new Exception('Invalid ID');
     if (empty($response)) throw new Exception('Response message cannot be empty');
     
     $stmt = $pdo->prepare("UPDATE client_responses SET response_message = :response WHERE id = :id");
     $stmt->execute([':response' => $response, ':id' => $id]);
+    
+    // Also update client's next followup date if provided
+    if ($clientId > 0 && isset($_POST['next_followup_date'])) {
+        $stmt = $pdo->prepare("UPDATE followup_clients SET next_followup_date = :next_followup_date, updated_at = NOW() WHERE id = :client_id");
+        $stmt->execute([':next_followup_date' => $next_followup_date, ':client_id' => $clientId]);
+    }
     
     echo json_encode(['success' => true, 'message' => 'Response updated successfully']);
 }

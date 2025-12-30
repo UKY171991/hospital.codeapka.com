@@ -472,12 +472,13 @@ $(document).ready(function() {
         $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
         
         const action = responseId ? 'edit_response' : 'update_response';
-        const data = { action: action, response_message: response };
+        const data = { action: action, response_message: response, client_id: clientId };
         if (responseId) data.id = responseId; else data.id = clientId;
         
-        // Add next followup date if it's a new response log
-        if (!responseId) {
-            data.next_followup_date = $('#detail_next_followup_date').val();
+        // Send next followup date if the field exists
+        const $dateField = $('#detail_next_followup_date');
+        if ($dateField.length) {
+            data.next_followup_date = $dateField.val();
         }
 
         $.ajax({
