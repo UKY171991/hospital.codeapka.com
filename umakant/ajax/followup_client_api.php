@@ -44,6 +44,9 @@ try {
         case 'update_response':
             updateResponse();
             break;
+        case 'get_responses':
+            getResponses();
+            break;
         default:
             throw new Exception('Invalid action specified');
     }
@@ -72,11 +75,18 @@ function ensureTableExists() {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     
-    // Add followup_title column if it doesn't exist
-    $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `followup_title` varchar(255) DEFAULT NULL AFTER `followup_message`");
-
     // Add response_message column if it doesn't exist
     $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `response_message` text DEFAULT NULL AFTER `followup_title`");
+
+    // Create client_responses table for history
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `client_responses` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `client_id` int(11) NOT NULL,
+        `response_message` text NOT NULL,
+        `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `client_id` (`client_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 }
 
 function getFollowupClients() {
@@ -315,8 +325,28 @@ function updateResponse() {
     $id = intval($_POST['id'] ?? 0);
     $response = $_POST['response_message'] ?? '';
     if ($id <= 0) throw new Exception('Invalid ID');
+    if (empty($response)) throw new Exception('Response message cannot be empty');
+    
+    // Insert into history table
+    $stmt = $pdo->prepare("INSERT INTO client_responses (client_id, response_message, created_at) VALUES (:client_id, :response, NOW())");
+    $stmt->execute([':client_id' => $id, ':response' => $response]);
+    
+    // Also update last response in main table for reference
     $stmt = $pdo->prepare("UPDATE followup_clients SET response_message = :response, updated_at = NOW() WHERE id = :id");
     $stmt->execute([':response' => $response, ':id' => $id]);
-    echo json_encode(['success' => true, 'message' => 'Response message updated successfully']);
+    
+    echo json_encode(['success' => true, 'message' => 'Response added successfully']);
+}
+
+function getResponses() {
+    global $pdo;
+    $client_id = intval($_GET['client_id'] ?? 0);
+    if ($client_id <= 0) throw new Exception('Invalid Client ID');
+    
+    $stmt = $pdo->prepare("SELECT * FROM client_responses WHERE client_id = :client_id ORDER BY created_at DESC");
+    $stmt->execute([':client_id' => $client_id]);
+    $responses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    echo json_encode(['success' => true, 'data' => $responses]);
 }
 ?>

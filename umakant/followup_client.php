@@ -291,10 +291,29 @@ $(document).ready(function() {
                                             <div class="col-md-12">
                                                 <h6><strong>Response Message:</strong></h6>
                                                 <div class="form-group">
-                                                    <textarea class="form-control mb-2" id="detail_response_message" rows="4" placeholder="Enter response from client...">${client.response_message || ''}</textarea>
+                                                    <textarea class="form-control mb-2" id="detail_response_message" rows="3" placeholder="Enter response from client..."></textarea>
                                                     <button class="btn btn-sm btn-success float-right" id="saveResponseBtn" data-id="${client.id}">
                                                         <i class="fas fa-save"></i> Save Response
                                                     </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <h6><strong>Response History:</strong></h6>
+                                                <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                                    <table class="table table-sm table-bordered" id="responseHistoryTable">
+                                                        <thead class="bg-light">
+                                                            <tr>
+                                                                <th style="width: 25%">Date & Time</th>
+                                                                <th>Message</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr><td colspan="2" class="text-center">Loading history...</td></tr>
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             </div>
                                         </div>
@@ -309,10 +328,38 @@ $(document).ready(function() {
                     $('#viewClientModal').remove();
                     $('body').append(modal);
                     $('#viewClientModal').modal('show');
+                    loadResponseHistory(client.id);
                 }
             }
         });
     });
+
+    function loadResponseHistory(clientId) {
+        $.ajax({
+            url: 'ajax/followup_client_api.php',
+            type: 'GET',
+            data: { action: 'get_responses', client_id: clientId },
+            success: function(res) {
+                if (res.success) {
+                    const tbody = $('#responseHistoryTable tbody');
+                    tbody.empty();
+                    if (res.data.length === 0) {
+                        tbody.append('<tr><td colspan="2" class="text-center text-muted">No response history found</td></tr>');
+                        return;
+                    }
+                    res.data.forEach(item => {
+                        const date = new Date(item.created_at).toLocaleString();
+                        tbody.append(`
+                            <tr>
+                                <td class="small">${date}</td>
+                                <td style="white-space: pre-wrap;">${item.response_message}</td>
+                            </tr>
+                        `);
+                    });
+                }
+            }
+        });
+    }
 
     // Save Response Message
     $(document).on('click', '#saveResponseBtn', function() {
@@ -329,6 +376,9 @@ $(document).ready(function() {
             success: function(res) {
                 if (res.success) {
                     toastr.success(res.message);
+                    $('#detail_response_message').val(''); // Clear input
+                    loadResponseHistory(id); // Refresh history
+                    loadClients(currentPage); // Update main table too
                 } else {
                     toastr.error(res.message);
                 }
