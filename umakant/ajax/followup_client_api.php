@@ -47,6 +47,12 @@ try {
         case 'get_responses':
             getResponses();
             break;
+        case 'edit_response':
+            editResponse();
+            break;
+        case 'delete_response':
+            deleteResponse();
+            break;
         default:
             throw new Exception('Invalid action specified');
     }
@@ -348,5 +354,29 @@ function getResponses() {
     $responses = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode(['success' => true, 'data' => $responses]);
+}
+
+function editResponse() {
+    global $pdo;
+    $id = intval($_POST['id'] ?? 0);
+    $response = $_POST['response_message'] ?? '';
+    if ($id <= 0) throw new Exception('Invalid ID');
+    if (empty($response)) throw new Exception('Response message cannot be empty');
+    
+    $stmt = $pdo->prepare("UPDATE client_responses SET response_message = :response WHERE id = :id");
+    $stmt->execute([':response' => $response, ':id' => $id]);
+    
+    echo json_encode(['success' => true, 'message' => 'Response updated successfully']);
+}
+
+function deleteResponse() {
+    global $pdo;
+    $id = intval($_POST['id'] ?? 0);
+    if ($id <= 0) throw new Exception('Invalid ID');
+    
+    $stmt = $pdo->prepare("DELETE FROM client_responses WHERE id = :id");
+    $stmt->execute([':id' => $id]);
+    
+    echo json_encode(['success' => true, 'message' => 'Response deleted successfully']);
 }
 ?>

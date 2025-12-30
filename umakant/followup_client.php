@@ -291,9 +291,13 @@ $(document).ready(function() {
                                             <div class="col-md-12">
                                                 <h6><strong>Response Message:</strong></h6>
                                                 <div class="form-group">
+                                                    <input type="hidden" id="editing_response_id" value="">
                                                     <textarea class="form-control mb-2" id="detail_response_message" rows="3" placeholder="Enter response from client..."></textarea>
                                                     <button class="btn btn-sm btn-success float-right" id="saveResponseBtn" data-id="${client.id}">
                                                         <i class="fas fa-save"></i> Save Response
+                                                    </button>
+                                                    <button class="btn btn-sm btn-secondary float-right mr-2 d-none" id="cancelResponseEditBtn">
+                                                        Cancel
                                                     </button>
                                                 </div>
                                             </div>
@@ -308,6 +312,7 @@ $(document).ready(function() {
                                                             <tr>
                                                                 <th style="width: 25%">Date & Time</th>
                                                                 <th>Message</th>
+                                                                <th style="width: 15%">Action</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -350,9 +355,17 @@ $(document).ready(function() {
                     res.data.forEach(item => {
                         const date = new Date(item.created_at).toLocaleString();
                         tbody.append(`
-                            <tr>
+                            <tr data-id="${item.id}" data-message="${item.response_message.replace(/"/g, '&quot;')}">
                                 <td class="small">${date}</td>
                                 <td style="white-space: pre-wrap;">${item.response_message}</td>
+                                <td>
+                                    <button class="btn btn-xs btn-primary edit-detail-response" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-xs btn-danger delete-detail-response" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
                             </tr>
                         `);
                     });
@@ -361,30 +374,88 @@ $(document).ready(function() {
         });
     }
 
-    // Save Response Message
+    // Save/Update Response Message
     $(document).on('click', '#saveResponseBtn', function() {
-        const id = $(this).data('id');
+        const clientId = $(this).data('id');
+        const responseId = $('#editing_response_id').val();
         const response = $('#detail_response_message').val();
         const $btn = $(this);
         
-        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+        if (!response.trim()) {
+            toastr.error('Please enter a response message');
+            return;
+        }
+
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
         
+        const action = responseId ? 'edit_response' : 'update_response';
+        const data = { action: action, response_message: response };
+        if (responseId) data.id = responseId; else data.id = clientId;
+
         $.ajax({
             url: 'ajax/followup_client_api.php',
             type: 'POST',
-            data: { action: 'update_response', id: id, response_message: response },
+            data: data,
             success: function(res) {
                 if (res.success) {
                     toastr.success(res.message);
-                    $('#detail_response_message').val(''); // Clear input
-                    loadResponseHistory(id); // Refresh history
-                    loadClients(currentPage); // Update main table too
+                    $('#detail_response_message').val('');
+                    $('#editing_response_id').val('');
+                    $('#saveResponseBtn').html('<i class="fas fa-save"></i> Save Response');
+                    $('#cancelResponseEditBtn').addClass('d-none');
+                    loadResponseHistory(clientId);
+                    loadClients(currentPage);
                 } else {
                     toastr.error(res.message);
                 }
             },
             complete: function() {
-                $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Save Response');
+                $btn.prop('disabled', false);
+                if (!$('#editing_response_id').val()) {
+                    $btn.html('<i class="fas fa-save"></i> Save Response');
+                } else {
+                    $btn.html('<i class="fas fa-save"></i> Update Response');
+                }
+            }
+        });
+    });
+
+    // Edit Response Detail Click
+    $(document).on('click', '.edit-detail-response', function() {
+        const tr = $(this).closest('tr');
+        const id = tr.data('id');
+        const message = tr.data('message');
+        
+        $('#editing_response_id').val(id);
+        $('#detail_response_message').val(message).focus();
+        $('#saveResponseBtn').html('<i class="fas fa-save"></i> Update Response');
+        $('#cancelResponseEditBtn').removeClass('d-none');
+    });
+
+    // Cancel Edit Click
+    $(document).on('click', '#cancelResponseEditBtn', function() {
+        $('#editing_response_id').val('');
+        $('#detail_response_message').val('');
+        $('#saveResponseBtn').html('<i class="fas fa-save"></i> Save Response');
+        $(this).addClass('d-none');
+    });
+
+    // Delete Response Detail Click
+    $(document).on('click', '.delete-detail-response', function() {
+        if (!confirm('Are you sure you want to delete this response message?')) return;
+        
+        const id = $(this).closest('tr').data('id');
+        const clientId = $('#saveResponseBtn').data('id');
+        
+        $.ajax({
+            url: 'ajax/followup_client_api.php',
+            type: 'POST',
+            data: { action: 'delete_response', id: id },
+            success: function(res) {
+                if (res.success) {
+                    toastr.success(res.message);
+                    loadResponseHistory(clientId);
+                }
             }
         });
     });
