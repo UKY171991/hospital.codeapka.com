@@ -81,8 +81,9 @@ function ensureTableExists() {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     
-    // Add response_message column if it doesn't exist
+    // Add columns if they don't exist
     $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `response_message` text DEFAULT NULL AFTER `followup_title`");
+    $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `next_followup_date` date DEFAULT NULL AFTER `response_message`");
 
     // Create client_responses table for history
     $pdo->exec("CREATE TABLE IF NOT EXISTS `client_responses` (
@@ -133,8 +134,17 @@ function getFollowupClients() {
     $totalRecords = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
     $totalPages = ceil($totalRecords / $limit);
     
-    // Get records
-    $sql = "SELECT * FROM followup_clients $whereSql ORDER BY COALESCE(updated_at, created_at) ASC LIMIT :limit OFFSET :offset";
+    // Get records - Urgent/Upcoming next followups first, then others by latest activity
+    $sql = "SELECT * FROM followup_clients $whereSql 
+            ORDER BY 
+                CASE 
+                    WHEN next_followup_date IS NOT NULL AND next_followup_date <= CURDATE() THEN 1 -- Overdue/Today (High Priority)
+                    WHEN next_followup_date IS NOT NULL THEN 2 -- Future Followup
+                    ELSE 3 -- No Followup set
+                END ASC,
+                next_followup_date ASC,
+                COALESCE(updated_at, created_at) DESC 
+            LIMIT :limit OFFSET :offset";
     $stmt = $pdo->prepare($sql);
     foreach ($params as $key => $val) {
         $stmt->bindValue($key, $val);
@@ -229,7 +239,7 @@ function updateFollowupClient() {
     $sql = "UPDATE followup_clients 
             SET name = :name, email = :email, phone = :phone, company = :company, 
                 followup_message = :followup_message, followup_title = :followup_title, 
-                response_message = :response_message, updated_at = NOW()
+                response_message = :response_message, next_followup_date = :next_followup_date, updated_at = NOW()
             WHERE id = :id";
     
     $stmt = $pdo->prepare($sql);
@@ -241,7 +251,8 @@ function updateFollowupClient() {
         ':company' => $_POST['company'] ?? '',
         ':followup_message' => $_POST['followup_message'] ?? '',
         ':followup_title' => $_POST['followup_title'] ?? '',
-        ':response_message' => $_POST['response_message'] ?? ''
+        ':response_message' => $_POST['response_message'] ?? '',
+        ':next_followup_date' => !empty($_POST['next_followup_date']) ? $_POST['next_followup_date'] : null
     ]);
     
     echo json_encode([
@@ -286,8 +297,8 @@ function addFollowupClient() {
     // Check if a client with the same name and phone/email already exists
     // (This is mostly covered by the above, but good for clarity)
     
-    $sql = "INSERT INTO followup_clients (name, email, phone, company, followup_message, followup_title, added_by, created_at)
-            VALUES (:name, :email, :phone, :company, :followup_message, :followup_title, :added_by, NOW())";
+    $sql = "INSERT INTO followup_clients (name, email, phone, company, followup_message, followup_title, next_followup_date, added_by, created_at)
+            VALUES (:name, :email, :phone, :company, :followup_message, :followup_title, :next_followup_date, :added_by, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -297,6 +308,7 @@ function addFollowupClient() {
         ':company' => $_POST['company'] ?? '',
         ':followup_message' => $_POST['followup_message'] ?? '',
         ':followup_title' => $_POST['followup_title'] ?? '',
+        ':next_followup_date' => !empty($_POST['next_followup_date']) ? $_POST['next_followup_date'] : null,
         ':added_by' => $_SESSION['user_id'] ?? null
     ]);
     

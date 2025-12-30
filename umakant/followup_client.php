@@ -55,6 +55,7 @@ require_once 'inc/sidebar.php';
                                         <th>Email</th>
                                         <th>Company</th>
                                         <th>Followup Title</th>
+                                        <th>Next Followup</th>
                                         <th>Last Activity</th>
                                         <th>Action</th>
                                     </tr>
@@ -126,6 +127,11 @@ require_once 'inc/sidebar.php';
                             <div class="form-group d-none">
                                 <label for="followup_message">Followup Message</label>
                                 <textarea class="form-control" id="followup_message" name="followup_message" placeholder="Enter followup message" rows="8"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="next_followup_date">Next Followup Date</label>
+                                <input type="date" class="form-control" id="next_followup_date" name="next_followup_date">
+                                <small class="form-text text-muted">Plan your next interaction with this client.</small>
                             </div>
                         </div>
                     </div>
@@ -330,9 +336,10 @@ $(document).ready(function() {
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="p-3 bg-light rounded shadow-sm h-100 border-left border-success">
-                                                    <small class="text-muted d-block text-uppercase font-weight-bold mb-1">Current Followup</small>
+                                                    <small class="text-muted d-block text-uppercase font-weight-bold mb-1">Followup & Activity</small>
                                                     <p class="mb-1 text-success font-weight-bold"><i class="fas fa-bullseye mr-1"></i> ${client.followup_title || 'No Title Set'}</p>
-                                                    <p class="mb-0 text-secondary small"><i class="fas fa-clock mr-1"></i> Last Activity: ${client.updated_at ? new Date(client.updated_at).toLocaleDateString() : 'N/A'}</p>
+                                                    <p class="mb-1 text-danger small font-weight-bold"><i class="fas fa-calendar-check mr-1"></i> Next: ${client.next_followup_date ? new Date(client.next_followup_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not Set'}</p>
+                                                    <p class="mb-0 text-secondary small"><i class="fas fa-clock mr-1"></i> Activity: ${client.updated_at ? new Date(client.updated_at).toLocaleDateString() : (client.created_at ? new Date(client.created_at).toLocaleDateString() : 'N/A')}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -674,6 +681,7 @@ $(document).ready(function() {
                     $('#company').val(client.company);
                     $('#followup_title').val(client.followup_title);
                     $('#followup_message').val(client.followup_message);
+                    $('#next_followup_date').val(client.next_followup_date);
                     
                     // Try to select the template automatically based on title
                     if (client.followup_title && templates.length > 0) {
@@ -771,6 +779,14 @@ function loadClients(page) {
                             <td>${client.email || '-'}</td>
                             <td>${client.company || '-'}</td>
                             <td>${client.followup_title || '-'}</td>
+                            <td class="text-nowrap">
+                                ${client.next_followup_date ? `
+                                    <span class="badge ${new Date(client.next_followup_date) <= new Date().setHours(0,0,0,0) ? 'badge-danger' : 'badge-primary'}">
+                                        <i class="fas fa-calendar-alt mr-1"></i>
+                                        ${new Date(client.next_followup_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </span>
+                                ` : '<span class="text-muted">-</span>'}
+                            </td>
                             <td class="small text-muted">${client.updated_at ? new Date(client.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : new Date(client.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
                             <td>
                                 <button class="btn btn-xs btn-info view-client" data-id="${client.id}" title="View">
