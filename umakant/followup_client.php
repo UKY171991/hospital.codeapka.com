@@ -273,18 +273,25 @@ $(document).ready(function() {
                                         </button>
                                     </div>
                                     <div class="modal-body">
-                                        <div class="row">
-                                            <div class="col-md-6 border-right">
+                                        <div class="row mb-3">
+                                            <div class="col-md-4">
                                                 <p><strong>Name:</strong> ${client.name}</p>
                                                 <p><strong>Phone:</strong> ${client.phone}</p>
+                                            </div>
+                                            <div class="col-md-4">
                                                 <p><strong>Email:</strong> ${client.email || 'N/A'}</p>
                                                 <p><strong>Company:</strong> ${client.company || 'N/A'}</p>
+                                            </div>
+                                            <div class="col-md-4">
                                                 <p><strong>Followup Title:</strong> ${client.followup_title || 'N/A'}</p>
                                             </div>
-                                            <div class="col-md-6">
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-md-12">
                                                 <h6><strong>Response Message:</strong></h6>
                                                 <div class="form-group">
-                                                    <textarea class="form-control mb-2" id="detail_response_message" rows="5" placeholder="Enter response from client...">${client.response_message || ''}</textarea>
+                                                    <textarea class="form-control mb-2" id="detail_response_message" rows="4" placeholder="Enter response from client...">${client.response_message || ''}</textarea>
                                                     <button class="btn btn-sm btn-success float-right" id="saveResponseBtn" data-id="${client.id}">
                                                         <i class="fas fa-save"></i> Save Response
                                                     </button>
