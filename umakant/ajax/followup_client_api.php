@@ -117,8 +117,11 @@ function getFollowupClients() {
     }
     
     if (!empty($search)) {
-        $whereClauses[] = "(name LIKE :search OR phone LIKE :search OR email LIKE :search OR company LIKE :search)";
-        $params[':search'] = "%$search%";
+        $whereClauses[] = "(name LIKE :search_name OR phone LIKE :search_phone OR email LIKE :search_email OR company LIKE :search_company)";
+        $params[':search_name'] = "%$search%";
+        $params[':search_phone'] = "%$search%";
+        $params[':search_email'] = "%$search%";
+        $params[':search_company'] = "%$search%";
     }
     
     $whereSql = !empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "";

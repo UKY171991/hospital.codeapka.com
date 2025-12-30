@@ -168,13 +168,21 @@ $(document).ready(function() {
 
     // Handle Search
     let searchTimer;
-    $('#tableSearch').on('keyup', function() {
+    $('#tableSearch').on('input', function() {
+        const val = $(this).val();
         clearTimeout(searchTimer);
         searchTimer = setTimeout(() => {
-            currentSearch = $(this).val();
+            currentSearch = val;
             currentPage = 1;
             loadClients(currentPage);
         }, 500);
+    });
+
+    // Handle Search Button Click
+    $('.card-tools .btn-default').on('click', function() {
+        currentSearch = $('#tableSearch').val();
+        currentPage = 1;
+        loadClients(currentPage);
     });
 
     // Load Templates
