@@ -501,53 +501,81 @@ $(document).ready(function() {
     // WhatsApp Client
     $(document).on('click', '.whatsapp-client', function() {
         const phone = $(this).data('phone');
-        const message = $(this).closest('tr').data('message');
+        const tr = $(this).closest('tr');
+        const title = tr.data('title');
+        const message = tr.data('message');
+        
         if (!phone) {
             toastr.error('Phone number not available');
             return;
         }
+        
+        let fullMessage = '';
+        if (title) fullMessage += `*${title}*\n\n`;
+        fullMessage += message || '';
+        
         const cleanPhone = phone.replace(/\D/g, '');
-        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message || '')}`;
+        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(fullMessage)}`;
         window.open(whatsappUrl, '_blank');
     });
 
     // Email Client
     $(document).on('click', '.email-client', function() {
         const email = $(this).data('email');
-        const message = $(this).closest('tr').data('message');
+        const tr = $(this).closest('tr');
+        const title = tr.data('title');
+        const message = tr.data('message');
+        
         if (!email) {
             toastr.error('Email address not available');
             return;
         }
         
+        let templateOptions = '<option value="">-- Change Template (Optional) --</option>';
+        templates.forEach(tpl => {
+            templateOptions += `<option value="${tpl.id}">${tpl.template_name}</option>`;
+        });
+        
         const modal = `
             <div class="modal fade" id="sendEmailModal" tabindex="-1" role="dialog">
                 <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header bg-warning">
-                            <h5 class="modal-title">Send Email</h5>
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-gradient-warning text-dark py-3">
+                            <h5 class="modal-title font-weight-bold"><i class="fas fa-envelope-open-text mr-2"></i> Send Email Followup</h5>
                             <button type="button" class="close" data-dismiss="modal">
                                 <span>&times;</span>
                             </button>
                         </div>
                         <form id="sendEmailForm">
-                            <div class="modal-body">
-                                <div class="form-group">
-                                    <label for="emailTo">To:</label>
-                                    <input type="email" class="form-control" id="emailTo" name="to" value="${email}" readonly>
+                            <div class="modal-body p-4">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold text-muted small text-uppercase">To:</label>
+                                            <input type="email" class="form-control bg-light" id="emailTo" name="to" value="${email}" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold text-muted small text-uppercase">Select Template:</label>
+                                            <select class="form-control" id="emailTemplateSelector">
+                                                ${templateOptions}
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="emailSubject">Subject:</label>
-                                    <input type="text" class="form-control" id="emailSubject" name="subject" placeholder="Enter email subject" required>
+                                    <label class="font-weight-bold text-muted small text-uppercase">Subject:</label>
+                                    <input type="text" class="form-control" id="emailSubject" name="subject" value="${title || ''}" placeholder="Enter email subject" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="emailMessage">Message:</label>
-                                    <textarea class="form-control" id="emailMessage" name="message" placeholder="Enter your message" rows="6" required>${message || ''}</textarea>
+                                    <label class="font-weight-bold text-muted small text-uppercase">Message Body:</label>
+                                    <textarea class="form-control" id="emailMessage" name="message" placeholder="Type your message..." rows="8" required>${message || ''}</textarea>
                                 </div>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-primary">Send Email</button>
+                            <div class="modal-footer bg-light">
+                                <button type="button" class="btn btn-secondary btn-sm px-3" data-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-warning btn-sm px-4 font-weight-bold">Send Email Now <i class="fas fa-paper-plane ml-1"></i></button>
                             </div>
                         </form>
                     </div>
@@ -557,6 +585,19 @@ $(document).ready(function() {
         $('#sendEmailModal').remove();
         $('body').append(modal);
         $('#sendEmailModal').modal('show');
+
+        // Handle template change in email modal
+        $('#emailTemplateSelector').on('change', function() {
+            const id = $(this).val();
+            if (id) {
+                const template = templates.find(t => t.id == id);
+                if (template) {
+                    $('#emailSubject').val(template.template_name);
+                    const cleanContent = template.content.replace(/<[^>]*>?/gm, '');
+                    $('#emailMessage').val(cleanContent);
+                }
+            }
+        });
     });
 
     // Handle Email Form Submission
@@ -691,9 +732,8 @@ function loadClients(page) {
 
                 response.data.forEach(function(client, index) {
                     const srNo = (page - 1) * limit + index + 1;
-                    const truncatedMessage = client.followup_message ? (client.followup_message.length > 50 ? client.followup_message.substring(0, 50) + '...' : client.followup_message) : '-';
                     const row = `
-                        <tr data-message="${client.followup_message || ''}">
+                        <tr data-message="${(client.followup_message || '').replace(/"/g, '&quot;')}" data-title="${(client.followup_title || '').replace(/"/g, '&quot;')}">
                             <td>${srNo}</td>
                             <td>${client.name}</td>
                             <td>${client.phone}</td>
