@@ -203,7 +203,7 @@ function updateFollowupClient() {
     }
     
     $email = strtolower(trim($_POST['email'] ?? ''));
-    $phone = preg_replace('/\D/', '', $_POST['phone'] ?? ''); // Clean phone: only digits
+    $phone = preg_replace('/[^\d+]/', '', $_POST['phone'] ?? ''); // Clean phone: allow digits and +
     $name = trim($_POST['name'] ?? '');
     
     // Check for duplicates
@@ -263,7 +263,7 @@ function addFollowupClient() {
     }
     
     $email = strtolower(trim($_POST['email'] ?? ''));
-    $phone = preg_replace('/\D/', '', $_POST['phone'] ?? ''); // Clean phone: only digits
+    $phone = preg_replace('/[^\d+]/', '', $_POST['phone'] ?? ''); // Clean phone: allow digits and +
     $name = trim($_POST['name'] ?? '');
     
     // Check for duplicates

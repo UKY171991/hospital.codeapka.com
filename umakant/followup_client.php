@@ -508,7 +508,7 @@ $(document).ready(function() {
 
     // WhatsApp Client
     $(document).on('click', '.whatsapp-client', function() {
-        const phone = $(this).data('phone');
+        const phone = $(this).attr('data-phone');
         const tr = $(this).closest('tr');
         const title = tr.data('title');
         const message = tr.data('message');
