@@ -119,7 +119,6 @@ function ensureTableExists() {
 
 function getFollowupClients() {
     global $pdo;
-    ensureTableExists();
     
     // Get user role and ID from session
     $userRole = $_SESSION['role'] ?? 'user';
@@ -218,7 +217,6 @@ function getFollowupClient() {
 
 function updateFollowupClient() {
     global $pdo;
-    ensureTableExists();
     
     $id = intval($_POST['id'] ?? 0);
     if ($id <= 0) {
@@ -284,7 +282,6 @@ function updateFollowupClient() {
 
 function addFollowupClient() {
     global $pdo;
-    ensureTableExists();
     
     if (empty($_POST['name'])) {
         throw new Exception('Name is required');
@@ -342,7 +339,6 @@ function addFollowupClient() {
 
 function deleteFollowupClient() {
     global $pdo;
-    ensureTableExists();
     
     $id = intval($_POST['id'] ?? 0);
     
