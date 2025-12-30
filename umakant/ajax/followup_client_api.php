@@ -23,6 +23,9 @@ try {
 
     require_once '../inc/connection.php';
     
+    // Ensure table and columns exist before proceeding
+    ensureTableExists();
+    
     $action = $_GET['action'] ?? $_POST['action'] ?? '';
     
     switch ($action) {
