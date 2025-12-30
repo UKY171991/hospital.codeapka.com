@@ -173,15 +173,16 @@ function updateFollowupClient() {
         throw new Exception('Either Email or Phone is required');
     }
     
-    $email = $_POST['email'] ?? '';
-    $phone = $_POST['phone'] ?? '';
+    $email = strtolower(trim($_POST['email'] ?? ''));
+    $phone = preg_replace('/\D/', '', $_POST['phone'] ?? ''); // Clean phone: only digits
+    $name = trim($_POST['name'] ?? '');
     
     // Check for duplicates
     if (!empty($email)) {
         $stmt = $pdo->prepare("SELECT id FROM followup_clients WHERE email = :email AND id != :id");
         $stmt->execute([':email' => $email, ':id' => $id]);
         if ($stmt->fetch()) {
-            throw new Exception('Email already exists');
+            throw new Exception('A client with this email already exists');
         }
     }
     
@@ -189,9 +190,12 @@ function updateFollowupClient() {
         $stmt = $pdo->prepare("SELECT id FROM followup_clients WHERE phone = :phone AND id != :id");
         $stmt->execute([':phone' => $phone, ':id' => $id]);
         if ($stmt->fetch()) {
-            throw new Exception('Phone already exists');
+            throw new Exception('A client with this phone number already exists');
         }
     }
+
+    // Optional: Check for duplicate Name + Phone combination if strict uniqueness is needed
+    // But since phone is already checked globally, this is redundant unless we allow same phone for different names.
     
     $sql = "UPDATE followup_clients 
             SET name = :name, email = :email, phone = :phone, company = :company, followup_message = :followup_message, updated_at = NOW()
@@ -200,7 +204,7 @@ function updateFollowupClient() {
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':id' => $id,
-        ':name' => $_POST['name'],
+        ':name' => $name,
         ':email' => $email,
         ':phone' => $phone,
         ':company' => $_POST['company'] ?? '',
@@ -225,15 +229,16 @@ function addFollowupClient() {
         throw new Exception('Either Email or Phone is required');
     }
     
-    $email = $_POST['email'] ?? '';
-    $phone = $_POST['phone'] ?? '';
+    $email = strtolower(trim($_POST['email'] ?? ''));
+    $phone = preg_replace('/\D/', '', $_POST['phone'] ?? ''); // Clean phone: only digits
+    $name = trim($_POST['name'] ?? '');
     
     // Check for duplicates
     if (!empty($email)) {
         $stmt = $pdo->prepare("SELECT id FROM followup_clients WHERE email = :email");
         $stmt->execute([':email' => $email]);
         if ($stmt->fetch()) {
-            throw new Exception('Email already exists');
+            throw new Exception('A client with this email already exists');
         }
     }
     
@@ -241,16 +246,19 @@ function addFollowupClient() {
         $stmt = $pdo->prepare("SELECT id FROM followup_clients WHERE phone = :phone");
         $stmt->execute([':phone' => $phone]);
         if ($stmt->fetch()) {
-            throw new Exception('Phone already exists');
+            throw new Exception('A client with this phone number already exists');
         }
     }
+
+    // Check if a client with the same name and phone/email already exists
+    // (This is mostly covered by the above, but good for clarity)
     
     $sql = "INSERT INTO followup_clients (name, email, phone, company, followup_message, added_by, created_at)
             VALUES (:name, :email, :phone, :company, :followup_message, :added_by, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
-        ':name' => $_POST['name'],
+        ':name' => $name,
         ':email' => $email,
         ':phone' => $phone,
         ':company' => $_POST['company'] ?? '',

@@ -135,6 +135,10 @@ $(document).ready(function() {
             formData.append('action', 'add_client');
         }
 
+        const $btn = $(this).find('button[type="submit"]');
+        const originalBtnText = $btn.text();
+        $btn.prop('disabled', true).text('Processing...');
+
         $.ajax({
             url: 'ajax/followup_client_api.php',
             type: 'POST',
@@ -152,6 +156,9 @@ $(document).ready(function() {
             },
             error: function() {
                 toastr.error('Server error occurred');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).text(originalBtnText);
             }
         });
     });
