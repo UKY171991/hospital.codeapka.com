@@ -26,50 +26,24 @@ require_once 'inc/sidebar.php';
     <section class="content">
         <div class="container-fluid">
             <div class="row">
-                <!-- Add Client Form -->
-                <div class="col-md-4">
-                    <div class="card card-primary">
-                        <div class="card-header">
-                            <h3 class="card-title">Add New Client</h3>
-                        </div>
-                        <form id="addClientForm">
-                            <input type="hidden" id="client_id" name="client_id">
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <label for="name">Name <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="name" name="name" placeholder="Enter name" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="email">Email</label>
-                                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter email">
-                                </div>
-                                <div class="form-group">
-                                    <label for="phone">Phone</label>
-                                    <input type="text" class="form-control" id="phone" name="phone" placeholder="Enter phone">
-                                    <small class="text-muted">Either Email or Phone is required</small>
-                                </div>
-                                <div class="form-group">
-                                    <label for="company">Company Name</label>
-                                    <input type="text" class="form-control" id="company" name="company" placeholder="Enter company name">
-                                </div>
-                                <div class="form-group">
-                                    <label for="followup_message">Followup Message</label>
-                                    <textarea class="form-control" id="followup_message" name="followup_message" placeholder="Enter followup message" rows="3"></textarea>
-                                </div>
-                            </div>
-                            <div class="card-footer">
-                                <button type="submit" class="btn btn-primary">Add Client</button>
-                                <button type="button" class="btn btn-default float-right" id="cancelEdit" style="display: none;">Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Client List -->
-                <div class="col-md-8">
+                <!-- Client List (Full Width) -->
+                <div class="col-md-12">
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Client List</h3>
+                            <div class="card-tools d-flex" style="gap: 10px;">
+                                <div class="input-group input-group-sm" style="width: 250px;">
+                                    <input type="text" id="tableSearch" class="form-control float-right" placeholder="Search name/phone/email...">
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-default">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm" id="openAddClientModal">
+                                    <i class="fas fa-plus"></i> Add New Client
+                                </button>
+                            </div>
                         </div>
                         <div class="card-body table-responsive p-0">
                             <table class="table table-hover text-nowrap" id="clientsTable">
@@ -79,6 +53,8 @@ require_once 'inc/sidebar.php';
                                         <th>Name</th>
                                         <th>Phone</th>
                                         <th>Email</th>
+                                        <th>Company</th>
+                                        <th>Followup Message</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -102,20 +78,128 @@ require_once 'inc/sidebar.php';
     </section>
 </div>
 
+<!-- Add Client Modal -->
+<div class="modal fade" id="addClientModal" tabindex="-1" role="dialog" aria-labelledby="addClientModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title" id="addClientModalLabel">Add New Client</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="addClientForm">
+                <div class="modal-body">
+                    <input type="hidden" id="client_id" name="client_id">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="name">Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" placeholder="Enter name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Enter email">
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="phone" name="phone" placeholder="Enter phone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="company">Company Name</label>
+                                <input type="text" class="form-control" id="company" name="company" placeholder="Enter company name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="templateSelector">Select Followup Template (Optional)</label>
+                                <select class="form-control" id="templateSelector">
+                                    <option value="">-- Select Template --</option>
+                                    <!-- Templates will be loaded here -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="followup_message">Followup Message</label>
+                                <textarea class="form-control" id="followup_message" name="followup_message" placeholder="Enter followup message" rows="8"></textarea>
+                                <small class="text-muted">Selecting a template will populate this field.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="saveClientBtn">Add Client</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?php require_once 'inc/footer.php'; ?>
 
 <script>
 let currentPage = 1;
+let currentSearch = '';
 const limit = 10;
+let templates = [];
 
 $(document).ready(function() {
     loadClients(currentPage);
+    loadTemplates();
+
+    // Open Modal for Add
+    $('#openAddClientModal').on('click', function() {
+        resetForm();
+        $('#addClientModal').modal('show');
+    });
+
+    // Handle Search
+    let searchTimer;
+    $('#tableSearch').on('keyup', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+            currentSearch = $(this).val();
+            currentPage = 1;
+            loadClients(currentPage);
+        }, 500);
+    });
+
+    // Load Templates
+    function loadTemplates() {
+        $.ajax({
+            url: 'ajax/followup_templates_api.php',
+            type: 'GET',
+            data: { action: 'get_templates', limit: 100 },
+            success: function(response) {
+                if (response.success) {
+                    templates = response.data;
+                    const selector = $('#templateSelector');
+                    selector.empty().append('<option value="">-- Select Template --</option>');
+                    templates.forEach(tpl => {
+                        selector.append(`<option value="${tpl.id}">${tpl.template_name}</option>`);
+                    });
+                }
+            }
+        });
+    }
+
+    // Apply Template
+    $('#templateSelector').on('change', function() {
+        const id = $(this).val();
+        if (id) {
+            const template = templates.find(t => t.id == id);
+            if (template) {
+                // Remove HTML tags for plain textarea
+                const cleanContent = template.content.replace(/<[^>]*>?/gm, '');
+                $('#followup_message').val(cleanContent);
+            }
+        }
+    });
 
     // Handle Form Submission
     $('#addClientForm').on('submit', function(e) {
         e.preventDefault();
         
-        // Client-side validation
         const email = $('#email').val().trim();
         const phone = $('#phone').val().trim();
         
@@ -124,20 +208,19 @@ $(document).ready(function() {
             return;
         }
         
+        const $btn = $('#saveClientBtn');
+        const originalBtnText = $btn.text();
+        $btn.prop('disabled', true).text('Processing...');
+
         const formData = new FormData(this);
         const clientId = $('#client_id').val();
         
-        // Determine action based on whether client_id is present
         if (clientId) {
             formData.append('action', 'update_client');
             formData.append('id', clientId);
         } else {
             formData.append('action', 'add_client');
         }
-
-        const $btn = $(this).find('button[type="submit"]');
-        const originalBtnText = $btn.text();
-        $btn.prop('disabled', true).text('Processing...');
 
         $.ajax({
             url: 'ajax/followup_client_api.php',
@@ -148,6 +231,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     toastr.success(response.message);
+                    $('#addClientModal').modal('hide');
                     resetForm();
                     loadClients(currentPage);
                 } else {
@@ -177,15 +261,15 @@ $(document).ready(function() {
                         <div class="modal fade" id="viewClientModal" tabindex="-1" role="dialog">
                             <div class="modal-dialog modal-lg" role="document">
                                 <div class="modal-content">
-                                    <div class="modal-header">
+                                    <div class="modal-header bg-info">
                                         <h5 class="modal-title">Client Details</h5>
-                                        <button type="button" class="close" data-dismiss="modal">
+                                        <button type="button" class="close text-white" data-dismiss="modal">
                                             <span>&times;</span>
                                         </button>
                                     </div>
                                     <div class="modal-body">
                                         <div class="row">
-                                            <div class="col-md-6">
+                                            <div class="col-md-6 border-right">
                                                 <p><strong>Name:</strong> ${client.name}</p>
                                                 <p><strong>Phone:</strong> ${client.phone}</p>
                                                 <p><strong>Email:</strong> ${client.email || 'N/A'}</p>
@@ -193,7 +277,7 @@ $(document).ready(function() {
                                             </div>
                                             <div class="col-md-6">
                                                 <p><strong>Followup Message:</strong></p>
-                                                <p>${client.followup_message || 'N/A'}</p>
+                                                <p style="white-space: pre-wrap;">${client.followup_message || 'N/A'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -204,17 +288,10 @@ $(document).ready(function() {
                             </div>
                         </div>
                     `;
-                    
-                    // Remove existing modal if any
                     $('#viewClientModal').remove();
                     $('body').append(modal);
                     $('#viewClientModal').modal('show');
-                } else {
-                    toastr.error(response.message || 'Error fetching client details');
                 }
-            },
-            error: function() {
-                toastr.error('Server error occurred');
             }
         });
     });
@@ -222,20 +299,20 @@ $(document).ready(function() {
     // WhatsApp Client
     $(document).on('click', '.whatsapp-client', function() {
         const phone = $(this).data('phone');
+        const message = $(this).closest('tr').data('message');
         if (!phone) {
             toastr.error('Phone number not available');
             return;
         }
-        
-        // Remove any non-digit characters
         const cleanPhone = phone.replace(/\D/g, '');
-        const whatsappUrl = `https://wa.me/${cleanPhone}`;
+        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message || '')}`;
         window.open(whatsappUrl, '_blank');
     });
 
     // Email Client
     $(document).on('click', '.email-client', function() {
         const email = $(this).data('email');
+        const message = $(this).closest('tr').data('message');
         if (!email) {
             toastr.error('Email address not available');
             return;
@@ -245,7 +322,7 @@ $(document).ready(function() {
             <div class="modal fade" id="sendEmailModal" tabindex="-1" role="dialog">
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
-                        <div class="modal-header">
+                        <div class="modal-header bg-warning">
                             <h5 class="modal-title">Send Email</h5>
                             <button type="button" class="close" data-dismiss="modal">
                                 <span>&times;</span>
@@ -263,7 +340,7 @@ $(document).ready(function() {
                                 </div>
                                 <div class="form-group">
                                     <label for="emailMessage">Message:</label>
-                                    <textarea class="form-control" id="emailMessage" name="message" placeholder="Enter your message" rows="6" required></textarea>
+                                    <textarea class="form-control" id="emailMessage" name="message" placeholder="Enter your message" rows="6" required>${message || ''}</textarea>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -275,8 +352,6 @@ $(document).ready(function() {
                 </div>
             </div>
         `;
-        
-        // Remove existing modal if any
         $('#sendEmailModal').remove();
         $('body').append(modal);
         $('#sendEmailModal').modal('show');
@@ -285,7 +360,8 @@ $(document).ready(function() {
     // Handle Email Form Submission
     $(document).on('submit', '#sendEmailForm', function(e) {
         e.preventDefault();
-        
+        const $btn = $(this).find('button[type="submit"]');
+        $btn.prop('disabled', true).text('Sending...');
         const formData = new FormData(this);
         formData.append('action', 'send_email');
         
@@ -303,8 +379,8 @@ $(document).ready(function() {
                     toastr.error(response.message || 'Error sending email');
                 }
             },
-            error: function() {
-                toastr.error('Server error occurred');
+            complete: function() {
+                $btn.prop('disabled', false).text('Send Email');
             }
         });
     });
@@ -319,6 +395,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     const client = response.data;
+                    resetForm();
                     $('#client_id').val(client.id);
                     $('#name').val(client.name);
                     $('#email').val(client.email);
@@ -326,23 +403,12 @@ $(document).ready(function() {
                     $('#company').val(client.company);
                     $('#followup_message').val(client.followup_message);
                     
-                    // Change UI to Edit Mode
-                    $('.card-title').text('Edit Client');
-                    $('button[type="submit"]').text('Update Client');
-                    $('#cancelEdit').show();
-                } else {
-                    toastr.error(response.message || 'Error fetching client details');
+                    $('#addClientModalLabel').text('Edit Client');
+                    $('#saveClientBtn').text('Update Client');
+                    $('#addClientModal').modal('show');
                 }
-            },
-            error: function() {
-                toastr.error('Server error occurred');
             }
         });
-    });
-
-    // Cancel Edit
-    $('#cancelEdit').on('click', function() {
-        resetForm();
     });
 
     // Delete Client
@@ -357,17 +423,26 @@ $(document).ready(function() {
                     if (response.success) {
                         toastr.success(response.message);
                         loadClients(currentPage);
-                    } else {
-                        toastr.error(response.message || 'Error deleting client');
                     }
-                },
-                error: function() {
-                    toastr.error('Server error occurred');
                 }
             });
         }
     });
-    
+
+    // Copy Message
+    $(document).on('click', '.copy-msg', function() {
+        const message = $(this).closest('tr').data('message');
+        if (message) {
+            const el = document.createElement('textarea');
+            el.value = message;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            toastr.info('Message copied to clipboard');
+        }
+    });
+
     // Pagination Click
     $(document).on('click', '.page-link', function(e) {
         e.preventDefault();
@@ -382,9 +457,9 @@ $(document).ready(function() {
 function resetForm() {
     $('#addClientForm')[0].reset();
     $('#client_id').val('');
-    $('.card-title').text('Add New Client');
-    $('button[type="submit"]').text('Add Client');
-    $('#cancelEdit').hide();
+    $('#templateSelector').val('');
+    $('#addClientModalLabel').text('Add New Client');
+    $('#saveClientBtn').text('Add Client');
 }
 
 function loadClients(page) {
@@ -392,7 +467,7 @@ function loadClients(page) {
     $.ajax({
         url: 'ajax/followup_client_api.php',
         type: 'GET',
-        data: { action: 'get_clients', page: page },
+        data: { action: 'get_clients', page: page, search: currentSearch },
         success: function(response) {
             $('#loadingOverlay').hide();
             if (response.success) {
@@ -400,33 +475,39 @@ function loadClients(page) {
                 tbody.empty();
                 
                 if (response.data.length === 0) {
-                    tbody.append('<tr><td colspan="5" class="text-center">No clients found</td></tr>');
+                    tbody.append('<tr><td colspan="6" class="text-center">No clients found</td></tr>');
                     $('#pagination').empty();
                     return;
                 }
 
                 response.data.forEach(function(client, index) {
                     const srNo = (page - 1) * limit + index + 1;
+                    const truncatedMessage = client.followup_message ? (client.followup_message.length > 50 ? client.followup_message.substring(0, 50) + '...' : client.followup_message) : '-';
                     const row = `
-                        <tr>
+                        <tr data-message="${client.followup_message || ''}">
                             <td>${srNo}</td>
                             <td>${client.name}</td>
                             <td>${client.phone}</td>
                             <td>${client.email || '-'}</td>
+                            <td>${client.company || '-'}</td>
+                            <td title="${client.followup_message || ''}">
+                                ${truncatedMessage}
+                                ${client.followup_message ? '<button class="btn btn-xs btn-link copy-msg" title="Copy Message"><i class="fas fa-copy"></i></button>' : ''}
+                            </td>
                             <td>
-                                <button class="btn btn-sm btn-info view-client" data-id="${client.id}" title="View">
+                                <button class="btn btn-xs btn-info view-client" data-id="${client.id}" title="View">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <button class="btn btn-sm btn-success whatsapp-client" data-phone="${client.phone}" title="WhatsApp">
+                                <button class="btn btn-xs btn-success whatsapp-client" data-phone="${client.phone}" title="WhatsApp">
                                     <i class="fab fa-whatsapp"></i>
                                 </button>
-                                <button class="btn btn-sm btn-warning email-client" data-email="${client.email}" title="Email">
+                                <button class="btn btn-xs btn-warning email-client" data-email="${client.email}" title="Email">
                                     <i class="fas fa-envelope"></i>
                                 </button>
-                                <button class="btn btn-sm btn-primary edit-client" data-id="${client.id}" title="Edit">
+                                <button class="btn btn-xs btn-primary edit-client" data-id="${client.id}" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn btn-sm btn-danger delete-client" data-id="${client.id}" title="Delete">
+                                <button class="btn btn-xs btn-danger delete-client" data-id="${client.id}" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -434,10 +515,7 @@ function loadClients(page) {
                     `;
                     tbody.append(row);
                 });
-                
                 renderPagination(response.pagination);
-            } else {
-                toastr.error(response.message || 'Error loading clients');
             }
         },
         error: function() {
@@ -450,33 +528,14 @@ function loadClients(page) {
 function renderPagination(pagination) {
     const ul = $('#pagination');
     ul.empty();
-    
     if (pagination.total_pages <= 1) return;
-    
-    // Previous
     const prevDisabled = pagination.current_page === 1 ? 'disabled' : '';
-    ul.append(`
-        <li class="page-item ${prevDisabled}">
-            <a class="page-link" href="#" data-page="${pagination.current_page - 1}">&laquo;</a>
-        </li>
-    `);
-    
-    // Pages
+    ul.append(`<li class="page-item ${prevDisabled}"><a class="page-link" href="#" data-page="${pagination.current_page - 1}">&laquo;</a></li>`);
     for (let i = 1; i <= pagination.total_pages; i++) {
         const active = i === pagination.current_page ? 'active' : '';
-        ul.append(`
-            <li class="page-item ${active}">
-                <a class="page-link" href="#" data-page="${i}">${i}</a>
-            </li>
-        `);
+        ul.append(`<li class="page-item ${active}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`);
     }
-    
-    // Next
     const nextDisabled = pagination.current_page === pagination.total_pages ? 'disabled' : '';
-    ul.append(`
-        <li class="page-item ${nextDisabled}">
-            <a class="page-link" href="#" data-page="${pagination.current_page + 1}">&raquo;</a>
-        </li>
-    `);
+    ul.append(`<li class="page-item ${nextDisabled}"><a class="page-link" href="#" data-page="${pagination.current_page + 1}">&raquo;</a></li>`);
 }
 </script>

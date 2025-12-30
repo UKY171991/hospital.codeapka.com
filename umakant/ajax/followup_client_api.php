@@ -85,35 +85,42 @@ function getFollowupClients() {
     $userId = $_SESSION['user_id'] ?? null;
     
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $search = trim($_GET['search'] ?? '');
     $limit = 10;
     $offset = ($page - 1) * $limit;
     
-    // Get total count - filtered by role
-    if ($userRole === 'master') {
-        $countStmt = $pdo->query("SELECT COUNT(*) as total FROM followup_clients");
-        $totalRecords = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
-    } else {
-        $countStmt = $pdo->prepare("SELECT COUNT(*) as total FROM followup_clients WHERE added_by = :user_id");
-        $countStmt->execute([':user_id' => $userId]);
-        $totalRecords = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+    $whereClauses = [];
+    $params = [];
+    
+    if ($userRole !== 'master') {
+        $whereClauses[] = "added_by = :user_id";
+        $params[':user_id'] = $userId;
     }
+    
+    if (!empty($search)) {
+        $whereClauses[] = "(name LIKE :search OR phone LIKE :search OR email LIKE :search OR company LIKE :search)";
+        $params[':search'] = "%$search%";
+    }
+    
+    $whereSql = !empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "";
+    
+    // Get total count
+    $countSql = "SELECT COUNT(*) as total FROM followup_clients $whereSql";
+    $countStmt = $pdo->prepare($countSql);
+    $countStmt->execute($params);
+    $totalRecords = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
     $totalPages = ceil($totalRecords / $limit);
     
-    // Get records - filtered by role
-    if ($userRole === 'master') {
-        $sql = "SELECT * FROM followup_clients ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->execute();
-    } else {
-        $sql = "SELECT * FROM followup_clients WHERE added_by = :user_id ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->execute();
+    // Get records
+    $sql = "SELECT * FROM followup_clients $whereSql ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+    $stmt = $pdo->prepare($sql);
+    foreach ($params as $key => $val) {
+        $stmt->bindValue($key, $val);
     }
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    
     $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
