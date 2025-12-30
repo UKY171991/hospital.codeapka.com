@@ -41,6 +41,9 @@ try {
         case 'delete_client':
             deleteFollowupClient();
             break;
+        case 'update_response':
+            updateResponse();
+            break;
         default:
             throw new Exception('Invalid action specified');
     }
@@ -69,11 +72,11 @@ function ensureTableExists() {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     
-    // Add added_by column if it doesn't exist
-    $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `added_by` int(11) DEFAULT NULL AFTER `followup_message`");
-
     // Add followup_title column if it doesn't exist
     $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `followup_title` varchar(255) DEFAULT NULL AFTER `followup_message`");
+
+    // Add response_message column if it doesn't exist
+    $pdo->exec("ALTER TABLE followup_clients ADD COLUMN IF NOT EXISTS `response_message` text DEFAULT NULL AFTER `followup_title`");
 }
 
 function getFollowupClients() {
@@ -206,7 +209,8 @@ function updateFollowupClient() {
     
     $sql = "UPDATE followup_clients 
             SET name = :name, email = :email, phone = :phone, company = :company, 
-                followup_message = :followup_message, followup_title = :followup_title, updated_at = NOW()
+                followup_message = :followup_message, followup_title = :followup_title, 
+                response_message = :response_message, updated_at = NOW()
             WHERE id = :id";
     
     $stmt = $pdo->prepare($sql);
@@ -217,7 +221,8 @@ function updateFollowupClient() {
         ':phone' => $phone,
         ':company' => $_POST['company'] ?? '',
         ':followup_message' => $_POST['followup_message'] ?? '',
-        ':followup_title' => $_POST['followup_title'] ?? ''
+        ':followup_title' => $_POST['followup_title'] ?? '',
+        ':response_message' => $_POST['response_message'] ?? ''
     ]);
     
     echo json_encode([
@@ -304,5 +309,14 @@ function deleteFollowupClient() {
     } else {
         throw new Exception('Client not found');
     }
+}
+function updateResponse() {
+    global $pdo;
+    $id = intval($_POST['id'] ?? 0);
+    $response = $_POST['response_message'] ?? '';
+    if ($id <= 0) throw new Exception('Invalid ID');
+    $stmt = $pdo->prepare("UPDATE followup_clients SET response_message = :response, updated_at = NOW() WHERE id = :id");
+    $stmt->execute([':response' => $response, ':id' => $id]);
+    echo json_encode(['success' => true, 'message' => 'Response message updated successfully']);
 }
 ?>

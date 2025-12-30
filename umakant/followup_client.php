@@ -282,8 +282,13 @@ $(document).ready(function() {
                                                 <p><strong>Followup Title:</strong> ${client.followup_title || 'N/A'}</p>
                                             </div>
                                             <div class="col-md-6">
-                                                <p><strong>Followup Message:</strong></p>
-                                                <p style="white-space: pre-wrap;">${client.followup_message || 'N/A'}</p>
+                                                <h6><strong>Response Message:</strong></h6>
+                                                <div class="form-group">
+                                                    <textarea class="form-control mb-2" id="detail_response_message" rows="5" placeholder="Enter response from client...">${client.response_message || ''}</textarea>
+                                                    <button class="btn btn-sm btn-success float-right" id="saveResponseBtn" data-id="${client.id}">
+                                                        <i class="fas fa-save"></i> Save Response
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -298,6 +303,31 @@ $(document).ready(function() {
                     $('body').append(modal);
                     $('#viewClientModal').modal('show');
                 }
+            }
+        });
+    });
+
+    // Save Response Message
+    $(document).on('click', '#saveResponseBtn', function() {
+        const id = $(this).data('id');
+        const response = $('#detail_response_message').val();
+        const $btn = $(this);
+        
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+        
+        $.ajax({
+            url: 'ajax/followup_client_api.php',
+            type: 'POST',
+            data: { action: 'update_response', id: id, response_message: response },
+            success: function(res) {
+                if (res.success) {
+                    toastr.success(res.message);
+                } else {
+                    toastr.error(res.message);
+                }
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Save Response');
             }
         });
     });
