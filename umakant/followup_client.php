@@ -462,8 +462,10 @@ $(document).ready(function() {
         const response = $('#detail_response_message').val();
         const $btn = $(this);
         
-        if (!response.trim()) {
-            toastr.error('Please enter a response message');
+        const nextDate = $('#detail_next_followup_date').val();
+        
+        if (!response.trim() && !nextDate) {
+            toastr.error('Please enter a response message or select a next followup date');
             return;
         }
 

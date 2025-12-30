@@ -344,20 +344,31 @@ function deleteFollowupClient() {
 function updateResponse() {
     global $pdo;
     $id = intval($_POST['id'] ?? 0);
-    $response = $_POST['response_message'] ?? '';
-    if ($id <= 0) throw new Exception('Invalid ID');
-    if (empty($response)) throw new Exception('Response message cannot be empty');
-    
-    // Insert into history table
-    $stmt = $pdo->prepare("INSERT INTO client_responses (client_id, response_message, created_at) VALUES (:client_id, :response, NOW())");
-    $stmt->execute([':client_id' => $id, ':response' => $response]);
-    
-    // Also update last response and next followup date in main table for reference
+    $response = trim($_POST['response_message'] ?? '');
     $next_followup_date = !empty($_POST['next_followup_date']) ? $_POST['next_followup_date'] : null;
-    $sql = "UPDATE followup_clients SET response_message = :response, updated_at = NOW()";
-    $params = [':response' => $response, ':id' => $id];
     
-    if ($next_followup_date) {
+    if ($id <= 0) throw new Exception('Invalid ID');
+    if (empty($response) && empty($next_followup_date)) {
+        throw new Exception('Response message or next followup date is required');
+    }
+    
+    // Insert into history table ONLY if message is provided
+    if (!empty($response)) {
+        $stmt = $pdo->prepare("INSERT INTO client_responses (client_id, response_message, created_at) VALUES (:client_id, :response, NOW())");
+        $stmt->execute([':client_id' => $id, ':response' => $response]);
+    }
+    
+    // Update main table
+    $sql = "UPDATE followup_clients SET updated_at = NOW()";
+    $params = [':id' => $id];
+    
+    if (!empty($response)) {
+        $sql .= ", response_message = :response";
+        $params[':response'] = $response;
+    }
+    
+    // Always update date if it was sent (could be null/cleared)
+    if (isset($_POST['next_followup_date'])) {
         $sql .= ", next_followup_date = :next_followup_date";
         $params[':next_followup_date'] = $next_followup_date;
     }
@@ -366,7 +377,7 @@ function updateResponse() {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     
-    echo json_encode(['success' => true, 'message' => 'Response added successfully']);
+    echo json_encode(['success' => true, 'message' => 'Update successful']);
 }
 
 function getResponses() {
