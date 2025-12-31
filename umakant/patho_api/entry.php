@@ -69,6 +69,7 @@ try {
         case 'refresh_all_aggregates': handleRefreshAllAggregates($pdo, $user_data); break;
         case 'debug': handleDebug($pdo, $entity_config, $user_data); break;
         case 'fix_schema': handleFixSchema($pdo, $user_data); break;
+        case 'debug_schema': handleDebugSchema($pdo, $user_data); break;
         case 'diagnose': handleDiagnose($pdo, $user_data); break;
         default: json_response(['success' => false, 'message' => 'Invalid action specified'], 400);
     }
