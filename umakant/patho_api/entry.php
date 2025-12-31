@@ -130,36 +130,64 @@ function handleList($pdo, $config, $user_data) {
     }
 
     $scopeIds = getScopedUserIds($pdo, $user_data);
-    $where = '';
+    $where = [];
     $params = [];
+    
     if (is_array($scopeIds)) {
         $placeholders = implode(',', array_fill(0, count($scopeIds), '?'));
-        $where = ' WHERE e.added_by IN (' . $placeholders . ')';
+        $where[] = ' e.added_by IN (' . $placeholders . ')';
         $params = $scopeIds;
+    }
+
+    // Additional filters
+    if (!empty($_GET['status'])) {
+        $where[] = "e.status = ?";
+        $params[] = $_GET['status'];
+    }
+    if (!empty($_GET['patient_id'])) {
+        $where[] = "e.patient_id = ?";
+        $params[] = $_GET['patient_id'];
+    }
+    if (!empty($_GET['doctor_id'])) {
+        $where[] = "e.doctor_id = ?";
+        $params[] = $_GET['doctor_id'];
+    }
+    if (!empty($_GET['date_from'])) {
+        $where[] = "e.entry_date >= ?";
+        $params[] = $_GET['date_from'];
+    }
+    if (!empty($_GET['date_to'])) {
+        $where[] = "e.entry_date <= ?";
+        $params[] = $_GET['date_to'];
+    }
+    if (!empty($_GET['search']['value'])) {
+        $search = "%{$_GET['search']['value']}%";
+        $where[] = "(p.name LIKE ? OR e.id LIKE ? OR e.notes LIKE ?)";
+        $params[] = $search;
+        $params[] = $search;
+        $params[] = $search;
+    }
+
+    $whereSql = !empty($where) ? ' WHERE ' . implode(' AND ', $where) : '';
+
+    // Count total records
+    $totalStmt = $pdo->query("SELECT COUNT(*) FROM {$config['table_name']}");
+    $recordsTotal = $totalStmt->fetchColumn();
+
+    // Count filtered records
+    $filteredStmt = $pdo->prepare("SELECT COUNT(*) FROM {$config['table_name']} e LEFT JOIN patients p ON e.patient_id = p.id {$whereSql}");
+    $filteredStmt->execute($params);
+    $recordsFiltered = $filteredStmt->fetchColumn();
+
+    // Pagination
+    $limit = "";
+    if (isset($_GET['start']) && $_GET['length'] != -1) {
+        $limit = " LIMIT " . (int)$_GET['start'] . ", " . (int)$_GET['length'];
     }
 
     // Enhanced query with all entry fields and test information
     $sql = "SELECT 
-                e.id,
-                e.owner_id,
-                e.server_id,
-                e.patient_id,
-                e.doctor_id,
-                e.entry_date,
-                e.date_slot,
-                e.service_location,
-                e.collection_address,
-                e.status,
-                e.priority,
-                e.referral_source,
-                e.subtotal,
-                e.discount_amount,
-                e.total_price,
-                e.payment_status,
-                e.notes,
-                e.added_by,
-                e.created_at,
-                e.updated_at,
+                e.*,
                 p.name as patient_name,
                 p.uhid as patient_uhid,
                 p.age as patient_age,
@@ -174,8 +202,9 @@ function handleList($pdo, $config, $user_data) {
             LEFT JOIN patients p ON e.patient_id = p.id
             LEFT JOIN doctors d ON e.doctor_id = d.id
             LEFT JOIN users u ON e.added_by = u.id
-            {$where} 
-            ORDER BY e.id DESC";
+            {$whereSql} 
+            ORDER BY e.id DESC
+            {$limit}";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -187,10 +216,7 @@ function handleList($pdo, $config, $user_data) {
             SELECT 
                 GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') as test_names,
                 COUNT(DISTINCT et.id) as tests_count,
-                GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id SEPARATOR ',') as test_ids,
-                SUM(et.price) as tests_subtotal,
-                SUM(et.discount_amount) as tests_discount,
-                SUM(et.total_price) as tests_total
+                GROUP_CONCAT(DISTINCT et.test_id ORDER BY et.test_id SEPARATOR ',') as test_ids
             FROM entry_tests et
             LEFT JOIN tests t ON et.test_id = t.id
             WHERE et.entry_id = ?
@@ -198,34 +224,17 @@ function handleList($pdo, $config, $user_data) {
         $testStmt->execute([$entry['id']]);
         $testData = $testStmt->fetch(PDO::FETCH_ASSOC);
         
-        // Add test information to entry
         $entry['test_names'] = $testData['test_names'] ?? 'No tests';
         $entry['tests_count'] = (int)($testData['tests_count'] ?? 0);
         $entry['test_ids'] = $testData['test_ids'] ?? '';
-        
-        // Add calculated test totals (useful for verification)
-        $entry['tests_subtotal'] = (float)($testData['tests_subtotal'] ?? 0);
-        $entry['tests_discount'] = (float)($testData['tests_discount'] ?? 0);
-        $entry['tests_total'] = (float)($testData['tests_total'] ?? 0);
-        
-        // Format numeric fields
-        $entry['subtotal'] = (float)($entry['subtotal'] ?? 0);
-        $entry['discount_amount'] = (float)($entry['discount_amount'] ?? 0);
-        $entry['total_price'] = (float)($entry['total_price'] ?? 0);
-        
-        // Format dates for better display
-        if ($entry['entry_date']) {
-            $entry['entry_date_formatted'] = date('Y-m-d', strtotime($entry['entry_date']));
-        }
-        if ($entry['created_at']) {
-            $entry['created_at_formatted'] = date('Y-m-d H:i:s', strtotime($entry['created_at']));
-        }
     }
 
     json_response([
         'success' => true, 
+        'draw' => isset($_GET['draw']) ? (int)$_GET['draw'] : 0,
+        'recordsTotal' => (int)$recordsTotal,
+        'recordsFiltered' => (int)$recordsFiltered,
         'data' => $entries, 
-        'total' => count($entries),
         'message' => 'Entries retrieved successfully'
     ]);
 }

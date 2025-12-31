@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Nov 23, 2025 at 02:15 PM
+-- Generation Time: Dec 31, 2025 at 09:59 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -37,6 +37,26 @@ CREATE TABLE `categories` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`id`, `name`, `description`, `main_category_id`, `added_by`, `created_at`, `updated_at`) VALUES
+(9, 'Complete Blood Count', '', 30, 1, '2025-12-05 09:40:54', '2025-12-05 09:40:54'),
+(10, 'Differential Count', '', 30, 1, '2025-12-05 11:09:27', '2025-12-05 11:09:27'),
+(11, 'Platelets', '', 30, 1, '2025-12-06 00:16:31', '2025-12-06 00:16:31'),
+(12, 'RBC Indices', '', 30, 1, '2025-12-06 00:18:04', '2025-12-06 00:18:04'),
+(13, 'Coagulation', '', 30, 1, '2025-12-06 00:20:30', '2025-12-06 00:20:30'),
+(14, 'Renal Function', '', 31, 1, '2025-12-06 00:35:18', '2025-12-06 00:35:18'),
+(15, 'Liver Function', '', 31, 1, '2025-12-06 00:40:17', '2025-12-06 00:40:17'),
+(16, 'Lipid Profile', '', 31, 1, '2025-12-06 00:45:19', '2025-12-06 00:45:19'),
+(17, 'Electrolytes', '', 31, 1, '2025-12-06 00:53:31', '2025-12-06 00:53:31'),
+(18, 'Thyroid Function', '', 32, 1, '2025-12-06 00:57:01', '2025-12-06 00:57:01'),
+(19, 'Vitamins', '', 33, 1, '2025-12-06 00:59:36', '2025-12-06 00:59:36'),
+(20, 'Inflammatory Markers', '', 34, 1, '2025-12-06 01:02:41', '2025-12-06 01:02:41'),
+(21, 'Autoimmune', '', 34, 1, '2025-12-06 01:05:43', '2025-12-06 01:05:43'),
+(22, 'Viral Markers', '', 35, 1, '2025-12-06 01:07:13', '2025-12-06 01:07:13');
+
 -- --------------------------------------------------------
 
 --
@@ -54,6 +74,7 @@ CREATE TABLE `clients` (
   `state` varchar(100) DEFAULT NULL,
   `zip` varchar(10) DEFAULT NULL,
   `notes` text DEFAULT NULL,
+  `added_by` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
@@ -62,16 +83,160 @@ CREATE TABLE `clients` (
 -- Dumping data for table `clients`
 --
 
-INSERT INTO `clients` (`id`, `name`, `email`, `phone`, `company`, `address`, `city`, `state`, `zip`, `notes`, `created_at`, `updated_at`) VALUES
-(3, 'Amzad', '', '+91 95400 52228', '', '', 'Delhi', 'Delhi', '', '', '2025-11-17 12:17:49', '2025-11-18 06:12:46'),
-(4, 'Vishal ', '', '08427722958', '', '', '', 'Punjab', '', '', '2025-11-17 12:44:15', NULL),
-(5, 'Raman', '', '+917087071220', '', '', 'Gurugram', '', '', '', '2025-11-17 15:43:14', NULL),
-(6, 'Dharmendra Bachheriya', '', '+91 83064 02805', '', '', '', '', '', '', '2025-11-17 15:51:53', NULL),
-(7, 'Ezaz From Ireland', '', '+353 87 355 5012', '', '', '', '', '', '', '2025-11-17 15:54:22', NULL),
-(8, 'Pankaj Freelancer', '', '98187 49023', '', '', '', '', '', '', '2025-11-17 15:57:18', NULL),
-(9, 'Brendan Australia', 'info@sketchfurniture.com.au', '+61 414 739 495', '', 'https://sketchfurniture.com.au/', '', '', '', '', '2025-11-17 16:04:20', NULL),
-(10, 'Ravi T', '', '+91 9860900484', '', '', 'Bombay', 'Bombay', '', '', '2025-11-18 06:06:52', NULL),
-(11, 'Gyas', '', '97114 47614', '', '', 'Lucknow', 'UP', '', '', '2025-11-18 07:05:39', '2025-11-22 02:21:10');
+INSERT INTO `clients` (`id`, `name`, `email`, `phone`, `company`, `address`, `city`, `state`, `zip`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
+(3, 'Amzad', '', '+91 95400 52228', '', '', 'Delhi', 'Delhi', '', '', NULL, '2025-11-17 12:17:49', '2025-11-18 06:12:46'),
+(4, 'Vishal ', '', '08427722958', '', '', '', 'Punjab', '', '', NULL, '2025-11-17 12:44:15', NULL),
+(5, 'Raman', '', '+917087071220', '', '', 'Gurugram', '', '', '', NULL, '2025-11-17 15:43:14', NULL),
+(6, 'Dharmendra Bachheriya', '', '+91 83064 02805', '', '', '', '', '', '', NULL, '2025-11-17 15:51:53', NULL),
+(7, 'Ezaz From Ireland', '', '+353 87 355 5012', '', '', '', '', '', '', NULL, '2025-11-17 15:54:22', NULL),
+(8, 'Pankaj Freelancer', '', '98187 49023', '', '', '', '', '', '', NULL, '2025-11-17 15:57:18', NULL),
+(9, 'Brendan Australia', 'info@sketchfurniture.com.au', '+61 414 739 495', '', 'https://sketchfurniture.com.au/', '', '', '', '', NULL, '2025-11-17 16:04:20', NULL),
+(10, 'Ravi T', '', '+91 9860900484', '', '', 'Bombay', 'Bombay', '', '', NULL, '2025-11-18 06:06:52', NULL),
+(11, 'Gyas', '', '97114 47614', '', '', 'Lucknow', 'UP', '', '', NULL, '2025-11-18 07:05:39', '2025-11-22 02:21:10'),
+(12, 'Umakant (Selef)', 'umakant171991@gmail.com', '09453619260', 'Umakant Yadav', 'Jaunpur Rd', 'Jaunpur', 'Uttar Pradesh', '222001', '', NULL, '2025-12-06 19:55:32', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `client_responses`
+--
+
+CREATE TABLE `client_responses` (
+  `id` int(11) NOT NULL,
+  `client_id` int(11) NOT NULL,
+  `response_message` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+--
+-- Dumping data for table `client_responses`
+--
+
+INSERT INTO `client_responses` (`id`, `client_id`, `response_message`, `created_at`) VALUES
+(3, 67, 'In valid Whatsapp', '2025-12-30 04:32:50'),
+(4, 22, 'Sent  a Whatsapp message  but  he is asking  me  for  plood test for me', '2025-12-30 04:55:46'),
+(5, 23, 'Sent whatsapp message  not  respond', '2025-12-30 04:57:18'),
+(6, 52, 'Invalid  whatsapp no.', '2025-12-30 05:09:31'),
+(7, 51, 'Sent demo on whatsapp not respond now', '2025-12-30 05:13:04'),
+(8, 50, 'Sent Whatsapp not respond now', '2025-12-30 05:15:22'),
+(9, 48, 'Sent whatsapp not respond now', '2025-12-30 05:21:56'),
+(10, 46, 'Sent  first message on whatsapp', '2025-12-30 05:41:40'),
+(11, 42, 'Sent whatsapp  message  not repond now', '2025-12-30 05:59:25'),
+(12, 54, 'Invalide  whatsapp no.', '2025-12-30 06:03:01'),
+(13, 39, 'Sent  message  on whatsapp not respond now', '2025-12-30 06:04:07'),
+(14, 43, 'Sent  massage  on whatsapp not respond now', '2025-12-30 06:05:48'),
+(15, 29, 'Invalid whatsapp no.', '2025-12-30 06:06:35'),
+(16, 33, 'Invalid whatsapp no.', '2025-12-30 06:07:59'),
+(17, 44, 'Not valid Whatsapp no.', '2025-12-30 06:08:56'),
+(18, 62, 'not valid whatsapp', '2025-12-30 06:09:37'),
+(19, 45, 'Sent whatsapp not respond  now', '2025-12-30 06:10:30'),
+(20, 41, 'not valid whatsapp', '2025-12-30 06:12:14'),
+(21, 31, 'Sent whatsapp message not respond now', '2025-12-30 06:13:03'),
+(22, 52, 'Not valid whatsapp', '2025-12-30 06:13:40'),
+(23, 49, 'Sent Whatsapp message not respond now', '2025-12-30 06:16:02'),
+(24, 47, 'Sent whatsapp message  not respond now', '2025-12-30 06:16:59'),
+(25, 37, 'not valis whatsapp no.', '2025-12-30 06:17:40'),
+(26, 57, 'not valid whatsapp no.', '2025-12-30 06:19:16'),
+(27, 26, 'not valid whatsapp', '2025-12-30 06:20:02'),
+(28, 61, 'Not valid whatsapp', '2025-12-30 06:20:43'),
+(29, 60, 'Not valid whatsapp', '2025-12-30 06:21:19'),
+(30, 59, 'Not valid whatsapp no.', '2025-12-30 06:21:55'),
+(31, 58, 'Sent whatsapp message not respond now', '2025-12-30 06:22:46'),
+(32, 63, 'Not valid whatsapp', '2025-12-30 06:23:17'),
+(33, 56, 'Not valid whstasapp', '2025-12-30 06:23:46'),
+(34, 55, 'Not valid whatsapp', '2025-12-30 06:26:39'),
+(35, 53, 'not valid whatsapp', '2025-12-30 06:27:16'),
+(36, 38, 'Sent  whatsapp message  not respond  now', '2025-12-30 06:29:04'),
+(37, 69, 'Sent  whatsapp message  not respond  now', '2025-12-30 06:29:55'),
+(38, 28, 'Not valid whatsapp no.', '2025-12-30 06:31:33'),
+(39, 40, 'Not valid whatsapp no.', '2025-12-30 06:32:06'),
+(40, 65, 'Sent whatsapp message not respond now', '2025-12-30 06:34:11'),
+(41, 64, 'Not valid whatsapp', '2025-12-30 06:34:56'),
+(42, 23, 'Sent whatsapp messge not respond now', '2025-12-30 06:35:36'),
+(43, 23, 'Responded he  have already software no need to  send fallowup message.', '2025-12-30 06:39:43'),
+(44, 34, 'Sent whatsapp message  not respond  now', '2025-12-30 06:42:19'),
+(45, 35, 'Sent Whatsapp message  not respond  now', '2025-12-30 06:43:30'),
+(46, 36, 'Sent whatsapp message  not respond  now', '2025-12-30 06:44:16'),
+(47, 32, 'Not Valid whatsapp', '2025-12-30 06:45:31'),
+(48, 27, 'Not valid whatsapp', '2025-12-30 06:46:12'),
+(49, 30, 'Not valid  Whatsapp', '2025-12-30 06:51:58'),
+(50, 25, 'Sent whatsapp message  not respond  now', '2025-12-30 07:00:55'),
+(51, 24, 'NOt valid whatsapp', '2025-12-30 07:05:01'),
+(52, 66, 'not  valid whatsapp', '2025-12-30 07:08:34'),
+(54, 67, 'NOt valid whatsapp', '2025-12-30 07:10:40'),
+(56, 2, 'test', '2025-12-30 07:13:22'),
+(57, 35, 'He have already software', '2025-12-30 09:28:57'),
+(58, 71, 'Sent whatsapp message  not respond', '2025-12-30 09:58:44'),
+(59, 84, 'Sent  whatsapp message not respond now', '2025-12-30 09:59:49'),
+(60, 82, 'Not valid whatsapp no.', '2025-12-30 10:00:34'),
+(61, 81, 'Not valid whatsapp no.', '2025-12-30 10:02:58'),
+(62, 85, 'Sent whatsapp message  not respond  now', '2025-12-30 10:06:57'),
+(63, 80, 'Not valid Whatsapp no.', '2025-12-30 10:10:53'),
+(64, 83, 'Sent message  on whatsapp not respond  now', '2025-12-30 10:12:21'),
+(65, 79, 'Sent whats message not respond now', '2025-12-30 10:24:36'),
+(66, 78, 'Not valid whatsapp', '2025-12-30 10:25:55'),
+(67, 77, 'Not valid whatsapp', '2025-12-30 10:27:03'),
+(68, 76, 'Not valid whatsapp', '2025-12-30 10:27:57'),
+(69, 75, 'Not valid whatsapp', '2025-12-30 10:28:40'),
+(70, 73, 'Not valid whatsapp', '2025-12-30 10:29:26'),
+(71, 74, 'Not valid whatsapp', '2025-12-30 10:30:02'),
+(72, 72, 'Sent whatsapp message not respnde now', '2025-12-30 10:31:03'),
+(73, 70, 'Not valid whatsapp', '2025-12-30 10:31:44'),
+(74, 86, 'Sent  Whatsapp message  not respond  now', '2025-12-31 02:07:27'),
+(75, 90, 'Sent  whatsapp message  not respond  now', '2025-12-31 03:05:35'),
+(76, 247, 'Sent whatsapp message not respond now', '2025-12-31 03:07:54'),
+(77, 263, 'Sent Whatsapp message not respond', '2025-12-31 03:32:43'),
+(78, 262, 'Sent whatsapp on message not respond now', '2025-12-31 03:34:08'),
+(79, 261, 'Not valid whatsapp', '2025-12-31 03:35:28'),
+(80, 260, 'Sent Whatsapp message not respond now', '2025-12-31 03:36:38'),
+(81, 259, 'Sent  whatsapp message Not respond now', '2025-12-31 03:37:58'),
+(82, 258, 'Not valid whatsapp', '2025-12-31 03:38:43'),
+(83, 257, 'Sent  whatsapp message not respond now', '2025-12-31 03:40:01'),
+(84, 253, 'Not valid whatsapp', '2025-12-31 03:40:47'),
+(85, 252, 'Sent  Whatsapp message not respond  now', '2025-12-31 03:41:38'),
+(86, 251, 'Not valid whatsapp', '2025-12-31 03:42:21'),
+(87, 250, 'Not valid  whatsapp', '2025-12-31 03:43:18'),
+(88, 249, 'Sent whatsapp message  not respond now', '2025-12-31 03:44:15'),
+(89, 248, 'Send whatsapp message not respond  now', '2025-12-31 03:45:11'),
+(90, 242, 'Not valid whatsapp', '2025-12-31 03:46:05'),
+(91, 246, 'Not valid whatsapp', '2025-12-31 03:46:57'),
+(92, 245, 'Not valid whatsapp', '2025-12-31 03:47:43'),
+(93, 244, 'Sent whatsapp message not  respond now', '2025-12-31 03:48:36'),
+(94, 243, 'Sent whatsapp message not respond now', '2025-12-31 03:49:49'),
+(95, 241, 'Sent  whatsapp message not respond  now', '2025-12-31 03:50:37'),
+(96, 233, 'Sent Whatsapp message not respond now', '2025-12-31 03:51:58'),
+(97, 240, 'Sent whatsapp message not respond now', '2025-12-31 03:53:25'),
+(98, 239, 'not valid whatsapp', '2025-12-31 03:54:21'),
+(99, 238, 'not valid whatsapp', '2025-12-31 03:55:10'),
+(100, 237, 'Sent whatsapp message not respond now', '2025-12-31 03:56:08'),
+(101, 236, 'Sent Whatsapp message not respond now', '2025-12-31 03:57:02'),
+(102, 235, 'Sent whatsapp message not respond now', '2025-12-31 03:58:07'),
+(103, 234, 'Sent whatsapp message not respond now', '2025-12-31 03:58:52'),
+(104, 223, 'Sent Whatsapp message message not respond now', '2025-12-31 03:59:58'),
+(105, 232, 'Not valid whatsapp', '2025-12-31 04:00:40'),
+(106, 231, 'Not valid Whatsapp', '2025-12-31 04:01:59'),
+(107, 230, 'Sent whatsapp message not respond now', '2025-12-31 04:03:06'),
+(108, 229, 'Sent Whatsapp message not respond now', '2025-12-31 04:04:29'),
+(109, 228, 'Sent Whatsapp message not respond now', '2025-12-31 04:05:39'),
+(110, 227, 'Not valid Whatsapp', '2025-12-31 04:07:35'),
+(111, 226, 'Not valid Whatsapp', '2025-12-31 04:08:33'),
+(112, 225, 'Sent Whatsapp message not respond now', '2025-12-31 04:09:45'),
+(113, 224, 'Sent Whatsapp message not respond now', '2025-12-31 04:11:51'),
+(114, 222, 'Sent whatsapp message not respond now', '2025-12-31 04:13:01'),
+(115, 221, 'Sent Whatsapp message not respond now', '2025-12-31 04:13:54'),
+(116, 219, 'Sent Whatsapp message not respond now', '2025-12-31 04:14:53'),
+(117, 220, 'Sent Whatsapp message not respond now', '2025-12-31 04:16:10'),
+(118, 218, 'Not valid Whatsapp', '2025-12-31 04:16:53'),
+(119, 215, 'Sent Whatsapp message not respond now', '2025-12-31 04:17:40'),
+(120, 217, 'Sent Whatsapp message not respond now', '2025-12-31 04:18:26'),
+(121, 216, 'Sent Whatsapp message not respond now', '2025-12-31 04:19:29'),
+(122, 213, 'Sent Whatsapp message not respond now', '2025-12-31 04:20:31'),
+(123, 214, 'Sent Whatsapp message not respond now', '2025-12-31 04:28:48'),
+(124, 212, 'Sent Whatsapp message  not respond  now', '2025-12-31 04:33:12'),
+(125, 211, 'Not valid Whatsapp', '2025-12-31 04:43:09'),
+(126, 210, 'Sent  Whatsapp message  not  respond  now', '2025-12-31 04:50:00'),
+(127, 223, 'Intrested  asking for demo sent demo with demo user', '2025-12-31 05:01:59'),
+(128, 209, 'Sent  Whatsapp message not  respond  now', '2025-12-31 08:47:03');
 
 -- --------------------------------------------------------
 
@@ -93,8 +258,8 @@ CREATE TABLE `doctors` (
   `registration_no` varchar(100) DEFAULT NULL,
   `percent` decimal(5,2) NOT NULL DEFAULT 0.00,
   `added_by` int(11) DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 --
@@ -102,1476 +267,28 @@ CREATE TABLE `doctors` (
 --
 
 INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specialization`, `hospital`, `contact_no`, `phone`, `email`, `address`, `registration_no`, `percent`, `added_by`, `created_at`, `updated_at`) VALUES
-(166, NULL, 'Laura Bond', NULL, NULL, 'Aliqua Nulla ipsum', 'Officia magni ipsum', NULL, NULL, NULL, NULL, 16.00, 1, NULL, NULL),
-(168, NULL, 'Elijah Mayo', NULL, NULL, 'Eius veritatis ullam', 'Sed sed eiusmod sequ', NULL, NULL, NULL, NULL, 77.00, 1, NULL, NULL),
-(216, NULL, 'Laura Bond', NULL, NULL, 'Aliqua Nulla ipsum', 'Officia magni ipsum', NULL, NULL, NULL, NULL, 16.00, 1, NULL, NULL),
-(218, NULL, 'Elijah Mayo', NULL, NULL, 'Eius veritatis ullam', 'Sed sed eiusmod sequ', NULL, NULL, NULL, NULL, 77.00, 1, NULL, NULL),
-(229, NULL, 'Elijah Mayo', NULL, NULL, 'Eius veritatis ullam', 'Sed sed eiusmod sequ', NULL, NULL, NULL, NULL, 77.00, 1, NULL, NULL),
-(231, NULL, 'Laura Bond', NULL, NULL, 'Aliqua Nulla ipsum', 'Officia magni ipsum', NULL, NULL, NULL, NULL, 16.00, 1, NULL, NULL),
-(232, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(264, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(265, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(266, NULL, 'Laura Bond', NULL, NULL, 'Aliqua Nulla ipsum', 'Officia magni ipsum', NULL, NULL, NULL, NULL, 16.00, 1, NULL, NULL),
-(267, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(268, NULL, 'Elijah Mayo', NULL, NULL, 'Eius veritatis ullam', 'Sed sed eiusmod sequ', NULL, NULL, NULL, NULL, 77.00, 1, NULL, NULL),
-(269, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(270, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(271, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(272, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(273, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(274, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(275, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(276, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(277, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(278, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(279, NULL, 'Elijah Mayo', NULL, NULL, 'Eius veritatis ullam', 'Sed sed eiusmod sequ', NULL, NULL, NULL, NULL, 77.00, 1, NULL, NULL),
-(280, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(281, NULL, 'Laura Bond', NULL, NULL, 'Aliqua Nulla ipsum', 'Officia magni ipsum', NULL, NULL, NULL, NULL, 16.00, 1, NULL, NULL),
-(282, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(283, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(284, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(285, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(286, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(287, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(288, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(289, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(290, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(291, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(292, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(293, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(294, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(295, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(296, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(297, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(298, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(299, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(300, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(301, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(302, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(303, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(304, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(305, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(306, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(307, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(308, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(309, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(310, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(311, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(312, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(313, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(314, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(315, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(316, NULL, 'Laura Bond', NULL, NULL, 'Aliqua Nulla ipsum', 'Officia magni ipsum', NULL, NULL, NULL, NULL, 16.00, 1, NULL, NULL),
-(317, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(318, NULL, 'Elijah Mayo', NULL, NULL, 'Eius veritatis ullam', 'Sed sed eiusmod sequ', NULL, NULL, NULL, NULL, 77.00, 1, NULL, NULL),
-(319, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(320, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(321, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(322, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(323, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(324, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(325, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(326, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(327, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(328, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(329, NULL, 'Elijah Mayo', NULL, NULL, 'Eius veritatis ullam', 'Sed sed eiusmod sequ', NULL, NULL, NULL, NULL, 77.00, 1, NULL, NULL),
-(330, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(331, NULL, 'Laura Bond', NULL, NULL, 'Aliqua Nulla ipsum', 'Officia magni ipsum', NULL, NULL, NULL, NULL, 16.00, 1, NULL, NULL),
-(333, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(337, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(376, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(377, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(378, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(379, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(380, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(381, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(399, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(400, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(401, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(402, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(403, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(404, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(405, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(406, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(407, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(408, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(409, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(410, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(411, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(412, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(413, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(414, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(415, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(416, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(417, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(418, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(419, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(420, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(421, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(422, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(423, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(424, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(425, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(426, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(427, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(428, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(429, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(430, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(431, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(432, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(433, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(434, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(435, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(436, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(437, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(438, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(439, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(440, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(441, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(442, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(443, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(444, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(445, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(446, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(447, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(448, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(449, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(450, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(451, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(452, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(453, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(454, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(455, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(456, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(457, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(458, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(459, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(460, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(461, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(462, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(463, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(464, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(465, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(466, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(467, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(468, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(469, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(470, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(471, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(472, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(473, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(474, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(475, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(476, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(477, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(478, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(479, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(480, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(481, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(482, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(483, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(484, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(485, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(486, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(487, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(488, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(489, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(490, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(491, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(492, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(493, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(494, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(495, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(496, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(497, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(498, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(499, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(500, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(501, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(502, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(503, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(504, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(505, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(506, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(507, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(508, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(509, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(510, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(511, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(512, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(513, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(514, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(515, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(516, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(517, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(518, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(519, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(520, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(521, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(522, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(523, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(524, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(525, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(526, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(527, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(528, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(529, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(530, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(531, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(532, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(533, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(534, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(535, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(536, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(537, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(538, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(539, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(540, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(541, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(542, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(543, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(544, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(545, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(546, NULL, 'wed', NULL, NULL, 'awsdef', 'awedf', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(547, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(548, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(549, NULL, 'wed', NULL, NULL, 'awsdef', 'awedf', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(550, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(551, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(552, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(553, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(554, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(555, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(556, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(557, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(558, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(559, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(560, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(561, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(562, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(563, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(564, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(565, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(566, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(567, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(568, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(569, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(570, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(571, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(572, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(573, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(574, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(575, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(576, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(577, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(578, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(579, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(580, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(581, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(582, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(583, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(584, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(585, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(586, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(587, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(588, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(589, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(590, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(591, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(592, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(593, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(594, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(595, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(596, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(597, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(598, NULL, 'wed', NULL, NULL, 'awsdef', 'awedf', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(599, NULL, 'wed', NULL, NULL, 'awsdef', 'awedf', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(600, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(601, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(602, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(603, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(604, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(605, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(606, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(607, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(608, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(609, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(610, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(611, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(612, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(613, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(614, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(615, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(616, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(617, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(618, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(619, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(620, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(621, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(622, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(623, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(624, NULL, 'df', NULL, NULL, 'df', '4554545454', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(625, NULL, 'df', NULL, NULL, 'df', '4554545454', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(626, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(627, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(628, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(629, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(630, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(631, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(632, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(633, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(634, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(635, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(636, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(637, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(638, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(639, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(640, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(641, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(642, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(643, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(644, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(645, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(646, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(647, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(648, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(649, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(650, NULL, 'df', NULL, NULL, 'sdfg', '6565655656', NULL, NULL, NULL, NULL, 20.00, 2, NULL, NULL),
-(651, NULL, 'df', NULL, NULL, 'sdfg', '6565655656', NULL, NULL, NULL, NULL, 20.00, 2, NULL, NULL),
-(652, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(653, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(654, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(655, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(656, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(657, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(658, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(659, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(660, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(661, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(662, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(663, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(664, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(665, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(666, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(667, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(668, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(669, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(670, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(671, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(672, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(673, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(674, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(675, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(676, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(677, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(678, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(679, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(680, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(681, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(682, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(683, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(684, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(685, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(686, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(687, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(688, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(689, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(690, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(691, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(692, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(693, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(694, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(695, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(696, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(697, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(698, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(699, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL);
-INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specialization`, `hospital`, `contact_no`, `phone`, `email`, `address`, `registration_no`, `percent`, `added_by`, `created_at`, `updated_at`) VALUES
-(700, NULL, 'df', NULL, NULL, 'sdfg', '6565655656', NULL, NULL, NULL, NULL, 20.00, 2, NULL, NULL),
-(701, NULL, 'df', NULL, NULL, 'sdfg', '6565655656', NULL, NULL, NULL, NULL, 20.00, 2, NULL, NULL),
-(702, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(703, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(704, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(705, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(706, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(707, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(708, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(709, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(710, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(711, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(712, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(713, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(714, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(715, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(716, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(717, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(718, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(719, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(720, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(721, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(722, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(723, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(724, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(725, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(726, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(727, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(728, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(729, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(730, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(731, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(732, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(733, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(734, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(735, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(736, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(737, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(738, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(739, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(740, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(741, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(742, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(743, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(744, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(745, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(746, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(747, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(748, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(749, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(750, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(751, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(752, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(753, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(754, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(755, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(756, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(757, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(758, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(759, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(760, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(761, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(762, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(763, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(764, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(765, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(766, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(767, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(768, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(769, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(770, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(771, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(772, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(773, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(774, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(775, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(776, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(777, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(778, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(779, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(780, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(781, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(782, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(783, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(784, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(785, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(786, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(787, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(788, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(789, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(790, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(791, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(792, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(793, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(794, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(795, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(796, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(797, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(798, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(799, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(800, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(801, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(802, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(803, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(804, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(805, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(806, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(807, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(808, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(809, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(810, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(811, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(812, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(813, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(814, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(815, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(816, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(817, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(818, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(819, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(820, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(821, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(822, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(823, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(824, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(825, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(826, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(827, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(828, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(829, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(830, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(831, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(832, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(833, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(834, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(835, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(836, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(837, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(838, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(839, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(840, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(841, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(842, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(843, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(844, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(845, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(846, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(847, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(848, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(849, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(850, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(851, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(852, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(853, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(854, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(855, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(856, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(857, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(858, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(859, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(860, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(861, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(862, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(863, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(864, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(865, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(866, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(867, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(868, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(869, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(870, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(871, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(872, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(873, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(874, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(875, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(876, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(877, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(878, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(879, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(880, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(881, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(882, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(883, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(884, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(885, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(886, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(887, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(888, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(889, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(890, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(891, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(892, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(893, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(894, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(895, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(896, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(897, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(898, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(899, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(900, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(901, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(902, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(903, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(904, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(905, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(906, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(907, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(908, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(909, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(910, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(911, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(912, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(913, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(914, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(915, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(916, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(917, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(918, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(919, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(920, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(921, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(922, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(923, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(924, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(925, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(926, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(927, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(928, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(929, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(930, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(931, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(932, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(933, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(934, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(935, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(936, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(937, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(938, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(939, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(940, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(941, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(942, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(943, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(944, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(945, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(946, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(947, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(948, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(949, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(950, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(951, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(952, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(953, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(954, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(955, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(956, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(957, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(958, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(959, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(960, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(961, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(962, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(963, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(964, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(965, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(966, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(967, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(968, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(969, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(970, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(971, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(972, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(973, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(974, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(975, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(976, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(977, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(978, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(979, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(980, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(981, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(982, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(983, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(984, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(985, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(986, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(987, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(988, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(989, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(990, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(991, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(992, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(993, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(994, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(995, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(996, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(997, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(998, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(999, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1000, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1001, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1002, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(1003, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(1004, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1005, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1006, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1007, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1008, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1009, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1010, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1011, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1012, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1013, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1014, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1015, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1016, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1017, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1018, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1019, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1020, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1021, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1022, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1023, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1024, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1025, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1026, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1027, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1028, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1029, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1030, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1031, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1032, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1033, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1034, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1035, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1036, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1037, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1038, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1039, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1040, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1041, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1042, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1043, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1044, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1045, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1046, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1047, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1048, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1049, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1050, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1051, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1052, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(1053, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(1054, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1055, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1056, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1057, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1058, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1059, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1060, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1061, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1062, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1063, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1064, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1065, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1066, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1067, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1068, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1069, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1070, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1071, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1072, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1073, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1074, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1075, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1076, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1077, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1078, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1079, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1080, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1081, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1082, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1083, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1084, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1085, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1086, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1087, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1088, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1089, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1090, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1091, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1092, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1093, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL);
-INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specialization`, `hospital`, `contact_no`, `phone`, `email`, `address`, `registration_no`, `percent`, `added_by`, `created_at`, `updated_at`) VALUES
-(1094, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1095, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1096, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1097, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1098, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1099, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1100, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1101, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1102, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(1103, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(1104, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1105, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1106, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1107, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1108, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1109, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1110, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1111, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1112, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1113, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1114, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1115, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1116, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1117, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1118, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1119, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1120, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1121, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1122, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1123, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1124, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1125, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1126, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1127, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1128, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1129, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1130, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1131, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1132, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1133, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1134, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1135, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1136, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1137, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1138, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1139, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1140, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1141, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1142, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1143, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1144, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1145, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1146, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1147, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1148, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1149, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1150, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1151, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1152, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(1153, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(1154, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1155, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1156, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1157, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1158, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1159, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1160, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1161, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1162, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1163, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1164, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1165, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1166, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1167, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1168, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1169, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1170, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1171, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1172, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1173, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1174, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1175, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1176, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1177, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1178, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1179, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1180, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1181, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1182, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1183, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1184, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1185, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1186, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1187, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1188, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1189, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1190, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1191, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1192, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1193, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1194, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1195, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1196, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1197, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1198, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1199, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1200, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1201, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1202, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(1203, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(1204, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1205, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1206, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1207, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1208, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1209, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1210, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1211, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1212, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1213, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1214, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1215, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1216, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1217, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1218, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1219, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1220, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1221, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1222, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1223, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1224, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1225, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1226, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1227, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1228, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1229, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1230, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1231, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1232, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1233, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1234, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1235, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1236, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1237, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1238, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1239, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1240, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1241, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1242, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1243, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1244, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1245, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1246, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1247, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1248, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1249, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1250, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1251, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1252, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(1253, NULL, 'Leslie Frazier', NULL, NULL, 'Tempor ut ut ullam n', 'Accusamus sed quam s', NULL, NULL, NULL, NULL, 41.00, 2, NULL, NULL),
-(1254, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1255, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1256, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1257, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1258, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1259, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1260, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1261, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1262, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1263, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1264, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1265, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1266, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1267, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1268, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1269, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1270, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1271, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1272, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1273, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1274, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1275, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1276, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1277, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1278, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1279, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1280, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1281, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1282, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1283, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1284, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1285, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1286, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1287, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1288, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1289, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1290, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1291, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1292, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1293, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1294, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1295, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1296, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1297, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1298, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1299, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1300, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1301, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1302, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1303, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1304, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1305, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1306, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1307, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1308, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1309, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1310, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1311, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1312, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1313, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1314, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1315, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1316, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1317, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1318, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1319, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1320, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1321, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1322, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1323, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1324, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1325, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1326, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1327, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1328, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1329, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1330, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1331, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1332, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1333, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1334, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1335, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1336, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1337, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1338, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1339, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1340, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1341, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1342, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1343, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1344, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1345, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1346, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1347, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1348, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1349, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1350, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1351, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1352, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1353, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1354, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1355, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1356, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1357, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1358, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1359, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1360, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1361, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1362, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1363, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1364, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1365, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1366, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1367, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1368, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1369, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1370, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1371, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1372, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1373, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1374, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1375, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1376, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1377, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1378, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1379, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1380, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1381, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1382, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1383, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1384, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1385, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1386, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1387, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1388, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1389, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1390, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1391, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1392, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1393, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1394, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1395, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1396, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1397, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1398, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1399, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1400, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1401, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1402, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1403, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1404, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1405, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1406, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1407, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1408, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1409, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1410, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1411, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1412, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1413, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1414, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1415, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1416, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1417, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1418, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1419, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1420, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1421, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1422, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1423, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1424, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1425, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1426, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1427, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1428, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1429, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1430, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1431, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1432, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1433, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1434, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1435, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1436, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1437, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1438, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1439, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1440, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1441, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1442, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1443, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1444, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1445, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1446, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1447, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1448, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1449, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1450, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1451, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1452, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1453, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1454, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1455, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1456, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1457, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1458, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1459, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1460, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1461, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1462, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1463, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1464, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1465, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1466, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1467, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1468, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1469, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1470, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1471, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1472, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1473, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1474, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1475, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1476, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1477, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1478, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1479, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1480, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1481, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1482, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1483, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1484, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1485, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1486, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1487, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL);
-INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specialization`, `hospital`, `contact_no`, `phone`, `email`, `address`, `registration_no`, `percent`, `added_by`, `created_at`, `updated_at`) VALUES
-(1488, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1489, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1490, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1491, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1492, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1493, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1494, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1495, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1496, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1497, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1498, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1499, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1500, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1501, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1502, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1503, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1504, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1505, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1506, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1507, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1508, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1509, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1510, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1511, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1512, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1513, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1514, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1515, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1516, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1517, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1518, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1519, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1520, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1521, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1522, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1523, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1524, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1525, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1526, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1527, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1528, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1529, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1530, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1531, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1532, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1533, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1534, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1535, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1536, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1537, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1538, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1539, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1540, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1541, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1542, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1543, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1544, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1545, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1546, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1547, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1548, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1549, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1550, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1551, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1552, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1553, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1554, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1555, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1556, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1557, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1558, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1559, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1560, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1561, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1562, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1563, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1564, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1565, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1566, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1567, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1568, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1569, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1570, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1571, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1572, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1573, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1574, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1575, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1576, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1577, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1578, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1579, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1580, NULL, 'df', NULL, NULL, 'df', '54545445', NULL, NULL, NULL, NULL, 40.00, 2, NULL, NULL),
-(1581, NULL, 'tt', NULL, NULL, 'ert', '6556565656', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1582, NULL, 'wed', NULL, NULL, 'awsdef', '5656565656', NULL, NULL, NULL, NULL, 12.00, 2, NULL, NULL),
-(1583, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1584, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1585, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1586, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1587, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1588, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1589, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1590, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1591, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1592, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1593, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1594, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1595, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1596, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1597, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1598, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1599, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1600, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1601, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1602, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1603, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1604, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1605, NULL, '{{doctor_name}}', NULL, '{{specialization}}', '{{hospital_name}}', NULL, '{{doctor_phone}}', '{{doctor_email}}', NULL, NULL, 0.00, 1, NULL, NULL),
-(1606, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1607, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1608, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1609, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1610, NULL, '{{doctor_name}}', NULL, NULL, '{{hospital_name}}', NULL, NULL, NULL, NULL, NULL, 0.00, 1, NULL, NULL),
-(1611, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1612, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1613, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1614, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1615, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1616, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1617, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1618, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1619, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1620, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1621, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1622, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1623, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1624, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1625, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1626, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1627, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1628, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1629, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1630, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1631, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1632, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1633, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1634, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1635, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1636, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1637, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1638, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1639, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1640, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1641, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1642, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1643, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1644, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1645, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1646, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1647, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1648, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1649, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1650, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1651, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1652, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1653, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1654, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1655, NULL, '{{doctor_name}}', NULL, NULL, '{{hospital_name}}', NULL, NULL, NULL, NULL, NULL, 0.00, 1, NULL, NULL),
-(1656, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1657, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1658, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1659, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1660, NULL, '{{doctor_name}}', NULL, NULL, '{{hospital_name}}', NULL, NULL, NULL, NULL, NULL, 0.00, 1, NULL, NULL),
-(1661, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1662, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1663, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1664, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1665, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1666, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1667, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1668, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1669, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1670, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1671, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1672, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1673, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1674, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1675, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1676, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1677, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1678, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1679, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1680, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1681, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1682, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1683, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1684, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1685, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1686, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1687, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1688, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1689, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1690, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1691, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1692, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1693, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1694, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1695, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1696, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1697, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1698, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1699, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1700, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1701, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1702, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1703, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1704, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1705, NULL, '{{doctor_name}}', NULL, NULL, '{{hospital_name}}', NULL, NULL, NULL, NULL, NULL, 0.00, 1, NULL, NULL),
-(1706, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1707, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1708, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1709, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1710, NULL, '{{doctor_name}}', NULL, NULL, '{{hospital_name}}', NULL, NULL, NULL, NULL, NULL, 0.00, 1, NULL, NULL),
-(1711, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1712, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1713, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1714, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1715, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1716, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1717, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1718, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1719, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1720, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1721, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1722, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1723, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1724, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1725, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1726, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1727, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1728, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1729, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1730, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1731, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1732, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1733, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1734, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1735, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1736, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1737, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1738, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1739, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1740, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1741, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1742, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1743, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1744, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1745, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1746, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1747, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1748, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1749, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1750, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1751, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1752, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1753, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1754, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1755, NULL, '{{doctor_name}}', NULL, NULL, '{{hospital_name}}', NULL, NULL, NULL, NULL, NULL, 0.00, 1, NULL, NULL),
-(1756, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1757, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1758, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1759, NULL, 'edf', NULL, NULL, 'werf', '545455454', NULL, NULL, NULL, NULL, 30.00, 2, NULL, NULL),
-(1760, NULL, '{{doctor_name}}', NULL, NULL, '{{hospital_name}}', NULL, NULL, NULL, NULL, NULL, 0.00, 1, NULL, NULL),
-(1761, NULL, 'Sarah Mcmahon', NULL, NULL, 'Rerum aspernatur dol', 'Ad deserunt ad est s', NULL, NULL, NULL, NULL, 9.00, 2, NULL, NULL),
-(1762, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1763, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1764, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1765, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1766, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1767, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1768, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1769, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1770, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1771, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1772, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1773, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1774, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1775, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1776, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1777, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1778, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1779, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1780, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL),
-(1781, NULL, 'df', NULL, NULL, 'sdf', '5656565656', NULL, NULL, NULL, NULL, 50.00, 2, NULL, NULL),
-(1782, NULL, 'Carl Whitaker', NULL, NULL, 'Recusandae Sint ex', 'Qui non dolor amet', NULL, NULL, NULL, NULL, 44.00, 2, NULL, NULL);
+(1987, NULL, 'D1_gyas', '', '', '', '5656666556', '', '', '', '', 0.00, 7, NULL, '2025-12-21 20:25:48'),
+(1988, NULL, 'D1_gyas', '', '', '', '99999', '', '', '', '', 0.00, 7, NULL, '2025-12-21 19:48:25'),
+(1989, NULL, 'D1_gyas', '', '', 'hhhh', '4554', '5656565656', 'company@alexsol.tk', '', '', 0.00, 7, NULL, '2025-12-21 19:38:21'),
+(1990, NULL, 'D1_gyas', NULL, NULL, 'hhhh', '4554', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-21 19:59:23', '2025-12-21 19:59:23'),
+(1991, NULL, 'D1_gyas', NULL, NULL, '', '99999', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-21 19:59:23', '2025-12-21 19:59:23'),
+(1992, NULL, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-21 19:59:24', '2025-12-21 19:59:24'),
+(1994, NULL, 'Kalia Knox', NULL, NULL, 'Maxime enim enim vol', 'Irure fuga Laborum', NULL, NULL, 'Veritatis duis qui n', NULL, 52.00, 2, '2025-12-21 20:08:23', '2025-12-21 20:14:30'),
+(1997, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-21 20:18:53', '2025-12-21 20:18:53'),
+(1998, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-21 20:28:53', '2025-12-21 20:28:53'),
+(1999, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 10:36:15', '2025-12-31 10:36:15'),
+(2000, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 10:45:40', '2025-12-31 10:45:40'),
+(2001, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 11:00:16', '2025-12-31 11:00:16'),
+(2002, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 11:04:56', '2025-12-31 11:04:56'),
+(2003, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 11:15:02', '2025-12-31 11:15:02'),
+(2004, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 13:42:31', '2025-12-31 13:42:31'),
+(2005, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 14:00:47', '2025-12-31 14:00:47'),
+(2006, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 14:07:11', '2025-12-31 14:07:11'),
+(2007, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 14:11:35', '2025-12-31 14:11:35'),
+(2008, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 14:37:15', '2025-12-31 14:37:15'),
+(2009, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 14:46:45', '2025-12-31 14:46:45'),
+(2010, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 14:48:54', '2025-12-31 14:48:54'),
+(2011, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 14:56:04', '2025-12-31 14:56:04');
 
 -- --------------------------------------------------------
 
@@ -1621,34 +338,21 @@ CREATE TABLE `email_templates` (
 
 CREATE TABLE `entries` (
   `id` int(11) NOT NULL,
-  `owner_id` int(11) DEFAULT NULL,
-  `server_id` int(11) DEFAULT NULL,
-  `patient_id` int(11) DEFAULT NULL,
+  `patient_id` int(11) NOT NULL,
   `doctor_id` int(11) DEFAULT NULL,
-  `entry_date` datetime DEFAULT NULL,
-  `date_slot` varchar(50) DEFAULT NULL COMMENT 'Time slot: morning/afternoon/evening/night',
-  `service_location` varchar(100) DEFAULT NULL COMMENT 'Service location: lab/home/hospital/clinic/other',
-  `collection_address` text DEFAULT NULL COMMENT 'Address for home collection',
-  `status` varchar(50) NOT NULL DEFAULT 'pending',
-  `priority` varchar(50) DEFAULT 'normal',
-  `referral_source` varchar(100) DEFAULT NULL,
+  `reg_no` varchar(50) DEFAULT NULL,
+  `entry_date` datetime DEFAULT current_timestamp(),
+  `status` enum('pending','completed','cancelled') DEFAULT 'pending',
   `subtotal` decimal(10,2) DEFAULT 0.00,
   `discount_amount` decimal(10,2) DEFAULT 0.00,
   `total_price` decimal(10,2) DEFAULT 0.00,
-  `payment_status` varchar(50) DEFAULT 'pending',
+  `payment_status` enum('pending','paid','partial') DEFAULT 'pending',
   `notes` text DEFAULT NULL,
+  `impression` text DEFAULT NULL,
   `added_by` int(11) DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-
---
--- Dumping data for table `entries`
---
-
-INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`, `entry_date`, `date_slot`, `service_location`, `collection_address`, `status`, `priority`, `referral_source`, `subtotal`, `discount_amount`, `total_price`, `payment_status`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
-(1, NULL, NULL, NULL, NULL, '2025-10-08 00:00:00', NULL, NULL, NULL, 'pending', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-11-16 06:54:49', NULL),
-(2, NULL, NULL, NULL, NULL, '2025-10-08 00:00:00', NULL, NULL, NULL, 'pending', 'normal', NULL, 0.00, 0.00, 0.00, 'pending', NULL, 1, '2025-11-16 06:54:49', NULL);
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -1657,20 +361,363 @@ INSERT INTO `entries` (`id`, `owner_id`, `server_id`, `patient_id`, `doctor_id`,
 --
 
 CREATE TABLE `entry_tests` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `entry_id` int(10) UNSIGNED NOT NULL,
-  `test_id` int(10) UNSIGNED NOT NULL,
-  `category_id` int(11) NOT NULL,
-  `main_category_id` int(11) NOT NULL,
+  `id` int(11) NOT NULL,
+  `entry_id` int(11) NOT NULL,
+  `test_id` int(11) NOT NULL,
   `result_value` varchar(255) DEFAULT NULL,
-  `unit` varchar(64) DEFAULT NULL,
+  `unit` varchar(50) DEFAULT NULL,
   `remarks` text DEFAULT NULL,
-  `status` varchar(32) NOT NULL DEFAULT 'pending',
-  `price` decimal(10,2) DEFAULT 0.00,
-  `discount_amount` decimal(10,2) DEFAULT 0.00,
-  `total_price` decimal(10,2) DEFAULT 0.00,
-  `created_at` datetime DEFAULT current_timestamp()
+  `price` decimal(10,2) DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `followups`
+--
+
+CREATE TABLE `followups` (
+  `id` int(11) NOT NULL,
+  `client_id` int(11) NOT NULL,
+  `followup_date` date NOT NULL,
+  `next_followup_date` date DEFAULT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'Pending',
+  `remarks` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+--
+-- Dumping data for table `followups`
+--
+
+INSERT INTO `followups` (`id`, `client_id`, `followup_date`, `next_followup_date`, `status`, `remarks`, `created_at`, `updated_at`) VALUES
+(1, 2, '2025-11-28', '2025-11-29', 'Call Later', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-11-28 08:10:45', '2025-12-29 05:41:14'),
+(5, 51, '2025-12-29', '2026-01-10', 'Call Later', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 05:35:01', '2025-12-29 11:19:12'),
+(7, 33, '2025-12-29', NULL, 'Pending', '<p>Followup: Request for detailed meeting to review PathoLab Pro capabilities and understand your specific laboratory requirements. Available for discussion on your preferred date and time.</p>', '2025-12-29 05:44:58', NULL),
+(9, 51, '2025-12-29', NULL, 'Pending', '<p><br></p>', '2025-12-29 11:19:51', NULL),
+(10, 39, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:20:14', NULL),
+(11, 35, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:21:11', NULL),
+(12, 32, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:21:49', NULL),
+(13, 53, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:22:25', NULL),
+(14, 53, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:22:51', NULL),
+(15, 23, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:23:26', NULL),
+(16, 38, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:24:11', NULL),
+(17, 28, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:24:54', NULL),
+(18, 29, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:25:30', NULL),
+(19, 41, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:25:55', NULL);
+INSERT INTO `followups` (`id`, `client_id`, `followup_date`, `next_followup_date`, `status`, `remarks`, `created_at`, `updated_at`) VALUES
+(20, 42, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:26:33', NULL),
+(21, 24, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:27:22', NULL),
+(22, 43, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:27:54', NULL),
+(23, 31, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:28:30', NULL),
+(24, 52, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:29:05', NULL),
+(25, 27, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:29:31', NULL),
+(26, 36, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:29:59', NULL),
+(27, 50, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:30:33', NULL),
+(28, 48, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:31:18', NULL),
+(29, 47, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:32:14', NULL),
+(30, 49, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:32:50', NULL),
+(31, 46, '2025-12-29', NULL, 'Pending', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: https://wa.me/919453619260</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 11:33:23', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `followup_clients`
+--
+
+CREATE TABLE `followup_clients` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `phone` varchar(20) NOT NULL,
+  `company` varchar(255) DEFAULT NULL,
+  `followup_message` text DEFAULT NULL,
+  `followup_title` varchar(255) DEFAULT NULL,
+  `response_message` text DEFAULT NULL,
+  `next_followup_date` date DEFAULT NULL,
+  `added_by` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+--
+-- Dumping data for table `followup_clients`
+--
+
+INSERT INTO `followup_clients` (`id`, `name`, `email`, `phone`, `company`, `followup_message`, `followup_title`, `response_message`, `next_followup_date`, `added_by`, `created_at`, `updated_at`) VALUES
+(2, 'Umakant Yadav', 'umakant171991@gmail.com', '919453619260', 'Umakant Yadav', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'test', '2026-01-10', 0, '2025-11-28 07:47:56', '2025-12-30 07:13:22'),
+(22, 'Redcliffe Labs (Saket Nagar)', '', '+918988988787', 'Redcliffe Labs', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'no need update', '2026-01-10', 1, '2025-12-29 05:05:20', '2025-12-30 07:13:02'),
+(23, 'Karauli Diagnostics', '', '+917068970689', '', 'बहुत बढ़िया सर \r\nबस एक छोटा‑सा सवाल था – क्या कभी लगा कि:\r\nReport format और बेहतर हो सकता है\r\n\r\nSpeed या support में दिक्कत आती है\r\n\r\nNew tests add कराने में टाइम लगता है\r\n\r\nअगर कभी future में alternative देखना चाहें तो मैं 10 मिनट का free demo दे सकता हूँ, बिना किसी charge या ज़बरदस्ती के।\r\nजरूरत पड़े तो बस एक message कर दीजिएगा, सर।', 'Pathology अगर बोले – already software है', 'Responde he  have already software no need to  send fallowup message.', '2026-10-10', 1, '2025-12-29 05:07:53', '2025-12-30 06:39:43'),
+(24, 'Neuberg Diagnostic', '', '+919731700865', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'NOt valid whatsapp', '2026-01-10', 1, '2025-12-29 05:09:49', '2025-12-30 07:05:01'),
+(25, 'Apollo Diagnostics', 'contact@apollodiagnostics.com', '+919876543210', 'Apollo Diagnostics Ltd', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message  not respond  now', '2026-01-10', 1, '2025-12-29 05:11:04', '2025-12-30 07:00:55'),
+(26, 'SRL Diagnostics', 'info@srldiagnostics.com', '+918765432109', 'SRL Diagnostics Pvt Ltd', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'not valid whatsapp', '2026-01-10', 1, '2025-12-29 05:11:27', '2025-12-30 06:20:02'),
+(27, 'PathCare Diagnostics', 'sales@pathcarediagnostics.com', '+917654321098', 'PathCare Diagnostics India', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-29 05:11:52', '2025-12-30 06:46:12'),
+(28, 'LabCorp India', 'contact@labcorpindia.com', '+916543210987', 'LabCorp India Limited', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp no.', '2026-01-10', 1, '2025-12-29 05:12:18', '2025-12-30 06:31:33'),
+(29, 'Metropolis Healthcare', 'info@metropolishealth.com', '+915432109876', 'Metropolis Healthcare Ltd', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Invalid whatsapp no.', '2026-01-10', 1, '2025-12-29 05:12:50', '2025-12-30 06:06:35'),
+(30, 'Dr Lal Path Labs', 'sales@drlalpathlabs.com', '+914321098765', 'Dr Lal Path Labs India', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid  Whatsapp', '2026-01-10', 1, '2025-12-29 05:13:19', '2025-12-30 06:51:58'),
+(31, 'Parul Pathology Clinic', 'parul@pathologyclinic.com', '+919792012345', 'Parul Pathology Clinic Varanasi', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not respond now', '2026-01-10', 1, '2025-12-29 05:14:35', '2025-12-30 06:13:03'),
+(32, 'DGChem Labs Delhi', 'info@dgchemlabs.com', '+919876543220', 'DGChem Labs South Delhi', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not Valid whatsapp', '2026-01-10', 1, '2025-12-29 05:15:08', '2025-12-30 06:45:31'),
+(33, 'Agilus Diagnostics Prayagraj', 'prayagraj@agilusdiagnostics.com', '+918037839114', 'Agilus Diagnostics Allahabad', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Invalid whatsapp no.', '2026-01-10', 1, '2025-12-29 05:15:46', '2025-12-30 06:07:59'),
+(34, 'Tyagi Pathology Centre', 'tyagi@pathologycentre.com', '+919690556690', 'Tyagi Pathology Centre Saharanpur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message  not respond  now', '2026-01-10', 1, '2025-12-29 05:16:28', '2025-12-30 06:42:19'),
+(35, 'Charak Pathology Clinic', 'charak.pathology@gmail.com', '+919719600445', 'Charak Pathology Clinic Dehradun', 'Thank you सर, अच्छा लगा सुनकर कि आप already software use कर रहे हैं।\r\nमैं बस ये समझना चाहता था – आपके current software में आपको सबसे ज़्यादा दिक्कत किस चीज़ में आती है?\r\nSpeed / report बनाने में time\r\n\r\nSupport / problem आने पर help न मिलना\r\n\r\nReport format या test add/update कराने में दिक्कत\r\n\r\nअगर आप चाहें तो मैं आपके current काम के हिसाब से एक छोटा‑सा demo दिखा सकता हूँ,\r\nताकि आप compare कर पाएं – better लगे तभी सोचिएगा .', 'Pathology अगर बोले – already software है', 'He have already software', '2026-12-12', 1, '2025-12-29 05:17:03', '2025-12-30 09:28:57'),
+(36, 'Pathkind Labs Badlapur Jaunpur', 'badlapur@pathkindlabs.com', '+919044131326', 'Pathkind Labs Badlapur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message  not respond  now', '2026-01-10', 1, '2025-12-29 05:18:46', '2025-12-30 06:44:16'),
+(37, 'Shivam Pathology Jaunpur', 'shivam@pathology.com', '+918869993492', 'Shivam Pathology Jaunpur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'not valis whatsapp no.', '2026-01-10', 1, '2025-12-29 05:19:25', '2025-12-30 06:17:40'),
+(38, 'KG Diagnostic Centre Jaunpur', 'kg@diagnosticcentre.com', '+919721453786', 'KG Diagnostic Centre', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  whatsapp message  not respond  now', '2026-01-10', 1, '2025-12-29 05:20:06', '2025-12-30 06:29:04'),
+(39, 'Charak Diagnostic Centre Wazidpur', 'charak@diagnosticjaunpur.com', '+919335941433', 'Charak Diagnostic Wazidpur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  message  on whatsapp not respond now', '2026-01-10', 1, '2025-12-29 05:20:44', '2025-12-30 06:04:07'),
+(40, 'Dr Lal PathLabs Siddikpur', 'siddikpur@drlalpathabs.com', '+918071318169', 'Dr Lal PathLabs Jaunpur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp no.', '2026-01-10', 1, '2025-12-29 05:21:26', '2025-12-30 06:32:06'),
+(41, 'Metropolis Healthcare Ruhatta', 'ruhatta@metropolishealth.com', '+919321272713', 'Metropolis Healthcare Jaunpur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'not valid whatsapp', '2026-01-10', 1, '2025-12-29 05:22:53', '2025-12-30 06:12:14'),
+(42, 'NeoHealth Pathology Labs', 'info@neohealthlabs.com', '+919532532111', 'NeoHealth Pathology Labs Jaunpur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp  message  not repond now', '2026-01-10', 1, '2025-12-29 05:23:32', '2025-12-30 05:59:25'),
+(43, 'Nidan Pathology Center Jaunpur', 'nidan@pathologylab.com', '+918528262386', 'Nidan Pathology Center Husainabad', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  massage  on whatsapp not respond now', '2026-01-10', 1, '2025-12-29 05:24:12', '2025-12-30 06:05:48'),
+(44, 'Dr Lal PathLabs Naiganj', 'naiganj@drlalpathabs.com', '+918071015836', 'Dr Lal PathLabs Jaunpur Naiganj', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp no.', '2026-01-10', 1, '2025-12-29 05:24:56', '2025-12-30 06:08:56'),
+(45, 'Smart Diagnostic Centre Umarpur', 'smart@diagnosticcentre.com', '+919975891424', 'Smart Diagnostic Centre Jaunpur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp not respond  now', '2026-01-10', 1, '2025-12-29 05:26:43', '2025-12-30 06:10:30'),
+(46, 'Pathkind Labs Shahganj', 'shahganj@pathkindlabs.com', '+917905588088', 'Pathkind Labs Shahganj Jaunpur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  first message on whatsapp', '2026-01-10', 1, '2025-12-29 05:27:20', '2025-12-30 05:41:40'),
+(47, 'Pathkind Labs Mungra Badshahpur', 'mungra@pathkindlabs.com', '+919125127802', 'Pathkind Labs Badshahpur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message  not respond now', '2026-01-10', 1, '2025-12-29 05:28:01', '2025-12-30 06:16:59'),
+(48, 'Pathkind Labs Machhalishahar', 'machhali@pathkindlabs.com', '+916387771881', 'Pathkind Labs Machhalishahar', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', '', '2026-01-10', 1, '2025-12-29 05:28:43', '2025-12-30 05:37:53'),
+(49, 'Pathkind Labs Olandganj', 'olandganj@pathkindlabs.com', '+919695027941', 'Pathkind Labs Olandganj Jaunpur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-29 05:30:22', '2025-12-30 06:16:02'),
+(50, 'Pathkind Labs Gaurabashahpur', 'gaura@pathkindlabs.com', '+917007931552', 'Pathkind Labs Gaurabashahpur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', '', '2026-01-10', 1, '2025-12-29 05:31:04', '2025-12-30 05:38:09'),
+(51, 'Agilus Diagnostics Jeevan Raksha', 'agilus@jeevanraksha.com', '+919876543221', 'Agilus Diagnostics Mariahu', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', '', '2026-01-10', 1, '2025-12-29 05:31:51', '2025-12-30 05:37:59'),
+(52, 'Parul Pathology Clinic Varanasi', 'parul@pathologylanka.com', '+919792012346', 'Parul Pathology Lanka Varanasi', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-29 05:34:04', '2025-12-30 06:13:40'),
+(53, 'Dr Lal PathLabs Mahmoor Ganj', 'mahmoor@drlalpathlabs.com', '+918071889367', 'Dr Lal PathLabs Varanasi', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'not valid whatsapp', '2026-01-10', 1, '2025-12-29 05:34:51', '2025-12-30 06:27:16'),
+(54, 'Agilus Diagnostics Saket Nagar', 'saket@agilusdiagnostics.com', '+918037840056', 'Agilus Diagnostics Varanasi', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Invalide  whatsapp no.', '2026-01-10', 1, '2025-12-29 05:35:38', '2025-12-30 06:03:01'),
+(55, 'Metropolis Healthcare Lanka', 'lanka@metropolishealth.com', '+911144740086', 'Metropolis Healthcare Varanasi', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-29 05:36:31', '2025-12-30 06:26:39'),
+(56, 'Pathkind Labs Sultanpur Civil Lines', '', '+919513445295', 'Pathkind Labs', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whstasapp', '2026-01-10', 1, '2025-12-29 11:34:58', '2025-12-30 06:23:46'),
+(57, 'Krsnaa Diagnostics Amhat Sultanpur', '', '+918810006004', 'Krsnaa Diagnostics', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'not valid whatsapp no.', '2026-01-10', 1, '2025-12-29 11:35:19', '2025-12-30 06:19:16'),
+(58, 'Modern Pathology Sultanpur', '', '+918318892747', 'Modern Pathology', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not respond now', '2026-01-10', 1, '2025-12-29 11:35:37', '2025-12-30 06:22:46'),
+(59, 'Global Pathology and ECG Centre Sultanpur', '', '+919795651818', 'Global Pathology and ECG Centre', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp no.', '2026-01-10', 1, '2025-12-29 11:35:54', '2025-12-30 06:21:55'),
+(60, 'Agilus Diagnostics Sultanpur Civil Line', '', '+919889555559', 'Agilus Diagnostics', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-29 11:36:14', '2025-12-30 06:21:19'),
+(61, 'Verma Diagnostic Center Sultanpur', '', '+919918888500', 'Verma Diagnostic Center', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-29 11:36:34', '2025-12-30 06:20:43'),
+(62, 'Charak Diagnostic Centre Sultanpur', '', '+918957667788', 'Charak Diagnostic Centre', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'not valid whatsapp', '2026-01-10', 1, '2025-12-29 11:36:54', '2025-12-30 06:09:37'),
+(63, 'Eureka Diagnostic Center Sultanpur', '', '+919561009488', 'Eureka Diagnostic Center', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-29 11:37:15', '2025-12-30 06:23:17'),
+(64, 'Aman Pathology Sultanpur', '', '+918958852233', 'Aman Pathology', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-29 11:37:42', '2025-12-30 06:34:56'),
+(65, 'Anas Pathology Sultanpur', '', '+919795432166', 'Anas Pathology', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not respond now', '2026-01-10', 1, '2025-12-29 11:38:09', '2025-12-30 06:34:11'),
+(66, 'Parakh Diagnostic Centre Sultanpur', '', '+918839660660', 'Parakh Diagnostic Centre', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'not  valid whatsapp', '2026-01-10', 1, '2025-12-29 11:38:38', '2025-12-30 07:08:34'),
+(67, 'Thyrocare Aarogyam Centre Sultanpur', '', '+919576889999', 'Thyrocare Aarogyam Centre', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'NOt valid whatsapp', '2026-01-10', 1, '2025-12-29 11:39:07', '2025-12-30 07:10:40'),
+(69, 'Advanced Pathology Labs', 'contact@advancedpathology.com', '+919012345678', 'Advanced Pathology Labs Pvt Ltd', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  whatsapp message  not respond  now', '2026-01-10', 1, '2025-12-30 05:02:04', '2025-12-30 06:29:55'),
+(70, 'Shree Labs Pathology', 'contact@shreelabs.com', '+919876543211', 'Shree Labs Pathology Indore', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-30 09:42:52', '2025-12-30 10:31:44'),
+(71, 'Vimta Labs', 'contact@vimtalabs.com', '+919876543212', 'Vimta Labs Hyderabad', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message  not respond', '2026-01-10', 1, '2025-12-30 09:43:51', '2025-12-30 09:58:50'),
+(72, 'Sonshine Diagnostic Centre', 'info@sonshinelabs.com', '+919876543213', 'Sonshine Diagnostic Centre Gwalior', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not respnde now', '2026-01-10', 1, '2025-12-30 09:44:17', '2025-12-30 10:31:03'),
+(73, 'Global Diagnostics', 'sales@globaldiags.com', '+919876543214', 'Global Diagnostics Bhopal', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-30 09:44:44', '2025-12-30 10:29:26'),
+(74, 'Healthspire Diagnostics', 'contact@healthspire.com', '+919876543215', 'Healthspire Diagnostics Lucknow', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-30 09:45:13', '2025-12-30 10:30:02'),
+(75, 'Lifecare Pathology', 'info@lifecarepatho.com', '+919876543216', 'Lifecare Pathology Nagpur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-30 09:45:42', '2025-12-30 10:28:40'),
+(76, 'Precision Pathology Lab', 'contact@precisionpath.com', '+919876543217', 'Precision Pathology Pune', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-30 09:46:14', '2025-12-30 10:27:57'),
+(77, 'CareStart Labs', 'info@carestart.com', '+919876543218', 'CareStart Labs Ahmedabad', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-30 09:46:42', '2025-12-30 10:27:03'),
+(78, 'Wellness Diagnostics', 'contact@wellness.com', '+919876543219', 'Wellness Diagnostics Surat', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-30 09:47:15', '2025-12-30 10:25:55'),
+(79, 'Quickcare Pathology', 'info@quickcare.com', '+919876543225', 'Quickcare Pathology Vadodara', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whats message not respond now', '2026-01-10', 1, '2025-12-30 09:48:12', '2025-12-30 10:24:36'),
+(80, 'Nucleus Diagnostics', 'info@nucleus.com', '+919876543226', 'Nucleus Diagnostics Bangalore', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp no.', '2026-01-10', 1, '2025-12-30 09:48:40', '2025-12-30 10:10:53'),
+(81, 'TrueCare Pathology', 'info@truecare.com', '+919876543227', 'TrueCare Pathology Chandigarh', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp no.', '2026-01-10', 1, '2025-12-30 09:49:14', '2025-12-30 10:02:58'),
+(82, 'Medwell Diagnostics', 'info@medwell.com', '+919876543228', 'Medwell Diagnostics Delhi', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp no.', '2026-01-10', 1, '2025-12-30 09:49:52', '2025-12-30 10:00:34'),
+(83, 'Diamond Diagnostics', 'info@diamond.com', '+919876543229', 'Diamond Diagnostics Jaipur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent message  on whatsapp not respond  now', '2026-01-10', 1, '2025-12-30 09:50:39', '2025-12-30 10:12:21'),
+(84, 'Sterling Labs', 'info@sterling.com', '+919876543230', 'Sterling Labs Kanpur', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  whatsapp message not respond now', '2026-01-10', 1, '2025-12-30 09:51:11', '2025-12-30 09:59:49'),
+(85, 'Premier Pathology', 'info@premier.com', '+919876543231', 'Premier Pathology Lucknow', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message  not respond  now', '2026-01-10', 1, '2025-12-30 09:51:45', '2025-12-30 10:06:57'),
+(86, 'Rama Pathology center', '', '+917209393435', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  Whatsapp message  not respond  now', '2026-01-10', 1, '2025-12-31 01:16:18', '2025-12-31 02:07:27'),
+(87, 'Max Healthcare Pathology Lab Mumbai', '', '+919876543301', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:11:01', '2025-12-31 02:25:05'),
+(88, 'Indraprastha Pathology Center Delhi', '', '+919876543302', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:11:23', '2025-12-31 02:25:21'),
+(89, 'Medanta Pathology Lab Gurgaon', '', '+919876543303', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:11:36', '2025-12-31 02:25:27'),
+(90, 'Fortis Pathology Center Mumbai', '', '+919876543304', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  whatsapp message  not respond  now', '2026-01-10', 1, '2025-12-31 02:11:47', '2025-12-31 03:05:35'),
+(91, 'Spark Diagnostics Bangalore', '', '+919876543305', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:11:56', '2025-12-31 02:25:32'),
+(92, 'Thyrocare Labs Hyderabad', '', '+919876543306', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:12:05', '2025-12-31 02:25:47'),
+(93, 'Metropolis Labs Chennai', '', '+919876543307', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:12:15', '2025-12-31 02:25:54'),
+(94, 'Core Pathology Pune', '', '+919876543308', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:12:24', '2025-12-31 02:26:00'),
+(95, 'Redcare Labs Kolkata', '', '+919876543309', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:12:33', '2025-12-31 02:26:08'),
+(96, 'Chitra Labs Jaipur', '', '+919876543310', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:12:43', '2025-12-31 02:26:17'),
+(97, 'Sigma Diagnostics Lucknow', '', '+919876543311', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:12:52', '2025-12-31 02:26:24'),
+(98, 'Aditya Pathology Lab Kanpur', '', '+919876543312', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:13:02', '2025-12-31 02:26:30'),
+(99, 'Vimta Labs Hyderabad', '', '+919876543313', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:13:11', '2025-12-31 02:26:37'),
+(100, 'Kansai Pathology Nagpur', '', '+919876543314', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:13:21', '2025-12-31 02:26:43'),
+(101, 'Dilon Pathology Indore', '', '+919876543315', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:13:31', '2025-12-31 02:27:16'),
+(102, 'Vijaya Diagnostics Kochi', '', '+919876543316', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:13:41', '2025-12-31 02:27:28'),
+(103, 'Ganesh Labs Surat', '', '+919876543317', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:13:50', '2025-12-31 02:26:56'),
+(104, 'Bharat Pathology Vadodara', '', '+919876543318', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:14:00', '2025-12-31 02:26:50'),
+(105, 'Unique Labs Ahmedabad', '', '+919876543319', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:14:09', '2025-12-31 02:27:21'),
+(106, 'Sri Kamakshi Labs Ranchi', '', '+919876543320', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:14:19', '2025-12-31 02:27:02'),
+(107, 'Shree Pathology Bhubaneswar', '', '+919876543321', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:14:29', '2025-12-31 02:27:07'),
+(108, 'Health Point Labs Patna', '', '+919876543322', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:14:38', '2025-12-31 02:27:38'),
+(109, 'Noble Pathology Ranipet', '', '+919876543323', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:14:48', '2025-12-31 02:27:53'),
+(110, 'Star Labs Ghaziabad', '', '+919876543324', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:14:58', '2025-12-31 02:27:32'),
+(111, 'Crown Pathology Meerut', '', '+919876543325', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:15:08', '2025-12-31 02:27:44'),
+(112, 'Reliance Pathology Panipat', '', '+919876543326', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:15:24', '2025-12-31 02:28:01'),
+(113, 'Victory Labs Faridabad', '', '+919876543327', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:15:34', '2025-12-31 02:28:22'),
+(114, 'Rathi Labs Hisar', '', '+919876543328', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:15:47', '2025-12-31 02:28:27'),
+(115, 'Prime Lab Rohtak', '', '+919876543329', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:15:58', '2025-12-31 02:28:36'),
+(116, 'Neptune Lab Belgaum', 'test@test.com', '+919876543334', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:16:39', '2025-12-31 02:28:10'),
+(117, 'Ascent Lab Channapatna', '', '+919876543341', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:17:29', '2025-12-31 02:28:17'),
+(118, 'Infinity Lab Ramnagar', '', '+919876543342', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:17:41', '2025-12-31 02:28:31'),
+(119, 'Titan Lab Hoskote', '', '+919876543343', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:17:54', '2025-12-31 02:29:13'),
+(120, 'Pinnacle Lab Kengeri', '', '+919876543344', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:17:58', '2025-12-31 02:28:40'),
+(121, 'Vision Lab Anekal', '', '+919876543345', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:18:03', '2025-12-31 02:32:42'),
+(122, 'Impact Lab Whitefield', '', '+919876543346', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:18:17', '2025-12-31 02:30:09'),
+(123, 'Genesis Lab Sarjapur', '', '+919876543347', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:18:21', '2025-12-31 02:28:45'),
+(124, 'Eclipse Lab Marathahalli', '', '+919876543348', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:18:25', '2025-12-31 02:28:51'),
+(125, 'Prism Lab Indiranagar', '', '+919876543349', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:18:29', '2025-12-31 02:28:55'),
+(126, 'Compass Lab Koramangala', '', '+919876543350', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:18:42', '2025-12-31 02:29:01'),
+(127, 'Beacon Lab JP Nagar', '', '+919876543351', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:18:46', '2025-12-31 02:29:05'),
+(128, 'Atlas Lab Domlur', '', '+919876543352', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:18:51', '2025-12-31 02:30:05'),
+(129, 'Summit Lab Malleswaram', '', '+919876543353', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:18:55', '2025-12-31 02:29:19'),
+(130, 'Clarity Lab Basavanagudi', '', '+919988776655', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:19:08', '2025-12-31 02:29:24'),
+(131, 'Harmony Lab Jayanagar', '', '+919988776656', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:19:12', '2025-12-31 02:29:29'),
+(132, 'Luminous Lab Richmond Town', '', '+919988776657', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:19:17', '2025-12-31 02:29:34'),
+(133, 'Horizon Lab Benson Town', '', '+919988776658', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:19:21', '2025-12-31 02:29:39'),
+(134, 'Stellar Lab Seshadripuram', '', '+919988776659', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:20:04', '2025-12-31 02:29:43'),
+(135, 'Radiant Lab Basaveshwaranagar', '', '+919988776660', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:20:09', '2025-12-31 02:29:49'),
+(136, 'Zenith Lab Gavipuram', '', '+919988776661', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:20:14', '2025-12-31 02:29:54'),
+(137, 'Quantum Lab Yeshwantpur', '', '+919988776662', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:20:27', '2025-12-31 02:30:00'),
+(138, 'Pulse Lab Nagarbhavi', '', '+919988776663', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:20:31', '2025-12-31 02:30:14'),
+(139, 'Echo Lab Tumkur', '', '+919988776664', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:20:35', '2025-12-31 02:30:18'),
+(140, 'Wave Lab Doddaballapur', '', '+919988776665', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:20:40', '2025-12-31 02:30:51'),
+(141, 'Stream Lab Renigunta', '', '+919988776666', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:20:54', '2025-12-31 02:30:41'),
+(142, 'Flow Lab Tirupati', '', '+919988776667', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:20:58', '2025-12-31 02:30:23'),
+(143, 'Rise Lab Nellore', '', '+919988776668', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:21:02', '2025-12-31 02:30:27'),
+(144, 'Glow Lab Ongole', '', '+919988776669', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:21:06', '2025-12-31 02:30:32'),
+(145, 'Spark Lab Vijayawada', '', '+919988776670', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:21:10', '2025-12-31 02:30:37'),
+(146, 'Swift Lab Kakinada', '', '+919988776671', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:21:24', '2025-12-31 02:32:47'),
+(147, 'Bright Lab Rajahmundry', '', '+919988776672', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:21:28', '2025-12-31 02:30:46'),
+(148, 'Lucky Lab Eluru', '', '+919988776673', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:21:32', '2025-12-31 02:30:56'),
+(149, 'Grace Lab Guntur', '', '+919988776674', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:21:36', '2025-12-31 02:31:28'),
+(150, 'Trend Lab Vizag', '', '+919988776675', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:21:40', '2025-12-31 02:31:00'),
+(151, 'Prime Lab Vijayawada', '', '+919988776676', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:21:55', '2025-12-31 02:31:05'),
+(152, 'Crown Lab Hyderabad', '', '+919988776677', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:21:59', '2025-12-31 02:31:09'),
+(153, 'Royal Lab Secunderabad', '', '+919988776678', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:22:04', '2025-12-31 02:31:15'),
+(154, 'Expert Lab Warangal', '', '+919988776679', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:22:08', '2025-12-31 02:31:19'),
+(155, 'Noble Lab Karimnagar', '', '+919988776680', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:22:12', '2025-12-31 02:31:24'),
+(156, 'Medic Lab Nizamabad', '', '+919988776681', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:22:27', '2025-12-31 02:32:52'),
+(157, 'Health Lab Khammam', '', '+919988776682', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:22:32', '2025-12-31 02:31:56'),
+(158, 'Care Lab Mahbubnagar', '', '+919988776683', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:22:36', '2025-12-31 02:32:00'),
+(159, 'Trust Lab Adilabad', '', '+919988776684', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:22:40', '2025-12-31 02:32:05'),
+(160, 'Hope Lab Jagtial', '', '+919988776685', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:22:44', '2025-12-31 02:32:10'),
+(161, 'Cure Lab Bodhan', '', '+919988776686', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:22:59', '2025-12-31 02:32:14'),
+(162, 'Cure Lab Bhainsa', '', '+919988776687', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:23:03', '2025-12-31 02:32:19'),
+(163, 'Cure Lab Tandur', '', '+919988776688', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:23:07', '2025-12-31 02:32:23'),
+(164, 'Cure Lab Tandberg', '', '+919988776689', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:23:11', '2025-12-31 02:32:27'),
+(165, 'Cure Lab Tandel', '', '+919988776690', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:23:16', '2025-12-31 02:32:34'),
+(166, 'Cure Lab Tandel Plus', '', '+919988776691', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:23:31', '2025-12-31 02:33:03'),
+(167, 'Cure Lab Talegaon Plus', '', '+919988776692', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:23:35', '2025-12-31 02:32:57'),
+(168, 'Cure Lab Tansi', '', '+919988776693', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:23:39', '2025-12-31 02:33:41'),
+(169, 'Cure Lab Tanu', '', '+919988776694', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:23:43', '2025-12-31 02:33:51'),
+(170, 'Cure Lab Tannery', '', '+919988776695', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:23:47', '2025-12-31 02:33:57'),
+(171, 'Cure Lab Temple', '', '+919988776696', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:24:03', '2025-12-31 02:33:15'),
+(172, 'Cure Lab Tentpole', '', '+919988776697', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:24:07', '2025-12-31 02:33:20'),
+(173, 'Cure Lab Tenali', '', '+919988776698', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:24:11', '2025-12-31 02:33:26'),
+(174, 'Cure Lab Tenanga', '', '+919988776699', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:24:16', '2025-12-31 02:33:32'),
+(175, 'Cure Lab Tendar', '', '+919988776700', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:24:20', '2025-12-31 02:34:02'),
+(176, 'NewPath Lab Tandil', '', '+919988776701', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:03', '2025-12-31 02:49:17'),
+(177, 'Tech Lab Tandore', '', '+919988776702', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:07', '2025-12-31 02:49:23'),
+(178, 'Advanced Lab Tanduk', '', '+919988776703', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:11', '2025-12-31 02:49:32'),
+(179, 'Future Lab Tandulas', '', '+919988776704', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:15', '2025-12-31 02:52:16'),
+(180, 'Smart Lab Tandume', '', '+919988776705', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:19', '2025-12-31 02:52:26'),
+(181, 'Prime Lab Tandun', '', '+919988776706', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:34', '2025-12-31 02:53:28'),
+(182, 'Best Lab Tanduo', '', '+919988776707', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:39', '2025-12-31 02:54:30'),
+(183, 'Elite Lab Tandup', '', '+919988776708', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:43', '2025-12-31 02:53:34'),
+(184, 'Quality Lab Tanduq', '', '+919988776709', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:47', '2025-12-31 02:53:40'),
+(185, 'Professional Lab Tandur', '', '+919988776710', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:52', '2025-12-31 02:53:45'),
+(186, 'Trusted Lab Tandus', '', '+919988776711', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:07', '2025-12-31 02:53:51'),
+(187, 'Reliable Lab Tandut', '', '+919988776712', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:11', '2025-12-31 02:53:58'),
+(188, 'Fast Lab Tanduv', '', '+919988776713', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:16', '2025-12-31 02:54:05'),
+(189, 'Quick Lab Tanduw', '', '+919988776714', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:20', '2025-12-31 02:54:11'),
+(190, 'Expert Lab Tandux', '', '+919988776715', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:24', '2025-12-31 02:54:18'),
+(191, 'Master Lab Tanduy', '', '+919988776716', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:40', '2025-12-31 02:54:24'),
+(192, 'Advanced Lab Tanduz', '', '+919988776717', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:44', '2025-12-31 02:55:16'),
+(193, 'Superior Lab Tandva', '', '+919988776718', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:48', '2025-12-31 02:55:23'),
+(194, 'Leading Lab Tandvb', '', '+919988776719', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:53', '2025-12-31 02:55:30'),
+(195, 'Premier Lab Tandvd', '', '+919988776721', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:09', '2025-12-31 02:55:36'),
+(196, 'Ultimate Lab Tandvf', '', '+919988776723', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:16', '2025-12-31 02:55:42'),
+(197, 'Premium Lab Tandvg', '', '+919988776724', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:20', '2025-12-31 02:56:13'),
+(198, 'Brilliant Lab Tandvh', '', '+919988776725', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:25', '2025-12-31 02:55:48'),
+(199, 'Outstanding Lab Tandvi', '', '+919988776726', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:43', '2025-12-31 02:55:54'),
+(200, 'Exceptional Lab Tandvj', '', '+919988776727', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:48', '2025-12-31 02:56:01'),
+(201, 'Remarkable Lab Tandvk', '', '+919988776728', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:52', '2025-12-31 02:56:07'),
+(202, 'Superb Lab Tandvl', '', '+919988776729', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:56', '2025-12-31 02:56:31'),
+(203, 'Fabulous Lab Tandvm', '', '+919988776730', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:43:00', '2025-12-31 02:56:19'),
+(204, 'Wonderful Lab Tandvn', '', '+919988776731', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:43:04', '2025-12-31 02:56:25'),
+(205, 'Amazing Lab Tandvo', '', '+919988776732', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:43:09', '2025-12-31 02:56:55'),
+(206, 'Fantastic Lab Tandvp', '', '+919988776733', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:43:12', '2025-12-31 02:56:37'),
+(207, 'Gorgeous Lab Tandvq', '', '+919988776734', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:43:34', '2025-12-31 02:56:43'),
+(208, 'Marvelous Lab Tandvr', '', '+919988776735', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:43:38', '2025-12-31 02:56:49'),
+(209, 'Splendid Lab Tandvs', '', '+919988776736', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  Whatsapp message not  respond  now', '2026-01-10', 1, '2025-12-31 02:43:43', '2025-12-31 08:47:03'),
+(210, 'Glorious Lab Tandvt', '', '+919988776737', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  Whatsapp message  not  respond  now', '2026-01-10', 1, '2025-12-31 02:43:47', '2025-12-31 04:50:00'),
+(211, 'Magnificent Lab Tandvu', '', '+919988776738', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:43:51', '2025-12-31 04:43:09'),
+(212, 'Impressive Lab Tandvv', '', '+919988776739', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message  not respond  now', '2026-01-10', 1, '2025-12-31 02:43:56', '2025-12-31 04:33:12'),
+(213, 'Notable Lab Tandvw', '', '+919988776740', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:00', '2025-12-31 04:20:31'),
+(214, 'Incredible Lab Tandvx', '', '+919988776741', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:04', '2025-12-31 04:28:48'),
+(215, 'Astounding Lab Tandvy', '', '+919988776742', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:22', '2025-12-31 04:17:40'),
+(216, 'Perfect Lab Tandvz', '', '+919988776743', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:26', '2025-12-31 04:19:29'),
+(217, 'Unique Lab Tandwa', '', '+919988776744', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:31', '2025-12-31 04:18:26'),
+(218, 'Elegant Lab Tandwb', '', '+919988776745', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:44:35', '2025-12-31 04:16:53'),
+(219, 'Sublime Lab Tandwc', '', '+919988776746', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:39', '2025-12-31 04:14:53'),
+(220, 'Superb Lab Tandwd', '', '+919988776747', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:43', '2025-12-31 04:16:10'),
+(221, 'Vivid Lab Tandwe', '', '+919988776748', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:47', '2025-12-31 04:13:54'),
+(222, 'Brilliant Lab Tandwf', '', '+919988776749', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:51', '2025-12-31 04:13:01'),
+(223, 'Radiant Lab Tandwg', '', '+919988776750', '', 'Namaste सर,\r\nlast time मैंने आपसे आपके lab के लिए software के बारे में message किया था।\r\nबस ये पूछना था – क्या manual system में आपको ये problems आती हैं?\r\nReports लिखने में ज़्यादा time लगना\r\n\r\nDue payments का हिसाब रखना\r\n\r\nपुराने reports ढूँढने में दिक्कत\r\n\r\nअगर इनमें से कुछ issue है, तो मैं आपको 10 मिनट का free demo दिखा सकता हूँ।\r\nअगर अभी जरूरत नहीं है तो बस “NO” लिखकर बता दीजिए, फिर मैं disturb नहीं करूँगा।', 'Pthology  जिनको पहले message कर चुके हो – follow‑up', 'Intrested  asking for demo sent demo with demo user', '2026-01-10', 1, '2025-12-31 02:45:09', '2025-12-31 05:01:59'),
+(224, 'Dazzling Lab Tandwh', '', '+919988776751', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:45:13', '2025-12-31 04:11:51'),
+(225, 'Stellar Lab Tandwi', '', '+919988776752', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:45:18', '2025-12-31 04:09:45'),
+(226, 'Glowing Lab Tandwj', '', '+919988776753', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:45:22', '2025-12-31 04:08:33'),
+(227, 'Sparkling Lab Tandwk', '', '+919988776754', '', '', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:45:26', '2025-12-31 04:07:35'),
+(228, 'Gleaming Lab Tandwl', '', '+919988776755', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:45:30', '2025-12-31 04:05:39');
+INSERT INTO `followup_clients` (`id`, `name`, `email`, `phone`, `company`, `followup_message`, `followup_title`, `response_message`, `next_followup_date`, `added_by`, `created_at`, `updated_at`) VALUES
+(229, 'Shimmering Lab Tandwm', '', '+919988776756', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:45:34', '2025-12-31 04:04:29'),
+(230, 'Luminous Lab Tandwn', '', '+919988776757', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:45:39', '2025-12-31 04:03:06'),
+(231, 'Glimmering Lab Tandwo', '', '+919988776758', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:45:56', '2025-12-31 04:01:59'),
+(232, 'Resplendent Lab Tandwp', '', '+919988776759', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:46:00', '2025-12-31 04:00:40'),
+(233, 'Sparking Lab Tandwq', '', '+919988776760', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:46:04', '2025-12-31 03:51:58'),
+(234, 'Radiance Lab Tandwr', '', '+919988776761', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:46:08', '2025-12-31 03:58:52'),
+(235, 'Excellence Lab Tandws', '', '+919988776762', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:46:12', '2025-12-31 03:58:07'),
+(236, 'Perfection Lab Tandwt', '', '+919988776763', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:46:16', '2025-12-31 03:57:02'),
+(237, 'Harmony Lab Tandwu', '', '+919988776764', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:46:21', '2025-12-31 03:56:08'),
+(238, 'Triumph Lab Tandwv', '', '+919988776765', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:46:25', '2025-12-31 03:55:10'),
+(239, 'Victory Lab Tandww', '', '+919988776766', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:46:41', '2025-12-31 03:54:21'),
+(240, 'Success Lab Tandwx', '', '+919988776767', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:46:45', '2025-12-31 03:53:25'),
+(241, 'Prestige Lab Tandwy', '', '+919988776768', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  whatsapp message not respond  now', '2026-01-10', 1, '2025-12-31 02:46:49', '2025-12-31 03:50:37'),
+(242, 'Integrity Lab Tandwz', '', '+919988776769', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:46:53', '2025-12-31 03:46:05'),
+(243, 'Liberty Lab Tandxa', '', '+919988776770', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:46:57', '2025-12-31 03:49:49'),
+(244, 'Promise Lab Tandxb', '', '+919988776771', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not  respond now', '2026-01-10', 1, '2025-12-31 02:47:02', '2025-12-31 03:48:36'),
+(245, 'Legacy Lab Tandxc', '', '+919988776772', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:47:06', '2025-12-31 03:47:43'),
+(246, 'Heritage Lab Tandxd', '', '+919988776773', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:47:10', '2025-12-31 03:46:57'),
+(247, 'Landmark Lab Tandxe', '', '+919988776774', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:47:26', '2025-12-31 03:07:54'),
+(248, 'Monument Lab Tandxf', '', '+919988776775', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Send whatsapp message not respond  now', '2026-01-10', 1, '2025-12-31 02:47:31', '2025-12-31 03:45:11'),
+(249, 'Zenith Lab Tandxg', '', '+919988776776', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message  not respond now', '2026-01-10', 1, '2025-12-31 02:47:35', '2025-12-31 03:44:15'),
+(250, 'Apex Lab Tandxh', '', '+919988776777', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid  whatsapp', '2026-01-10', 1, '2025-12-31 02:47:39', '2025-12-31 03:43:18'),
+(251, 'Summit Lab Tandxi', '', '+919988776778', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:47:43', '2025-12-31 03:42:21'),
+(252, 'Peak Lab Tandxj', '', '+919988776779', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  Whatsapp message not respond  now', '2026-01-10', 1, '2025-12-31 02:47:47', '2025-12-31 03:41:38'),
+(253, 'Crown Lab Tandxk', '', '+919988776780', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:47:51', '2025-12-31 03:40:47'),
+(254, 'Royal Lab Tandxl', '', '+919988776781', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:47:55', '2025-12-31 02:54:42'),
+(255, 'Prince Lab Tandxm', '', '+919988776782', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:48:13', '2025-12-31 02:54:51'),
+(256, 'Supreme Lab Tandxn', '', '+919988776783', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:48:17', '2025-12-31 02:55:06'),
+(257, 'Imperial Lab Tandxo', '', '+919988776784', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:48:21', '2025-12-31 03:40:01'),
+(258, 'Majestic Lab Tandxp', '', '+919988776785', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:48:25', '2025-12-31 03:38:43'),
+(259, 'Sovereign Lab Tandxq', '', '+919988776786', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  whatsapp message Not respond now', '2026-01-10', 1, '2025-12-31 02:48:29', '2025-12-31 03:37:58'),
+(260, 'Empress Lab Tandxr', '', '+919988776787', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:48:33', '2025-12-31 03:36:38'),
+(261, 'Dynasty Lab Tandxs', '', '+919988776788', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:48:38', '2025-12-31 03:35:28'),
+(262, 'Eternal Lab Tandxt', '', '+919988776789', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp on message not respond now', '2026-01-10', 1, '2025-12-31 02:48:42', '2025-12-31 03:34:08'),
+(263, 'Infinite Lab Tandxu', '', '+919988776790', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond', '2026-01-10', 1, '2025-12-31 02:48:46', '2025-12-31 03:32:43');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `followup_templates`
+--
+
+CREATE TABLE `followup_templates` (
+  `id` int(11) NOT NULL,
+  `template_name` varchar(255) NOT NULL,
+  `content` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  `created_by` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+--
+-- Dumping data for table `followup_templates`
+--
+
+INSERT INTO `followup_templates` (`id`, `template_name`, `content`, `created_at`, `updated_at`, `created_by`) VALUES
+(12, 'Approach  Pathology', '<p><span style=\"letter-spacing: 0.08px; color: oklch(0.3039 0.04 213.68); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-size: 1rem;\">PathoLab Pro आपके pathology lab के लिए तैयार है! v1.0.4 में latest security &amp; compliance updates।</span></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">आज खरीदें तो 20% डिस्काउंट + फ्री सेटअप!&nbsp;</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">+91-9453619260 (Umakant Yadav)</span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">WhatsApp: </span></font><a href=\"https://wa.me/919453619260\" target=\"_blank\">https://wa.me/919453619260</a></p><p><br></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">https://hospital.codeapka.com/contact.php</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">demo login details</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">user&nbsp; demo</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">password demo@12345</span></font></p><p><font color=\"#003913\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\"><br></span></font></p><p><font color=\"oklch(0.3039 0.04 213.68)\" face=\"fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, Hiragino Sans, PingFang SC, Apple SD Gothic Neo, Yu Gothic, Microsoft YaHei, Microsoft JhengHei, Meiryo\"><span style=\"letter-spacing: 0.08px;\">अवसर मत छोड़ें - transforming healthcare starts now!&nbsp;</span></font></p>', '2025-12-29 04:52:54', '2025-12-30 05:20:44', 1),
+(13, 'Pathology पहला संपर्क', '<p><span style=\"color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">Namaste सर,</span><br style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\"><span style=\"color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">मैं&nbsp; Umakant Yadav</span><span style=\"color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">,&nbsp;</span><span style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: oklch(0.3039 0.04 213.68 / 0.75); display: inline-block; padding-bottom: 0.5rem; font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">Jaunpur</span><span style=\"color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">&nbsp;से बोल रहा हूँ।</span><br style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\"><span style=\"color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">आपकी lab के लिए अभी reports और billing&nbsp;</span><span style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">register पर करते हैं या software use करते हैं?</span></p>', '2025-12-30 05:30:31', '2025-12-30 05:31:44', 1),
+(14, 'Pathology  अगर उनके पास software नहीं है / manual काम है', '<p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-right: 0px; margin-left: 0px; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">Thank you सर reply के लिए।<br style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">मैं labs के लिए एक छोटा लेकिन powerful&nbsp;<span style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: inherit;\">pathology lab software</span>&nbsp;देता हूँ, जिसमें:</p><ul class=\"marker:text-quiet list-disc\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; list-style-position: initial; list-style-image: initial; margin-right: 0px; margin-bottom: 0px; margin-left: 0px; padding: 0px; padding-inline-start: 1.625em; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\"><li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; padding-inline-start: 0.375em;\"><p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-top: 0px; margin-right: 0px; margin-left: 0px; padding-top: 0px;\">Patient registration + report ready बस 1–2 clicks में</p></li><li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; padding-inline-start: 0.375em;\"><p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-top: 0px; margin-right: 0px; margin-left: 0px; padding-top: 0px;\">Due payments का पूरा हिसाब अपने आप</p></li><li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; padding-inline-start: 0.375em;\"><p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-top: 0px; margin-right: 0px; margin-left: 0px; padding-top: 0px;\">Old reports seconds में search हो जाती हैं</p></li></ul><p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-right: 0px; margin-left: 0px; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">मैं आपको&nbsp;<span style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: inherit; display: inline-block; padding-bottom: 0.5rem;\">10 मिनट का free demo</span>&nbsp;दे सकता हूँ (online या visit), अगर आपको पसंद आए तो ही आगे बात करेंगे।<br style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">आपके लिए कब ठीक रहेगा –&nbsp;<span style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: inherit;\">आज शाम</span>&nbsp;या&nbsp;<span style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: inherit;\">कल सुबह</span>?</p>', '2025-12-30 05:32:48', NULL, 1);
+INSERT INTO `followup_templates` (`id`, `template_name`, `content`, `created_at`, `updated_at`, `created_by`) VALUES
+(15, 'Pathology अगर बोले – already software है', '<p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-right: 0px; margin-left: 0px; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">Thank you सर, अच्छा लगा सुनकर कि आप already software use कर रहे हैं।<br style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">मैं बस ये समझना चाहता था – आपके current software में आपको सबसे ज़्यादा दिक्कत किस चीज़ में आती है?</p><ul class=\"marker:text-quiet list-disc\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; list-style-position: initial; list-style-image: initial; margin-right: 0px; margin-bottom: 0px; margin-left: 0px; padding: 0px; padding-inline-start: 1.625em; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\"><li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; padding-inline-start: 0.375em;\"><p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-top: 0px; margin-right: 0px; margin-left: 0px; padding-top: 0px;\">Speed / report बनाने में time</p></li><li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; padding-inline-start: 0.375em;\"><p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-top: 0px; margin-right: 0px; margin-left: 0px; padding-top: 0px;\">Support / problem आने पर help न मिलना</p></li><li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; padding-inline-start: 0.375em;\"><p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-top: 0px; margin-right: 0px; margin-left: 0px; padding-top: 0px;\">Report format या test add/update कराने में दिक्कत</p></li></ul><p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-right: 0px; margin-left: 0px; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">अगर आप चाहें तो मैं&nbsp;<span style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: inherit; display: inline-block; padding-bottom: 0.5rem;\">आपके current काम के हिसाब से</span>&nbsp;एक छोटा‑सा demo दिखा सकता हूँ,<br style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">ताकि आप compare कर पाएं – better लगे तभी सोचिएगा .</p>', '2025-12-30 05:34:28', '2025-12-30 06:57:28', 1),
+(16, 'Pthology  जिनको पहले message कर चुके हो – follow‑up', '<p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-right: 0px; margin-left: 0px; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">Namaste सर,<br style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">last time मैंने आपसे आपके lab के लिए software के बारे में message किया था।<br style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">बस ये पूछना था – क्या manual system में आपको ये problems आती हैं?</p><ul class=\"marker:text-quiet list-disc\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; list-style-position: initial; list-style-image: initial; margin-right: 0px; margin-bottom: 0px; margin-left: 0px; padding: 0px; padding-inline-start: 1.625em; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\"><li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; padding-inline-start: 0.375em;\"><p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-top: 0px; margin-right: 0px; margin-left: 0px; padding-top: 0px;\">Reports लिखने में ज़्यादा time लगना</p></li><li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; padding-inline-start: 0.375em;\"><p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-top: 0px; margin-right: 0px; margin-left: 0px; padding-top: 0px;\">Due payments का हिसाब रखना</p></li><li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; padding-inline-start: 0.375em;\"><p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-top: 0px; margin-right: 0px; margin-left: 0px; padding-top: 0px;\">पुराने reports ढूँढने में दिक्कत</p></li></ul><p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\" style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; margin-right: 0px; margin-left: 0px; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">अगर इनमें से कुछ issue है, तो मैं आपको&nbsp;<span style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: inherit; display: inline-block; padding-bottom: 0.5rem;\">10 मिनट का free demo</span>&nbsp;दिखा सकता हूँ।<br style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">अगर अभी जरूरत नहीं है तो बस “NO” लिखकर बता दीजिए, फिर मैं disturb नहीं करूँगा।&nbsp;</p>', '2025-12-30 05:36:10', NULL, 1);
+INSERT INTO `followup_templates` (`id`, `template_name`, `content`, `created_at`, `updated_at`, `created_by`) VALUES
+(17, 'Pathology जिनको पहले message कर चुके हो – follow‑up 2', '<p><span style=\"color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">Namaste सर,</span><br style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\"><span style=\"color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">ये मेरा final message है ताकि आपको बार‑बार disturb न करूँ।</span><br style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\"><span style=\"color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">अगर future में कभी lab software की जरूरत पड़े तो मेरा contact save कर सकते हैं:</span><br style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\"><span style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: oklch(0.3039 0.04 213.68 / 0.75); display: inline-block; padding-bottom: 0.5rem; font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">Umakant Yadav– +91-9453619260</span><br style=\"border-width: 0px; border-style: solid; border-color: oklch(0.3039 0.04 213.68 / 0.16); scrollbar-color: initial; scrollbar-width: initial; --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\"><span style=\"color: oklch(0.3039 0.04 213.68 / 0.75); font-family: fkGroteskNeue, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;, &quot;Hiragino Sans&quot;, &quot;PingFang SC&quot;, &quot;Apple SD Gothic Neo&quot;, &quot;Yu Gothic&quot;, &quot;Microsoft YaHei&quot;, &quot;Microsoft JhengHei&quot;, Meiryo; font-style: italic; letter-spacing: 0.08px; background-color: oklch(0.9902 0.004 106.47);\">आपका time देने के लिए धन्यवाद, सर।&nbsp;</span></p>', '2025-12-30 05:37:12', NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -1691,6 +738,7 @@ CREATE TABLE `inventory_clients` (
   `gst_number` varchar(50) DEFAULT NULL,
   `status` enum('Active','Inactive') NOT NULL DEFAULT 'Active',
   `notes` text DEFAULT NULL,
+  `added_by` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -1699,16 +747,18 @@ CREATE TABLE `inventory_clients` (
 -- Dumping data for table `inventory_clients`
 --
 
-INSERT INTO `inventory_clients` (`id`, `name`, `type`, `email`, `phone`, `address`, `city`, `state`, `pincode`, `gst_number`, `status`, `notes`, `created_at`, `updated_at`) VALUES
-(3, 'Ravi', 'Individual', 'info@xyz.com', '0000000000', '789 Insurance Tower', 'Bangalore', 'Bombay', '', '', 'Active', '', '2025-11-16 05:05:49', '2025-11-17 05:14:04'),
-(4, 'Vishal ', 'Individual', 'john@example.com', '08427722958', '123 Main St', 'Mumbai', 'Punjab', '', '', 'Active', '', '2025-11-16 07:47:46', '2025-11-17 01:01:45'),
-(5, 'Gyas', 'Individual', 'contact@abc.com', '72755 51625', '456 Business Park', 'Delhi', 'Delhi', '', '', 'Active', '', '2025-11-16 07:47:46', '2025-11-17 00:54:05'),
-(6, 'Amzad', 'Individual', 'info@xyz.com', '+91 95400 52228', '789 Insurance Tower', 'Bangalore', 'Delhi', '', '', 'Active', '', '2025-11-16 07:47:46', '2025-11-17 00:55:01'),
-(7, 'Raman', 'Individual', '', '+917087071220', '', '', '', '', '', 'Active', '', '2025-11-17 15:43:46', NULL),
-(8, 'Dharmendra Bachheriya', 'Individual', '', '+91 83064 02805', '', '', '', '', '', 'Active', '', '2025-11-17 15:51:48', NULL),
-(9, 'Ezaz From Ireland', 'Individual', '', '+353 87 355 5012', '', '', '', '', '', 'Active', '', '2025-11-17 15:54:16', NULL),
-(10, 'Pankaj Freelancer', 'Individual', '', '98187 49023', '', '', '', '', '', 'Active', '', '2025-11-17 15:57:23', NULL),
-(11, 'Brendan Australia', 'Individual', 'info@sketchfurniture.com.au', '+61 414 739 495', 'https://sketchfurniture.com.au/', '', '', '', '', 'Active', '', '2025-11-17 16:04:24', NULL);
+INSERT INTO `inventory_clients` (`id`, `name`, `type`, `email`, `phone`, `address`, `city`, `state`, `pincode`, `gst_number`, `status`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
+(3, 'Ravi', 'Individual', 'info@xyz.com', '0000000000', '789 Insurance Tower', 'Bangalore', 'Bombay', '', '', 'Active', '', NULL, '2025-11-16 05:05:49', '2025-11-17 05:14:04'),
+(4, 'Vishal ', 'Individual', 'john@example.com', '08427722958', '123 Main St', 'Mumbai', 'Punjab', '', '', 'Active', '', NULL, '2025-11-16 07:47:46', '2025-11-17 01:01:45'),
+(5, 'Gyas', 'Individual', 'contact@abc.com', '72755 51625', '456 Business Park', 'Delhi', 'Delhi', '', '', 'Active', '', NULL, '2025-11-16 07:47:46', '2025-11-17 00:54:05'),
+(6, 'Amzad', 'Individual', 'info@xyz.com', '+91 95400 52228', '', 'Delhi', 'Delhi', '', '', 'Active', '', NULL, '2025-11-16 07:47:46', '2025-12-07 11:53:43'),
+(7, 'Raman', 'Individual', '', '+917087071220', '', '', '', '', '', 'Active', '', NULL, '2025-11-17 15:43:46', NULL),
+(8, 'Dharmendra Bachheriya', 'Individual', '', '+91 83064 02805', '', '', '', '', '', 'Active', '', NULL, '2025-11-17 15:51:48', NULL),
+(9, 'Ezaz From Ireland', 'Individual', '', '+353 87 355 5012', '', '', '', '', '', 'Active', '', NULL, '2025-11-17 15:54:16', NULL),
+(10, 'Pankaj Freelancer', 'Individual', '', '98187 49023', '', '', '', '', '', 'Active', '', NULL, '2025-11-17 15:57:23', NULL),
+(11, 'Brendan Australia', 'Individual', 'info@sketchfurniture.com.au', '+61 414 739 495', 'https://sketchfurniture.com.au/', '', '', '', '', 'Active', '', NULL, '2025-11-17 16:04:24', NULL),
+(12, 'CRM', 'Individual', '', '+64 22 317 3318', 'New Zealand', '', '', '', '', 'Active', '', NULL, '2025-11-24 06:38:24', NULL),
+(13, 'Rajesh', 'Individual', '', '09453619260', 'Jaunpur Rd', 'Jaunpur', 'Uttar Pradesh', '222001', '', 'Active', '', 1, '2025-12-24 02:23:04', NULL);
 
 -- --------------------------------------------------------
 
@@ -1727,6 +777,7 @@ CREATE TABLE `inventory_expense` (
   `payment_status` enum('Success','Pending','Failed') NOT NULL DEFAULT 'Success',
   `invoice_number` varchar(100) DEFAULT NULL,
   `notes` text DEFAULT NULL,
+  `added_by` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
@@ -1735,13 +786,37 @@ CREATE TABLE `inventory_expense` (
 -- Dumping data for table `inventory_expense`
 --
 
-INSERT INTO `inventory_expense` (`id`, `date`, `category`, `vendor`, `description`, `amount`, `payment_method`, `payment_status`, `invoice_number`, `notes`, `created_at`, `updated_at`) VALUES
-(11, '2025-11-13', 'Other', 'canarabank@canarabank.com', 'ATM/IMPS/UPI Transaction Alert', 4500.00, 'UPI', 'Success', NULL, 'Auto-imported from email', '2025-11-17 06:24:27', NULL),
-(12, '2025-11-15', 'Other', 'canarabank@canarabank.com', 'ATM/IMPS/UPI Transaction Alert', 1100.00, 'UPI', 'Success', NULL, 'Auto-imported from email', '2025-11-17 06:24:31', NULL),
-(13, '2025-11-16', 'Other', 'canarabank@canarabank.com', 'ATM/IMPS/UPI Transaction Alert', 1000.00, 'UPI', 'Success', NULL, 'Auto-imported from email', '2025-11-17 06:24:31', NULL),
-(14, '2025-11-17', 'Medical Supplies', 'Dr Tahsheel', 'Sarthak and  saksham madicine', 100.00, 'UPI', 'Success', '', '', '2025-11-17 07:27:26', '2025-11-17 07:38:30'),
-(15, '2025-11-17', 'Other', 'Surylal Maurya', 'Biskit purchage  ', 70.00, 'UPI', 'Success', '', '', '2025-11-17 12:09:19', NULL),
-(17, '2025-11-21', 'Other', 'Pay by Airtel bank', 'Pay by Airtel bank', 1000.00, 'UPI', 'Success', '', '', '2025-11-21 00:55:00', NULL);
+INSERT INTO `inventory_expense` (`id`, `date`, `category`, `vendor`, `description`, `amount`, `payment_method`, `payment_status`, `invoice_number`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
+(11, '2025-11-13', 'Other', 'canarabank@canarabank.com', 'ATM/IMPS/UPI Transaction Alert', 4500.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-11-17 06:24:27', NULL),
+(12, '2025-11-15', 'Other', 'canarabank@canarabank.com', 'ATM/IMPS/UPI Transaction Alert', 1100.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-11-17 06:24:31', NULL),
+(13, '2025-11-16', 'Other', 'canarabank@canarabank.com', 'ATM/IMPS/UPI Transaction Alert', 1000.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-11-17 06:24:31', NULL),
+(14, '2025-11-17', 'Medical Supplies', 'Dr Tahsheel', 'Sarthak and  saksham madicine', 100.00, 'UPI', 'Success', '', '', NULL, '2025-11-17 07:27:26', '2025-11-17 07:38:30'),
+(15, '2025-11-17', 'Other', 'Surylal Maurya', 'Biskit purchage  ', 70.00, 'UPI', 'Success', '', '', NULL, '2025-11-17 12:09:19', NULL),
+(17, '2025-11-21', 'Other', 'Pay by Airtel bank', 'Pay by Airtel bank', 1000.00, 'UPI', 'Success', '', '', NULL, '2025-11-21 00:55:00', NULL),
+(18, '2025-11-24', 'Other', 'Expense', 'sd', 1000.00, 'UPI', 'Success', '', '', NULL, '2025-11-24 06:36:50', NULL),
+(20, '2025-11-25', 'Other', 'd', 'd', 500.00, 'UPI', 'Success', '', '', NULL, '2025-11-25 15:06:04', NULL),
+(30, '2025-12-04', 'Utilities', 'Sagar', 'For cloth', 550.00, 'UPI', 'Pending', '', '', NULL, '2025-12-04 10:12:31', NULL),
+(31, '2025-12-07', 'Other', 'canarabank@canarabank.com', 'ATM/IMPS/UPI Transaction Alert', 1000.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-07 12:00:30', NULL),
+(32, '2025-12-08', 'Other', 'canarabank@canarabank.com', 'ATM/IMPS/UPI Transaction Alert', 300.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-09 00:00:23', NULL),
+(33, '2025-12-15', 'Other', 'no-reply@amazonpay.in', 'Payment Reminder', 100.00, 'Bank Transfer', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-16 00:00:19', NULL),
+(34, '2025-12-17', 'Other', 'no-reply@amazonpay.in', 'Payment Reminder', 100.00, 'Bank Transfer', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-17 12:00:21', NULL),
+(35, '2025-12-18', 'Other', 'no-reply@amazonpay.in', 'Payment Reminder', 706.82, 'Bank Transfer', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-18 12:00:21', NULL),
+(36, '2025-12-18', 'Other', 'no-reply@amazonpay.in', 'Payment Reminder', 100.00, 'Bank Transfer', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-18 12:00:22', NULL),
+(37, '2025-12-19', 'Other', 'no-reply@amazonpay.in', 'Payment Reminder', 10.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-19 12:00:17', NULL),
+(38, '2025-12-20', 'Utilities', 'Milk', 'Milk', 600.00, 'Cash', 'Success', '', '', 1, '2025-12-21 00:57:10', NULL),
+(39, '2025-12-22', 'Utilities', 'Amazon', 'Amazon', 2200.00, 'UPI', 'Success', '', '', 1, '2025-12-24 02:25:40', NULL),
+(40, '2025-12-24', 'Other', 'no-reply@amazonpay.in', 'Payment Reminder', 10.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-24 12:00:19', NULL),
+(41, '2025-12-25', 'Other', 'no-reply@amazonpay.in', 'Payment Reminder', 10.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-25 12:00:23', NULL),
+(42, '2025-12-26', 'Other', 'no-reply@amazonpay.in', 'Payment Reminder', 10.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-27 00:00:18', NULL),
+(43, '2025-12-26', 'Other', 'canarabank@canarabank.com', 'ATM/IMPS/UPI Transaction Alert', 1.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-27 00:00:19', NULL),
+(44, '2025-12-25', 'Other', 'Fiber Recharge', 'Recharge', 706.00, 'UPI', 'Success', '', '', 1, '2025-12-27 03:13:04', NULL),
+(45, '2025-12-27', 'Other', 'Group d Exam', 'Group d Exam', 2000.00, 'Cash', 'Success', '', '', 1, '2025-12-27 03:14:00', NULL),
+(46, '2025-12-27', 'Other', 'no-reply@amazonpay.in', 'Payment Reminder', 10.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-27 12:00:21', NULL),
+(47, '2025-12-27', 'Other', 'no-reply@amazonpay.in', 'Payment Reminder', 10.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-27 12:00:22', NULL),
+(48, '2025-12-28', 'Other', 'canarabank@canarabank.com', 'ATM/IMPS/UPI Transaction Alert', 1400.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-28 12:00:21', NULL),
+(49, '2025-12-28', 'Other', 'no-reply@amazonpay.in', 'Payment Reminder', 10.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-28 12:00:21', NULL),
+(50, '2025-12-28', 'Other', 'no-reply@amazonpay.in', 'Payment Reminder', 10.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-28 12:00:23', NULL),
+(51, '2025-12-29', 'Other', 'no-reply@amazonpay.in', 'Payment Reminder', 10.00, 'UPI', 'Success', NULL, 'Auto-imported from email', NULL, '2025-12-30 00:00:21', NULL);
 
 -- --------------------------------------------------------
 
@@ -1759,6 +834,7 @@ CREATE TABLE `inventory_income` (
   `payment_method` enum('Cash','Card','UPI','Bank Transfer','Cheque') NOT NULL DEFAULT 'Cash',
   `payment_status` enum('Success','Pending','Failed') NOT NULL DEFAULT 'Success',
   `notes` text DEFAULT NULL,
+  `added_by` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
@@ -1767,14 +843,23 @@ CREATE TABLE `inventory_income` (
 -- Dumping data for table `inventory_income`
 --
 
-INSERT INTO `inventory_income` (`id`, `date`, `category`, `client_id`, `description`, `amount`, `payment_method`, `payment_status`, `notes`, `created_at`, `updated_at`) VALUES
-(11, '2025-11-07', 'Other Services', 4, 'sallary', 1925.00, 'UPI', 'Success', '', '2025-11-17 12:45:29', '2025-11-17 12:47:37'),
-(12, '2025-11-01', 'Other Services', 3, 'Sallary', 2000.00, 'UPI', 'Success', '', '2025-11-17 12:46:10', NULL),
-(13, '2025-11-15', 'Other Services', 5, 'Sall', 1079.00, 'UPI', 'Success', '', '2025-11-17 12:47:09', '2025-11-17 12:51:09'),
-(14, '2025-11-21', 'Other Services', 3, '', 4000.00, 'UPI', 'Pending', '', '2025-11-21 01:18:24', '2025-11-22 09:26:51'),
-(15, '2025-11-21', 'Other Services', 4, '', 900.00, 'UPI', 'Pending', '', '2025-11-21 01:32:25', NULL),
-(16, '2025-11-22', 'Other Services', 10, 'Computer software devlopment', 5000.00, 'UPI', 'Pending', '', '2025-11-22 02:22:58', NULL),
-(17, '2025-11-22', 'Other Services', 3, '', 1000.00, 'UPI', 'Success', '', '2025-11-22 09:26:35', NULL);
+INSERT INTO `inventory_income` (`id`, `date`, `category`, `client_id`, `description`, `amount`, `payment_method`, `payment_status`, `notes`, `added_by`, `created_at`, `updated_at`) VALUES
+(11, '2025-11-07', 'Other Services', 4, 'sallary', 1925.00, 'UPI', 'Success', '', NULL, '2025-11-17 12:45:29', '2025-12-12 02:46:04'),
+(12, '2025-11-01', 'Other Services', 3, 'Sallary', 2000.00, 'UPI', 'Success', '', NULL, '2025-11-17 12:46:10', NULL),
+(13, '2025-11-15', 'Other Services', 5, 'Sall', 1079.00, 'UPI', 'Success', '', NULL, '2025-11-17 12:47:09', '2025-11-25 15:08:06'),
+(14, '2025-12-18', 'Other Services', 3, 'for https://bombaybeatsstudios.com/', 1000.00, 'UPI', 'Pending', '', NULL, '2025-11-21 01:18:24', '2025-12-19 03:23:50'),
+(15, '2025-12-08', 'Other Services', 4, 'sallary', 1450.00, 'UPI', 'Success', '', NULL, '2025-11-21 01:32:25', '2025-12-12 02:46:52'),
+(16, '2025-11-22', 'Other Services', 10, 'Computer software devlopment', 5000.00, 'UPI', 'Pending', '', NULL, '2025-11-22 02:22:58', NULL),
+(17, '2025-11-22', 'Other Services', 3, '', 1000.00, 'UPI', 'Success', '', NULL, '2025-11-22 09:26:35', NULL),
+(18, '2025-11-25', 'Other Services', 5, '', 500.00, 'UPI', 'Success', '', NULL, '2025-11-25 15:09:25', '2025-11-26 01:36:37'),
+(20, '2025-12-23', 'Other Services', 6, '', 1000.00, 'UPI', 'Success', ' for  https://allcurepharmacys.com/', NULL, '2025-12-04 10:11:32', '2025-12-23 07:02:53'),
+(21, '2025-12-07', 'Other Services', 6, '', 1000.00, 'UPI', 'Success', 'given for  https://allcurepharmacys.com/', NULL, '2025-12-07 11:47:33', NULL),
+(22, '2025-12-10', 'Other Services', 8, '', 400.00, 'UPI', 'Success', '', 1, '2025-12-10 05:19:48', '2025-12-11 14:09:52'),
+(23, '2025-12-11', 'Other Services', 3, 'for https://bombaybeatsstudios.com/', 1000.00, 'UPI', 'Success', '', 1, '2025-12-10 23:11:20', '2025-12-12 02:48:29'),
+(24, '2025-12-18', 'Other Services', 3, 'for https://bombaybeatsstudios.com/', 1000.00, 'UPI', 'Success', '', 1, '2025-12-18 13:10:05', '2025-12-18 13:10:32'),
+(25, '2025-12-19', 'Other Services', 3, 'for https://bombaybeatsstudios.com/', 1000.00, 'UPI', 'Success', '', 1, '2025-12-19 03:23:09', NULL),
+(26, '2025-12-24', 'Other Services', 13, 'Advance payment 1000', 1000.00, 'UPI', 'Success', '', 1, '2025-12-24 02:24:05', NULL),
+(27, '2025-12-30', 'Other Services', 8, '', 800.00, 'UPI', 'Success', 'Given for  website changes', 1, '2025-12-30 06:58:45', NULL);
 
 -- --------------------------------------------------------
 
@@ -1796,31 +881,13 @@ CREATE TABLE `main_test_categories` (
 --
 
 INSERT INTO `main_test_categories` (`id`, `name`, `description`, `added_by`, `created_at`, `updated_at`) VALUES
-(1, 'C-Reactive protein test', 'The CRP test analyzes the level of C-reactive protein in the bloodstream. The specific protein is made by the liver only. Any heightened levels of the same ...', 1, '2025-10-15 11:18:44', '2025-11-14 04:38:10'),
-(2, 'Complete blood count', 'A complete blood count, also known as a full blood count or full haemogram, is a set of medical laboratory tests that provide information about the cells in a person\'s blood. The CBC indicates the counts of white blood cells, red blood cells and platelets, the concentration of hemoglobin, and the hematocrit.', 1, '2025-10-17 11:15:22', '2025-11-14 04:38:15'),
-(3, 'Lipid panel', 'A lipid profile or lipid panel is a panel of blood tests used to find abnormalities in blood lipid concentrations. The results of this test can identify certain genetic diseases and can determine approximate risks for cardiovascular disease, certain forms of pancreatitis, and other diseases.', 1, '2025-10-23 07:22:34', '2025-11-14 04:38:22'),
-(4, 'Thyroid function tests', 'Thyroid function tests is a collective term for blood tests used to check the function of the thyroid. TFTs may be requested if a patient is thought to suffer from hyperthyroidism or hypothyroidism, or to monitor the effectiveness of either thyroid-suppression or hormone replacement therapy.', 1, '2025-10-28 01:45:27', '2025-11-14 04:38:27'),
-(5, 'Liver panel', 'Liver function tests, also referred to as a hepatic panel or liver panel, are groups of blood tests that provide information about the state of a patient\'s liver. These tests include prothrombin time, activated partial thromboplastin time, albumin, bilirubin, and others.', 1, '2025-10-28 01:45:53', '2025-11-14 04:38:32'),
-(6, 'Basic metabolic panel', 'A basic metabolic panel is a blood test consisting of a set of seven or eight biochemical tests and is one of the most common lab tests ordered by health care providers', 1, '2025-10-28 01:46:19', '2025-11-14 04:38:38'),
-(7, 'Basic metabolic panel', 'A basic metabolic panel is a blood test consisting of a set of seven or eight biochemical tests and is one of the most common lab tests ordered by health care providers.', 1, '2025-10-28 01:47:04', '2025-10-28 01:47:04'),
-(8, 'Erythrocyte sedimentation rate', 'The erythrocyte sedimentation rate is the rate at which red blood cells in anticoagulated whole blood descend in a standardized tube over a period of one hour. It is a common hematology test, and is a non-specific measure of inflammation.', 1, '2025-10-28 01:47:31', '2025-10-28 01:47:31'),
-(9, 'HbA1c test', 'Glycated hemoglobin, also called glycohemoglobin, is a form of hemoglobin that is chemically linked to a sugar. Most monosaccharides, including glucose, galactose, and fructose, spontaneously bond with hemoglobin when they are present in the bloodstream.', 1, '2025-10-28 01:48:10', '2025-10-28 01:48:10'),
-(10, 'Cardiac biomarkers', 'Cardiac biomarkers. Abnormal levels of enzymes indicate a wide range of issues that may need further testing.', 1, '2025-10-28 01:48:38', '2025-10-28 01:48:38'),
-(11, 'Coagulogram', 'Blood clotting tests are the tests used for diagnostics of the hemostasis system. Coagulometer is the medical laboratory analyzer used for testing of the hemostasis system. Modern coagulometers realize different methods of activation and observation of development of blood clots in blood or in blood plasma.', 1, '2025-10-28 02:02:08', '2025-10-28 02:02:08'),
-(12, 'Blood glucose test', 'Many types of glucose tests exist and they can be used to estimate blood sugar levels at a given time or, over a longer period of time, to obtain average levels or to see how fast the body is able to normalize changed glucose levels. Eating food for example leads to elevated blood sugar levels.', 1, '2025-10-28 02:02:43', '2025-10-28 02:02:43'),
-(13, 'Calcium blood test', 'Calcium blood test. The calcium blood test is conducted to assess the calcium levels in the bloodstream. Since calcium is a key mineral needed for healthy ...', 1, '2025-10-28 02:03:18', '2025-10-28 02:03:18'),
-(14, 'Electrolyte panel', 'Electrolyte panel. This blood test helps measure the levels of different minerals in your body. Any imbalance in these levels may indicate problems with ...', 1, '2025-10-28 02:04:03', '2025-10-28 02:04:03'),
-(15, 'Hematocrit', 'The hematocrit, also known by several other names, is the volume percentage of red blood cells in blood, measured as part of a blood test. The measurement depends on the number and size of red blood cells. It is normally 40.7–50.3% for males and 36.1–44.3% for females', 1, '2025-10-28 02:04:31', '2025-11-14 04:37:51'),
-(16, 'KFT test', 'Book a lab/blood test online with PharmEasy Labs and get the convenience of home sample collection at affordable price with fast and accurate results.', 1, '2025-10-28 02:04:59', '2025-11-14 04:37:42'),
-(17, 'Platelet', 'Platelets or thrombocytes are a part of blood whose function is to react to bleeding from blood vessel injury by clumping to form a blood clot. Platelets have no cell nucleus; they are fragments of cytoplasm from megakaryocytes which reside in bone marrow or lung tissue, and then enter the circulation.', 1, '2025-10-28 02:05:42', '2025-11-14 04:37:39'),
-(18, 'Thyroid-stimulating hormone', 'Thyroid-stimulating hormone is a pituitary hormone that stimulates the thyroid gland to produce thyroxine, and then triiodothyronine which stimulates the metabolism of almost every tissue in the body.', 1, '2025-10-28 02:06:09', '2025-11-14 04:37:35'),
-(19, 'Creatinine', '', 1, '2025-10-28 02:06:35', '2025-11-14 04:37:32'),
-(20, 'D-dimer test', 'D-dimer test. The D-dimer test is a blood test that checks for, or monitors, blood-clotting problems. Find out what a positive result means for you.', 1, '2025-10-28 02:07:02', '2025-11-14 04:37:28'),
-(21, 'Electrolytes', 'Other electrolytes and metabolites. edit · Electrolytes and metabolites: For iron and copper, some related proteins are also included. Test, Patient type, Lower ...', 1, '2025-10-28 02:07:25', '2025-11-14 04:37:25'),
-(22, 'Folate test', 'Folate test. Folate is an important nutrient for making normal red blood cells. The folate test checks whether you have enough folate in your blood.', 1, '2025-10-28 02:07:53', '2025-11-14 04:37:14'),
-(23, 'Gonorrhea test', 'Your doctor will perform follow-up tests to confirm a diagnosis. The Lifeforce Diagnostic is an at-home blood test designed to gather data on 40+ biomarkers ...', 1, '2025-10-28 02:08:24', '2025-11-14 04:37:58'),
-(24, 'Hemoglobin', 'Hemoglobin is an iron-rich protein in red blood cells that carries oxygen. Hematocrit levels that are too high might mean you\'re dehydrated. Low hematocrit ...', 1, '2025-10-28 02:08:47', '2025-11-14 04:37:54'),
-(25, 'MCV', 'The mean corpuscular volume, or mean cell volume, is a measure of the average volume of a red blood corpuscle. The measure is obtained by multiplying a volume of blood by the proportion of blood that is cellular, and dividing that product by the number of erythrocytes in that volume.', 1, '2025-10-28 02:09:17', '2025-11-14 04:37:05');
+(30, 'Hematology', '', 1, '2025-12-05 09:40:25', '2025-12-05 09:40:25'),
+(31, 'Biochemistry', '', 1, '2025-12-06 00:34:34', '2025-12-06 00:34:34'),
+(32, 'Endocrine', '', 1, '2025-12-06 00:56:29', '2025-12-06 00:56:29'),
+(33, 'Vitamins', '', 1, '2025-12-06 00:59:26', '2025-12-06 00:59:26'),
+(34, 'Immunology', '', 1, '2025-12-06 01:02:22', '2025-12-06 01:02:22'),
+(35, 'Infectious Disease', '', 1, '2025-12-06 01:06:51', '2025-12-06 01:06:51'),
+(37, 'Widal', '', 1, '2025-12-16 15:36:52', '2025-12-16 15:36:52');
 
 -- --------------------------------------------------------
 
@@ -1855,25 +922,310 @@ INSERT INTO `notices` (`id`, `server_id`, `title`, `content`, `start_date`, `end
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `opd_appointments`
+--
+
+CREATE TABLE `opd_appointments` (
+  `id` int(11) NOT NULL,
+  `appointment_id` varchar(50) DEFAULT NULL,
+  `appointment_number` varchar(50) NOT NULL,
+  `patient_id` int(11) NOT NULL,
+  `patient_name` varchar(100) DEFAULT NULL,
+  `doctor_id` int(11) NOT NULL,
+  `doctor_name` varchar(100) DEFAULT NULL,
+  `department_id` int(11) DEFAULT NULL,
+  `department_name` varchar(100) DEFAULT NULL,
+  `appointment_date` date NOT NULL,
+  `appointment_time` time NOT NULL,
+  `appointment_type` varchar(50) DEFAULT NULL,
+  `appointment_type_id` int(11) DEFAULT NULL,
+  `status` enum('scheduled','confirmed','in_progress','inprogress','completed','cancelled','no_show','noshow') DEFAULT 'scheduled',
+  `reason` text DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `consultation_notes` text DEFAULT NULL,
+  `prescription` text DEFAULT NULL,
+  `diagnosis` text DEFAULT NULL,
+  `fee` decimal(10,2) DEFAULT 0.00,
+  `payment_status` enum('pending','paid','cancelled') DEFAULT 'pending',
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `opd_appointment_types`
+--
+
+CREATE TABLE `opd_appointment_types` (
+  `id` int(11) NOT NULL,
+  `type_id` varchar(50) DEFAULT NULL,
+  `name` varchar(100) NOT NULL,
+  `type_name` varchar(100) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `duration_minutes` int(11) DEFAULT 30,
+  `color` varchar(20) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `status` varchar(20) DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `opd_appointment_types`
+--
+
+INSERT INTO `opd_appointment_types` (`id`, `type_id`, `name`, `type_name`, `description`, `duration_minutes`, `color`, `is_active`, `status`, `created_at`, `updated_at`) VALUES
+(1, NULL, 'Consultation', NULL, 'General consultation', 30, NULL, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(2, NULL, 'Follow-up', NULL, 'Follow-up visit', 20, NULL, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(3, NULL, 'Emergency', NULL, 'Emergency consultation', 15, NULL, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(4, NULL, 'Checkup', NULL, 'Regular health checkup', 45, '#cf1717', 1, 'active', '2025-11-24 07:06:20', '2025-12-11 11:52:30'),
+(5, NULL, 'Procedure', NULL, 'Medical procedure', 60, '#000000', 1, 'active', '2025-11-24 07:06:20', '2025-12-11 11:52:21');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `opd_departments`
+--
+
+CREATE TABLE `opd_departments` (
+  `id` int(11) NOT NULL,
+  `department_id` varchar(50) DEFAULT NULL,
+  `name` varchar(100) NOT NULL,
+  `department_name` varchar(100) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `head_doctor_id` int(11) DEFAULT NULL,
+  `location` varchar(100) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `status` varchar(20) DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `opd_departments`
+--
+
+INSERT INTO `opd_departments` (`id`, `department_id`, `name`, `department_name`, `description`, `head_doctor_id`, `location`, `phone`, `email`, `is_active`, `status`, `created_at`, `updated_at`) VALUES
+(1, NULL, 'Cardiology', NULL, 'Heart and cardiovascular system', NULL, NULL, NULL, NULL, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(2, NULL, 'Pediatrics', NULL, 'Child healthcare', NULL, NULL, NULL, NULL, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(3, NULL, 'Orthopedics', NULL, 'Bone and joint care', NULL, NULL, NULL, NULL, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(4, NULL, 'Neurology', NULL, 'Brain and nervous system', NULL, NULL, NULL, NULL, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(5, NULL, 'General Medicine', NULL, 'General healthcare', NULL, NULL, NULL, NULL, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `opd_doctors`
 --
 
 CREATE TABLE `opd_doctors` (
   `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `qualification` varchar(255) DEFAULT NULL,
-  `specialization` varchar(255) DEFAULT NULL,
-  `hospital` varchar(255) DEFAULT NULL,
-  `contact_no` varchar(20) DEFAULT NULL,
-  `phone` varchar(20) DEFAULT NULL,
-  `email` varchar(255) DEFAULT NULL,
-  `address` text DEFAULT NULL,
-  `registration_no` varchar(100) DEFAULT NULL,
-  `status` enum('Active','Inactive') DEFAULT 'Active',
-  `added_by` int(11) DEFAULT NULL,
+  `doctor_id` varchar(50) DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `name` varchar(100) NOT NULL,
+  `doctor_name` varchar(100) DEFAULT NULL,
+  `email` varchar(100) NOT NULL,
+  `phone` varchar(20) NOT NULL,
+  `mobile` varchar(20) DEFAULT NULL,
+  `specialization` varchar(100) DEFAULT NULL,
+  `specialization_id` int(11) DEFAULT NULL,
+  `department_id` int(11) DEFAULT NULL,
+  `qualifications` text DEFAULT NULL,
+  `experience_years` int(11) DEFAULT 0,
+  `license_number` varchar(50) DEFAULT NULL,
+  `consultation_fee` decimal(10,2) DEFAULT 0.00,
+  `followup_fee` decimal(10,2) DEFAULT 0.00,
+  `bio` text DEFAULT NULL,
+  `profile_image_url` varchar(255) DEFAULT NULL,
+  `rating` decimal(3,2) DEFAULT 0.00,
+  `total_reviews` int(11) DEFAULT 0,
+  `status` enum('active','inactive','on_leave') DEFAULT 'active',
+  `is_active` tinyint(1) DEFAULT 1,
+  `added_by` int(11) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `opd_facilities`
+--
+
+CREATE TABLE `opd_facilities` (
+  `id` int(11) NOT NULL,
+  `facility_id` varchar(50) DEFAULT NULL,
+  `name` varchar(100) NOT NULL,
+  `facility_name` varchar(100) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `type` varchar(50) DEFAULT NULL,
+  `location` varchar(100) DEFAULT NULL,
+  `capacity` int(11) DEFAULT NULL,
+  `department_id` int(11) DEFAULT NULL,
+  `is_available` tinyint(1) DEFAULT 1,
+  `is_active` tinyint(1) DEFAULT 1,
+  `status` varchar(20) DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `opd_facilities`
+--
+
+INSERT INTO `opd_facilities` (`id`, `facility_id`, `name`, `facility_name`, `description`, `type`, `location`, `capacity`, `department_id`, `is_available`, `is_active`, `status`, `created_at`, `updated_at`) VALUES
+(1, NULL, 'OPD Room 1', NULL, 'Outpatient consultation room', 'Consultation', NULL, 1, NULL, 1, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(2, NULL, 'OPD Room 2', NULL, 'Outpatient consultation room', 'Consultation', NULL, 1, NULL, 1, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(3, NULL, 'Emergency Room', NULL, 'Emergency treatment room', 'Emergency', NULL, 5, NULL, 1, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(4, NULL, 'X-Ray Room', NULL, 'Radiology imaging', 'Diagnostic', NULL, 2, NULL, 1, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(5, NULL, 'Laboratory', NULL, 'Medical testing facility', 'Lab', NULL, 10, NULL, 1, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `opd_medical_records`
+--
+
+CREATE TABLE `opd_medical_records` (
+  `id` int(11) NOT NULL,
+  `record_id` varchar(50) DEFAULT NULL,
+  `patient_id` int(11) NOT NULL,
+  `doctor_id` int(11) NOT NULL,
+  `appointment_id` int(11) DEFAULT NULL,
+  `record_date` date NOT NULL,
+  `diagnosis` text DEFAULT NULL,
+  `symptoms` text DEFAULT NULL,
+  `treatment` text DEFAULT NULL,
+  `prescription` text DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `attachments` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `opd_patients`
+--
+
+CREATE TABLE `opd_patients` (
+  `id` int(11) NOT NULL,
+  `patient_id` varchar(50) NOT NULL,
+  `patient_number` varchar(50) DEFAULT NULL,
+  `name` varchar(100) NOT NULL,
+  `full_name` varchar(100) DEFAULT NULL,
+  `patient_name` varchar(100) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `phone` varchar(20) NOT NULL,
+  `mobile` varchar(20) DEFAULT NULL,
+  `contact` varchar(20) DEFAULT NULL,
+  `dob` date NOT NULL,
+  `date_of_birth` date DEFAULT NULL,
+  `gender` enum('male','female','other') NOT NULL,
+  `address` text DEFAULT NULL,
+  `blood_group` varchar(10) DEFAULT NULL,
+  `emergency_contact` varchar(100) DEFAULT NULL,
+  `emergency_contact_name` varchar(100) DEFAULT NULL,
+  `emergency_contact_phone` varchar(20) DEFAULT NULL,
+  `medical_history` text DEFAULT NULL,
+  `allergies` text DEFAULT NULL,
+  `current_medications` text DEFAULT NULL,
+  `profile_image_url` varchar(255) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `status` varchar(20) DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `opd_prescriptions`
+--
+
+CREATE TABLE `opd_prescriptions` (
+  `id` int(11) NOT NULL,
+  `prescription_id` varchar(50) DEFAULT NULL,
+  `patient_id` int(11) NOT NULL,
+  `doctor_id` int(11) NOT NULL,
+  `appointment_id` int(11) DEFAULT NULL,
+  `prescription_date` date NOT NULL,
+  `medications` text NOT NULL,
+  `dosage` text DEFAULT NULL,
+  `instructions` text DEFAULT NULL,
+  `duration` varchar(50) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `opd_specializations`
+--
+
+CREATE TABLE `opd_specializations` (
+  `id` int(11) NOT NULL,
+  `specialization_id` varchar(50) DEFAULT NULL,
+  `name` varchar(100) NOT NULL,
+  `specialization_name` varchar(100) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `department_id` int(11) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `status` varchar(20) DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `opd_specializations`
+--
+
+INSERT INTO `opd_specializations` (`id`, `specialization_id`, `name`, `specialization_name`, `description`, `department_id`, `is_active`, `status`, `created_at`, `updated_at`) VALUES
+(1, NULL, 'Interventional Cardiology', NULL, 'Heart procedures and interventions', 1, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(2, NULL, 'Pediatric Surgery', NULL, 'Surgical care for children', 2, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(3, NULL, 'Sports Medicine', NULL, 'Sports injury treatment', 3, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(4, NULL, 'Neurosurgery', NULL, 'Brain and spine surgery', 4, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20'),
+(5, NULL, 'Internal Medicine', NULL, 'Adult general medicine', 5, 1, 'active', '2025-11-24 07:06:20', '2025-11-24 07:06:20');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `opd_users`
+--
+
+CREATE TABLE `opd_users` (
+  `id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `full_name` varchar(100) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `mobile` varchar(20) DEFAULT NULL,
+  `role` enum('admin','doctor','nurse','receptionist','patient') DEFAULT 'patient',
+  `user_type` varchar(20) DEFAULT NULL,
+  `specialization` varchar(100) DEFAULT NULL,
+  `license_number` varchar(50) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `status` varchar(20) DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `opd_users`
+--
+
+INSERT INTO `opd_users` (`id`, `username`, `email`, `password`, `name`, `full_name`, `phone`, `mobile`, `role`, `user_type`, `specialization`, `license_number`, `is_active`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'admin', 'admin@hospital.com', '$2y$12$HPL7R9H5Rr3a/n7TcAR0nOqIiM0GCqIE0WWd1rKhuWgafOuUuWSXa', 'Administrator', NULL, '', NULL, 'admin', NULL, '', '', 1, 'active', '2025-11-24 07:06:20', '2025-12-05 06:23:30'),
+(2, 'doctor', 'doc@gmail.com', '$2y$12$yeplk3EgwtDqZMbgjUlqtuzL9g/lZqCsIj1ikEK1PLvrvMCYFKFeq', 'doctor', NULL, '', NULL, 'doctor', NULL, '', '', 1, 'active', '2025-12-16 09:00:17', '2025-12-16 09:00:17');
 
 -- --------------------------------------------------------
 
@@ -1900,8 +1252,8 @@ CREATE TABLE `owners` (
 --
 
 INSERT INTO `owners` (`id`, `server_id`, `name`, `phone`, `whatsapp`, `email`, `address`, `link`, `added_by`, `created_at`, `updated_at`) VALUES
-(4, NULL, 'Support (Umakant Yadav)', '9453619260', '9453619260', '', '', 'https://hospital.codeapka.com/', 1, NULL, NULL),
-(5, NULL, 'API Test Owner 1760266902285', '9876543210', '9876543210', 'testowner@example.com', 'Test Owner Address', '', 1, NULL, NULL);
+(4, NULL, 'Support (Umakant Yadav)', '+91-9453619260', '+91-9453619260', 'uky171991@gmail.com', '', 'https://codeapka.com/', 1, NULL, '2025-12-25 09:33:29'),
+(5, NULL, 'Support  (Ghayas Ahmad)', '+91-9876543210', '+91-9876543210', 'testowner@example.com', 'Test Owner Address', '', 1, NULL, '2025-12-21 19:52:17');
 
 -- --------------------------------------------------------
 
@@ -1957,52 +1309,23 @@ CREATE TABLE `patients` (
 --
 
 INSERT INTO `patients` (`id`, `server_id`, `name`, `email`, `mobile`, `father_husband`, `address`, `sex`, `age`, `contact`, `age_unit`, `uhid`, `created_at`, `updated_at`, `added_by`) VALUES
-(426, NULL, 'Umakant Yadav', 'admin@iaem.net', '9453619260', 'df', 'Jaunpur Rd', 'Female', 33, 'Odit dolor elit asp', 'Years', 'P251116647321', NULL, NULL, 2),
-(427, NULL, 'Umakant Yadav  yy', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(446, NULL, 'Umakant Yadav  sss', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(447, NULL, 'James Sears', '', '5656565656', NULL, 'Vel nobis error corr', NULL, 10, '', 'Years', 'P642622065', NULL, NULL, 1),
-(448, NULL, 'Naida Marquez', '', '5454455454', NULL, 'Voluptate quibusdam', NULL, 45, '', 'Years', 'P033679005', NULL, NULL, 1),
-(449, NULL, 'Umakant Yadav', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(450, NULL, 'Umakant Yadav  hhh', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(451, NULL, 'ttt', '', '454554545454', NULL, 'derfg', NULL, 0, '', 'Years', '3433', NULL, NULL, 1),
-(452, NULL, 'James Sears', '', '5656565656', NULL, 'Vel nobis error corr', NULL, 10, '', 'Years', 'P642622065', NULL, NULL, 1),
-(453, NULL, 'Naida Marquez', '', '5454455454', NULL, 'Voluptate quibusdam', NULL, 45, '', 'Years', 'P033679005', NULL, NULL, 1),
-(454, NULL, 'Umakant Yadav', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(455, NULL, 'dfg', '', '5656565656', NULL, 'werf', NULL, 33, '', 'Years', '234567', NULL, NULL, 1),
-(456, NULL, 'dfg', '', '5656565656', NULL, 'werf', NULL, 33, '', 'Years', '234567', NULL, NULL, 1),
-(457, NULL, 'James Sears', '', '5656565656', NULL, 'Vel nobis error corr', NULL, 10, '', 'Years', 'P642622065', NULL, NULL, 1),
-(458, NULL, 'Naida Marquez', '', '5454455454', NULL, 'Voluptate quibusdam', NULL, 45, '', 'Years', 'P033679005', NULL, NULL, 1),
-(462, NULL, 'Umakant Yadav', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(463, NULL, 'James Sears', '', '5656565656', NULL, 'Vel nobis error corr', NULL, 10, '', 'Years', 'P642622065', NULL, NULL, 1),
-(464, NULL, 'Naida Marquez', '', '5454455454', NULL, 'Voluptate quibusdam', NULL, 45, '', 'Years', 'P033679005', NULL, NULL, 1),
-(465, NULL, 'Umakant Yadav', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(466, NULL, 'James Sears', '', '5656565656', NULL, 'Vel nobis error corr', NULL, 10, '', 'Years', 'P642622065', NULL, NULL, 1),
-(467, NULL, 'Naida Marquez', '', '5454455454', NULL, 'Voluptate quibusdam', NULL, 45, '', 'Years', 'P033679005', NULL, NULL, 1),
-(468, NULL, 'Umakant Yadav', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(469, NULL, 'James Sears', '', '5656565656', NULL, 'Vel nobis error corr', NULL, 10, '', 'Years', 'P642622065', NULL, NULL, 1),
-(470, NULL, 'Naida Marquez', '', '5454455454', NULL, 'Voluptate quibusdam', NULL, 45, '', 'Years', 'P033679005', NULL, NULL, 1),
-(471, NULL, 'Umakant Yadav', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(472, NULL, 'James Sears', '', '5656565656', NULL, 'Vel nobis error corr', NULL, 10, '', 'Years', 'P642622065', NULL, NULL, 1),
-(473, NULL, 'Naida Marquez', '', '5454455454', NULL, 'Voluptate quibusdam', NULL, 45, '', 'Years', 'P033679005', NULL, NULL, 1),
-(474, NULL, 'Umakant Yadav', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(475, NULL, 'James Sears', '', '5656565656', NULL, 'Vel nobis error corr', NULL, 10, '', 'Years', 'P642622065', NULL, NULL, 1),
-(476, NULL, 'Naida Marquez', '', '5454455454', NULL, 'Voluptate quibusdam', NULL, 45, '', 'Years', 'P033679005', NULL, NULL, 1),
-(477, NULL, 'Umakant Yadav', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(478, NULL, 'James Sears', '', '5656565656', NULL, 'Vel nobis error corr', NULL, 10, '', 'Years', 'P642622065', NULL, NULL, 1),
-(479, NULL, 'Naida Marquez', '', '5454455454', NULL, 'Voluptate quibusdam', NULL, 45, '', 'Years', 'P033679005', NULL, NULL, 1),
-(480, NULL, 'Umakant Yadav', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(481, NULL, 'James Sears', '', '5656565656', NULL, 'Vel nobis error corr', NULL, 10, '', 'Years', 'P642622065', NULL, NULL, 1),
-(482, NULL, 'Naida Marquez', '', '5454455454', NULL, 'Voluptate quibusdam', NULL, 45, '', 'Years', 'P033679005', NULL, NULL, 1),
-(483, NULL, 'Umakant Yadav', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(484, NULL, 'James Sears', '', '5656565656', NULL, 'Vel nobis error corr', NULL, 10, '', 'Years', 'P642622065', NULL, NULL, 1),
-(485, NULL, 'Naida Marquez', '', '5454455454', NULL, 'Voluptate quibusdam', NULL, 45, '', 'Years', 'P033679005', NULL, NULL, 1),
-(486, NULL, 'Umakant Yadav', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(487, NULL, 'James Sears', '', '5656565656', NULL, 'Vel nobis error corr', NULL, 10, '', 'Years', 'P642622065', NULL, NULL, 1),
-(488, NULL, 'Naida Marquez', '', '5454455454', NULL, 'Voluptate quibusdam', NULL, 45, '', 'Years', 'P033679005', NULL, NULL, 1),
-(489, NULL, 'Umakant Yadav', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1),
-(490, NULL, 'James Sears', '', '5656565656', NULL, 'Vel nobis error corr', NULL, 10, '', 'Years', 'P642622065', NULL, NULL, 1),
-(491, NULL, 'Naida Marquez', '', '5454455454', NULL, 'Voluptate quibusdam', NULL, 45, '', 'Years', 'P033679005', NULL, NULL, 1),
-(492, NULL, 'Umakant Yadav', '', '9453619260', NULL, 'Jaunpur Rd', NULL, 33, '', 'Years', 'P251116647321', NULL, NULL, 1);
+(876, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(877, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(878, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(879, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(880, NULL, 'Ramu', '', '9453619260', NULL, NULL, NULL, 32, '', 'Years', 'P000001', NULL, NULL, 1),
+(881, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(882, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(883, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(884, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(885, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(886, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(887, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(888, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(889, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(890, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(891, NULL, 'Umat', '', '9453619260', NULL, 'gg', NULL, 40, '', 'years', 'P000002', NULL, NULL, 1),
+(892, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -2031,7 +1354,7 @@ CREATE TABLE `plans` (
 
 INSERT INTO `plans` (`id`, `name`, `description`, `price`, `upi`, `time_type`, `start_date`, `end_date`, `qr_code`, `added_by`, `created_at`, `updated_at`) VALUES
 (1, 'Yearly Plan', '', 2999.00, '8081674028@upi', 'yearly', NULL, NULL, 'uploads/qr/1756541847_ca675b2b7067.jpg', 1, '2025-08-27 05:25:32', '2025-08-30 13:47:27'),
-(2, 'Basic Plan', '', 299.00, '8081674028@upi', 'monthly', NULL, NULL, 'uploads/qr/1756541839_7947cffc3422.jpg', 1, '2025-08-27 05:26:40', '2025-10-11 05:03:23');
+(2, 'Basic Plan', '', 299.00, '8081674028@upi', 'monthly', NULL, NULL, 'uploads/qr/1756541839_7947cffc3422.jpg', 1, '2025-08-27 05:26:40', '2025-12-07 01:40:37');
 
 -- --------------------------------------------------------
 
@@ -2055,7 +1378,35 @@ INSERT INTO `processed_emails` (`id`, `message_id`, `transaction_type`, `process
 (2, '<1344695856.1716094.1763074775385@DCLACBSHOSTPRDAP03>', 'expense', '2025-11-17 06:24:27'),
 (3, '<1292300670.40894.1763249893546@DCLACBSHOSTPRDAP03>', 'expense', '2025-11-17 06:24:31'),
 (4, '<-59381021.1571670.1763268037904@DCLACBSHOSTPRDAP03>', 'expense', '2025-11-17 06:24:31'),
-(5, '<0109019a9fda55ba-cd7b0fd1-5694-4b08-9aab-c50fb6e9fe7c-000000@ap-south-1.amazonses.com>', 'expense', '2025-11-20 12:00:28');
+(5, '<0109019a9fda55ba-cd7b0fd1-5694-4b08-9aab-c50fb6e9fe7c-000000@ap-south-1.amazonses.com>', 'expense', '2025-11-20 12:00:28'),
+(6, '<0109019abad7ece6-15c5085e-92a7-4e7f-8e17-0bd936512983-000000@ap-south-1.amazonses.com>', 'expense', '2025-11-25 12:00:31'),
+(7, '<feopkj17641821025234409@communications.sbi.co.in>', 'income', '2025-11-27 12:00:22'),
+(8, '<0109019ac53f9b73-c578c3f2-d6f9-4c5a-8cc2-f1e9a074a590-000000@ap-south-1.amazonses.com>', 'expense', '2025-11-28 00:00:24'),
+(9, '<0109019acdeca3cf-d116ce85-d096-47b9-9082-fead3fb0f1c4-000000@ap-south-1.amazonses.com>', 'expense', '2025-11-29 12:00:25'),
+(10, '<0109019acef15074-9382cd51-b78c-4854-b6a1-4d28ce2fae44-000000@ap-south-1.amazonses.com>', 'expense', '2025-11-29 12:00:27'),
+(11, '<0109019ad424ddcf-abf4b986-a0ab-491a-ad38-d58f79b800a6-000000@ap-south-1.amazonses.com>', 'expense', '2025-11-30 12:00:32'),
+(12, '<0109019ad4b5bb31-88cabc7e-fabd-4cff-a360-d9aa641e734d-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-01 00:00:35'),
+(13, '<0109019ad93f9d4d-159cee8f-9549-42f2-b637-2c04688830f9-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-01 12:00:37'),
+(14, '<0109019ada4b1ebc-aaa8d05f-4837-4fbc-8894-392adfb5d719-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-02 00:00:30'),
+(15, '<0109019adede5559-0d4209b7-66c8-4311-b762-0741d0c215f5-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-02 12:00:43'),
+(16, '<0109019ae4a86b8b-88df1ffd-8588-4977-8781-7cefc924fb30-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-04 00:00:37'),
+(17, '<1116663553.11192.1765102682921@DCLACBSHOSTPRDAP07>', 'expense', '2025-12-07 12:00:30'),
+(18, '<-1142419656.7192074.1765210425363@DCLACBSHOSTPRDAP07>', 'expense', '2025-12-09 00:00:23'),
+(19, '<0109019b22289bf0-d63c66ae-5e9d-4365-9197-d81490b5d995-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-16 00:00:19'),
+(20, '<0109019b2b766db0-703e769c-dc3d-41b9-9a2e-444a8bf64888-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-17 12:00:21'),
+(21, '<0109019b2f5bd5a6-078ffa41-8c91-4d64-aa2e-8e8d7452d4c6-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-18 12:00:21'),
+(22, '<0109019b2fd527cd-31bc6cb2-3e92-47f0-a671-b3a19fc2441c-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-18 12:00:22'),
+(23, '<0109019b347ad65b-03a5665a-0df2-4d46-811c-13b7d4520746-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-19 12:00:17'),
+(24, '<0109019b4e7060b3-36b59592-af70-4c0f-9a20-0335365befc0-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-24 12:00:19'),
+(25, '<0109019b54b4d44d-3bc8f0cc-339f-4a9e-b7bf-dbab930a536a-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-25 12:00:23'),
+(26, '<0109019b5b173d58-965ed88d-c8e4-468a-a6e5-aec06e0dbc79-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-27 00:00:18'),
+(27, '<-1718232826.6243790.1766777178551@DCLACBSHOSTPRDAP07>', 'expense', '2025-12-27 00:00:19'),
+(28, '<0109019b5ddbf739-fdf4478a-2380-47c6-bba9-1334b5dcb5ad-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-27 12:00:21'),
+(29, '<0109019b5f20f19c-e2a0f147-d29b-43eb-a9aa-1cdafcde2a07-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-27 12:00:22'),
+(30, '<546989204.10984325.1766883000548@DCLACBSHOSTPRDAP07>', 'expense', '2025-12-28 12:00:21'),
+(31, '<0109019b62f30bf3-5a48785b-9bd4-4a21-a547-0ca520fcb77f-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-28 12:00:21'),
+(32, '<0109019b63b33829-e0d08211-60f1-4bae-bea6-2286eb3fee64-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-28 12:00:23'),
+(33, '<0109019b6a4de577-4233c704-953c-417b-b465-d44434eac6e9-000000@ap-south-1.amazonses.com>', 'expense', '2025-12-30 00:00:21');
 
 -- --------------------------------------------------------
 
@@ -2167,11 +1518,15 @@ CREATE TABLE `tasks` (
 --
 
 INSERT INTO `tasks` (`id`, `client_id`, `title`, `description`, `priority`, `status`, `due_date`, `website_urls`, `screenshots`, `notes`, `created_at`, `updated_at`) VALUES
-(2, 3, 'Website not working', 'Menu issue ', 'Medium', 'Pending', '2025-11-20', 'https://allcurepharmacys.com/', '[\"uploads\\/screenshots\\/1763382631_0_Screenshot 2025-11-17 180004.png\"]', '', '2025-11-17 12:21:35', '2025-11-17 12:36:54'),
-(4, 8, 'Resume builders', 'http://resume.devloper.space/', 'Medium', 'Pending', '2025-11-29', 'http://resume.devloper.space/', '[]', '', '2025-11-18 05:53:38', NULL),
+(2, 3, 'Website not working', 'Menu issue ', 'Medium', 'Completed', '2025-11-20', 'https://allcurepharmacys.com/', '[\"uploads\\/screenshots\\/1763382631_0_Screenshot 2025-11-17 180004.png\"]', '', '2025-11-17 12:21:35', '2025-12-04 07:28:29'),
+(4, 8, 'Resume builders', 'http://resume.devloper.space/', 'Medium', 'In Progress', '2025-11-29', 'http://resume.devloper.space/', '[]', '', '2025-11-18 05:53:38', '2025-12-04 10:05:31'),
 (5, 10, 'Booking Website', 'Studio booking', 'Medium', 'Completed', '2025-11-30', 'https://bombay.devloper.space/\r\nhttps://bombaybeatsstudios.com/', '[]', '', '2025-11-18 06:11:15', '2025-11-21 01:17:06'),
-(6, 10, 'Booking  app', 'Booking app', 'Medium', 'Pending', '2025-11-30', '', '[]', '', '2025-11-18 06:11:55', NULL),
-(7, 11, 'Issue  fixed', 'Marksheet page  issue, Progress card page  issue, result page  issue', 'Medium', 'Completed', '2025-11-15', 'https://iqrapublicschool.com/welcome.html', '[]', '', '2025-11-18 07:06:53', '2025-11-18 07:10:12');
+(6, 10, 'Booking  app', 'Booking app', 'Medium', 'On Hold', '2025-11-30', '', '[\"uploads\\/screenshots\\/1764833546_0_Untitled.png\"]', '', '2025-11-18 06:11:55', '2025-12-04 07:32:26'),
+(7, 11, 'Issue  fixed', 'Marksheet page  issue, Progress card page  issue, result page  issue', 'Medium', 'Completed', '2025-11-15', 'https://iqrapublicschool.com/welcome.html', '[]', '', '2025-11-18 07:06:53', '2025-11-18 07:10:12'),
+(8, 3, 'Website menu overwrite issue ', 'https://allcurepharmacys.com/', 'Medium', 'Completed', '2025-12-07', 'https://allcurepharmacys.com/', '[\"uploads\\/screenshots\\/1764833471_0_Untitled.png\",\"uploads\\/screenshots\\/1764833502_0_Untitled.png\"]', '', '2025-12-04 07:31:11', '2025-12-06 19:54:27'),
+(9, 12, 'OPD App', 'OPD  for  hospitals', 'Medium', 'Pending', '2026-01-10', '', '[]', '', '2025-12-06 19:56:35', NULL),
+(10, 12, 'Pathology Software', 'Pathology for computer software', 'Medium', 'Completed', '2025-12-07', '', '[]', '', '2025-12-06 19:57:18', NULL),
+(11, 12, 'School website', 'School website ', 'Medium', 'Pending', '2025-12-31', '', '[]', '', '2025-12-06 19:57:57', NULL);
 
 -- --------------------------------------------------------
 
@@ -2208,6 +1563,53 @@ CREATE TABLE `tests` (
   `updated_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
+--
+-- Dumping data for table `tests`
+--
+
+INSERT INTO `tests` (`id`, `name`, `category_id`, `main_category_id`, `price`, `unit`, `specimen`, `default_result`, `reference_range`, `min`, `max`, `description`, `min_male`, `max_male`, `min_female`, `max_female`, `min_child`, `max_child`, `sub_heading`, `test_code`, `method`, `print_new_page`, `shortcut`, `added_by`, `created_at`, `updated_at`) VALUES
+(4, 'Hemoglobin', 9, 30, 0.00, 'g/dL', '', '', '', 13.00, 17.00, '', 13.00, 17.00, 12.00, 15.50, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-05 15:12:52', '2025-12-05 15:12:52'),
+(5, 'RBC', 9, 30, 0.00, 'million/µL', '', '', '', 4.30, 5.90, '', 4.30, 5.90, 3.50, 5.50, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-05 16:34:40', '2025-12-06 07:09:02'),
+(6, 'Hematocrit', 9, 30, 0.00, '%', '', '', '', 0.00, 0.00, '', 41.00, 53.00, 36.00, 46.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-05 16:36:49', '2025-12-19 06:16:48'),
+(7, 'WBC', 9, 30, 0.00, '×10³/µL', '', '', '', 4.00, 11.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-05 16:37:38', '2025-12-05 16:37:38'),
+(8, 'Neutrophils', 10, 30, 0.00, '% of WBC', '', '', '', 40.00, 70.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-05 16:43:29', '2025-12-05 16:43:29'),
+(9, 'Lymphocytes', 10, 30, 0.00, '% of WBC', '', '', '', 20.00, 40.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-05 16:45:13', '2025-12-05 16:45:13'),
+(10, 'Monocytes', 10, 30, 0.00, '% of WBC', '', '', '', 2.00, 8.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-05 16:46:37', '2025-12-05 16:46:37'),
+(11, 'Eosinophils', 10, 30, 0.00, '% of WBC', '', '', '', 1.00, 6.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-05 16:47:50', '2025-12-05 16:47:50'),
+(12, 'Platelet Count', 11, 30, 0.00, '×10³/µL', '', '', '', 150.00, 400.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 05:47:27', '2025-12-06 05:47:27'),
+(13, 'MCV', 12, 30, 0.00, 'fL', '', '', '', 80.00, 100.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 05:48:40', '2025-12-06 05:48:40'),
+(14, 'MCH', 12, 30, 0.00, 'pg', '', '', '', 27.00, 33.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 05:49:13', '2025-12-06 05:49:13'),
+(15, 'MCHC', 12, 30, 0.00, 'g/dL', '', '', '', 32.00, 36.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 05:50:06', '2025-12-06 05:50:06'),
+(16, 'PT (INR)', 13, 30, 0.00, '-', '', '', '', 0.80, 1.20, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:02:06', '2025-12-06 06:02:06'),
+(17, 'aPTT', 13, 30, 0.00, 'Second', '', '', '', 25.00, 35.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:02:49', '2025-12-06 06:02:49'),
+(18, 'Blood Urea Nitrogen (BUN)', 14, 31, 0.00, 'mg/dL', '', '', '', 8.00, 23.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:06:20', '2025-12-06 06:06:20'),
+(19, 'Serum Creatinine', 14, 31, 0.00, 'mg/dL', '', '', '', 0.70, 1.30, '', 0.70, 1.30, 0.60, 1.10, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:07:42', '2025-12-06 06:07:42'),
+(20, 'Uric Acid', 14, 31, 0.00, 'mg/dL', '', '', '', 3.50, 7.20, '', 3.50, 7.20, 2.60, 6.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:09:19', '2025-12-06 06:09:19'),
+(21, 'Total Bilirubin', 15, 31, 0.00, 'mg/dL', '', '', '', 0.30, 1.20, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:11:21', '2025-12-06 06:11:21'),
+(22, 'Direct Bilirubin', 15, 31, 0.00, 'mg/dL', '', '', '', 0.10, 0.30, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:12:07', '2025-12-06 06:12:07'),
+(23, 'ALT (SGPT)', 15, 31, 0.00, 'U/L', '', '', '', 10.00, 40.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:12:51', '2025-12-06 06:12:51'),
+(24, 'AST (SGOT)', 15, 31, 0.00, 'U/L', '', '', '', 10.00, 40.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:13:29', '2025-12-06 06:13:29'),
+(25, 'Alkaline Phosphatase', 15, 31, 0.00, 'U/L', '', '', '', 40.00, 120.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:14:07', '2025-12-06 06:14:07'),
+(26, 'Albumin', 15, 31, 0.00, 'g/dL', '', '', '', 3.50, 5.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:14:55', '2025-12-06 06:14:55'),
+(27, 'Total Cholesterol', 16, 31, 0.00, 'mg/dL', '', '', '', 0.00, 200.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:16:03', '2025-12-06 06:16:03'),
+(28, 'LDL Cholesterol', 16, 31, 0.00, 'mg/dL', '', '', '', 0.00, 100.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:16:55', '2025-12-06 06:16:55'),
+(29, 'HDL', 16, 31, 0.00, 'mg/dL', '', '', 'Male 40, Female 50', 0.00, 0.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:19:03', '2025-12-06 06:56:19'),
+(30, 'Triglycerides', 16, 31, 0.00, 'mg/dL', '', '', '', 0.00, 150.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:22:33', '2025-12-06 06:22:33'),
+(31, 'Sodium', 17, 31, 0.00, 'mEq/L', '', '', '', 135.00, 145.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:24:02', '2025-12-06 06:24:02'),
+(32, 'Potassium', 17, 31, 0.00, 'mEq/L', '', '', '', 3.50, 5.10, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:24:40', '2025-12-06 06:24:40'),
+(33, 'Chloride', 17, 31, 0.00, 'mEq/L', '', '', '', 98.00, 106.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:25:21', '2025-12-06 06:25:21'),
+(34, 'TSH', 18, 32, 0.00, 'mIU/L', '', '', '', 0.40, 4.50, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:27:44', '2025-12-06 06:27:44'),
+(35, 'Free T4', 18, 32, 0.00, 'ng/dL', '', '', '', 0.80, 1.80, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:28:21', '2025-12-06 06:28:21'),
+(36, 'Free T3', 18, 32, 400.00, 'pg/mL', '', '', '', 2.30, 4.20, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:29:05', '2025-12-31 13:59:54'),
+(37, 'Vitamin B12', 19, 33, 0.00, 'pg/mL', '', '', '', 200.00, 900.00, '', 200.00, 900.00, 200.00, 900.00, 200.00, 900.00, 0, '', '', 0, '', 1, '2025-12-06 06:30:20', '2025-12-19 06:14:32'),
+(38, '25(OH) Vitamin D', 19, 33, 100.00, 'ng/mL', '', '', '', 30.00, 100.00, '', 30.00, 100.00, 30.00, 100.00, 30.00, 100.00, 0, '', '', 0, '', 1, '2025-12-06 06:30:51', '2025-12-19 06:12:55'),
+(39, 'ESR', 20, 34, 0.00, 'mm/hr', '', '', '', 0.00, 15.00, '', 0.00, 15.00, 0.00, 20.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:34:40', '2025-12-06 06:35:24'),
+(40, 'Rheumatoid Factor', 21, 34, 0.00, 'IU/mL', '', '', '', 0.00, 20.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:36:17', '2025-12-06 06:36:17'),
+(41, 'HBsAg', 22, 35, 0.00, '', '', '', 'Negative', 0.00, 0.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:37:46', '2025-12-06 06:37:46'),
+(42, 'HIV 1 & 2 Antibodies', 22, 35, 0.00, '', '', '', 'Negative', 0.00, 0.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:38:15', '2025-12-06 06:38:15'),
+(43, 'HCV Antibody', 22, 35, 0.00, '', '', '', 'Negative', 0.00, 0.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-06 06:38:43', '2025-12-06 06:38:43'),
+(44, 'Widal', NULL, 37, 0.00, '', '', '', '', 0.00, 0.00, '', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, '', '', 0, '', 1, '2025-12-16 21:08:14', '2025-12-16 21:28:04');
+
 -- --------------------------------------------------------
 
 --
@@ -2227,7 +1629,7 @@ CREATE TABLE `users` (
   `last_login` datetime DEFAULT NULL,
   `expire_date` datetime DEFAULT NULL,
   `api_token` text NOT NULL,
-  `added_by` timestamp NOT NULL DEFAULT current_timestamp(),
+  `added_by` int(11) NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
@@ -2236,8 +1638,14 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `api_token`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-11-23 19:19:38', '2025-10-26 10:12:00', '', '0000-00-00 00:00:00', '2025-09-26 04:42:48'),
-(2, 'uma', '$2y$12$auavnwTI5hbfkyqCoavijO/i3diGYgDZqt58EzkY6ZkB6M9jTmD9e', 'Uma Yadav', 'umakant171992@gmail.com', 'user', 1, 'Pathology', '2025-09-26 10:13:58', '2025-11-17 14:02:35', '2025-12-30 23:59:00', '6dad141b199e8c2ae3021462459c23135244d408778939a4c33c4a969726fde7', '0000-00-00 00:00:00', '2025-10-18 05:36:53');
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-12-31 07:54:26', '2025-12-03 21:58:00', '9ba25cbde33572ba77d12075e1eb96178260ea6c3effb6847d0f51b8e943c14d', 1, '2025-09-26 04:42:48'),
+(2, 'uma', '$2y$12$auavnwTI5hbfkyqCoavijO/i3diGYgDZqt58EzkY6ZkB6M9jTmD9e', 'Uma Yadav', 'umakant171992@gmail.com', 'user', 1, 'Pathology', '2025-09-26 10:13:58', '2025-12-31 14:55:28', '2025-12-30 23:59:00', '6dad141b199e8c2ae3021462459c23135244d408778939a4c33c4a969726fde7', 1, '2025-10-18 05:36:53'),
+(5, 'ghayas', '$2y$12$xGaV5GD7MjnYKyil2ZWdCuFfhFFlNz15MhoqcCfpIHRH4GNPgg8n2', 'ghayas ahmad', 'ghayasahmad522@gmail.com', 'user', 1, 'Hospital', '2025-12-02 10:34:10', '2025-12-17 11:54:17', '2026-01-02 10:34:10', '24aa51be2a90dbfc0a1e1fa02fcb8428e3ba6de8c5e4487b272ae06b9afe8f91', 1, '2025-12-02 05:04:10'),
+(7, 'ghayas_m', '$2y$12$HxUjV9xpSg7soP1/M6E7j.p0mQsFCkAJSKM4pmOUbIa7CYXEQjzBq', 'ghayas ahmad', 'gha@gmail.com', 'admin', 1, 'Pathology', '2025-12-03 21:53:18', '2025-12-20 19:27:15', '2026-01-03 21:53:00', '68b3b1e0379106601e1454febff7085d76f36593f0288f6fc664d64ba9653e10', 1, '2025-12-03 16:23:18'),
+(8, 'alok', '$2y$12$PbEu3wQ9yROIEZWJ6OBYbu3NvWBEyuBcuY7goSCIBSVhPqzAyekWC', '', '', 'user', 1, 'Pathology', '2025-12-07 01:39:22', NULL, '2026-03-31 01:39:00', '227f391382161b24b1ebd503fc99a9e0136e55307116db07acf30f5c652e4dab', 1, '2025-12-06 20:09:22'),
+(9, 'sidhant', '$2y$12$nGbCzlSmY6bmIpVkZYv2l.ULcFKfmS2HhNJQv8j4JHm0Na7Ec5NSq', 'Sidhant', 'Sidhant@gmail.com', 'user', 1, 'Pathology', '2025-12-16 18:09:15', '2025-12-20 19:45:03', NULL, '4407d27dca7ef8cfad110648189859ad647be16fd3b08ba6d1701d8a0d36cff9', 7, '2025-12-16 12:39:15'),
+(10, 'demo', '$2y$12$LlrwEAWuSGyp2aiMbMCadu6g69S2cnGjxQJT0UC9PLOrrRijtAO.6', 'Demo auser', 'admin@example.com', 'user', 1, 'Pathology', '2025-12-19 05:29:25', '2025-12-31 10:59:43', '2028-02-05 05:28:00', '58d731cd1fd88f5cbd3f13723b1ac943d8d7645ee2dc48be34d5f02150f8fdc6', 1, '2025-12-18 23:59:25'),
+(11, 'admin', '$2y$12$/.O5spU.5Ira2bPLqahNnuF1DGzf2u9uTF7DijN4Sh9ClTtsL3gzW', 'Admin', 'admin@iaem.net', 'admin', 1, 'Pathology', '2025-12-19 06:25:36', '2025-12-19 06:25:50', NULL, '', 1, '2025-12-19 00:55:36');
 
 -- --------------------------------------------------------
 
@@ -2295,8 +1703,11 @@ CREATE TABLE `zip_uploads` (
 --
 
 INSERT INTO `zip_uploads` (`id`, `file_name`, `original_name`, `relative_path`, `mime_type`, `file_size`, `uploaded_by`, `status`, `notes`, `created_at`, `updated_at`) VALUES
-(8, '1756474617_Pathology_Management_Software.exe', 'Pathology Management Software.exe', 'uploads/1756474617_Pathology_Management_Software.exe', 'application/x-dosexec', 12996041, 1, 'uploaded', NULL, '2025-08-29 19:06:57', '2025-08-29 19:06:57'),
-(9, '1756632021_Pathology_Management_Software.exe', 'Pathology Management Software.exe', 'uploads/1756632021_Pathology_Management_Software.exe', 'application/x-dosexec', 12996041, 1, 'uploaded', NULL, '2025-08-31 14:50:21', '2025-08-31 14:50:21');
+(18, '1765861091_PathoLab_Pro_Setup_v1.0.0.exe', 'PathoLab_Pro_Setup_v1.0.0.exe', 'uploads/1765861091_PathoLab_Pro_Setup_v1.0.0.exe', 'application/vnd.microsoft.portable-executable', 28648106, 1, 'uploaded', NULL, '2025-12-16 10:28:11', '2025-12-16 10:28:11'),
+(23, '1765897651_PathoLab_Pro_Setup_v1.0.1.exe', 'PathoLab_Pro_Setup_v1.0.1.exe', 'uploads/1765897651_PathoLab_Pro_Setup_v1.0.1.exe', 'application/vnd.microsoft.portable-executable', 38169540, 1, 'uploaded', NULL, '2025-12-16 20:37:31', '2025-12-16 20:37:31'),
+(24, '1765899181_PathoLab_Pro_Setup_v1.0.2.exe', 'PathoLab_Pro_Setup_v1.0.2.exe', 'uploads/1765899181_PathoLab_Pro_Setup_v1.0.2.exe', 'application/vnd.microsoft.portable-executable', 37874968, 1, 'uploaded', NULL, '2025-12-16 21:03:01', '2025-12-16 21:03:01'),
+(25, '1765900428_PathoLab_Pro_Setup_v1.0.3.exe', 'PathoLab_Pro_Setup_v1.0.3.exe', 'uploads/1765900428_PathoLab_Pro_Setup_v1.0.3.exe', 'application/vnd.microsoft.portable-executable', 37879395, 1, 'uploaded', NULL, '2025-12-16 21:23:49', '2025-12-16 21:23:49'),
+(26, '1766298181_PathoLab_Pro_Setup_v1.0.4.exe', 'PathoLab_Pro_Setup_v1.0.4.exe', 'uploads/1766298181_PathoLab_Pro_Setup_v1.0.4.exe', 'application/vnd.microsoft.portable-executable', 52088175, 1, 'uploaded', NULL, '2025-12-21 11:53:01', '2025-12-21 11:53:01');
 
 --
 -- Indexes for dumped tables
@@ -2315,6 +1726,13 @@ ALTER TABLE `categories`
 --
 ALTER TABLE `clients`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `client_responses`
+--
+ALTER TABLE `client_responses`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `client_id` (`client_id`);
 
 --
 -- Indexes for table `doctors`
@@ -2347,24 +1765,33 @@ ALTER TABLE `email_templates`
 --
 ALTER TABLE `entries`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_entries_patient` (`patient_id`),
-  ADD KEY `idx_entries_doctor` (`doctor_id`),
-  ADD KEY `idx_entries_added_by` (`added_by`),
-  ADD KEY `idx_entries_entry_date` (`entry_date`),
-  ADD KEY `idx_entries_status` (`status`),
-  ADD KEY `idx_entries_owner_id` (`owner_id`),
-  ADD KEY `idx_entries_patient_id` (`patient_id`),
-  ADD KEY `idx_entries_doctor_id` (`doctor_id`),
-  ADD KEY `idx_entries_priority` (`priority`),
-  ADD KEY `idx_entries_referral_source` (`referral_source`);
+  ADD UNIQUE KEY `reg_no` (`reg_no`);
 
 --
 -- Indexes for table `entry_tests`
 --
 ALTER TABLE `entry_tests`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_entry_id` (`entry_id`),
-  ADD KEY `idx_test_id` (`test_id`);
+  ADD KEY `entry_id` (`entry_id`);
+
+--
+-- Indexes for table `followups`
+--
+ALTER TABLE `followups`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `client_id` (`client_id`);
+
+--
+-- Indexes for table `followup_clients`
+--
+ALTER TABLE `followup_clients`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `followup_templates`
+--
+ALTER TABLE `followup_templates`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `inventory_clients`
@@ -2401,15 +1828,120 @@ ALTER TABLE `notices`
   ADD KEY `idx_notices_added_by` (`added_by`);
 
 --
+-- Indexes for table `opd_appointments`
+--
+ALTER TABLE `opd_appointments`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `appointment_number` (`appointment_number`),
+  ADD UNIQUE KEY `unique_appointment_number` (`appointment_number`),
+  ADD UNIQUE KEY `appointment_id` (`appointment_id`),
+  ADD KEY `idx_patient_id` (`patient_id`),
+  ADD KEY `idx_doctor_id` (`doctor_id`),
+  ADD KEY `idx_appointment_date` (`appointment_date`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `department_id` (`department_id`),
+  ADD KEY `appointment_type_id` (`appointment_type_id`),
+  ADD KEY `idx_appointments_date_status` (`appointment_date`,`status`);
+
+--
+-- Indexes for table `opd_appointment_types`
+--
+ALTER TABLE `opd_appointment_types`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_name` (`name`),
+  ADD UNIQUE KEY `type_id` (`type_id`),
+  ADD KEY `idx_name` (`name`);
+
+--
+-- Indexes for table `opd_departments`
+--
+ALTER TABLE `opd_departments`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_name` (`name`),
+  ADD UNIQUE KEY `department_id` (`department_id`),
+  ADD KEY `idx_name` (`name`),
+  ADD KEY `fk_opd_departments_head_doctor` (`head_doctor_id`);
+
+--
 -- Indexes for table `opd_doctors`
 --
 ALTER TABLE `opd_doctors`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_opd_doctors_name` (`name`),
-  ADD KEY `idx_opd_doctors_hospital` (`hospital`),
-  ADD KEY `idx_opd_doctors_added_by` (`added_by`),
-  ADD KEY `idx_opd_doctors_created_at` (`created_at`),
-  ADD KEY `idx_opd_doctors_status` (`status`);
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `doctor_id` (`doctor_id`),
+  ADD KEY `idx_name` (`name`),
+  ADD KEY `idx_email` (`email`),
+  ADD KEY `idx_specialization` (`specialization`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `specialization_id` (`specialization_id`),
+  ADD KEY `department_id` (`department_id`),
+  ADD KEY `idx_doctors_active` (`is_active`);
+
+--
+-- Indexes for table `opd_facilities`
+--
+ALTER TABLE `opd_facilities`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `facility_id` (`facility_id`),
+  ADD KEY `idx_name` (`name`),
+  ADD KEY `idx_type` (`type`),
+  ADD KEY `department_id` (`department_id`);
+
+--
+-- Indexes for table `opd_medical_records`
+--
+ALTER TABLE `opd_medical_records`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `record_id` (`record_id`),
+  ADD KEY `idx_patient_id` (`patient_id`),
+  ADD KEY `idx_doctor_id` (`doctor_id`),
+  ADD KEY `idx_record_date` (`record_date`),
+  ADD KEY `appointment_id` (`appointment_id`);
+
+--
+-- Indexes for table `opd_patients`
+--
+ALTER TABLE `opd_patients`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `patient_id` (`patient_id`),
+  ADD UNIQUE KEY `unique_patient_id` (`patient_id`),
+  ADD KEY `idx_name` (`name`),
+  ADD KEY `idx_phone` (`phone`),
+  ADD KEY `idx_email` (`email`),
+  ADD KEY `idx_patients_active` (`is_active`);
+
+--
+-- Indexes for table `opd_prescriptions`
+--
+ALTER TABLE `opd_prescriptions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `prescription_id` (`prescription_id`),
+  ADD KEY `idx_patient_id` (`patient_id`),
+  ADD KEY `idx_doctor_id` (`doctor_id`),
+  ADD KEY `appointment_id` (`appointment_id`);
+
+--
+-- Indexes for table `opd_specializations`
+--
+ALTER TABLE `opd_specializations`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_name` (`name`),
+  ADD UNIQUE KEY `specialization_id` (`specialization_id`),
+  ADD KEY `idx_name` (`name`),
+  ADD KEY `department_id` (`department_id`);
+
+--
+-- Indexes for table `opd_users`
+--
+ALTER TABLE `opd_users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `idx_username` (`username`),
+  ADD KEY `idx_email` (`email`),
+  ADD KEY `idx_role` (`role`),
+  ADD KEY `idx_users_role_active` (`role`,`is_active`);
 
 --
 -- Indexes for table `owners`
@@ -2532,19 +2064,25 @@ ALTER TABLE `zip_uploads`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `clients`
 --
 ALTER TABLE `clients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `client_responses`
+--
+ALTER TABLE `client_responses`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=129;
 
 --
 -- AUTO_INCREMENT for table `doctors`
 --
 ALTER TABLE `doctors`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1783;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2012;
 
 --
 -- AUTO_INCREMENT for table `email_signatures`
@@ -2562,37 +2100,55 @@ ALTER TABLE `email_templates`
 -- AUTO_INCREMENT for table `entries`
 --
 ALTER TABLE `entries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `entry_tests`
 --
 ALTER TABLE `entry_tests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `followups`
+--
+ALTER TABLE `followups`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+
+--
+-- AUTO_INCREMENT for table `followup_clients`
+--
+ALTER TABLE `followup_clients`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=264;
+
+--
+-- AUTO_INCREMENT for table `followup_templates`
+--
+ALTER TABLE `followup_templates`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `inventory_clients`
 --
 ALTER TABLE `inventory_clients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `inventory_expense`
 --
 ALTER TABLE `inventory_expense`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `inventory_income`
 --
 ALTER TABLE `inventory_income`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `main_test_categories`
 --
 ALTER TABLE `main_test_categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `notices`
@@ -2601,10 +2157,64 @@ ALTER TABLE `notices`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
+-- AUTO_INCREMENT for table `opd_appointments`
+--
+ALTER TABLE `opd_appointments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `opd_appointment_types`
+--
+ALTER TABLE `opd_appointment_types`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `opd_departments`
+--
+ALTER TABLE `opd_departments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
 -- AUTO_INCREMENT for table `opd_doctors`
 --
 ALTER TABLE `opd_doctors`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `opd_facilities`
+--
+ALTER TABLE `opd_facilities`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `opd_medical_records`
+--
+ALTER TABLE `opd_medical_records`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `opd_patients`
+--
+ALTER TABLE `opd_patients`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `opd_prescriptions`
+--
+ALTER TABLE `opd_prescriptions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `opd_specializations`
+--
+ALTER TABLE `opd_specializations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `opd_users`
+--
+ALTER TABLE `opd_users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `owners`
@@ -2622,7 +2232,7 @@ ALTER TABLE `password_resets`
 -- AUTO_INCREMENT for table `patients`
 --
 ALTER TABLE `patients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=493;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=893;
 
 --
 -- AUTO_INCREMENT for table `plans`
@@ -2634,7 +2244,7 @@ ALTER TABLE `plans`
 -- AUTO_INCREMENT for table `processed_emails`
 --
 ALTER TABLE `processed_emails`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `reports`
@@ -2664,19 +2274,19 @@ ALTER TABLE `system_config`
 -- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `tests`
 --
 ALTER TABLE `tests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `user_settings`
@@ -2688,7 +2298,7 @@ ALTER TABLE `user_settings`
 -- AUTO_INCREMENT for table `zip_uploads`
 --
 ALTER TABLE `zip_uploads`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- Constraints for dumped tables
@@ -2707,18 +2317,67 @@ ALTER TABLE `doctors`
   ADD CONSTRAINT `fk_doctors_user` FOREIGN KEY (`added_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints for table `entries`
+-- Constraints for table `entry_tests`
 --
-ALTER TABLE `entries`
-  ADD CONSTRAINT `fk_entries_doctor` FOREIGN KEY (`doctor_id`) REFERENCES `doctors` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `fk_entries_patient` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `fk_entries_user` FOREIGN KEY (`added_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+ALTER TABLE `entry_tests`
+  ADD CONSTRAINT `entry_tests_ibfk_1` FOREIGN KEY (`entry_id`) REFERENCES `entries` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `notices`
 --
 ALTER TABLE `notices`
   ADD CONSTRAINT `fk_notices_user` FOREIGN KEY (`added_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `opd_appointments`
+--
+ALTER TABLE `opd_appointments`
+  ADD CONSTRAINT `opd_appointments_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `opd_patients` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `opd_appointments_ibfk_2` FOREIGN KEY (`doctor_id`) REFERENCES `opd_doctors` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `opd_appointments_ibfk_3` FOREIGN KEY (`department_id`) REFERENCES `opd_departments` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `opd_appointments_ibfk_4` FOREIGN KEY (`appointment_type_id`) REFERENCES `opd_appointment_types` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `opd_departments`
+--
+ALTER TABLE `opd_departments`
+  ADD CONSTRAINT `fk_opd_departments_head_doctor` FOREIGN KEY (`head_doctor_id`) REFERENCES `opd_doctors` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `opd_doctors`
+--
+ALTER TABLE `opd_doctors`
+  ADD CONSTRAINT `opd_doctors_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `opd_users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `opd_doctors_ibfk_2` FOREIGN KEY (`specialization_id`) REFERENCES `opd_specializations` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `opd_doctors_ibfk_3` FOREIGN KEY (`department_id`) REFERENCES `opd_departments` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `opd_facilities`
+--
+ALTER TABLE `opd_facilities`
+  ADD CONSTRAINT `opd_facilities_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `opd_departments` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `opd_medical_records`
+--
+ALTER TABLE `opd_medical_records`
+  ADD CONSTRAINT `opd_medical_records_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `opd_patients` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `opd_medical_records_ibfk_2` FOREIGN KEY (`doctor_id`) REFERENCES `opd_doctors` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `opd_medical_records_ibfk_3` FOREIGN KEY (`appointment_id`) REFERENCES `opd_appointments` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `opd_prescriptions`
+--
+ALTER TABLE `opd_prescriptions`
+  ADD CONSTRAINT `opd_prescriptions_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `opd_patients` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `opd_prescriptions_ibfk_2` FOREIGN KEY (`doctor_id`) REFERENCES `opd_doctors` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `opd_prescriptions_ibfk_3` FOREIGN KEY (`appointment_id`) REFERENCES `opd_appointments` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `opd_specializations`
+--
+ALTER TABLE `opd_specializations`
+  ADD CONSTRAINT `opd_specializations_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `opd_departments` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `patients`
