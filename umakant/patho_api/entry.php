@@ -40,12 +40,20 @@ if (!$user_data) {
 }
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
-$action = $_REQUEST['action'] ?? $requestMethod;
+$action = $_REQUEST['action'] ?? null;
 
-if ($requestMethod === 'GET' && isset($_GET['id'])) $action = 'get';
-if ($requestMethod === 'GET' && !isset($_GET['id'])) $action = 'list';
-if ($requestMethod === 'POST' || $requestMethod === 'PUT') $action = 'save';
-if ($requestMethod === 'DELETE') $action = 'delete';
+// Default actions based on request method if no explicit action provided
+if (!$action) {
+    if ($requestMethod === 'GET') {
+        $action = isset($_GET['id']) ? 'get' : 'list';
+    } elseif ($requestMethod === 'POST' || $requestMethod === 'PUT') {
+        $action = 'save';
+    } elseif ($requestMethod === 'DELETE') {
+        $action = 'delete';
+    } else {
+        $action = strtolower($requestMethod);
+    }
+}
 
 try {
     switch($action) {
