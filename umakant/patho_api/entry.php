@@ -570,8 +570,11 @@ function handleSave($pdo, $config, $user_data) {
         json_response($responseData);
 
     } catch (Exception $e) {
-        $pdo->rollBack();
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         error_log('Error saving entry: ' . $e->getMessage());
+        file_put_contents(__DIR__ . '/api_debug.log', date('[Y-m-d H:i:s] ') . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n\n", FILE_APPEND);
         
         // Handle specific error codes
         $errorMessage = 'Failed to save entry';
