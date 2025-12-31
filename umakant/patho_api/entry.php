@@ -1236,4 +1236,20 @@ function handleDiagnose($pdo, $user_data) {
     // Reuse handleDebug logic but maybe expand it
     handleDebug($pdo, [], $user_data);
 }
+
+function handleDebugSchema($pdo, $user_data) {
+    try {
+        $tables = ['entries', 'entry_tests', 'tests', 'patients', 'doctors'];
+        $schema = [];
+        foreach($tables as $table) {
+            $schema[$table] = $pdo->query("DESCRIBE $table")->fetchAll(PDO::FETCH_ASSOC);
+        }
+        json_response([
+            'success' => true,
+            'tables' => $schema
+        ]);
+    } catch (Exception $e) {
+        json_response(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+}
 ?>
