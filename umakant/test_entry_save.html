@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Entry Save Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h2>Test Entry Save</h2>
+    <button id="testSave">Test Save Entry</button>
+    <button id="checkSchema">Check Schema</button>
+    <pre id="output" style="background: #f5f5f5; padding: 15px; margin-top: 20px;"></pre>
+
+    <script>
+        $('#testSave').click(function() {
+            const testData = new FormData();
+            testData.append('action', 'save');
+            testData.append('secret_key', 'hospital-api-secret-2024');
+            testData.append('patient_id', '880');
+            testData.append('doctor_id', '1');
+            testData.append('entry_date', '2025-12-31');
+            testData.append('status', 'pending');
+            testData.append('priority', 'normal');
+            testData.append('subtotal', '100');
+            testData.append('discount_amount', '0');
+            testData.append('total_price', '100');
+            testData.append('tests', JSON.stringify([{
+                test_id: 1,
+                category_id: 1,
+                main_category_id: 1,
+                result_value: '',
+                price: 100,
+                unit: '',
+                status: 'pending'
+            }]));
+
+            $.ajax({
+                url: 'patho_api/entry.php',
+                method: 'POST',
+                data: testData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(response) {
+                    $('#output').text(JSON.stringify(response, null, 2));
+                },
+                error: function(xhr) {
+                    $('#output').text('Error: ' + xhr.status + '\n' + xhr.responseText);
+                }
+            });
+        });
+
+        $('#checkSchema').click(function() {
+            $.get('patho_api/entry.php?action=debug_schema&secret_key=hospital-api-secret-2024', function(data) {
+                $('#output').text(JSON.stringify(data, null, 2));
+            }).fail(function(xhr) {
+                $('#output').text('Error: ' + xhr.status + '\n' + xhr.responseText);
+            });
+        });
+    </script>
+</body>
+</html>
