@@ -111,16 +111,17 @@ $(document).ready(function() {
                     orderable: false,
                     width: '150px',
                     render: function(data, type, row) {
+                        // Toggle button should reflect CURRENT status, not desired action
                         const statusBtn = row.status === 'Active' 
-                            ? `<button class="btn btn-sm btn-secondary toggle-status-btn" data-id="${row.id}" title="Deactivate"><i class="fas fa-toggle-on"></i></button>`
-                            : `<button class="btn btn-sm btn-success toggle-status-btn" data-id="${row.id}" title="Activate"><i class="fas fa-toggle-off"></i></button>`;
+                            ? `<button class="btn btn-sm btn-warning toggle-status-btn" data-id="${row.id}" title="Set to Inactive"><i class="fas fa-toggle-on"></i></button>`
+                            : `<button class="btn btn-sm btn-secondary toggle-status-btn" data-id="${row.id}" title="Set to Active"><i class="fas fa-toggle-off"></i></button>`;
                         
                         return `
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-info view-btn" data-id="${row.id}" title="View">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <button class="btn btn-sm btn-warning edit-btn" data-id="${row.id}" title="Edit">
+                                <button class="btn btn-sm btn-primary edit-btn" data-id="${row.id}" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 ${statusBtn}
@@ -322,6 +323,9 @@ $(document).ready(function() {
         const $btn = $(this);
         
         if (confirm('Are you sure you want to change the status of this doctor?')) {
+            // Disable button during request
+            $btn.prop('disabled', true);
+            
             $.ajax({
                 url: 'opd_api/doctors.php',
                 type: 'POST',
@@ -329,12 +333,10 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.success) {
                         toastr.success(response.message);
-                        // Force a complete table reload
-                        setTimeout(function() {
-                            opdDoctorTable.ajax.reload(function() {
-                                loadStats();
-                            });
-                        }, 300);
+                        // Force complete table reload with no cache
+                        opdDoctorTable.ajax.reload(null, false);
+                        // Also reload stats
+                        loadStats();
                     } else {
                         toastr.error(response.message || 'Error updating status');
                     }
@@ -342,6 +344,10 @@ $(document).ready(function() {
                 error: function(xhr) {
                     const response = xhr.responseJSON;
                     toastr.error(response?.message || 'Error updating status');
+                },
+                complete: function() {
+                    // Re-enable button
+                    $btn.prop('disabled', false);
                 }
             });
         }
