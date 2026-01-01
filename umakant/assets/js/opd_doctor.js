@@ -331,19 +331,18 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.success) {
                         toastr.success(response.message);
-                        // Simple table reload
-                        opdDoctorTable.ajax.reload();
-                        loadStats();
+                        // Force page reload to refresh the table
+                        setTimeout(function() {
+                            location.reload();
+                        }, 500);
                     } else {
                         toastr.error(response.message || 'Error updating status');
+                        $btn.prop('disabled', false);
                     }
                 },
                 error: function(xhr) {
                     const response = xhr.responseJSON;
                     toastr.error(response?.message || 'Error updating status');
-                },
-                complete: function() {
-                    // Re-enable button
                     $btn.prop('disabled', false);
                 }
             });
