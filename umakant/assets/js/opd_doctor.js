@@ -83,16 +83,20 @@ $(document).ready(function() {
                 },
                 { 
                     data: 'status',
-                    width: '80px',
+                    width: '120px',
                     render: function(data, type, row) {
                         if (!data) data = 'Active';
                         if (data === 'Active') {
-                            return `<span class="badge badge-success"><i class="fas fa-check-circle"></i> Active</span>`;
+                            return `<button class="btn btn-success btn-sm toggle-status-btn" data-id="${row.id}" title="Click to Deactivate">
+                                        <i class="fas fa-toggle-on"></i> Active
+                                    </button>`;
                         } else {
-                            return `<span class="badge badge-danger"><i class="fas fa-times-circle"></i> Inactive</span>`;
+                            return `<button class="btn btn-secondary btn-sm toggle-status-btn" data-id="${row.id}" title="Click to Activate">
+                                        <i class="fas fa-toggle-off"></i> Inactive
+                                    </button>`;
                         }
                     },
-                    defaultContent: '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Active</span>'
+                    defaultContent: '<button class="btn btn-success btn-sm toggle-status-btn" title="Click to Deactivate"><i class="fas fa-toggle-on"></i> Active</button>'
                 },
                 { 
                     data: 'added_by_username',
@@ -109,13 +113,8 @@ $(document).ready(function() {
                 {
                     data: null,
                     orderable: false,
-                    width: '150px',
+                    width: '120px',
                     render: function(data, type, row) {
-                        // Toggle button should reflect CURRENT status, not desired action
-                        const statusBtn = row.status === 'Active' 
-                            ? `<button class="btn btn-sm btn-warning toggle-status-btn" data-id="${row.id}" title="Set to Inactive"><i class="fas fa-toggle-on"></i></button>`
-                            : `<button class="btn btn-sm btn-secondary toggle-status-btn" data-id="${row.id}" title="Set to Active"><i class="fas fa-toggle-off"></i></button>`;
-                        
                         return `
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-info view-btn" data-id="${row.id}" title="View">
@@ -124,7 +123,6 @@ $(document).ready(function() {
                                 <button class="btn btn-sm btn-primary edit-btn" data-id="${row.id}" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                ${statusBtn}
                                 <button class="btn btn-sm btn-danger delete-btn" data-id="${row.id}" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -322,47 +320,31 @@ $(document).ready(function() {
         const id = $(this).data('id');
         const $btn = $(this);
         
-        console.log('Toggle button clicked for ID:', id);
-        
         if (confirm('Are you sure you want to change the status of this doctor?')) {
             // Disable button during request
             $btn.prop('disabled', true);
-            
-            console.log('Sending toggle request...');
             
             $.ajax({
                 url: 'opd_api/doctors.php',
                 type: 'POST',
                 data: { action: 'toggle_status', id: id },
                 success: function(response) {
-                    console.log('Toggle response:', response);
                     if (response.success) {
                         toastr.success(response.message);
-                        console.log('Reloading table...');
-                        
-                        // Try destroying and recreating the table
-                        if (opdDoctorTable) {
-                            opdDoctorTable.destroy();
-                        }
-                        setTimeout(function() {
-                            initDataTable();
-                            loadStats();
-                        }, 100);
-                        
+                        // Simple table reload
+                        opdDoctorTable.ajax.reload();
+                        loadStats();
                     } else {
-                        console.error('Toggle failed:', response.message);
                         toastr.error(response.message || 'Error updating status');
                     }
                 },
-                error: function(xhr, status, error) {
-                    console.error('Toggle AJAX error:', xhr, status, error);
+                error: function(xhr) {
                     const response = xhr.responseJSON;
                     toastr.error(response?.message || 'Error updating status');
                 },
                 complete: function() {
                     // Re-enable button
                     $btn.prop('disabled', false);
-                    console.log('Toggle request completed');
                 }
             });
         }
