@@ -279,9 +279,53 @@ function saveNewPatient() {
             alert('Patient added successfully!');
             $('#addPatientModal').modal('hide');
             form.reset();
-            if (typeof loadPatients === 'function') {
-                loadPatients(); // Reload the patient list
-            }
+            // Reload the patient list using jQuery AJAX
+            $.ajax({
+                url: 'opd_api/patients.php',
+                type: 'GET',
+                data: { action: 'list' },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        // Render the table with new data
+                        let html = '';
+                        if (response.data.length === 0) {
+                            html = '<tr><td colspan="9" class="text-center text-muted">No patients found</td></tr>';
+                        } else {
+                            response.data.forEach(function(patient, index) {
+                                html += `
+                                    <tr>
+                                        <td>${index + 1}</td>
+                                        <td><strong>${patient.patient_name || 'N/A'}</strong></td>
+                                        <td>${patient.patient_phone || 'N/A'}</td>
+                                        <td>${patient.patient_age || 'N/A'}</td>
+                                        <td>${patient.patient_gender || 'N/A'}</td>
+                                        <td><span class="badge badge-primary">${patient.visit_count || 0}</span></td>
+                                        <td>${patient.first_visit ? new Date(patient.first_visit).toLocaleDateString() : 'N/A'}</td>
+                                        <td>${patient.last_visit ? new Date(patient.last_visit).toLocaleDateString() : 'N/A'}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-info view-history-btn" data-name="${patient.patient_name}" title="View History">
+                                                    <i class="fas fa-history"></i>
+                                                </button>
+                                                <a href="opd_reports.php" class="btn btn-sm btn-success" title="Add Report">
+                                                    <i class="fas fa-plus"></i>
+                                                </a>
+                                                <a href="opd_billing.php" class="btn btn-sm btn-warning" title="Create Bill">
+                                                    <i class="fas fa-file-invoice-dollar"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                        }
+                        $('#patientTableBody').html(html);
+                    }
+                },
+                error: function() {
+                    console.error('Error reloading patients');
+                }
+            });
         } else {
             alert('Error: ' + (data.message || 'Failed to add patient'));
         }
