@@ -322,32 +322,47 @@ $(document).ready(function() {
         const id = $(this).data('id');
         const $btn = $(this);
         
+        console.log('Toggle button clicked for ID:', id);
+        
         if (confirm('Are you sure you want to change the status of this doctor?')) {
             // Disable button during request
             $btn.prop('disabled', true);
+            
+            console.log('Sending toggle request...');
             
             $.ajax({
                 url: 'opd_api/doctors.php',
                 type: 'POST',
                 data: { action: 'toggle_status', id: id },
                 success: function(response) {
+                    console.log('Toggle response:', response);
                     if (response.success) {
                         toastr.success(response.message);
-                        // Force complete table reload with no cache
-                        opdDoctorTable.ajax.reload(null, false);
-                        // Also reload stats
-                        loadStats();
+                        console.log('Reloading table...');
+                        
+                        // Try destroying and recreating the table
+                        if (opdDoctorTable) {
+                            opdDoctorTable.destroy();
+                        }
+                        setTimeout(function() {
+                            initDataTable();
+                            loadStats();
+                        }, 100);
+                        
                     } else {
+                        console.error('Toggle failed:', response.message);
                         toastr.error(response.message || 'Error updating status');
                     }
                 },
-                error: function(xhr) {
+                error: function(xhr, status, error) {
+                    console.error('Toggle AJAX error:', xhr, status, error);
                     const response = xhr.responseJSON;
                     toastr.error(response?.message || 'Error updating status');
                 },
                 complete: function() {
                     // Re-enable button
                     $btn.prop('disabled', false);
+                    console.log('Toggle request completed');
                 }
             });
         }
