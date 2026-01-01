@@ -242,6 +242,15 @@ require_once 'inc/sidebar.php';
 <script>
 function openAddPatientModal() {
     document.getElementById('addPatientForm').reset();
+    
+    // Ensure all form inputs are enabled
+    const form = document.getElementById('addPatientForm');
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.disabled = false;
+        input.removeAttribute('readonly');
+    });
+    
     $('#addPatientModal').modal('show');
 }
 
@@ -361,6 +370,43 @@ function saveNewPatient() {
     padding: 10px;
     border-left: 4px solid #007bff;
     margin-bottom: 15px;
+}
+
+/* Modal Form Fixes */
+#addPatientModal .form-control,
+#addPatientModal .form-control:focus,
+#addPatientModal input[type="text"],
+#addPatientModal input[type="tel"],
+#addPatientModal input[type="email"],
+#addPatientModal input[type="number"],
+#addPatientModal textarea,
+#addPatientModal select {
+    background-color: #fff !important;
+    color: #333 !important;
+    border: 1px solid #ced4da !important;
+    padding: 0.375rem 0.75rem !important;
+    cursor: text !important;
+    pointer-events: auto !important;
+}
+
+#addPatientModal .form-control:focus {
+    border-color: #80bdff !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+}
+
+#addPatientModal .form-group label {
+    color: #333 !important;
+    font-weight: 500 !important;
+}
+
+#addPatientModal .modal-body {
+    background-color: #fff !important;
+}
+
+#addPatientModal .form-control:disabled,
+#addPatientModal .form-control[disabled] {
+    background-color: #e9ecef !important;
+    opacity: 1 !important;
 }
 </style>
 
