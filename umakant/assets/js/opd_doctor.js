@@ -3,6 +3,11 @@ $(document).ready(function() {
     let opdDoctorTable;
     let currentDoctorId = null;
 
+    // Attach event handlers (called after table redraw)
+    function attachEventHandlers() {
+        // Event handlers are already attached via $(document).on() so they persist
+    }
+
     // Initialize DataTable
     function initDataTable() {
         opdDoctorTable = $('#opdDoctorTable').DataTable({
@@ -138,7 +143,11 @@ $(document).ready(function() {
                 { targets: '_all', className: 'text-center' },
                 { targets: [2], className: 'text-left' },
                 { targets: [8], className: 'text-left' }
-            ]
+            ],
+            drawCallback: function() {
+                // Re-attach event handlers after table redraw
+                attachEventHandlers();
+            }
         });
     }
 
@@ -310,6 +319,7 @@ $(document).ready(function() {
     // Toggle status
     $(document).on('click', '.toggle-status-btn', function() {
         const id = $(this).data('id');
+        const $btn = $(this);
         
         if (confirm('Are you sure you want to change the status of this doctor?')) {
             $.ajax({
@@ -319,8 +329,12 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.success) {
                         toastr.success(response.message);
-                        opdDoctorTable.ajax.reload();
-                        loadStats();
+                        // Force a complete table reload
+                        setTimeout(function() {
+                            opdDoctorTable.ajax.reload(function() {
+                                loadStats();
+                            });
+                        }, 300);
                     } else {
                         toastr.error(response.message || 'Error updating status');
                     }
