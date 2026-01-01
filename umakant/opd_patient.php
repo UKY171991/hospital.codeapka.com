@@ -83,7 +83,10 @@ require_once 'inc/sidebar.php';
                                 Patient Directory
                             </h3>
                             <div class="card-tools">
-                                <div class="d-flex">
+                                <div class="d-flex align-items-center">
+                                    <button type="button" class="btn btn-primary btn-sm mr-2" onclick="openAddPatientModal()">
+                                        <i class="fas fa-plus mr-1"></i>Add Patient
+                                    </button>
                                     <select id="filterDoctor" class="form-control form-control-sm mr-2" style="width: 200px;">
                                         <option value="">All Doctors</option>
                                     </select>
@@ -133,6 +136,76 @@ require_once 'inc/sidebar.php';
     </section>
 </div>
 
+<!-- Add Patient Modal -->
+<div class="modal fade" id="addPatientModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Add New Patient
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addPatientForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="patientName">Patient Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="patientName" name="patientName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="patientPhone">Phone <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="patientPhone" name="patientPhone" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="patientAge">Age <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="patientAge" name="patientAge" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="patientGender">Gender <span class="text-danger">*</span></label>
+                                <select class="form-control" id="patientGender" name="patientGender" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="patientEmail">Email</label>
+                        <input type="email" class="form-control" id="patientEmail" name="patientEmail">
+                    </div>
+                    <div class="form-group">
+                        <label for="patientAddress">Address</label>
+                        <textarea class="form-control" id="patientAddress" name="patientAddress" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveNewPatient()">
+                    <i class="fas fa-save"></i> Save Patient
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- View Patient History Modal -->
 <div class="modal fade" id="viewPatientModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl" role="document">
@@ -165,6 +238,43 @@ require_once 'inc/sidebar.php';
 
 <!-- Page specific JavaScript -->
 <script src="assets/js/opd_patient.js?v=<?php echo time(); ?>"></script>
+
+<script>
+function openAddPatientModal() {
+    document.getElementById('addPatientForm').reset();
+    $('#addPatientModal').modal('show');
+}
+
+function saveNewPatient() {
+    const form = document.getElementById('addPatientForm');
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    const formData = new FormData(form);
+    
+    fetch('opd_api/add_patient.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Patient added successfully!');
+            $('#addPatientModal').modal('hide');
+            loadPatients(); // Reload the patient list
+        } else {
+            alert('Error: ' + (data.message || 'Failed to add patient'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while adding the patient');
+    });
+}
+</script>
 
 <style>
 .small-box {
