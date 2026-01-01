@@ -259,19 +259,27 @@ function saveNewPatient() {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             alert('Patient added successfully!');
             $('#addPatientModal').modal('hide');
-            loadPatients(); // Reload the patient list
+            form.reset();
+            if (typeof loadPatients === 'function') {
+                loadPatients(); // Reload the patient list
+            }
         } else {
             alert('Error: ' + (data.message || 'Failed to add patient'));
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while adding the patient');
+        alert('An error occurred while adding the patient. Please check the console for details.');
     });
 }
 </script>
