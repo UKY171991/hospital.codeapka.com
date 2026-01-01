@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Dec 31, 2025 at 09:59 AM
+-- Generation Time: Jan 01, 2026 at 02:47 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -236,7 +236,33 @@ INSERT INTO `client_responses` (`id`, `client_id`, `response_message`, `created_
 (125, 211, 'Not valid Whatsapp', '2025-12-31 04:43:09'),
 (126, 210, 'Sent  Whatsapp message  not  respond  now', '2025-12-31 04:50:00'),
 (127, 223, 'Intrested  asking for demo sent demo with demo user', '2025-12-31 05:01:59'),
-(128, 209, 'Sent  Whatsapp message not  respond  now', '2025-12-31 08:47:03');
+(128, 209, 'Sent  Whatsapp message not  respond  now', '2025-12-31 08:47:03'),
+(129, 205, 'Not valid Whatsapp', '2026-01-01 00:10:48'),
+(130, 208, 'Sent Whatsapp message not respond now', '2026-01-01 00:11:51'),
+(131, 207, 'Not valid Whatsapp', '2026-01-01 00:32:16'),
+(132, 206, 'Sent WhatsApp message not respond now', '2026-01-01 00:33:06'),
+(133, 264, 'Not valid Whatsapp', '2026-01-01 00:34:28'),
+(134, 274, 'Not valid Whatsapp', '2026-01-01 00:35:15'),
+(135, 202, 'Not Valid Whatsapp', '2026-01-01 00:35:59'),
+(136, 204, 'Sent Whatsapp message not respond now', '2026-01-01 00:36:53'),
+(137, 203, 'Sent Whatsapp message not respond now', '2026-01-01 00:37:47'),
+(138, 197, 'Sent Whatsapp message not respond now', '2026-01-01 00:39:27'),
+(139, 201, 'Not valid Whatsapp', '2026-01-01 00:40:36'),
+(140, 200, 'Sent  Whatsapp message  but  not  respond  now', '2026-01-01 01:21:40'),
+(141, 199, 'Sent  Whatsapp message  not respond  now', '2026-01-01 01:22:49'),
+(142, 198, 'Sent  Whatsapp message not  respond now', '2026-01-01 01:23:40'),
+(143, 196, 'Not valid Whatsapp', '2026-01-01 01:24:17'),
+(144, 195, 'Sent  Whatsapp message not respond  now', '2026-01-01 01:26:01'),
+(145, 194, 'Not valid Whatsapp', '2026-01-01 01:26:40'),
+(146, 193, 'Sent Whatsapp message not respond  now', '2026-01-01 01:27:28'),
+(147, 192, 'Sent  Whatsapp message  not respond  now', '2026-01-01 01:38:27'),
+(148, 256, 'not valid Whatsapp', '2026-01-01 01:50:54'),
+(149, 255, 'Not valid Whatsapp', '2026-01-01 01:51:30'),
+(150, 254, 'Sent  Whatsapp message  not respond  now', '2026-01-01 01:52:27'),
+(151, 182, 'Not valid Whatsapp', '2026-01-01 01:54:08'),
+(152, 191, 'Sent Whatsapp message not respond now', '2026-01-01 01:57:39'),
+(153, 190, 'Sent Whatsapp not respond now', '2026-01-01 02:20:18'),
+(154, 189, 'Not valid Whatsapp', '2026-01-01 02:21:30');
 
 -- --------------------------------------------------------
 
@@ -288,7 +314,11 @@ INSERT INTO `doctors` (`id`, `server_id`, `name`, `qualification`, `specializati
 (2008, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 14:37:15', '2025-12-31 14:37:15'),
 (2009, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 14:46:45', '2025-12-31 14:46:45'),
 (2010, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 14:48:54', '2025-12-31 14:48:54'),
-(2011, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 14:56:04', '2025-12-31 14:56:04');
+(2011, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2025-12-31 14:56:04', '2025-12-31 14:56:04'),
+(2012, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2026-01-01 05:07:32', '2026-01-01 05:07:32'),
+(2013, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2026-01-01 05:17:02', '2026-01-01 05:17:02'),
+(2014, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2026-01-01 05:27:08', '2026-01-01 05:27:08'),
+(2015, 1996, 'D1_gyas', NULL, NULL, '', '5656666556', NULL, NULL, NULL, NULL, 0.00, 7, '2026-01-01 05:36:30', '2026-01-01 05:36:30');
 
 -- --------------------------------------------------------
 
@@ -349,7 +379,13 @@ CREATE TABLE `entries` (
   `payment_status` enum('pending','paid','partial') DEFAULT 'pending',
   `notes` text DEFAULT NULL,
   `impression` text DEFAULT NULL,
+  `date_slot` varchar(20) DEFAULT NULL,
+  `service_location` varchar(100) NOT NULL,
+  `collection_address` varchar(100) NOT NULL,
+  `priority` varchar(100) NOT NULL,
+  `referral_source` varchar(100) NOT NULL,
   `added_by` int(11) DEFAULT NULL,
+  `category_id` int(11) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -364,10 +400,14 @@ CREATE TABLE `entry_tests` (
   `id` int(11) NOT NULL,
   `entry_id` int(11) NOT NULL,
   `test_id` int(11) NOT NULL,
+  `category_id` int(11) NOT NULL,
   `result_value` varchar(255) DEFAULT NULL,
   `unit` varchar(50) DEFAULT NULL,
   `remarks` text DEFAULT NULL,
-  `price` decimal(10,2) DEFAULT 0.00
+  `price` decimal(10,2) DEFAULT 0.00,
+  `date_slot` varchar(20) NOT NULL,
+  `main_category_id` int(11) NOT NULL,
+  `status` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -606,33 +646,33 @@ INSERT INTO `followup_clients` (`id`, `name`, `email`, `phone`, `company`, `foll
 (179, 'Future Lab Tandulas', '', '+919988776704', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:15', '2025-12-31 02:52:16'),
 (180, 'Smart Lab Tandume', '', '+919988776705', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:19', '2025-12-31 02:52:26'),
 (181, 'Prime Lab Tandun', '', '+919988776706', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:34', '2025-12-31 02:53:28'),
-(182, 'Best Lab Tanduo', '', '+919988776707', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:39', '2025-12-31 02:54:30'),
+(182, 'Best Lab Tanduo', '', '+919988776707', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:39:39', '2026-01-01 01:54:08'),
 (183, 'Elite Lab Tandup', '', '+919988776708', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:43', '2025-12-31 02:53:34'),
 (184, 'Quality Lab Tanduq', '', '+919988776709', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:47', '2025-12-31 02:53:40'),
 (185, 'Professional Lab Tandur', '', '+919988776710', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:39:52', '2025-12-31 02:53:45'),
 (186, 'Trusted Lab Tandus', '', '+919988776711', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:07', '2025-12-31 02:53:51'),
 (187, 'Reliable Lab Tandut', '', '+919988776712', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:11', '2025-12-31 02:53:58'),
 (188, 'Fast Lab Tanduv', '', '+919988776713', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:16', '2025-12-31 02:54:05'),
-(189, 'Quick Lab Tanduw', '', '+919988776714', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:20', '2025-12-31 02:54:11'),
-(190, 'Expert Lab Tandux', '', '+919988776715', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:24', '2025-12-31 02:54:18'),
-(191, 'Master Lab Tanduy', '', '+919988776716', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:40', '2025-12-31 02:54:24'),
-(192, 'Advanced Lab Tanduz', '', '+919988776717', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:44', '2025-12-31 02:55:16'),
-(193, 'Superior Lab Tandva', '', '+919988776718', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:48', '2025-12-31 02:55:23'),
-(194, 'Leading Lab Tandvb', '', '+919988776719', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:40:53', '2025-12-31 02:55:30'),
-(195, 'Premier Lab Tandvd', '', '+919988776721', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:09', '2025-12-31 02:55:36'),
-(196, 'Ultimate Lab Tandvf', '', '+919988776723', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:16', '2025-12-31 02:55:42'),
-(197, 'Premium Lab Tandvg', '', '+919988776724', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:20', '2025-12-31 02:56:13'),
-(198, 'Brilliant Lab Tandvh', '', '+919988776725', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:25', '2025-12-31 02:55:48'),
-(199, 'Outstanding Lab Tandvi', '', '+919988776726', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:43', '2025-12-31 02:55:54'),
-(200, 'Exceptional Lab Tandvj', '', '+919988776727', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:48', '2025-12-31 02:56:01'),
-(201, 'Remarkable Lab Tandvk', '', '+919988776728', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:52', '2025-12-31 02:56:07'),
-(202, 'Superb Lab Tandvl', '', '+919988776729', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:42:56', '2025-12-31 02:56:31'),
-(203, 'Fabulous Lab Tandvm', '', '+919988776730', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:43:00', '2025-12-31 02:56:19'),
-(204, 'Wonderful Lab Tandvn', '', '+919988776731', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:43:04', '2025-12-31 02:56:25'),
-(205, 'Amazing Lab Tandvo', '', '+919988776732', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:43:09', '2025-12-31 02:56:55'),
-(206, 'Fantastic Lab Tandvp', '', '+919988776733', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:43:12', '2025-12-31 02:56:37'),
-(207, 'Gorgeous Lab Tandvq', '', '+919988776734', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:43:34', '2025-12-31 02:56:43'),
-(208, 'Marvelous Lab Tandvr', '', '+919988776735', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:43:38', '2025-12-31 02:56:49'),
+(189, 'Quick Lab Tanduw', '', '+919988776714', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:40:20', '2026-01-01 02:21:30'),
+(190, 'Expert Lab Tandux', '', '+919988776715', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp not respond now', '2026-01-10', 1, '2025-12-31 02:40:24', '2026-01-01 02:20:18'),
+(191, 'Master Lab Tanduy', '', '+919988776716', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:40:40', '2026-01-01 01:57:39'),
+(192, 'Advanced Lab Tanduz', '', '+919988776717', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  Whatsapp message  not respond  now', '2026-01-10', 1, '2025-12-31 02:40:44', '2026-01-01 01:38:27'),
+(193, 'Superior Lab Tandva', '', '+919988776718', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond  now', '2026-01-10', 1, '2025-12-31 02:40:48', '2026-01-01 01:27:28'),
+(194, 'Leading Lab Tandvb', '', '+919988776719', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:40:53', '2026-01-01 01:26:40'),
+(195, 'Premier Lab Tandvd', '', '+919988776721', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  Whatsapp message not respond  now', '2026-01-10', 1, '2025-12-31 02:42:09', '2026-01-01 01:26:01'),
+(196, 'Ultimate Lab Tandvf', '', '+919988776723', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:42:16', '2026-01-01 01:24:17'),
+(197, 'Premium Lab Tandvg', '', '+919988776724', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:42:20', '2026-01-01 00:39:27'),
+(198, 'Brilliant Lab Tandvh', '', '+919988776725', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  Whatsapp message not  respond now', '2026-01-10', 1, '2025-12-31 02:42:25', '2026-01-01 01:23:40'),
+(199, 'Outstanding Lab Tandvi', '', '+919988776726', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  Whatsapp message  not respond  now', '2026-01-10', 1, '2025-12-31 02:42:43', '2026-01-01 01:22:49'),
+(200, 'Exceptional Lab Tandvj', '', '+919988776727', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  Whatsapp message  but  not  respond  now', '2026-01-10', 1, '2025-12-31 02:42:48', '2026-01-01 01:21:40'),
+(201, 'Remarkable Lab Tandvk', '', '+919988776728', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:42:52', '2026-01-01 00:40:36'),
+(202, 'Superb Lab Tandvl', '', '+919988776729', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not Valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:42:56', '2026-01-01 00:35:59'),
+(203, 'Fabulous Lab Tandvm', '', '+919988776730', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:43:00', '2026-01-01 00:37:47'),
+(204, 'Wonderful Lab Tandvn', '', '+919988776731', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:43:04', '2026-01-01 00:36:53'),
+(205, 'Amazing Lab Tandvo', '', '+919988776732', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:43:09', '2026-01-01 00:10:48'),
+(206, 'Fantastic Lab Tandvp', '', '+919988776733', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent WhatsApp message not respond now', '2026-01-10', 1, '2025-12-31 02:43:12', '2026-01-01 00:33:06'),
+(207, 'Gorgeous Lab Tandvq', '', '+919988776734', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:43:34', '2026-01-01 00:32:16'),
+(208, 'Marvelous Lab Tandvr', '', '+919988776735', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:43:38', '2026-01-01 00:11:51'),
 (209, 'Splendid Lab Tandvs', '', '+919988776736', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  Whatsapp message not  respond  now', '2026-01-10', 1, '2025-12-31 02:43:43', '2025-12-31 08:47:03'),
 (210, 'Glorious Lab Tandvt', '', '+919988776737', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  Whatsapp message  not  respond  now', '2026-01-10', 1, '2025-12-31 02:43:47', '2025-12-31 04:50:00'),
 (211, 'Magnificent Lab Tandvu', '', '+919988776738', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:43:51', '2025-12-31 04:43:09'),
@@ -641,7 +681,8 @@ INSERT INTO `followup_clients` (`id`, `name`, `email`, `phone`, `company`, `foll
 (214, 'Incredible Lab Tandvx', '', '+919988776741', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:04', '2025-12-31 04:28:48'),
 (215, 'Astounding Lab Tandvy', '', '+919988776742', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:22', '2025-12-31 04:17:40'),
 (216, 'Perfect Lab Tandvz', '', '+919988776743', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:26', '2025-12-31 04:19:29'),
-(217, 'Unique Lab Tandwa', '', '+919988776744', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:31', '2025-12-31 04:18:26'),
+(217, 'Unique Lab Tandwa', '', '+919988776744', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:31', '2025-12-31 04:18:26');
+INSERT INTO `followup_clients` (`id`, `name`, `email`, `phone`, `company`, `followup_message`, `followup_title`, `response_message`, `next_followup_date`, `added_by`, `created_at`, `updated_at`) VALUES
 (218, 'Elegant Lab Tandwb', '', '+919988776745', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:44:35', '2025-12-31 04:16:53'),
 (219, 'Sublime Lab Tandwc', '', '+919988776746', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:39', '2025-12-31 04:14:53'),
 (220, 'Superb Lab Tandwd', '', '+919988776747', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:44:43', '2025-12-31 04:16:10'),
@@ -652,8 +693,7 @@ INSERT INTO `followup_clients` (`id`, `name`, `email`, `phone`, `company`, `foll
 (225, 'Stellar Lab Tandwi', '', '+919988776752', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:45:18', '2025-12-31 04:09:45'),
 (226, 'Glowing Lab Tandwj', '', '+919988776753', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:45:22', '2025-12-31 04:08:33'),
 (227, 'Sparkling Lab Tandwk', '', '+919988776754', '', '', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:45:26', '2025-12-31 04:07:35'),
-(228, 'Gleaming Lab Tandwl', '', '+919988776755', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:45:30', '2025-12-31 04:05:39');
-INSERT INTO `followup_clients` (`id`, `name`, `email`, `phone`, `company`, `followup_message`, `followup_title`, `response_message`, `next_followup_date`, `added_by`, `created_at`, `updated_at`) VALUES
+(228, 'Gleaming Lab Tandwl', '', '+919988776755', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:45:30', '2025-12-31 04:05:39'),
 (229, 'Shimmering Lab Tandwm', '', '+919988776756', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:45:34', '2025-12-31 04:04:29'),
 (230, 'Luminous Lab Tandwn', '', '+919988776757', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:45:39', '2025-12-31 04:03:06'),
 (231, 'Glimmering Lab Tandwo', '', '+919988776758', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:45:56', '2025-12-31 04:01:59'),
@@ -679,16 +719,47 @@ INSERT INTO `followup_clients` (`id`, `name`, `email`, `phone`, `company`, `foll
 (251, 'Summit Lab Tandxi', '', '+919988776778', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:47:43', '2025-12-31 03:42:21'),
 (252, 'Peak Lab Tandxj', '', '+919988776779', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  Whatsapp message not respond  now', '2026-01-10', 1, '2025-12-31 02:47:47', '2025-12-31 03:41:38'),
 (253, 'Crown Lab Tandxk', '', '+919988776780', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:47:51', '2025-12-31 03:40:47'),
-(254, 'Royal Lab Tandxl', '', '+919988776781', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:47:55', '2025-12-31 02:54:42'),
-(255, 'Prince Lab Tandxm', '', '+919988776782', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:48:13', '2025-12-31 02:54:51'),
-(256, 'Supreme Lab Tandxn', '', '+919988776783', '', '', 'Pathology पहला संपर्क', '', '2025-12-31', 1, '2025-12-31 02:48:17', '2025-12-31 02:55:06'),
+(254, 'Royal Lab Tandxl', '', '+919988776781', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  Whatsapp message  not respond  now', '2026-01-10', 1, '2025-12-31 02:47:55', '2026-01-01 01:52:27'),
+(255, 'Prince Lab Tandxm', '', '+919988776782', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:48:13', '2026-01-01 01:51:30'),
+(256, 'Supreme Lab Tandxn', '', '+919988776783', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'not valid Whatsapp', '2026-01-10', 1, '2025-12-31 02:48:17', '2026-01-01 01:50:54'),
 (257, 'Imperial Lab Tandxo', '', '+919988776784', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:48:21', '2025-12-31 03:40:01'),
 (258, 'Majestic Lab Tandxp', '', '+919988776785', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:48:25', '2025-12-31 03:38:43'),
 (259, 'Sovereign Lab Tandxq', '', '+919988776786', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent  whatsapp message Not respond now', '2026-01-10', 1, '2025-12-31 02:48:29', '2025-12-31 03:37:58'),
 (260, 'Empress Lab Tandxr', '', '+919988776787', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond now', '2026-01-10', 1, '2025-12-31 02:48:33', '2025-12-31 03:36:38'),
 (261, 'Dynasty Lab Tandxs', '', '+919988776788', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Not valid whatsapp', '2026-01-10', 1, '2025-12-31 02:48:38', '2025-12-31 03:35:28'),
 (262, 'Eternal Lab Tandxt', '', '+919988776789', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent whatsapp on message not respond now', '2026-01-10', 1, '2025-12-31 02:48:42', '2025-12-31 03:34:08'),
-(263, 'Infinite Lab Tandxu', '', '+919988776790', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond', '2026-01-10', 1, '2025-12-31 02:48:46', '2025-12-31 03:32:43');
+(263, 'Infinite Lab Tandxu', '', '+919988776790', '', 'Namaste सर,\r\nमैं  Umakant Yadav, Jaunpur से बोल रहा हूँ।\r\nआपकी lab के लिए अभी reports और billing register पर करते हैं या software use करते हैं?', 'Pathology पहला संपर्क', 'Sent Whatsapp message not respond', '2026-01-10', 1, '2025-12-31 02:48:46', '2025-12-31 03:32:43'),
+(264, 'Dr. Lal PathLabs - Delhi', 'delhi@lalpathlabs.com', '+919811012345', 'Dr. Lal PathLabs', '', 'Pathology Services', 'Not valid Whatsapp', '2026-02-14', 1, '2025-12-31 23:41:48', '2026-01-01 00:34:28'),
+(265, 'Metropolis Healthcare - Mumbai', 'contact@metropolis.co.in', '+919820123456', 'Metropolis Healthcare', '', 'Diagnostic Laboratory', NULL, '2026-01-01', 1, '2025-12-31 23:42:08', NULL),
+(266, 'Vijaya Diagnostic Centre - Bangalore', 'info@vijaya.co.in', '+919900234567', 'Vijaya Diagnostics', '', 'Pathology Center', NULL, '2026-01-01', 1, '2025-12-31 23:42:26', NULL),
+(267, 'Redcliffe Labs - Hyderabad', 'redcliffe@labs.com', '+918765432101', 'Redcliffe', '', 'Diagnostics', NULL, '2026-01-01', 1, '2025-12-31 23:43:22', NULL),
+(268, 'Healthians Diagnostic Labs', 'contact@healthians.com', '+918765432102', 'Healthians', '', 'Diagnostic Services', NULL, '2026-01-01', 1, '2025-12-31 23:43:42', NULL),
+(269, 'SRL Diagnostics Centre - Mumbai', 'mumbai@srl.com', '+918765432103', 'SRL Diagnostics', '', 'Pathology Lab', NULL, '2026-01-01', 1, '2025-12-31 23:43:59', NULL),
+(270, 'Apollo Diagnostics - Delhi', 'delhi@apollo.co.in', '+918765432104', 'Apollo', '', 'Diagnostics', NULL, '2026-01-01', 1, '2025-12-31 23:44:14', NULL),
+(271, 'Dr Vimal Pathology - Bengaluru', 'bengaluru@vimal.com', '+918765432105', 'Vimal', '', 'Pathology', NULL, '2026-01-01', 1, '2025-12-31 23:44:25', NULL),
+(272, 'Aster Diagnostics - Pune', 'pune@aster.co.in', '+918765432106', 'Aster', '', 'Diagnostics', NULL, '2026-01-01', 1, '2025-12-31 23:44:39', NULL),
+(273, 'Suburban Diagnostics - Mumbai', 'contact@suburban.co.in', '+918765432107', 'Suburban', '', 'Laboratory', NULL, '2026-01-01', 1, '2025-12-31 23:44:50', NULL),
+(274, 'Pathcare Diagnostics - Kolkata', 'kolkata@pathcare.com', '+918765432108', 'Pathcare', '', 'Diagnostics', 'Not valid Whatsapp', '2026-01-17', 1, '2025-12-31 23:45:01', '2026-01-01 00:35:15'),
+(275, 'Ganesh Diagnostic Centre - Chennai', 'chennai@ganesh.com', '+918765432110', 'Ganesh', '', 'Diagnostics', NULL, '2026-01-01', 1, '2025-12-31 23:45:26', NULL),
+(276, 'Diagnostic Solutions - Hyderabad', 'hyd@diagsol.com', '+918765432111', 'DiagSol', '', 'Pathology', NULL, '2026-01-01', 1, '2025-12-31 23:45:40', NULL),
+(277, 'Matrix Diagnostics - Ahmedabad', 'ahmd@matrix.com', '+918765432112', 'Matrix', '', 'Diagnostics', NULL, '2026-01-01', 1, '2025-12-31 23:45:51', NULL),
+(278, 'Care Diagnostics - Surat', 'surat@care.com', '+918765432113', 'Care', '', 'Diagnostics', NULL, '2026-01-01', 1, '2025-12-31 23:46:02', NULL),
+(279, 'ProCare Lab - Jaipur', 'jaipur@procare.com', '+918765432114', 'ProCare', '', 'Laboratory', NULL, '2026-01-01', 1, '2025-12-31 23:46:13', NULL),
+(280, 'Lakshya Diagnostics - Lucknow', 'lucknow@lakshya.com', '+918765432115', 'Lakshya', '', 'Diagnostics', NULL, '2026-01-01', 1, '2025-12-31 23:46:24', NULL),
+(281, 'NextGen Labs - Indore', 'indore@nextgen.com', '+918765432116', 'NextGen', '', 'Laboratory', NULL, '2026-01-01', 1, '2025-12-31 23:46:35', NULL),
+(282, 'Spark Diagnostics - Nagpur', 'nagpur@spark.com', '+918765432117', 'Spark', '', 'Diagnostics', NULL, '2026-01-01', 1, '2025-12-31 23:46:47', NULL),
+(283, 'Sunrise Labs - Bhopal', 'bhopal@sunrise.com', '+918765432118', 'Sunrise', '', 'Laboratory', NULL, '2026-01-01', 1, '2025-12-31 23:46:59', NULL),
+(284, 'Vikram Diagnostics - Vadodara', 'vadodara@vikram.com', '+918765432119', 'Vikram', '', 'Diagnostics', NULL, '2026-01-01', 1, '2025-12-31 23:49:58', NULL),
+(285, 'Unity Labs - Nashik', 'nashik@unity.com', '+918765432120', 'Unity', '', 'Diagnostics', NULL, '2026-01-01', 1, '2025-12-31 23:50:16', NULL),
+(286, 'Raj Pathology - Raipur', 'raipur@raj.com', '+918765432121', 'Raj', '', 'Pathology', NULL, '2026-01-01', 1, '2025-12-31 23:50:33', NULL),
+(287, 'Raj Pathology - Raipur', 'raipur123@raj.com', '+918765432150', 'Raj', '', 'Pathology', NULL, '2026-01-01', 1, '2025-12-31 23:52:46', NULL),
+(288, 'Elite Labs - Visakhapatnam', 'viz@elite.com', '+919765432122', 'Elite', '', 'Diagnostics', NULL, '2026-01-01', 1, '2025-12-31 23:53:14', NULL),
+(289, 'Precision Labs - Kochi', 'kochi@precision.com', '+919765432123', 'Precision', '', 'Lab', NULL, '2026-01-01', 1, '2025-12-31 23:53:27', NULL),
+(290, 'MediCare Lab - Amritsar', 'amritsar@medicare.com', '+919765432124', 'MediCare', '', 'Lab', NULL, '2026-01-01', 1, '2025-12-31 23:53:42', NULL),
+(291, 'Miracle Labs - Guwahati', 'guwahati@miracle.com', '+919765432125', 'Miracle', '', 'Diagnostics', NULL, '2026-01-01', 1, '2025-12-31 23:53:55', NULL),
+(292, 'Dr. Sharma PathLab - Lucknow', 'lucknow1@sharma.com', '+917500000001', 'Dr Sharma', '', 'Pathology UP', NULL, '2026-01-01', 1, '2026-01-01 00:03:14', NULL),
+(293, 'Perfect Diagnostics - Kanpur', 'kanpur@perfect.com', '+917500000002', 'Perfect', '', 'Diagnostics', NULL, '2026-01-01', 1, '2026-01-01 00:03:31', NULL),
+(294, 'Shanti PathLab - Agra', 'agra@shanti.com', '+917500000003', 'Shanti', '', 'PathLab', NULL, '2026-01-01', 1, '2026-01-01 00:03:48', NULL);
 
 -- --------------------------------------------------------
 
@@ -913,11 +984,9 @@ CREATE TABLE `notices` (
 --
 
 INSERT INTO `notices` (`id`, `server_id`, `title`, `content`, `start_date`, `end_date`, `active`, `added_by`, `created_at`, `updated_at`) VALUES
-(2, NULL, 'Magna sint est vel', 'Qui praesentium eos', '1988-01-10 01:37:00', '1979-10-28 00:26:00', 1, 1, '2025-10-10 19:14:26', NULL),
-(3, NULL, 'API Test Notice 1760266896536', 'This is a test notice created by the API test.', '2025-10-12 00:00:00', '2025-10-19 00:00:00', 1, 1, NULL, NULL),
 (4, NULL, 'Test Notice 084539 UPDATED', 'This is a test notice for duplicate prevention testing', '2025-09-16 06:45:53', NULL, 0, 1, NULL, NULL),
 (5, NULL, 'Test Notice 084539 UPDATED', 'This is a test notice for duplicate prevention testing', '2025-09-16 06:45:53', NULL, 0, 1, NULL, NULL),
-(6, NULL, 'Umakant', 'Test desc', '2025-09-16 06:45:53', '2025-11-29 05:48:00', 1, 1, NULL, '2025-11-16 06:07:02');
+(7, NULL, 'Happy New Years', 'Happy New Years', '2026-01-01 07:53:00', '2026-01-10 07:53:00', 1, 1, '2026-01-01 07:53:26', NULL);
 
 -- --------------------------------------------------------
 
@@ -986,6 +1055,36 @@ INSERT INTO `opd_appointment_types` (`id`, `type_id`, `name`, `type_name`, `desc
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `opd_billing`
+--
+
+CREATE TABLE `opd_billing` (
+  `id` int(11) NOT NULL,
+  `patient_name` varchar(255) NOT NULL,
+  `patient_phone` varchar(50) DEFAULT NULL,
+  `patient_age` int(11) DEFAULT NULL,
+  `patient_gender` varchar(20) DEFAULT NULL,
+  `doctor_name` varchar(255) DEFAULT NULL,
+  `consultation_fee` decimal(10,2) DEFAULT 0.00,
+  `medicine_charges` decimal(10,2) DEFAULT 0.00,
+  `lab_charges` decimal(10,2) DEFAULT 0.00,
+  `other_charges` decimal(10,2) DEFAULT 0.00,
+  `discount` decimal(10,2) DEFAULT 0.00,
+  `total_amount` decimal(10,2) DEFAULT 0.00,
+  `paid_amount` decimal(10,2) DEFAULT 0.00,
+  `balance_amount` decimal(10,2) DEFAULT 0.00,
+  `payment_method` varchar(50) DEFAULT 'Cash',
+  `payment_status` varchar(50) DEFAULT 'Unpaid',
+  `bill_date` date DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `added_by` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `opd_departments`
 --
 
@@ -1034,7 +1133,7 @@ CREATE TABLE `opd_doctors` (
   `specialization` varchar(100) DEFAULT NULL,
   `specialization_id` int(11) DEFAULT NULL,
   `department_id` int(11) DEFAULT NULL,
-  `qualifications` text DEFAULT NULL,
+  `qualification` text DEFAULT NULL,
   `experience_years` int(11) DEFAULT 0,
   `license_number` varchar(50) DEFAULT NULL,
   `consultation_fee` decimal(10,2) DEFAULT 0.00,
@@ -1043,12 +1142,23 @@ CREATE TABLE `opd_doctors` (
   `profile_image_url` varchar(255) DEFAULT NULL,
   `rating` decimal(3,2) DEFAULT 0.00,
   `total_reviews` int(11) DEFAULT 0,
+  `hospital` text NOT NULL,
+  `contact_no` varchar(100) NOT NULL,
+  `address` text NOT NULL,
+  `registration_no` varchar(100) NOT NULL,
   `status` enum('active','inactive','on_leave') DEFAULT 'active',
   `is_active` tinyint(1) DEFAULT 1,
   `added_by` int(11) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `opd_doctors`
+--
+
+INSERT INTO `opd_doctors` (`id`, `doctor_id`, `user_id`, `name`, `doctor_name`, `email`, `phone`, `mobile`, `specialization`, `specialization_id`, `department_id`, `qualification`, `experience_years`, `license_number`, `consultation_fee`, `followup_fee`, `bio`, `profile_image_url`, `rating`, `total_reviews`, `hospital`, `contact_no`, `address`, `registration_no`, `status`, `is_active`, `added_by`, `created_at`, `updated_at`) VALUES
+(1, NULL, NULL, 'Brennan Hill', NULL, 'fovet@mailinator.com', '+1 (327) 134-5633', NULL, 'Incidunt repudianda', NULL, NULL, 'Proident enim debit', 0, NULL, 0.00, 0.00, NULL, NULL, 0.00, 0, 'Cum ut soluta ipsa', '+1 (195) 382-7446', 'Placeat amet ea vo', '578', 'active', 1, 1, '2026-01-01 02:47:00', '2026-01-01 02:47:28');
 
 -- --------------------------------------------------------
 
@@ -1142,6 +1252,14 @@ CREATE TABLE `opd_patients` (
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `opd_patients`
+--
+
+INSERT INTO `opd_patients` (`id`, `patient_id`, `patient_number`, `name`, `full_name`, `patient_name`, `email`, `phone`, `mobile`, `contact`, `dob`, `date_of_birth`, `gender`, `address`, `blood_group`, `emergency_contact`, `emergency_contact_name`, `emergency_contact_phone`, `medical_history`, `allergies`, `current_medications`, `profile_image_url`, `is_active`, `status`, `created_at`, `updated_at`) VALUES
+(1, '', NULL, 'test p', NULL, NULL, '', '6767676', NULL, NULL, '1971-01-01', NULL, 'male', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 'active', '2026-01-01 02:17:27', '2026-01-01 02:17:27'),
+(4, 'PAT-20260101-B85626', NULL, 'P2', NULL, NULL, '', '7667766767', NULL, NULL, '1981-01-01', NULL, 'male', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 'active', '2026-01-01 02:27:11', '2026-01-01 02:27:11');
+
 -- --------------------------------------------------------
 
 --
@@ -1163,6 +1281,31 @@ CREATE TABLE `opd_prescriptions` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `opd_reports`
+--
+
+CREATE TABLE `opd_reports` (
+  `id` int(11) NOT NULL,
+  `patient_name` varchar(255) NOT NULL,
+  `patient_phone` varchar(50) DEFAULT NULL,
+  `patient_age` int(11) DEFAULT NULL,
+  `patient_gender` varchar(20) DEFAULT NULL,
+  `doctor_name` varchar(255) DEFAULT NULL,
+  `report_date` date DEFAULT NULL,
+  `diagnosis` text DEFAULT NULL,
+  `symptoms` text DEFAULT NULL,
+  `test_results` text DEFAULT NULL,
+  `prescription` text DEFAULT NULL,
+  `follow_up_date` date DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `added_by` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -1225,7 +1368,7 @@ CREATE TABLE `opd_users` (
 
 INSERT INTO `opd_users` (`id`, `username`, `email`, `password`, `name`, `full_name`, `phone`, `mobile`, `role`, `user_type`, `specialization`, `license_number`, `is_active`, `status`, `created_at`, `updated_at`) VALUES
 (1, 'admin', 'admin@hospital.com', '$2y$12$HPL7R9H5Rr3a/n7TcAR0nOqIiM0GCqIE0WWd1rKhuWgafOuUuWSXa', 'Administrator', NULL, '', NULL, 'admin', NULL, '', '', 1, 'active', '2025-11-24 07:06:20', '2025-12-05 06:23:30'),
-(2, 'doctor', 'doc@gmail.com', '$2y$12$yeplk3EgwtDqZMbgjUlqtuzL9g/lZqCsIj1ikEK1PLvrvMCYFKFeq', 'doctor', NULL, '', NULL, 'doctor', NULL, '', '', 1, 'active', '2025-12-16 09:00:17', '2025-12-16 09:00:17');
+(2, 'doctor', 'doc@gmail.com', '$2y$12$yeplk3EgwtDqZMbgjUlqtuzL9g/lZqCsIj1ikEK1PLvrvMCYFKFeq', 'doctor', NULL, '+919876543210', NULL, 'doctor', NULL, '', '', 1, 'active', '2025-12-16 09:00:17', '2026-01-01 01:36:23');
 
 -- --------------------------------------------------------
 
@@ -1325,7 +1468,11 @@ INSERT INTO `patients` (`id`, `server_id`, `name`, `email`, `mobile`, `father_hu
 (889, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
 (890, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
 (891, NULL, 'Umat', '', '9453619260', NULL, 'gg', NULL, 40, '', 'years', 'P000002', NULL, NULL, 1),
-(892, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1);
+(892, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(893, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(894, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(895, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1),
+(896, NULL, 'ertg', '', '5656565656', NULL, NULL, NULL, 5, '', 'Years', 'qw', NULL, NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -1638,14 +1785,13 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `email`, `role`, `is_active`, `user_type`, `created_at`, `last_login`, `expire_date`, `api_token`, `added_by`, `updated_at`) VALUES
-(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2025-12-31 07:54:26', '2025-12-03 21:58:00', '9ba25cbde33572ba77d12075e1eb96178260ea6c3effb6847d0f51b8e943c14d', 1, '2025-09-26 04:42:48'),
-(2, 'uma', '$2y$12$auavnwTI5hbfkyqCoavijO/i3diGYgDZqt58EzkY6ZkB6M9jTmD9e', 'Uma Yadav', 'umakant171992@gmail.com', 'user', 1, 'Pathology', '2025-09-26 10:13:58', '2025-12-31 14:55:28', '2025-12-30 23:59:00', '6dad141b199e8c2ae3021462459c23135244d408778939a4c33c4a969726fde7', 1, '2025-10-18 05:36:53'),
+(1, 'umakant', '$2y$12$8RovPoAOxY30weFvoSKJD.aabD27dV8cHbqON2XTQ04x1fs/Tw1da', 'Umakant Yadav', 'umakant171991@gmail.com', 'master', 1, 'Pathology', '2025-09-26 10:12:24', '2026-01-01 05:10:37', '2025-12-03 21:58:00', '9ba25cbde33572ba77d12075e1eb96178260ea6c3effb6847d0f51b8e943c14d', 1, '2025-09-26 04:42:48'),
+(2, 'uma', '$2y$12$auavnwTI5hbfkyqCoavijO/i3diGYgDZqt58EzkY6ZkB6M9jTmD9e', 'Uma Yadav', 'umakant171992@gmail.com', 'user', 1, 'Pathology', '2025-09-26 10:13:58', '2026-01-01 05:44:11', '2025-12-30 23:59:00', '6dad141b199e8c2ae3021462459c23135244d408778939a4c33c4a969726fde7', 1, '2025-10-18 05:36:53'),
 (5, 'ghayas', '$2y$12$xGaV5GD7MjnYKyil2ZWdCuFfhFFlNz15MhoqcCfpIHRH4GNPgg8n2', 'ghayas ahmad', 'ghayasahmad522@gmail.com', 'user', 1, 'Hospital', '2025-12-02 10:34:10', '2025-12-17 11:54:17', '2026-01-02 10:34:10', '24aa51be2a90dbfc0a1e1fa02fcb8428e3ba6de8c5e4487b272ae06b9afe8f91', 1, '2025-12-02 05:04:10'),
 (7, 'ghayas_m', '$2y$12$HxUjV9xpSg7soP1/M6E7j.p0mQsFCkAJSKM4pmOUbIa7CYXEQjzBq', 'ghayas ahmad', 'gha@gmail.com', 'admin', 1, 'Pathology', '2025-12-03 21:53:18', '2025-12-20 19:27:15', '2026-01-03 21:53:00', '68b3b1e0379106601e1454febff7085d76f36593f0288f6fc664d64ba9653e10', 1, '2025-12-03 16:23:18'),
 (8, 'alok', '$2y$12$PbEu3wQ9yROIEZWJ6OBYbu3NvWBEyuBcuY7goSCIBSVhPqzAyekWC', '', '', 'user', 1, 'Pathology', '2025-12-07 01:39:22', NULL, '2026-03-31 01:39:00', '227f391382161b24b1ebd503fc99a9e0136e55307116db07acf30f5c652e4dab', 1, '2025-12-06 20:09:22'),
 (9, 'sidhant', '$2y$12$nGbCzlSmY6bmIpVkZYv2l.ULcFKfmS2HhNJQv8j4JHm0Na7Ec5NSq', 'Sidhant', 'Sidhant@gmail.com', 'user', 1, 'Pathology', '2025-12-16 18:09:15', '2025-12-20 19:45:03', NULL, '4407d27dca7ef8cfad110648189859ad647be16fd3b08ba6d1701d8a0d36cff9', 7, '2025-12-16 12:39:15'),
-(10, 'demo', '$2y$12$LlrwEAWuSGyp2aiMbMCadu6g69S2cnGjxQJT0UC9PLOrrRijtAO.6', 'Demo auser', 'admin@example.com', 'user', 1, 'Pathology', '2025-12-19 05:29:25', '2025-12-31 10:59:43', '2028-02-05 05:28:00', '58d731cd1fd88f5cbd3f13723b1ac943d8d7645ee2dc48be34d5f02150f8fdc6', 1, '2025-12-18 23:59:25'),
-(11, 'admin', '$2y$12$/.O5spU.5Ira2bPLqahNnuF1DGzf2u9uTF7DijN4Sh9ClTtsL3gzW', 'Admin', 'admin@iaem.net', 'admin', 1, 'Pathology', '2025-12-19 06:25:36', '2025-12-19 06:25:50', NULL, '', 1, '2025-12-19 00:55:36');
+(10, 'demo', '$2y$12$LlrwEAWuSGyp2aiMbMCadu6g69S2cnGjxQJT0UC9PLOrrRijtAO.6', 'Demo auser', 'admin@example.com', 'user', 1, 'Pathology', '2025-12-19 05:29:25', '2025-12-31 10:59:43', '2028-02-05 05:28:00', '58d731cd1fd88f5cbd3f13723b1ac943d8d7645ee2dc48be34d5f02150f8fdc6', 1, '2025-12-18 23:59:25');
 
 -- --------------------------------------------------------
 
@@ -1707,7 +1853,8 @@ INSERT INTO `zip_uploads` (`id`, `file_name`, `original_name`, `relative_path`, 
 (23, '1765897651_PathoLab_Pro_Setup_v1.0.1.exe', 'PathoLab_Pro_Setup_v1.0.1.exe', 'uploads/1765897651_PathoLab_Pro_Setup_v1.0.1.exe', 'application/vnd.microsoft.portable-executable', 38169540, 1, 'uploaded', NULL, '2025-12-16 20:37:31', '2025-12-16 20:37:31'),
 (24, '1765899181_PathoLab_Pro_Setup_v1.0.2.exe', 'PathoLab_Pro_Setup_v1.0.2.exe', 'uploads/1765899181_PathoLab_Pro_Setup_v1.0.2.exe', 'application/vnd.microsoft.portable-executable', 37874968, 1, 'uploaded', NULL, '2025-12-16 21:03:01', '2025-12-16 21:03:01'),
 (25, '1765900428_PathoLab_Pro_Setup_v1.0.3.exe', 'PathoLab_Pro_Setup_v1.0.3.exe', 'uploads/1765900428_PathoLab_Pro_Setup_v1.0.3.exe', 'application/vnd.microsoft.portable-executable', 37879395, 1, 'uploaded', NULL, '2025-12-16 21:23:49', '2025-12-16 21:23:49'),
-(26, '1766298181_PathoLab_Pro_Setup_v1.0.4.exe', 'PathoLab_Pro_Setup_v1.0.4.exe', 'uploads/1766298181_PathoLab_Pro_Setup_v1.0.4.exe', 'application/vnd.microsoft.portable-executable', 52088175, 1, 'uploaded', NULL, '2025-12-21 11:53:01', '2025-12-21 11:53:01');
+(26, '1766298181_PathoLab_Pro_Setup_v1.0.4.exe', 'PathoLab_Pro_Setup_v1.0.4.exe', 'uploads/1766298181_PathoLab_Pro_Setup_v1.0.4.exe', 'application/vnd.microsoft.portable-executable', 52088175, 1, 'uploaded', NULL, '2025-12-21 11:53:01', '2025-12-21 11:53:01'),
+(30, '1767226582_PathoLab_Pro_Setup_v1.0.6.exe', 'PathoLab_Pro_Setup_v1.0.6.exe', 'uploads/1767226582_PathoLab_Pro_Setup_v1.0.6.exe', 'application/vnd.microsoft.portable-executable', 52931243, 1, 'uploaded', NULL, '2026-01-01 05:46:23', '2026-01-01 05:46:23');
 
 --
 -- Indexes for dumped tables
@@ -1853,6 +2000,12 @@ ALTER TABLE `opd_appointment_types`
   ADD KEY `idx_name` (`name`);
 
 --
+-- Indexes for table `opd_billing`
+--
+ALTER TABLE `opd_billing`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `opd_departments`
 --
 ALTER TABLE `opd_departments`
@@ -1920,6 +2073,12 @@ ALTER TABLE `opd_prescriptions`
   ADD KEY `idx_patient_id` (`patient_id`),
   ADD KEY `idx_doctor_id` (`doctor_id`),
   ADD KEY `appointment_id` (`appointment_id`);
+
+--
+-- Indexes for table `opd_reports`
+--
+ALTER TABLE `opd_reports`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `opd_specializations`
@@ -2076,13 +2235,13 @@ ALTER TABLE `clients`
 -- AUTO_INCREMENT for table `client_responses`
 --
 ALTER TABLE `client_responses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=129;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=155;
 
 --
 -- AUTO_INCREMENT for table `doctors`
 --
 ALTER TABLE `doctors`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2012;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2016;
 
 --
 -- AUTO_INCREMENT for table `email_signatures`
@@ -2100,7 +2259,7 @@ ALTER TABLE `email_templates`
 -- AUTO_INCREMENT for table `entries`
 --
 ALTER TABLE `entries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `entry_tests`
@@ -2118,7 +2277,7 @@ ALTER TABLE `followups`
 -- AUTO_INCREMENT for table `followup_clients`
 --
 ALTER TABLE `followup_clients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=264;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=295;
 
 --
 -- AUTO_INCREMENT for table `followup_templates`
@@ -2154,7 +2313,7 @@ ALTER TABLE `main_test_categories`
 -- AUTO_INCREMENT for table `notices`
 --
 ALTER TABLE `notices`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `opd_appointments`
@@ -2169,6 +2328,12 @@ ALTER TABLE `opd_appointment_types`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT for table `opd_billing`
+--
+ALTER TABLE `opd_billing`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `opd_departments`
 --
 ALTER TABLE `opd_departments`
@@ -2178,7 +2343,7 @@ ALTER TABLE `opd_departments`
 -- AUTO_INCREMENT for table `opd_doctors`
 --
 ALTER TABLE `opd_doctors`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `opd_facilities`
@@ -2196,12 +2361,18 @@ ALTER TABLE `opd_medical_records`
 -- AUTO_INCREMENT for table `opd_patients`
 --
 ALTER TABLE `opd_patients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `opd_prescriptions`
 --
 ALTER TABLE `opd_prescriptions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `opd_reports`
+--
+ALTER TABLE `opd_reports`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -2232,7 +2403,7 @@ ALTER TABLE `password_resets`
 -- AUTO_INCREMENT for table `patients`
 --
 ALTER TABLE `patients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=893;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=897;
 
 --
 -- AUTO_INCREMENT for table `plans`
@@ -2298,7 +2469,7 @@ ALTER TABLE `user_settings`
 -- AUTO_INCREMENT for table `zip_uploads`
 --
 ALTER TABLE `zip_uploads`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- Constraints for dumped tables
