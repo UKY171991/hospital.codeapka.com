@@ -205,6 +205,9 @@
                 <a href="#reports">Reports API</a>
                 <a href="#patients">Patients API</a>
                 <a href="#dashboard">Dashboard API</a>
+                <a href="#departments">Departments API</a>
+                <a href="#specializations">Specializations API</a>
+                <a href="#appointments">Appointments API</a>
                 <a href="#examples">Examples</a>
             </div>
         </div>
@@ -486,6 +489,136 @@
             </div>
         </section>
 
+        <section id="departments" class="section">
+            <h2>🏢 Departments API</h2>
+            <p><strong>File:</strong> <code>departments.php</code></p>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=list</code>
+                </div>
+                <p>Get paginated list of departments</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=get&id={id}</code>
+                </div>
+                <p>Get single department details</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method post">POST</span>
+                    <code>?action=save</code>
+                </div>
+                <p>Create or update department</p>
+                <p><strong>Fields:</strong> name, description, head_doctor_id, location, phone, email, is_active</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method post">POST</span>
+                    <code>?action=delete&id={id}</code>
+                </div>
+                <p>Delete department</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=get_doctors</code>
+                </div>
+                <p>Get list of potential head doctors</p>
+            </div>
+        </section>
+
+        <section id="specializations" class="section">
+            <h2>🩺 Specializations API</h2>
+            <p><strong>File:</strong> <code>specializations.php</code></p>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=list</code>
+                </div>
+                <p>Get paginated list of specializations</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=get&id={id}</code>
+                </div>
+                <p>Get single specialization details</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method post">POST</span>
+                    <code>?action=save</code>
+                </div>
+                <p>Create or update specialization</p>
+                <p><strong>Fields:</strong> name, description, department_id, is_active</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method post">POST</span>
+                    <code>?action=delete&id={id}</code>
+                </div>
+                <p>Delete specialization</p>
+            </div>
+        </section>
+
+        <section id="appointments" class="section">
+            <h2>📅 Appointments API</h2>
+            <p><strong>File:</strong> <code>appointments.php</code></p>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=list</code>
+                </div>
+                <p>Get paginated list of appointments</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=get&id={id}</code>
+                </div>
+                <p>Get single appointment details</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method post">POST</span>
+                    <code>?action=save</code>
+                </div>
+                <p>Create or update appointment</p>
+                <p><strong>Fields:</strong> patient_id, doctor_id, department_id, appointment_date, appointment_time, appointment_type_id, status, reason, notes, fee, payment_status</p>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method post">POST</span>
+                    <code>?action=delete&id={id}</code>
+                </div>
+                <p>Delete appointment</p>
+            </div>
+
+             <div class="endpoint">
+                <div class="endpoint-title">
+                    <span class="method get">GET</span>
+                    <code>?action=stats</code>
+                </div>
+                <p>Get appointment statistics (total, scheduled, confirmed, completed, cancelled, today)</p>
+            </div>
+        </section>
+
         <section id="examples" class="section">
             <h2>💻 Code Examples</h2>
 
@@ -590,6 +723,34 @@ curl -X POST "https://hospital.codeapka.com/umakant/opd_api/reports.php" \
                 <tr>
                     <td><code>users</code></td>
                     <td>User authentication</td>
+                </tr>
+                <tr>
+                    <td><code>opd_departments</code></td>
+                    <td>Hospital departments</td>
+                </tr>
+                <tr>
+                    <td><code>opd_specializations</code></td>
+                    <td>Medical specializations</td>
+                </tr>
+                <tr>
+                    <td><code>opd_appointments</code></td>
+                    <td>Patient appointment records</td>
+                </tr>
+                <tr>
+                    <td><code>opd_appointment_types</code></td>
+                    <td>Types of appointments (e.g., Follow-up, Consultation)</td>
+                </tr>
+                <tr>
+                    <td><code>opd_patients</code></td>
+                    <td>Patient records</td>
+                </tr>
+                <tr>
+                    <td><code>opd_facilities</code></td>
+                    <td>Hospital facilities</td>
+                </tr>
+                <tr>
+                    <td><code>opd_medical_records</code></td>
+                    <td>Patient medical history records</td>
                 </tr>
             </table>
         </section>
