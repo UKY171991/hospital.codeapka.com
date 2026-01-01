@@ -7,40 +7,50 @@ session_start();
 try {
     $action = $_REQUEST['action'] ?? 'list';
 
-    // List patients (from reports)
+    // List patients
     if ($action === 'list') {
         $doctorFilter = $_GET['doctor'] ?? '';
         
+        // Base query to get patients and their visit stats
+        // We join with reports to get visit counts and dates
+        // If a doctor filter is applied, we only count visits for that doctor
+        
         if (!empty($doctorFilter)) {
-            $stmt = $pdo->prepare("
+            $sql = "
                 SELECT 
-                    patient_name,
-                    patient_phone,
-                    patient_age,
-                    patient_gender,
-                    COUNT(*) as visit_count,
-                    MAX(report_date) as last_visit,
-                    MIN(report_date) as first_visit
-                FROM opd_reports 
-                WHERE doctor_name = ?
-                GROUP BY patient_name, patient_phone
+                    p.id,
+                    p.name as patient_name,
+                    p.phone as patient_phone,
+                    p.age as patient_age,
+                    p.gender as patient_gender,
+                    COUNT(r.id) as visit_count,
+                    MAX(r.report_date) as last_visit,
+                    MIN(r.report_date) as first_visit
+                FROM opd_patients p
+                JOIN opd_reports r ON p.name = r.patient_name
+                WHERE r.doctor_name = ?
+                GROUP BY p.id, p.name, p.phone, p.age, p.gender
                 ORDER BY last_visit DESC
-            ");
+            ";
+            $stmt = $pdo->prepare($sql);
             $stmt->execute([$doctorFilter]);
         } else {
-            $stmt = $pdo->query("
+            $sql = "
                 SELECT 
-                    patient_name,
-                    patient_phone,
-                    patient_age,
-                    patient_gender,
-                    COUNT(*) as visit_count,
-                    MAX(report_date) as last_visit,
-                    MIN(report_date) as first_visit
-                FROM opd_reports 
-                GROUP BY patient_name, patient_phone
-                ORDER BY last_visit DESC
-            ");
+                    p.id,
+                    p.name as patient_name,
+                    p.phone as patient_phone,
+                    p.age as patient_age,
+                    p.gender as patient_gender,
+                    COUNT(r.id) as visit_count,
+                    MAX(r.report_date) as last_visit,
+                    MIN(r.report_date) as first_visit
+                FROM opd_patients p
+                LEFT JOIN opd_reports r ON p.name = r.patient_name
+                GROUP BY p.id, p.name, p.phone, p.age, p.gender
+                ORDER BY p.id DESC
+            ";
+            $stmt = $pdo->query($sql);
         }
         
         $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -82,13 +92,15 @@ try {
     if ($action === 'search' && isset($_GET['query'])) {
         $query = '%' . $_GET['query'] . '%';
         $stmt = $pdo->prepare("
-            SELECT DISTINCT 
-                patient_name,
-                patient_phone,
-                patient_age,
-                patient_gender
-            FROM opd_reports 
-            WHERE patient_name LIKE ? OR patient_phone LIKE ?
+            SELECT  
+                p.id,
+                p.name as patient_name,
+                p.phone as patient_phone,
+                p.age as patient_age,
+                p.gender as patient_gender,
+                (SELECT COUNT(*) FROM opd_reports r WHERE r.patient_name = p.name) as visit_count
+            FROM opd_patients p
+            WHERE p.name LIKE ? OR p.phone LIKE ?
             LIMIT 10
         ");
         $stmt->execute([$query, $query]);
@@ -98,17 +110,35 @@ try {
 
     // Patient stats
     if ($action === 'stats') {
-        $totalStmt = $pdo->query("SELECT COUNT(DISTINCT patient_name) FROM opd_reports");
+        $totalStmt = $pdo->query("SELECT COUNT(*) FROM opd_patients");
         $total = $totalStmt->fetchColumn();
         
-        $todayStmt = $pdo->query("SELECT COUNT(DISTINCT patient_name) FROM opd_reports WHERE DATE(report_date) = CURDATE()");
-        $today = $todayStmt->fetchColumn();
+        // For 'today', 'week', 'month', we usually count *visits* (new registrations or reports)
+        // Or we can count patients added. Let's stick to unique patients visited based on reports as that's more meaningful for OPD flow
+        // UNLESS opd_patients has created_at
         
-        $weekStmt = $pdo->query("SELECT COUNT(DISTINCT patient_name) FROM opd_reports WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
-        $week = $weekStmt->fetchColumn();
-        
-        $monthStmt = $pdo->query("SELECT COUNT(DISTINCT patient_name) FROM opd_reports WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)");
-        $month = $monthStmt->fetchColumn();
+        $checkCol = $pdo->query("SHOW COLUMNS FROM opd_patients LIKE 'created_at'");
+        if ($checkCol->rowCount() > 0) {
+            // Count distinct patients added
+             $todayStmt = $pdo->query("SELECT COUNT(*) FROM opd_patients WHERE DATE(created_at) = CURDATE()");
+             $today = $todayStmt->fetchColumn();
+
+             $weekStmt = $pdo->query("SELECT COUNT(*) FROM opd_patients WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
+             $week = $weekStmt->fetchColumn();
+
+             $monthStmt = $pdo->query("SELECT COUNT(*) FROM opd_patients WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)");
+             $month = $monthStmt->fetchColumn();
+        } else {
+             // Fallback to reports if created_at doesn't exist on patients table
+            $todayStmt = $pdo->query("SELECT COUNT(DISTINCT patient_name) FROM opd_reports WHERE DATE(report_date) = CURDATE()");
+            $today = $todayStmt->fetchColumn();
+            
+            $weekStmt = $pdo->query("SELECT COUNT(DISTINCT patient_name) FROM opd_reports WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
+            $week = $weekStmt->fetchColumn();
+            
+            $monthStmt = $pdo->query("SELECT COUNT(DISTINCT patient_name) FROM opd_reports WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)");
+            $month = $monthStmt->fetchColumn();
+        }
         
         json_response([
             'success' => true,
