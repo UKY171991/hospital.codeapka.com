@@ -227,6 +227,41 @@ $role = $_SESSION['role'] ?? 'user';
           </ul>
         </li>
 
+        <?php
+        // X-Ray menu pages
+        $xrayPages = ['xray_dashboard.php', 'xray_scan.php', 'xray_print.php'];
+        $isXrayActive = in_array($activePage, $xrayPages);
+        ?>
+        <li class="nav-item has-treeview <?php echo $isXrayActive ? 'menu-open' : ''; ?>">
+          <a href="#" class="nav-link <?php echo $isXrayActive ? 'active' : ''; ?>">
+            <i class="nav-icon fas fa-x-ray"></i>
+            <p>
+              X-Ray
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="xray_dashboard.php" class="nav-link <?php echo ($activePage == 'xray_dashboard.php') ? 'active' : ''; ?>">
+                <i class="fas fa-tachometer-alt nav-icon"></i>
+                <p>Dashboard</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="xray_scan.php" class="nav-link <?php echo ($activePage == 'xray_scan.php') ? 'active' : ''; ?>">
+                <i class="fas fa-radiation nav-icon"></i>
+                <p>Scan</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="xray_print.php" class="nav-link <?php echo ($activePage == 'xray_print.php') ? 'active' : ''; ?>">
+                <i class="fas fa-print nav-icon"></i>
+                <p>Print</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
         <?php if (isset($_SESSION['user_id'])): ?>
         <li class="nav-item">
           <a href="user.php" class="nav-link <?php echo ($activePage == 'user.php') ? 'active' : ''; ?>">
