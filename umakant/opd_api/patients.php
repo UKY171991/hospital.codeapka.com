@@ -26,7 +26,7 @@ try {
                     MAX(r.report_date) as last_visit,
                     MIN(r.report_date) as first_visit
                 FROM opd_patients p
-                JOIN opd_reports r ON p.name = r.patient_name
+                JOIN opd_reports r ON CONVERT(p.name USING utf8mb4) = CONVERT(r.patient_name USING utf8mb4)
                 WHERE r.doctor_name = ?
                 GROUP BY p.id, p.name, p.phone, p.dob, p.gender
                 ORDER BY last_visit DESC
@@ -45,7 +45,7 @@ try {
                     MAX(r.report_date) as last_visit,
                     MIN(r.report_date) as first_visit
                 FROM opd_patients p
-                LEFT JOIN opd_reports r ON p.name = r.patient_name
+                LEFT JOIN opd_reports r ON CONVERT(p.name USING utf8mb4) = CONVERT(r.patient_name USING utf8mb4)
                 GROUP BY p.id, p.name, p.phone, p.dob, p.gender
                 ORDER BY p.id DESC
             ";

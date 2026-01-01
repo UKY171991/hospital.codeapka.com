@@ -126,9 +126,9 @@ try {
         $statusExists = $checkColumn->rowCount() > 0;
         
         if ($statusExists) {
-            $stmt = $pdo->query("SELECT id, name, specialization, hospital FROM opd_doctors WHERE status = 'Active' OR status IS NULL ORDER BY name ASC");
+            $stmt = $pdo->query("SELECT id, name, specialization FROM opd_doctors WHERE status = 'Active' OR status IS NULL ORDER BY name ASC");
         } else {
-            $stmt = $pdo->query("SELECT id, name, specialization, hospital FROM opd_doctors ORDER BY name ASC");
+            $stmt = $pdo->query("SELECT id, name, specialization FROM opd_doctors ORDER BY name ASC");
         }
         
         $doctors = $stmt->fetchAll(PDO::FETCH_ASSOC);
