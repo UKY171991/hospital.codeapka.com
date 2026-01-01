@@ -14,7 +14,9 @@ try {
         'opd_appointment_types',
         'opd_facilities',
         'opd_medical_records',
-        'opd_prescriptions'
+        'opd_prescriptions',
+        'opd_reports',
+        'opd_billing'
     ];
     
     $existingTables = [];
