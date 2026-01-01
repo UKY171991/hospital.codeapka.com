@@ -424,6 +424,69 @@ $(document).ready(function() {
     display: block;
     margin-bottom: 0.5rem;
 }
+
+/* Enhanced Status Badge Styling */
+.badge-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    color: #fff !important;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+}
+
+.badge-success i {
+    font-size: 0.9rem !important;
+}
+
+.badge-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%) !important;
+    color: #fff !important;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+}
+
+.badge-danger i {
+    font-size: 0.9rem !important;
+}
+
+/* Hover effects for status badges */
+.badge-success:hover {
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4) !important;
+    transform: translateY(-1px) !important;
+}
+
+.badge-danger:hover {
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Status toggle buttons styling */
+.toggle-status-btn {
+    transition: all 0.3s ease !important;
+}
+
+.toggle-status-btn:hover {
+    transform: scale(1.1) !important;
+}
+
+/* Active status - Green theme */
+.badge-success {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%) !important;
+}
+
+/* Inactive status - Red theme */
+.badge-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%) !important;
+}
 </style>
 
 <?php require_once 'inc/footer.php'; ?>

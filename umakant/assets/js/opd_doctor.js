@@ -81,9 +81,11 @@ $(document).ready(function() {
                     width: '80px',
                     render: function(data, type, row) {
                         if (!data) data = 'Active';
-                        const statusClass = data === 'Active' ? 'success' : 'danger';
-                        const statusIcon = data === 'Active' ? 'check-circle' : 'times-circle';
-                        return `<span class="badge badge-${statusClass}"><i class="fas fa-${statusIcon}"></i> ${data}</span>`;
+                        if (data === 'Active') {
+                            return `<span class="badge badge-success"><i class="fas fa-check-circle"></i> Active</span>`;
+                        } else {
+                            return `<span class="badge badge-danger"><i class="fas fa-times-circle"></i> Inactive</span>`;
+                        }
                     },
                     defaultContent: '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Active</span>'
                 },
