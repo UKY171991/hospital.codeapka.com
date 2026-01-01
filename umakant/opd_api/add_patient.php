@@ -38,27 +38,34 @@ try {
         json_response(['success' => false, 'message' => 'Patient with this phone number already exists'], 400);
     }
 
+    // Generate unique patient_id
+    $patientId = 'PAT-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid()), 0, 6));
+
+    // Normalize gender to lowercase
+    $genderNormalized = strtolower($patientGender);
+
     // Insert new patient
     $insertStmt = $pdo->prepare("
-        INSERT INTO opd_patients (name, phone, dob, gender, email, address, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, NOW())
+        INSERT INTO opd_patients (patient_id, name, phone, dob, gender, email, address, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
     ");
 
     $result = $insertStmt->execute([
+        $patientId,
         $patientName,
         $patientPhone,
         $dob,
-        $patientGender,
+        $genderNormalized,
         $patientEmail,
         $patientAddress
     ]);
 
     if ($result) {
-        $patientId = $pdo->lastInsertId();
+        $newPatientId = $pdo->lastInsertId();
         json_response([
             'success' => true,
             'message' => 'Patient added successfully',
-            'data' => ['id' => $patientId]
+            'data' => ['id' => $newPatientId, 'patient_id' => $patientId]
         ]);
     } else {
         json_response(['success' => false, 'message' => 'Failed to add patient'], 500);
