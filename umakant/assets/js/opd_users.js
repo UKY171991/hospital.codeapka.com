@@ -112,6 +112,42 @@ $(document).ready(function() {
         });
     });
 
+    // View user
+    $(document).on('click', '.view-btn', function() {
+        const id = $(this).data('id');
+        $.ajax({
+            url: 'opd_api/users.php',
+            type: 'GET',
+            data: { action: 'get', id: id },
+            success: function(response) {
+                if (response.success && response.data) {
+                    const user = response.data;
+                    $('#view_username').text(user.username);
+                    $('#view_email').text(user.email);
+                    $('#view_name').text(user.name);
+                    $('#view_phone').text(user.phone || '-');
+                    $('#view_role').html(`<span class="badge badge-info">${user.role}</span>`);
+                    $('#view_specialization').text(user.specialization || '-');
+                    $('#view_license_number').text(user.license_number || '-');
+                    $('#view_status').html(user.is_active == 1 ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>');
+                    $('#view_created_at').text(user.created_at);
+                    
+                    $('#editFromViewBtn').data('id', user.id);
+                    $('#viewUserModal').modal('show');
+                }
+            }
+        });
+    });
+
+    // Edit from view modal
+    $('#editFromViewBtn').click(function() {
+        const id = $(this).data('id');
+        $('#viewUserModal').modal('hide');
+        setTimeout(() => {
+            $(`.edit-btn[data-id="${id}"]`).click();
+        }, 500); // Small delay to allow modal to close
+    });
+
     // Save user
     $('#userForm').submit(function(e) {
         e.preventDefault();

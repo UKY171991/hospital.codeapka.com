@@ -249,7 +249,72 @@ require_once 'inc/sidebar.php';
     </div>
 </div>
 
-<!-- Page specific JavaScript -->
+
+<!-- View User Modal -->
+<div class="modal fade" id="viewUserModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye mr-2"></i>
+                    User Details
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered table-striped">
+                    <tbody>
+                        <tr>
+                            <th style="width: 30%">Username</th>
+                            <td id="view_username"></td>
+                        </tr>
+                        <tr>
+                            <th>Email</th>
+                            <td id="view_email"></td>
+                        </tr>
+                        <tr>
+                            <th>Name</th>
+                            <td id="view_name"></td>
+                        </tr>
+                        <tr>
+                            <th>Phone</th>
+                            <td id="view_phone"></td>
+                        </tr>
+                        <tr>
+                            <th>Role</th>
+                            <td id="view_role"></td>
+                        </tr>
+                        <tr>
+                            <th>Specialization</th>
+                            <td id="view_specialization"></td>
+                        </tr>
+                        <tr>
+                            <th>License Number</th>
+                            <td id="view_license_number"></td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td id="view_status"></td>
+                        </tr>
+                        <tr>
+                            <th>Created At</th>
+                            <td id="view_created_at"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning" id="editFromViewBtn">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="assets/js/opd_users.js?v=<?php echo time(); ?>"></script>
 
 <style>
