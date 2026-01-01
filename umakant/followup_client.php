@@ -113,13 +113,13 @@ require_once 'inc/sidebar.php';
                             </div>
                             <div class="form-group">
                                 <label for="followup_title">Followup Title</label>
-                                <input type="text" class="form-control" id="followup_title" name="followup_title" placeholder="Enter message title">
+                                <input type="text" class="form-control" id="followup_title" name="followup_title" placeholder="Enter message title" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="templateSelector">Select Followup Template (Optional)</label>
-                                <select class="form-control" id="templateSelector">
+                                <label for="templateSelector">Select Followup Template <span class="text-danger">*</span></label>
+                                <select class="form-control" id="templateSelector" required>
                                     <option value="">-- Select Template --</option>
                                     <!-- Templates will be loaded here -->
                                 </select>
