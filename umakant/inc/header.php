@@ -1,5 +1,7 @@
 <?php
 // inc/header.php - simple header with assets (Bootstrap + jQuery + Toastr)
+if(session_status() === PHP_SESSION_NONE) session_start();
+include_once __DIR__ . '/auth.php';
 ?>
 <!doctype html>
 <html lang="en">
@@ -86,8 +88,7 @@
   
   <style>body{background:#f4f6f9}</style>
 </head>
-<?php if(session_status() === PHP_SESSION_NONE) session_start(); ?>
-<?php include_once __DIR__ . '/auth.php'; ?>
+
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
