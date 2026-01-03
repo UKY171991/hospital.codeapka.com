@@ -17,74 +17,19 @@ include_once __DIR__ . '/auth.php';
   <!-- Core CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
-  
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   
-  <!-- DataTables CSS -->
+  <!-- DataTables & Plugin CSS -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap4.min.css">
-  
-  <!-- Select2 CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap4-theme@1.0.0/dist/select2-bootstrap4.min.css">
-  
-  <!-- Toastr -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
   
-  <!-- Core JavaScript -->
+  <!-- jQuery (Must be in head for inline scripts) -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
-  
-  <!-- Compatibility: ensure early globals used by older scripts are present -->
-  <script>
-    // Basic global guard so old scripts don't throw before global-utils loads
-    window.isLoading = window.isLoading || false;
-    window.HMS = window.HMS || {};
-    window.HMS.utils = window.HMS.utils || {};
-    if (typeof window.HMS.utils.escapeHtml !== 'function') {
-      window.HMS.utils.escapeHtml = function(s){ if (s == null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); };
-    }
-    // Backwards-compatible pagination globals used by older scripts
-    window.currentPage = window.currentPage || 1;
-    window.recordsPerPage = window.recordsPerPage || 25;
-  </script>
-  
-  <!-- DataTables JavaScript -->
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap4.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
-  
-  <!-- Select2 JavaScript -->
-  <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-  
-  <!-- Toastr JavaScript -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-  
-  <!-- SweetAlert2 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
-  <!-- Global Utils -->
-  <script src="/umakant/assets/js/global-utils.js"></script>
-  
-  <!-- Page-specific CSS -->
+
+  <!-- Page-specific Header Content -->
   <?php if (isset($pageSpecificCSS)) { echo $pageSpecificCSS; } ?>
-  
-  
-  <!-- Enhanced Tables CSS -->
-  
-  <!-- Comprehensive Table Styling -->
-  
-  <!-- Modal Layout Fixes -->
-  
-  <!-- AdminLTE Modal Compatibility -->
   
   <style>body{background:#f4f6f9}</style>
 </head>
