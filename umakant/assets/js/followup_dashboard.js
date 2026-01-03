@@ -404,11 +404,11 @@ $(document).ready(function () {
         if (phone) {
             const cleanPhone = phone.toString().replace(/\D/g, '');
             // Replace {name} placeholder with actual name if exists
-            let text = message.replace(/{name}/g, name);
+            let text = `Dear ${name},\n\n` + message.replace(/{name}/g, name);
 
             // If the template message is completely empty, use a soft default
             if (!message.trim()) {
-                text = `Hi ${name}, I am following up regarding our previous conversation.`;
+                text = `Dear ${name},\n\nHi, I am following up regarding our previous conversation.`;
             }
 
             window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');

@@ -564,7 +564,7 @@ $(document).ready(function() {
         const phone = $(this).attr('data-phone');
         const tr = $(this).closest('tr');
         const name = tr.data('name');
-        const message = tr.data('message') || '';
+        const message = decodeURIComponent(tr.attr('data-message') || '');
         
         if (!phone) {
             toastr.error('Phone number not available');
@@ -572,11 +572,11 @@ $(document).ready(function() {
         }
         
         const cleanPhone = phone.replace(/\D/g, '');
-        let text = message.replace(/{name}/g, name);
+        let text = `Dear ${name},\n\n` + message.replace(/{name}/g, name);
         
         // If message is completely empty, use a soft default
         if (!message) {
-            text = `Hi ${name}, I am following up regarding our previous conversation.`;
+            text = `Dear ${name},\n\nHi, I am following up regarding our previous conversation.`;
         }
         
         const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
@@ -808,7 +808,7 @@ function loadClients(page) {
                 response.data.forEach(function(client, index) {
                     const srNo = (page - 1) * limit + index + 1;
                     const row = `
-                        <tr data-message="${(client.followup_message || '').replace(/"/g, '&quot;')}" 
+                        <tr data-message="${encodeURIComponent(client.followup_message || '')}" 
                             data-title="${(client.followup_title || '').replace(/"/g, '&quot;')}"
                             data-name="${(client.name || '').replace(/"/g, '&quot;')}"
                             data-company="${(client.company || '').replace(/"/g, '&quot;')}">

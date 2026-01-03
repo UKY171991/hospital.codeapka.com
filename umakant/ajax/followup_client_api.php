@@ -122,6 +122,7 @@ function ensureTableExists() {
 
 function getFollowupClients() {
     global $pdo;
+    ensureTableExists();
     
     // Get user role and ID from session
     $userRole = $_SESSION['role'] ?? 'user';
@@ -179,13 +180,10 @@ function getFollowupClients() {
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
     
-    $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // If template exists, use its content as the message (stripped of HTML)
+    // If template exists, use its content as the message (converted for WhatsApp)
     foreach ($clients as &$client) {
-        if (!empty($client['latest_template_content'])) {
-            $client['followup_message'] = trim(strip_tags(str_replace(['<br>', '<br/>', '<p>', '</p>'], ["\n", "\n", "", "\n"], $client['latest_template_content'])));
-        }
+        $rawContent = !empty($client['latest_template_content']) ? $client['latest_template_content'] : $client['followup_message'];
+        $client['followup_message'] = formatForWhatsApp($rawContent);
     }
     
     echo json_encode([
@@ -224,8 +222,9 @@ function getFollowupClient() {
     }
     $client = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($client && !empty($client['latest_template_content'])) {
-        $client['followup_message'] = trim(strip_tags(str_replace(['<br>', '<br/>', '<p>', '</p>'], ["\n", "\n", "", "\n"], $client['latest_template_content'])));
+    if ($client) {
+        $rawContent = !empty($client['latest_template_content']) ? $client['latest_template_content'] : $client['followup_message'];
+        $client['followup_message'] = formatForWhatsApp($rawContent);
     }
     
     if (!$client) {
@@ -527,9 +526,8 @@ function getDashboardStats() {
     $stmt->execute($params);
     $stats['recent_clients'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($stats['recent_clients'] as &$rc) {
-        if (!empty($rc['latest_template_content'])) {
-            $rc['followup_message'] = trim(strip_tags(str_replace(['<br>', '<br/>', '<p>', '</p>'], ["\n", "\n", "", "\n"], $rc['latest_template_content'])));
-        }
+        $rawContent = !empty($rc['latest_template_content']) ? $rc['latest_template_content'] : $rc['followup_message'];
+        $rc['followup_message'] = formatForWhatsApp($rawContent);
     }
 
     // Urgent Followups (Overdue or Today)
@@ -542,9 +540,8 @@ function getDashboardStats() {
     $stmt->execute($params);
     $stats['urgent_followups'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($stats['urgent_followups'] as &$uf) {
-        if (!empty($uf['latest_template_content'])) {
-            $uf['followup_message'] = trim(strip_tags(str_replace(['<br>', '<br/>', '<p>', '</p>'], ["\n", "\n", "", "\n"], $uf['latest_template_content'])));
-        }
+        $rawContent = !empty($uf['latest_template_content']) ? $uf['latest_template_content'] : $uf['followup_message'];
+        $uf['followup_message'] = formatForWhatsApp($rawContent);
     }
 
     // Status Breakdown (by Followup Title)
@@ -566,5 +563,33 @@ function getDashboardStats() {
     $stats['recent_responses'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode(['success' => true, 'data' => $stats]);
+}
+
+/**
+ * Helper to convert HTML content (from template editor) to WhatsApp plain text format
+ */
+function formatForWhatsApp($html) {
+    if (empty($html)) return "";
+    
+    // 1. Replace line breaks and paragraphs
+    $text = str_replace(['<br>', '<br/>', '<br />'], "\n", $html);
+    $text = str_replace(['</p>', '</div>'], "\n", $text);
+    $text = str_replace(['<p>', '<div>'], "", $text);
+    
+    // 2. Bold tags to WhatsApp *
+    $text = preg_replace('/<(strong|b)>(.*?)<\/(strong|b)>/i', '*$2*', $text);
+    
+    // 3. Italic tags to WhatsApp _
+    $text = preg_replace('/<(em|i)>(.*?)<\/(em|i)>/i', '_$2_', $text);
+    
+    // 4. Strikethrough tags to WhatsApp ~
+    $text = preg_replace('/<(strike|s|del)>(.*?)<\/(strike|s|del)>/i', '~$2~', $text);
+    
+    // 5. Remove any other tags
+    $text = strip_tags($text);
+    
+    // 6. Fix multiple newlines and trim
+    $text = preg_replace("/\n\s+\n/", "\n\n", $text);
+    return trim($text);
 }
 ?>
