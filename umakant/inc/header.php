@@ -1,6 +1,7 @@
 <?php
 // inc/header.php - simple header with assets (Bootstrap + jQuery + Toastr)
 if(session_status() === PHP_SESSION_NONE) session_start();
+ob_start();
 include_once __DIR__ . '/auth.php';
 ?>
 <!doctype html>
