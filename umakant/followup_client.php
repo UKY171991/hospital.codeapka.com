@@ -167,8 +167,6 @@ require_once 'inc/sidebar.php';
 .history-count { vertical-align: middle; font-size: 0.75rem; padding: 0.35em 0.65em; }
 </style>
 
-<?php require_once 'inc/footer.php'; ?>
-
 <script>
 let currentPage = 1;
 let currentSearch = '';
@@ -903,3 +901,5 @@ function renderPagination(pagination) {
 </script>
 
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+<?php require_once 'inc/footer.php'; ?>
