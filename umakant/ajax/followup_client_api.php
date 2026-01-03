@@ -13,8 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// error_reporting(E_ALL);
+// ini_set('display_errors', 1);
 
 try {
     if (session_status() === PHP_SESSION_NONE) { 
@@ -164,7 +164,7 @@ function getFollowupClients() {
                     WHEN next_followup_date IS NOT NULL AND next_followup_date <= CURDATE() THEN 1 -- Overdue/Today (High Priority)
                     WHEN next_followup_date IS NOT NULL THEN 2 -- Future Followup
                     ELSE 3 -- No Followup set
-                END ASC,
+                    END ASC,
                 next_followup_date ASC,
                 COALESCE(updated_at, created_at) DESC 
             LIMIT :limit OFFSET :offset";
@@ -443,5 +443,75 @@ function deleteResponse() {
     $stmt->execute([':id' => $id]);
     
     echo json_encode(['success' => true, 'message' => 'Response deleted successfully']);
+}
+
+function getDashboardStats() {
+    global $pdo;
+
+    $userRole = $_SESSION['role'] ?? 'user';
+    $userId = $_SESSION['user_id'] ?? null;
+    $whereSql = "";
+    $params = [];
+
+    if ($userRole !== 'master') {
+        $whereSql = "WHERE added_by = :user_id";
+        $params[':user_id'] = $userId;
+    }
+    
+    // counts
+    $stats = [];
+    
+    // Total Clients
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM followup_clients $whereSql");
+    $stmt->execute($params);
+    $stats['total_clients'] = $stmt->fetchColumn();
+
+    // Today's Followups
+    $todaySql = $whereSql ? "$whereSql AND next_followup_date = CURDATE()" : "WHERE next_followup_date = CURDATE()";
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM followup_clients $todaySql");
+    $stmt->execute($params);
+    $stats['today_followups'] = $stmt->fetchColumn();
+
+    // Overdue Followups
+    $overdueSql = $whereSql ? "$whereSql AND next_followup_date < CURDATE()" : "WHERE next_followup_date < CURDATE()";
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM followup_clients $overdueSql");
+    $stmt->execute($params);
+    $stats['overdue_followups'] = $stmt->fetchColumn();
+
+    // Upcoming Followups (Next 7 days)
+    $upcomingSql = $whereSql ? "$whereSql AND next_followup_date > CURDATE() AND next_followup_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)" : "WHERE next_followup_date > CURDATE() AND next_followup_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)";
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM followup_clients $upcomingSql");
+    $stmt->execute($params);
+    $stats['upcoming_followups'] = $stmt->fetchColumn();
+
+    // Total Templates
+    try {
+        // Check if table exists first to avoid error if feature not fully set up
+        $stmt = $pdo->query("SHOW TABLES LIKE 'followup_templates'");
+        if ($stmt->rowCount() > 0) {
+            $stmt = $pdo->query("SELECT COUNT(*) FROM followup_templates");
+            $stats['total_templates'] = $stmt->fetchColumn();
+        } else {
+            $stats['total_templates'] = 0;
+        }
+    } catch (Exception $e) {
+        $stats['total_templates'] = 0;
+    }
+
+    // Recent Activity (Latest Updated/Created Clients)
+    $recentSql = "SELECT * FROM followup_clients $whereSql ORDER BY COALESCE(updated_at, created_at) DESC LIMIT 5";
+    $stmt = $pdo->prepare($recentSql);
+    $stmt->execute($params);
+    $stats['recent_clients'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Urgent Followups (Overdue or Today)
+    $urgentSql = "SELECT * FROM followup_clients ";
+    $urgentSql .= $whereSql ? "$whereSql AND " : "WHERE ";
+    $urgentSql .= "next_followup_date <= CURDATE() AND next_followup_date IS NOT NULL ORDER BY next_followup_date ASC LIMIT 5";
+    $stmt = $pdo->prepare($urgentSql);
+    $stmt->execute($params);
+    $stats['urgent_followups'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode(['success' => true, 'data' => $stats]);
 }
 ?>
