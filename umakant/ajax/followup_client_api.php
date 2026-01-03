@@ -158,15 +158,18 @@ function getFollowupClients() {
     $totalPages = ceil($totalRecords / $limit);
     
     // Get records - Urgent/Upcoming next followups first, then others by latest activity
-    $sql = "SELECT * FROM followup_clients $whereSql 
+    $sql = "SELECT c.*, t.content as latest_template_content 
+            FROM followup_clients c 
+            LEFT JOIN followup_templates t ON c.followup_title = t.template_name
+            $whereSql 
             ORDER BY 
                 CASE 
-                    WHEN next_followup_date IS NOT NULL AND next_followup_date <= CURDATE() THEN 1 -- Overdue/Today (High Priority)
-                    WHEN next_followup_date IS NOT NULL THEN 2 -- Future Followup
+                    WHEN c.next_followup_date IS NOT NULL AND c.next_followup_date <= CURDATE() THEN 1 -- Overdue/Today (High Priority)
+                    WHEN c.next_followup_date IS NOT NULL THEN 2 -- Future Followup
                     ELSE 3 -- No Followup set
                     END ASC,
-                next_followup_date ASC,
-                COALESCE(updated_at, created_at) DESC 
+                c.next_followup_date ASC,
+                COALESCE(c.updated_at, c.created_at) DESC 
             LIMIT :limit OFFSET :offset";
     $stmt = $pdo->prepare($sql);
     foreach ($params as $key => $val) {
@@ -177,6 +180,13 @@ function getFollowupClients() {
     $stmt->execute();
     
     $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // If template exists, use its content as the message (stripped of HTML)
+    foreach ($clients as &$client) {
+        if (!empty($client['latest_template_content'])) {
+            $client['followup_message'] = trim(strip_tags(str_replace(['<br>', '<br/>', '<p>', '</p>'], ["\n", "\n", "", "\n"], $client['latest_template_content'])));
+        }
+    }
     
     echo json_encode([
         'success' => true,
@@ -200,13 +210,23 @@ function getFollowupClient() {
     
     // Build query based on user role
     if ($userRole === 'master') {
-        $stmt = $pdo->prepare("SELECT * FROM followup_clients WHERE id = :id");
+        $stmt = $pdo->prepare("SELECT c.*, t.content as latest_template_content 
+                               FROM followup_clients c 
+                               LEFT JOIN followup_templates t ON c.followup_title = t.template_name 
+                               WHERE c.id = :id");
         $stmt->execute([':id' => $id]);
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM followup_clients WHERE id = :id AND added_by = :user_id");
+        $stmt = $pdo->prepare("SELECT c.*, t.content as latest_template_content 
+                               FROM followup_clients c 
+                               LEFT JOIN followup_templates t ON c.followup_title = t.template_name 
+                               WHERE c.id = :id AND c.added_by = :user_id");
         $stmt->execute([':id' => $id, ':user_id' => $userId]);
     }
     $client = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($client && !empty($client['latest_template_content'])) {
+        $client['followup_message'] = trim(strip_tags(str_replace(['<br>', '<br/>', '<p>', '</p>'], ["\n", "\n", "", "\n"], $client['latest_template_content'])));
+    }
     
     if (!$client) {
         throw new Exception('Client not found');
@@ -499,18 +519,33 @@ function getDashboardStats() {
     }
 
     // Recent Activity (Latest Updated/Created Clients)
-    $recentSql = "SELECT * FROM followup_clients $whereSql ORDER BY COALESCE(updated_at, created_at) DESC LIMIT 10";
+    $recentSql = "SELECT c.*, t.content as latest_template_content 
+                  FROM followup_clients c 
+                  LEFT JOIN followup_templates t ON c.followup_title = t.template_name 
+                  $whereSql ORDER BY COALESCE(c.updated_at, c.created_at) DESC LIMIT 10";
     $stmt = $pdo->prepare($recentSql);
     $stmt->execute($params);
     $stats['recent_clients'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($stats['recent_clients'] as &$rc) {
+        if (!empty($rc['latest_template_content'])) {
+            $rc['followup_message'] = trim(strip_tags(str_replace(['<br>', '<br/>', '<p>', '</p>'], ["\n", "\n", "", "\n"], $rc['latest_template_content'])));
+        }
+    }
 
     // Urgent Followups (Overdue or Today)
-    $urgentSql = "SELECT * FROM followup_clients ";
-    $urgentSql .= $whereSql ? "$whereSql AND " : "WHERE ";
-    $urgentSql .= "next_followup_date <= CURDATE() AND next_followup_date IS NOT NULL ORDER BY next_followup_date ASC LIMIT 10";
+    $urgentSql = "SELECT c.*, t.content as latest_template_content 
+                  FROM followup_clients c 
+                  LEFT JOIN followup_templates t ON c.followup_title = t.template_name ";
+    $urgentSql .= $whereSql ? " " . str_replace("WHERE", "WHERE c.", $whereSql) . " AND " : "WHERE ";
+    $urgentSql .= "c.next_followup_date <= CURDATE() AND c.next_followup_date IS NOT NULL ORDER BY c.next_followup_date ASC LIMIT 10";
     $stmt = $pdo->prepare($urgentSql);
     $stmt->execute($params);
     $stats['urgent_followups'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($stats['urgent_followups'] as &$uf) {
+        if (!empty($uf['latest_template_content'])) {
+            $uf['followup_message'] = trim(strip_tags(str_replace(['<br>', '<br/>', '<p>', '</p>'], ["\n", "\n", "", "\n"], $uf['latest_template_content'])));
+        }
+    }
 
     // Status Breakdown (by Followup Title)
     $statusSql = "SELECT followup_title as status, COUNT(*) as count FROM followup_clients $whereSql GROUP BY followup_title ORDER BY count DESC";
