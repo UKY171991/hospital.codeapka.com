@@ -180,6 +180,8 @@ function getFollowupClients() {
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
     
+    $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
     // If template exists, use its content as the message (converted for WhatsApp)
     foreach ($clients as &$client) {
         $rawContent = !empty($client['latest_template_content']) ? $client['latest_template_content'] : $client['followup_message'];
