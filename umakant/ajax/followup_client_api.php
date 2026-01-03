@@ -56,6 +56,9 @@ try {
         case 'delete_response':
             deleteResponse();
             break;
+        case 'get_dashboard_stats':
+            getDashboardStats();
+            break;
         default:
             throw new Exception('Invalid action specified');
     }
