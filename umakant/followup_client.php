@@ -564,18 +564,22 @@ $(document).ready(function() {
         const phone = $(this).attr('data-phone');
         const tr = $(this).closest('tr');
         const name = tr.data('name');
-        const message = tr.data('message');
+        const message = tr.data('message') || '';
         
         if (!phone) {
             toastr.error('Phone number not available');
             return;
         }
         
-        let fullMessage = `Dear ${name},\n\n`;
-        fullMessage += message || '';
-        
         const cleanPhone = phone.replace(/\D/g, '');
-        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(fullMessage)}`;
+        let text = message.replace(/{name}/g, name);
+        
+        // If message is completely empty, use a soft default
+        if (!message) {
+            text = `Hi ${name}, I am following up regarding our previous conversation.`;
+        }
+        
+        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
         window.open(whatsappUrl, '_blank');
     });
 
