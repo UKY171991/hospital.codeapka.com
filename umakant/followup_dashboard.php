@@ -198,6 +198,9 @@ require_once 'inc/sidebar.php';
     </section>
 </div>
 
+<!-- Modal Container for dynamic loading -->
+<div id="modalContainer"></div>
+
 <!-- Page specific JavaScript -->
 <script src="assets/js/followup_dashboard.js?v=<?php echo time(); ?>"></script>
 
