@@ -590,7 +590,11 @@ function formatForWhatsApp($html) {
     // 5. Remove any other tags
     $text = strip_tags($text);
     
-    // 6. Fix multiple newlines and trim
+    // 6. Decode HTML entities (like &nbsp;)
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $text = str_replace("\xc2\xa0", " ", $text); // Handle non-breaking space character explicitly
+    
+    // 7. Fix multiple newlines and trim
     $text = preg_replace("/\n\s+\n/", "\n\n", $text);
     return trim($text);
 }
