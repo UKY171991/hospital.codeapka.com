@@ -1,4 +1,11 @@
 <?php
+$pageSpecificCSS = '
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<style>
+    .ui-datepicker { z-index: 2000 !important; border-radius: 12px; border: none; box-shadow: 0 5px 25px rgba(0,0,0,0.15); font-family: inherit; padding: 10px; }
+    .ui-datepicker-header { background: #17a2b8; border: none; border-radius: 8px; color: #fff; }
+    .ui-datepicker-calendar .ui-state-active { background: #17a2b8 !important; border-color: #17a2b8 !important; border-radius: 4px; }
+</style>';
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 ?>
@@ -130,7 +137,12 @@ require_once 'inc/sidebar.php';
                             </div>
                             <div class="form-group">
                                 <label for="next_followup_date">Next Followup Date</label>
-                                <input type="date" class="form-control" id="next_followup_date" name="next_followup_date">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-white"><i class="fas fa-calendar-alt text-primary"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control datepicker" id="next_followup_date" name="next_followup_date" placeholder="YYYY-MM-DD" autocomplete="off">
+                                </div>
                                 <small class="form-text text-muted">Plan your next interaction with this client.</small>
                             </div>
                         </div>
@@ -361,8 +373,8 @@ $(document).ready(function() {
                                                                 <div class="input-group-prepend">
                                                                     <span class="input-group-text bg-white border-right-0"><i class="fas fa-calendar-alt text-primary"></i></span>
                                                                 </div>
-                                                                <input type="date" class="form-control border-left-0 pl-0" id="detail_next_followup_date" 
-                                                                    value="${client.next_followup_date || ''}" style="width: 140px; border-radius: 0 4px 4px 0;">
+                                                                <input type="text" class="form-control border-left-0 pl-0 datepicker" id="detail_next_followup_date" 
+                                                                    value="${client.next_followup_date || ''}" style="width: 140px; border-radius: 0 4px 4px 0;" placeholder="YYYY-MM-DD" autocomplete="off">
                                                             </div>
                                                         </div>
                                                         <button class="btn btn-secondary btn-sm mr-2 d-none" id="cancelResponseEditBtn">
@@ -407,6 +419,15 @@ $(document).ready(function() {
                     `;
                     $('#viewClientModal').remove();
                     $('body').append(modal);
+                    
+                    // Initialize Datepicker for dynamic modal
+                    $('#detail_next_followup_date').datepicker({
+                        dateFormat: 'yy-mm-dd',
+                        minDate: 0,
+                        changeMonth: true,
+                        changeYear: true
+                    });
+
                     $('#viewClientModal').modal('show');
                     loadResponseHistory(client.id);
                 }
@@ -849,6 +870,14 @@ function loadClients(page) {
                     tbody.append(row);
                 });
                 renderPagination(response.pagination);
+
+                // Initialize Datepicker for static list
+                $('.datepicker').datepicker({
+                    dateFormat: 'yy-mm-dd',
+                    minDate: 0,
+                    changeMonth: true,
+                    changeYear: true
+                });
             }
         },
         error: function() {
@@ -872,3 +901,5 @@ function renderPagination(pagination) {
     ul.append(`<li class="page-item ${nextDisabled}"><a class="page-link" href="#" data-page="${pagination.current_page + 1}">&raquo;</a></li>`);
 }
 </script>
+
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>

@@ -233,7 +233,7 @@ $(document).ready(function () {
                                                                     <div class="input-group-prepend border-0">
                                                                         <span class="input-group-text border-0 bg-transparent text-primary px-3"><i class="fas fa-calendar-alt"></i></span>
                                                                     </div>
-                                                                    <input type="date" class="form-control border-0 bg-transparent font-weight-bold text-primary pl-0" id="detail_next_followup_date" value="${client.next_followup_date || ''}">
+                                                                    <input type="text" class="form-control border-0 bg-transparent font-weight-bold text-primary pl-0 datepicker" id="detail_next_followup_date" value="${client.next_followup_date || ''}" placeholder="YYYY-MM-DD" autocomplete="off">
                                                                 </div>
                                                             </div>
                                                             <button class="btn btn-primary btn-lg btn-block shadow-sm py-3 font-weight-bold" id="saveResponseBtn" data-id="${client.id}" style="border-radius: 15px; letter-spacing: 0.5px;">
@@ -272,6 +272,15 @@ $(document).ready(function () {
                         </style>
                     `;
                     $('#modalContainer').html(modal);
+
+                    // Initialize Datepicker for dynamic modal
+                    $('#detail_next_followup_date').datepicker({
+                        dateFormat: 'yy-mm-dd',
+                        minDate: 0,
+                        changeMonth: true,
+                        changeYear: true
+                    });
+
                     $('#viewClientModal').modal('show');
                     loadResponseHistory(client.id);
                 }

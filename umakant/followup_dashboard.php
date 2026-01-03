@@ -1,4 +1,11 @@
 <?php
+$pageSpecificCSS = '
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<style>
+    .ui-datepicker { z-index: 2000 !important; border-radius: 12px; border: none; box-shadow: 0 5px 25px rgba(0,0,0,0.15); font-family: inherit; padding: 10px; }
+    .ui-datepicker-header { background: #3b82f6; border: none; border-radius: 8px; color: #fff; }
+    .ui-datepicker-calendar .ui-state-active { background: #3b82f6 !important; border-color: #3b82f6 !important; border-radius: 4px; }
+</style>';
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 ?>
@@ -202,6 +209,7 @@ require_once 'inc/sidebar.php';
 <div id="modalContainer"></div>
 
 <!-- Page specific JavaScript -->
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <script src="assets/js/followup_dashboard.js?v=<?php echo time(); ?>"></script>
 
 <style>
