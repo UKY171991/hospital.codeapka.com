@@ -499,7 +499,7 @@ function getDashboardStats() {
     }
 
     // Recent Activity (Latest Updated/Created Clients)
-    $recentSql = "SELECT * FROM followup_clients $whereSql ORDER BY COALESCE(updated_at, created_at) DESC LIMIT 5";
+    $recentSql = "SELECT * FROM followup_clients $whereSql ORDER BY COALESCE(updated_at, created_at) DESC LIMIT 10";
     $stmt = $pdo->prepare($recentSql);
     $stmt->execute($params);
     $stats['recent_clients'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -507,10 +507,28 @@ function getDashboardStats() {
     // Urgent Followups (Overdue or Today)
     $urgentSql = "SELECT * FROM followup_clients ";
     $urgentSql .= $whereSql ? "$whereSql AND " : "WHERE ";
-    $urgentSql .= "next_followup_date <= CURDATE() AND next_followup_date IS NOT NULL ORDER BY next_followup_date ASC LIMIT 5";
+    $urgentSql .= "next_followup_date <= CURDATE() AND next_followup_date IS NOT NULL ORDER BY next_followup_date ASC LIMIT 10";
     $stmt = $pdo->prepare($urgentSql);
     $stmt->execute($params);
     $stats['urgent_followups'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Status Breakdown (by Followup Title)
+    $statusSql = "SELECT followup_title as status, COUNT(*) as count FROM followup_clients $whereSql GROUP BY followup_title ORDER BY count DESC";
+    $stmt = $pdo->prepare($statusSql);
+    $stmt->execute($params);
+    $stats['status_stats'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Latest Responses (Global)
+    $respSql = "SELECT r.*, c.name as client_name, c.phone as client_phone 
+                FROM client_responses r 
+                JOIN followup_clients c ON r.client_id = c.id ";
+    if ($userRole !== 'master') {
+        $respSql .= " WHERE c.added_by = :user_id ";
+    }
+    $respSql .= " ORDER BY r.created_at DESC LIMIT 5";
+    $stmt = $pdo->prepare($respSql);
+    $stmt->execute($params);
+    $stats['recent_responses'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode(['success' => true, 'data' => $stats]);
 }

@@ -30,28 +30,26 @@ require_once 'inc/sidebar.php';
             <div class="row">
                 <!-- Total Clients -->
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-info">
+                    <div class="small-box bg-info shadow-sm">
                         <div class="inner">
                             <h3 id="totalClients">0</h3>
                             <p>Total Clients</p>
-                            <small class="text-white">Active Database</small>
                         </div>
                         <div class="icon">
                             <i class="fas fa-users"></i>
                         </div>
                         <a href="followup_client.php" class="small-box-footer">
-                            View Clients <i class="fas fa-arrow-circle-right"></i>
+                            View All <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
                 </div>
 
                 <!-- Today's Followups -->
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-warning">
+                    <div class="small-box bg-warning shadow-sm">
                         <div class="inner">
                             <h3 id="todayFollowups">0</h3>
                             <p>Today's Followups</p>
-                            <small class="text-dark">Due Today</small>
                         </div>
                         <div class="icon">
                             <i class="fas fa-calendar-day"></i>
@@ -64,11 +62,10 @@ require_once 'inc/sidebar.php';
 
                 <!-- Overdue Followups -->
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-danger">
+                    <div class="small-box bg-danger shadow-sm">
                         <div class="inner">
                             <h3 id="overdueFollowups">0</h3>
                             <p>Overdue Followups</p>
-                            <small class="text-white">Requires Attention</small>
                         </div>
                         <div class="icon">
                             <i class="fas fa-exclamation-circle"></i>
@@ -81,11 +78,10 @@ require_once 'inc/sidebar.php';
 
                 <!-- Templates -->
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-success">
+                    <div class="small-box bg-success shadow-sm">
                         <div class="inner">
                             <h3 id="totalTemplates">0</h3>
-                            <p>Message Templates</p>
-                            <small class="text-white">Ready for Use</small>
+                            <p>Active Templates</p>
                         </div>
                         <div class="icon">
                             <i class="fas fa-file-alt"></i>
@@ -97,38 +93,46 @@ require_once 'inc/sidebar.php';
                 </div>
             </div>
 
-            <!-- Urgent & Recent Row -->
+            <!-- Status Breakdown Section -->
+            <div class="card card-outline card-primary mb-4">
+                <div class="card-header">
+                    <h3 class="card-title text-bold"><i class="fas fa-tags mr-2"></i>Followup Categories Breakdown</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="statusBreakdownRow">
+                        <div class="col-12 text-center text-muted py-3">
+                            <i class="fas fa-spinner fa-spin mr-2"></i> Analyzing categories...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                 <!-- Urgent Followups Table -->
-                <div class="col-lg-7">
-                    <div class="card card-danger card-outline">
+                <div class="col-lg-8">
+                    <div class="card card-danger card-outline shadow-sm">
                         <div class="card-header">
-                            <h3 class="card-title">
-                                <i class="fas fa-clock mr-1"></i>
-                                Urgent Followups (Overdue & Today)
+                            <h3 class="card-title text-bold">
+                                <i class="fas fa-bell mr-2"></i>
+                                Urgent Followups (Pending Attention)
                             </h3>
-                            <div class="card-tools">
-                                <a href="followup_client.php" class="btn btn-tool btn-sm">
-                                    <i class="fas fa-bars"></i>
-                                </a>
-                            </div>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-hover table-striped">
-                                    <thead>
+                                <table class="table table-hover mb-0">
+                                    <thead class="bg-light">
                                         <tr>
-                                            <th>Client</th>
-                                            <th>Phone</th>
-                                            <th>Status</th>
+                                            <th>Client Details</th>
+                                            <th>Followup Topic</th>
                                             <th>Date</th>
-                                            <th>Action</th>
+                                            <th class="text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="urgentFollowupsTable">
                                         <tr>
-                                            <td colspan="5" class="text-center py-4">
-                                                <i class="fas fa-spinner fa-spin"></i> Loading...
+                                            <td colspan="4" class="text-center py-5">
+                                                <i class="fas fa-sync-alt fa-spin fa-2x text-muted mb-3"></i>
+                                                <p>Fetching urgent clients...</p>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -138,81 +142,53 @@ require_once 'inc/sidebar.php';
                     </div>
                 </div>
 
-                <!-- Recent Activity / Info Box -->
-                <div class="col-lg-5">
-                    <!-- Info Box -->
-                    <div class="info-box bg-gradient-primary mb-3">
-                        <span class="info-box-icon"><i class="far fa-calendar-check"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">Upcoming (Next 7 Days)</span>
-                            <span class="info-box-number" id="upcomingFollowups">0</span>
-                            <div class="progress">
-                                <div class="progress-bar" style="width: 100%"></div>
-                            </div>
-                            <span class="progress-description">
-                                Scheduled for next week
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Recently Updated Clients -->
-                    <div class="card card-primary card-outline">
+                <!-- Latest Client Responses -->
+                <div class="col-lg-4">
+                    <div class="card card-info card-outline shadow-sm">
                         <div class="card-header">
-                            <h3 class="card-title">
-                                <i class="fas fa-history mr-1"></i>
-                                Recently Updated
+                            <h3 class="card-title text-bold">
+                                <i class="fas fa-comments mr-2"></i>
+                                Recent Client Feedback
                             </h3>
                         </div>
                         <div class="card-body p-0">
-                            <ul class="products-list product-list-in-card pl-2 pr-2" id="recentActivityList">
-                                <!-- Loaded via JS -->
-                                <div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
-                            </ul>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="followup_client.php" class="uppercase">View All Clients</a>
+                            <div class="direct-chat-messages" id="recentResponsesDiv" style="height: auto; min-height: 380px;">
+                                <div class="text-center py-5 text-muted">
+                                    <i class="fas fa-spinner fa-spin mb-2"></i><br>Loading feedback...
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Quick Actions -->
-            <div class="row">
+            <div class="row mt-3">
+                <!-- Recently Updated Clients -->
                 <div class="col-lg-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">
-                                <i class="fas fa-bolt mr-1"></i>
-                                Quick Actions
-                            </h3>
+                    <div class="card shadow-sm">
+                        <div class="card-header border-transparent">
+                            <h3 class="card-title text-bold"><i class="fas fa-history mr-2"></i>Recently Added / Updated Clients</h3>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-3 col-sm-6 mb-3">
-                                    <a href="followup_client.php?action=add" class="btn btn-app btn-block bg-light">
-                                        <i class="fas fa-user-plus text-primary"></i>
-                                        Add New Client
-                                    </a>
-                                </div>
-                                <div class="col-md-3 col-sm-6 mb-3">
-                                    <a href="followup_templates.php" class="btn btn-app btn-block bg-light">
-                                        <i class="fas fa-edit text-success"></i>
-                                        Create Template
-                                    </a>
-                                </div>
-                                <div class="col-md-3 col-sm-6 mb-3">
-                                    <a href="followup_client.php" class="btn btn-app btn-block bg-light">
-                                        <i class="fas fa-list text-info"></i>
-                                        Client List
-                                    </a>
-                                </div>
-                                <div class="col-md-3 col-sm-6 mb-3">
-                                    <button class="btn btn-app btn-block bg-light" onclick="window.location.reload()">
-                                        <i class="fas fa-sync-alt text-secondary"></i>
-                                        Refresh Data
-                                    </button>
-                                </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover m-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Client Name</th>
+                                            <th>Contact</th>
+                                            <th>Last Message Sent</th>
+                                            <th>Activity Time</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentActivityBody">
+                                        <!-- Loaded via JS -->
+                                    </tbody>
+                                </table>
                             </div>
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="followup_client.php" class="btn btn-sm btn-link font-weight-bold">VIEW ALL CLIENTS</a>
                         </div>
                     </div>
                 </div>
@@ -226,92 +202,68 @@ require_once 'inc/sidebar.php';
 <script src="assets/js/followup_dashboard.js?v=<?php echo time(); ?>"></script>
 
 <style>
-.small-box {
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    position: relative;
-    display: block;
-    overflow: hidden;
+.content-wrapper { background-color: #f4f6f9; }
+.small-box { border-radius: 15px; overflow: hidden; transition: all 0.3s ease; border: none; }
+.small-box:hover { transform: translateY(-7px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+.small-box h3 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; }
+.small-box .icon { top: 10px; right: 15px; font-size: 60px; opacity: 0.2; }
+
+.card { border-radius: 15px; border: none; box-shadow: 0 0 15px rgba(0,0,0,0.05) !important; transition: all 0.3s ease; }
+.card-header { border-top-left-radius: 15px !important; border-top-right-radius: 15px !important; background-color: #fff; padding: 1.2rem 1.5rem; }
+.card-outline.card-primary { border-top: 4px solid #007bff; }
+.card-outline.card-danger { border-top: 4px solid #dc3545; }
+.card-outline.card-info { border-top: 4px solid #17a2b8; }
+
+.table thead th { border-top: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #888; border-bottom: 2px solid #f4f4f4; }
+.table td { vertical-align: middle; padding: 1rem 1.2rem; }
+
+.category-box { 
+    background: #fff; 
+    border-radius: 12px; 
+    padding: 20px; 
+    margin-bottom: 20px; 
+    border: 1px solid rgba(0,0,0,0.05); 
+    transition: all 0.3s ease; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
-.small-box > .inner {
-    padding: 20px;
-}
-.small-box h3 {
-    font-size: 2.2rem;
-    font-weight: 700;
-    margin: 0 0 10px 0;
-    white-space: nowrap;
-    padding: 0;
-}
-.small-box p {
-    font-size: 1rem;
-    margin-bottom: 5px;
-}
-.small-box .icon {
-    color: rgba(0,0,0,0.15);
-    z-index: 0;
-    top: 10px;
-    right: 15px;
-    font-size: 70px;
-    position: absolute;
-    transition: all .3s linear;
-}
-.small-box:hover .icon {
-    transform: scale(1.1);
-}
-.small-box-footer {
-    position: relative;
-    text-align: center;
-    padding: 8px 0;
-    color: rgba(255, 255, 255, 0.8);
-    display: block;
-    z-index: 10;
-    background: rgba(0, 0, 0, 0.1);
-    text-decoration: none;
-    transition: all 0.2s;
-}
-.small-box-footer:hover {
-    color: #fff;
-    background: rgba(0, 0, 0, 0.15);
+.category-box:hover { 
+    background: #fff; 
+    transform: scale(1.03); 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08); 
+    border-color: #007bff;
 }
 
-.product-list-in-card > .item {
-    padding: 10px 15px;
-    border-bottom: 1px solid #f0f0f0;
+.direct-chat-msg { margin-bottom: 1.5rem; padding: 0 1.2rem; }
+.direct-chat-text { 
+    background: #f8f9fa; 
+    border: 1px solid #e9ecef; 
+    border-radius: 12px; 
+    padding: 12px 18px; 
+    font-size: 0.95rem; 
+    line-height: 1.5; 
+    color: #444; 
 }
-.product-list-in-card > .item:last-of-type {
-    border-bottom: none;
+.direct-chat-text:after, .direct-chat-text:before { display: none; } /* Clear AdminLTE default chat arrow */
+
+.msg-snippet { 
+    display: block; 
+    max-width: 300px; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
+    color: #777; 
+    font-size: 0.85rem; 
 }
-.product-title {
-    font-weight: 600;
-}
-.product-description {
-    display: block;
-    color: #6c757d;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-.btn-app {
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    margin: 0;
-    min-width: 80px;
-    padding: 15px 5px;
-    text-align: center;
-    background-color: #f8f9fa;
-    color: #444;
-    border: 1px solid #e9ecef;
-    font-size: 12px;
-    transition: all 0.2s;
-}
-.btn-app:hover {
-    background-color: #fff;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transform: translateY(-2px);
-    border-color: #dee2e6;
-}
+
+.bg-info { background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%) !important; }
+.bg-warning { background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important; }
+.bg-danger { background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%) !important; }
+.bg-success { background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important; }
+
+/* Scrollbar styling */
+.direct-chat-messages::-webkit-scrollbar { width: 5px; }
+.direct-chat-messages::-webkit-scrollbar-track { background: #f1f1f1; }
+.direct-chat-messages::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
 </style>
 
 <?php require_once 'inc/footer.php'; ?>
