@@ -22,7 +22,6 @@ $(document).ready(function() {
                     data: 'role',
                     render: function(data) {
                         const badges = {
-                            'admin': 'badge-danger',
                             'doctor': 'badge-primary',
                             'nurse': 'badge-info',
                             'receptionist': 'badge-warning',
@@ -64,7 +63,6 @@ $(document).ready(function() {
                 if (response.success && response.data) {
                     $('#totalUsers').text(response.data.total);
                     $('#activeUsers').text(response.data.active);
-                    $('#adminUsers').text(response.data.admin);
                     $('#doctorUsers').text(response.data.doctor);
                     $('#nurseUsers').text(response.data.nurse);
                     $('#patientUsers').text(response.data.patient);

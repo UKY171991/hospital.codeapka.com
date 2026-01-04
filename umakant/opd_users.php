@@ -51,17 +51,6 @@ require_once 'inc/sidebar.php';
                     </div>
                 </div>
                 <div class="col-lg-2 col-6">
-                    <div class="small-box bg-primary">
-                        <div class="inner">
-                            <h3 id="adminUsers">0</h3>
-                            <p>Admins</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-user-shield"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-6">
                     <div class="small-box bg-warning">
                         <div class="inner">
                             <h3 id="doctorUsers">0</h3>
@@ -192,7 +181,6 @@ require_once 'inc/sidebar.php';
                                 <label for="role">Role <span class="text-danger">*</span></label>
                                 <select class="form-control" id="role" name="role" required>
                                     <option value="">Select Role</option>
-                                    <option value="admin">Admin</option>
                                     <option value="doctor">Doctor</option>
                                     <option value="nurse">Nurse</option>
                                     <option value="receptionist">Receptionist</option>
