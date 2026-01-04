@@ -36,7 +36,12 @@ $(document).ready(function() {
                     }
                 },
                 { data: 'created_at' },
-                { data: 'created_by' },
+                { 
+                    data: 'created_by_name',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
                 {
                     data: null,
                     orderable: false,
@@ -128,6 +133,7 @@ $(document).ready(function() {
                     $('#view_license_number').text(user.license_number || '-');
                     $('#view_status').html(user.is_active == 1 ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>');
                     $('#view_created_at').text(user.created_at);
+                    $('#view_created_by').text(user.created_by_name || '-');
                     
                     $('#editFromViewBtn').data('id', user.id);
                     $('#viewUserModal').modal('show');

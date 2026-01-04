@@ -134,6 +134,7 @@ require_once 'inc/sidebar.php';
             <form id="userForm">
                 <div class="modal-body">
                     <input type="hidden" id="userId" name="id">
+                    <input type="hidden" id="createdBy" name="created_by" value="<?php echo $_SESSION['user_id'] ?? 0; ?>">
                     
                     <div class="row">
                         <div class="col-md-6">
@@ -278,6 +279,10 @@ require_once 'inc/sidebar.php';
                         <tr>
                             <th>Created At</th>
                             <td id="view_created_at"></td>
+                        </tr>
+                        <tr>
+                            <th>Created By</th>
+                            <td id="view_created_by"></td>
                         </tr>
                     </tbody>
                 </table>
