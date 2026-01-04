@@ -36,6 +36,7 @@ $(document).ready(function() {
                     }
                 },
                 { data: 'created_at' },
+                { data: 'created_by' },
                 {
                     data: null,
                     orderable: false,
