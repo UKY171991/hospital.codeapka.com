@@ -24,8 +24,7 @@ $(document).ready(function() {
                         const badges = {
                             'doctor': 'badge-primary',
                             'nurse': 'badge-info',
-                            'receptionist': 'badge-warning',
-                            'patient': 'badge-secondary'
+                            'receptionist': 'badge-warning'
                         };
                         return `<span class="badge ${badges[data] || 'badge-secondary'}">${data}</span>`;
                     }
@@ -65,7 +64,6 @@ $(document).ready(function() {
                     $('#activeUsers').text(response.data.active);
                     $('#doctorUsers').text(response.data.doctor);
                     $('#nurseUsers').text(response.data.nurse);
-                    $('#patientUsers').text(response.data.patient);
                 }
             }
         });
