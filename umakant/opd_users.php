@@ -104,6 +104,7 @@ require_once 'inc/sidebar.php';
                                             <th>Role</th>
                                             <th>Status</th>
                                             <th>Created</th>
+                                            <th>Created By</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
