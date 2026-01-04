@@ -72,17 +72,6 @@ require_once 'inc/sidebar.php';
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-2 col-6">
-                    <div class="small-box bg-danger">
-                        <div class="inner">
-                            <h3 id="patientUsers">0</h3>
-                            <p>Patients</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-user-injured"></i>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Main Card -->
@@ -184,7 +173,6 @@ require_once 'inc/sidebar.php';
                                     <option value="doctor">Doctor</option>
                                     <option value="nurse">Nurse</option>
                                     <option value="receptionist">Receptionist</option>
-                                    <option value="patient">Patient</option>
                                 </select>
                             </div>
                         </div>
