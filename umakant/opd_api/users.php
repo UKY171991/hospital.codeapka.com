@@ -14,12 +14,12 @@ try {
         $length = max(1, min(100, (int)($_REQUEST['length'] ?? 25)));
         $search = trim($_REQUEST['search']['value'] ?? '');
         
-        $baseQuery = "FROM opd_users";
+        $baseQuery = "FROM opd_users u LEFT JOIN opd_users cu ON u.created_by = cu.id";
         $whereClause = " WHERE 1=1";
         $params = [];
         
         if (!empty($search)) {
-            $whereClause .= " AND (username LIKE ? OR name LIKE ? OR email LIKE ? OR phone LIKE ? OR role LIKE ?)";
+            $whereClause .= " AND (u.username LIKE ? OR u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ? OR u.role LIKE ?)";
             $searchTerm = "%$search%";
             $params = [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm];
         }
@@ -34,7 +34,7 @@ try {
         $orderBy = " ORDER BY id DESC";
         $limit = " LIMIT $start, $length";
         
-        $dataQuery = "SELECT * " . $baseQuery . $whereClause . $orderBy . $limit;
+        $dataQuery = "SELECT u.*, cu.name AS created_by_name " . $baseQuery . $whereClause . $orderBy . $limit;
         $dataStmt = $pdo->prepare($dataQuery);
         $dataStmt->execute($params);
         $data = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -55,7 +55,7 @@ try {
 
     // Get single user
     if ($action === 'get' && isset($_GET['id'])) {
-        $stmt = $pdo->prepare('SELECT * FROM opd_users WHERE id = ?');
+        $stmt = $pdo->prepare('SELECT u.*, cu.name AS created_by_name FROM opd_users u LEFT JOIN opd_users cu ON u.created_by = cu.id WHERE u.id = ?');
         $stmt->execute([$_GET['id']]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row) {
@@ -75,8 +75,10 @@ try {
         $specialization = trim($_POST['specialization'] ?? '');
         $license_number = trim($_POST['license_number'] ?? '');
         $is_active = (int)($_POST['is_active'] ?? 1);
-        $password = trim($_POST['password'] ?? '');
+        $created_by = (int)($_POST['created_by'] ?? $_SESSION['user_id'] ?? 0);
 
+        $password = trim($_POST['password'] ?? '');
+        
         if (empty($username) || empty($email) || empty($name)) {
             json_response(['success' => false, 'message' => 'Username, email, and name are required'], 400);
         }
@@ -98,8 +100,8 @@ try {
                 json_response(['success' => false, 'message' => 'Password is required for new users'], 400);
             }
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare('INSERT INTO opd_users (username, email, password, name, phone, role, specialization, license_number, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
-            $stmt->execute([$username, $email, $hashedPassword, $name, $phone, $role, $specialization, $license_number, $is_active]);
+            $stmt = $pdo->prepare('INSERT INTO opd_users (username, email, password, name, phone, role, specialization, license_number, is_active, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
+            $stmt->execute([$username, $email, $hashedPassword, $name, $phone, $role, $specialization, $license_number, $is_active, $created_by]);
             json_response(['success' => true, 'message' => 'User added successfully']);
         }
     }
@@ -119,27 +121,19 @@ try {
         $activeStmt = $pdo->query("SELECT COUNT(*) FROM opd_users WHERE is_active = 1");
         $active = $activeStmt->fetchColumn();
         
-        $adminStmt = $pdo->query("SELECT COUNT(*) FROM opd_users WHERE role = 'admin'");
-        $admin = $adminStmt->fetchColumn();
-        
         $doctorStmt = $pdo->query("SELECT COUNT(*) FROM opd_users WHERE role = 'doctor'");
         $doctor = $doctorStmt->fetchColumn();
         
         $nurseStmt = $pdo->query("SELECT COUNT(*) FROM opd_users WHERE role = 'nurse'");
         $nurse = $nurseStmt->fetchColumn();
         
-        $patientStmt = $pdo->query("SELECT COUNT(*) FROM opd_users WHERE role = 'patient'");
-        $patient = $patientStmt->fetchColumn();
-        
         json_response([
             'success' => true,
             'data' => [
                 'total' => $total,
                 'active' => $active,
-                'admin' => $admin,
                 'doctor' => $doctor,
-                'nurse' => $nurse,
-                'patient' => $patient
+                'nurse' => $nurse
             ]
         ]);
     }
