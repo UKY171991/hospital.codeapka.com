@@ -77,6 +77,9 @@ function getUsersUnderAdmin($pdo) {
         $users = $stmt->fetchAll(PDO::FETCH_COLUMN);
         $users[] = $adminId; // Include admin themselves
         return $users;
+    } else {
+        // Regular user can only see their own data
+        $userId = getCurrentUserId();
+        return $userId ? [$userId] : [];
     }
-    return [];
 }
