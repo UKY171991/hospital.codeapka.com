@@ -2,6 +2,7 @@
 // ajax/main_dashboard_api.php - Main Dashboard API for all modules
 try {
     require_once __DIR__ . '/../inc/connection.php';
+    require_once __DIR__ . '/../inc/auth.php';
 } catch (Exception $e) {
     header('Content-Type: application/json');
     echo json_encode([
@@ -13,7 +14,8 @@ try {
 }
 
 require_once __DIR__ . '/../inc/ajax_helpers.php';
-session_start();
+
+$userIds = getUsersUnderAdmin($pdo);
 
 try {
     $action = $_REQUEST['action'] ?? 'overview';
@@ -26,23 +28,18 @@ try {
             try {
                 $checkOpdTables = $pdo->query("SHOW TABLES LIKE 'opd_doctors'");
                 if ($checkOpdTables->rowCount() > 0) {
-                    $opdDoctorsStmt = $pdo->query("SELECT COUNT(*) FROM opd_doctors");
-                    $stats['opd']['doctors'] = $opdDoctorsStmt->fetchColumn();
+                    $stats['opd']['doctors'] = queryWithFilter($pdo, "SELECT COUNT(*) FROM opd_doctors", 'opd_doctors', $userIds)->fetchColumn();
                     
-                    $opdPatientsStmt = $pdo->query("SELECT COUNT(*) FROM opd_patients WHERE is_active = 1");
-                    $stats['opd']['patients'] = $opdPatientsStmt->fetchColumn();
+                    $stats['opd']['patients'] = queryWithFilter($pdo, "SELECT COUNT(*) FROM opd_patients WHERE is_active = 1", 'opd_patients', $userIds)->fetchColumn();
                     
-                    $opdReportsStmt = $pdo->query("SELECT COUNT(*) FROM opd_medical_records");
-                    $stats['opd']['reports'] = $opdReportsStmt->fetchColumn();
+                    $stats['opd']['reports'] = queryWithFilter($pdo, "SELECT COUNT(*) FROM opd_medical_records", 'opd_medical_records', $userIds)->fetchColumn();
                     
                     // Check if opd_billing exists, otherwise use appointments
                     $checkBilling = $pdo->query("SHOW TABLES LIKE 'opd_billing'");
                     if ($checkBilling->rowCount() > 0) {
-                        $opdRevenueStmt = $pdo->query("SELECT COALESCE(SUM(paid_amount), 0) FROM opd_billing");
-                        $stats['opd']['revenue'] = $opdRevenueStmt->fetchColumn();
+                        $stats['opd']['revenue'] = queryWithFilter($pdo, "SELECT COALESCE(SUM(paid_amount), 0) FROM opd_billing", 'opd_billing', $userIds)->fetchColumn();
                     } else {
-                        $opdRevenueStmt = $pdo->query("SELECT COALESCE(SUM(fee), 0) FROM opd_appointments WHERE payment_status = 'paid'");
-                        $stats['opd']['revenue'] = $opdRevenueStmt->fetchColumn();
+                        $stats['opd']['revenue'] = queryWithFilter($pdo, "SELECT COALESCE(SUM(fee), 0) FROM opd_appointments WHERE payment_status = 'paid'", 'opd_appointments', $userIds)->fetchColumn();
                     }
                 } else {
                     $stats['opd']['doctors'] = 0;
@@ -59,27 +56,20 @@ try {
             
             // Pathology Stats
             try {
-                $pathoEntriesStmt = $pdo->query("SELECT COUNT(*) FROM entry_list");
-                $stats['pathology']['entries'] = $pathoEntriesStmt->fetchColumn();
-                
-                $pathoTestsStmt = $pdo->query("SELECT COUNT(*) FROM test_category");
-                $stats['pathology']['tests'] = $pathoTestsStmt->fetchColumn();
+                $stats['pathology']['entries'] = queryWithFilter($pdo, "SELECT COUNT(*) FROM entry_list", 'entry_list', $userIds)->fetchColumn();
+                $stats['pathology']['tests'] = queryWithFilter($pdo, "SELECT COUNT(*) FROM test_category", 'test_category', $userIds)->fetchColumn();
             } catch (PDOException $e) {
                 $stats['pathology']['entries'] = 0;
                 $stats['pathology']['tests'] = 0;
             }
             
             // Client Stats
-            $clientsStmt = $pdo->query("SELECT COUNT(*) FROM clients");
-            $stats['clients']['total'] = $clientsStmt->fetchColumn();
+            $stats['clients']['total'] = queryWithFilter($pdo, "SELECT COUNT(*) FROM clients", 'clients', $userIds)->fetchColumn();
             
             // Email Stats
             try {
-                $emailInboxStmt = $pdo->query("SELECT COUNT(*) FROM emails WHERE folder = 'inbox'");
-                $stats['email']['inbox'] = $emailInboxStmt->fetchColumn();
-                
-                $emailUnreadStmt = $pdo->query("SELECT COUNT(*) FROM emails WHERE folder = 'inbox' AND is_read = 0");
-                $stats['email']['unread'] = $emailUnreadStmt->fetchColumn();
+                $stats['email']['inbox'] = queryWithFilter($pdo, "SELECT COUNT(*) FROM emails WHERE folder = 'inbox'", 'emails', $userIds)->fetchColumn();
+                $stats['email']['unread'] = queryWithFilter($pdo, "SELECT COUNT(*) FROM emails WHERE folder = 'inbox' AND is_read = 0", 'emails', $userIds)->fetchColumn();
             } catch (PDOException $e) {
                 $stats['email']['inbox'] = 0;
                 $stats['email']['unread'] = 0;
@@ -87,12 +77,8 @@ try {
             
             // Inventory Stats
             try {
-                $inventoryIncomeStmt = $pdo->query("SELECT COALESCE(SUM(amount), 0) FROM inventory_income");
-                $stats['inventory']['income'] = $inventoryIncomeStmt->fetchColumn();
-                
-                $inventoryExpenseStmt = $pdo->query("SELECT COALESCE(SUM(amount), 0) FROM inventory_expense");
-                $stats['inventory']['expense'] = $inventoryExpenseStmt->fetchColumn();
-                
+                $stats['inventory']['income'] = queryWithFilter($pdo, "SELECT COALESCE(SUM(amount), 0) FROM inventory_income WHERE payment_status = 'Success'", 'inventory_income', $userIds)->fetchColumn();
+                $stats['inventory']['expense'] = queryWithFilter($pdo, "SELECT COALESCE(SUM(amount), 0) FROM inventory_expense WHERE payment_status = 'Success'", 'inventory_expense', $userIds)->fetchColumn();
                 $stats['inventory']['balance'] = $stats['inventory']['income'] - $stats['inventory']['expense'];
             } catch (PDOException $e) {
                 $stats['inventory']['income'] = 0;
@@ -114,17 +100,14 @@ try {
             try {
                 $checkOpdTables = $pdo->query("SHOW TABLES LIKE 'opd_medical_records'");
                 if ($checkOpdTables->rowCount() > 0) {
-                    $todayOpdReportsStmt = $pdo->query("SELECT COUNT(*) FROM opd_medical_records WHERE DATE(record_date) = CURDATE()");
-                    $stats['opd']['today_reports'] = $todayOpdReportsStmt->fetchColumn();
+                    $stats['opd']['today_reports'] = queryWithFilter($pdo, "SELECT COUNT(*) FROM opd_medical_records WHERE DATE(record_date) = CURDATE()", 'opd_medical_records', $userIds)->fetchColumn();
                     
                     // Check if opd_billing exists
                     $checkBilling = $pdo->query("SHOW TABLES LIKE 'opd_billing'");
                     if ($checkBilling->rowCount() > 0) {
-                        $todayOpdRevenueStmt = $pdo->query("SELECT COALESCE(SUM(paid_amount), 0) FROM opd_billing WHERE DATE(bill_date) = CURDATE()");
-                        $stats['opd']['today_revenue'] = $todayOpdRevenueStmt->fetchColumn();
+                        $stats['opd']['today_revenue'] = queryWithFilter($pdo, "SELECT COALESCE(SUM(paid_amount), 0) FROM opd_billing WHERE DATE(bill_date) = CURDATE()", 'opd_billing', $userIds)->fetchColumn();
                     } else {
-                        $todayOpdRevenueStmt = $pdo->query("SELECT COALESCE(SUM(fee), 0) FROM opd_appointments WHERE payment_status = 'paid' AND DATE(appointment_date) = CURDATE()");
-                        $stats['opd']['today_revenue'] = $todayOpdRevenueStmt->fetchColumn();
+                        $stats['opd']['today_revenue'] = queryWithFilter($pdo, "SELECT COALESCE(SUM(fee), 0) FROM opd_appointments WHERE payment_status = 'paid' AND DATE(appointment_date) = CURDATE()", 'opd_appointments', $userIds)->fetchColumn();
                     }
                 } else {
                     $stats['opd']['today_reports'] = 0;
@@ -137,16 +120,14 @@ try {
             
             // Today's Pathology
             try {
-                $todayPathoStmt = $pdo->query("SELECT COUNT(*) FROM entry_list WHERE DATE(created_at) = CURDATE()");
-                $stats['pathology']['today_entries'] = $todayPathoStmt->fetchColumn();
+                $stats['pathology']['today_entries'] = queryWithFilter($pdo, "SELECT COUNT(*) FROM entry_list WHERE DATE(created_at) = CURDATE()", 'entry_list', $userIds)->fetchColumn();
             } catch (PDOException $e) {
                 $stats['pathology']['today_entries'] = 0;
             }
             
             // Today's Emails
             try {
-                $todayEmailsStmt = $pdo->query("SELECT COUNT(*) FROM emails WHERE DATE(received_date) = CURDATE()");
-                $stats['email']['today_received'] = $todayEmailsStmt->fetchColumn();
+                $stats['email']['today_received'] = queryWithFilter($pdo, "SELECT COUNT(*) FROM emails WHERE DATE(received_date) = CURDATE()", 'emails', $userIds)->fetchColumn();
             } catch (PDOException $e) {
                 $stats['email']['today_received'] = 0;
             }
@@ -162,16 +143,13 @@ try {
             $activities = [];
             
             // Recent OPD Reports
-            $recentReportsStmt = $pdo->query("SELECT 'OPD Report' as type, patient_name as title, report_date as date FROM opd_reports ORDER BY report_date DESC LIMIT 5");
-            $recentReports = $recentReportsStmt->fetchAll(PDO::FETCH_ASSOC);
+            $recentReports = queryWithFilter($pdo, "SELECT 'OPD Report' as type, patient_name as title, report_date as date FROM opd_reports", 'opd_reports', $userIds)->fetchAll(PDO::FETCH_ASSOC);
             
             // Recent Bills
-            $recentBillsStmt = $pdo->query("SELECT 'OPD Bill' as type, patient_name as title, bill_date as date FROM opd_billing ORDER BY bill_date DESC LIMIT 5");
-            $recentBills = $recentBillsStmt->fetchAll(PDO::FETCH_ASSOC);
+            $recentBills = queryWithFilter($pdo, "SELECT 'OPD Bill' as type, patient_name as title, bill_date as date FROM opd_billing", 'opd_billing', $userIds)->fetchAll(PDO::FETCH_ASSOC);
             
             // Recent Clients
-            $recentClientsStmt = $pdo->query("SELECT 'New Client' as type, name as title, created_at as date FROM clients ORDER BY created_at DESC LIMIT 5");
-            $recentClients = $recentClientsStmt->fetchAll(PDO::FETCH_ASSOC);
+            $recentClients = queryWithFilter($pdo, "SELECT 'New Client' as type, name as title, created_at as date FROM clients", 'clients', $userIds)->fetchAll(PDO::FETCH_ASSOC);
             
             // Merge and sort
             $activities = array_merge($recentReports, $recentBills, $recentClients);
@@ -189,15 +167,22 @@ try {
 
     if ($action === 'monthly_revenue') {
         try {
-            $stmt = $pdo->query("
-                SELECT 
-                    DATE_FORMAT(bill_date, '%Y-%m') as month,
-                    SUM(paid_amount) as revenue
-                FROM opd_billing 
-                WHERE bill_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-                GROUP BY DATE_FORMAT(bill_date, '%Y-%m')
-                ORDER BY month ASC
-            ");
+            $sql = "SELECT 
+                        DATE_FORMAT(bill_date, '%Y-%m') as month,
+                        SUM(paid_amount) as revenue
+                    FROM opd_billing 
+                    WHERE bill_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)";
+            
+            // Manual filter for aggregate query
+            if ($userIds !== null) {
+                $placeholders = implode(',', array_fill(0, count($userIds), '?'));
+                $sql .= " AND added_by IN ($placeholders)";
+            }
+            
+            $sql .= " GROUP BY DATE_FORMAT(bill_date, '%Y-%m') ORDER BY month ASC";
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($userIds ?? []);
             $revenue = $stmt->fetchAll(PDO::FETCH_ASSOC);
             json_response(['success' => true, 'data' => $revenue]);
         } catch (PDOException $e) {

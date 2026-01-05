@@ -1,12 +1,16 @@
 <?php
 header('Content-Type: application/json');
 require_once __DIR__ . '/../inc/connection.php';
+require_once __DIR__ . '/../inc/auth.php';
+require_once __DIR__ . '/../inc/ajax_helpers.php';
 
+$userIds = getUsersUnderAdmin($pdo);
 $items = [];
+
 try {
     // Recent patients
     try {
-        $stmt = $pdo->query("SELECT id, name, mobile, created_at FROM patients ORDER BY created_at DESC LIMIT 5");
+        $stmt = queryWithFilter($pdo, "SELECT id, name, mobile, created_at FROM patients ORDER BY created_at DESC LIMIT 5", 'patients', $userIds);
         while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $items[] = [
                 'type' => 'patient',
@@ -19,7 +23,7 @@ try {
 
     // Recent entries
     try {
-        $stmt = $pdo->query("SELECT e.id, e.patient_id, e.entry_date, p.name AS patient_name FROM entries e LEFT JOIN patients p ON e.patient_id = p.id ORDER BY e.created_at DESC LIMIT 5");
+        $stmt = queryWithFilter($pdo, "SELECT e.id, e.patient_id, e.entry_date, p.name AS patient_name, e.created_at FROM entries e LEFT JOIN patients p ON e.patient_id = p.id ORDER BY e.created_at DESC LIMIT 5", 'entries', $userIds);
         while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $items[] = [
                 'type' => 'entry',
@@ -32,7 +36,7 @@ try {
 
     // Recent notices
     try {
-        $stmt = $pdo->query("SELECT id, title, created_at FROM notices ORDER BY created_at DESC LIMIT 5");
+        $stmt = queryWithFilter($pdo, "SELECT id, title, created_at FROM notices ORDER BY created_at DESC LIMIT 5", 'notices', $userIds);
         while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $items[] = [
                 'type' => 'notice',
@@ -47,7 +51,7 @@ try {
     try {
         $stmt = $pdo->query("SHOW TABLES LIKE 'zip_uploads'");
         if ($stmt->fetch()) {
-            $stmt2 = $pdo->query("SELECT id, original_name, created_at FROM zip_uploads ORDER BY created_at DESC LIMIT 5");
+            $stmt2 = queryWithFilter($pdo, "SELECT id, original_name, created_at FROM zip_uploads ORDER BY created_at DESC LIMIT 5", 'zip_uploads', $userIds);
             while ($r = $stmt2->fetch(PDO::FETCH_ASSOC)) {
                 $items[] = [
                     'type' => 'upload',

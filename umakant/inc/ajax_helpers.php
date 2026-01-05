@@ -210,15 +210,55 @@ function getScopedUserIds($pdo, $auth) {
     if (!$auth) return [0];
     $role = $auth['role'] ?? 'user';
     $userId = (int)($auth['user_id'] ?? 0);
+    
     if ($role === 'master') {
         return null; // no restriction
     }
+    
     if ($role === 'admin') {
-        // Admin scope restricted to only their own user_id
-        return [$userId];
+        // Admin can see only users added by them
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE added_by = ?");
+        $stmt->execute([$userId]);
+        $users = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $users[] = $userId; // Include admin themselves
+        return $users;
     }
+    
     // Regular user scope restricted to only their own user_id
     return [$userId];
+}
+
+/**
+ * Helper to wrap PDO query with optional added_by filter
+ */
+function queryWithFilter($pdo, $sql, $table, $userIds, $params = []) {
+    if ($userIds !== null) {
+        try {
+            // Check if table has added_by column
+            $stmt = $pdo->query("SHOW COLUMNS FROM `$table` LIKE 'added_by'");
+            if ($stmt && $stmt->fetch()) {
+                if (empty($userIds)) {
+                    // Return a statement that will yield 0/empty
+                    $stmt = $pdo->prepare("SELECT * FROM (SELECT 1) AS dummy WHERE 1=0");
+                    $stmt->execute();
+                    return $stmt;
+                }
+                $placeholders = implode(',', array_fill(0, count($userIds), '?'));
+                $tableName = "`" . str_replace("`", "", $table) . "`";
+                if (stripos($sql, 'WHERE') !== false) {
+                    $sql .= " AND $tableName.added_by IN ($placeholders)";
+                } else {
+                    $sql .= " WHERE $tableName.added_by IN ($placeholders)";
+                }
+                $params = array_merge($params, $userIds);
+            }
+        } catch (Exception $e) {
+            // Ignore schema check errors
+        }
+    }
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt;
 }
 
 /**
