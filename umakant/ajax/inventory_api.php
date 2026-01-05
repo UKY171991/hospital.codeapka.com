@@ -197,109 +197,117 @@ function ensureTablesExist() {
 }
 
 // Dashboard Functions
+// Dashboard Functions
 function getDashboardStats() {
     global $pdo;
     ensureTablesExist();
     
-    // Build WHERE clause based on user role
-    $whereClause = "";
-    $params = [];
+    $userIds = getUsersUnderAdmin($pdo);
     
-    if (isMaster()) {
-        // Master can see all data - no filter
-        $whereClause = "";
-    } elseif (isAdmin()) {
-        // Admin can see only data added by their users
-        $allowedUsers = getUsersUnderAdmin($pdo);
-        if (empty($allowedUsers)) {
-            // No users under this admin, return zero stats
-            echo json_encode([
-                'success' => true,
-                'data' => [
-                    'total_income' => 0, 'total_expense' => 0, 'net_profit' => 0,
-                    'total_clients' => 0, 'pending_amount' => 0, 'today_income' => 0,
-                    'today_expense' => 0, 'month_income' => 0, 'month_expense' => 0,
-                    'month_income_target' => 100000, 'month_expense_target' => 80000,
-                    'year_income' => 0, 'year_expense' => 0,
-                    'year_income_target' => 1200000, 'year_expense_target' => 1000000
-                ]
-            ]);
+    // Period filters from request
+    $filterYear = $_GET['year'] ?? null;
+    $filterMonth = $_GET['month'] ?? null;
+    $isCustomFilter = !empty($filterYear);
+
+    // Build base WHERE clause for added_by
+    $addedByClause = "";
+    $addedByParams = [];
+    if ($userIds !== null) {
+        if (empty($userIds)) {
+             echo json_encode(['success' => true, 'data' => [
+                'total_income' => 0, 'total_expense' => 0, 'net_profit' => 0,
+                'total_clients' => 0, 'pending_amount' => 0, 'today_income' => 0,
+                'today_expense' => 0, 'month_income' => 0, 'month_expense' => 0,
+                'month_income_target' => 100000, 'month_expense_target' => 80000,
+                'year_income' => 0, 'year_expense' => 0,
+                'year_income_target' => 1200000, 'year_expense_target' => 1000000
+            ]]);
             return;
         }
-        $placeholders = str_repeat('?,', count($allowedUsers) - 1) . '?';
-        $whereClause = " AND added_by IN ($placeholders)";
-        $params = $allowedUsers;
+        $placeholders = implode(',', array_fill(0, count($userIds), '?'));
+        $addedByClause = " AND added_by IN ($placeholders)";
+        $addedByParams = $userIds;
     }
-    
-    // Get total income (only successful transactions)
-    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE payment_status = 'Success'" . $whereClause;
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $totalIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    // Get total expense (only successful transactions)
-    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE payment_status = 'Success'" . $whereClause;
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $totalExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    // Get total clients
-    $clientWhereClause = isMaster() ? "" : (isAdmin() ? " AND added_by IN ($placeholders)" : " AND 1=0");
-    $sql = "SELECT COUNT(*) as total FROM inventory_clients WHERE status = 'Active'" . $clientWhereClause;
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $totalClients = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    // Today's stats
+
+    // Helper for filtered sums
+    $getSum = function($table, $dateFilter = "", $dateParams = []) use ($pdo, $addedByClause, $addedByParams) {
+        $sql = "SELECT COALESCE(SUM(amount), 0) FROM `$table` WHERE payment_status = 'Success'";
+        if ($dateFilter) $sql .= " AND $dateFilter";
+        $sql .= $addedByClause;
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(array_merge($dateParams, $addedByParams));
+        return (float) $stmt->fetchColumn();
+    };
+
+    // Overall stats (can also be filtered by custom period if provided, or just all-time)
+    $totalIncome = $getSum('inventory_income');
+    $totalExpense = $getSum('inventory_expense');
+
+    // Total Clients
+    $sqlClients = "SELECT COUNT(*) FROM inventory_clients WHERE status = 'Active'";
+    if ($addedByClause) $sqlClients .= str_replace("added_by", "added_by", $addedByClause);
+    $stmtClients = $pdo->prepare($sqlClients);
+    $stmtClients->execute($addedByParams);
+    $totalClients = (int)$stmtClients->fetchColumn();
+
+    // Today
     $today = date('Y-m-d');
-    $todayParams = array_merge([':date' => $today], $params);
-    
-    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date = :date AND payment_status = 'Success'" . $whereClause;
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($todayParams);
-    $todayIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date = :date AND payment_status = 'Success'" . $whereClause;
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($todayParams);
-    $todayExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    // This month's stats
-    $monthStart = date('Y-m-01');
-    $monthEnd = date('Y-m-t');
-    $monthParams = array_merge([':start' => $monthStart, ':end' => $monthEnd], $params);
-    
-    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date BETWEEN :start AND :end AND payment_status = 'Success'" . $whereClause;
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($monthParams);
-    $monthIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date BETWEEN :start AND :end AND payment_status = 'Success'" . $whereClause;
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($monthParams);
-    $monthExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    // This year's stats
-    $yearStart = date('Y-01-01');
-    $yearEnd = date('Y-12-31');
-    $yearParams = array_merge([':start' => $yearStart, ':end' => $yearEnd], $params);
-    
-    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE date BETWEEN :start AND :end AND payment_status = 'Success'" . $whereClause;
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($yearParams);
-    $yearIncome = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_expense WHERE date BETWEEN :start AND :end AND payment_status = 'Success'" . $whereClause;
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($yearParams);
-    $yearExpense = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    // Get pending amount (income with Pending status)
-    $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM inventory_income WHERE payment_status = 'Pending'" . $whereClause;
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $pendingAmount = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
+    $todayIncome = $getSum('inventory_income', "date = ?", [$today]);
+    $todayExpense = $getSum('inventory_expense', "date = ?", [$today]);
+
+    // Determining the "Month" and "Year" to show
+    if ($isCustomFilter) {
+        $year = intval($filterYear);
+        if ($filterMonth) {
+            $month = intval($filterMonth);
+            $monthStart = sprintf("%04d-%02d-01", $year, $month);
+            $monthEnd = date("Y-m-t", strtotime($monthStart));
+            $monthIncome = $getSum('inventory_income', "date BETWEEN ? AND ?", [$monthStart, $monthEnd]);
+            $monthExpense = $getSum('inventory_expense', "date BETWEEN ? AND ?", [$monthStart, $monthEnd]);
+        } else {
+            // If only year is selected, we show yearly stats as the "Month" area? 
+            // Better: if year selected, main month stats are for current month of THAT year? 
+            // Or just leave it. Let's assume year and month are usually selected together or just year.
+            $monthIncome = 0;
+            $monthExpense = 0;
+        }
+        
+        $yearStart = "$year-01-01";
+        $yearEnd = "$year-12-31";
+        $yearIncome = $getSum('inventory_income', "date BETWEEN ? AND ?", [$yearStart, $yearEnd]);
+        $yearExpense = $getSum('inventory_expense', "date BETWEEN ? AND ?", [$yearStart, $yearEnd]);
+    } else {
+        // Current month
+        $monthStart = date('Y-m-01');
+        $monthEnd = date('Y-m-t');
+        $monthIncome = $getSum('inventory_income', "date BETWEEN ? AND ?", [$monthStart, $monthEnd]);
+        $monthExpense = $getSum('inventory_expense', "date BETWEEN ? AND ?", [$monthStart, $monthEnd]);
+
+        // Current year
+        $yearStart = date('Y-01-01');
+        $yearEnd = date('Y-12-31');
+        $yearIncome = $getSum('inventory_income', "date BETWEEN ? AND ?", [$yearStart, $yearEnd]);
+        $yearExpense = $getSum('inventory_expense', "date BETWEEN ? AND ?", [$yearStart, $yearEnd]);
+    }
+
+    // Pending Amount
+    $sqlPending = "SELECT COALESCE(SUM(amount), 0) FROM inventory_income WHERE payment_status = 'Pending'";
+    if ($addedByClause) $sqlPending .= $addedByClause;
+    $stmtPending = $pdo->prepare($sqlPending);
+    $stmtPending->execute($addedByParams);
+    $pendingAmount = (float)$stmtPending->fetchColumn();
+
+    // Monthly data for chart (current 12 months)
+    $chartData = ['labels' => [], 'income' => [], 'expense' => []];
+    $baseYear = $filterYear ?: date('Y');
+    for ($m = 1; $m <= 12; $m++) {
+        $mStart = sprintf("%04d-%02d-01", $baseYear, $m);
+        $mEnd = date("Y-m-t", strtotime($mStart));
+        $chartData['labels'][] = date('M', strtotime($mStart));
+        $chartData['income'][] = $getSum('inventory_income', "date BETWEEN ? AND ?", [$mStart, $mEnd]);
+        $chartData['expense'][] = $getSum('inventory_expense', "date BETWEEN ? AND ?", [$mStart, $mEnd]);
+    }
+
     echo json_encode([
         'success' => true,
         'data' => [
@@ -317,7 +325,8 @@ function getDashboardStats() {
             'year_income' => $yearIncome,
             'year_expense' => $yearExpense,
             'year_income_target' => 1200000,
-            'year_expense_target' => 1000000
+            'year_expense_target' => 1000000,
+            'chart_data' => $chartData
         ]
     ]);
 }

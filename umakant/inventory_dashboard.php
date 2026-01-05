@@ -25,6 +25,48 @@ require_once 'inc/sidebar.php';
     <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
+            <!-- Filter Row -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form id="filterForm" class="row align-items-end">
+                        <div class="col-md-3">
+                            <label>Year</label>
+                            <select id="filterYear" class="form-control">
+                                <?php
+                                $startYear = 2020;
+                                $currentYear = date('Y');
+                                for ($y = $currentYear; $y >= $startYear; $y--) {
+                                    echo "<option value='$y'>$y</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Month (Optional)</label>
+                            <select id="filterMonth" class="form-control">
+                                <option value="">Full Year</option>
+                                <?php
+                                for ($m = 1; $m <= 12; $m++) {
+                                    $monthName = date('F', mktime(0, 0, 0, $m, 1));
+                                    echo "<option value='$m'>$monthName</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" id="applyFilters" class="btn btn-primary btn-block">
+                                <i class="fas fa-filter mr-1"></i>Apply
+                            </button>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" id="resetFilters" class="btn btn-secondary btn-block">
+                                <i class="fas fa-undo mr-1"></i>Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <!-- Summary Cards -->
             <div class="row">
                 <div class="col-lg-3 col-6">
@@ -137,7 +179,7 @@ require_once 'inc/sidebar.php';
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-header bg-info">
-                            <h3 class="card-title">This Month</h3>
+                            <h3 class="card-title" id="monthStatsTitle">This Month</h3>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -161,7 +203,7 @@ require_once 'inc/sidebar.php';
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-header bg-success">
-                            <h3 class="card-title">This Year</h3>
+                            <h3 class="card-title" id="yearStatsTitle">This Year</h3>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -185,7 +227,7 @@ require_once 'inc/sidebar.php';
 
             <!-- Charts Row -->
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">
@@ -195,20 +237,6 @@ require_once 'inc/sidebar.php';
                         </div>
                         <div class="card-body">
                             <canvas id="incomeExpenseChart" style="height: 300px;"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">
-                                <i class="fas fa-chart-pie mr-2"></i>
-                                Expense Categories
-                            </h3>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="expenseCategoryChart" style="height: 300px;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -252,17 +280,44 @@ require_once 'inc/sidebar.php';
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
+let incomeExpenseChart = null;
+
 $(document).ready(function() {
     loadDashboardData();
-    initializeCharts();
+    
+    $('#applyFilters').click(function() {
+        loadDashboardData();
+    });
+
+    $('#resetFilters').click(function() {
+        $('#filterYear').val(new Date().getFullYear());
+        $('#filterMonth').val('');
+        loadDashboardData();
+    });
 });
 
 function loadDashboardData() {
+    const year = $('#filterYear').val();
+    const month = $('#filterMonth').val();
+    
+    // Update titles
+    if (month) {
+        const monthName = $("#filterMonth option:selected").text();
+        $('#monthStatsTitle').text(monthName + ' ' + year);
+    } else {
+        $('#monthStatsTitle').text('Monthly Average (' + year + ')');
+    }
+    $('#yearStatsTitle').text('Full Year ' + year);
+
     // Load summary statistics
     $.ajax({
         url: 'ajax/inventory_api.php',
         type: 'GET',
-        data: { action: 'get_dashboard_stats' },
+        data: { 
+            action: 'get_dashboard_stats',
+            year: year,
+            month: month
+        },
         dataType: 'json',
         success: function(response) {
             if (response && response.success) {
@@ -299,16 +354,16 @@ function loadDashboardData() {
                 $('#yearNet').text('₹' + formatNumber((data.year_income || 0) - (data.year_expense || 0)));
                 $('#yearIncomeTarget').text('₹' + formatNumber(data.year_income_target || 1200000));
                 $('#yearExpenseTarget').text('₹' + formatNumber(data.year_expense_target || 1000000));
+
+                if (data.chart_data) {
+                    updateChart(data.chart_data);
+                }
             } else {
                 console.error('Failed to load dashboard stats:', response);
             }
         },
         error: function(xhr, status, error) {
             console.error('Dashboard stats error:', error);
-            $('#totalIncome').text('₹0');
-            $('#totalExpense').text('₹0');
-            $('#netProfit').text('₹0');
-            $('#totalClients').text('0');
         }
     });
 
@@ -326,7 +381,6 @@ function loadDashboardData() {
             }
         },
         error: function(xhr, status, error) {
-            console.error('Recent transactions error:', error);
             displayRecentTransactions([]);
         }
     });
@@ -357,49 +411,40 @@ function displayRecentTransactions(transactions) {
     });
 }
 
-function initializeCharts() {
-    // Income vs Expense Chart
-    const ctx1 = document.getElementById('incomeExpenseChart').getContext('2d');
-    new Chart(ctx1, {
+function updateChart(data) {
+    const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
+    
+    if (incomeExpenseChart) {
+        incomeExpenseChart.destroy();
+    }
+    
+    incomeExpenseChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            labels: data.labels,
             datasets: [{
                 label: 'Income',
-                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                data: data.income,
                 backgroundColor: 'rgba(40, 167, 69, 0.7)'
             }, {
                 label: 'Expense',
-                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                data: data.expense,
                 backgroundColor: 'rgba(220, 53, 69, 0.7)'
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false
-        }
-    });
-
-    // Expense Category Chart
-    const ctx2 = document.getElementById('expenseCategoryChart').getContext('2d');
-    new Chart(ctx2, {
-        type: 'pie',
-        data: {
-            labels: ['Medical Supplies', 'Equipment', 'Utilities', 'Salaries', 'Others'],
-            datasets: [{
-                data: [0, 0, 0, 0, 0],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.7)',
-                    'rgba(54, 162, 235, 0.7)',
-                    'rgba(255, 206, 86, 0.7)',
-                    'rgba(75, 192, 192, 0.7)',
-                    'rgba(153, 102, 255, 0.7)'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
         }
     });
 }
