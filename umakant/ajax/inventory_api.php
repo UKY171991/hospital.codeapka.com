@@ -399,40 +399,42 @@ function getIncomeRecords() {
     global $pdo;
     ensureTablesExist();
     
-    if (isMaster()) {
-        // Master can see all income records
-        $sql = "SELECT i.*, c.name as client_name 
-                FROM inventory_income i
-                LEFT JOIN inventory_clients c ON i.client_id = c.id
-                ORDER BY i.date DESC, i.id DESC";
-        $stmt = $pdo->query($sql);
-    } elseif (isAdmin()) {
-        // Admin can see only income records added by their users
-        $allowedUsers = getUsersUnderAdmin($pdo);
-        if (empty($allowedUsers)) {
+    $userIds = getUsersUnderAdmin($pdo);
+    $year = $_GET['year'] ?? null;
+    $month = $_GET['month'] ?? null;
+
+    $where = " WHERE 1=1";
+    $params = [];
+
+    if ($userIds !== null) {
+        if (empty($userIds)) {
             echo json_encode(['success' => true, 'data' => []]);
             return;
         }
-        $placeholders = str_repeat('?,', count($allowedUsers) - 1) . '?';
-        $sql = "SELECT i.*, c.name as client_name 
-                FROM inventory_income i
-                LEFT JOIN inventory_clients c ON i.client_id = c.id
-                WHERE i.added_by IN ($placeholders)
-                ORDER BY i.date DESC, i.id DESC";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($allowedUsers);
-    } else {
-        // Other roles have no access
-        echo json_encode(['success' => true, 'data' => []]);
-        return;
+        $placeholders = implode(',', array_fill(0, count($userIds), '?'));
+        $where .= " AND i.added_by IN ($placeholders)";
+        $params = array_merge($params, $userIds);
     }
-    
+
+    if ($year) {
+        $where .= " AND YEAR(i.date) = ?";
+        $params[] = $year;
+    }
+    if ($month) {
+        $where .= " AND MONTH(i.date) = ?";
+        $params[] = $month;
+    }
+
+    $sql = "SELECT i.*, c.name as client_name 
+            FROM inventory_income i
+            LEFT JOIN inventory_clients c ON i.client_id = c.id
+            $where
+            ORDER BY i.date DESC, i.id DESC";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    echo json_encode([
-        'success' => true,
-        'data' => $records
-    ]);
+    echo json_encode(['success' => true, 'data' => $records]);
 }
 
 function getIncome() {
@@ -528,35 +530,38 @@ function getExpenseRecords() {
     global $pdo;
     ensureTablesExist();
     
-    if (isMaster()) {
-        // Master can see all expense records
-        $sql = "SELECT * FROM inventory_expense ORDER BY date DESC, id DESC";
-        $stmt = $pdo->query($sql);
-    } elseif (isAdmin()) {
-        // Admin can see only expense records added by their users
-        $allowedUsers = getUsersUnderAdmin($pdo);
-        if (empty($allowedUsers)) {
+    $userIds = getUsersUnderAdmin($pdo);
+    $year = $_GET['year'] ?? null;
+    $month = $_GET['month'] ?? null;
+
+    $where = " WHERE 1=1";
+    $params = [];
+
+    if ($userIds !== null) {
+        if (empty($userIds)) {
             echo json_encode(['success' => true, 'data' => []]);
             return;
         }
-        $placeholders = str_repeat('?,', count($allowedUsers) - 1) . '?';
-        $sql = "SELECT * FROM inventory_expense 
-                WHERE added_by IN ($placeholders)
-                ORDER BY date DESC, id DESC";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($allowedUsers);
-    } else {
-        // Other roles have no access
-        echo json_encode(['success' => true, 'data' => []]);
-        return;
+        $placeholders = implode(',', array_fill(0, count($userIds), '?'));
+        $where .= " AND added_by IN ($placeholders)";
+        $params = array_merge($params, $userIds);
     }
-    
+
+    if ($year) {
+        $where .= " AND YEAR(date) = ?";
+        $params[] = $year;
+    }
+    if ($month) {
+        $where .= " AND MONTH(date) = ?";
+        $params[] = $month;
+    }
+
+    $sql = "SELECT * FROM inventory_expense $where ORDER BY date DESC, id DESC";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    echo json_encode([
-        'success' => true,
-        'data' => $records
-    ]);
+    echo json_encode(['success' => true, 'data' => $records]);
 }
 
 function getExpense() {

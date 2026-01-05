@@ -26,6 +26,44 @@ require_once 'inc/sidebar.php';
     <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
+            <!-- Filter Row -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form id="incomeFilterForm" class="row align-items-end">
+                        <div class="col-md-3">
+                            <label>Year</label>
+                            <select id="filterYear" class="form-control">
+                                <option value="">All Years</option>
+                                <?php
+                                $startYear = 2020;
+                                $currentYear = date('Y');
+                                for ($y = $currentYear; $y >= $startYear; $y--) {
+                                    echo "<option value='$y'>$y</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Month</label>
+                            <select id="filterMonth" class="form-control">
+                                <option value="">All Months</option>
+                                <?php
+                                for ($m = 1; $m <= 12; $m++) {
+                                    $monthName = date('F', mktime(0, 0, 0, $m, 1));
+                                    echo "<option value='$m'>$monthName</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" id="applyFilters" class="btn btn-primary btn-block">
+                                <i class="fas fa-filter mr-1"></i>Apply
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col-md-12">
                     <div class="card">
@@ -57,7 +95,7 @@ require_once 'inc/sidebar.php';
                                 </thead>
                                 <tbody id="incomeTableBody">
                                     <tr>
-                                        <td colspan="8" class="text-center">Loading...</td>
+                                        <td colspan="9" class="text-center">Loading...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -188,6 +226,10 @@ $(document).ready(function() {
     // Load income records
     loadIncomeRecords();
 
+    $('#applyFilters').click(function() {
+        loadIncomeRecords();
+    });
+
     // Form submit
     $('#incomeForm').on('submit', function(e) {
         e.preventDefault();
@@ -221,11 +263,16 @@ function loadClients() {
 }
 
 function loadIncomeRecords() {
+    const year = $('#filterYear').val();
+    const month = $('#filterMonth').val();
+
     $.ajax({
         url: 'ajax/inventory_api.php',
         type: 'GET',
         data: { 
             action: 'get_income_records',
+            year: year,
+            month: month,
             _: new Date().getTime() // Cache buster
         },
         cache: false,
