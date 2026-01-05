@@ -38,7 +38,8 @@ require_once 'inc/sidebar.php';
                                 $startYear = 2020;
                                 $currentYear = date('Y');
                                 for ($y = $currentYear; $y >= $startYear; $y--) {
-                                    echo "<option value='$y'>$y</option>";
+                                    $selected = ($y == $currentYear) ? 'selected' : '';
+                                    echo "<option value='$y' $selected>$y</option>";
                                 }
                                 ?>
                             </select>
@@ -48,9 +49,11 @@ require_once 'inc/sidebar.php';
                             <select id="filterMonth" class="form-control">
                                 <option value="">All Months</option>
                                 <?php
+                                $currentMonth = date('n');
                                 for ($m = 1; $m <= 12; $m++) {
                                     $monthName = date('F', mktime(0, 0, 0, $m, 1));
-                                    echo "<option value='$m'>$monthName</option>";
+                                    $selected = ($m == $currentMonth) ? 'selected' : '';
+                                    echo "<option value='$m' $selected>$monthName</option>";
                                 }
                                 ?>
                             </select>
