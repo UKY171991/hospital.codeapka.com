@@ -3,6 +3,142 @@ require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 ?>
 
+<style>
+    /* Responsive styles for tasks page */
+    @media (max-width: 768px) {
+        .content-wrapper {
+            margin-left: 0;
+        }
+        
+        .card-tools .btn {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .modal-dialog {
+            margin: 0.5rem;
+            max-width: calc(100% - 1rem);
+        }
+        
+        .btn-group .btn {
+            padding: 0.375rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        .table-responsive {
+            border-radius: 0.25rem;
+        }
+        
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .card-img-top {
+            border-radius: 0.25rem 0.25rem 0 0;
+        }
+        
+        .modal-body {
+            padding: 1rem;
+        }
+        
+        .modal-footer {
+            padding: 0.75rem 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .modal-footer .btn {
+            flex: 1;
+            min-width: 100px;
+        }
+        
+        .select2-container--bootstrap4 .select2-selection {
+            font-size: 0.875rem;
+        }
+        
+        .form-control {
+            font-size: 0.875rem;
+        }
+        
+        .text-truncate {
+            max-width: 100%;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .content-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .breadcrumb {
+            font-size: 0.875rem;
+        }
+        
+        .card-header h3 {
+            font-size: 1.1rem;
+        }
+        
+        .btn-group .btn {
+            padding: 0.25rem 0.375rem;
+            font-size: 0.7rem;
+        }
+        
+        .btn-group .btn i {
+            font-size: 0.8rem;
+        }
+        
+        .modal-header h5 {
+            font-size: 1rem;
+        }
+        
+        .form-group label {
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .table th, .table td {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.25rem;
+        }
+        
+        .screenshot-preview .card {
+            margin-bottom: 0.5rem;
+        }
+    }
+    
+    /* Improve screenshot preview layout */
+    .screenshot-preview .card {
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .screenshot-preview .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* DataTables responsive improvements */
+    .dtr-details {
+        padding: 1rem !important;
+    }
+    
+    .dtr-details li {
+        padding: 0.25rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .dtr-details li:last-child {
+        border-bottom: none;
+    }
+    
+    /* Button group improvements for mobile */
+    @media (max-width: 768px) {
+        .btn-group-vertical .btn {
+            margin-bottom: 0.25rem;
+        }
+    }
+</style>
+
 <!-- Content Wrapper -->
 <div class="content-wrapper">
     <!-- Content Header -->
@@ -41,18 +177,19 @@ require_once 'inc/sidebar.php';
                             </div>
                         </div>
                         <div class="card-body">
-                            <table id="taskTable" class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Sr. No.</th>
-                                        <th>Title</th>
-                                        <th>Client</th>
-                                        <th>Priority</th>
-                                        <th>Status</th>
-                                        <th>Due Date</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
+                            <div class="table-responsive">
+                                <table id="taskTable" class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th class="all">Sr. No.</th>
+                                            <th class="min-tablet">Title</th>
+                                            <th class="min-tablet">Client</th>
+                                            <th class="min-tablet-p">Priority</th>
+                                            <th class="min-tablet-p">Status</th>
+                                            <th class="none">Due Date</th>
+                                            <th class="all">Actions</th>
+                                        </tr>
+                                    </thead>
                                 <tbody id="taskTableBody">
                                     <tr>
                                         <td colspan="7" class="text-center">Loading...</td>
@@ -69,7 +206,7 @@ require_once 'inc/sidebar.php';
 
 <!-- View Task Modal -->
 <div class="modal fade" id="viewTaskModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
@@ -82,7 +219,7 @@ require_once 'inc/sidebar.php';
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-6 col-sm-12">
                         <h6 class="text-primary"><i class="fas fa-info-circle mr-2"></i>Task Information</h6>
                         <table class="table table-sm table-borderless">
                             <tr>
@@ -107,7 +244,7 @@ require_once 'inc/sidebar.php';
                             </tr>
                         </table>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 col-sm-12">
                         <h6 class="text-primary"><i class="fas fa-align-left mr-2"></i>Description</h6>
                         <p id="viewTaskDescription" class="text-muted">-</p>
                     </div>
@@ -156,7 +293,7 @@ require_once 'inc/sidebar.php';
 
 <!-- Task Modal -->
 <div class="modal fade" id="taskModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
@@ -172,13 +309,13 @@ require_once 'inc/sidebar.php';
                     <input type="hidden" id="taskId">
                     
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-6 col-sm-12">
                             <div class="form-group">
                                 <label for="taskTitle">Task Title <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="taskTitle" required>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 col-sm-12">
                             <div class="form-group">
                                 <label for="taskClient">Client <span class="text-danger">*</span></label>
                                 <select class="form-control select2" id="taskClient" required>
@@ -194,7 +331,7 @@ require_once 'inc/sidebar.php';
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-4 col-sm-12">
                             <div class="form-group">
                                 <label for="taskPriority">Priority <span class="text-danger">*</span></label>
                                 <select class="form-control" id="taskPriority" required>
@@ -205,7 +342,7 @@ require_once 'inc/sidebar.php';
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 col-sm-12">
                             <div class="form-group">
                                 <label for="taskStatus">Status <span class="text-danger">*</span></label>
                                 <select class="form-control" id="taskStatus" required>
@@ -216,7 +353,7 @@ require_once 'inc/sidebar.php';
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 col-sm-12">
                             <div class="form-group">
                                 <label for="taskDueDate">Due Date</label>
                                 <input type="date" class="form-control" id="taskDueDate">
@@ -387,15 +524,17 @@ function displayTasks(tasks) {
                 <td data-order="${statusOrderValue}">${statusBadge}</td>
                 <td>${task.due_date || '-'}</td>
                 <td>
-                    <button class="btn btn-sm btn-primary" onclick="viewTask(${task.id})" title="View Details">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-info" onclick="editTask(${task.id})" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-primary" onclick="viewTask(${task.id})" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="editTask(${task.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -403,11 +542,24 @@ function displayTasks(tasks) {
     });
 
     taskTable = $('#taskTable').DataTable({
-        responsive: true,
+        responsive: {
+            details: {
+                display: $.fn.dataTable.Responsive.display.childRow,
+                type: 'inline'
+            }
+        },
         order: [[4, 'asc']], // Sort by Status column
         destroy: true,
         columnDefs: [
-            { orderable: false, targets: [0, 6] } // Disable sorting on Sr. No. and Actions
+            { orderable: false, targets: [0, 6] }, // Disable sorting on Sr. No. and Actions
+            { className: 'text-center', targets: [0, 6] }, // Center align Sr. No. and Actions
+            { responsivePriority: 1, targets: 0 }, // Always show Sr. No.
+            { responsivePriority: 2, targets: 6 }, // Always show Actions
+            { responsivePriority: 3, targets: 3 }, // Show Priority on tablet and up
+            { responsivePriority: 4, targets: 4 }, // Show Status on tablet and up
+            { responsivePriority: 5, targets: 1 }, // Show Title on tablet and up
+            { responsivePriority: 6, targets: 2 }, // Show Client on tablet and up
+            { responsivePriority: 7, targets: 5 }  // Due Date is lowest priority
         ]
     });
 }
@@ -435,11 +587,11 @@ function previewScreenshots(files) {
         const reader = new FileReader();
         reader.onload = function(e) {
             preview.append(`
-                <div class="col-md-3 mb-2">
+                <div class="col-md-3 col-sm-6 col-6 mb-2">
                     <div class="card">
                         <img src="${e.target.result}" class="card-img-top" style="height: 100px; object-fit: cover;">
                         <div class="card-body p-2">
-                            <small class="text-muted">${file.name}</small>
+                            <small class="text-muted d-block text-truncate">${file.name}</small>
                         </div>
                     </div>
                 </div>
@@ -508,7 +660,7 @@ function displayExistingScreenshots(screenshotsJson) {
     
     screenshots.forEach((screenshot, index) => {
         row.append(`
-            <div class="col-md-3 mb-2" id="screenshot-${index}">
+            <div class="col-md-3 col-sm-6 col-6 mb-2" id="screenshot-${index}">
                 <div class="card">
                     <img src="${screenshot}" class="card-img-top" style="height: 100px; object-fit: cover;">
                     <div class="card-body p-2">
@@ -676,7 +828,7 @@ function viewTask(id) {
                     let screenshotsHtml = '';
                     screenshots.forEach((screenshot, index) => {
                         screenshotsHtml += `
-                            <div class="col-md-3 mb-2" id="view-screenshot-${index}">
+                            <div class="col-md-3 col-sm-6 col-6 mb-2" id="view-screenshot-${index}">
                                 <div class="card">
                                     <a href="${screenshot}" target="_blank">
                                         <img src="${screenshot}" class="card-img-top" style="height: 150px; object-fit: cover;">
