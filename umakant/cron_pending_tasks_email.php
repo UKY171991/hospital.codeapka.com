@@ -36,11 +36,11 @@ try {
     $stmt->execute();
     $last_sent = $stmt->fetchColumn();
 
-    // if ($last_sent && (time() - strtotime($last_sent)) < (5 * 3600)) {
-    //     if (!isset($_GET['force'])) {
-    //         die('Email already sent within the last 5 hours. Use &force=1 to override.');
-    //     }
-    // }
+    if ($last_sent && (time() - strtotime($last_sent)) < (5 * 3600)) {
+        if (!isset($_GET['force'])) {
+            die('Email already sent within the last 5 hours. Use &force=1 to override.');
+        }
+    }
 
     // Fetch all 'Pending' tasks
     $sql = "SELECT t.*, c.name as client_name 
