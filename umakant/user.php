@@ -90,53 +90,57 @@ require_once 'inc/sidebar.php';
                             </div>
 
                             <div class="row mb-3 align-items-center">
-                                <div class="col-md-6 col-sm-12">
+                                <div class="col-md-6 col-sm-12 mb-3 mb-md-0">
                                     <div class="input-group">
-                                        <input id="usersSearch" class="form-control" placeholder="Search users by username, email or name...">
+                                        <input id="usersSearch" class="form-control" placeholder="Search users...">
                                         <div class="input-group-append">
-                                            <button id="usersSearchClear" class="btn btn-outline-secondary"><span class="d-none d-sm-inline">Clear</span></button>
+                                            <button id="usersSearchClear" class="btn btn-outline-secondary">
+                                                <i class="fas fa-times"></i>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-sm-6">
-                                    <div class="form-inline float-right">
-                                        <label class="mr-2">Per page</label>
-                                        <select id="usersPerPage" class="form-control">
+                                <div class="col-md-3 col-sm-6 mb-3 mb-sm-0">
+                                    <div class="form-inline">
+                                        <label class="mr-2 text-muted small">Show</label>
+                                        <select id="usersPerPage" class="form-control form-control-sm">
                                             <option value="10">10</option>
                                             <option value="25">25</option>
                                             <option value="50">50</option>
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-sm-6 text-right">
+                                <div class="col-md-3 col-sm-6">
                                     <div class="d-flex justify-content-end">
-                                        <button class="btn btn-sm btn-info bulk-export">
-                                            <i class="fas fa-download"></i> <span class="d-none d-sm-inline">Export</span>
+                                        <button class="btn btn-sm btn-info bulk-export mr-1">
+                                            <i class="fas fa-download"></i>
                                         </button>
                                         <button class="btn btn-sm btn-danger bulk-delete">
-                                            <i class="fas fa-trash"></i> <span class="d-none d-sm-inline">Delete</span>
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                            <table id="usersTable" class="table table-enhanced">
-                                <thead>
-                                    <tr>
-                                        <th width="40">
-                                            <input type="checkbox" id="selectAll" class="selection-checkbox">
-                                        </th>
-                                        <th>ID</th>
-                                        <th>Username</th>
-                                        <th>Email</th>
-                                        <th>Full Name</th>
-                                        <th>Role</th>
-                                        <th>User Type</th>
-                                        <th>Expire Date</th>
-                                        <th width="120">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                            <div class="table-responsive">
+                                <table id="usersTable" class="table table-striped table-hover">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th width="40" class="text-center">
+                                                <input type="checkbox" id="selectAll" class="selection-checkbox">
+                                            </th>
+                                            <th class="d-none d-lg-table-cell">ID</th>
+                                            <th>Username</th>
+                                            <th class="d-none d-md-table-cell">Email</th>
+                                            <th class="d-none d-lg-table-cell">Full Name</th>
+                                            <th>Role</th>
+                                            <th class="d-none d-md-table-cell">Type</th>
+                                            <th class="d-none d-lg-table-cell">Expire Date</th>
+                                            <th width="120" class="text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
                         </div>
                         <!-- /.card-body -->
                     </div>
@@ -351,16 +355,61 @@ require_once 'inc/sidebar.php';
     /* Table Mobile Adjustments */
     .table-responsive {
         font-size: 0.8rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .table {
+        margin-bottom: 0;
     }
     
     .table th {
         font-size: 0.75rem;
         padding: 0.5rem;
+        font-weight: 600;
+        background-color: #f8f9fa;
+        border-top: none;
     }
     
     .table td {
         padding: 0.5rem;
         vertical-align: middle;
+        word-wrap: break-word;
+        max-width: 150px;
+    }
+    
+    .table td .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .table td .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+        min-height: auto;
+        margin-bottom: 0;
+    }
+    
+    /* Mobile Table Row Improvements */
+    .table tbody tr {
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .table tbody tr:hover {
+        background-color: rgba(0,123,255,0.05);
+    }
+    
+    /* Mobile Username Display */
+    .table td:nth-child(2) {
+        font-weight: 600;
+        color: #007bff;
+    }
+    
+    /* Mobile Role Badges */
+    .table td:nth-child(4) .badge {
+        font-size: 0.6rem;
+        padding: 0.2rem 0.4rem;
     }
     
     /* Group Actions Mobile Adjustments */
