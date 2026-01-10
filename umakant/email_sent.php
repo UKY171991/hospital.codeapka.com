@@ -283,6 +283,16 @@ let currentViewEmail = null;
 $(document).ready(function() {
     console.log('Initializing Sent Emails page...');
     
+    // Initialize AdminLTE components
+    if (typeof $.AdminLTE !== 'undefined') {
+        console.log('AdminLTE detected, initializing components...');
+    } else {
+        console.log('AdminLTE not found, checking for alternative initialization...');
+    }
+    
+    // Fallback sidebar toggle functionality
+    initializeSidebarToggle();
+    
     // Setup event handlers
     setupEventHandlers();
     
@@ -295,6 +305,40 @@ $(document).ready(function() {
     // Load statistics
     loadSentEmailStats();
 });
+
+// Fallback sidebar toggle functionality
+function initializeSidebarToggle() {
+    // Handle sidebar toggle button
+    $('[data-widget="pushmenu"]').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const body = $('body');
+        const sidebar = $('.main-sidebar');
+        
+        if (body.hasClass('sidebar-collapse')) {
+            body.removeClass('sidebar-collapse').addClass('sidebar-open');
+            sidebar.removeClass('sidebar-collapse').addClass('sidebar-open');
+        } else {
+            body.removeClass('sidebar-open').addClass('sidebar-collapse');
+            sidebar.removeClass('sidebar-open').addClass('sidebar-collapse');
+        }
+        
+        console.log('Sidebar toggle clicked');
+    });
+    
+    // Handle window resize for responsive sidebar
+    $(window).on('resize', function() {
+        const width = $(window).width();
+        const body = $('body');
+        
+        if (width <= 991) {
+            body.addClass('sidebar-collapse');
+        } else {
+            body.removeClass('sidebar-collapse');
+        }
+    });
+}
 
 // Setup event handlers
 function setupEventHandlers() {
