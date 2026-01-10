@@ -56,10 +56,10 @@ $gmail_config = [
                             </h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-secondary btn-sm" onclick="window.location.href='email_inbox.php'">
-                                    <i class="fas fa-arrow-left"></i> Back to Inbox
+                                    <i class="fas fa-arrow-left"></i> <span class="d-none d-sm-inline">Back to Inbox</span>
                                 </button>
                                 <button type="button" class="btn btn-info btn-sm" onclick="saveDraft()">
-                                    <i class="fas fa-save"></i> Save Draft
+                                    <i class="fas fa-save"></i> <span class="d-none d-sm-inline">Save Draft</span>
                                 </button>
                             </div>
                         </div>
@@ -85,13 +85,13 @@ $gmail_config = [
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 col-sm-12">
                                         <div class="form-group">
                                             <label for="ccEmail">CC</label>
                                             <input type="email" class="form-control" id="ccEmail" name="cc" placeholder="cc@example.com" multiple>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 col-sm-12">
                                         <div class="form-group">
                                             <label for="bccEmail">BCC</label>
                                             <input type="email" class="form-control" id="bccEmail" name="bcc" placeholder="bcc@example.com" multiple>
@@ -99,18 +99,23 @@ $gmail_config = [
                                     </div>
                                 </div>
 
-                                <div class="form-group">
-                                    <label for="emailSubject">Subject <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="emailSubject" name="subject" placeholder="Email subject" required>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="emailPriority">Priority</label>
-                                    <select class="form-control" id="emailPriority" name="priority">
-                                        <option value="normal">Normal</option>
-                                        <option value="high">High</option>
-                                        <option value="low">Low</option>
-                                    </select>
+                                <div class="row">
+                                    <div class="col-md-6 col-sm-12">
+                                        <div class="form-group">
+                                            <label for="emailSubject">Subject <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="emailSubject" name="subject" placeholder="Email subject" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-sm-12">
+                                        <div class="form-group">
+                                            <label for="emailPriority">Priority</label>
+                                            <select class="form-control" id="emailPriority" name="priority">
+                                                <option value="normal">Normal</option>
+                                                <option value="high">High</option>
+                                                <option value="low">Low</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="form-group">
