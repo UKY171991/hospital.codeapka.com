@@ -293,6 +293,7 @@ require_once 'inc/sidebar.php';
 </div>
 
 <style>
+/* Responsive Design Improvements */
 .client-info-card {
     background: white;
     border-radius: 12px;
@@ -461,6 +462,181 @@ require_once 'inc/sidebar.php';
     transform: scale(1.1);
     box-shadow: 0 4px 8px rgba(255, 107, 107, 0.4);
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 576px) {
+    /* Modal adjustments for mobile */
+    .modal-dialog {
+        margin: 10px;
+        max-width: calc(100% - 20px);
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .modal-header {
+        padding: 15px;
+    }
+    
+    .modal-footer {
+        padding: 10px 15px;
+    }
+    
+    /* Form adjustments for mobile */
+    .modal-body .row > div {
+        margin-bottom: 15px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    /* Client details modal mobile adjustments */
+    .client-info-card {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .summary-card {
+        padding: 15px;
+        margin-bottom: 8px;
+    }
+    
+    .summary-card .value {
+        font-size: 1.4rem;
+    }
+    
+    .transaction-section {
+        padding: 15px;
+    }
+    
+    /* Table adjustments for mobile */
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .btn-group-vertical .btn {
+        margin-bottom: 2px;
+    }
+    
+    /* Info table mobile adjustments */
+    .info-table th,
+    .info-table td {
+        padding: 8px 10px;
+        font-size: 0.875rem;
+    }
+    
+    .info-table th {
+        width: 40%;
+    }
+    
+    /* Transaction table mobile adjustments */
+    .transaction-table thead th {
+        padding: 10px 8px;
+        font-size: 0.75rem;
+    }
+    
+    .transaction-table tbody td {
+        padding: 8px 6px;
+        font-size: 0.8rem;
+    }
+    
+    /* Action buttons mobile adjustments */
+    .btn-group-vertical.btn-group-sm .btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Tablet adjustments */
+    .modal-dialog.modal-xl {
+        max-width: 95%;
+        margin: 15px auto;
+    }
+    
+    .client-info-card {
+        padding: 20px;
+    }
+    
+    .summary-card {
+        padding: 18px;
+    }
+    
+    .transaction-section {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    /* Small desktop adjustments */
+    .modal-dialog.modal-xl {
+        max-width: 90%;
+    }
+}
+
+/* DataTables responsive improvements */
+@media (max-width: 768px) {
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    
+    .dataTables_wrapper .dataTables_info {
+        text-align: center;
+        margin-top: 10px;
+    }
+    
+    .dataTables_wrapper .dataTables_paginate {
+        text-align: center;
+        margin-top: 10px;
+    }
+}
+
+/* Button hover effects */
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Form input focus effects */
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Badge improvements */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375em 0.75em;
+}
+
+/* Card improvements */
+.card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+/* Loading spinner improvements */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 </style>
 
 <script>
@@ -582,11 +758,26 @@ function displayClients(clients) {
         responsive: {
             details: {
                 display: $.fn.dataTable.Responsive.display.childRow,
-                type: 'inline'
+                type: 'inline',
+                renderer: function (api, rowIdx, columns) {
+                    const data = $.map(columns, function (col, i) {
+                        return col.hidden ?
+                            '<tr data-dt-row="' + col.rowIndex + '" data-dt-column="' + col.columnIndex + '">' +
+                            '<td><strong>' + col.title + ':</strong></td> ' +
+                            '<td>' + col.data + '</td>' +
+                            '</tr>' :
+                            '';
+                    }).join('');
+                    return data ?
+                        $('<table/>').append(data) :
+                        false;
+                }
             }
         },
         order: [[1, 'asc']], // Sort by Name column (ascending)
         destroy: true,
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
         columnDefs: [
             { orderable: false, targets: [0, 5] }, // Disable sorting on Sr. No. and Actions
             { className: 'text-center', targets: [0, 5] }, // Center align Sr. No. and Actions
@@ -596,7 +787,18 @@ function displayClients(clients) {
             { responsivePriority: 4, targets: 3 }, // Show Phone on tablet and up
             { responsivePriority: 5, targets: 4 }, // Show Status on tablet and up
             { responsivePriority: 6, targets: 2 }  // Type is lowest priority
-        ]
+        ],
+        language: {
+            search: "Search clients:",
+            lengthMenu: "Show _MENU_ clients",
+            info: "Showing _START_ to _END_ of _TOTAL_ clients",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        }
     });
 }
 
