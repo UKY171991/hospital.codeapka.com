@@ -36,11 +36,11 @@ try {
     $stmt->execute();
     $last_sent = $stmt->fetchColumn();
 
-    // if ($last_sent && (time() - strtotime($last_sent)) < (23 * 3600)) {
-    //     if (!isset($_GET['force'])) {
-    //         die('Email already sent within the last 24 hours. Use &force=1 to override.');
-    //     }
-    // }
+    if ($last_sent && (time() - strtotime($last_sent)) < (5 * 3600)) {
+        if (!isset($_GET['force'])) {
+            die('Email already sent within the last 5 hours. Use &force=1 to override.');
+        }
+    }
 
     // Fetch all 'Pending' tasks
     $sql = "SELECT t.*, c.name as client_name 
@@ -140,9 +140,9 @@ try {
     // Email Headers
     $headers = "MIME-Version: 1.0" . "\r\n";
     $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-    $headers .= "From: Hospital System <$sender_email>" . "\r\n";
+    $headers .= "From: Pending tasks List <$sender_email>" . "\r\n";
     $headers .= "Reply-To: $sender_email" . "\r\n";
-    $headers .= 'X-Mailer: Hospital Management System';
+    $headers .= 'X-Mailer: Pending tasks List';
 
     // The -f sender parameter helps prevent spam by setting the Return-Path correctly
     $additional_parameters = "-f$sender_email";
