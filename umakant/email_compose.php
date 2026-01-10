@@ -642,52 +642,378 @@ function formatFileSize(bytes) {
 </script>
 
 <style>
-.card-outline.card-primary {
-    border-top: 3px solid #007bff;
-}
+/* Responsive Design Improvements for Email Compose Page */
 
-.attachment-item {
-    background-color: #f8f9fa;
-}
-
-.email-header {
-    background-color: #f8f9fa;
-    padding: 10px;
-    border-radius: 5px;
-}
-
-.email-content {
-    padding: 10px;
-    border: 1px solid #dee2e6;
-    border-radius: 5px;
-    background-color: #fff;
-}
-
-#emailBody {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.5;
-}
-
-.form-group label {
-    font-weight: 600;
-    color: #495057;
-}
-
-.text-danger {
-    color: #dc3545 !important;
-}
-
-@media (max-width: 768px) {
-    .card-footer .row {
-        flex-direction: column;
+/* Mobile Responsive Styles */
+@media (max-width: 576px) {
+    /* Header Mobile Adjustments */
+    .content-header {
+        padding: 15px 0;
     }
     
-    .card-footer .col-md-6 {
+    .content-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    /* Card Mobile Adjustments */
+    .card {
+        margin-bottom: 20px;
+        border-radius: 8px;
+    }
+    
+    .card-header {
+        padding: 12px 15px;
+    }
+    
+    .card-header h3 {
+        font-size: 1rem;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    /* Form Mobile Adjustments */
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-label {
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+    
+    .form-control {
+        font-size: 0.9rem;
+        min-height: 44px;
+    }
+    
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    /* Button Mobile Improvements */
+    .btn {
+        min-height: 44px;
+        font-size: 0.9rem;
         margin-bottom: 10px;
     }
     
-    .card-footer .text-right {
-        text-align: left !important;
+    .btn-sm {
+        min-height: 38px;
+        font-size: 0.8rem;
+    }
+    
+    .btn-group {
+        margin-bottom: 10px;
+    }
+    
+    .card-footer {
+        padding: 10px 15px;
+    }
+    
+    /* Alert Mobile Adjustments */
+    .alert {
+        margin-bottom: 15px;
+        padding: 10px;
+    }
+    
+    /* Textarea Mobile Adjustments */
+    textarea.form-control {
+        font-size: 0.8rem;
+        min-height: 80px;
+    }
+    
+    /* File Input Mobile Adjustments */
+    .custom-file-input {
+        min-height: 44px;
+    }
+    
+    .custom-file-label {
+        font-size: 0.8rem;
+    }
+    
+    /* Attachment List Mobile Adjustments */
+    .attachment-item {
+        padding: 8px;
+        margin-bottom: 5px;
+        font-size: 0.8rem;
+    }
+    
+    .attachment-item .btn {
+        min-height: 32px;
+        font-size: 0.75rem;
+    }
+    
+    /* Email Options Mobile Adjustments */
+    .card {
+        margin-bottom: 20px;
+    }
+    
+    .card-header {
+        padding: 12px 15px;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    /* Custom Checkbox Mobile Adjustments */
+    .custom-control-label {
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+    
+    .custom-control-input {
+        min-height: 44px;
+    }
+    
+    /* Email Content Mobile Adjustments */
+    .email-content {
+        padding: 10px;
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+    
+    /* Original Email Section Mobile Adjustments */
+    .email-header {
+        padding: 8px 10px;
+    }
+    
+    .email-content {
+        padding: 8px;
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Tablet Adjustments */
+    .card {
+        margin-bottom: 25px;
+    }
+    
+    .card-header {
+        padding: 15px 20px;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    .form-control {
+        font-size: 0.95rem;
+    }
+    
+    .form-label {
+        font-size: 0.85rem;
+    }
+    
+    .btn {
+        margin-bottom: 15px;
+    }
+    
+    .btn-sm {
+        min-height: 40px;
+        font-size: 0.85rem;
+    }
+    
+    .card-footer {
+        padding: 15px 20px;
+    }
+    
+    .alert {
+        margin-bottom: 20px;
+        padding: 15px;
+    }
+    
+    .textarea.form-control {
+        font-size: 0.85rem;
+        min-height: 90px;
+    }
+    
+    .attachment-item {
+        padding: 10px;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+    }
+    
+    .attachment-item .btn {
+        min-height: 36px;
+        font-size: 0.75rem;
+    }
+    
+    .card {
+        margin-bottom: 25px;
+    }
+    
+    .card-header {
+        padding: 15px 20px;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    .form-control {
+        font-size: 0.95rem;
+    }
+    
+    .form-label {
+        font-size: 0.85rem;
+    }
+    
+    .custom-file-input {
+        min-height: 40px;
+    }
+    
+    .custom-file-label {
+        font-size: 0.85rem;
+    }
+    
+    .email-content {
+        padding: 15px;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 992px) {
+    /* Small Desktop Adjustments */
+    .card-body {
+        padding: 25px;
+    }
+    
+    .form-control {
+        font-size: 1rem;
+    }
+    
+    .textarea.form-control {
+        font-size: 0.9rem;
+        min-height: 100px;
+    }
+}
+
+/* Enhanced Hover Effects */
+.card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.card:hover .card-header {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* Button Improvements */
+.btn {
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Form Input Focus Effects */
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Custom Checkbox Improvements */
+.custom-control-input:checked + .custom-control-label::before {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+/* Modal Improvements */
+.modal-content {
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.modal-header {
+    border-radius: 8px 8px 0 0;
+}
+
+/* Alert Improvements */
+.alert {
+    border-radius: 6px;
+    border-left: 4px solid transparent;
+    }
+
+/* Badge Improvements */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375em 0.75em;
+    border-radius: 6px;
+}
+
+/* Loading State */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Grid Improvements */
+@media (max-width: 576px) {
+    .row {
+        margin-bottom: 20px;
+    }
+    
+    .col-sm-6 {
+        padding-left: 7.5px;
+        padding-right: 7.5px;
+        margin-bottom: 15px;
+    }
+    
+    .col-md-6 {
+        margin-bottom: 15px;
+    }
+    
+    .col-md-12 {
+        margin-bottom: 15px;
+    }
+}
+
+/* Responsive Typography */
+@media (max-width: 576px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h3 {
+        font-size: 1.2rem;
+    }
+    
+    h6 {
+        font-size: 1.1rem;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    .card:hover {
+        transform: none;
+    }
+    
+    .btn:hover {
+        transform: none;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 8px;
     }
 }
 </style>
