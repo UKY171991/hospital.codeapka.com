@@ -20,6 +20,12 @@ require_once 'inc/sidebar.php';
             max-width: calc(100% - 1rem);
         }
         
+        .modal-body {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        
         .btn-group .btn {
             padding: 0.375rem 0.5rem;
             font-size: 0.75rem;
@@ -137,6 +143,24 @@ require_once 'inc/sidebar.php';
             margin-bottom: 0.25rem;
         }
     }
+    
+    /* General modal scrolling fix */
+    .modal-body {
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+    
+    .modal-dialog {
+        max-height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .modal-content {
+        max-height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
+    }
 </style>
 
 <!-- Content Wrapper -->
@@ -206,7 +230,7 @@ require_once 'inc/sidebar.php';
 
 <!-- View Task Modal -->
 <div class="modal fade" id="viewTaskModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
@@ -293,7 +317,7 @@ require_once 'inc/sidebar.php';
 
 <!-- Task Modal -->
 <div class="modal fade" id="taskModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
