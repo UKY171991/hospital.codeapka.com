@@ -19,8 +19,70 @@ if (php_sapi_name() !== 'cli') {
     }
 }
 
+/**
+ * SMTP Email Sending Helper (Minimal standalone SMTP implementation)
+ */
+function sendEmailViaSTMP($to, $subject, $body, $fromName = 'Hospital System', $fromEmail = 'info@codeapka.com') {
+    global $pdo;
+    
+    // Get Gmail App Password from system_config (configured in Email Parser Settings)
+    $stmt = $pdo->query("SELECT config_value FROM system_config WHERE config_key = 'gmail_password' LIMIT 1");
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$result || empty($result['config_value'])) {
+        return ['success' => false, 'message' => 'Sender password not configured in system_config.'];
+    }
+    
+    $password = $result['config_value']; // This is likely already plain text if from system_config based on cron_email_parser.php logic
+    $smtp_server = 'smtp.gmail.com';
+    $smtp_port = 587;
+    $username = 'umakant171991@gmail.com'; // Gmail user for authentication
+
+    // Connect
+    $socket = fsockopen($smtp_server, $smtp_port, $errno, $errstr, 30);
+    if (!$socket) return ['success' => false, 'message' => "Socket error: $errstr ($errno)"];
+
+    try {
+        fgets($socket, 512);
+        fwrite($socket, "EHLO " . $_SERVER['HTTP_HOST'] . "\r\n"); fgets($socket, 512);
+        fwrite($socket, "STARTTLS\r\n"); $resp = fgets($socket, 512);
+        if (substr($resp, 0, 3) != '220') throw new Exception("STARTTLS failed");
+        
+        stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+        fwrite($socket, "EHLO " . $_SERVER['HTTP_HOST'] . "\r\n"); fgets($socket, 512);
+        
+        fwrite($socket, "AUTH LOGIN\r\n"); fgets($socket, 512);
+        fwrite($socket, base64_encode($username) . "\r\n"); fgets($socket, 512);
+        fwrite($socket, base64_encode($password) . "\r\n"); $resp = fgets($socket, 512);
+        if (substr($resp, 0, 3) != '235') throw new Exception("Auth failed: " . $resp);
+        
+        fwrite($socket, "MAIL FROM: <$username>\r\n"); fgets($socket, 512);
+        fwrite($socket, "RCPT TO: <$to>\r\n"); fgets($socket, 512);
+        fwrite($socket, "DATA\r\n"); fgets($socket, 512);
+        
+        $boundary = md5(time());
+        $headers = "From: $fromName <$fromEmail>\r\n";
+        $headers .= "Reply-To: $fromEmail\r\n";
+        $headers .= "To: $to\r\n";
+        $headers .= "Subject: $subject\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+        $headers .= "X-Mailer: Hospital Management System\r\n";
+        
+        fwrite($socket, $headers . "\r\n" . $body . "\r\n.\r\n");
+        $resp = fgets($socket, 512);
+        fwrite($socket, "QUIT\r\n");
+        fclose($socket);
+        
+        return substr($resp, 0, 3) == '250' ? ['success' => true] : ['success' => false, 'message' => "Send failed: $resp"];
+    } catch (Exception $e) {
+        fclose($socket);
+        return ['success' => false, 'message' => $e->getMessage()];
+    }
+}
+
 try {
-    // Ensure system_config table exists (to store last sent timestamp)
+    // Ensure system_config table exists
     $pdo->exec("CREATE TABLE IF NOT EXISTS `system_config` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `config_key` varchar(100) NOT NULL,
@@ -31,7 +93,7 @@ try {
         UNIQUE KEY `idx_config_key` (`config_key`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-    // Check if already sent in last 23 hours (giving some margin)
+    // Check if already sent in last 23 hours
     $stmt = $pdo->prepare("SELECT config_value FROM system_config WHERE config_key = 'last_pending_tasks_email_sent' LIMIT 1");
     $stmt->execute();
     $last_sent = $stmt->fetchColumn();
@@ -69,7 +131,7 @@ try {
         <meta charset="UTF-8">
         <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
-            .header { background-color: #007bff; color: #fff; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+            .header { background-color: #0d6efd; color: #fff; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
             .content { padding: 20px; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
@@ -80,13 +142,13 @@ try {
             .priority-Medium { background-color: #17a2b8; color: #fff; }
             .priority-Low { background-color: #6c757d; color: #fff; }
             .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #777; }
-            .btn { display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+            .btn { display: inline-block; padding: 10px 20px; background-color: #0d6efd; color: #ffffff !important; text-decoration: none; border-radius: 5px; margin-top: 20px; }
         </style>
     </head>
     <body>
         <div class="header">
-            <h1>Pending Tasks Report</h1>
-            <p>Generated on ' . date('l, d F Y, h:i A') . '</p>
+            <h1 style="margin:0;">Pending Tasks Report</h1>
+            <p style="margin:5px 0 0 0;">Generated on ' . date('l, d F Y, h:i A') . '</p>
         </div>
         <div class="content">
             <p>Hello,</p>
@@ -124,34 +186,36 @@ try {
             </table>
             
             <div style="text-align: center;">
-                <a href="https://hospital.codeapka.com/umakant/tasks.php" class="btn" style="color:#ffffff;">Manage All Tasks</a>
+                <a href="https://hospital.codeapka.com/umakant/tasks.php" class="btn">Manage All Tasks</a>
             </div>
             
             <p>Thank you!</p>
         </div>
         <div class="footer">
-            <p>This is an automated report generated by Hospital Management System.</p>
+            <p>This is an automated report generated by Hospital Management System.<br>
+            Sender: info@codeapka.com</p>
         </div>
     </body>
     </html>';
 
-    // Email Headers
-    $headers = "MIME-Version: 1.0" . "\r\n";
-    $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-    $headers .= 'From: Hospital System <uky171991@gmail.com>' . "\r\n";
-    $headers .= 'Reply-To: uky171991@gmail.com' . "\r\n";
-    $headers .= 'X-Mailer: PHP/' . phpversion();
+    // Send Email using SMTP
+    $sendResult = sendEmailViaSTMP($to, $subject, $message, 'Hospital System', 'info@codeapka.com');
 
-    // Send Email
-    if (mail($to, $subject, $message, $headers)) {
+    if ($sendResult['success']) {
         // Record the last sent timestamp
         $stmt = $pdo->prepare("INSERT INTO system_config (config_key, config_value) VALUES ('last_pending_tasks_email_sent', NOW()) 
                                ON DUPLICATE KEY UPDATE config_value = NOW()");
         $stmt->execute();
         
-        echo "Success: Email with " . count($tasks) . " tasks sent successfully to $to.";
+        echo "Success: Email with " . count($tasks) . " tasks sent successfully to $to via SMTP (info@codeapka.com).";
     } else {
-        echo "Error: Failed to send email via mail() function.";
+        echo "Error: Failed to send email via SMTP. " . $sendResult['message'];
+        
+        // Fallback to mail() if SMTP fails? (Optional: The user specifically wants to avoid spam, so fallback might be bad)
+        /*
+        $headers = "MIME-Version: 1.0" . "\r\n" . "Content-type:text/html;charset=UTF-8" . "\r\n" . "From: info@codeapka.com" . "\r\n";
+        if (mail($to, $subject, $message, $headers)) { echo "\nFallback: Sent via standard mail()."; }
+        */
     }
 
 } catch (Exception $e) {
