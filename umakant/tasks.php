@@ -349,10 +349,10 @@ require_once 'inc/sidebar.php';
                         </div>
                     </div>
 
-                    <!-- <div class="form-group">
+                    <div class="form-group" style="display: none;">
                         <label for="taskDescription">Description <span class="text-danger">*</span></label>
                         <textarea class="form-control" id="taskDescription" rows="3" required></textarea>
-                    </div> -->
+                    </div>
 
                     <!-- TinyMCE Rich Text Editor for Description -->
                     <div class="form-group">
