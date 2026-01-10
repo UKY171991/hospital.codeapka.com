@@ -35,23 +35,27 @@ require_once 'inc/sidebar.php';
                                 Client List
                             </h3>
                             <div class="card-tools">
-                                <button type="button" class="btn btn-primary btn-sm" onclick="openClientModal()">
+                                <button type="button" class="btn btn-primary btn-sm d-none d-sm-inline-block" onclick="openClientModal()">
                                     <i class="fas fa-plus"></i> Add Client
+                                </button>
+                                <button type="button" class="btn btn-primary btn-sm d-sm-none" onclick="openClientModal()" title="Add Client">
+                                    <i class="fas fa-plus"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="card-body">
-                            <table id="clientTable" class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Sr. No.</th>
-                                        <th>Name</th>
-                                        <th>Phone</th>
-                                        <th>Type</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
+                            <div class="table-responsive">
+                                <table id="clientTable" class="table table-bordered table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th class="all" style="width: 50px;">Sr. No.</th>
+                                            <th class="min-tablet" style="min-width: 150px;">Name</th>
+                                            <th class="min-tablet-p" style="min-width: 120px;">Phone</th>
+                                            <th class="none" style="min-width: 100px;">Type</th>
+                                            <th class="min-tablet-p" style="min-width: 80px;">Status</th>
+                                            <th class="all" style="width: 200px;">Actions</th>
+                                        </tr>
+                                    </thead>
                                 <tbody id="clientTableBody">
                                     <tr>
                                         <td colspan="6" class="text-center">Loading...</td>
@@ -68,7 +72,7 @@ require_once 'inc/sidebar.php';
 
 <!-- Client Modal -->
 <div class="modal fade" id="clientModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
@@ -180,7 +184,7 @@ require_once 'inc/sidebar.php';
 
 <!-- Client Details Modal -->
 <div class="modal fade" id="clientDetailsModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content" style="border-radius: 15px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
             <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 20px 30px;">
                 <h5 class="modal-title text-white" style="font-weight: 600; font-size: 1.4rem;">
@@ -203,7 +207,7 @@ require_once 'inc/sidebar.php';
 
 <!-- Edit Transaction Modal -->
 <div class="modal fade" id="editTransactionModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content" style="border-radius: 15px; overflow: hidden;">
             <div class="modal-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; padding: 20px 30px;">
                 <h5 class="modal-title text-white" style="font-weight: 600;">
@@ -536,18 +540,34 @@ function displayClients(clients) {
                 <td><span class="badge badge-primary">${client.type}</span></td>
                 <td><span class="badge ${statusClass}">${client.status}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-success" onclick="openWhatsAppChat('${client.phone}', '${client.name.replace(/'/g, "\\'")}')">
-                        <i class="fab fa-whatsapp"></i>
-                    </button>
-                    <button class="btn btn-sm btn-info" onclick="viewClientDetails(${client.id})" title="View Details">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-warning" onclick="editClient(${client.id})" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteClient(${client.id})" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <div class="btn-group-vertical btn-group-sm d-sm-none" role="group">
+                        <button class="btn btn-success btn-sm" onclick="openWhatsAppChat('${client.phone}', '${client.name.replace(/'/g, "\\'")}')" title="WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        <button class="btn btn-info btn-sm" onclick="viewClientDetails(${client.id})" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="editClient(${client.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteClient(${client.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="btn-group btn-group-sm d-none d-sm-inline-flex" role="group">
+                        <button class="btn btn-success btn-sm" onclick="openWhatsAppChat('${client.phone}', '${client.name.replace(/'/g, "\\'")}')" title="WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        <button class="btn btn-info btn-sm" onclick="viewClientDetails(${client.id})" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="editClient(${client.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteClient(${client.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -559,10 +579,23 @@ function displayClients(clients) {
         $('#clientTable').DataTable().destroy();
     }
     clientTable = $('#clientTable').DataTable({
-        responsive: true,
+        responsive: {
+            details: {
+                display: $.fn.dataTable.Responsive.display.childRow,
+                type: 'inline'
+            }
+        },
         order: [[1, 'asc']], // Sort by Name column (ascending)
+        destroy: true,
         columnDefs: [
-            { orderable: false, targets: [0, 5] } // Disable sorting on Sr. No. and Actions
+            { orderable: false, targets: [0, 5] }, // Disable sorting on Sr. No. and Actions
+            { className: 'text-center', targets: [0, 5] }, // Center align Sr. No. and Actions
+            { responsivePriority: 1, targets: 0 }, // Always show Sr. No.
+            { responsivePriority: 2, targets: 5 }, // Always show Actions
+            { responsivePriority: 3, targets: 1 }, // Show Name on tablet and up
+            { responsivePriority: 4, targets: 3 }, // Show Phone on tablet and up
+            { responsivePriority: 5, targets: 4 }, // Show Status on tablet and up
+            { responsivePriority: 6, targets: 2 }  // Type is lowest priority
         ]
     });
 }
