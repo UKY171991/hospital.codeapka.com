@@ -33,7 +33,7 @@ $gmail_config = [
         <div class="container-fluid">
             <!-- Email Stats Row -->
             <div class="row mb-4">
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-3 col-md-6 col-sm-6">
                     <div class="small-box bg-success">
                         <div class="inner">
                             <h3 id="totalSent">0</h3>
@@ -44,7 +44,7 @@ $gmail_config = [
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-3 col-md-6 col-sm-6">
                     <div class="small-box bg-info">
                         <div class="inner">
                             <h3 id="todaySent">0</h3>
@@ -55,7 +55,7 @@ $gmail_config = [
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-3 col-md-6 col-sm-6">
                     <div class="small-box bg-warning">
                         <div class="inner">
                             <h3 id="thisWeekSent">0</h3>
@@ -66,7 +66,7 @@ $gmail_config = [
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-3 col-md-6 col-sm-6">
                     <div class="small-box bg-primary">
                         <div class="inner">
                             <h3 id="scheduledEmails">0</h3>
@@ -89,13 +89,13 @@ $gmail_config = [
                             </h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-primary btn-sm" onclick="window.location.href='email_compose.php'">
-                                    <i class="fas fa-plus"></i> Compose New
+                                    <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Compose New</span>
                                 </button>
                                 <button type="button" class="btn btn-info btn-sm" onclick="refreshSentEmails()">
-                                    <i class="fas fa-sync-alt"></i> Refresh
+                                    <i class="fas fa-sync-alt"></i> <span class="d-none d-sm-inline">Refresh</span>
                                 </button>
                                 <button type="button" class="btn btn-secondary btn-sm" onclick="window.location.href='email_inbox.php'">
-                                    <i class="fas fa-inbox"></i> Inbox
+                                    <i class="fas fa-inbox"></i> <span class="d-none d-sm-inline">Inbox</span>
                                 </button>
                             </div>
                         </div>
@@ -114,7 +114,7 @@ $gmail_config = [
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="col-md-3">
+                                        <div class="col-md-3 col-sm-6">
                                             <label class="form-label">Date Range</label>
                                             <select id="dateFilter" class="form-control">
                                                 <option value="">All Time</option>
@@ -124,7 +124,7 @@ $gmail_config = [
                                                 <option value="custom">Custom Range</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-3 col-sm-6">
                                             <label class="form-label">Priority</label>
                                             <select id="priorityFilter" class="form-control">
                                                 <option value="">All Priorities</option>
@@ -133,17 +133,17 @@ $gmail_config = [
                                                 <option value="low">Low Priority</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 col-sm-12">
                                             <label class="form-label">Search</label>
                                             <input type="text" id="emailSearch" class="form-control" placeholder="Search recipients, subject, or content...">
                                         </div>
                                     </div>
                                     <div class="row mt-2" id="customDateRange" style="display: none;">
-                                        <div class="col-md-3">
+                                        <div class="col-md-3 col-sm-6">
                                             <label class="form-label">From Date</label>
                                             <input type="date" id="fromDate" class="form-control">
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-3 col-sm-6">
                                             <label class="form-label">To Date</label>
                                             <input type="date" id="toDate" class="form-control">
                                         </div>
@@ -244,7 +244,7 @@ $gmail_config = [
 
 <!-- Email View Modal -->
 <div class="modal fade" id="emailViewModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="emailViewModalLabel">
@@ -875,6 +875,5 @@ function exportSelectedEmails() {
         font-size: 0.8rem;
     }
 }
-</style>
 
 <?php require_once 'inc/footer.php'; ?>
