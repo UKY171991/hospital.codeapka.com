@@ -26,6 +26,9 @@ include_once __DIR__ . '/auth.php';
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap4-theme@1.0.0/dist/select2-bootstrap4.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
   
+  <!-- TinyMCE Rich Text Editor -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce@6.8.2/tinymce.min.css">
+  
   <!-- jQuery (Must be in head for inline scripts) -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 

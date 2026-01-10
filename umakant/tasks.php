@@ -354,6 +354,12 @@ require_once 'inc/sidebar.php';
                         <textarea class="form-control" id="taskDescription" rows="3" required></textarea>
                     </div>
 
+                    <!-- TinyMCE Rich Text Editor for Description -->
+                    <div class="form-group">
+                        <label for="taskDescriptionRich">Rich Text Description</label>
+                        <div id="taskDescriptionRich" style="height: 300px;"></div>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-4 col-sm-12">
                             <div class="form-group">
@@ -403,6 +409,12 @@ require_once 'inc/sidebar.php';
                         <label for="taskNotes">Notes</label>
                         <textarea class="form-control" id="taskNotes" rows="2"></textarea>
                     </div>
+
+                    <!-- TinyMCE Rich Text Editor for Notes -->
+                    <div class="form-group">
+                        <label for="taskNotesRich">Rich Text Notes</label>
+                        <div id="taskNotesRich" style="height: 200px;"></div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -424,6 +436,48 @@ $(document).ready(function() {
     $('.select2').select2({
         theme: 'bootstrap4',
         dropdownParent: $('#taskModal')
+    });
+
+    // Initialize TinyMCE Rich Text Editor
+    tinymce.init({
+        selector: '#taskDescriptionRich',
+        height: 300,
+        plugins: [
+            'advlist autolink lists link image charmap print preview anchor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table paste code help wordcount'
+        ],
+        toolbar: 'undo redo | formatselect | bold italic backcolor | \
+            alignleft aligncenter alignright alignjustify | \
+            bullist numlist outdent indent | removeformat | help',
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+        setup: function (editor) {
+            editor.on('change', function () {
+                // Update the hidden textarea when content changes
+                $('#taskDescription').val(editor.getContent());
+            });
+        }
+    });
+    
+    // Initialize TinyMCE for Notes
+    tinymce.init({
+        selector: '#taskNotesRich',
+        height: 200,
+        plugins: [
+            'advlist autolink lists link charmap print preview anchor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table paste code help wordcount'
+        ],
+        toolbar: 'undo redo | formatselect | bold italic | \
+            alignleft aligncenter alignright | \
+            bullist numlist outdent indent | removeformat | help',
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+        setup: function (editor) {
+            editor.on('change', function () {
+                // Update the hidden textarea when content changes
+                $('#taskNotes').val(editor.getContent());
+            });
+        }
     });
 
     loadClients();
@@ -596,6 +650,17 @@ function openTaskModal() {
     $('#existingScreenshots').empty();
     screenshotsToDelete = [];
     $('#taskModalTitle').text('Add Task');
+    
+    // Clear TinyMCE content
+    if (tinymce.get('taskDescriptionRich')) {
+        tinymce.get('taskDescriptionRich').setContent('');
+        $('#taskDescription').val('');
+    }
+    if (tinymce.get('taskNotesRich')) {
+        tinymce.get('taskNotesRich').setContent('');
+        $('#taskNotes').val('');
+    }
+    
     $('#taskModal').modal('show');
 }
 
@@ -648,6 +713,14 @@ function editTask(id) {
                 $('#taskDueDate').val(data.due_date);
                 $('#taskWebsiteUrls').val(data.website_urls || '');
                 $('#taskNotes').val(data.notes);
+                
+                // Set TinyMCE content
+                if (tinymce.get('taskDescriptionRich')) {
+                    tinymce.get('taskDescriptionRich').setContent(data.description || '');
+                }
+                if (tinymce.get('taskNotesRich')) {
+                    tinymce.get('taskNotesRich').setContent(data.notes || '');
+                }
                 
                 // Display existing screenshots
                 displayExistingScreenshots(data.screenshots);
@@ -705,6 +778,14 @@ function removeScreenshot(screenshot, index) {
 }
 
 function saveTask() {
+    // Update the hidden textarea with TinyMCE content before saving
+    if (tinymce.get('taskDescriptionRich')) {
+        $('#taskDescription').val(tinymce.get('taskDescriptionRich').getContent());
+    }
+    if (tinymce.get('taskNotesRich')) {
+        $('#taskNotes').val(tinymce.get('taskNotesRich').getContent());
+    }
+    
     const formData = new FormData();
     
     formData.append('action', $('#taskId').val() ? 'update_task' : 'add_task');
@@ -803,9 +884,9 @@ function viewTask(id) {
                 // Basic information
                 $('#viewTaskTitle').text(task.title || '-');
                 $('#viewTaskClient').text(task.client_name || '-');
-                $('#viewTaskDescription').text(task.description || '-');
+                $('#viewTaskDescription').html(task.description || '-');
                 $('#viewTaskDueDate').text(task.due_date || '-');
-                $('#viewTaskNotes').text(task.notes || 'No notes available');
+                $('#viewTaskNotes').html(task.notes || 'No notes available');
                 
                 // Priority badge
                 const priorityBadge = task.priority === 'Urgent' ? 
