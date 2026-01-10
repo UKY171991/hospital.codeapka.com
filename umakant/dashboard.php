@@ -38,37 +38,43 @@ require_once 'inc/sidebar.php';
                                 <div class="col-md-2 col-sm-4 col-6 mb-3">
                                     <a href="opd_dashboard.php" class="btn btn-app btn-block bg-info">
                                         <i class="fas fa-user-md"></i>
-                                        OPD
+                                        <span class="d-none d-sm-inline-block">OPD</span>
+                                        <span class="d-sm-none">OPD</span>
                                     </a>
                                 </div>
                                 <div class="col-md-2 col-sm-4 col-6 mb-3">
                                     <a href="pathology_reports.php" class="btn btn-app btn-block bg-success">
                                         <i class="fas fa-flask"></i>
-                                        Pathology
+                                        <span class="d-none d-sm-inline-block">Pathology</span>
+                                        <span class="d-sm-none">Patho</span>
                                     </a>
                                 </div>
                                 <div class="col-md-2 col-sm-4 col-6 mb-3">
                                     <a href="clients.php" class="btn btn-app btn-block bg-warning">
                                         <i class="fas fa-users"></i>
-                                        Clients
+                                        <span class="d-none d-sm-inline-block">Clients</span>
+                                        <span class="d-sm-none">Clients</span>
                                     </a>
                                 </div>
                                 <div class="col-md-2 col-sm-4 col-6 mb-3">
                                     <a href="email_inbox.php" class="btn btn-app btn-block bg-danger">
                                         <i class="fas fa-envelope"></i>
-                                        Email
+                                        <span class="d-none d-sm-inline-block">Email</span>
+                                        <span class="d-sm-none">Email</span>
                                     </a>
                                 </div>
                                 <div class="col-md-2 col-sm-4 col-6 mb-3">
                                     <a href="inventory_dashboard.php" class="btn btn-app btn-block bg-primary">
                                         <i class="fas fa-boxes"></i>
-                                        Inventory
+                                        <span class="d-none d-sm-inline-block">Inventory</span>
+                                        <span class="d-sm-none">Stock</span>
                                     </a>
                                 </div>
                                 <div class="col-md-2 col-sm-4 col-6 mb-3">
                                     <a href="user.php" class="btn btn-app btn-block bg-secondary">
                                         <i class="fas fa-user-cog"></i>
-                                        Users
+                                        <span class="d-none d-sm-inline-block">Users</span>
+                                        <span class="d-sm-none">Users</span>
                                     </a>
                                 </div>
                             </div>
@@ -371,10 +377,354 @@ function loadTodayStats() {
     });
 }
 
+// Fallback sidebar toggle functionality
+$(document).ready(function() {
+    // Handle sidebar toggle button
+    $('[data-widget="pushmenu"]').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const body = $('body');
+        const sidebar = $('.main-sidebar');
+        
+        if (body.hasClass('sidebar-collapse')) {
+            body.removeClass('sidebar-collapse').addClass('sidebar-open');
+            sidebar.removeClass('sidebar-collapse').addClass('sidebar-open');
+        } else {
+            body.removeClass('sidebar-open').addClass('sidebar-collapse');
+            sidebar.removeClass('sidebar-open').addClass('sidebar-collapse');
+        }
+        
+        console.log('Sidebar toggle clicked');
+    });
+    
+    // Handle window resize for responsive sidebar
+    $(window).on('resize', function() {
+        const width = $(window).width();
+        const body = $('body');
+        
+        if (width <= 991) {
+            body.addClass('sidebar-collapse');
+        } else {
+            body.removeClass('sidebar-collapse');
+        }
+    });
+});
+
 </script>
 
 <!-- Custom Dashboard Styles -->
 <style>
+/* Responsive Design Improvements for Dashboard Page */
+
+/* Mobile Responsive Styles */
+@media (max-width: 576px) {
+    /* Header Mobile Adjustments */
+    .content-header {
+        padding: 15px 0;
+    }
+    
+    .content-header h1 {
+        font-size: 1.4rem;
+        line-height: 1.3;
+    }
+    
+    /* Card Mobile Adjustments */
+    .card {
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .card-header {
+        padding: 12px 15px;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .card-header h3 {
+        font-size: 1rem;
+        line-height: 1.3;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    /* Quick Access Buttons */
+    .btn-app {
+        height: 60px;
+        font-size: 0.8rem;
+        padding: 8px 5px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 60px;
+    }
+    
+    .btn-app i {
+        font-size: 1.2rem;
+        margin-bottom: 4px;
+    }
+    
+    .btn-app span {
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+    
+    /* Small Box Mobile Adjustments */
+    .small-box {
+        border-radius: 8px;
+        margin-bottom: 15px;
+        min-height: 90px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .small-box .inner {
+        padding: 15px;
+        padding-right: 60px;
+    }
+    
+    .small-box .inner h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 0 5px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .small-box .inner p {
+        font-size: 0.8rem;
+        margin: 0;
+        font-weight: 500;
+    }
+    
+    .small-box .icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.8rem;
+        opacity: 0.8;
+    }
+    
+    /* Info Box Mobile Adjustments */
+    .info-box {
+        border-radius: 8px;
+        margin-bottom: 15px;
+        min-height: 80px;
+        display: flex;
+        align-items: center;
+        padding: 15px;
+    }
+    
+    .info-box-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-right: 15px;
+    }
+    
+    .info-box-content {
+        flex: 1;
+    }
+    
+    .info-box-text {
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .info-box-number {
+        font-size: 1.3rem;
+        font-weight: 700;
+        display: block;
+    }
+    
+    /* Row Spacing */
+    .row.mb-4 {
+        margin-bottom: 25px;
+    }
+    
+    /* Button Tools */
+    .card-tools .btn {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+        min-height: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Tablet Adjustments */
+    .card {
+        margin-bottom: 25px;
+    }
+    
+    .card-header {
+        padding: 15px 20px;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    .btn-app {
+        height: 70px;
+        font-size: 0.9rem;
+        padding: 10px 8px;
+    }
+    
+    .btn-app i {
+        font-size: 1.4rem;
+        margin-bottom: 5px;
+    }
+    
+    .btn-app span {
+        font-size: 0.75rem;
+    }
+    
+    .small-box .inner {
+        padding: 20px;
+        padding-right: 70px;
+    }
+    
+    .small-box .inner h3 {
+        font-size: 1.8rem;
+    }
+    
+    .small-box .inner p {
+        font-size: 0.9rem;
+    }
+    
+    .small-box .icon {
+        font-size: 2rem;
+        right: 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    /* Small Desktop Adjustments */
+    .card-body {
+        padding: 25px;
+    }
+    
+    .small-box .inner h3 {
+        font-size: 2rem;
+    }
+    
+    .info-box-number {
+        font-size: 1.5rem;
+    }
+}
+
+/* Enhanced Hover Effects */
+.small-box {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.small-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.info-box {
+    transition: all 0.3s ease;
+}
+
+.info-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+}
+
+.btn-app {
+    transition: all 0.3s ease;
+    border: none;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-app:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-app:active {
+    transform: translateY(0);
+}
+
+/* Card Improvements */
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.card:hover .card-header {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* Loading State */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Grid Improvements */
+@media (max-width: 576px) {
+    .row {
+        margin-bottom: 20px;
+    }
+    
+    .col-6 {
+        padding-left: 7.5px;
+        padding-right: 7.5px;
+        margin-bottom: 15px;
+    }
+    
+    .col-lg-3,
+    .col-lg-4,
+    .col-lg-6 {
+        margin-bottom: 15px;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    .small-box:hover {
+        transform: none;
+    }
+    
+    .btn-app:hover {
+        transform: none;
+    }
+    
+    .card:hover {
+        transform: none;
+    }
+}
+
+/* Original Styles */
 .small-box {
     border-radius: 10px;
     box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
