@@ -3,6 +3,160 @@ require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 ?>
 
+<style>
+    /* Responsive styles for clients page */
+    @media (max-width: 768px) {
+        .content-wrapper {
+            margin-left: 0;
+        }
+        
+        .card-tools .btn {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .modal-dialog {
+            margin: 0.5rem;
+            max-width: calc(100% - 1rem);
+        }
+        
+        .modal-body {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        
+        .btn-group .btn {
+            padding: 0.375rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        .table-responsive {
+            border-radius: 0.25rem;
+        }
+        
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .modal-footer {
+            padding: 0.75rem 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .modal-footer .btn {
+            flex: 1;
+            min-width: 100px;
+        }
+        
+        .form-control {
+            font-size: 0.875rem;
+        }
+        
+        .text-truncate {
+            max-width: 100%;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .content-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .breadcrumb {
+            font-size: 0.875rem;
+        }
+        
+        .card-header h3 {
+            font-size: 1.1rem;
+        }
+        
+        .btn-group .btn {
+            padding: 0.25rem 0.375rem;
+            font-size: 0.7rem;
+        }
+        
+        .btn-group .btn i {
+            font-size: 0.8rem;
+        }
+        
+        .modal-header h5 {
+            font-size: 1rem;
+        }
+        
+        .form-group label {
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .table th, .table td {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.25rem;
+        }
+        
+        .btn-group-vertical .btn {
+            margin-bottom: 0.25rem;
+        }
+        
+        /* WhatsApp button specific styling */
+        .btn-success {
+            margin-right: 2px;
+        }
+    }
+    
+    /* DataTables responsive improvements */
+    .dtr-details {
+        padding: 1rem !important;
+    }
+    
+    .dtr-details li {
+        padding: 0.25rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .dtr-details li:last-child {
+        border-bottom: none;
+    }
+    
+    /* General modal scrolling fix */
+    .modal-body {
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+    
+    .modal-dialog {
+        max-height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .modal-content {
+        max-height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Improve button group layout on mobile */
+    @media (max-width: 480px) {
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .btn-group .btn {
+            margin-bottom: 0.25rem;
+            border-radius: 0.25rem !important;
+        }
+        
+        .btn-group .btn:last-child {
+            margin-bottom: 0;
+        }
+    }
+</style>
+
 <!-- Content Wrapper -->
 <div class="content-wrapper">
     <!-- Content Header -->
@@ -41,20 +195,21 @@ require_once 'inc/sidebar.php';
                             </div>
                         </div>
                         <div class="card-body">
-                            <table id="clientTable" class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>Email</th>
-                                        <th>Phone</th>
-                                        <th>Company</th>
-                                        <th>City</th>
-                                        <th>Pending Tasks</th>
-                                        <th>Completed Tasks</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
+                            <div class="table-responsive">
+                                <table id="clientTable" class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th class="all">ID</th>
+                                            <th class="min-tablet">Name</th>
+                                            <th class="none">Email</th>
+                                            <th class="min-tablet-p">Phone</th>
+                                            <th class="none">Company</th>
+                                            <th class="none">City</th>
+                                            <th class="min-tablet-p">Pending Tasks</th>
+                                            <th class="min-tablet-p">Completed Tasks</th>
+                                            <th class="all">Actions</th>
+                                        </tr>
+                                    </thead>
                                 <tbody id="clientTableBody">
                                     <tr>
                                         <td colspan="9" class="text-center">Loading...</td>
@@ -71,7 +226,7 @@ require_once 'inc/sidebar.php';
 
 <!-- View Client Modal -->
 <div class="modal fade" id="viewClientModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
@@ -84,7 +239,7 @@ require_once 'inc/sidebar.php';
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-6 col-sm-12">
                         <h6 class="text-primary"><i class="fas fa-info-circle mr-2"></i>Basic Information</h6>
                         <table class="table table-sm table-borderless">
                             <tr>
@@ -105,7 +260,7 @@ require_once 'inc/sidebar.php';
                             </tr>
                         </table>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 col-sm-12">
                         <h6 class="text-primary"><i class="fas fa-map-marker-alt mr-2"></i>Address Information</h6>
                         <table class="table table-sm table-borderless">
                             <tr>
@@ -160,7 +315,7 @@ require_once 'inc/sidebar.php';
 
 <!-- Client Modal -->
 <div class="modal fade" id="clientModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
@@ -176,13 +331,13 @@ require_once 'inc/sidebar.php';
                     <input type="hidden" id="clientId">
                     
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-6 col-sm-12">
                             <div class="form-group">
                                 <label for="clientName">Client Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="clientName" required>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 col-sm-12">
                             <div class="form-group">
                                 <label for="clientEmail">Email</label>
                                 <input type="email" class="form-control" id="clientEmail">
@@ -191,13 +346,13 @@ require_once 'inc/sidebar.php';
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-6 col-sm-12">
                             <div class="form-group">
                                 <label for="clientPhone">Phone <span class="text-danger">*</span></label>
                                 <input type="tel" class="form-control" id="clientPhone" required>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 col-sm-12">
                             <div class="form-group">
                                 <label for="clientCompany">Company</label>
                                 <input type="text" class="form-control" id="clientCompany">
@@ -211,19 +366,19 @@ require_once 'inc/sidebar.php';
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-4 col-sm-12">
                             <div class="form-group">
                                 <label for="clientCity">City</label>
                                 <input type="text" class="form-control" id="clientCity">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 col-sm-12">
                             <div class="form-group">
                                 <label for="clientState">State</label>
                                 <input type="text" class="form-control" id="clientState">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 col-sm-12">
                             <div class="form-group">
                                 <label for="clientZip">ZIP Code</label>
                                 <input type="text" class="form-control" id="clientZip">
@@ -344,18 +499,20 @@ function displayClients(clients) {
                 <td><span class="badge badge-warning">${client.pendingCount}</span></td>
                 <td><span class="badge badge-success">${client.completedCount}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-success" onclick="openWhatsAppChat('${client.phone}', '${client.name.replace(/'/g, "\\'")}')">
-                        <i class="fab fa-whatsapp"></i>
-                    </button>
-                    <button class="btn btn-sm btn-primary" onclick="viewClient(${client.id})" title="View Details">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-info" onclick="editClient(${client.id})" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteClient(${client.id})" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-success" onclick="openWhatsAppChat('${client.phone}', '${client.name.replace(/'/g, "\\'")}')" title="WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="viewClient(${client.id})" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="editClient(${client.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteClient(${client.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -363,9 +520,27 @@ function displayClients(clients) {
     });
 
     clientTable = $('#clientTable').DataTable({
-        responsive: true,
+        responsive: {
+            details: {
+                display: $.fn.dataTable.Responsive.display.childRow,
+                type: 'inline'
+            }
+        },
         order: [[6, 'desc']], // Sort by Pending Tasks column (descending)
-        destroy: true
+        destroy: true,
+        columnDefs: [
+            { orderable: false, targets: [0, 8] }, // Disable sorting on ID and Actions
+            { className: 'text-center', targets: [0, 6, 7, 8] }, // Center align ID, task counts, and Actions
+            { responsivePriority: 1, targets: 0 }, // Always show ID
+            { responsivePriority: 2, targets: 8 }, // Always show Actions
+            { responsivePriority: 3, targets: 1 }, // Show Name on tablet and up
+            { responsivePriority: 4, targets: 3 }, // Show Phone on tablet and up
+            { responsivePriority: 5, targets: 6 }, // Show Pending Tasks on tablet and up
+            { responsivePriority: 6, targets: 7 }, // Show Completed Tasks on tablet and up
+            { responsivePriority: 7, targets: 2 }, // Email is lower priority
+            { responsivePriority: 8, targets: 4 }, // Company is lower priority
+            { responsivePriority: 9, targets: 5 }  // City is lowest priority
+        ]
     });
 }
 
