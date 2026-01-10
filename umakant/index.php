@@ -97,15 +97,29 @@ if (isset($counts['test_categories']) && $counts['test_categories'] === '--') {
                       Today is <?php echo date('l, F j, Y'); ?>
                     </p>
                   </div>
-                  <div class="col-md-4 text-right d-none d-md-block">
-                    <a href="dashboard.php" class="btn btn-light btn-sm mr-2">
-                      <i class="fas fa-chart-line mr-1"></i>
-                      Pathology Dashboard
-                    </a>
-                    <a href="api_test.php" class="btn btn-outline-light btn-sm">
-                      <i class="fas fa-cogs mr-1"></i>
-                      API Test
-                    </a>
+                  <div class="col-md-4">
+                    <div class="text-right d-none d-md-block mb-3">
+                      <a href="dashboard.php" class="btn btn-light btn-sm mr-2">
+                        <i class="fas fa-chart-line mr-1"></i>
+                        <span class="d-none d-lg-inline">Pathology Dashboard</span>
+                        <span class="d-lg-none">Dashboard</span>
+                      </a>
+                      <a href="api_test.php" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-cogs mr-1"></i>
+                        <span class="d-none d-lg-inline">API Test</span>
+                        <span class="d-lg-none">API</span>
+                      </a>
+                    </div>
+                    <div class="text-center d-md-none">
+                      <a href="dashboard.php" class="btn btn-light btn-sm mr-2 mb-2">
+                        <i class="fas fa-chart-line mr-1"></i>
+                        Dashboard
+                      </a>
+                      <a href="api_test.php" class="btn btn-outline-light btn-sm mb-2">
+                        <i class="fas fa-cogs mr-1"></i>
+                        API Test
+                      </a>
+                    </div>
                   </div>
                     <i class="fas fa-hospital fa-3x opacity-50"></i>
                   </div>
@@ -258,7 +272,7 @@ if (isset($counts['test_categories']) && $counts['test_categories'] === '--') {
 
         <!-- Quick Actions & Charts Row -->
         <div class="row">
-          <div class="col-md-8">
+          <div class="col-lg-8 col-md-12">
             <div class="card card-primary card-outline">
               <div class="card-header">
                 <h3 class="card-title">
@@ -282,7 +296,7 @@ if (isset($counts['test_categories']) && $counts['test_categories'] === '--') {
             </div>
           </div>
 
-          <div class="col-md-4">
+          <div class="col-lg-4 col-md-12">
             <div class="card card-success card-outline">
               <div class="card-header">
                 <h3 class="card-title">
@@ -293,19 +307,19 @@ if (isset($counts['test_categories']) && $counts['test_categories'] === '--') {
               <div class="card-body">
                 <div class="d-grid gap-2">
                   <a href="patient.php" class="btn btn-primary btn-block">
-                    <i class="fas fa-user-plus mr-2"></i>Add New Patient
+                    <i class="fas fa-user-plus mr-2"></i><span class="d-none d-sm-inline">Add New</span> Patient
                   </a>
                   <a href="doctor.php" class="btn btn-info btn-block">
-                    <i class="fas fa-user-md mr-2"></i>Manage Doctors
+                    <i class="fas fa-user-md mr-2"></i><span class="d-none d-sm-inline">Manage</span> Doctors
                   </a>
                   <a href="test.php" class="btn btn-warning btn-block">
-                    <i class="fas fa-vial mr-2"></i>Manage Tests
+                    <i class="fas fa-vial mr-2"></i><span class="d-none d-sm-inline">Manage</span> Tests
                   </a>
                   <a href="entry-list.php" class="btn btn-success btn-block">
-                    <i class="fas fa-clipboard-list mr-2"></i>Test Entries
+                    <i class="fas fa-clipboard-list mr-2"></i><span class="d-none d-sm-inline">Test</span> Entries
                   </a>
                   <a href="plan.php" class="btn btn-purple btn-block">
-                    <i class="fas fa-list-alt mr-2"></i>Manage Plans
+                    <i class="fas fa-list-alt mr-2"></i><span class="d-none d-sm-inline">Manage</span> Plans
                   </a>
                 </div>
               </div>
@@ -455,17 +469,40 @@ function initializeChart() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom',
+                    position: window.innerWidth < 768 ? 'bottom' : 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: window.innerWidth < 768 ? 10 : 20,
+                        font: {
+                            size: window.innerWidth < 768 ? 11 : 12
+                        }
+                    }
                 },
                 title: {
                     display: true,
-                    text: 'System Data Distribution'
+                    text: 'System Data Distribution',
+                    font: {
+                        size: window.innerWidth < 768 ? 14 : 16
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += context.parsed;
+                            return label;
+                        }
+                    }
                 }
             },
             animation: {
                 animateScale: true,
                 animateRotate: true
-            }
+            },
+            cutout: window.innerWidth < 768 ? '50%' : '60%'
         }
     });
 }
@@ -494,7 +531,7 @@ function loadRecentActivity() {
         if(item.type === 'notice'){ icon = 'fas fa-bell'; color = 'text-warning'; }
         if(item.type === 'upload'){ icon = 'fas fa-upload'; color = 'text-purple'; }
 
-        html += '\n            <div class="timeline-item">\n                <div class="timeline-marker">\n                    <i class="'+icon+' '+color+'"></i>\n                </div>\n                <div class="timeline-content">\n                    <h6 class="timeline-title">'+escapeHtml(title)+'</h6>\n                    <p class="timeline-text">'+escapeHtml(details)+'</p>\n                    <small class="text-muted">'+escapeHtml(time)+'</small>\n                </div>\n            </div>\n        ';
+        html += '\n            <div class="timeline-item">\n                <div class="timeline-marker">\n                    <i class="'+icon+' '+color+'"></i>\n                </div>\n                <div class="timeline-content">\n                    <div class="d-flex justify-content-between align-items-start mb-1">\n                        <h6 class="timeline-title mb-0">'+escapeHtml(title)+'</h6>\n                        <small class="text-muted flex-shrink-0 ml-2">'+escapeHtml(time)+'</small>\n                    </div>\n                    <p class="timeline-text mb-0">'+escapeHtml(details)+'</p>\n                </div>\n            </div>\n        ';
       });
       html += '</div>';
       el.innerHTML = html;
@@ -533,108 +570,369 @@ function refreshStats() {
 </script>
 
 <style>
-.bg-gradient-purple {
-    background: linear-gradient(45deg, #6f42c1, #9c27b0) !important;
+/* Responsive Design Improvements for Dashboard */
+
+/* Mobile Responsive Styles */
+@media (max-width: 576px) {
+    /* Welcome Card Mobile Adjustments */
+    .bg-gradient-primary .card-body {
+        padding: 20px 15px;
+    }
+    
+    .bg-gradient-primary h4 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .bg-gradient-primary p {
+        font-size: 0.875rem;
+    }
+    
+    /* Stats Cards Mobile Adjustments */
+    .small-box {
+        margin-bottom: 15px;
+        border-radius: 8px;
+    }
+    
+    .small-box .inner {
+        padding: 15px;
+    }
+    
+    .small-box h3 {
+        font-size: 1.75rem;
+        margin-bottom: 5px;
+    }
+    
+    .small-box p {
+        font-size: 0.875rem;
+        margin-bottom: 0;
+    }
+    
+    .small-box .icon {
+        top: 10px;
+        right: 10px;
+        font-size: 1.5rem;
+        opacity: 0.7;
+    }
+    
+    .small-box-footer {
+        padding: 8px 15px;
+        font-size: 0.8rem;
+    }
+    
+    /* Chart Mobile Adjustments */
+    .chart {
+        margin: 10px 0;
+    }
+    
+    #systemChart {
+        max-height: 200px !important;
+    }
+    
+    /* Quick Actions Mobile Adjustments */
+    .d-grid {
+        gap: 0.5rem !important;
+    }
+    
+    .btn-block {
+        padding: 12px 15px;
+        font-size: 0.875rem;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* System Info Mobile Adjustments */
+    .info-box-content {
+        font-size: 0.875rem;
+    }
+    
+    .info-box-content .d-flex {
+        padding: 8px 0;
+    }
+    
+    /* Timeline Mobile Adjustments */
+    .timeline {
+        padding-left: 25px;
+    }
+    
+    .timeline-marker {
+        width: 20px;
+        height: 20px;
+        left: -20px;
+        font-size: 10px;
+    }
+    
+    .timeline-content {
+        padding: 12px;
+        margin-left: 5px;
+    }
+    
+    .timeline-title {
+        font-size: 0.9rem;
+        line-height: 1.3;
+    }
+    
+    .timeline-text {
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+    
+    /* Card Mobile Adjustments */
+    .card {
+        margin-bottom: 15px;
+        border-radius: 8px;
+    }
+    
+    .card-header {
+        padding: 12px 15px;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    .card-title {
+        font-size: 1rem;
+    }
+    
+    /* Button Mobile Improvements */
+    .btn {
+        min-height: 44px;
+        border-radius: 6px;
+    }
+    
+    .btn-sm {
+        min-height: 38px;
+        font-size: 0.8rem;
+    }
+    
+    /* Content Header Mobile */
+    .content-header {
+        padding: 15px 0;
+    }
+    
+    .content-header h1 {
+        font-size: 1.5rem;
+    }
 }
 
-.btn-purple {
-    background: linear-gradient(45deg, #6f42c1, #9c27b0);
-    border: none;
-    color: white;
+@media (max-width: 768px) {
+    /* Tablet Adjustments */
+    .small-box {
+        margin-bottom: 20px;
+    }
+    
+    .small-box h3 {
+        font-size: 2rem;
+    }
+    
+    #systemChart {
+        max-height: 250px !important;
+    }
+    
+    .timeline {
+        padding-left: 30px;
+    }
+    
+    .timeline-marker {
+        width: 25px;
+        height: 25px;
+        left: -27px;
+        font-size: 11px;
+    }
+    
+    .timeline-content {
+        padding: 15px;
+    }
+    
+    /* Quick Actions Tablet */
+    .btn-block {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
 }
 
-.btn-purple:hover {
-    background: linear-gradient(45deg, #5a2d91, #7b1fa2);
-    color: white;
+@media (max-width: 992px) {
+    /* Small Desktop Adjustments */
+    .card-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    #systemChart {
+        max-height: 300px !important;
+    }
 }
 
-.timeline {
-    position: relative;
-    padding-left: 40px;
-}
-
-.timeline-item {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-.timeline-marker {
-    position: absolute;
-    left: -35px;
-    top: 0;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: white;
-    border: 2px solid #dee2e6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-}
-
-.timeline-content {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 3px solid #007bff;
-}
-
-.timeline-title {
-    margin-bottom: 5px;
-    font-weight: 600;
-}
-
-.timeline-text {
-    margin-bottom: 5px;
-    color: #6c757d;
-}
-
+/* Enhanced Hover Effects */
 .small-box {
-    border-radius: 10px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .small-box:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
 
+.small-box:hover .icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Button Improvements */
+.btn {
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Card Improvements */
 .card {
-    border-radius: 10px;
+    transition: all 0.3s ease;
     border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-.card-outline.card-primary {
-    border-top: 3px solid #007bff;
+.card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
 }
 
-.card-outline.card-success {
-    border-top: 3px solid #28a745;
+/* Timeline Improvements */
+.timeline-item {
+    animation: fadeInUp 0.5s ease-out;
 }
 
-.card-outline.card-info {
-    border-top: 3px solid #17a2b8;
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.bg-gradient-primary {
-    background: linear-gradient(45deg, #007bff, #6f42c1) !important;
+/* Loading State */
+.fa-spinner {
+    animation: spin 1s linear infinite;
 }
 
-.bg-gradient-teal {
-  background: linear-gradient(45deg, #20c997, #17a2b8) !important;
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-.shadow {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+/* Responsive Grid Improvements */
+@media (max-width: 576px) {
+    .row.mb-4 {
+        margin-bottom: 20px;
+    }
+    
+    .col-6 {
+        padding-left: 7.5px;
+        padding-right: 7.5px;
+    }
 }
 
+/* Chart Container Improvements */
+.chart {
+    position: relative;
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* System Info Improvements */
+.info-box-content .d-flex {
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.3s ease;
+}
+
+.info-box-content .d-flex:hover {
+    background-color: #f8f9fa;
+}
+
+.info-box-content .d-flex:last-child {
+    border-bottom: none;
+}
+
+/* Badge Improvements */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375em 0.75em;
+    border-radius: 6px;
+}
+
+/* Welcome Card Icon Fix */
+.bg-gradient-primary .fa-hospital {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.1;
+}
+
+/* Mobile-specific welcome card layout */
+@media (max-width: 768px) {
+    .bg-gradient-primary .fa-hospital {
+        display: none;
+    }
+}
+
+/* Quick Actions Grid Improvements */
 .d-grid {
     display: grid !important;
 }
 
-.gap-2 {
-    gap: 0.5rem !important;
+@media (max-width: 576px) {
+    .d-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+    .d-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem !important;
+    }
+}
+
+/* Responsive Typography */
+@media (max-width: 576px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h4 {
+        font-size: 1.25rem;
+    }
+    
+    h6 {
+        font-size: 0.95rem;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    .small-box:hover {
+        transform: none;
+    }
+    
+    .btn:hover {
+        transform: none;
+    }
+    
+    .card:hover {
+        transform: none;
+    }
 }
 </style>
 
