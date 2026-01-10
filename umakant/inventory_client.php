@@ -874,38 +874,52 @@ function viewClientDetails(id) {
                 
                 let html = `
                     <div class="row">
-                        <div class="col-md-7">
+                        <div class="col-lg-7 col-md-12">
                             <div class="client-info-card">
                                 <h5><i class="fas fa-user mr-2"></i>Client Information</h5>
-                                <table class="info-table table table-borderless">
-                                    <tr><th><i class="fas fa-id-card mr-2"></i>Name:</th><td>${client.name}</td></tr>
-                                    <tr><th><i class="fas fa-tag mr-2"></i>Type:</th><td><span class="badge badge-primary">${client.type}</span></td></tr>
-                                    <tr><th><i class="fas fa-envelope mr-2"></i>Email:</th><td>${client.email || '-'}</td></tr>
-                                    <tr><th><i class="fas fa-phone mr-2"></i>Phone:</th><td>${client.phone}</td></tr>
-                                    <tr><th><i class="fas fa-map-marker-alt mr-2"></i>Address:</th><td>${client.address || '-'}</td></tr>
-                                    <tr><th><i class="fas fa-city mr-2"></i>City:</th><td>${client.city || '-'}</td></tr>
-                                    <tr><th><i class="fas fa-map mr-2"></i>State:</th><td>${client.state || '-'}</td></tr>
-                                    <tr><th><i class="fas fa-file-invoice mr-2"></i>GST:</th><td>${client.gst_number || '-'}</td></tr>
-                                    <tr><th><i class="fas fa-toggle-on mr-2"></i>Status:</th><td><span class="badge badge-${client.status === 'Active' ? 'success' : 'secondary'}">${client.status}</span></td></tr>
-                                </table>
+                                <div class="table-responsive">
+                                    <table class="info-table table table-borderless">
+                                        <tbody>
+                                            <tr><th><i class="fas fa-id-card mr-2"></i>Name:</th><td>${client.name}</td></tr>
+                                            <tr><th><i class="fas fa-tag mr-2"></i>Type:</th><td><span class="badge badge-primary">${client.type}</span></td></tr>
+                                            <tr><th><i class="fas fa-envelope mr-2"></i>Email:</th><td>${client.email || '-'}</td></tr>
+                                            <tr><th><i class="fas fa-phone mr-2"></i>Phone:</th><td>${client.phone}</td></tr>
+                                            <tr><th><i class="fas fa-map-marker-alt mr-2"></i>Address:</th><td>${client.address || '-'}</td></tr>
+                                            <tr><th><i class="fas fa-city mr-2"></i>City:</th><td>${client.city || '-'}</td></tr>
+                                            <tr><th><i class="fas fa-map mr-2"></i>State:</th><td>${client.state || '-'}</td></tr>
+                                            <tr><th><i class="fas fa-file-invoice mr-2"></i>GST:</th><td>${client.gst_number || '-'}</td></tr>
+                                            <tr><th><i class="fas fa-toggle-on mr-2"></i>Status:</th><td><span class="badge badge-${client.status === 'Active' ? 'success' : 'secondary'}">${client.status}</span></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-5">
-                            <div class="summary-card">
-                                <h6><i class="fas fa-list-alt mr-2"></i>Total Transactions</h6>
-                                <div class="value">${transactions.length}</div>
-                            </div>
-                            <div class="summary-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                                <h6><i class="fas fa-clock mr-2"></i>Pending</h6>
-                                <div class="value">${pendingCount}</div>
-                            </div>
-                            <div class="summary-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                                <h6><i class="fas fa-check-circle mr-2"></i>Completed</h6>
-                                <div class="value">${completedCount}</div>
-                            </div>
-                            <div class="summary-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                                <h6><i class="fas fa-rupee-sign mr-2"></i>Total Amount</h6>
-                                <div class="value">₹${formatAmount(response.data.total_amount)}</div>
+                        <div class="col-lg-5 col-md-12">
+                            <div class="row">
+                                <div class="col-6 col-md-6 col-lg-12">
+                                    <div class="summary-card">
+                                        <h6><i class="fas fa-list-alt mr-2"></i>Total Transactions</h6>
+                                        <div class="value">${transactions.length}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6 col-lg-12">
+                                    <div class="summary-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                        <h6><i class="fas fa-clock mr-2"></i>Pending</h6>
+                                        <div class="value">${pendingCount}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6 col-lg-12">
+                                    <div class="summary-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                        <h6><i class="fas fa-check-circle mr-2"></i>Completed</h6>
+                                        <div class="value">${completedCount}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6 col-lg-12">
+                                    <div class="summary-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                                        <h6><i class="fas fa-rupee-sign mr-2"></i>Total Amount</h6>
+                                        <div class="value">₹${formatAmount(response.data.total_amount)}</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
