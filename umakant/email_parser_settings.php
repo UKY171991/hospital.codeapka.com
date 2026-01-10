@@ -3,6 +3,320 @@ require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 ?>
 
+<style>
+    /* Responsive styles for email parser settings */
+    @media (max-width: 768px) {
+        .content-wrapper {
+            margin-left: 0;
+        }
+        
+        .content-header h1 {
+            font-size: 1.75rem;
+        }
+        
+        .breadcrumb {
+            font-size: 0.875rem;
+        }
+        
+        /* Statistics boxes */
+        .small-box {
+            margin-bottom: 1rem;
+            min-height: 120px;
+        }
+        
+        .small-box .inner h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .small-box .inner p {
+            font-size: 0.9rem;
+        }
+        
+        .small-box .icon {
+            font-size: 2.5rem;
+            top: 1rem;
+            right: 1rem;
+        }
+        
+        /* Cards */
+        .card {
+            margin-bottom: 1rem;
+        }
+        
+        .card-header h3 {
+            font-size: 1.1rem;
+        }
+        
+        .card-body {
+            padding: 1rem;
+        }
+        
+        /* Forms and buttons */
+        .form-control {
+            font-size: 0.875rem;
+        }
+        
+        .btn {
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+        }
+        
+        .btn-block {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Tables */
+        .table-responsive {
+            border-radius: 0.25rem;
+            margin-bottom: 0;
+        }
+        
+        .table th, .table td {
+            font-size: 0.875rem;
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.35rem 0.5rem;
+        }
+        
+        /* Code blocks */
+        pre {
+            font-size: 0.8rem;
+            padding: 1rem;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+        
+        /* Alerts */
+        .alert {
+            font-size: 0.875rem;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .alert h5 {
+            font-size: 1rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .content-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        /* Statistics boxes for small mobile */
+        .small-box {
+            margin-bottom: 0.75rem;
+            min-height: 100px;
+        }
+        
+        .small-box .inner h3 {
+            font-size: 1.75rem;
+        }
+        
+        .small-box .inner p {
+            font-size: 0.8rem;
+        }
+        
+        .small-box .icon {
+            font-size: 2rem;
+            top: 0.75rem;
+            right: 0.75rem;
+        }
+        
+        /* Cards for mobile */
+        .card {
+            margin-bottom: 0.75rem;
+        }
+        
+        .card-header h3 {
+            font-size: 1rem;
+        }
+        
+        .card-body {
+            padding: 0.75rem;
+        }
+        
+        /* Forms for mobile */
+        .form-control {
+            font-size: 0.8rem;
+        }
+        
+        .btn {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+        }
+        
+        .btn-block {
+            margin-bottom: 0.4rem;
+        }
+        
+        /* Tables for mobile */
+        .table th, .table td {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.25rem;
+        }
+        
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.4rem;
+        }
+        
+        /* Code blocks for mobile */
+        pre {
+            font-size: 0.75rem;
+            padding: 0.75rem;
+        }
+        
+        /* Alerts for mobile */
+        .alert {
+            font-size: 0.8rem;
+            padding: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .alert h5 {
+            font-size: 0.9rem;
+        }
+        
+        /* Hide certain columns on very small screens */
+        .d-none.d-sm-table-cell {
+            display: none !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Extra small mobile adjustments */
+        .small-box .inner h3 {
+            font-size: 1.5rem;
+        }
+        
+        .small-box .icon {
+            font-size: 1.75rem;
+        }
+        
+        .card-header h3 {
+            font-size: 0.9rem;
+        }
+        
+        .card-body {
+            padding: 0.5rem;
+        }
+        
+        .form-control {
+            font-size: 0.8rem;
+        }
+        
+        .btn {
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+        }
+        
+        pre {
+            font-size: 0.7rem;
+            padding: 0.5rem;
+        }
+        
+        .table th, .table td {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.2rem;
+        }
+        
+        .badge {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.3rem;
+        }
+    }
+    
+    /* Improve table responsiveness */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Small box hover effects */
+    .small-box {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    
+    .small-box:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Card improvements */
+    .card {
+        box-shadow: 0 0 1px rgba(0,0,0,0.125);
+        transition: box-shadow 0.15s ease-in-out;
+    }
+    
+    .card:hover {
+        box-shadow: 0 0 8px rgba(0,0,0,0.15);
+    }
+    
+    /* Ensure proper spacing on mobile */
+    @media (max-width: 768px) {
+        .row {
+            margin-bottom: 1rem;
+        }
+        
+        .col-md-6 {
+            margin-bottom: 1rem;
+        }
+    }
+    
+    /* Form group improvements */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Button improvements */
+    .btn-tool {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Log content improvements */
+    #logContent {
+        font-family: 'Courier New', monospace;
+        line-height: 1.4;
+        background: #2d3748 !important;
+        border: 1px solid #495057;
+        border-radius: 0.25rem;
+    }
+    
+    /* Alert improvements */
+    .alert-info {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        border: 1px solid #117a2b8;
+    }
+    
+    .alert-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: 1px solid #1e7e34;
+    }
+    
+    .alert-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: 1px solid #bd2130;
+    }
+    
+    .alert-secondary {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        border: 1px solid #545b62;
+    }
+</style>
+
 <!-- Content Wrapper -->
 <div class="content-wrapper">
     <!-- Content Header -->
@@ -174,20 +488,23 @@ Loading logs...
                                 Recently Processed Emails
                             </h3>
                         </div>
-                        <div class="card-body">
-                            <table class="table table-sm table-striped" style="font-size: 11px;">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Type</th>
-                                        <th>Message ID</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="processedEmailsTable">
-                                    <tr>
-                                        <td colspan="3" class="text-center">Loading...</td>
-                                    </tr>
-                                </tbody>
+                        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped" style="font-size: 11px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th class="d-none d-sm-table-cell">Type</th>
+                                            <th class="d-none d-md-table-cell">Message ID</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="processedEmailsTable">
+                                        <tr>
+                                            <td colspan="3" class="text-center">Loading...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                             </table>
                         </div>
                     </div>
@@ -366,11 +683,11 @@ function displayProcessedEmails(emails) {
     emails.forEach(function(email) {
         const typeClass = email.transaction_type === 'income' ? 'badge-success' : 'badge-danger';
         const row = `
-            <tr>
-                <td>${email.processed_at}</td>
-                <td><span class="badge ${typeClass}">${email.transaction_type.toUpperCase()}</span></td>
-                <td><small>${email.message_id.substring(0, 30)}...</small></td>
-            </tr>
+                                    <tr>
+                                        <td>${email.processed_at}</td>
+                                        <td class="d-none d-sm-table-cell"><span class="badge ${typeClass}">${email.transaction_type.toUpperCase()}</span></td>
+                                        <td class="d-none d-md-table-cell"><small>${email.message_id.substring(0, 30)}...</small></td>
+                                    </tr>
         `;
         tbody.append(row);
     });
