@@ -37,7 +37,7 @@ $gmail_config = [
         <div class="container-fluid">
             <!-- Connection Status Row -->
             <div class="row mb-4">
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-3 col-md-6 col-sm-6">
                     <div class="small-box bg-info">
                         <div class="inner">
                             <h3 id="connectionStatus">Checking...</h3>
@@ -48,7 +48,7 @@ $gmail_config = [
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-3 col-md-6 col-sm-6">
                     <div class="small-box bg-success">
                         <div class="inner">
                             <h3 id="emailTemplates">0</h3>
@@ -59,7 +59,7 @@ $gmail_config = [
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-3 col-md-6 col-sm-6">
                     <div class="small-box bg-warning">
                         <div class="inner">
                             <h3 id="emailSignatures">0</h3>
@@ -70,7 +70,7 @@ $gmail_config = [
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-3 col-md-6 col-sm-6">
                     <div class="small-box bg-primary">
                         <div class="inner">
                             <h3 id="autoReplies">0</h3>
@@ -85,7 +85,7 @@ $gmail_config = [
 
             <div class="row">
                 <!-- Gmail Configuration -->
-                <div class="col-md-6">
+                <div class="col-lg-6 col-md-12">
                     <div class="card card-primary">
                         <div class="card-header">
                             <h3 class="card-title">
@@ -95,65 +95,73 @@ $gmail_config = [
                         </div>
                         <form id="gmailConfigForm">
                             <div class="card-body">
-                                <div class="form-group">
-                                    <label for="gmailAddress">Gmail Address</label>
-                                    <input type="email" class="form-control" id="gmailAddress" value="<?php echo htmlspecialchars($gmail_config['email']); ?>" readonly>
-                                    <small class="form-text text-muted">Your Gmail account for sending and receiving emails</small>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="authType">Authentication Type</label>
-                                    <select class="form-control" id="authType">
-                                        <option value="app_password">App Password (Recommended)</option>
-                                        <option value="oauth2">OAuth2 (Advanced)</option>
-                                        <option value="regular">Regular Password (Less Secure)</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group" id="passwordGroup">
-                                    <label for="gmailPassword">Password/App Password</label>
-                                    <div class="input-group">
-                                        <input type="password" class="form-control" id="gmailPassword" placeholder="Enter your Gmail password">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility()">
-                                                <i class="fas fa-eye" id="passwordToggleIcon"></i>
-                                            </button>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="gmailAddress">Gmail Address</label>
+                                            <input type="email" class="form-control" id="gmailAddress" value="<?php echo htmlspecialchars($gmail_config['email']); ?>" readonly>
+                                            <small class="form-text text-muted">Your Gmail account for sending and receiving emails</small>
                                         </div>
                                     </div>
-                                    <small class="form-text text-muted" id="passwordHelp">Enter your Gmail App Password for secure access</small>
-                                </div>
-
-                                <div class="form-group">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="enableIMAP" checked>
-                                        <label class="custom-control-label" for="enableIMAP">
-                                            Enable IMAP (for receiving emails)
-                                        </label>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="authType">Authentication Type</label>
+                                            <select class="form-control" id="authType">
+                                                <option value="app_password">App Password (Recommended)</option>
+                                                <option value="oauth2">OAuth2 (Advanced)</option>
+                                                <option value="regular">Regular Password (Less Secure)</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="enableSMTP" checked>
-                                        <label class="custom-control-label" for="enableSMTP">
-                                            Enable SMTP (for sending emails)
-                                        </label>
+                                    <div class="col-md-6">
+                                        <div class="form-group" id="passwordGroup">
+                                            <label for="gmailPassword">Password/App Password</label>
+                                            <div class="input-group">
+                                                <input type="password" class="form-control" id="gmailPassword" placeholder="Enter your Gmail password">
+                                                <div class="input-group-append">
+                                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility()">
+                                                        <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <small class="form-text text-muted" id="passwordHelp">Enter your Gmail App Password for secure access</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="enableIMAP" checked>
+                                                <label class="custom-control-label" for="enableIMAP">
+                                                    Enable IMAP (for receiving emails)
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="enableSMTP" checked>
+                                                <label class="custom-control-label" for="enableSMTP">
+                                                    Enable SMTP (for sending emails)
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="card-footer">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save mr-1"></i> Save Configuration
+                                    <i class="fas fa-save mr-1"></i> <span class="d-none d-sm-inline">Save Configuration</span>
                                 </button>
                                 <button type="button" class="btn btn-info ml-2" onclick="testConnection()">
-                                    <i class="fas fa-plug mr-1"></i> Test Connection
+                                    <i class="fas fa-plug mr-1"></i> <span class="d-none d-sm-inline">Test Connection</span>
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>         
        <!-- Email Preferences -->
-                <div class="col-md-6">
+                <div class="col-lg-6 col-md-12">
                     <div class="card card-success">
                         <div class="card-header">
                             <h3 class="card-title">
@@ -163,63 +171,72 @@ $gmail_config = [
                         </div>
                         <form id="emailPreferencesForm">
                             <div class="card-body">
-                                <div class="form-group">
-                                    <label for="defaultPriority">Default Email Priority</label>
-                                    <select class="form-control" id="defaultPriority">
-                                        <option value="normal">Normal</option>
-                                        <option value="high">High</option>
-                                        <option value="low">Low</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="emailsPerPage">Emails Per Page</label>
-                                    <select class="form-control" id="emailsPerPage">
-                                        <option value="25">25</option>
-                                        <option value="50" selected>50</option>
-                                        <option value="100">100</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="autoRefresh" checked>
-                                        <label class="custom-control-label" for="autoRefresh">
-                                            Auto-refresh inbox every 5 minutes
-                                        </label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="defaultPriority">Default Email Priority</label>
+                                            <select class="form-control" id="defaultPriority">
+                                                <option value="normal">Normal</option>
+                                                <option value="high">High</option>
+                                                <option value="low">Low</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="markAsRead">
-                                        <label class="custom-control-label" for="markAsRead">
-                                            Mark emails as read when viewed
-                                        </label>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="emailsPerPage">Emails Per Page</label>
+                                            <select class="form-control" id="emailsPerPage">
+                                                <option value="25">25</option>
+                                                <option value="50" selected>50</option>
+                                                <option value="100">100</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="showNotifications" checked>
-                                        <label class="custom-control-label" for="showNotifications">
-                                            Show desktop notifications for new emails
-                                        </label>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="autoRefresh" checked>
+                                                <label class="custom-control-label" for="autoRefresh">
+                                                    Auto-refresh inbox every 5 minutes
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="saveSentCopy" checked>
-                                        <label class="custom-control-label" for="saveSentCopy">
-                                            Save copy of sent emails
-                                        </label>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="markAsRead" checked>
+                                                <label class="custom-control-label" for="markAsRead">
+                                                    Mark emails as read when viewed
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="showNotifications" checked>
+                                                <label class="custom-control-label" for="showNotifications">
+                                                    Show desktop notifications for new emails
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="saveSentCopy" checked>
+                                                <label class="custom-control-label" for="saveSentCopy">
+                                                    Save copy of sent emails
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="card-footer">
                                 <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-save mr-1"></i> Save Preferences
+                                    <i class="fas fa-save mr-1"></i> <span class="d-none d-sm-inline">Save Preferences</span>
                                 </button>
                             </div>
                         </form>
@@ -229,7 +246,7 @@ $gmail_config = [
 
             <div class="row mt-4">
                 <!-- Email Templates -->
-                <div class="col-md-6">
+                <div class="col-lg-6 col-md-12">
                     <div class="card card-warning">
                         <div class="card-header">
                             <h3 class="card-title">
@@ -238,7 +255,7 @@ $gmail_config = [
                             </h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-warning btn-sm" onclick="addNewTemplate()">
-                                    <i class="fas fa-plus"></i> Add Template
+                                    <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Add Template</span>
                                 </button>
                             </div>
                         </div>
@@ -253,7 +270,7 @@ $gmail_config = [
                 </div>
 
                 <!-- Email Signatures -->
-                <div class="col-md-6">
+                <div class="col-lg-6 col-md-12">
                     <div class="card card-info">
                         <div class="card-header">
                             <h3 class="card-title">
@@ -262,7 +279,7 @@ $gmail_config = [
                             </h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-info btn-sm" onclick="addNewSignature()">
-                                    <i class="fas fa-plus"></i> Add Signature
+                                    <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Add Signature</span>
                                 </button>
                             </div>
                         </div>
@@ -290,7 +307,7 @@ $gmail_config = [
                         <form id="autoReplyForm">
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox">
                                                 <input type="checkbox" class="custom-control-input" id="enableAutoReply">
@@ -299,28 +316,32 @@ $gmail_config = [
                                                 </label>
                                             </div>
                                         </div>
-
+                                    </div>
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="autoReplySubject">Auto Reply Subject</label>
                                             <input type="text" class="form-control" id="autoReplySubject" placeholder="Out of Office - Auto Reply">
                                         </div>
-
+                                    </div>
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="autoReplyStartDate">Start Date</label>
                                             <input type="datetime-local" class="form-control" id="autoReplyStartDate">
                                         </div>
-
+                                    </div>
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="autoReplyEndDate">End Date</label>
                                             <input type="datetime-local" class="form-control" id="autoReplyEndDate">
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="autoReplyMessage">Auto Reply Message</label>
                                             <textarea class="form-control" id="autoReplyMessage" rows="8" placeholder="Thank you for your email. I am currently out of office and will respond to your message when I return."></textarea>
                                         </div>
-
+                                    </div>
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox">
                                                 <input type="checkbox" class="custom-control-input" id="replyOnlyOnce">
@@ -329,7 +350,8 @@ $gmail_config = [
                                                 </label>
                                             </div>
                                         </div>
-
+                                    </div>
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox">
                                                 <input type="checkbox" class="custom-control-input" id="replyToKnownOnly">
@@ -343,10 +365,10 @@ $gmail_config = [
                             </div>
                             <div class="card-footer">
                                 <button type="submit" class="btn btn-secondary">
-                                    <i class="fas fa-save mr-1"></i> Save Auto Reply Settings
+                                    <i class="fas fa-save mr-1"></i> <span class="d-none d-sm-inline">Save Auto Reply Settings</span>
                                 </button>
                                 <button type="button" class="btn btn-info ml-2" onclick="testAutoReply()">
-                                    <i class="fas fa-paper-plane mr-1"></i> Send Test Auto Reply
+                                    <i class="fas fa-paper-plane mr-1"></i> <span class="d-none d-sm-inline">Send Test Auto Reply</span>
                                 </button>
                             </div>
                         </form>
@@ -355,10 +377,11 @@ $gmail_config = [
             </div>
         </div>
     </section>
-</div><
-!-- Template Modal -->
+</div>
+
+<!-- Template Modal -->
 <div class="modal fade" id="templateModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-warning text-dark">
                 <h5 class="modal-title" id="templateModalLabel">
@@ -414,7 +437,7 @@ $gmail_config = [
 
 <!-- Signature Modal -->
 <div class="modal fade" id="signatureModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
                 <h5 class="modal-title" id="signatureModalLabel">
@@ -1072,6 +1095,465 @@ function escapeHtml(text) {
 </script>
 
 <style>
+.small-box {
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.small-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.signature-preview {
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #495057;
+}
+
+@media (max-width: 768px) {
+    }
+    
+    .small-box .inner {
+        padding: 15px;
+    }
+    
+    .small-box h3 {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+    
+    .small-box p {
+        font-size: 0.8rem;
+        margin-bottom: 0;
+    }
+    
+    .small-box .icon {
+        top: 10px;
+        right: 10px;
+        font-size: 1.2rem;
+        opacity: 0.8;
+    }
+    
+    /* Form Mobile Adjustments */
+    .card {
+        margin-bottom: 15px;
+        border-radius: 8px;
+    }
+    
+    .card-header {
+        padding: 12px 15px;
+    }
+    
+    .card-header h3 {
+        font-size: 1rem;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-control {
+        font-size: 0.9rem;
+        min-height: 44px;
+    }
+    
+    .custom-control-label {
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+    
+    /* Button Mobile Improvements */
+    .btn {
+        min-height: 44px;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+    
+    .btn-sm {
+        min-height: 38px;
+        font-size: 0.8rem;
+    }
+    
+    .card-footer {
+        padding: 10px 15px;
+    }
+    
+    /* Modal Mobile Adjustments */
+    .modal-dialog {
+        margin: 10px;
+        max-width: calc(100% - 20px);
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .modal-header {
+        padding: 15px;
+    }
+    
+    .modal-footer {
+        padding: 10px 15px;
+    }
+    
+    /* Content Header Mobile */
+    .content-header {
+        padding: 15px 0;
+    }
+    
+    .content-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    /* Input Group Mobile */
+    .input-group {
+        margin-bottom: 15px;
+    }
+    
+    .input-group-append .btn {
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Tablet Adjustments */
+    .small-box {
+        margin-bottom: 20px;
+    }
+    
+    .small-box h3 {
+        font-size: 1.75rem;
+    }
+    
+    .small-box .icon {
+        font-size: 1.4rem;
+    }
+    
+    .card {
+        margin-bottom: 20px;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-control {
+        font-size: 0.95rem;
+    }
+    
+    .custom-control-label {
+        font-size: 0.85rem;
+    }
+    
+    .btn {
+        margin-bottom: 15px;
+    }
+    
+    .btn-sm {
+        min-height: 40px;
+        font-size: 0.85rem;
+    }
+    
+    .modal-dialog {
+        max-width: 95%;
+        margin: 15px auto;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .modal-header {
+        padding: 20px;
+    }
+    
+    .modal-footer {
+        padding: 15px 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    /* Small Desktop Adjustments */
+    .card-body {
+        padding: 25px;
+    }
+    
+    .modal-dialog {
+        max-width: 90%;
+    }
+}
+
+/* Enhanced Hover Effects */
+.small-box {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.small-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.small-box:hover .icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Button Improvements */
+.btn {
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Card Improvements */
+.card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+/* Form Input Focus Effects */
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Custom Checkbox Improvements */
+.custom-control-input:checked + .custom-control-label::before {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+/* Modal Improvements */
+.modal-content {
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.modal-header {
+    border-radius: 8px 8px 0 0;
+}
+
+/* Loading State */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Grid Improvements */
+@media (max-width: 576px) {
+    .row.mb-4 {
+        margin-bottom: 20px;
+    }
+    
+    .col-sm-6 {
+        padding-left: 7.5px;
+        padding-right: 7.5px;
+        margin-bottom: 15px;
+    }
+    
+    .col-md-12 {
+        margin-bottom: 20px;
+    }
+}
+
+/* Responsive Typography */
+@media (max-width: 576px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h3 {
+        font-size: 1.2rem;
+    }
+    
+    h5 {
+        font-size: 1.1rem;
+    }
+    
+    h6 {
+        font-size: 0.95rem;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    .small-box:hover {
+        transform: none;
+    }
+    
+    .btn:hover {
+        transform: none;
+    }
+    
+    .card:hover {
+        transform: none;
+    }
+}
+
+/* Form Validation Improvements */
+.was-validated .form-control:valid {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Input Group Improvements */
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group .form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group-append .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+/* Status Badge Improvements */
+.bg-success {
+    background: linear-gradient(45deg, #28a745, #20c997) !important;
+}
+
+.bg-warning {
+    background: linear-gradient(45deg, #ffc107, #e0a800) !important;
+}
+
+.bg-info {
+    background: linear-gradient(45deg, #17a2b8, #138496) !important;
+}
+
+.bg-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3) !important;
+}
+
+/* Card Header Improvements */
+.card-header.bg-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3) !important;
+}
+
+.card-header.bg-success {
+    background: linear-gradient(45deg, #28a745, #20c997) !important;
+}
+
+.card-header.bg-warning {
+    background: linear-gradient(45deg, #ffc107, #e0a800) !important;
+}
+
+.card-header.bg-info {
+    background: linear-gradient(45deg, #17a2b8, #138496) !important;
+}
+
+.card-header.bg-secondary {
+    background: linear-gradient(45deg, #6c757d, #545b62) !important;
+}
+
+/* Text Area Improvements */
+.form-control[type="text"]:focus,
+.form-control[type="email"]:focus,
+.form-control[type="password"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+@media (max-width: 576px) {
+    textarea.form-control {
+        min-height: 80px;
+    }
+}
+
+/* Password Input Improvements */
+.form-control[type="password"] {
+    letter-spacing: 0.5px;
+}
+
+/* Select Improvements */
+select.form-control {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+select.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Button Group Improvements */
+.btn-group .btn {
+    border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+    border-top-left-radius: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
+}
+
+.btn-group .btn:last-child {
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+}
+
+/* Preview Box Improvements */
+#signaturePreview {
+    min-height: 60px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 576px) {
+    #signaturePreview {
+        min-height: 50px;
+        font-size: 0.75rem;
+        padding: 8px;
+    }
+}
+
 .small-box {
     border-radius: 10px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
