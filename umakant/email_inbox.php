@@ -37,7 +37,7 @@ $gmail_config = [
         <div class="container-fluid">
             <!-- Email Stats Row -->
             <div class="row mb-4">
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-3 col-md-6 col-sm-6">
                     <div class="small-box bg-info">
                         <div class="inner">
                             <h3 id="totalEmails">0</h3>
@@ -48,7 +48,7 @@ $gmail_config = [
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-3 col-md-6 col-sm-6">
                     <div class="small-box bg-success">
                         <div class="inner">
                             <h3 id="unreadEmails">0</h3>
@@ -59,7 +59,7 @@ $gmail_config = [
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-3 col-md-6 col-sm-6">
                     <div class="small-box bg-warning">
                         <div class="inner">
                             <h3 id="todayEmails">0</h3>
@@ -70,7 +70,7 @@ $gmail_config = [
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-6">
+                <div class="col-lg-3 col-md-6 col-sm-6">
                     <div class="small-box bg-danger">
                         <div class="inner">
                             <h3 id="connectionStatus">Disconnected</h3>
@@ -93,13 +93,13 @@ $gmail_config = [
                             </h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-primary btn-sm" onclick="refreshEmails()">
-                                    <i class="fas fa-sync-alt"></i> Refresh
+                                    <i class="fas fa-sync-alt"></i> <span class="d-none d-sm-inline">Refresh</span>
                                 </button>
                                 <button type="button" class="btn btn-success btn-sm" onclick="window.location.href='email_compose.php'">
-                                    <i class="fas fa-plus"></i> Compose
+                                    <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Compose</span>
                                 </button>
                                 <button type="button" class="btn btn-info btn-sm" onclick="setupGmailConnection()">
-                                    <i class="fas fa-cog"></i> Setup
+                                    <i class="fas fa-cog"></i> <span class="d-none d-sm-inline">Setup</span>
                                 </button>
                             </div>
                         </div>
@@ -124,7 +124,7 @@ $gmail_config = [
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="col-md-3">
+                                        <div class="col-md-3 col-sm-12">
                                             <label class="form-label">Status</label>
                                             <select id="statusFilter" class="form-control">
                                                 <option value="">All Emails</option>
@@ -132,7 +132,7 @@ $gmail_config = [
                                                 <option value="read">Read Only</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-3 col-sm-12">
                                             <label class="form-label">Date Range</label>
                                             <select id="dateFilter" class="form-control">
                                                 <option value="">All Time</option>
@@ -141,7 +141,7 @@ $gmail_config = [
                                                 <option value="month">This Month</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 col-sm-12">
                                             <label class="form-label">Search</label>
                                             <input type="text" id="emailSearch" class="form-control" placeholder="Search emails...">
                                         </div>
@@ -182,7 +182,7 @@ $gmail_config = [
 
 <!-- Email View Modal -->
 <div class="modal fade" id="emailModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="emailModalLabel">
@@ -213,7 +213,7 @@ $gmail_config = [
 
 <!-- Gmail Setup Modal -->
 <div class="modal fade" id="setupModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
                 <h5 class="modal-title">
@@ -851,6 +851,501 @@ function formatFileSize(bytes) {
     .btn-group-sm > .btn, .btn-sm {
         padding: 0.2rem 0.4rem;
         font-size: 0.8rem;
+    }
+}
+
+/* Responsive Design Improvements for Email Inbox Page */
+
+/* Mobile Responsive Styles */
+@media (max-width: 576px) {
+    /* Header Mobile Adjustments */
+    .content-header {
+        padding: 15px 0;
+    }
+    
+    .content-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    /* Status Cards Mobile Adjustments */
+    .small-box {
+        margin-bottom: 15px;
+        border-radius: 8px;
+    }
+    
+    .small-box .inner {
+        padding: 15px;
+    }
+    
+    .small-box h3 {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+    
+    .small-box p {
+        font-size: 0.8rem;
+        margin-bottom: 0;
+    }
+    
+    .small-box .icon {
+        top: 10px;
+        right: 10px;
+        font-size: 1.2rem;
+        opacity: 0.8;
+    }
+    
+    /* Card Mobile Adjustments */
+    .card {
+        margin-bottom: 20px;
+        border-radius: 8px;
+    }
+    
+    .card-header {
+        padding: 12px 15px;
+    }
+    
+    .card-header h3 {
+        font-size: 1rem;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    /* Filter Form Mobile Adjustments */
+    .card {
+        margin-bottom: 20px;
+    }
+    
+    .card-header {
+        padding: 12px 15px;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-label {
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+    
+    .form-control {
+        font-size: 0.9rem;
+        min-height: 44px;
+    }
+    
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    /* Table Mobile Adjustments */
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+    
+    .table th {
+        font-size: 0.75rem;
+        padding: 0.5rem;
+    }
+    
+    .table td {
+        padding: 0.5rem;
+        vertical-align: middle;
+    }
+    
+    /* Button Mobile Improvements */
+    .btn {
+        min-height: 44px;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+    
+    .btn-sm {
+        min-height: 38px;
+        font-size: 0.8rem;
+    }
+    
+    .btn-group {
+        margin-bottom: 10px;
+    }
+    
+    .card-footer {
+        padding: 10px 15px;
+    }
+    
+    /* Alert Mobile Adjustments */
+    .alert {
+        margin-bottom: 15px;
+        padding: 10px;
+    }
+    
+    /* Modal Mobile Adjustments */
+    .modal-dialog {
+        margin: 10px;
+        max-width: calc(100% - 20px);
+    }
+    
+    .modal-content {
+        border-radius: 8px;
+    }
+    
+    .modal-header {
+        padding: 15px;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .modal-footer {
+        padding: 10px 15px;
+    }
+    
+    /* Email Content Mobile Adjustments */
+    .email-header {
+        padding: 8px 10px;
+    }
+    
+    .email-content {
+        padding: 10px;
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+    
+    /* Setup Form Mobile Adjustments */
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-label {
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+    
+    .form-control {
+        font-size: 0.9rem;
+        min-height: 44px;
+    }
+    
+    /* Attachment List Mobile Adjustments */
+    .attachment-item {
+        padding: 8px;
+        margin-bottom: 5px;
+        font-size: 0.8rem;
+    }
+    
+    .attachment-item .btn {
+        min-height: 32px;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Tablet Adjustments */
+    .small-box {
+        margin-bottom: 20px;
+    }
+    
+    .small-box h3 {
+        font-size: 1.75rem;
+    }
+    
+    .small-box .icon {
+        font-size: 1.4rem;
+    }
+    
+    .card {
+        margin-bottom: 25px;
+    }
+    
+    .card-header {
+        padding: 15px 20px;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        font-size: 0.85rem;
+    }
+    
+    .form-control {
+        font-size: 0.95rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+    
+    .table th {
+        font-size: 0.8rem;
+    }
+    
+    .table td {
+        padding: 0.75rem;
+    }
+    
+    .btn {
+        margin-bottom: 15px;
+    }
+    
+    .btn-sm {
+        min-height: 40px;
+        font-size: 0.85rem;
+    }
+    
+    .btn-group {
+        margin-bottom: 15px;
+    }
+    
+    .card-footer {
+        padding: 15px 20px;
+    }
+    
+    .alert {
+        margin-bottom: 20px;
+        padding: 15px;
+    }
+    
+    .modal-dialog {
+        max-width: 95%;
+        margin: 15px auto;
+    }
+    
+    .modal-content {
+        border-radius: 8px;
+    }
+    
+    .modal-header {
+        padding: 20px;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .modal-footer {
+        padding: 15px 20px;
+    }
+    
+    .email-header {
+        padding: 10px 20px;
+    }
+    
+    .email-content {
+        padding: 15px;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        font-size: 0.85rem;
+    }
+    
+    .form-control {
+        font-size: 0.95rem;
+    }
+    
+    .attachment-item {
+        padding: 10px;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+    }
+    
+    .attachment-item .btn {
+        min-height: 36px;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 992px) {
+    /* Small Desktop Adjustments */
+    .card-body {
+        padding: 25px;
+    }
+    
+    .form-control {
+        font-size: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .table th {
+        font-size: 0.8rem;
+    }
+    
+    .table td {
+        padding: 1rem;
+    }
+    
+    .modal-body {
+        padding: 25px;
+    }
+    
+    .email-content {
+        padding: 20px;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+}
+
+/* Enhanced Hover Effects */
+.small-box {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.small-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.small-box:hover .icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Button Improvements */
+.btn {
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Card Improvements */
+.card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.card:hover .card-header {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* Form Input Focus Effects */
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Custom Checkbox Improvements */
+.custom-control-input:checked + .custom-control-label::before {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+/* Modal Improvements */
+.modal-content {
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.modal-header {
+    border-radius: 8px 8px 0 0;
+}
+
+/* Alert Improvements */
+.alert {
+    border-radius: 6px;
+    border-left: 4px solid transparent;
+}
+
+/* Badge Improvements */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375em 0.75em;
+    border-radius: 6px;
+}
+
+/* Loading State */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Grid Improvements */
+@media (max-width: 576px) {
+    .row {
+        margin-bottom: 20px;
+    }
+    
+    .col-sm-6 {
+        padding-left: 7.5px;
+        padding-right: 7.5px;
+        margin-bottom: 15px;
+    }
+    
+    .col-md-6 {
+        margin-bottom: 15px;
+    }
+    
+    .col-md-12 {
+        margin-bottom: 15px;
+    }
+}
+
+/* Responsive Typography */
+@media (max-width: 576px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h3 {
+        font-size: 1.2rem;
+    }
+    
+    h6 {
+        font-size: 1.1rem;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    .small-box:hover {
+        transform: none;
+    }
+    
+    .btn:hover {
+        transform: none;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 8px;
     }
 }
 </style>
