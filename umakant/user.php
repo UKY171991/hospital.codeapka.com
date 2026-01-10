@@ -32,16 +32,10 @@ require_once 'inc/sidebar.php';
                             <h3 class="card-title">User Management</h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#userModal" onclick="openAddUserModal()">
-                                    <i class="fas fa-plus"></i> Add User
+                                    <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Add User</span>
                                 </button>
                                 <button type="button" class="btn btn-success btn-sm" onclick="exportUsers()">
-                                    <i class="fas fa-download"></i> Export
-                                </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-                                    <i class="fas fa-times"></i>
+                                    <i class="fas fa-download"></i> <span class="d-none d-sm-inline">Export</span>
                                 </button>
                             </div>
                         </div>
@@ -51,25 +45,27 @@ require_once 'inc/sidebar.php';
                             <!-- Group Actions -->
                             <div class="group-actions">
                                 <div class="row align-items-center">
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 col-sm-12">
                                         <div class="btn-group" role="group">
                                             <button type="button" class="btn btn-outline-primary" onclick="selectAllUsers()">
-                                                <i class="fas fa-check-square"></i> Select All
+                                                <i class="fas fa-check-square"></i> <span class="d-none d-sm-inline">Select All</span>
                                             </button>
                                             <button type="button" class="btn btn-outline-secondary" onclick="deselectAllUsers()">
-                                                <i class="fas fa-square"></i> Deselect All
-                                            </button>
-                                        </div>
-                                        <div class="btn-group ml-2" role="group">
-                                            <button type="button" class="btn btn-outline-info" onclick="bulkExportUsers()">
-                                                <i class="fas fa-download"></i> Export Selected
-                                            </button>
-                                            <button type="button" class="btn btn-outline-danger" onclick="bulkDeleteUsers()">
-                                                <i class="fas fa-trash"></i> Delete Selected
+                                                <i class="fas fa-square"></i> <span class="d-none d-sm-inline">Deselect All</span>
                                             </button>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 text-right">
+                                    <div class="col-md-6 col-sm-12">
+                                        <div class="btn-group ml-2" role="group">
+                                            <button type="button" class="btn btn-outline-info" onclick="bulkExportUsers()">
+                                                <i class="fas fa-download"></i> <span class="d-none d-sm-inline">Export Selected</span>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" onclick="bulkDeleteUsers()">
+                                                <i class="fas fa-trash"></i> <span class="d-none d-sm-inline">Delete Selected</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 text-right">
                                         <small class="text-muted">Select users to perform bulk actions</small>
                                     </div>
                                 </div>
@@ -84,25 +80,25 @@ require_once 'inc/sidebar.php';
                                     </span>
                                     <div>
                                         <button class="btn btn-sm btn-info bulk-export">
-                                            <i class="fas fa-download"></i> Export
+                                            <i class="fas fa-download"></i> <span class="d-none d-sm-inline">Export</span>
                                         </button>
                                         <button class="btn btn-sm btn-danger bulk-delete">
-                                            <i class="fas fa-trash"></i> Delete
+                                            <i class="fas fa-trash"></i> <span class="d-none d-sm-inline">Delete</span>
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="row mb-3 align-items-center">
-                                <div class="col-md-6">
+                                <div class="col-md-6 col-sm-12">
                                     <div class="input-group">
                                         <input id="usersSearch" class="form-control" placeholder="Search users by username, email or name...">
                                         <div class="input-group-append">
-                                            <button id="usersSearchClear" class="btn btn-outline-secondary">Clear</button>
+                                            <button id="usersSearchClear" class="btn btn-outline-secondary"><span class="d-none d-sm-inline">Clear</span></button>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3 ml-auto text-right">
+                                <div class="col-md-3 col-sm-6">
                                     <div class="form-inline float-right">
                                         <label class="mr-2">Per page</label>
                                         <select id="usersPerPage" class="form-control">
@@ -110,6 +106,16 @@ require_once 'inc/sidebar.php';
                                             <option value="25">25</option>
                                             <option value="50">50</option>
                                         </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-6 text-right">
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-sm btn-info bulk-export">
+                                            <i class="fas fa-download"></i> <span class="d-none d-sm-inline">Export</span>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger bulk-delete">
+                                            <i class="fas fa-trash"></i> <span class="d-none d-sm-inline">Delete</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -148,7 +154,7 @@ require_once 'inc/sidebar.php';
 
 <!-- User Modal -->
 <div class="modal fade" id="userModal" tabindex="-1" role="dialog" aria-labelledby="userModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="userModalLabel">Add User</h5>
@@ -236,7 +242,7 @@ require_once 'inc/sidebar.php';
 
 <!-- View User Modal -->
 <div class="modal fade view-modal modal-enhanced" id="viewUserModal" tabindex="-1" role="dialog" aria-labelledby="viewUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="viewUserModalLabel">
@@ -269,6 +275,392 @@ require_once 'inc/sidebar.php';
 
 <!-- Page specific CSS -->
 <link rel="stylesheet" href="assets/css/user.css">
+
+<style>
+/* Responsive Design Improvements for User Management Page */
+
+/* Mobile Responsive Styles */
+@media (max-width: 576px) {
+    /* Header Mobile Adjustments */
+    .content-header {
+        padding: 15px 0;
+    }
+    
+    .content-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    /* Card Mobile Adjustments */
+    .card {
+        margin-bottom: 20px;
+        border-radius: 8px;
+    }
+    
+    .card-header {
+        padding: 12px 15px;
+    }
+    
+    .card-header h3 {
+        font-size: 1rem;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    /* Button Mobile Improvements */
+    .btn {
+        min-height: 44px;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+    
+    .btn-sm {
+        min-height: 38px;
+        font-size: 0.8rem;
+    }
+    
+    .btn-group {
+        margin-bottom: 10px;
+    }
+    
+    .card-tools {
+        margin-bottom: 10px;
+    }
+    
+    /* Form Mobile Adjustments */
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-label {
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+    
+    .form-control {
+        font-size: 0.9rem;
+        min-height: 44px;
+    }
+    
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    /* Table Mobile Adjustments */
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+    
+    .table th {
+        font-size: 0.75rem;
+        padding: 0.5rem;
+    }
+    
+    .table td {
+        padding: 0.5rem;
+        vertical-align: middle;
+    }
+    
+    /* Group Actions Mobile Adjustments */
+    .group-actions {
+        margin-bottom: 15px;
+    }
+    
+    .bulk-actions {
+        margin-bottom: 15px;
+    }
+    
+    .selected-count {
+        font-size: 0.8rem;
+    }
+    
+    /* Input Group Mobile Adjustments */
+    .input-group {
+        margin-bottom: 15px;
+    }
+    
+    .input-group-append .btn {
+        min-height: 44px;
+        font-size: 0.8rem;
+    }
+    
+    /* Modal Mobile Adjustments */
+    .modal-dialog {
+        margin: 10px;
+        max-width: calc(100% - 20px);
+    }
+    
+    .modal-content {
+        border-radius: 8px;
+    }
+    
+    .modal-header {
+        padding: 15px;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .modal-footer {
+        padding: 10px 15px;
+    }
+    
+    /* View Details Mobile Adjustments */
+    .view-details {
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Tablet Adjustments */
+    .card {
+        margin-bottom: 25px;
+    }
+    
+    .card-header {
+        padding: 15px 20px;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        font-size: 0.85rem;
+    }
+    
+    .form-control {
+        font-size: 0.95rem;
+    }
+    
+    .btn {
+        margin-bottom: 15px;
+    }
+    
+    .btn-sm {
+        min-height: 40px;
+        font-size: 0.85rem;
+    }
+    
+    .btn-group {
+        margin-bottom: 15px;
+    }
+    
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+    
+    .table th {
+        font-size: 0.8rem;
+    }
+    
+    .table td {
+        padding: 0.75rem;
+    }
+    
+    .modal-dialog {
+        max-width: 95%;
+        margin: 15px auto;
+    }
+    
+    .modal-content {
+        border-radius: 8px;
+    }
+    
+    .modal-header {
+        padding: 20px;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .modal-footer {
+        padding: 15px 20px;
+    }
+    
+    .view-details {
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 992px) {
+    /* Small Desktop Adjustments */
+    .card-body {
+        padding: 25px;
+    }
+    
+    .form-control {
+        font-size: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .table th {
+        font-size: 0.8rem;
+    }
+    
+    .table td {
+        padding: 1rem;
+    }
+    
+    .modal-body {
+        padding: 25px;
+    }
+    
+    .view-details {
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+}
+
+/* Enhanced Hover Effects */
+.card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.card:hover .card-header {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* Button Improvements */
+.btn {
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Table Improvements */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+    border-top: none;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0,123,255,0.05);
+}
+
+/* Form Input Focus Effects */
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Modal Improvements */
+.modal-content {
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.modal-header {
+    border-radius: 8px 8px 0 0;
+}
+
+/* Alert Improvements */
+.alert {
+    border-radius: 6px;
+    border-left: 4px solid transparent;
+}
+
+/* Badge Improvements */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375em 0.75em;
+    border-radius: 6px;
+}
+
+/* Loading State */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Grid Improvements */
+@media (max-width: 576px) {
+    .row {
+        margin-bottom: 20px;
+    }
+    
+    .col-sm-6 {
+        padding-left: 7.5px;
+        padding-right: 7.5px;
+        margin-bottom: 15px;
+    }
+    
+    .col-md-6 {
+        margin-bottom: 15px;
+    }
+    
+    .col-md-12 {
+        margin-bottom: 15px;
+    }
+    
+    .col-md-3 {
+        margin-bottom: 15px;
+    }
+}
+
+/* Responsive Typography */
+@media (max-width: 576px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h3 {
+        font-size: 1.2rem;
+    }
+    
+    h5 {
+        font-size: 1.1rem;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    .card:hover {
+        transform: none;
+    }
+    
+    .btn:hover {
+        transform: none;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 8px;
+    }
+}
+</style>
 
 <?php require_once 'inc/footer.php'; ?>
 
