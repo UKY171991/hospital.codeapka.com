@@ -45,7 +45,7 @@ require_once 'inc/sidebar.php';
                             <!-- Group Actions -->
                             <div class="group-actions">
                                 <div class="row align-items-center">
-                                    <div class="col-md-6 col-sm-12">
+                                    <div class="col-md-6 col-sm-12 col-lg-6">
                                         <div class="btn-group" role="group">
                                             <button type="button" class="btn btn-outline-primary" onclick="selectAllUsers()">
                                                 <i class="fas fa-check-square"></i> <span class="d-none d-sm-inline">Select All</span>
@@ -55,7 +55,7 @@ require_once 'inc/sidebar.php';
                                             </button>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 col-sm-12">
+                                    <div class="col-md-6 col-sm-12 col-lg-6">
                                         <div class="btn-group ml-2" role="group">
                                             <button type="button" class="btn btn-outline-info" onclick="bulkExportUsers()">
                                                 <i class="fas fa-download"></i> <span class="d-none d-sm-inline">Export Selected</span>
@@ -666,3 +666,39 @@ require_once 'inc/sidebar.php';
 
 <!-- Page specific JavaScript -->
 <script src="assets/js/user.js?v=<?php echo time(); ?>"></script>
+
+<script>
+// Fallback sidebar toggle functionality
+$(document).ready(function() {
+    // Handle sidebar toggle button
+    $('[data-widget="pushmenu"]').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const body = $('body');
+        const sidebar = $('.main-sidebar');
+        
+        if (body.hasClass('sidebar-collapse')) {
+            body.removeClass('sidebar-collapse').addClass('sidebar-open');
+            sidebar.removeClass('sidebar-collapse').addClass('sidebar-open');
+        } else {
+            body.removeClass('sidebar-open').addClass('sidebar-collapse');
+            sidebar.removeClass('sidebar-open').addClass('sidebar-collapse');
+        }
+        
+        console.log('Sidebar toggle clicked');
+    });
+    
+    // Handle window resize for responsive sidebar
+    $(window).on('resize', function() {
+        const width = $(window).width();
+        const body = $('body');
+        
+        if (width <= 991) {
+            body.addClass('sidebar-collapse');
+        } else {
+            body.removeClass('sidebar-collapse');
+        }
+    });
+});
+</script>
