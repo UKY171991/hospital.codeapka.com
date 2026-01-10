@@ -30,8 +30,8 @@ require_once 'inc/sidebar.php';
             <div class="card mb-4">
                 <div class="card-body">
                     <form id="incomeFilterForm" class="row align-items-end">
-                        <div class="col-md-3">
-                            <label>Year</label>
+                        <div class="col-md-3 col-sm-6">
+                            <label for="filterYear">Year</label>
                             <select id="filterYear" class="form-control">
                                 <option value="">All Years</option>
                                 <?php
@@ -44,8 +44,8 @@ require_once 'inc/sidebar.php';
                                 ?>
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <label>Month</label>
+                        <div class="col-md-3 col-sm-6">
+                            <label for="filterMonth">Month</label>
                             <select id="filterMonth" class="form-control">
                                 <option value="">All Months</option>
                                 <?php
@@ -58,9 +58,14 @@ require_once 'inc/sidebar.php';
                                 ?>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-2 col-sm-6">
                             <button type="button" id="applyFilters" class="btn btn-primary btn-block">
-                                <i class="fas fa-filter mr-1"></i>Apply
+                                <i class="fas fa-filter mr-1"></i> <span class="d-none d-sm-inline">Apply</span>
+                            </button>
+                        </div>
+                        <div class="col-md-2 col-sm-6">
+                            <button type="button" id="resetFilters" class="btn btn-secondary btn-block">
+                                <i class="fas fa-redo mr-1"></i> <span class="d-none d-sm-inline">Reset</span>
                             </button>
                         </div>
                     </form>
@@ -76,26 +81,30 @@ require_once 'inc/sidebar.php';
                                 Income Records
                             </h3>
                             <div class="card-tools">
-                                <button type="button" class="btn btn-success btn-sm" onclick="openIncomeModal()">
+                                <button type="button" class="btn btn-success btn-sm d-none d-sm-inline-block" onclick="openIncomeModal()">
                                     <i class="fas fa-plus"></i> Add Income
+                                </button>
+                                <button type="button" class="btn btn-success btn-sm d-sm-none" onclick="openIncomeModal()" title="Add Income">
+                                    <i class="fas fa-plus"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="card-body">
-                            <table id="incomeTable" class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Sr. No.</th>
-                                        <th>Date</th>
-                                        <th>Category</th>
-                                        <th>Description</th>
-                                        <th>Client</th>
-                                        <th>Amount</th>
-                                        <th>Payment Method</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
+                            <div class="table-responsive">
+                                <table id="incomeTable" class="table table-bordered table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th class="all" style="width: 50px;">Sr. No.</th>
+                                            <th class="min-tablet" style="min-width: 100px;">Date</th>
+                                            <th class="min-tablet-p" style="min-width: 120px;">Category</th>
+                                            <th class="none" style="min-width: 150px;">Description</th>
+                                            <th class="none" style="min-width: 120px;">Client</th>
+                                            <th class="min-tablet-p" style="min-width: 100px;">Amount</th>
+                                            <th class="none" style="min-width: 120px;">Payment Method</th>
+                                            <th class="min-tablet-p" style="min-width: 80px;">Status</th>
+                                            <th class="all" style="width: 150px;">Actions</th>
+                                        </tr>
+                                    </thead>
                                 <tbody id="incomeTableBody">
                                     <tr>
                                         <td colspan="9" class="text-center">Loading...</td>
@@ -112,7 +121,7 @@ require_once 'inc/sidebar.php';
 
 <!-- Income Modal -->
 <div class="modal fade" id="incomeModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title">
@@ -233,6 +242,12 @@ $(document).ready(function() {
         loadIncomeRecords();
     });
 
+    $('#resetFilters').click(function() {
+        $('#filterYear').val('');
+        $('#filterMonth').val('');
+        loadIncomeRecords();
+    });
+
     // Form submit
     $('#incomeForm').on('submit', function(e) {
         e.preventDefault();
@@ -350,12 +365,22 @@ function displayIncomeRecords(records) {
                 <td>${record.payment_method}</td>
                 <td>${statusBadge}</td>
                 <td>
-                    <button class="btn btn-sm btn-info" onclick="editIncome(${record.id})">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteIncome(${record.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <div class="btn-group-vertical btn-group-sm d-sm-none" role="group">
+                        <button class="btn btn-info btn-sm" onclick="editIncome(${record.id})" title="Edit">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteIncome(${record.id})" title="Delete">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                    <div class="btn-group btn-group-sm d-none d-sm-inline-flex" role="group">
+                        <button class="btn btn-info btn-sm" onclick="editIncome(${record.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteIncome(${record.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -364,12 +389,53 @@ function displayIncomeRecords(records) {
 
     // Initialize DataTable with fresh data
     incomeTable = $('#incomeTable').DataTable({
-        responsive: true,
+        responsive: {
+            details: {
+                display: $.fn.dataTable.Responsive.display.childRow,
+                type: 'inline',
+                renderer: function (api, rowIdx, columns) {
+                    const data = $.map(columns, function (col, i) {
+                        return col.hidden ?
+                            '<tr data-dt-row="' + col.rowIndex + '" data-dt-column="' + col.columnIndex + '">' +
+                            '<td><strong>' + col.title + ':</strong></td> ' +
+                            '<td>' + col.data + '</td>' +
+                            '</tr>' :
+                            '';
+                    }).join('');
+                    return data ?
+                        $('<table/>').append(data) :
+                        false;
+                }
+            }
+        },
         order: [[7, 'asc'], [1, 'desc']], // Sort by Status (asc - Pending first) then Date (desc)
         destroy: true,
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
         columnDefs: [
-            { orderable: false, targets: [0, 8] } // Disable sorting on Sr. No. and Actions
-        ]
+            { orderable: false, targets: [0, 8] }, // Disable sorting on Sr. No. and Actions
+            { className: 'text-center', targets: [0, 8] }, // Center align Sr. No. and Actions
+            { responsivePriority: 1, targets: 0 }, // Always show Sr. No.
+            { responsivePriority: 2, targets: 8 }, // Always show Actions
+            { responsivePriority: 3, targets: 1 }, // Show Date on tablet and up
+            { responsivePriority: 4, targets: 5 }, // Show Amount on tablet and up
+            { responsivePriority: 5, targets: 2 }, // Show Category on tablet and up
+            { responsivePriority: 6, targets: 7 }, // Show Status on tablet and up
+            { responsivePriority: 7, targets: 3 }, // Description is lower priority
+            { responsivePriority: 8, targets: 4 }, // Client is lower priority
+            { responsivePriority: 9, targets: 6 }  // Payment Method is lowest priority
+        ],
+        language: {
+            search: "Search income:",
+            lengthMenu: "Show _MENU_ income records",
+            info: "Showing _START_ to _END_ of _TOTAL_ income records",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        }
     });
 }
 
@@ -480,5 +546,310 @@ function deleteIncome(id) {
     });
 }
 </script>
+
+<style>
+/* Responsive Design Improvements for Income Page */
+
+/* Mobile Responsive Styles */
+@media (max-width: 576px) {
+    /* Modal adjustments for mobile */
+    .modal-dialog {
+        margin: 10px;
+        max-width: calc(100% - 20px);
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .modal-header {
+        padding: 15px;
+    }
+    
+    .modal-footer {
+        padding: 10px 15px;
+    }
+    
+    /* Form adjustments for mobile */
+    .modal-body .row > div {
+        margin-bottom: 15px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    /* Filter form mobile adjustments */
+    .card-body {
+        padding: 15px;
+    }
+    
+    /* Table adjustments for mobile */
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .btn-group-vertical .btn {
+        margin-bottom: 2px;
+        text-align: left;
+    }
+    
+    /* Card adjustments */
+    .card {
+        margin-bottom: 15px;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    /* Filter form improvements */
+    #incomeFilterForm .col-sm-6 {
+        margin-bottom: 10px;
+    }
+    
+    /* Button improvements for touch */
+    .btn {
+        min-height: 44px;
+        font-size: 0.9rem;
+    }
+    
+    .btn-sm {
+        min-height: 38px;
+        font-size: 0.8rem;
+    }
+    
+    /* Select2 mobile adjustments */
+    .select2-container--bootstrap4 .select2-selection {
+        min-height: 38px;
+    }
+    
+    .select2-container--bootstrap4 .select2-selection__rendered {
+        line-height: 34px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Tablet adjustments */
+    .modal-dialog.modal-lg {
+        max-width: 95%;
+        margin: 15px auto;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    /* Filter form adjustments */
+    #incomeFilterForm .col-sm-6 {
+        margin-bottom: 15px;
+    }
+}
+
+@media (max-width: 992px) {
+    /* Small desktop adjustments */
+    .modal-dialog.modal-lg {
+        max-width: 90%;
+    }
+}
+
+/* DataTables responsive improvements */
+@media (max-width: 768px) {
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    
+    .dataTables_wrapper .dataTables_info {
+        text-align: center;
+        margin-top: 10px;
+    }
+    
+    .dataTables_wrapper .dataTables_paginate {
+        text-align: center;
+        margin-top: 10px;
+    }
+    
+    .dataTables_wrapper .dataTables_length select {
+        width: auto;
+    }
+}
+
+/* Button hover effects */
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Form input focus effects */
+.form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Badge improvements */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375em 0.75em;
+}
+
+/* Card improvements */
+.card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+/* Filter card improvements */
+#incomeFilterForm .form-group {
+    margin-bottom: 1rem;
+}
+
+/* Table improvements */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+    border-top: none;
+}
+
+/* Amount column styling */
+.text-right {
+    text-align: right;
+}
+
+/* Status badge improvements */
+.badge-success {
+    background-color: #28a745;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+}
+
+/* Responsive table cell improvements */
+@media (max-width: 576px) {
+    .table td, .table th {
+        padding: 0.5rem;
+        vertical-align: middle;
+    }
+    
+    .table-responsive {
+        border-radius: 0.25rem;
+    }
+}
+
+/* Form validation improvements */
+.was-validated .form-control:valid {
+    border-color: #28a745;
+}
+
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+}
+
+/* Loading state improvements */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Action button improvements */
+.btn-group .btn {
+    border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+    border-top-left-radius: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
+}
+
+.btn-group .btn:last-child {
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+}
+
+/* Mobile-specific action buttons */
+@media (max-width: 576px) {
+    .btn-group-vertical .btn {
+        border-radius: 0.25rem;
+        margin-bottom: 5px;
+    }
+    
+    .btn-group-vertical .btn:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* Select2 responsive improvements */
+@media (max-width: 768px) {
+    .select2-container--bootstrap4 {
+        width: 100% !important;
+    }
+    
+    .select2-dropdown {
+        font-size: 0.875rem;
+    }
+}
+
+/* Income amount styling */
+.amount-positive {
+    color: #28a745;
+    font-weight: 600;
+}
+
+/* Responsive form layouts */
+@media (max-width: 576px) {
+    .modal-body .row {
+        margin: 0;
+    }
+    
+    .modal-body .col-md-6,
+    .modal-body .col-md-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding: 0 0 15px 0;
+    }
+}
+
+/* Enhanced focus states */
+.form-control:focus,
+select.form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Success theme consistency */
+.bg-success {
+    background-color: #28a745 !important;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+</style>
 
 <?php require_once 'inc/footer.php'; ?>
