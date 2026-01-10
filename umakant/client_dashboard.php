@@ -3,6 +3,214 @@ require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 ?>
 
+<style>
+    /* Responsive styles for client dashboard */
+    @media (max-width: 768px) {
+        .content-wrapper {
+            margin-left: 0;
+        }
+        
+        .content-header h1 {
+            font-size: 1.75rem;
+        }
+        
+        .breadcrumb {
+            font-size: 0.875rem;
+        }
+        
+        /* Statistics boxes */
+        .small-box {
+            margin-bottom: 1rem;
+            min-height: 120px;
+        }
+        
+        .small-box .inner h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .small-box .inner p {
+            font-size: 0.9rem;
+        }
+        
+        .small-box .icon {
+            font-size: 2.5rem;
+            top: 1rem;
+            right: 1rem;
+        }
+        
+        .small-box-footer {
+            font-size: 0.875rem;
+            padding: 0.5rem;
+        }
+        
+        /* Charts */
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .card-header h3 {
+            font-size: 1.1rem;
+        }
+        
+        /* Tables */
+        .table-responsive {
+            border-radius: 0.25rem;
+            margin-bottom: 0;
+        }
+        
+        .table th, .table td {
+            font-size: 0.875rem;
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.35rem 0.5rem;
+        }
+        
+        .card-footer {
+            padding: 0.75rem;
+            font-size: 0.875rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .content-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        /* Statistics boxes for small mobile */
+        .small-box {
+            margin-bottom: 0.75rem;
+            min-height: 100px;
+        }
+        
+        .small-box .inner h3 {
+            font-size: 1.75rem;
+        }
+        
+        .small-box .inner p {
+            font-size: 0.8rem;
+        }
+        
+        .small-box .icon {
+            font-size: 2rem;
+            top: 0.75rem;
+            right: 0.75rem;
+        }
+        
+        .small-box-footer {
+            font-size: 0.8rem;
+            padding: 0.4rem;
+        }
+        
+        /* Charts for mobile */
+        .card-body {
+            padding: 0.75rem;
+        }
+        
+        #taskStatusChart, #taskPriorityChart {
+            max-height: 200px !important;
+        }
+        
+        /* Tables for mobile */
+        .table th, .table td {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.25rem;
+        }
+        
+        .card-header h3 {
+            font-size: 1rem;
+        }
+        
+        .card-footer {
+            padding: 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        /* Hide certain columns on very small screens */
+        .d-none.d-sm-table-cell {
+            display: none !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Extra small mobile adjustments */
+        .small-box .inner h3 {
+            font-size: 1.5rem;
+        }
+        
+        .small-box .icon {
+            font-size: 1.75rem;
+        }
+        
+        #taskStatusChart, #taskPriorityChart {
+            max-height: 180px !important;
+        }
+        
+        .card-body {
+            padding: 0.5rem;
+        }
+        
+        .table th, .table td {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.2rem;
+        }
+        
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.4rem;
+        }
+    }
+    
+    /* Chart specific responsive improvements */
+    @media (max-width: 768px) {
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+    }
+    
+    /* Improve table responsiveness */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Small box hover effects */
+    .small-box {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    
+    .small-box:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Card improvements */
+    .card {
+        box-shadow: 0 0 1px rgba(0,0,0,0.125);
+        transition: box-shadow 0.15s ease-in-out;
+    }
+    
+    .card:hover {
+        box-shadow: 0 0 8px rgba(0,0,0,0.15);
+    }
+    
+    /* Ensure proper spacing on mobile */
+    @media (max-width: 768px) {
+        .row {
+            margin-bottom: 1rem;
+        }
+        
+        .col-md-6 {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+
 <!-- Content Wrapper -->
 <div class="content-wrapper">
     <!-- Content Header -->
@@ -133,14 +341,15 @@ require_once 'inc/sidebar.php';
                             </h3>
                         </div>
                         <div class="card-body p-0">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Phone</th>
-                                        <th>Company</th>
-                                    </tr>
-                                </thead>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th class="d-none d-sm-table-cell">Phone</th>
+                                            <th class="d-none d-md-table-cell">Company</th>
+                                        </tr>
+                                    </thead>
                                 <tbody id="recentClientsBody">
                                     <tr>
                                         <td colspan="3" class="text-center">Loading...</td>
@@ -164,14 +373,15 @@ require_once 'inc/sidebar.php';
                             </h3>
                         </div>
                         <div class="card-body p-0">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Title</th>
-                                        <th>Client</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th class="d-none d-sm-table-cell">Client</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
                                 <tbody id="recentTasksBody">
                                     <tr>
                                         <td colspan="3" class="text-center">Loading...</td>
@@ -254,8 +464,23 @@ function createTaskStatusChart(data) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            size: 12
+                        },
+                        padding: 10
+                    }
                 }
+            },
+            onResize: function(chart) {
+                // Adjust chart size on window resize
+                if (window.innerWidth < 768) {
+                    chart.options.plugins.legend.labels.font.size = 10;
+                } else {
+                    chart.options.plugins.legend.labels.font.size = 12;
+                }
+                chart.update();
             }
         }
     });
@@ -289,15 +514,55 @@ function createTaskPriorityChart(data) {
             plugins: {
                 legend: {
                     display: false
+                },
+                tooltip: {
+                    titleFont: {
+                        size: 12
+                    },
+                    bodyFont: {
+                        size: 11
+                    }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        stepSize: 1
+                        stepSize: 1,
+                        font: {
+                            size: 11
+                        }
+                    },
+                    grid: {
+                        display: true,
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    },
+                    grid: {
+                        display: false
                     }
                 }
+            },
+            onResize: function(chart) {
+                // Adjust chart size on window resize
+                if (window.innerWidth < 768) {
+                    chart.options.scales.y.ticks.font.size = 10;
+                    chart.options.scales.x.ticks.font.size = 10;
+                    chart.options.plugins.tooltip.titleFont.size = 10;
+                    chart.options.plugins.tooltip.bodyFont.size = 9;
+                } else {
+                    chart.options.scales.y.ticks.font.size = 11;
+                    chart.options.scales.x.ticks.font.size = 11;
+                    chart.options.plugins.tooltip.titleFont.size = 12;
+                    chart.options.plugins.tooltip.bodyFont.size = 11;
+                }
+                chart.update();
             }
         }
     });
@@ -333,11 +598,11 @@ function displayRecentClients(clients) {
     
     clients.forEach(function(client) {
         tbody.append(`
-            <tr>
-                <td>${client.name}</td>
-                <td>${client.phone}</td>
-                <td>${client.company || '-'}</td>
-            </tr>
+                                    <tr>
+                                        <td>${client.name}</td>
+                                        <td class="d-none d-sm-table-cell">${client.phone}</td>
+                                        <td class="d-none d-md-table-cell">${client.company || '-'}</td>
+                                    </tr>
         `);
     });
 }
@@ -380,11 +645,11 @@ function displayRecentTasks(tasks) {
             '<span class="badge badge-secondary">Pending</span>';
         
         tbody.append(`
-            <tr>
-                <td>${task.title}</td>
-                <td>${task.client_name || '-'}</td>
-                <td>${statusBadge}</td>
-            </tr>
+                                    <tr>
+                                        <td>${task.title}</td>
+                                        <td class="d-none d-sm-table-cell">${task.client_name || '-'}</td>
+                                        <td>${statusBadge}</td>
+                                    </tr>
         `);
     });
 }
