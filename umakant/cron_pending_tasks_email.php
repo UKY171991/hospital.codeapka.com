@@ -1,8 +1,8 @@
 <?php
 /**
- * Pending Tasks Email Cron Job
- * This script sends a digest of all pending tasks to uky171991@gmail.com
- * Recommended to run once every 24 hours
+ * Tasks Summary Email Cron Job
+ * This script sends a digest of Pending, In Progress, and On Hold tasks to uky171991@gmail.com
+ * Recommended to run every 5 hours
  */
 
 // Set execution time limit
@@ -42,12 +42,12 @@ try {
         }
     }
 
-    // Fetch all 'Pending' tasks
+    // Fetch all 'Pending', 'In Progress', and 'On Hold' tasks
     $sql = "SELECT t.*, c.name as client_name 
             FROM tasks t
             LEFT JOIN clients c ON t.client_id = c.id
-            WHERE t.status = 'Pending'
-            ORDER BY t.priority = 'Urgent' DESC, t.priority = 'High' DESC, t.priority = 'Medium' DESC, t.due_date ASC";
+            WHERE t.status IN ('Pending', 'In Progress', 'On Hold')
+            ORDER BY FIELD(t.status, 'Pending', 'In Progress', 'On Hold'), t.priority = 'Urgent' DESC, t.priority = 'High' DESC, t.priority = 'Medium' DESC, t.due_date ASC";
     
     $stmt = $pdo->query($sql);
     $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -60,7 +60,7 @@ try {
     // Recipient
     $to = 'uky171991@gmail.com';
     $sender_email = 'info@codeapka.com';
-    $subject = 'Daily Pending Tasks Digest - ' . date('d M Y');
+    $subject = 'Tasks Status Report - ' . date('d M Y');
 
     // Build HTML message
     $message = '
@@ -86,18 +86,19 @@ try {
     </head>
     <body>
         <div class="header">
-            <h1 style="margin:0;">Pending Tasks Report</h1>
+            <h1 style="margin:0;">Hospital Tasks Report</h1>
             <p style="margin:5px 0 0 0;">Generated on ' . date('l, d F Y, h:i A') . '</p>
         </div>
         <div class="content">
             <p>Hello,</p>
-            <p>You have <strong>' . count($tasks) . '</strong> pending tasks that require attention.</p>
+            <p>You have <strong>' . count($tasks) . '</strong> active tasks (Pending, In Progress, or On Hold).</p>
             
             <table>
                 <thead>
                     <tr>
                         <th>Title</th>
                         <th>Client</th>
+                        <th>Status</th>
                         <th>Priority</th>
                         <th>Due Date</th>
                     </tr>
@@ -106,15 +107,17 @@ try {
 
     foreach ($tasks as $task) {
         $priority_class = 'priority-' . $task['priority'];
+        $status_class = 'badge-' . strtolower(str_replace(' ', '-', $task['status']));
         $due_date = $task['due_date'] ? date('d M Y', strtotime($task['due_date'])) : '-';
         
         $message .= '
                     <tr>
                         <td>
                             <strong>' . htmlspecialchars($task['title']) . '</strong><br>
-                            <small style="color: #666;">' . htmlspecialchars(substr($task['description'], 0, 100)) . (strlen($task['description']) > 100 ? '...' : '') . '</small>
+                            <small style="color: #666;">' . htmlspecialchars(substr(strip_tags($task['description'] ?? ''), 0, 100)) . (strlen(strip_tags($task['description'] ?? '')) > 100 ? '...' : '') . '</small>
                         </td>
                         <td>' . htmlspecialchars($task['client_name'] ?? 'N/A') . '</td>
+                        <td>' . htmlspecialchars($task['status']) . '</td>
                         <td><span class="priority ' . $priority_class . '">' . htmlspecialchars($task['priority']) . '</span></td>
                         <td>' . htmlspecialchars($due_date) . '</td>
                     </tr>';
