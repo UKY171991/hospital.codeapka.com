@@ -230,12 +230,15 @@ function getDashboardStats() {
     }
 
     // Helper for filtered sums
-    $getSum = function($table, $dateFilter = "", $dateParams = []) use ($pdo, $addedByClause, $addedByParams) {
-        $sql = "SELECT COALESCE(SUM(amount), 0) FROM `$table` WHERE payment_status = 'Success'";
+    $getSum = function($table, $dateFilter = "", $dateParams = [], $status = 'Success') use ($pdo, $addedByClause, $addedByParams) {
+        $sql = "SELECT COALESCE(SUM(amount), 0) FROM `$table` WHERE payment_status = ?";
         if ($dateFilter) $sql .= " AND $dateFilter";
         $sql .= $addedByClause;
+        
+        $params = array_merge([$status], $dateParams, $addedByParams);
+        
         $stmt = $pdo->prepare($sql);
-        $stmt->execute(array_merge($dateParams, $addedByParams));
+        $stmt->execute($params);
         return (float) $stmt->fetchColumn();
     };
 
@@ -298,7 +301,7 @@ function getDashboardStats() {
     $pendingAmount = (float)$stmtPending->fetchColumn();
 
     // Monthly data for chart (current 12 months)
-    $chartData = ['labels' => [], 'income' => [], 'expense' => []];
+    $chartData = ['labels' => [], 'income' => [], 'expense' => [], 'pending' => []];
     $baseYear = $filterYear ?: date('Y');
     for ($m = 1; $m <= 12; $m++) {
         $mStart = sprintf("%04d-%02d-01", $baseYear, $m);
@@ -306,6 +309,7 @@ function getDashboardStats() {
         $chartData['labels'][] = date('M', strtotime($mStart));
         $chartData['income'][] = $getSum('inventory_income', "date BETWEEN ? AND ?", [$mStart, $mEnd]);
         $chartData['expense'][] = $getSum('inventory_expense', "date BETWEEN ? AND ?", [$mStart, $mEnd]);
+        $chartData['pending'][] = $getSum('inventory_income', "date BETWEEN ? AND ?", [$mStart, $mEnd], 'Pending');
     }
 
     echo json_encode([

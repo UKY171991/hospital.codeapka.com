@@ -397,20 +397,36 @@ function displayRecentTransactions(transactions) {
     tbody.empty();
 
     if (!transactions || transactions.length === 0) {
-        tbody.append('<tr><td colspan="6" class="text-center">No transactions found</td></tr>');
+        tbody.append('<tr><td colspan="6" class="text-center py-4 text-muted">No transactions found</td></tr>');
         return;
     }
 
     transactions.forEach(function(trans) {
-        const typeClass = trans.type === 'income' ? 'badge-success' : 'badge-danger';
+        const isIncome = trans.type === 'income';
+        const typeClass = isIncome ? 'badge-success' : 'badge-danger';
+        const typeIcon = isIncome ? 'fa-arrow-down' : 'fa-arrow-up'; // Income comes in (down into account?), Expense goes out. Or Up/Down for increase/decrease. 
+        // Let's use standard: Income = Arrow Up (Green), Expense = Arrow Down (Red)? Or just badges.
+        // Actually usually Income is Green/Up, Expense is Red/Down.
+        
+        const dateObj = new Date(trans.date);
+        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        
+        const clientName = trans.client_name ? `<span class="text-dark font-weight-bold">${trans.client_name}</span>` : '<span class="text-muted font-italic">N/A</span>';
+
         const row = `
             <tr>
-                <td>${trans.date}</td>
-                <td><span class="badge ${typeClass}">${trans.type.toUpperCase()}</span></td>
-                <td>${trans.category}</td>
-                <td>${trans.description}</td>
-                <td>${trans.client_name || '-'}</td>
-                <td>₹${formatNumber(trans.amount)}</td>
+                <td class="align-middle">${dateStr}</td>
+                <td class="align-middle text-center">
+                    <span class="badge ${typeClass} px-3 py-2" style="font-size: 0.85rem; border-radius: 20px;">
+                        ${trans.type.toUpperCase()}
+                    </span>
+                </td>
+                <td class="align-middle font-weight-bold text-secondary">${trans.category}</td>
+                <td class="align-middle text-muted small" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${trans.description}</td>
+                <td class="align-middle">${clientName}</td>
+                <td class="align-middle font-weight-bold ${isIncome ? 'text-success' : 'text-danger'}">
+                    ${isIncome ? '+' : '-'} ₹${formatNumber(trans.amount)}
+                </td>
             </tr>
         `;
         tbody.append(row);
@@ -431,11 +447,24 @@ function updateChart(data) {
             datasets: [{
                 label: 'Income',
                 data: data.income,
-                backgroundColor: 'rgba(40, 167, 69, 0.7)'
+                backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                borderColor: 'rgba(40, 167, 69, 1)',
+                borderWidth: 1,
+                borderRadius: 4
             }, {
                 label: 'Expense',
                 data: data.expense,
-                backgroundColor: 'rgba(220, 53, 69, 0.7)'
+                backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                borderColor: 'rgba(220, 53, 69, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }, {
+                label: 'Pending Income',
+                data: data.pending,
+                backgroundColor: 'rgba(255, 193, 7, 0.8)', // Warning/Yellow
+                borderColor: 'rgba(255, 193, 7, 1)',
+                borderWidth: 1,
+                borderRadius: 4
             }]
         },
         options: {
@@ -447,30 +476,52 @@ function updateChart(data) {
                     ticks: {
                         callback: function(value) {
                             return '₹' + value.toLocaleString();
+                        },
+                        font: {
+                            family: "'Inter', sans-serif"
                         }
                     },
                     grid: {
-                        display: window.innerWidth > 768
+                        display: true,
+                        color: 'rgba(0,0,0,0.05)',
+                        borderDash: [5, 5]
                     }
                 },
                 x: {
                     grid: {
-                        display: window.innerWidth > 768
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            family: "'Inter', sans-serif"
+                        }
                     }
                 }
             },
             plugins: {
                 legend: {
-                    position: window.innerWidth < 768 ? 'bottom' : 'top',
+                    position: 'top',
                     labels: {
-                        boxWidth: 12,
-                        padding: window.innerWidth < 768 ? 10 : 20,
+                        usePointStyle: true,
+                        padding: 20,
                         font: {
-                            size: window.innerWidth < 768 ? 11 : 12
+                            family: "'Inter', sans-serif",
+                            size: 13,
+                            weight: '500'
                         }
                     }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: {
+                        family: "'Inter', sans-serif",
+                        size: 14
+                    },
+                    bodyFont: {
+                        family: "'Inter', sans-serif",
+                        size: 13
+                    },
+                    padding: 12,
                     callbacks: {
                         label: function(context) {
                             let label = context.dataset.label || '';
@@ -482,6 +533,10 @@ function updateChart(data) {
                         }
                     }
                 }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
             }
         }
     });
