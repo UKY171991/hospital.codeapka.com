@@ -436,107 +436,166 @@ function displayRecentTransactions(transactions) {
 function updateChart(data) {
     const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
     
+    // Create gradients
+    const incomeGradient = ctx.createLinearGradient(0, 0, 0, 400);
+    incomeGradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)'); // Emerald
+    incomeGradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+    const expenseGradient = ctx.createLinearGradient(0, 0, 0, 400);
+    expenseGradient.addColorStop(0, 'rgba(239, 68, 68, 0.2)'); // Red
+    expenseGradient.addColorStop(1, 'rgba(239, 68, 68, 0)');
+    
+    const pendingGradient = ctx.createLinearGradient(0, 0, 0, 400);
+    pendingGradient.addColorStop(0, 'rgba(245, 158, 11, 0.2)'); // Amber
+    pendingGradient.addColorStop(1, 'rgba(245, 158, 11, 0)');
+    
     if (incomeExpenseChart) {
         incomeExpenseChart.destroy();
     }
     
     incomeExpenseChart = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
             labels: data.labels,
-            datasets: [{
-                label: 'Income',
-                data: data.income,
-                backgroundColor: 'rgba(40, 167, 69, 0.8)',
-                borderColor: 'rgba(40, 167, 69, 1)',
-                borderWidth: 1,
-                borderRadius: 4
-            }, {
-                label: 'Expense',
-                data: data.expense,
-                backgroundColor: 'rgba(220, 53, 69, 0.8)',
-                borderColor: 'rgba(220, 53, 69, 1)',
-                borderWidth: 1,
-                borderRadius: 4
-            }, {
-                label: 'Pending Income',
-                data: data.pending,
-                backgroundColor: 'rgba(255, 193, 7, 0.8)', // Warning/Yellow
-                borderColor: 'rgba(255, 193, 7, 1)',
-                borderWidth: 1,
-                borderRadius: 4
-            }]
+            datasets: [
+                {
+                    label: 'Income',
+                    data: data.income,
+                    backgroundColor: incomeGradient,
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: 'rgba(16, 185, 129, 1)',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4
+                }, 
+                {
+                    label: 'Expense',
+                    data: data.expense,
+                    backgroundColor: expenseGradient,
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: 'rgba(239, 68, 68, 1)',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Pending',
+                    data: data.pending,
+                    backgroundColor: pendingGradient,
+                    borderColor: 'rgba(245, 158, 11, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: 'rgba(245, 158, 11, 1)',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4,
+                    borderDash: [5, 5] // Dashed line for pending to distinguish it
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '₹' + value.toLocaleString();
-                        },
-                        font: {
-                            family: "'Inter', sans-serif"
-                        }
-                    },
-                    grid: {
-                        display: true,
-                        color: 'rgba(0,0,0,0.05)',
-                        borderDash: [5, 5]
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        font: {
-                            family: "'Inter', sans-serif"
-                        }
-                    }
-                }
+            interaction: {
+                mode: 'index',
+                intersect: false,
             },
             plugins: {
                 legend: {
                     position: 'top',
+                    align: 'end',
                     labels: {
                         usePointStyle: true,
+                        boxWidth: 8,
                         padding: 20,
                         font: {
                             family: "'Inter', sans-serif",
-                            size: 13,
-                            weight: '500'
-                        }
+                            size: 12,
+                            weight: '600'
+                        },
+                        color: '#64748b'
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: '#1e293b',
+                    bodyColor: '#475569',
+                    borderColor: '#e2e8f0',
+                    borderWidth: 1,
+                    padding: 12,
+                    boxPadding: 6,
+                    usePointStyle: true,
                     titleFont: {
                         family: "'Inter', sans-serif",
-                        size: 14
+                        size: 14,
+                        weight: '600'
                     },
                     bodyFont: {
                         family: "'Inter', sans-serif",
                         size: 13
                     },
-                    padding: 12,
                     callbacks: {
                         label: function(context) {
                             let label = context.dataset.label || '';
                             if (label) {
                                 label += ': ';
                             }
-                            label += '₹' + context.parsed.y.toLocaleString();
+                            if (context.parsed.y !== null) {
+                                label += '₹' + context.parsed.y.toLocaleString();
+                            }
                             return label;
                         }
                     }
                 }
             },
-            interaction: {
-                mode: 'index',
-                intersect: false
+            scales: {
+                x: {
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        font: {
+                            family: "'Inter', sans-serif",
+                            size: 12
+                        },
+                        color: '#94a3b8'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    border: {
+                        display: false
+                    },
+                    grid: {
+                        color: '#f1f5f9',
+                        drawBorder: false,
+                    },
+                    ticks: {
+                        font: {
+                            family: "'Inter', sans-serif",
+                            size: 11
+                        },
+                        color: '#94a3b8',
+                        callback: function(value) {
+                            if (value >= 1000) {
+                                return '₹' + (value / 1000).toFixed(1) + 'k';
+                            }
+                            return '₹' + value;
+                        },
+                        maxTicksLimit: 6
+                    }
+                }
             }
         }
     });
