@@ -481,7 +481,87 @@ $(document).ready(function() {
     });
 
     loadClients();
-    loadTasks();
+    loadClients();
+    
+    // Initialize DataTable with server-side processing
+    taskTable = $('#taskTable').DataTable({
+        serverSide: true,
+        processing: true,
+        pageLength: 50,
+        ajax: {
+            url: 'ajax/client_api.php',
+            data: function(d) {
+                d.action = 'get_tasks';
+            }
+        },
+        columns: [
+            { 
+                data: null, 
+                orderable: false,
+                className: 'text-center',
+                render: function (data, type, row, meta) { 
+                    return meta.row + meta.settings._iDisplayStart + 1; 
+                } 
+            },
+            { data: 'title' },
+            { data: 'client_name', defaultContent: '-' },
+            { 
+                data: 'priority',
+                render: function(data) {
+                    if (data === 'Urgent') return '<span class="badge badge-danger">Urgent</span>';
+                    if (data === 'High') return '<span class="badge badge-warning">High</span>';
+                    if (data === 'Medium') return '<span class="badge badge-info">Medium</span>';
+                    return '<span class="badge badge-secondary">Low</span>';
+                }
+            },
+            { 
+                data: 'status',
+                render: function(data) {
+                    if (data === 'Completed') return '<span class="badge badge-success">Completed</span>';
+                    if (data === 'In Progress') return '<span class="badge badge-primary">In Progress</span>';
+                    if (data === 'On Hold') return '<span class="badge badge-warning">On Hold</span>';
+                    return '<span class="badge badge-secondary">Pending</span>';
+                }
+            },
+            { data: 'due_date', defaultContent: '-' },
+            { 
+                data: 'id',
+                orderable: false,
+                className: 'text-center',
+                render: function(data) {
+                    return `
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-primary" onclick="viewTask(${data})" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-info" onclick="editTask(${data})" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteTask(${data})" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        ],
+        order: [[4, 'asc']], // Default sort by Status
+        responsive: {
+            details: {
+                display: $.fn.dataTable.Responsive.display.childRow,
+                type: 'inline'
+            }
+        },
+        columnDefs: [
+            { responsivePriority: 1, targets: 0 }, // Always show Sr. No.
+            { responsivePriority: 2, targets: 6 }, // Always show Actions
+            { responsivePriority: 3, targets: 3 }, // Show Priority on tablet and up
+            { responsivePriority: 4, targets: 4 }, // Show Status on tablet and up
+            { responsivePriority: 5, targets: 1 }, // Show Title on tablet and up
+            { responsivePriority: 6, targets: 2 }, // Show Client on tablet and up
+            { responsivePriority: 7, targets: 5 }  // Due Date is lowest priority
+        ]
+    });
 
     $('#taskForm').on('submit', function(e) {
         e.preventDefault();
@@ -493,154 +573,6 @@ $(document).ready(function() {
         previewScreenshots(e.target.files);
     });
 });
-
-function loadClients() {
-    $.ajax({
-        url: 'ajax/client_api.php',
-        type: 'GET',
-        data: { 
-            action: 'get_clients',
-            _: new Date().getTime()
-        },
-        cache: false,
-        dataType: 'json',
-        success: function(response) {
-            if (response && response.success) {
-                const select = $('#taskClient');
-                select.empty().append('<option value="">Select Client</option>');
-                response.data.forEach(function(client) {
-                    select.append(`<option value="${client.id}">${client.name}</option>`);
-                });
-            }
-        }
-    });
-}
-
-function loadTasks() {
-    $.ajax({
-        url: 'ajax/client_api.php',
-        type: 'GET',
-        data: { 
-            action: 'get_tasks',
-            _: new Date().getTime()
-        },
-        cache: false,
-        dataType: 'json',
-        success: function(response) {
-            if (response && response.success) {
-                displayTasks(response.data);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Error loading tasks:', error);
-            toastr.error('Failed to load tasks');
-        }
-    });
-}
-
-function displayTasks(tasks) {
-    if ($.fn.DataTable.isDataTable('#taskTable')) {
-        $('#taskTable').DataTable().destroy();
-    }
-    
-    const tbody = $('#taskTableBody');
-    tbody.empty();
-
-    if (!tasks || tasks.length === 0) {
-        tbody.append('<tr><td colspan="7" class="text-center">No tasks found</td></tr>');
-        return;
-    }
-
-    // Sort tasks by status priority: Pending first, then other statuses, then Completed last
-    const statusOrder = {
-        'Pending': 1,
-        'In Progress': 2,
-        'On Hold': 3,
-        'Completed': 4
-    };
-    
-    tasks.sort((a, b) => {
-        const statusA = statusOrder[a.status] || 5;
-        const statusB = statusOrder[b.status] || 5;
-        const statusDiff = statusA - statusB;
-        
-        // If status is the same, sort by due date (earliest first)
-        if (statusDiff === 0 && a.due_date && b.due_date) {
-            return new Date(a.due_date) - new Date(b.due_date);
-        }
-        
-        return statusDiff;
-    });
-
-    let srNo = 1;
-    tasks.forEach(function(task) {
-        const priorityBadge = task.priority === 'Urgent' ? 
-            '<span class="badge badge-danger">Urgent</span>' : 
-            task.priority === 'High' ? 
-            '<span class="badge badge-warning">High</span>' : 
-            task.priority === 'Medium' ? 
-            '<span class="badge badge-info">Medium</span>' : 
-            '<span class="badge badge-secondary">Low</span>';
-        
-        // Get status order for sorting
-        const statusOrderValue = statusOrder[task.status] || 5;
-        
-        const statusBadge = task.status === 'Completed' ? 
-            '<span class="badge badge-success">Completed</span>' : 
-            task.status === 'In Progress' ? 
-            '<span class="badge badge-primary">In Progress</span>' : 
-            task.status === 'On Hold' ? 
-            '<span class="badge badge-warning">On Hold</span>' : 
-            '<span class="badge badge-secondary">Pending</span>';
-        
-        const row = `
-            <tr>
-                <td>${srNo++}</td>
-                <td>${task.title}</td>
-                <td>${task.client_name || '-'}</td>
-                <td>${priorityBadge}</td>
-                <td data-order="${statusOrderValue}">${statusBadge}</td>
-                <td>${task.due_date || '-'}</td>
-                <td>
-                    <div class="btn-group" role="group">
-                        <button class="btn btn-sm btn-primary" onclick="viewTask(${task.id})" title="View Details">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-info" onclick="editTask(${task.id})" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-        tbody.append(row);
-    });
-
-    taskTable = $('#taskTable').DataTable({
-        responsive: {
-            details: {
-                display: $.fn.dataTable.Responsive.display.childRow,
-                type: 'inline'
-            }
-        },
-        order: [[4, 'asc']], // Sort by Status column
-        destroy: true,
-        columnDefs: [
-            { orderable: false, targets: [0, 6] }, // Disable sorting on Sr. No. and Actions
-            { className: 'text-center', targets: [0, 6] }, // Center align Sr. No. and Actions
-            { responsivePriority: 1, targets: 0 }, // Always show Sr. No.
-            { responsivePriority: 2, targets: 6 }, // Always show Actions
-            { responsivePriority: 3, targets: 3 }, // Show Priority on tablet and up
-            { responsivePriority: 4, targets: 4 }, // Show Status on tablet and up
-            { responsivePriority: 5, targets: 1 }, // Show Title on tablet and up
-            { responsivePriority: 6, targets: 2 }, // Show Client on tablet and up
-            { responsivePriority: 7, targets: 5 }  // Due Date is lowest priority
-        ]
-    });
-}
 
 function openTaskModal() {
     $('#taskId').val('');
@@ -825,7 +757,7 @@ function saveTask() {
                 screenshotsToDelete = [];
                 
                 setTimeout(function() {
-                    loadTasks();
+                    taskTable.ajax.reload(null, false);
                 }, 300);
             } else {
                 toastr.error(response.message || 'Failed to save task');
@@ -853,7 +785,7 @@ function deleteTask(id) {
             if (response && response.success) {
                 toastr.success(response.message || 'Task deleted successfully');
                 setTimeout(function() {
-                    loadTasks();
+                    taskTable.ajax.reload(null, false);
                 }, 200);
             } else {
                 toastr.error(response.message || 'Failed to delete task');
@@ -1001,7 +933,7 @@ function deleteSingleScreenshot(taskId, screenshot, index) {
                 
                 // Reload tasks table
                 setTimeout(function() {
-                    loadTasks();
+                    taskTable.ajax.reload(null, false);
                 }, 500);
             } else {
                 toastr.error(response.message || 'Failed to delete screenshot');

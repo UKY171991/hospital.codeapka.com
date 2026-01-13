@@ -476,31 +476,122 @@ function getTasks() {
     $userRole = $_SESSION['role'] ?? 'user';
     $userId = $_SESSION['user_id'] ?? null;
     
-    // Build query based on user role
-    if ($userRole === 'master') {
-        // Master can see all tasks
-        $sql = "SELECT t.*, c.name as client_name 
-                FROM tasks t
-                LEFT JOIN clients c ON t.client_id = c.id
-                ORDER BY t.created_at DESC";
-        $stmt = $pdo->query($sql);
-    } else {
-        // Admin and other roles can only see tasks for their own clients
-        $sql = "SELECT t.*, c.name as client_name 
-                FROM tasks t
-                LEFT JOIN clients c ON t.client_id = c.id
-                WHERE c.added_by = :user_id
-                ORDER BY t.created_at DESC";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([':user_id' => $userId]);
+    // Check if this is a DataTables request
+    $isDataTable = isset($_GET['draw']);
+    
+    // Base query
+    $sql = "SELECT t.*, c.name as client_name 
+            FROM tasks t
+            LEFT JOIN clients c ON t.client_id = c.id";
+            
+    $whereClauses = [];
+    $params = [];
+    
+    // Role based filtering
+    if ($userRole !== 'master') {
+        $whereClauses[] = "c.added_by = :user_id";
+        $params[':user_id'] = $userId;
     }
     
+    // Search filtering (for DataTables)
+    if ($isDataTable && !empty($_GET['search']['value'])) {
+        $searchValue = $_GET['search']['value'];
+        $whereClauses[] = "(t.title LIKE :search OR c.name LIKE :search OR t.priority LIKE :search OR t.status LIKE :search)";
+        $params[':search'] = "%$searchValue%";
+    }
+    
+    // Apply where clauses
+    if (!empty($whereClauses)) {
+        $sql .= " WHERE " . implode(" AND ", $whereClauses);
+    }
+    
+    // Get total filtered count for DataTables
+    $totalFiltered = 0;
+    if ($isDataTable) {
+        $countSql = "SELECT COUNT(*) as count FROM tasks t LEFT JOIN clients c ON t.client_id = c.id";
+        if (!empty($whereClauses)) {
+            $countSql .= " WHERE " . implode(" AND ", $whereClauses);
+        }
+        $stmt = $pdo->prepare($countSql);
+        $stmt->execute($params);
+        $totalFiltered = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+        
+        // Get total records (without filtering)
+        if ($userRole === 'master') {
+            $totalSql = "SELECT COUNT(*) as count FROM tasks";
+            $totalStmt = $pdo->query($totalSql);
+            $totalRecords = $totalStmt->fetch(PDO::FETCH_ASSOC)['count'];
+        } else {
+            $totalSql = "SELECT COUNT(*) as count FROM tasks t JOIN clients c ON t.client_id = c.id WHERE c.added_by = :user_id_total";
+            $totalStmt = $pdo->prepare($totalSql);
+            $totalStmt->execute([':user_id_total' => $userId]);
+            $totalRecords = $totalStmt->fetch(PDO::FETCH_ASSOC)['count'];
+        }
+    }
+    
+    // Sorting
+    if ($isDataTable && isset($_GET['order'])) {
+        $columnIndex = $_GET['order'][0]['column'];
+        $columnName = $_GET['columns'][$columnIndex]['data']; // Validate this against allowed columns!
+        $columnSortOrder = $_GET['order'][0]['dir']; // asc or desc
+        
+        $allowedColumns = ['id', 'title', 'client_name', 'priority', 'status', 'due_date'];
+        
+        // Map data/name to actual DB columns
+        $orderBy = 't.created_at'; // Default
+        
+        if ($columnName == 'title') $orderBy = 't.title';
+        elseif ($columnName == 'client_name') $orderBy = 'c.name';
+        elseif ($columnName == 'priority') $orderBy = 't.priority';
+        elseif ($columnName == 'status') $orderBy = 'status_order'; // Special handling
+        elseif ($columnName == 'due_date') $orderBy = 't.due_date';
+        
+        if ($columnName == 'status') {
+            // Custom sorting for Status
+            // Pending(1), In Progress(2), On Hold(3), Completed(4)
+            $sql .= " ORDER BY CASE t.status 
+                        WHEN 'Pending' THEN 1 
+                        WHEN 'In Progress' THEN 2 
+                        WHEN 'On Hold' THEN 3 
+                        WHEN 'Completed' THEN 4 
+                        ELSE 5 END " . $columnSortOrder . ", t.due_date ASC";
+        } else {
+             $sql .= " ORDER BY " . $orderBy . " " . $columnSortOrder;
+        }
+    } else {
+         // Default sorting: Status priority then due date
+         $sql .= " ORDER BY CASE t.status 
+                    WHEN 'Pending' THEN 1 
+                    WHEN 'In Progress' THEN 2 
+                    WHEN 'On Hold' THEN 3 
+                    WHEN 'Completed' THEN 4 
+                    ELSE 5 END ASC, t.due_date ASC";
+    }
+    
+    // Pagination
+    if ($isDataTable && isset($_GET['start']) && $_GET['length'] != -1) {
+        $start = intval($_GET['start']);
+        $length = intval($_GET['length']);
+        $sql .= " LIMIT " . $start . ", " . $length;
+    }
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    echo json_encode([
-        'success' => true,
-        'data' => $tasks
-    ]);
+    if ($isDataTable) {
+        echo json_encode([
+            'draw' => intval($_GET['draw']),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $tasks
+        ]);
+    } else {
+        echo json_encode([
+            'success' => true,
+            'data' => $tasks
+        ]);
+    }
 }
 
 function getTask() {
