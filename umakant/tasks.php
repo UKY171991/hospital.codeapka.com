@@ -481,7 +481,6 @@ $(document).ready(function() {
     });
 
     loadClients();
-    loadClients();
     
     // Initialize DataTable with server-side processing
     taskTable = $('#taskTable').DataTable({
@@ -573,6 +572,29 @@ $(document).ready(function() {
         previewScreenshots(e.target.files);
     });
 });
+
+function loadClients() {
+    $.ajax({
+        url: 'ajax/client_api.php',
+        type: 'GET',
+        data: { 
+            action: 'get_clients',
+            _: new Date().getTime()
+        },
+        cache: false,
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success) {
+                const select = $('#taskClient');
+                select.empty().append('<option value="">Select Client</option>');
+                response.data.forEach(function(client) {
+                    select.append(`<option value="${client.id}">${client.name}</option>`);
+                });
+            }
+        }
+    });
+}
+
 
 function openTaskModal() {
     $('#taskId').val('');
