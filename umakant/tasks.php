@@ -545,12 +545,7 @@ $(document).ready(function() {
             }
         ],
         order: [[4, 'asc']], // Default sort by Status
-        responsive: {
-            details: {
-                display: $.fn.dataTable.Responsive.display.childRow,
-                type: 'inline'
-            }
-        },
+        responsive: true,
         columnDefs: [
             { responsivePriority: 1, targets: 0 }, // Always show Sr. No.
             { responsivePriority: 2, targets: 6 }, // Always show Actions
