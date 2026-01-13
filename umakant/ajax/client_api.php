@@ -510,24 +510,32 @@ function getTasks() {
     
     // Get total filtered count for DataTables
     if ($isDataTable) {
+        // Disable error display to prevent JSON corruption during search
+        ini_set('display_errors', 0);
+
         $countSql = "SELECT COUNT(*) as count FROM tasks t LEFT JOIN clients c ON t.client_id = c.id";
         if (!empty($whereClauses)) {
             $countSql .= " WHERE " . implode(" AND ", $whereClauses);
         }
         $stmt = $pdo->prepare($countSql);
         $stmt->execute($params);
-        $totalFiltered = intval($stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $totalFiltered = $row ? intval($row['count']) : 0;
         
         // Get total records (without filtering)
         if ($userRole === 'master') {
             $totalSql = "SELECT COUNT(*) as count FROM tasks";
             $totalStmt = $pdo->query($totalSql);
-            $totalRecords = intval($totalStmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
+            if ($totalStmt) {
+                $row = $totalStmt->fetch(PDO::FETCH_ASSOC);
+                $totalRecords = $row ? intval($row['count']) : 0;
+            }
         } else {
             $totalSql = "SELECT COUNT(*) as count FROM tasks t JOIN clients c ON t.client_id = c.id WHERE c.added_by = :user_id_total";
             $totalStmt = $pdo->prepare($totalSql);
             $totalStmt->execute([':user_id_total' => $userId]);
-            $totalRecords = intval($totalStmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
+            $row = $totalStmt->fetch(PDO::FETCH_ASSOC);
+            $totalRecords = $row ? intval($row['count']) : 0;
         }
     }
     
