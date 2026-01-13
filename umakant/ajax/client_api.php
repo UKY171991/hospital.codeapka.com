@@ -554,7 +554,7 @@ function getTasks() {
                         WHEN 'In Progress' THEN 2 
                         WHEN 'On Hold' THEN 3 
                         WHEN 'Completed' THEN 4 
-                        ELSE 5 END " . $columnSortOrder . ", t.due_date ASC";
+                        ELSE 5 END " . $columnSortOrder . ", t.due_date DESC";
         } else {
              $sql .= " ORDER BY " . $orderBy . " " . $columnSortOrder;
         }
@@ -565,7 +565,7 @@ function getTasks() {
                     WHEN 'In Progress' THEN 2 
                     WHEN 'On Hold' THEN 3 
                     WHEN 'Completed' THEN 4 
-                    ELSE 5 END ASC, t.due_date ASC";
+                    ELSE 5 END ASC, t.due_date DESC";
     }
     
     // Pagination
