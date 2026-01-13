@@ -496,7 +496,7 @@ function getTasks() {
     // Search filtering (for DataTables)
     $searchValue = $_REQUEST['search']['value'] ?? '';
     if ($isDataTable && $searchValue !== '') {
-        $whereClauses[] = "(t.title LIKE :search OR c.name LIKE :search OR t.priority LIKE :search OR t.status LIKE :search OR t.description LIKE :search OR t.notes LIKE :search OR t.id LIKE :search)";
+        $whereClauses[] = "(t.title LIKE :search OR c.name LIKE :search OR t.priority LIKE :search OR t.status LIKE :search OR t.description LIKE :search OR t.notes LIKE :search OR t.id LIKE :search OR t.due_date LIKE :search OR t.website_urls LIKE :search)";
         $params[':search'] = "%$searchValue%";
     }
     
