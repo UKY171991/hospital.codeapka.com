@@ -476,8 +476,8 @@ function getTasks() {
     $userRole = $_SESSION['role'] ?? 'user';
     $userId = $_SESSION['user_id'] ?? null;
     
-    // Check if this is a DataTables request
-    $isDataTable = isset($_GET['draw']);
+    // Check if this is a DataTables request - use REQUEST to handle both GET/POST
+    $isDataTable = isset($_REQUEST['draw']);
     
     // Base query
     $sql = "SELECT t.*, c.name as client_name 
@@ -505,8 +505,10 @@ function getTasks() {
         $sql .= " WHERE " . implode(" AND ", $whereClauses);
     }
     
-    // Get total filtered count for DataTables
+    $totalRecords = 0;
     $totalFiltered = 0;
+    
+    // Get total filtered count for DataTables
     if ($isDataTable) {
         $countSql = "SELECT COUNT(*) as count FROM tasks t LEFT JOIN clients c ON t.client_id = c.id";
         if (!empty($whereClauses)) {
@@ -514,26 +516,26 @@ function getTasks() {
         }
         $stmt = $pdo->prepare($countSql);
         $stmt->execute($params);
-        $totalFiltered = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+        $totalFiltered = intval($stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
         
         // Get total records (without filtering)
         if ($userRole === 'master') {
             $totalSql = "SELECT COUNT(*) as count FROM tasks";
             $totalStmt = $pdo->query($totalSql);
-            $totalRecords = $totalStmt->fetch(PDO::FETCH_ASSOC)['count'];
+            $totalRecords = intval($totalStmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
         } else {
             $totalSql = "SELECT COUNT(*) as count FROM tasks t JOIN clients c ON t.client_id = c.id WHERE c.added_by = :user_id_total";
             $totalStmt = $pdo->prepare($totalSql);
             $totalStmt->execute([':user_id_total' => $userId]);
-            $totalRecords = $totalStmt->fetch(PDO::FETCH_ASSOC)['count'];
+            $totalRecords = intval($totalStmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
         }
     }
     
     // Sorting
-    if ($isDataTable && isset($_GET['order'])) {
-        $columnIndex = $_GET['order'][0]['column'];
-        $columnName = $_GET['columns'][$columnIndex]['data']; // Validate this against allowed columns!
-        $columnSortOrder = $_GET['order'][0]['dir']; // asc or desc
+    if ($isDataTable && isset($_REQUEST['order'])) {
+        $columnIndex = $_REQUEST['order'][0]['column'];
+        $columnName = $_REQUEST['columns'][$columnIndex]['data'];
+        $columnSortOrder = $_REQUEST['order'][0]['dir']; // asc or desc
         
         $allowedColumns = ['id', 'title', 'client_name', 'priority', 'status', 'due_date'];
         
@@ -543,12 +545,11 @@ function getTasks() {
         if ($columnName == 'title') $orderBy = 't.title';
         elseif ($columnName == 'client_name') $orderBy = 'c.name';
         elseif ($columnName == 'priority') $orderBy = 't.priority';
-        elseif ($columnName == 'status') $orderBy = 'status_order'; // Special handling
+        elseif ($columnName == 'status') $orderBy = 'status_order'; 
         elseif ($columnName == 'due_date') $orderBy = 't.due_date';
         
         if ($columnName == 'status') {
             // Custom sorting for Status
-            // Pending(1), In Progress(2), On Hold(3), Completed(4)
             $sql .= " ORDER BY CASE t.status 
                         WHEN 'Pending' THEN 1 
                         WHEN 'In Progress' THEN 2 
@@ -569,9 +570,9 @@ function getTasks() {
     }
     
     // Pagination
-    if ($isDataTable && isset($_GET['start']) && $_GET['length'] != -1) {
-        $start = intval($_GET['start']);
-        $length = intval($_GET['length']);
+    if ($isDataTable && isset($_REQUEST['start']) && $_REQUEST['length'] != -1) {
+        $start = intval($_REQUEST['start']);
+        $length = intval($_REQUEST['length']);
         $sql .= " LIMIT " . $start . ", " . $length;
     }
     
@@ -581,7 +582,7 @@ function getTasks() {
     
     if ($isDataTable) {
         echo json_encode([
-            'draw' => intval($_GET['draw']),
+            'draw' => intval($_REQUEST['draw']),
             'recordsTotal' => $totalRecords,
             'recordsFiltered' => $totalFiltered,
             'data' => $tasks
