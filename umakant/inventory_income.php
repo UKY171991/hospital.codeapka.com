@@ -148,11 +148,15 @@ require_once 'inc/sidebar.php';
                                 <label for="incomeCategory">Category <span class="text-danger">*</span></label>
                                 <select class="form-control" id="incomeCategory" required>
                                     <option value="">Select Category</option>
+                                    <option value="Web Development">Web Development</option>
+                                    <option value="App Development">App Development</option>
+                                    <option value="Software Development">Software Development</option>
+                                    <option value="UI/UX Design">UI/UX Design</option>
+                                    <option value="Maintenance & Support">Maintenance & Support</option>
+                                    <option value="Digital Marketing">Digital Marketing</option>
+                                    <option value="SEO Services">SEO Services</option>
+                                    <option value="Domain & Hosting">Domain & Hosting</option>
                                     <option value="Consultation">Consultation</option>
-                                    <option value="Lab Tests">Lab Tests</option>
-                                    <option value="Pharmacy">Pharmacy</option>
-                                    <option value="Surgery">Surgery</option>
-                                    <option value="Room Charges">Room Charges</option>
                                     <option value="Other Services">Other Services</option>
                                 </select>
                             </div>
