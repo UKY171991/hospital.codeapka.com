@@ -114,7 +114,6 @@ require_once 'inc/sidebar.php';
                                             <th>Age</th>
                                             <th>Gender</th>
                                             <th>Total Visits</th>
-                                            <th>First Visit</th>
                                             <th>Last Visit</th>
                                             <th>Actions</th>
                                         </tr>

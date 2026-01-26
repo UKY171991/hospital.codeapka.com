@@ -16,7 +16,6 @@ $(document).ready(function () {
             columns: [
                 { data: 'id' },
                 { data: 'name' },
-                { data: 'description' },
                 { data: 'duration_minutes' },
                 {
                     data: 'color',
@@ -30,7 +29,6 @@ $(document).ready(function () {
                         return data == 1 ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>';
                     }
                 },
-                { data: 'created_at' },
                 {
                     data: null,
                     orderable: false,

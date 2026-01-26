@@ -98,11 +98,8 @@ require_once 'inc/sidebar.php';
                                         <tr>
                                             <th>ID</th>
                                             <th>Name</th>
-                                            <th>Description</th>
                                             <th>Head Doctor</th>
-                                            <th>Location</th>
                                             <th>Phone</th>
-                                            <th>Email</th>
                                             <th>Status</th>
                                             <th>Actions</th>
                                         </tr>

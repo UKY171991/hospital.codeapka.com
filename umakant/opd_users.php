@@ -96,15 +96,10 @@ require_once 'inc/sidebar.php';
                                 <table id="opdUsersTable" class="table table-bordered table-striped table-hover">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
-                                            <th>Username</th>
                                             <th>Name</th>
-                                            <th>Email</th>
                                             <th>Phone</th>
                                             <th>Role</th>
                                             <th>Status</th>
-                                            <th>Created</th>
-                                            <th>Created By</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>

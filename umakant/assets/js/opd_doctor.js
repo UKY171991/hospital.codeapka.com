@@ -48,11 +48,6 @@ $(document).ready(function () {
                     width: '150px'
                 },
                 {
-                    data: 'qualification',
-                    width: '120px',
-                    defaultContent: 'N/A'
-                },
-                {
                     data: 'specialization',
                     width: '120px',
                     defaultContent: 'N/A'
@@ -65,21 +60,6 @@ $(document).ready(function () {
                 {
                     data: 'contact_no',
                     width: '110px',
-                    defaultContent: 'N/A'
-                },
-                {
-                    data: 'phone',
-                    width: '110px',
-                    defaultContent: 'N/A'
-                },
-                {
-                    data: 'email',
-                    width: '150px',
-                    defaultContent: 'N/A'
-                },
-                {
-                    data: 'registration_no',
-                    width: '100px',
                     defaultContent: 'N/A'
                 },
                 {
@@ -98,18 +78,6 @@ $(document).ready(function () {
                         }
                     },
                     defaultContent: '<button class="btn btn-success btn-sm toggle-status-btn" title="Click to Deactivate"><i class="fas fa-toggle-on"></i> Active</button>'
-                },
-                {
-                    data: 'added_by_username',
-                    width: '100px',
-                    defaultContent: 'N/A'
-                },
-                {
-                    data: 'created_at',
-                    width: '100px',
-                    render: function (data) {
-                        return data ? new Date(data).toLocaleDateString() : '';
-                    }
                 },
                 {
                     data: null,

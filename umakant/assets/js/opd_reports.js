@@ -86,11 +86,6 @@ $(document).ready(function () {
                     width: '150px'
                 },
                 {
-                    data: 'patient_phone',
-                    width: '110px',
-                    defaultContent: 'N/A'
-                },
-                {
                     data: 'doctor_name',
                     width: '130px',
                     defaultContent: 'N/A'
@@ -109,29 +104,6 @@ $(document).ready(function () {
                         if (!data) return 'N/A';
                         return data.length > 50 ? data.substring(0, 50) + '...' : data;
                     },
-                    defaultContent: 'N/A'
-                },
-                {
-                    data: 'follow_up_date',
-                    width: '100px',
-                    render: function (data) {
-                        if (!data) return '<span class="badge badge-secondary">None</span>';
-                        const followUpDate = new Date(data);
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-
-                        if (followUpDate < today) {
-                            return '<span class="badge badge-danger">' + followUpDate.toLocaleDateString() + '</span>';
-                        } else if (followUpDate.toDateString() === today.toDateString()) {
-                            return '<span class="badge badge-warning">Today</span>';
-                        } else {
-                            return '<span class="badge badge-success">' + followUpDate.toLocaleDateString() + '</span>';
-                        }
-                    }
-                },
-                {
-                    data: 'added_by_username',
-                    width: '100px',
                     defaultContent: 'N/A'
                 },
                 {

@@ -96,14 +96,10 @@ require_once 'inc/sidebar.php';
                                 <table id="opdMedicalRecordsTable" class="table table-bordered table-striped table-hover">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
                                             <th>Record Date</th>
                                             <th>Patient</th>
                                             <th>Doctor</th>
                                             <th>Diagnosis</th>
-                                            <th>Treatment</th>
-                                            <th>Appointment</th>
-                                            <th>Created</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>

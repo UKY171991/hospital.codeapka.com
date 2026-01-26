@@ -99,10 +99,7 @@ require_once 'inc/sidebar.php';
                                             <th>ID</th>
                                             <th>Name</th>
                                             <th>Type</th>
-                                            <th>Location</th>
                                             <th>Department</th>
-                                            <th>Capacity</th>
-                                            <th>Available</th>
                                             <th>Status</th>
                                             <th>Actions</th>
                                         </tr>

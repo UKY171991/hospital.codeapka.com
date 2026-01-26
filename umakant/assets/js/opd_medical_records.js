@@ -14,7 +14,6 @@ $(document).ready(function () {
                 data: { action: 'list' }
             },
             columns: [
-                { data: 'id' },
                 { data: 'record_date' },
                 { data: 'patient_name' },
                 { data: 'doctor_name' },
@@ -24,14 +23,7 @@ $(document).ready(function () {
                         return data ? (data.length > 50 ? data.substring(0, 50) + '...' : data) : 'N/A';
                     }
                 },
-                {
-                    data: 'treatment',
-                    render: function (data) {
-                        return data ? (data.length > 50 ? data.substring(0, 50) + '...' : data) : 'N/A';
-                    }
-                },
-                { data: 'appointment_number' },
-                { data: 'created_at' },
+
                 {
                     data: null,
                     orderable: false,

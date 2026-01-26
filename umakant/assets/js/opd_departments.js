@@ -16,11 +16,8 @@ $(document).ready(function () {
             columns: [
                 { data: 'id' },
                 { data: 'name' },
-                { data: 'description' },
                 { data: 'head_doctor_name' },
-                { data: 'location' },
                 { data: 'phone' },
-                { data: 'email' },
                 {
                     data: 'is_active',
                     render: function (data) {

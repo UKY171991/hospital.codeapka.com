@@ -120,15 +120,12 @@ require_once 'inc/sidebar.php';
                                             <th>Sr. No.</th>
                                             <th>Bill ID</th>
                                             <th>Patient Name</th>
-                                            <th>Phone</th>
                                             <th>Doctor</th>
                                             <th>Bill Date</th>
                                             <th>Total Amount</th>
-                                            <th>Paid Amount</th>
                                             <th>Balance</th>
                                             <th>Payment Status</th>
                                             <th>Payment Method</th>
-                                            <th>Added By</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>

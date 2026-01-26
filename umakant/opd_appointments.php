@@ -122,12 +122,9 @@ require_once 'inc/sidebar.php';
                                             <th>Appointment #</th>
                                             <th>Patient</th>
                                             <th>Doctor</th>
-                                            <th>Department</th>
                                             <th>Date</th>
                                             <th>Time</th>
-                                            <th>Type</th>
                                             <th>Status</th>
-                                            <th>Fee</th>
                                             <th>Payment</th>
                                             <th>Actions</th>
                                         </tr>

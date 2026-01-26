@@ -87,11 +87,9 @@ require_once 'inc/sidebar.php';
                                         <tr>
                                             <th>ID</th>
                                             <th>Name</th>
-                                            <th>Description</th>
                                             <th>Duration (min)</th>
                                             <th>Color</th>
                                             <th>Status</th>
-                                            <th>Created</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>

@@ -14,10 +14,7 @@ $(document).ready(function () {
                 data: { action: 'list' }
             },
             columns: [
-                { data: 'id' },
-                { data: 'username' },
                 { data: 'name' },
-                { data: 'email' },
                 { data: 'phone' },
                 {
                     data: 'role',
@@ -34,13 +31,6 @@ $(document).ready(function () {
                     data: 'is_active',
                     render: function (data) {
                         return data == 1 ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>';
-                    }
-                },
-                { data: 'created_at' },
-                {
-                    data: 'created_by_name',
-                    render: function (data) {
-                        return data || '-';
                     }
                 },
                 {

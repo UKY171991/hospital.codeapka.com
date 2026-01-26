@@ -18,10 +18,8 @@ $(document).ready(function () {
                 { data: 'appointment_number' },
                 { data: 'patient_name' },
                 { data: 'doctor_name' },
-                { data: 'department_name' },
                 { data: 'appointment_date' },
                 { data: 'appointment_time' },
-                { data: 'type_name' },
                 {
                     data: 'status',
                     render: function (data) {
@@ -36,7 +34,6 @@ $(document).ready(function () {
                         return `<span class="badge ${badges[data] || 'badge-secondary'}">${data}</span>`;
                     }
                 },
-                { data: 'fee' },
                 {
                     data: 'payment_status',
                     render: function (data) {

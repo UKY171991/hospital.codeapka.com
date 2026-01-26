@@ -17,15 +17,7 @@ $(document).ready(function () {
                 { data: 'id' },
                 { data: 'name' },
                 { data: 'type' },
-                { data: 'location' },
                 { data: 'department_name' },
-                { data: 'capacity' },
-                {
-                    data: 'is_available',
-                    render: function (data) {
-                        return data == 1 ? '<span class="badge badge-success">Available</span>' : '<span class="badge badge-warning">Occupied</span>';
-                    }
-                },
                 {
                     data: 'is_active',
                     render: function (data) {

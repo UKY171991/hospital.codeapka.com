@@ -87,11 +87,6 @@ $(document).ready(function () {
                     width: '150px'
                 },
                 {
-                    data: 'patient_phone',
-                    width: '110px',
-                    defaultContent: 'N/A'
-                },
-                {
                     data: 'doctor_name',
                     width: '130px',
                     defaultContent: 'N/A'
@@ -105,13 +100,6 @@ $(document).ready(function () {
                 },
                 {
                     data: 'total_amount',
-                    width: '100px',
-                    render: function (data) {
-                        return '₹' + parseFloat(data).toFixed(2);
-                    }
-                },
-                {
-                    data: 'paid_amount',
                     width: '100px',
                     render: function (data) {
                         return '₹' + parseFloat(data).toFixed(2);
@@ -148,11 +136,6 @@ $(document).ready(function () {
                 {
                     data: 'payment_method',
                     width: '90px',
-                    defaultContent: 'N/A'
-                },
-                {
-                    data: 'added_by_username',
-                    width: '100px',
                     defaultContent: 'N/A'
                 },
                 {

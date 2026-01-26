@@ -98,12 +98,9 @@ require_once 'inc/sidebar.php';
                                             <th>Sr. No.</th>
                                             <th>Report ID</th>
                                             <th>Patient Name</th>
-                                            <th>Phone</th>
                                             <th>Doctor</th>
                                             <th>Report Date</th>
                                             <th>Diagnosis</th>
-                                            <th>Follow-up</th>
-                                            <th>Added By</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>

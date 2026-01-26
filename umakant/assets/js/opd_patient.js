@@ -110,7 +110,6 @@ $(document).ready(function () {
                         <td>${patient.patient_age || 'N/A'}</td>
                         <td>${patient.patient_gender || 'N/A'}</td>
                         <td><span class="badge badge-primary">${patient.visit_count || 0}</span></td>
-                        <td>${patient.first_visit ? new Date(patient.first_visit).toLocaleDateString() : 'N/A'}</td>
                         <td>${patient.last_visit ? new Date(patient.last_visit).toLocaleDateString() : 'N/A'}</td>
                         <td>
                             <div class="btn-group">
