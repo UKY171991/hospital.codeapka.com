@@ -97,8 +97,7 @@ $(document).ready(function () {
             },
             columnDefs: [
                 { targets: '_all', className: 'text-center' },
-                { targets: [2], className: 'text-left' },
-                { targets: [8], className: 'text-left' }
+                { targets: [2], className: 'text-left' }
             ],
             drawCallback: function () {
                 // Re-attach event handlers after table redraw
