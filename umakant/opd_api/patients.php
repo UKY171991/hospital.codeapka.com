@@ -150,6 +150,100 @@ try {
             json_response(['success' => false, 'message' => 'Error fetching doctors: ' . $e->getMessage()], 500);
         }
     }
+    // Get single patient
+    if ($action === 'get' && isset($_GET['id'])) {
+        // Need to join with users table to get username
+        $stmt = $pdo->prepare("
+            SELECT p.*, 
+                   TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) as age,
+                   u.username
+            FROM opd_patients p 
+            LEFT JOIN users u ON p.user_id = u.id 
+            WHERE p.id = ?
+        ");
+        $stmt->execute([$_GET['id']]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        json_response(['success' => true, 'data' => $row]);
+    }
+
+    // Save Patient (Update) - Create is in add_patient.php, this handles update
+    if ($action === 'save') {
+        $id = $_POST['patientId'] ?? '';
+        $name = $_POST['patientName'] ?? '';
+        $phone = $_POST['patientPhone'] ?? '';
+        $age = $_POST['patientAge'] ?? '';
+        $gender = $_POST['patientGender'] ?? '';
+        $email = $_POST['patientEmail'] ?? '';
+        $address = $_POST['patientAddress'] ?? '';
+        $username = $_POST['username'] ?? '';
+        $password = $_POST['password'] ?? '';
+        
+        if (empty($id)) {
+            // If No ID, it's an add action (though UI uses add_patient.php for new)
+             json_response(['success' => false, 'message' => 'Use add_patient.php for creating new patients'], 400);
+        }
+        
+        // Calculate DOB
+        $dob = date('Y-m-d', strtotime("-$age years"));
+        
+        $pdo->beginTransaction();
+        try {
+            // Update Patient Info
+            $stmt = $pdo->prepare("UPDATE opd_patients SET name=?, phone=?, dob=?, gender=?, email=?, address=? WHERE id=?");
+            $stmt->execute([$name, $phone, $dob, strtolower($gender), $email, $address, $id]);
+            
+            // Get user_id
+            $getU = $pdo->prepare("SELECT user_id FROM opd_patients WHERE id = ?");
+            $getU->execute([$id]);
+            $user_id = $getU->fetchColumn();
+            
+            if ($user_id) {
+                // Update User Info
+                if (!empty($password)) {
+                     $hashed = password_hash($password, PASSWORD_DEFAULT);
+                     $upU = $pdo->prepare("UPDATE users SET username=?, password=?, full_name=?, email=? WHERE id=?");
+                     $upU->execute([$username, $hashed, $name, $email, $user_id]);
+                } else {
+                     $upU = $pdo->prepare("UPDATE users SET username=?, full_name=?, email=? WHERE id=?");
+                     $upU->execute([$username, $name, $email, $user_id]);
+                }
+            } else {
+                 // Create user if missing? For now just skip
+                 // Or we could create one, similar to add_patient logic
+            }
+            
+            $pdo->commit();
+            json_response(['success' => true, 'message' => 'Patient updated successfully']);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            json_response(['success' => false, 'message' => 'Error updating patient: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // Delete patient
+    if ($action === 'delete' && isset($_POST['id'])) {
+        $id = $_POST['id'];
+        
+        $getU = $pdo->prepare("SELECT user_id FROM opd_patients WHERE id = ?");
+        $getU->execute([$id]);
+        $user_id = $getU->fetchColumn();
+        
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare("DELETE FROM opd_patients WHERE id = ?");
+            $stmt->execute([$id]);
+            
+            if ($user_id) {
+                $delU = $pdo->prepare("DELETE FROM users WHERE id = ?");
+                $delU->execute([$user_id]);
+            }
+            $pdo->commit();
+            json_response(['success' => true, 'message' => 'Patient deleted successfully']);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            json_response(['success' => false, 'message' => 'Error deleting patient: ' . $e->getMessage()], 500);
+        }
+    }
 
 
     json_response(['success' => false, 'message' => 'Invalid action'], 400);

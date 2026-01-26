@@ -150,6 +150,7 @@ require_once 'inc/sidebar.php';
             </div>
             <div class="modal-body">
                 <form id="addPatientForm">
+                    <input type="hidden" id="patientId" name="patientId">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -256,6 +257,8 @@ require_once 'inc/sidebar.php';
 <script>
 function openAddPatientModal() {
     document.getElementById('addPatientForm').reset();
+    $('#patientId').val(''); // Clear hidden ID
+    $('.modal-title').html('<i class="fas fa-user-plus mr-2"></i>Add New Patient');
     
     // Ensure all form inputs are enabled
     const form = document.getElementById('addPatientForm');
@@ -277,8 +280,14 @@ function saveNewPatient() {
     }
 
     const formData = new FormData(form);
+    const patientId = $('#patientId').val();
     
-    fetch('opd_api/add_patient.php', {
+    // Determine URL: if ID exists, use update API, else add API
+    const url = patientId ? 'opd_api/patients.php?action=save' : 'opd_api/add_patient.php';
+    
+    // If update, we need to append patientId manually if not picked up (it is HIDDEN input so FormData picks it up)
+    
+    fetch(url, {
         method: 'POST',
         body: formData
     })
@@ -290,65 +299,78 @@ function saveNewPatient() {
     })
     .then(data => {
         if (data.success) {
-            alert('Patient added successfully!');
+            alert(data.message || 'Operation successful!');
             $('#addPatientModal').modal('hide');
             form.reset();
-            // Reload the patient list using jQuery AJAX
-            $.ajax({
-                url: 'opd_api/patients.php',
-                type: 'GET',
-                data: { action: 'list' },
-                success: function(response) {
-                    if (response.success && response.data) {
-                        // Render the table with new data
-                        let html = '';
-                        if (response.data.length === 0) {
-                            html = '<tr><td colspan="9" class="text-center text-muted">No patients found</td></tr>';
-                        } else {
-                            response.data.forEach(function(patient, index) {
-                                html += `
-                                    <tr>
-                                        <td>${index + 1}</td>
-                                        <td><strong>${patient.patient_name || 'N/A'}</strong></td>
-                                        <td>${patient.patient_phone || 'N/A'}</td>
-                                        <td>${patient.patient_age || 'N/A'}</td>
-                                        <td>${patient.patient_gender || 'N/A'}</td>
-                                        <td><span class="badge badge-primary">${patient.visit_count || 0}</span></td>
-                                        <td>${patient.first_visit ? new Date(patient.first_visit).toLocaleDateString() : 'N/A'}</td>
-                                        <td>${patient.last_visit ? new Date(patient.last_visit).toLocaleDateString() : 'N/A'}</td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <button class="btn btn-sm btn-info view-history-btn" data-name="${patient.patient_name}" title="View History">
-                                                    <i class="fas fa-history"></i>
-                                                </button>
-                                                <a href="opd_reports.php" class="btn btn-sm btn-success" title="Add Report">
-                                                    <i class="fas fa-plus"></i>
-                                                </a>
-                                                <a href="opd_billing.php" class="btn btn-sm btn-warning" title="Create Bill">
-                                                    <i class="fas fa-file-invoice-dollar"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `;
-                            });
-                        }
-                        $('#patientTableBody').html(html);
-                    }
-                },
-                error: function() {
-                    console.error('Error reloading patients');
-                }
-            });
+            
+            // Reload the patient list
+            loadPatients($('#filterDoctor').val());
+            loadStats();
         } else {
-            alert('Error: ' + (data.message || 'Failed to add patient'));
+            alert('Error: ' + (data.message || 'Operation failed'));
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while adding the patient. Please check the console for details.');
+        alert('An error occurred. Please try again.');
     });
 }
+
+$(document).ready(function() {
+    // Delete patient
+    $(document).on('click', '.delete-patient-btn', function() {
+        const id = $(this).data('id');
+        if(confirm('Are you sure you want to delete this patient?')) {
+             $.ajax({
+                url: 'opd_api/patients.php',
+                type: 'POST',
+                data: { action: 'delete', id: id },
+                success: function(response) {
+                    if(response.success) {
+                        toastr.success(response.message);
+                        loadPatients($('#filterDoctor').val());
+                        loadStats();
+                    } else {
+                        toastr.error(response.message || 'Error deleting patient');
+                    }
+                },
+                error: function() {
+                    toastr.error('Server error');
+                }
+            });
+        }
+    });
+
+    // Edit patient
+    $(document).on('click', '.edit-patient-btn', function() {
+        const id = $(this).data('id');
+        $.ajax({
+            url: 'opd_api/patients.php',
+            type: 'GET',
+            data: { action: 'get', id: id },
+            success: function(response) {
+                if(response.success && response.data) {
+                    const patient = response.data;
+                    $('#patientId').val(patient.id);
+                    $('#patientName').val(patient.name);
+                    $('#patientPhone').val(patient.phone);
+                    $('#patientAge').val(patient.age);
+                    $('#patientGender').val(patient.gender ? patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1) : '');
+                    $('#patientEmail').val(patient.email);
+                    $('#patientAddress').val(patient.address);
+                    $('#patientUsername').val(patient.username || '');
+                    $('#patientPassword').val('');
+                    
+                    $('.modal-title').html('<i class="fas fa-user-edit mr-2"></i>Edit Patient');
+                    $('#addPatientModal').modal('show');
+                }
+            },
+            error: function() {
+                toastr.error('Error fetching patient details');
+            }
+        });
+    });
+});
 </script>
 
 <style>

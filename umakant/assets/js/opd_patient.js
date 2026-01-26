@@ -122,6 +122,12 @@ $(document).ready(function () {
                                 <a href="opd_billing.php" class="btn btn-sm btn-warning" title="Create Bill">
                                     <i class="fas fa-file-invoice-dollar"></i>
                                 </a>
+                                <button class="btn btn-sm btn-primary edit-patient-btn" data-id="${patient.id}" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-patient-btn" data-id="${patient.id}" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
