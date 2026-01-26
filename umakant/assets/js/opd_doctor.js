@@ -41,16 +41,13 @@ $(document).ready(function () {
                 },
                 {
                     data: 'name',
-                    width: '150px'
                 },
                 {
                     data: 'specialization',
-                    width: '120px',
                     defaultContent: 'N/A'
                 },
                 {
                     data: 'hospital',
-                    width: '120px',
                     defaultContent: 'N/A'
                 },
                 {
@@ -93,7 +90,7 @@ $(document).ready(function () {
             ],
             order: [[1, 'desc']],
             pageLength: 25,
-            scrollX: true,
+            scrollX: false,
             autoWidth: false,
             language: {
                 processing: '<i class="fas fa-spinner fa-spin"></i> Loading...'
