@@ -1,5 +1,5 @@
 // OPD Facilities Management JavaScript
-$(document).ready(function() {
+$(document).ready(function () {
     let facilitiesTable;
 
     // Initialize DataTable
@@ -10,6 +10,7 @@ $(document).ready(function() {
             ajax: {
                 url: 'opd_api/facilities.php',
                 type: 'POST',
+                cache: false,
                 data: { action: 'list' }
             },
             columns: [
@@ -19,22 +20,22 @@ $(document).ready(function() {
                 { data: 'location' },
                 { data: 'department_name' },
                 { data: 'capacity' },
-                { 
+                {
                     data: 'is_available',
-                    render: function(data) {
+                    render: function (data) {
                         return data == 1 ? '<span class="badge badge-success">Available</span>' : '<span class="badge badge-warning">Occupied</span>';
                     }
                 },
-                { 
+                {
                     data: 'is_active',
-                    render: function(data) {
+                    render: function (data) {
                         return data == 1 ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>';
                     }
                 },
                 {
                     data: null,
                     orderable: false,
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <button class="btn btn-sm btn-warning edit-btn" data-id="${row.id}"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-sm btn-danger delete-btn" data-id="${row.id}"><i class="fas fa-trash"></i></button>
@@ -52,7 +53,7 @@ $(document).ready(function() {
             url: 'opd_api/facilities.php',
             type: 'GET',
             data: { action: 'stats' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     $('#totalFacilities').text(response.data.total);
                     $('#availableFacilities').text(response.data.available);
@@ -69,10 +70,10 @@ $(document).ready(function() {
             url: 'opd_api/facilities.php',
             type: 'GET',
             data: { action: 'get_departments' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     let options = '<option value="">Select Department</option>';
-                    response.data.forEach(function(dept) {
+                    response.data.forEach(function (dept) {
                         options += `<option value="${dept.id}">${dept.name}</option>`;
                     });
                     $('#department_id').html(options);
@@ -82,7 +83,7 @@ $(document).ready(function() {
     }
 
     // Add facility button
-    $('#addFacilityBtn').click(function() {
+    $('#addFacilityBtn').click(function () {
         $('#facilityForm')[0].reset();
         $('#facilityId').val('');
         $('#modalTitle').text('Add New Facility');
@@ -90,13 +91,13 @@ $(document).ready(function() {
     });
 
     // Edit facility
-    $(document).on('click', '.edit-btn', function() {
+    $(document).on('click', '.edit-btn', function () {
         const id = $(this).data('id');
         $.ajax({
             url: 'opd_api/facilities.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const facility = response.data;
                     $('#facilityId').val(facility.id);
@@ -116,15 +117,15 @@ $(document).ready(function() {
     });
 
     // Save facility
-    $('#facilityForm').submit(function(e) {
+    $('#facilityForm').submit(function (e) {
         e.preventDefault();
         const formData = $(this).serialize() + '&action=save';
-        
+
         $.ajax({
             url: 'opd_api/facilities.php',
             type: 'POST',
             data: formData,
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     toastr.success(response.message);
                     $('#facilityModal').modal('hide');
@@ -138,14 +139,14 @@ $(document).ready(function() {
     });
 
     // Delete facility
-    $(document).on('click', '.delete-btn', function() {
+    $(document).on('click', '.delete-btn', function () {
         const id = $(this).data('id');
         if (confirm('Are you sure you want to delete this facility?')) {
             $.ajax({
                 url: 'opd_api/facilities.php',
                 type: 'POST',
                 data: { action: 'delete', id: id },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
                         facilitiesTable.ajax.reload();

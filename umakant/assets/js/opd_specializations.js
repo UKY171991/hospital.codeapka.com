@@ -1,5 +1,5 @@
 // OPD Specializations Management JavaScript
-$(document).ready(function() {
+$(document).ready(function () {
     let specializationsTable;
 
     // Initialize DataTable
@@ -10,6 +10,7 @@ $(document).ready(function() {
             ajax: {
                 url: 'opd_api/specializations.php',
                 type: 'POST',
+                cache: false,
                 data: { action: 'list' }
             },
             columns: [
@@ -17,9 +18,9 @@ $(document).ready(function() {
                 { data: 'name' },
                 { data: 'description' },
                 { data: 'department_name' },
-                { 
+                {
                     data: 'is_active',
-                    render: function(data) {
+                    render: function (data) {
                         return data == 1 ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>';
                     }
                 },
@@ -27,7 +28,7 @@ $(document).ready(function() {
                 {
                     data: null,
                     orderable: false,
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <button class="btn btn-sm btn-warning edit-btn" data-id="${row.id}"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-sm btn-danger delete-btn" data-id="${row.id}"><i class="fas fa-trash"></i></button>
@@ -45,7 +46,7 @@ $(document).ready(function() {
             url: 'opd_api/specializations.php',
             type: 'GET',
             data: { action: 'stats' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     $('#totalSpecializations').text(response.data.total);
                     $('#activeSpecializations').text(response.data.active);
@@ -61,10 +62,10 @@ $(document).ready(function() {
             url: 'opd_api/specializations.php',
             type: 'GET',
             data: { action: 'get_departments' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     let options = '<option value="">Select Department</option>';
-                    response.data.forEach(function(dept) {
+                    response.data.forEach(function (dept) {
                         options += `<option value="${dept.id}">${dept.name}</option>`;
                     });
                     $('#department_id').html(options);
@@ -74,7 +75,7 @@ $(document).ready(function() {
     }
 
     // Add specialization button
-    $('#addSpecializationBtn').click(function() {
+    $('#addSpecializationBtn').click(function () {
         $('#specializationForm')[0].reset();
         $('#specializationId').val('');
         $('#modalTitle').text('Add New Specialization');
@@ -82,13 +83,13 @@ $(document).ready(function() {
     });
 
     // Edit specialization
-    $(document).on('click', '.edit-btn', function() {
+    $(document).on('click', '.edit-btn', function () {
         const id = $(this).data('id');
         $.ajax({
             url: 'opd_api/specializations.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const spec = response.data;
                     $('#specializationId').val(spec.id);
@@ -104,15 +105,15 @@ $(document).ready(function() {
     });
 
     // Save specialization
-    $('#specializationForm').submit(function(e) {
+    $('#specializationForm').submit(function (e) {
         e.preventDefault();
         const formData = $(this).serialize() + '&action=save';
-        
+
         $.ajax({
             url: 'opd_api/specializations.php',
             type: 'POST',
             data: formData,
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     toastr.success(response.message);
                     $('#specializationModal').modal('hide');
@@ -126,14 +127,14 @@ $(document).ready(function() {
     });
 
     // Delete specialization
-    $(document).on('click', '.delete-btn', function() {
+    $(document).on('click', '.delete-btn', function () {
         const id = $(this).data('id');
         if (confirm('Are you sure you want to delete this specialization?')) {
             $.ajax({
                 url: 'opd_api/specializations.php',
                 type: 'POST',
                 data: { action: 'delete', id: id },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
                         specializationsTable.ajax.reload();

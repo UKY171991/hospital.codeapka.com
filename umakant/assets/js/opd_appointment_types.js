@@ -1,5 +1,5 @@
 // OPD Appointment Types Management JavaScript
-$(document).ready(function() {
+$(document).ready(function () {
     let typesTable;
 
     // Initialize DataTable
@@ -10,6 +10,7 @@ $(document).ready(function() {
             ajax: {
                 url: 'opd_api/appointment_types.php',
                 type: 'POST',
+                cache: false,
                 data: { action: 'list' }
             },
             columns: [
@@ -17,15 +18,15 @@ $(document).ready(function() {
                 { data: 'name' },
                 { data: 'description' },
                 { data: 'duration_minutes' },
-                { 
+                {
                     data: 'color',
-                    render: function(data) {
+                    render: function (data) {
                         return `<span style="display:inline-block;width:30px;height:20px;background-color:${data};border:1px solid #ccc;"></span> ${data}`;
                     }
                 },
-                { 
+                {
                     data: 'is_active',
-                    render: function(data) {
+                    render: function (data) {
                         return data == 1 ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>';
                     }
                 },
@@ -33,7 +34,7 @@ $(document).ready(function() {
                 {
                     data: null,
                     orderable: false,
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <button class="btn btn-sm btn-warning edit-btn" data-id="${row.id}"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-sm btn-danger delete-btn" data-id="${row.id}"><i class="fas fa-trash"></i></button>
@@ -51,7 +52,7 @@ $(document).ready(function() {
             url: 'opd_api/appointment_types.php',
             type: 'GET',
             data: { action: 'stats' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     $('#totalTypes').text(response.data.total);
                     $('#activeTypes').text(response.data.active);
@@ -62,7 +63,7 @@ $(document).ready(function() {
     }
 
     // Add type button
-    $('#addTypeBtn').click(function() {
+    $('#addTypeBtn').click(function () {
         $('#typeForm')[0].reset();
         $('#typeId').val('');
         $('#modalTitle').text('Add New Appointment Type');
@@ -70,13 +71,13 @@ $(document).ready(function() {
     });
 
     // Edit type
-    $(document).on('click', '.edit-btn', function() {
+    $(document).on('click', '.edit-btn', function () {
         const id = $(this).data('id');
         $.ajax({
             url: 'opd_api/appointment_types.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const type = response.data;
                     $('#typeId').val(type.id);
@@ -93,15 +94,15 @@ $(document).ready(function() {
     });
 
     // Save type
-    $('#typeForm').submit(function(e) {
+    $('#typeForm').submit(function (e) {
         e.preventDefault();
         const formData = $(this).serialize() + '&action=save';
-        
+
         $.ajax({
             url: 'opd_api/appointment_types.php',
             type: 'POST',
             data: formData,
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     toastr.success(response.message);
                     $('#typeModal').modal('hide');
@@ -115,14 +116,14 @@ $(document).ready(function() {
     });
 
     // Delete type
-    $(document).on('click', '.delete-btn', function() {
+    $(document).on('click', '.delete-btn', function () {
         const id = $(this).data('id');
         if (confirm('Are you sure you want to delete this appointment type?')) {
             $.ajax({
                 url: 'opd_api/appointment_types.php',
                 type: 'POST',
                 data: { action: 'delete', id: id },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
                         typesTable.ajax.reload();

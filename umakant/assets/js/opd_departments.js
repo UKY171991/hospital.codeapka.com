@@ -1,5 +1,5 @@
 // OPD Departments Management JavaScript
-$(document).ready(function() {
+$(document).ready(function () {
     let departmentsTable;
 
     // Initialize DataTable
@@ -10,6 +10,7 @@ $(document).ready(function() {
             ajax: {
                 url: 'opd_api/departments.php',
                 type: 'POST',
+                cache: false,
                 data: { action: 'list' }
             },
             columns: [
@@ -20,16 +21,16 @@ $(document).ready(function() {
                 { data: 'location' },
                 { data: 'phone' },
                 { data: 'email' },
-                { 
+                {
                     data: 'is_active',
-                    render: function(data) {
+                    render: function (data) {
                         return data == 1 ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>';
                     }
                 },
                 {
                     data: null,
                     orderable: false,
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <button class="btn btn-sm btn-warning edit-btn" data-id="${row.id}"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-sm btn-danger delete-btn" data-id="${row.id}"><i class="fas fa-trash"></i></button>
@@ -47,7 +48,7 @@ $(document).ready(function() {
             url: 'opd_api/departments.php',
             type: 'GET',
             data: { action: 'stats' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     $('#totalDepartments').text(response.data.total);
                     $('#activeDepartments').text(response.data.active);
@@ -64,10 +65,10 @@ $(document).ready(function() {
             url: 'opd_api/departments.php',
             type: 'GET',
             data: { action: 'get_doctors' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     let options = '<option value="">Select Doctor</option>';
-                    response.data.forEach(function(doctor) {
+                    response.data.forEach(function (doctor) {
                         options += `<option value="${doctor.id}">${doctor.name}</option>`;
                     });
                     $('#head_doctor_id').html(options);
@@ -77,7 +78,7 @@ $(document).ready(function() {
     }
 
     // Add department button
-    $('#addDepartmentBtn').click(function() {
+    $('#addDepartmentBtn').click(function () {
         $('#departmentForm')[0].reset();
         $('#departmentId').val('');
         $('#modalTitle').text('Add New Department');
@@ -85,13 +86,13 @@ $(document).ready(function() {
     });
 
     // Edit department
-    $(document).on('click', '.edit-btn', function() {
+    $(document).on('click', '.edit-btn', function () {
         const id = $(this).data('id');
         $.ajax({
             url: 'opd_api/departments.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const dept = response.data;
                     $('#departmentId').val(dept.id);
@@ -110,15 +111,15 @@ $(document).ready(function() {
     });
 
     // Save department
-    $('#departmentForm').submit(function(e) {
+    $('#departmentForm').submit(function (e) {
         e.preventDefault();
         const formData = $(this).serialize() + '&action=save';
-        
+
         $.ajax({
             url: 'opd_api/departments.php',
             type: 'POST',
             data: formData,
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     toastr.success(response.message);
                     $('#departmentModal').modal('hide');
@@ -132,14 +133,14 @@ $(document).ready(function() {
     });
 
     // Delete department
-    $(document).on('click', '.delete-btn', function() {
+    $(document).on('click', '.delete-btn', function () {
         const id = $(this).data('id');
         if (confirm('Are you sure you want to delete this department?')) {
             $.ajax({
                 url: 'opd_api/departments.php',
                 type: 'POST',
                 data: { action: 'delete', id: id },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
                         departmentsTable.ajax.reload();

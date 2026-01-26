@@ -1,5 +1,5 @@
 // OPD Medical Records Management JavaScript
-$(document).ready(function() {
+$(document).ready(function () {
     let recordsTable;
 
     // Initialize DataTable
@@ -10,6 +10,7 @@ $(document).ready(function() {
             ajax: {
                 url: 'opd_api/medical_records.php',
                 type: 'POST',
+                cache: false,
                 data: { action: 'list' }
             },
             columns: [
@@ -17,15 +18,15 @@ $(document).ready(function() {
                 { data: 'record_date' },
                 { data: 'patient_name' },
                 { data: 'doctor_name' },
-                { 
+                {
                     data: 'diagnosis',
-                    render: function(data) {
+                    render: function (data) {
                         return data ? (data.length > 50 ? data.substring(0, 50) + '...' : data) : 'N/A';
                     }
                 },
-                { 
+                {
                     data: 'treatment',
-                    render: function(data) {
+                    render: function (data) {
                         return data ? (data.length > 50 ? data.substring(0, 50) + '...' : data) : 'N/A';
                     }
                 },
@@ -34,7 +35,7 @@ $(document).ready(function() {
                 {
                     data: null,
                     orderable: false,
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <button class="btn btn-sm btn-info view-btn" data-id="${row.id}"><i class="fas fa-eye"></i></button>
                             <button class="btn btn-sm btn-warning edit-btn" data-id="${row.id}"><i class="fas fa-edit"></i></button>
@@ -53,7 +54,7 @@ $(document).ready(function() {
             url: 'opd_api/medical_records.php',
             type: 'GET',
             data: { action: 'stats' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     $('#totalRecords').text(response.data.total);
                     $('#todayRecords').text(response.data.today);
@@ -71,10 +72,10 @@ $(document).ready(function() {
             url: 'opd_api/medical_records.php',
             type: 'GET',
             data: { action: 'get_patients' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     let options = '<option value="">Select Patient</option>';
-                    response.data.forEach(function(patient) {
+                    response.data.forEach(function (patient) {
                         options += `<option value="${patient.id}">${patient.name} - ${patient.phone}</option>`;
                     });
                     $('#patient_id').html(options);
@@ -87,10 +88,10 @@ $(document).ready(function() {
             url: 'opd_api/medical_records.php',
             type: 'GET',
             data: { action: 'get_doctors' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     let options = '<option value="">Select Doctor</option>';
-                    response.data.forEach(function(doctor) {
+                    response.data.forEach(function (doctor) {
                         options += `<option value="${doctor.id}">${doctor.name} - ${doctor.specialization || 'General'}</option>`;
                     });
                     $('#doctor_id').html(options);
@@ -100,17 +101,17 @@ $(document).ready(function() {
     }
 
     // Load appointments when patient is selected
-    $('#patient_id').change(function() {
+    $('#patient_id').change(function () {
         const patientId = $(this).val();
         if (patientId) {
             $.ajax({
                 url: 'opd_api/medical_records.php',
                 type: 'GET',
                 data: { action: 'get_appointments', patient_id: patientId },
-                success: function(response) {
+                success: function (response) {
                     if (response.success && response.data) {
                         let options = '<option value="">Select Appointment</option>';
-                        response.data.forEach(function(apt) {
+                        response.data.forEach(function (apt) {
                             options += `<option value="${apt.id}">${apt.appointment_number} - ${apt.appointment_date}</option>`;
                         });
                         $('#appointment_id').html(options);
@@ -121,7 +122,7 @@ $(document).ready(function() {
     });
 
     // Add record button
-    $('#addRecordBtn').click(function() {
+    $('#addRecordBtn').click(function () {
         $('#recordForm')[0].reset();
         $('#recordId').val('');
         $('#modalTitle').text('Add New Medical Record');
@@ -129,13 +130,13 @@ $(document).ready(function() {
     });
 
     // Edit record
-    $(document).on('click', '.edit-btn', function() {
+    $(document).on('click', '.edit-btn', function () {
         const id = $(this).data('id');
         $.ajax({
             url: 'opd_api/medical_records.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const record = response.data;
                     $('#recordId').val(record.id);
@@ -156,15 +157,15 @@ $(document).ready(function() {
     });
 
     // Save record
-    $('#recordForm').submit(function(e) {
+    $('#recordForm').submit(function (e) {
         e.preventDefault();
         const formData = $(this).serialize() + '&action=save';
-        
+
         $.ajax({
             url: 'opd_api/medical_records.php',
             type: 'POST',
             data: formData,
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     toastr.success(response.message);
                     $('#recordModal').modal('hide');
@@ -178,14 +179,14 @@ $(document).ready(function() {
     });
 
     // Delete record
-    $(document).on('click', '.delete-btn', function() {
+    $(document).on('click', '.delete-btn', function () {
         const id = $(this).data('id');
         if (confirm('Are you sure you want to delete this medical record?')) {
             $.ajax({
                 url: 'opd_api/medical_records.php',
                 type: 'POST',
                 data: { action: 'delete', id: id },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
                         recordsTable.ajax.reload();

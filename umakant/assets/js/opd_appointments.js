@@ -1,5 +1,5 @@
 // OPD Appointments Management JavaScript
-$(document).ready(function() {
+$(document).ready(function () {
     let appointmentsTable;
 
     // Initialize DataTable
@@ -10,6 +10,7 @@ $(document).ready(function() {
             ajax: {
                 url: 'opd_api/appointments.php',
                 type: 'POST',
+                cache: false,
                 data: { action: 'list' }
             },
             columns: [
@@ -21,9 +22,9 @@ $(document).ready(function() {
                 { data: 'appointment_date' },
                 { data: 'appointment_time' },
                 { data: 'type_name' },
-                { 
+                {
                     data: 'status',
-                    render: function(data) {
+                    render: function (data) {
                         const badges = {
                             'scheduled': 'badge-warning',
                             'confirmed': 'badge-primary',
@@ -36,9 +37,9 @@ $(document).ready(function() {
                     }
                 },
                 { data: 'fee' },
-                { 
+                {
                     data: 'payment_status',
-                    render: function(data) {
+                    render: function (data) {
                         const badges = {
                             'pending': 'badge-warning',
                             'paid': 'badge-success',
@@ -50,7 +51,7 @@ $(document).ready(function() {
                 {
                     data: null,
                     orderable: false,
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <button class="btn btn-sm btn-warning edit-btn" data-id="${row.id}"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-sm btn-danger delete-btn" data-id="${row.id}"><i class="fas fa-trash"></i></button>
@@ -68,7 +69,7 @@ $(document).ready(function() {
             url: 'opd_api/appointments.php',
             type: 'GET',
             data: { action: 'stats' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     $('#totalAppointments').text(response.data.total);
                     $('#scheduledAppointments').text(response.data.scheduled);
@@ -88,10 +89,10 @@ $(document).ready(function() {
             url: 'opd_api/appointments.php',
             type: 'GET',
             data: { action: 'get_patients' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     let options = '<option value="">Select Patient</option>';
-                    response.data.forEach(function(patient) {
+                    response.data.forEach(function (patient) {
                         options += `<option value="${patient.id}">${patient.name} - ${patient.phone}</option>`;
                     });
                     $('#patient_id').html(options);
@@ -104,10 +105,10 @@ $(document).ready(function() {
             url: 'opd_api/appointments.php',
             type: 'GET',
             data: { action: 'get_doctors' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     let options = '<option value="">Select Doctor</option>';
-                    response.data.forEach(function(doctor) {
+                    response.data.forEach(function (doctor) {
                         options += `<option value="${doctor.id}">${doctor.name} - ${doctor.specialization || 'General'}</option>`;
                     });
                     $('#doctor_id').html(options);
@@ -120,10 +121,10 @@ $(document).ready(function() {
             url: 'opd_api/appointments.php',
             type: 'GET',
             data: { action: 'get_departments' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     let options = '<option value="">Select Department</option>';
-                    response.data.forEach(function(dept) {
+                    response.data.forEach(function (dept) {
                         options += `<option value="${dept.id}">${dept.name}</option>`;
                     });
                     $('#department_id').html(options);
@@ -136,10 +137,10 @@ $(document).ready(function() {
             url: 'opd_api/appointments.php',
             type: 'GET',
             data: { action: 'get_appointment_types' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     let options = '<option value="">Select Type</option>';
-                    response.data.forEach(function(type) {
+                    response.data.forEach(function (type) {
                         options += `<option value="${type.id}">${type.name} (${type.duration_minutes} min)</option>`;
                     });
                     $('#appointment_type_id').html(options);
@@ -149,7 +150,7 @@ $(document).ready(function() {
     }
 
     // Add appointment button
-    $('#addAppointmentBtn').click(function() {
+    $('#addAppointmentBtn').click(function () {
         $('#appointmentForm')[0].reset();
         $('#appointmentId').val('');
         $('#modalTitle').text('Add New Appointment');
@@ -157,13 +158,13 @@ $(document).ready(function() {
     });
 
     // Edit appointment
-    $(document).on('click', '.edit-btn', function() {
+    $(document).on('click', '.edit-btn', function () {
         const id = $(this).data('id');
         $.ajax({
             url: 'opd_api/appointments.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const apt = response.data;
                     $('#appointmentId').val(apt.id);
@@ -186,15 +187,15 @@ $(document).ready(function() {
     });
 
     // Save appointment
-    $('#appointmentForm').submit(function(e) {
+    $('#appointmentForm').submit(function (e) {
         e.preventDefault();
         const formData = $(this).serialize() + '&action=save';
-        
+
         $.ajax({
             url: 'opd_api/appointments.php',
             type: 'POST',
             data: formData,
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     toastr.success(response.message);
                     $('#appointmentModal').modal('hide');
@@ -208,14 +209,14 @@ $(document).ready(function() {
     });
 
     // Delete appointment
-    $(document).on('click', '.delete-btn', function() {
+    $(document).on('click', '.delete-btn', function () {
         const id = $(this).data('id');
         if (confirm('Are you sure you want to delete this appointment?')) {
             $.ajax({
                 url: 'opd_api/appointments.php',
                 type: 'POST',
                 data: { action: 'delete', id: id },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
                         appointmentsTable.ajax.reload();

@@ -1,5 +1,5 @@
 // OPD Billing Management JavaScript
-$(document).ready(function() {
+$(document).ready(function () {
     let opdBillingTable;
     let currentBillingId = null;
 
@@ -12,13 +12,13 @@ $(document).ready(function() {
             url: 'opd_api/billing.php',
             type: 'GET',
             data: { action: 'get_doctors' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const doctorSelect = $('#doctorName');
                     doctorSelect.empty();
                     doctorSelect.append('<option value="">Select Doctor</option>');
-                    
-                    response.data.forEach(function(doctor) {
+
+                    response.data.forEach(function (doctor) {
                         let displayText = doctor.name;
                         if (doctor.specialization) {
                             displayText += ' - ' + doctor.specialization;
@@ -28,14 +28,14 @@ $(document).ready(function() {
                         }
                         doctorSelect.append(`<option value="${doctor.name}">${displayText}</option>`);
                     });
-                    
+
                     // Call callback function if provided
                     if (typeof callback === 'function') {
                         callback();
                     }
                 }
             },
-            error: function() {
+            error: function () {
                 console.error('Error loading doctors');
                 toastr.error('Error loading doctors list');
             }
@@ -48,88 +48,89 @@ $(document).ready(function() {
         if ($.fn.DataTable.isDataTable('#opdBillingTable')) {
             $('#opdBillingTable').DataTable().destroy();
         }
-        
+
         opdBillingTable = $('#opdBillingTable').DataTable({
             processing: true,
             serverSide: true,
             ajax: {
                 url: 'opd_api/billing.php',
-                type: 'GET',
-                data: function(d) {
+                type: 'POST',
+                cache: false,
+                data: function (d) {
                     d.action = 'list';
                 },
-                dataSrc: function(json) {
+                dataSrc: function (json) {
                     console.log('API Response:', json);
                     return json.data;
                 },
-                error: function(xhr, error, thrown) {
+                error: function (xhr, error, thrown) {
                     console.error('DataTable error:', error, thrown);
                     console.error('Response:', xhr.responseText);
                     toastr.error('Error loading data');
                 }
             },
             columns: [
-                { 
+                {
                     data: null,
-                    render: function(data, type, row, meta) {
+                    render: function (data, type, row, meta) {
                         return meta.row + meta.settings._iDisplayStart + 1;
                     },
                     orderable: false,
                     width: '50px'
                 },
-                { 
+                {
                     data: 'id',
                     width: '70px'
                 },
-                { 
+                {
                     data: 'patient_name',
                     width: '150px'
                 },
-                { 
+                {
                     data: 'patient_phone',
                     width: '110px',
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'doctor_name',
                     width: '130px',
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'bill_date',
                     width: '100px',
-                    render: function(data) {
+                    render: function (data) {
                         return data ? new Date(data).toLocaleDateString() : '';
                     }
                 },
-                { 
+                {
                     data: 'total_amount',
                     width: '100px',
-                    render: function(data) {
+                    render: function (data) {
                         return '₹' + parseFloat(data).toFixed(2);
                     }
                 },
-                { 
+                {
                     data: 'paid_amount',
                     width: '100px',
-                    render: function(data) {
+                    render: function (data) {
                         return '₹' + parseFloat(data).toFixed(2);
                     }
                 },
-                { 
+                {
                     data: 'balance_amount',
                     width: '100px',
-                    render: function(data) {
+                    render: function (data) {
                         return '₹' + parseFloat(data).toFixed(2);
                     }
                 },
-                { 
+                {
                     data: 'payment_status',
                     width: '90px',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         let statusClass = 'secondary';
                         let statusIcon = 'question-circle';
-                        
+
                         if (data === 'Paid') {
                             statusClass = 'success';
                             statusIcon = 'check-circle';
@@ -140,16 +141,16 @@ $(document).ready(function() {
                             statusClass = 'warning';
                             statusIcon = 'exclamation-circle';
                         }
-                        
+
                         return `<span class="badge badge-${statusClass}"><i class="fas fa-${statusIcon}"></i> ${data}</span>`;
                     }
                 },
-                { 
+                {
                     data: 'payment_method',
                     width: '90px',
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'added_by_username',
                     width: '100px',
                     defaultContent: 'N/A'
@@ -158,7 +159,7 @@ $(document).ready(function() {
                     data: null,
                     orderable: false,
                     width: '120px',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-info view-btn" data-id="${row.id}" title="View">
@@ -195,7 +196,7 @@ $(document).ready(function() {
             url: 'opd_api/billing.php',
             type: 'GET',
             data: { action: 'stats' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     $('#totalBills').text(response.data.total);
                     $('#paidBills').text(response.data.paid);
@@ -205,7 +206,7 @@ $(document).ready(function() {
                     $('#pendingAmount').text('₹' + response.data.pending);
                 }
             },
-            error: function() {
+            error: function () {
                 console.error('Error loading stats');
             }
         });
@@ -240,7 +241,7 @@ $(document).ready(function() {
     $('.charge-input').on('input', calculateTotals);
 
     // Add new billing button
-    $('#addBillingBtn').click(function() {
+    $('#addBillingBtn').click(function () {
         currentBillingId = null;
         $('#billingForm')[0].reset();
         $('#billingId').val('');
@@ -252,16 +253,16 @@ $(document).ready(function() {
     });
 
     // Form submission
-    $('#billingForm').submit(function(e) {
+    $('#billingForm').submit(function (e) {
         e.preventDefault();
-        
+
         const formData = $(this).serialize() + '&action=save';
-        
+
         $.ajax({
             url: 'opd_api/billing.php',
             type: 'POST',
             data: formData,
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     toastr.success(response.message);
                     $('#billingModal').modal('hide');
@@ -271,7 +272,7 @@ $(document).ready(function() {
                     toastr.error(response.message || 'Error saving billing record');
                 }
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 const response = xhr.responseJSON;
                 toastr.error(response?.message || 'Error saving billing record');
             }
@@ -279,18 +280,18 @@ $(document).ready(function() {
     });
 
     // View billing
-    $(document).on('click', '.view-btn', function() {
+    $(document).on('click', '.view-btn', function () {
         const id = $(this).data('id');
-        
+
         $.ajax({
             url: 'opd_api/billing.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const bill = response.data;
                     let statusClass = 'secondary';
-                    
+
                     if (bill.payment_status === 'Paid') {
                         statusClass = 'success';
                     } else if (bill.payment_status === 'Unpaid') {
@@ -298,7 +299,7 @@ $(document).ready(function() {
                     } else if (bill.payment_status === 'Partial') {
                         statusClass = 'warning';
                     }
-                    
+
                     let html = `
                         <div class="invoice p-3">
                             <div class="row mb-3">
@@ -389,26 +390,26 @@ $(document).ready(function() {
                     $('#viewBillingModal').modal('show');
                 }
             },
-            error: function() {
+            error: function () {
                 toastr.error('Error loading billing details');
             }
         });
     });
 
     // Edit billing
-    $(document).on('click', '.edit-btn', function() {
+    $(document).on('click', '.edit-btn', function () {
         const id = $(this).data('id');
-        
+
         $.ajax({
             url: 'opd_api/billing.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const bill = response.data;
-                    
+
                     // Load doctors first, then populate the form with callback
-                    loadDoctors(function() {
+                    loadDoctors(function () {
                         $('#billingId').val(bill.id);
                         $('#patientName').val(bill.patient_name);
                         $('#patientPhone').val(bill.patient_phone);
@@ -427,18 +428,18 @@ $(document).ready(function() {
                         $('#modalTitle').text('Edit Bill');
                         calculateTotals();
                     });
-                    
+
                     $('#billingModal').modal('show');
                 }
             },
-            error: function() {
+            error: function () {
                 toastr.error('Error loading billing details');
             }
         });
     });
 
     // Edit from view modal
-    window.editBillingFromView = function() {
+    window.editBillingFromView = function () {
         if (currentBillingId) {
             $('#viewBillingModal').modal('hide');
             $('.edit-btn[data-id="' + currentBillingId + '"]').click();
@@ -446,15 +447,15 @@ $(document).ready(function() {
     };
 
     // Delete billing
-    $(document).on('click', '.delete-btn', function() {
+    $(document).on('click', '.delete-btn', function () {
         const id = $(this).data('id');
-        
+
         if (confirm('Are you sure you want to delete this billing record?')) {
             $.ajax({
                 url: 'opd_api/billing.php',
                 type: 'POST',
                 data: { action: 'delete', id: id },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
                         opdBillingTable.ajax.reload();
@@ -463,7 +464,7 @@ $(document).ready(function() {
                         toastr.error(response.message || 'Error deleting billing record');
                     }
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     const response = xhr.responseJSON;
                     toastr.error(response?.message || 'Error deleting billing record');
                 }
@@ -472,7 +473,7 @@ $(document).ready(function() {
     });
 
     // Print bill details
-    window.printBillDetails = function() {
+    window.printBillDetails = function () {
         window.print();
     };
 

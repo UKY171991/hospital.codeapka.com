@@ -1,5 +1,5 @@
 // OPD Users Management JavaScript
-$(document).ready(function() {
+$(document).ready(function () {
     let usersTable;
 
     // Initialize DataTable
@@ -10,6 +10,7 @@ $(document).ready(function() {
             ajax: {
                 url: 'opd_api/users.php',
                 type: 'POST',
+                cache: false,
                 data: { action: 'list' }
             },
             columns: [
@@ -18,9 +19,9 @@ $(document).ready(function() {
                 { data: 'name' },
                 { data: 'email' },
                 { data: 'phone' },
-                { 
+                {
                     data: 'role',
-                    render: function(data) {
+                    render: function (data) {
                         const badges = {
                             'doctor': 'badge-primary',
                             'nurse': 'badge-info',
@@ -29,23 +30,23 @@ $(document).ready(function() {
                         return `<span class="badge ${badges[data] || 'badge-secondary'}">${data}</span>`;
                     }
                 },
-                { 
+                {
                     data: 'is_active',
-                    render: function(data) {
+                    render: function (data) {
                         return data == 1 ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>';
                     }
                 },
                 { data: 'created_at' },
-                { 
+                {
                     data: 'created_by_name',
-                    render: function(data) {
+                    render: function (data) {
                         return data || '-';
                     }
                 },
                 {
                     data: null,
                     orderable: false,
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <button class="btn btn-sm btn-info view-btn" data-id="${row.id}"><i class="fas fa-eye"></i></button>
                             <button class="btn btn-sm btn-warning edit-btn" data-id="${row.id}"><i class="fas fa-edit"></i></button>
@@ -64,7 +65,7 @@ $(document).ready(function() {
             url: 'opd_api/users.php',
             type: 'GET',
             data: { action: 'stats' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     $('#totalUsers').text(response.data.total);
                     $('#activeUsers').text(response.data.active);
@@ -76,7 +77,7 @@ $(document).ready(function() {
     }
 
     // Add user button
-    $('#addUserBtn').click(function() {
+    $('#addUserBtn').click(function () {
         $('#userForm')[0].reset();
         $('#userId').val('');
         $('#modalTitle').text('Add New User');
@@ -86,13 +87,13 @@ $(document).ready(function() {
     });
 
     // Edit user
-    $(document).on('click', '.edit-btn', function() {
+    $(document).on('click', '.edit-btn', function () {
         const id = $(this).data('id');
         $.ajax({
             url: 'opd_api/users.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const user = response.data;
                     $('#userId').val(user.id);
@@ -115,13 +116,13 @@ $(document).ready(function() {
     });
 
     // View user
-    $(document).on('click', '.view-btn', function() {
+    $(document).on('click', '.view-btn', function () {
         const id = $(this).data('id');
         $.ajax({
             url: 'opd_api/users.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const user = response.data;
                     $('#view_username').text(user.username);
@@ -134,7 +135,7 @@ $(document).ready(function() {
                     $('#view_status').html(user.is_active == 1 ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>');
                     $('#view_created_at').text(user.created_at);
                     $('#view_created_by').text(user.created_by_name || '-');
-                    
+
                     $('#editFromViewBtn').data('id', user.id);
                     $('#viewUserModal').modal('show');
                 }
@@ -143,7 +144,7 @@ $(document).ready(function() {
     });
 
     // Edit from view modal
-    $('#editFromViewBtn').click(function() {
+    $('#editFromViewBtn').click(function () {
         const id = $(this).data('id');
         $('#viewUserModal').modal('hide');
         setTimeout(() => {
@@ -152,15 +153,15 @@ $(document).ready(function() {
     });
 
     // Save user
-    $('#userForm').submit(function(e) {
+    $('#userForm').submit(function (e) {
         e.preventDefault();
         const formData = $(this).serialize() + '&action=save';
-        
+
         $.ajax({
             url: 'opd_api/users.php',
             type: 'POST',
             data: formData,
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     toastr.success(response.message);
                     $('#userModal').modal('hide');
@@ -174,14 +175,14 @@ $(document).ready(function() {
     });
 
     // Delete user
-    $(document).on('click', '.delete-btn', function() {
+    $(document).on('click', '.delete-btn', function () {
         const id = $(this).data('id');
         if (confirm('Are you sure you want to delete this user?')) {
             $.ajax({
                 url: 'opd_api/users.php',
                 type: 'POST',
                 data: { action: 'delete', id: id },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
                         usersTable.ajax.reload();

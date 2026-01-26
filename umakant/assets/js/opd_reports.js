@@ -1,5 +1,5 @@
 // OPD Reports Management JavaScript
-$(document).ready(function() {
+$(document).ready(function () {
     let opdReportsTable;
     let currentReportId = null;
 
@@ -12,13 +12,13 @@ $(document).ready(function() {
             url: 'opd_api/reports.php',
             type: 'GET',
             data: { action: 'get_doctors' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const doctorSelect = $('#doctorName');
                     doctorSelect.empty();
                     doctorSelect.append('<option value="">Select Doctor</option>');
-                    
-                    response.data.forEach(function(doctor) {
+
+                    response.data.forEach(function (doctor) {
                         let displayText = doctor.name;
                         if (doctor.specialization) {
                             displayText += ' - ' + doctor.specialization;
@@ -28,13 +28,13 @@ $(document).ready(function() {
                         }
                         doctorSelect.append(`<option value="${doctor.name}">${displayText}</option>`);
                     });
-                    
+
                     if (typeof callback === 'function') {
                         callback();
                     }
                 }
             },
-            error: function() {
+            error: function () {
                 console.error('Error loading doctors');
                 toastr.error('Error loading doctors list');
             }
@@ -47,78 +47,79 @@ $(document).ready(function() {
         if ($.fn.DataTable.isDataTable('#opdReportsTable')) {
             $('#opdReportsTable').DataTable().destroy();
         }
-        
+
         opdReportsTable = $('#opdReportsTable').DataTable({
             processing: true,
             serverSide: true,
             ajax: {
                 url: 'opd_api/reports.php',
-                type: 'GET',
-                data: function(d) {
+                type: 'POST',
+                cache: false,
+                data: function (d) {
                     d.action = 'list';
                 },
-                dataSrc: function(json) {
+                dataSrc: function (json) {
                     console.log('API Response:', json);
                     return json.data;
                 },
-                error: function(xhr, error, thrown) {
+                error: function (xhr, error, thrown) {
                     console.error('DataTable error:', error, thrown);
                     console.error('Response:', xhr.responseText);
                     toastr.error('Error loading data');
                 }
             },
             columns: [
-                { 
+                {
                     data: null,
-                    render: function(data, type, row, meta) {
+                    render: function (data, type, row, meta) {
                         return meta.row + meta.settings._iDisplayStart + 1;
                     },
                     orderable: false,
                     width: '50px'
                 },
-                { 
+                {
                     data: 'id',
                     width: '70px'
                 },
-                { 
+                {
                     data: 'patient_name',
                     width: '150px'
                 },
-                { 
+                {
                     data: 'patient_phone',
                     width: '110px',
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'doctor_name',
                     width: '130px',
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'report_date',
                     width: '100px',
-                    render: function(data) {
+                    render: function (data) {
                         return data ? new Date(data).toLocaleDateString() : '';
                     }
                 },
-                { 
+                {
                     data: 'diagnosis',
                     width: '200px',
-                    render: function(data) {
+                    render: function (data) {
                         if (!data) return 'N/A';
                         return data.length > 50 ? data.substring(0, 50) + '...' : data;
                     },
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'follow_up_date',
                     width: '100px',
-                    render: function(data) {
+                    render: function (data) {
                         if (!data) return '<span class="badge badge-secondary">None</span>';
                         const followUpDate = new Date(data);
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
-                        
+
                         if (followUpDate < today) {
                             return '<span class="badge badge-danger">' + followUpDate.toLocaleDateString() + '</span>';
                         } else if (followUpDate.toDateString() === today.toDateString()) {
@@ -128,7 +129,7 @@ $(document).ready(function() {
                         }
                     }
                 },
-                { 
+                {
                     data: 'added_by_username',
                     width: '100px',
                     defaultContent: 'N/A'
@@ -137,7 +138,7 @@ $(document).ready(function() {
                     data: null,
                     orderable: false,
                     width: '120px',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-info view-btn" data-id="${row.id}" title="View">
@@ -174,7 +175,7 @@ $(document).ready(function() {
             url: 'opd_api/reports.php',
             type: 'GET',
             data: { action: 'stats' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     $('#totalReports').text(response.data.total);
                     $('#todayReports').text(response.data.today);
@@ -182,14 +183,14 @@ $(document).ready(function() {
                     $('#monthReports').text(response.data.month);
                 }
             },
-            error: function() {
+            error: function () {
                 console.error('Error loading stats');
             }
         });
     }
 
     // Add new report button
-    $('#addReportBtn').click(function() {
+    $('#addReportBtn').click(function () {
         currentReportId = null;
         $('#reportForm')[0].reset();
         $('#reportId').val('');
@@ -200,16 +201,16 @@ $(document).ready(function() {
     });
 
     // Form submission
-    $('#reportForm').submit(function(e) {
+    $('#reportForm').submit(function (e) {
         e.preventDefault();
-        
+
         const formData = $(this).serialize() + '&action=save';
-        
+
         $.ajax({
             url: 'opd_api/reports.php',
             type: 'POST',
             data: formData,
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     toastr.success(response.message);
                     $('#reportModal').modal('hide');
@@ -219,7 +220,7 @@ $(document).ready(function() {
                     toastr.error(response.message || 'Error saving report');
                 }
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 const response = xhr.responseJSON;
                 toastr.error(response?.message || 'Error saving report');
             }
@@ -227,17 +228,17 @@ $(document).ready(function() {
     });
 
     // View report
-    $(document).on('click', '.view-btn', function() {
+    $(document).on('click', '.view-btn', function () {
         const id = $(this).data('id');
-        
+
         $.ajax({
             url: 'opd_api/reports.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const report = response.data;
-                    
+
                     let html = `
                         <div class="report-view p-3">
                             <div class="row mb-3">
@@ -309,25 +310,25 @@ $(document).ready(function() {
                     $('#viewReportModal').modal('show');
                 }
             },
-            error: function() {
+            error: function () {
                 toastr.error('Error loading report details');
             }
         });
     });
 
     // Edit report
-    $(document).on('click', '.edit-btn', function() {
+    $(document).on('click', '.edit-btn', function () {
         const id = $(this).data('id');
-        
+
         $.ajax({
             url: 'opd_api/reports.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const report = response.data;
-                    
-                    loadDoctors(function() {
+
+                    loadDoctors(function () {
                         $('#reportId').val(report.id);
                         $('#patientName').val(report.patient_name);
                         $('#patientPhone').val(report.patient_phone);
@@ -343,18 +344,18 @@ $(document).ready(function() {
                         $('#notes').val(report.notes);
                         $('#modalTitle').text('Edit Report');
                     });
-                    
+
                     $('#reportModal').modal('show');
                 }
             },
-            error: function() {
+            error: function () {
                 toastr.error('Error loading report details');
             }
         });
     });
 
     // Edit from view modal
-    window.editReportFromView = function() {
+    window.editReportFromView = function () {
         if (currentReportId) {
             $('#viewReportModal').modal('hide');
             $('.edit-btn[data-id="' + currentReportId + '"]').click();
@@ -362,15 +363,15 @@ $(document).ready(function() {
     };
 
     // Delete report
-    $(document).on('click', '.delete-btn', function() {
+    $(document).on('click', '.delete-btn', function () {
         const id = $(this).data('id');
-        
+
         if (confirm('Are you sure you want to delete this report?')) {
             $.ajax({
                 url: 'opd_api/reports.php',
                 type: 'POST',
                 data: { action: 'delete', id: id },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
                         opdReportsTable.ajax.reload();
@@ -379,7 +380,7 @@ $(document).ready(function() {
                         toastr.error(response.message || 'Error deleting report');
                     }
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     const response = xhr.responseJSON;
                     toastr.error(response?.message || 'Error deleting report');
                 }
@@ -388,7 +389,7 @@ $(document).ready(function() {
     });
 
     // Print report details
-    window.printReportDetails = function() {
+    window.printReportDetails = function () {
         window.print();
     };
 

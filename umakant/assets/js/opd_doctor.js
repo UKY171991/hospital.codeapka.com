@@ -1,5 +1,5 @@
 // OPD Doctor Management JavaScript
-$(document).ready(function() {
+$(document).ready(function () {
     let opdDoctorTable;
     let currentDoctorId = null;
 
@@ -15,76 +15,77 @@ $(document).ready(function() {
             serverSide: true,
             ajax: {
                 url: 'opd_api/doctors.php',
-                type: 'GET',
-                data: function(d) {
+                type: 'POST',
+                cache: false,
+                data: function (d) {
                     d.action = 'list';
                 },
-                dataSrc: function(json) {
+                dataSrc: function (json) {
                     console.log('API Response:', json);
                     return json.data;
                 },
-                error: function(xhr, error, thrown) {
+                error: function (xhr, error, thrown) {
                     console.error('DataTable error:', error, thrown);
                     console.error('Response:', xhr.responseText);
                     toastr.error('Error loading data');
                 }
             },
             columns: [
-                { 
+                {
                     data: null,
-                    render: function(data, type, row, meta) {
+                    render: function (data, type, row, meta) {
                         return meta.row + meta.settings._iDisplayStart + 1;
                     },
                     orderable: false,
                     width: '50px'
                 },
-                { 
+                {
                     data: 'id',
                     width: '60px'
                 },
-                { 
+                {
                     data: 'name',
                     width: '150px'
                 },
-                { 
+                {
                     data: 'qualification',
                     width: '120px',
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'specialization',
                     width: '120px',
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'hospital',
                     width: '120px',
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'contact_no',
                     width: '110px',
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'phone',
                     width: '110px',
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'email',
                     width: '150px',
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'registration_no',
                     width: '100px',
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'status',
                     width: '120px',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         if (!data) data = 'Active';
                         if (data === 'Active') {
                             return `<button class="btn btn-success btn-sm toggle-status-btn" data-id="${row.id}" title="Click to Deactivate">
@@ -98,15 +99,15 @@ $(document).ready(function() {
                     },
                     defaultContent: '<button class="btn btn-success btn-sm toggle-status-btn" title="Click to Deactivate"><i class="fas fa-toggle-on"></i> Active</button>'
                 },
-                { 
+                {
                     data: 'added_by_username',
                     width: '100px',
                     defaultContent: 'N/A'
                 },
-                { 
+                {
                     data: 'created_at',
                     width: '100px',
-                    render: function(data) {
+                    render: function (data) {
                         return data ? new Date(data).toLocaleDateString() : '';
                     }
                 },
@@ -114,7 +115,7 @@ $(document).ready(function() {
                     data: null,
                     orderable: false,
                     width: '120px',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-info view-btn" data-id="${row.id}" title="View">
@@ -143,7 +144,7 @@ $(document).ready(function() {
                 { targets: [2], className: 'text-left' },
                 { targets: [8], className: 'text-left' }
             ],
-            drawCallback: function() {
+            drawCallback: function () {
                 // Re-attach event handlers after table redraw
                 attachEventHandlers();
             }
@@ -156,7 +157,7 @@ $(document).ready(function() {
             url: 'opd_api/doctors.php',
             type: 'GET',
             data: { action: 'stats' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     $('#totalDoctors').text(response.data.total);
                     $('#activeDoctors').text(response.data.active);
@@ -165,14 +166,14 @@ $(document).ready(function() {
                     $('#hospitals').text(response.data.hospitals);
                 }
             },
-            error: function() {
+            error: function () {
                 console.error('Error loading stats');
             }
         });
     }
 
     // Add new doctor button
-    $('#addDoctorBtn').click(function() {
+    $('#addDoctorBtn').click(function () {
         currentDoctorId = null;
         $('#doctorForm')[0].reset();
         $('#doctorId').val('');
@@ -181,16 +182,16 @@ $(document).ready(function() {
     });
 
     // Form submission
-    $('#doctorForm').submit(function(e) {
+    $('#doctorForm').submit(function (e) {
         e.preventDefault();
-        
+
         const formData = $(this).serialize() + '&action=save';
-        
+
         $.ajax({
             url: 'opd_api/doctors.php',
             type: 'POST',
             data: formData,
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     toastr.success(response.message);
                     $('#doctorModal').modal('hide');
@@ -200,7 +201,7 @@ $(document).ready(function() {
                     toastr.error(response.message || 'Error saving doctor');
                 }
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 const response = xhr.responseJSON;
                 toastr.error(response?.message || 'Error saving doctor');
             }
@@ -208,14 +209,14 @@ $(document).ready(function() {
     });
 
     // View doctor
-    $(document).on('click', '.view-btn', function() {
+    $(document).on('click', '.view-btn', function () {
         const id = $(this).data('id');
-        
+
         $.ajax({
             url: 'opd_api/doctors.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const doctor = response.data;
                     const statusClass = doctor.status === 'Active' ? 'success' : 'danger';
@@ -243,21 +244,21 @@ $(document).ready(function() {
                     $('#viewDoctorModal').modal('show');
                 }
             },
-            error: function() {
+            error: function () {
                 toastr.error('Error loading doctor details');
             }
         });
     });
 
     // Edit doctor
-    $(document).on('click', '.edit-btn', function() {
+    $(document).on('click', '.edit-btn', function () {
         const id = $(this).data('id');
-        
+
         $.ajax({
             url: 'opd_api/doctors.php',
             type: 'GET',
             data: { action: 'get', id: id },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     const doctor = response.data;
                     $('#doctorId').val(doctor.id);
@@ -275,14 +276,14 @@ $(document).ready(function() {
                     $('#doctorModal').modal('show');
                 }
             },
-            error: function() {
+            error: function () {
                 toastr.error('Error loading doctor details');
             }
         });
     });
 
     // Edit from view modal
-    window.editDoctorFromView = function() {
+    window.editDoctorFromView = function () {
         if (currentDoctorId) {
             $('#viewDoctorModal').modal('hide');
             $('.edit-btn[data-id="' + currentDoctorId + '"]').click();
@@ -290,15 +291,15 @@ $(document).ready(function() {
     };
 
     // Delete doctor
-    $(document).on('click', '.delete-btn', function() {
+    $(document).on('click', '.delete-btn', function () {
         const id = $(this).data('id');
-        
+
         if (confirm('Are you sure you want to delete this OPD doctor?')) {
             $.ajax({
                 url: 'opd_api/doctors.php',
                 type: 'POST',
                 data: { action: 'delete', id: id },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
                         opdDoctorTable.ajax.reload();
@@ -307,7 +308,7 @@ $(document).ready(function() {
                         toastr.error(response.message || 'Error deleting doctor');
                     }
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     const response = xhr.responseJSON;
                     toastr.error(response?.message || 'Error deleting doctor');
                 }
@@ -316,23 +317,23 @@ $(document).ready(function() {
     });
 
     // Toggle status
-    $(document).on('click', '.toggle-status-btn', function() {
+    $(document).on('click', '.toggle-status-btn', function () {
         const id = $(this).data('id');
         const $btn = $(this);
-        
+
         if (confirm('Are you sure you want to change the status of this doctor?')) {
             // Disable button during request
             $btn.prop('disabled', true);
-            
+
             $.ajax({
                 url: 'opd_api/doctors.php',
                 type: 'POST',
                 data: { action: 'toggle_status', id: id },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
                         // Force page reload to refresh the table
-                        setTimeout(function() {
+                        setTimeout(function () {
                             location.reload();
                         }, 500);
                     } else {
@@ -340,7 +341,7 @@ $(document).ready(function() {
                         $btn.prop('disabled', false);
                     }
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     const response = xhr.responseJSON;
                     toastr.error(response?.message || 'Error updating status');
                     $btn.prop('disabled', false);
@@ -350,7 +351,7 @@ $(document).ready(function() {
     });
 
     // Print doctor details
-    window.printDoctorDetails = function() {
+    window.printDoctorDetails = function () {
         window.print();
     };
 

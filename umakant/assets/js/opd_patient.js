@@ -1,5 +1,5 @@
 // OPD Patient Management JavaScript
-$(document).ready(function() {
+$(document).ready(function () {
     let currentPatientName = null;
     let allPatients = [];
 
@@ -16,20 +16,20 @@ $(document).ready(function() {
             url: 'opd_api/doctors.php',
             type: 'GET',
             data: { action: 'stats' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     // Get full list of doctors
                     $.ajax({
                         url: 'opd_api/patients.php',
                         type: 'GET',
                         data: { action: 'get_doctors' },
-                        success: function(doctorResponse) {
+                        success: function (doctorResponse) {
                             if (doctorResponse.success && doctorResponse.data) {
                                 const doctorSelect = $('#filterDoctor');
                                 doctorSelect.empty();
                                 doctorSelect.append('<option value="">All Doctors</option>');
-                                
-                                doctorResponse.data.forEach(function(doctor) {
+
+                                doctorResponse.data.forEach(function (doctor) {
                                     let displayText = doctor.name;
                                     if (doctor.specialization) {
                                         displayText += ' - ' + doctor.specialization;
@@ -50,7 +50,7 @@ $(document).ready(function() {
             url: 'opd_api/patients.php',
             type: 'GET',
             data: { action: 'stats' },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     $('#totalPatients').text(response.data.total);
                     $('#todayPatients').text(response.data.today);
@@ -58,7 +58,7 @@ $(document).ready(function() {
                     $('#monthPatients').text(response.data.month);
                 }
             },
-            error: function() {
+            error: function () {
                 console.error('Error loading stats');
             }
         });
@@ -70,25 +70,26 @@ $(document).ready(function() {
         if (doctorFilter) {
             data.doctor = doctorFilter;
         }
-        
+
         $.ajax({
             url: 'opd_api/patients.php',
             type: 'GET',
+            cache: false,
             data: data,
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     allPatients = response.data;
                     renderPatientsTable(response.data);
                 }
             },
-            error: function() {
+            error: function () {
                 $('#patientTableBody').html('<tr><td colspan="9" class="text-center text-danger">Error loading patients</td></tr>');
             }
         });
     }
 
     // Filter by doctor
-    $('#filterDoctor').on('change', function() {
+    $('#filterDoctor').on('change', function () {
         const doctorName = $(this).val();
         loadPatients(doctorName);
     });
@@ -96,11 +97,11 @@ $(document).ready(function() {
     // Render patients table
     function renderPatientsTable(patients) {
         let html = '';
-        
+
         if (patients.length === 0) {
             html = '<tr><td colspan="9" class="text-center text-muted">No patients found</td></tr>';
         } else {
-            patients.forEach(function(patient, index) {
+            patients.forEach(function (patient, index) {
                 html += `
                     <tr>
                         <td>${index + 1}</td>
@@ -128,20 +129,21 @@ $(document).ready(function() {
                 `;
             });
         }
-        
+
         $('#patientTableBody').html(html);
     }
 
     // Search patients
-    $('#searchPatient').on('keyup', function() {
+    $('#searchPatient').on('keyup', function () {
         const query = $(this).val();
-        
+
         if (query.length >= 2) {
             $.ajax({
                 url: 'opd_api/patients.php',
                 type: 'GET',
+                cache: false,
                 data: { action: 'search', query: query },
-                success: function(response) {
+                success: function (response) {
                     if (response.success && response.data) {
                         renderPatientsTable(response.data);
                     }
@@ -153,21 +155,21 @@ $(document).ready(function() {
     });
 
     // View patient history
-    $(document).on('click', '.view-history-btn', function() {
+    $(document).on('click', '.view-history-btn', function () {
         const patientName = $(this).data('name');
         currentPatientName = patientName;
-        
+
         $.ajax({
             url: 'opd_api/patients.php',
             type: 'GET',
             data: { action: 'history', name: patientName },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data) {
                     renderPatientHistory(patientName, response.data);
                     $('#viewPatientModal').modal('show');
                 }
             },
-            error: function() {
+            error: function () {
                 toastr.error('Error loading patient history');
             }
         });
@@ -177,7 +179,7 @@ $(document).ready(function() {
     function renderPatientHistory(patientName, data) {
         const reports = data.reports || [];
         const bills = data.bills || [];
-        
+
         let html = `
             <div class="patient-card">
                 <h5><i class="fas fa-user-injured mr-2"></i>${patientName}</h5>
@@ -235,12 +237,12 @@ $(document).ready(function() {
                         </thead>
                         <tbody>
                             ${bills.map(bill => {
-                                let statusClass = 'secondary';
-                                if (bill.payment_status === 'Paid') statusClass = 'success';
-                                else if (bill.payment_status === 'Unpaid') statusClass = 'danger';
-                                else if (bill.payment_status === 'Partial') statusClass = 'warning';
-                                
-                                return `
+            let statusClass = 'secondary';
+            if (bill.payment_status === 'Paid') statusClass = 'success';
+            else if (bill.payment_status === 'Unpaid') statusClass = 'danger';
+            else if (bill.payment_status === 'Partial') statusClass = 'warning';
+
+            return `
                                     <tr>
                                         <td>#${bill.id}</td>
                                         <td>${new Date(bill.bill_date).toLocaleDateString()}</td>
@@ -251,18 +253,18 @@ $(document).ready(function() {
                                         <td><span class="badge badge-${statusClass}">${bill.payment_status}</span></td>
                                     </tr>
                                 `;
-                            }).join('')}
+        }).join('')}
                         </tbody>
                     </table>
                 </div>
             </div>
         `;
-        
+
         $('#patientHistoryContent').html(html);
     }
 
     // Print patient history
-    window.printPatientHistory = function() {
+    window.printPatientHistory = function () {
         window.print();
     };
 
