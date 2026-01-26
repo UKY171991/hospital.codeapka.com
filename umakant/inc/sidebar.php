@@ -41,6 +41,124 @@ $role = $_SESSION['role'] ?? 'user';
           </a>
         </li>
 
+        <?php
+        // Inventory menu pages
+        $inventoryPages = ['inventory_dashboard.php', 'inventory_income.php', 'inventory_expense.php', 'inventory_client.php', 'email_parser_settings.php'];
+        $isInventoryActive = in_array($activePage, $inventoryPages);
+        ?>
+        <li class="nav-item has-treeview <?php echo $isInventoryActive ? 'menu-open' : ''; ?>">
+          <a href="#" class="nav-link <?php echo $isInventoryActive ? 'active' : ''; ?>">
+            <i class="nav-icon fas fa-boxes"></i>
+            <p>
+              Inventory
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="inventory_dashboard.php" class="nav-link <?php echo ($activePage == 'inventory_dashboard.php') ? 'active' : ''; ?>">
+                <i class="fas fa-chart-line nav-icon"></i>
+                <p>Inventory Dashboard</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="inventory_income.php" class="nav-link <?php echo ($activePage == 'inventory_income.php') ? 'active' : ''; ?>">
+                <i class="fas fa-arrow-up nav-icon"></i>
+                <p>Income</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="inventory_expense.php" class="nav-link <?php echo ($activePage == 'inventory_expense.php') ? 'active' : ''; ?>">
+                <i class="fas fa-arrow-down nav-icon"></i>
+                <p>Expense</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="inventory_client.php" class="nav-link <?php echo ($activePage == 'inventory_client.php') ? 'active' : ''; ?>">
+                <i class="fas fa-users nav-icon"></i>
+                <p>Client</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="email_parser_settings.php" class="nav-link <?php echo ($activePage == 'email_parser_settings.php') ? 'active' : ''; ?>">
+                <i class="fas fa-robot nav-icon"></i>
+                <p>Email Parser</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <?php
+        // Clients menu pages
+        $clientsPages = ['client_dashboard.php', 'clients.php', 'tasks.php'];
+        $isClientsActive = in_array($activePage, $clientsPages);
+        ?>
+        <li class="nav-item has-treeview <?php echo $isClientsActive ? 'menu-open' : ''; ?>">
+          <a href="#" class="nav-link <?php echo $isClientsActive ? 'active' : ''; ?>">
+            <i class="nav-icon fas fa-user-tie"></i>
+            <p>
+              Clients
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="client_dashboard.php" class="nav-link <?php echo ($activePage == 'client_dashboard.php') ? 'active' : ''; ?>">
+                <i class="fas fa-chart-line nav-icon"></i>
+                <p>Dashboard</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="clients.php" class="nav-link <?php echo ($activePage == 'clients.php') ? 'active' : ''; ?>">
+                <i class="fas fa-users nav-icon"></i>
+                <p>Clients</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="tasks.php" class="nav-link <?php echo ($activePage == 'tasks.php') ? 'active' : ''; ?>">
+                <i class="fas fa-tasks nav-icon"></i>
+                <p>Tasks</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <?php
+        // Followup Clients menu pages
+        $followupPages = ['followup_dashboard.php', 'followup_client.php', 'followup.php', 'followup_templates.php'];
+        $isFollowupActive = in_array($activePage, $followupPages);
+        ?>
+        <li class="nav-item has-treeview <?php echo $isFollowupActive ? 'menu-open' : ''; ?>">
+          <a href="#" class="nav-link <?php echo $isFollowupActive ? 'active' : ''; ?>">
+            <i class="nav-icon fas fa-user-clock"></i>
+            <p>
+              Followup Clients
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="followup_dashboard.php" class="nav-link <?php echo ($activePage == 'followup_dashboard.php') ? 'active' : ''; ?>">
+                <i class="fas fa-chart-line nav-icon"></i>
+                <p>Dashboard</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="followup_client.php" class="nav-link <?php echo ($activePage == 'followup_client.php') ? 'active' : ''; ?>">
+                <i class="fas fa-user nav-icon"></i>
+                <p>Client</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="followup_templates.php" class="nav-link <?php echo ($activePage == 'followup_templates.php') ? 'active' : ''; ?>">
+                <i class="fas fa-file-alt nav-icon"></i>
+                <p>Templates</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
+
         <li class="nav-item has-treeview <?php echo $isOpdActive ? 'menu-open' : ''; ?>">
           <a href="#" class="nav-link <?php echo $isOpdActive ? 'active' : ''; ?>">
             <i class="nav-icon fas fa-clinic-medical"></i>
@@ -307,122 +425,7 @@ $role = $_SESSION['role'] ?? 'user';
           </ul>
         </li>
 
-        <?php
-        // Inventory menu pages
-        $inventoryPages = ['inventory_dashboard.php', 'inventory_income.php', 'inventory_expense.php', 'inventory_client.php', 'email_parser_settings.php'];
-        $isInventoryActive = in_array($activePage, $inventoryPages);
-        ?>
-        <li class="nav-item has-treeview <?php echo $isInventoryActive ? 'menu-open' : ''; ?>">
-          <a href="#" class="nav-link <?php echo $isInventoryActive ? 'active' : ''; ?>">
-            <i class="nav-icon fas fa-boxes"></i>
-            <p>
-              Inventory
-              <i class="right fas fa-angle-left"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="inventory_dashboard.php" class="nav-link <?php echo ($activePage == 'inventory_dashboard.php') ? 'active' : ''; ?>">
-                <i class="fas fa-chart-line nav-icon"></i>
-                <p>Inventory Dashboard</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="inventory_income.php" class="nav-link <?php echo ($activePage == 'inventory_income.php') ? 'active' : ''; ?>">
-                <i class="fas fa-arrow-up nav-icon"></i>
-                <p>Income</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="inventory_expense.php" class="nav-link <?php echo ($activePage == 'inventory_expense.php') ? 'active' : ''; ?>">
-                <i class="fas fa-arrow-down nav-icon"></i>
-                <p>Expense</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="inventory_client.php" class="nav-link <?php echo ($activePage == 'inventory_client.php') ? 'active' : ''; ?>">
-                <i class="fas fa-users nav-icon"></i>
-                <p>Client</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="email_parser_settings.php" class="nav-link <?php echo ($activePage == 'email_parser_settings.php') ? 'active' : ''; ?>">
-                <i class="fas fa-robot nav-icon"></i>
-                <p>Email Parser</p>
-              </a>
-            </li>
-          </ul>
-        </li>
 
-        <?php
-        // Clients menu pages
-        $clientsPages = ['client_dashboard.php', 'clients.php', 'tasks.php'];
-        $isClientsActive = in_array($activePage, $clientsPages);
-        ?>
-        <li class="nav-item has-treeview <?php echo $isClientsActive ? 'menu-open' : ''; ?>">
-          <a href="#" class="nav-link <?php echo $isClientsActive ? 'active' : ''; ?>">
-            <i class="nav-icon fas fa-user-tie"></i>
-            <p>
-              Clients
-              <i class="right fas fa-angle-left"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="client_dashboard.php" class="nav-link <?php echo ($activePage == 'client_dashboard.php') ? 'active' : ''; ?>">
-                <i class="fas fa-chart-line nav-icon"></i>
-                <p>Dashboard</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="clients.php" class="nav-link <?php echo ($activePage == 'clients.php') ? 'active' : ''; ?>">
-                <i class="fas fa-users nav-icon"></i>
-                <p>Clients</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="tasks.php" class="nav-link <?php echo ($activePage == 'tasks.php') ? 'active' : ''; ?>">
-                <i class="fas fa-tasks nav-icon"></i>
-                <p>Tasks</p>
-              </a>
-            </li>
-          </ul>
-        </li>
-
-        <?php
-        // Followup Clients menu pages
-        $followupPages = ['followup_dashboard.php', 'followup_client.php', 'followup.php', 'followup_templates.php'];
-        $isFollowupActive = in_array($activePage, $followupPages);
-        ?>
-        <li class="nav-item has-treeview <?php echo $isFollowupActive ? 'menu-open' : ''; ?>">
-          <a href="#" class="nav-link <?php echo $isFollowupActive ? 'active' : ''; ?>">
-            <i class="nav-icon fas fa-user-clock"></i>
-            <p>
-              Followup Clients
-              <i class="right fas fa-angle-left"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="followup_dashboard.php" class="nav-link <?php echo ($activePage == 'followup_dashboard.php') ? 'active' : ''; ?>">
-                <i class="fas fa-chart-line nav-icon"></i>
-                <p>Dashboard</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="followup_client.php" class="nav-link <?php echo ($activePage == 'followup_client.php') ? 'active' : ''; ?>">
-                <i class="fas fa-user nav-icon"></i>
-                <p>Client</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="followup_templates.php" class="nav-link <?php echo ($activePage == 'followup_templates.php') ? 'active' : ''; ?>">
-                <i class="fas fa-file-alt nav-icon"></i>
-                <p>Templates</p>
-              </a>
-            </li>
-          </ul>
-        </li>
 
 
   <!-- Admins menu removed -->
