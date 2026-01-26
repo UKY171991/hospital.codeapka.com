@@ -216,17 +216,19 @@ $(document).ready(function () {
             success: function (response) {
                 if (response.success && response.data) {
                     const doctor = response.data;
-                    $('#doctorId').val(doctor.id);
-                    $('#doctorName').val(doctor.name);
-                    $('#doctorQualification').val(doctor.qualification);
-                    $('#doctorSpecialization').val(doctor.specialization);
-                    $('#doctorHospital').val(doctor.hospital);
-                    $('#doctorContact').val(doctor.contact_no);
-                    $('#doctorPhone').val(doctor.phone);
-                    $('#doctorEmail').val(doctor.email);
-                    $('#doctorRegistration').val(doctor.registration_no);
-                    $('#doctorAddress').val(doctor.address);
-                    $('#doctorStatus').val(doctor.status || 'Active');
+                    console.log('Doctor data received:', doctor);
+
+                    $('#doctorForm #doctorId').val(doctor.id);
+                    $('#doctorForm #doctorName').val(doctor.name);
+                    $('#doctorForm #doctorQualification').val(doctor.qualification);
+                    $('#doctorForm #doctorSpecialization').val(doctor.specialization);
+                    $('#doctorForm #doctorHospital').val(doctor.hospital);
+                    $('#doctorForm #doctorContact').val(doctor.contact_no);
+                    $('#doctorForm #doctorPhone').val(doctor.phone);
+                    $('#doctorForm #doctorEmail').val(doctor.email);
+                    $('#doctorForm #doctorRegistration').val(doctor.registration_no);
+                    $('#doctorForm #doctorAddress').val(doctor.address);
+                    $('#doctorForm #doctorStatus').val(doctor.status || 'Active');
                     $('#modalTitle').text('Edit OPD Doctor');
                     $('#doctorModal').modal('show');
                 }

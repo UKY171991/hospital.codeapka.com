@@ -307,6 +307,7 @@ require_once 'inc/sidebar.php';
 // Fix for duplicate status field issue
 $(document).ready(function() {
     // Clean up any duplicate elements when modal is shown
+    /*
     $('#doctorModal').on('show.bs.modal', function() {
         // Remove any duplicate labels within form groups
         $('#doctorForm .form-group').each(function() {
@@ -326,6 +327,7 @@ $(document).ready(function() {
             }
         });
     });
+    */
     
     // Ensure form is properly reset when modal is hidden
     $('#doctorModal').on('hidden.bs.modal', function() {
