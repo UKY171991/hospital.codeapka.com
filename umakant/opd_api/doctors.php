@@ -93,6 +93,14 @@ try {
         $checkUserId = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'user_id'");
         if ($checkUserId->rowCount() == 0) {
             $pdo->exec("ALTER TABLE opd_doctors ADD COLUMN user_id INT NULL AFTER id");
+        } else {
+            // Check if there is an incorrect foreign key constraint to opd_users and drop it
+            try {
+                // Try to drop the constraint if it exists (common name or specific name from error)
+                $pdo->exec("ALTER TABLE opd_doctors DROP FOREIGN KEY opd_doctors_ibfk_1");
+            } catch (Exception $e) {
+                // Ignore if it doesn't exist
+            }
         }
 
         // Manage User Account

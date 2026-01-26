@@ -64,8 +64,7 @@ $(document).ready(function () {
                                         <i class="fas fa-toggle-off"></i> Inactive
                                     </button>`;
                         }
-                    },
-                    defaultContent: '<button class="btn btn-success btn-sm toggle-status-btn" title="Click to Deactivate"><i class="fas fa-toggle-on"></i> Active</button>'
+                    }
                 },
                 {
                     data: null,
@@ -245,6 +244,12 @@ $(document).ready(function () {
                         // Fallback: Just set it and hope
                         $('#doctorForm #doctorStatus').val(statusValue);
                     }
+
+                    // Double check after a short delay to handle any modal transition weirdness
+                    setTimeout(() => {
+                        $('#doctorForm #doctorStatus').val(statusValue);
+                    }, 200);
+
                     $('#modalTitle').text('Edit OPD Doctor');
                     $('#doctorModal').modal('show');
                 }
