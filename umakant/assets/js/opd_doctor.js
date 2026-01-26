@@ -40,10 +40,6 @@ $(document).ready(function () {
                     width: '50px'
                 },
                 {
-                    data: 'id',
-                    width: '60px'
-                },
-                {
                     data: 'name',
                     width: '150px'
                 },
@@ -55,11 +51,6 @@ $(document).ready(function () {
                 {
                     data: 'hospital',
                     width: '120px',
-                    defaultContent: 'N/A'
-                },
-                {
-                    data: 'contact_no',
-                    width: '110px',
                     defaultContent: 'N/A'
                 },
                 {

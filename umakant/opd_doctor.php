@@ -107,11 +107,9 @@ require_once 'inc/sidebar.php';
                                     <thead>
                                         <tr>
                                             <th>Sr. No.</th>
-                                            <th>ID</th>
                                             <th>Name</th>
                                             <th>Specialization</th>
                                             <th>Hospital</th>
-                                            <th>Contact No</th>
                                             <th>Status</th>
                                             <th>Actions</th>
                                         </tr>
