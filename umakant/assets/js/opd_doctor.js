@@ -231,13 +231,20 @@ $(document).ready(function () {
                     $('#doctorForm #doctorRegistration').val(doctor.registration_no);
                     $('#doctorForm #doctorAddress').val(doctor.address);
                     // Handle status specifically - ensure it matches the select options
+                    // Robust status handling
                     let statusValue = doctor.status || 'Active';
-                    // Check if the value exists in the options, if not default to Active
-                    if ($('#doctorForm #doctorStatus option[value="' + statusValue + '"]').length === 0) {
-                        console.warn('Status value "' + statusValue + '" not found in options, defaulting to Active');
-                        statusValue = 'Active';
+
+                    // Try to match value normally
+                    let $option = $('#doctorForm #doctorStatus option').filter(function () {
+                        return $(this).val() === statusValue || $(this).text() === statusValue;
+                    });
+
+                    if ($option.length > 0) {
+                        $('#doctorForm #doctorStatus').val($option.first().val());
+                    } else {
+                        // Fallback: Just set it and hope
+                        $('#doctorForm #doctorStatus').val(statusValue);
                     }
-                    $('#doctorForm #doctorStatus').val(statusValue);
                     $('#modalTitle').text('Edit OPD Doctor');
                     $('#doctorModal').modal('show');
                 }
