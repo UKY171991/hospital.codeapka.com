@@ -89,37 +89,49 @@ try {
             json_response(['success' => false, 'message' => 'Username is required'], 400);
         }
 
-        // Check columns and add user_id if needed
-        $checkUserId = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'user_id'");
-        if ($checkUserId->rowCount() == 0) {
-            $pdo->exec("ALTER TABLE opd_doctors ADD COLUMN user_id INT NULL AFTER id");
-        } else {
-            // Check if there is an incorrect foreign key constraint to opd_users and drop it
-            try {
-                // Try to drop the constraint if it exists (common name or specific name from error)
-                $pdo->exec("ALTER TABLE opd_doctors DROP FOREIGN KEY opd_doctors_ibfk_1");
-            } catch (Exception $e) {
-                // Ignore if it doesn't exist
-            }
+        if ($emptyCheck = empty($name)) {
+             json_response(['success' => false, 'message' => 'Doctor name is required'], 400);
         }
 
-        // Manage User Account
-        $user_id = null;
-        
-        if ($id) {
-            // Updating existing doctor
-            $stmt = $pdo->prepare("SELECT user_id FROM opd_doctors WHERE id = ?");
-            $stmt->execute([$id]);
-            $currentData = $stmt->fetch(PDO::FETCH_ASSOC);
-            $user_id = $currentData['user_id'] ?? null;
-            
-            // Allow duplicate username only if it belongs to this user
-            $userCheck = $pdo->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
-            $userCheck->execute([$username, $user_id]);
-            if ($userCheck->fetch()) {
-                 json_response(['success' => false, 'message' => 'Username already exists'], 400);
+        $pdo->beginTransaction();
+        try {
+            // Check columns and add user_id if needed
+            $checkUserId = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'user_id'");
+            if ($checkUserId->rowCount() == 0) {
+                $pdo->exec("ALTER TABLE opd_doctors ADD COLUMN user_id INT NULL AFTER id");
+            } else {
+                 try { $pdo->exec("ALTER TABLE opd_doctors DROP FOREIGN KEY opd_doctors_ibfk_1"); } catch(Exception $e){}
             }
+
+            // Manage User Account
+            $user_id = null;
             
+            if ($id) {
+                // Updating existing doctor
+                $stmt = $pdo->prepare("SELECT user_id FROM opd_doctors WHERE id = ?");
+                $stmt->execute([$id]);
+                $currentData = $stmt->fetch(PDO::FETCH_ASSOC);
+                $user_id = $currentData['user_id'] ?? null;
+            }
+
+            // Check if username already exists
+            $userCheck = $pdo->prepare("SELECT id, role, full_name FROM users WHERE username = ?");
+            $userCheck->execute([$username]);
+            $existingUser = $userCheck->fetch(PDO::FETCH_ASSOC);
+
+            if ($existingUser) {
+                // Username exists
+                if ($user_id && $existingUser['id'] == $user_id) {
+                    // It's OUR user, proceed
+                } elseif (!$user_id && $existingUser['role'] === 'doctor' && $existingUser['full_name'] === $name) {
+                    // It's an orphaned user matching us (probably from a failed previous save). Link it.
+                    $user_id = $existingUser['id'];
+                } else {
+                    $pdo->rollBack();
+                    json_response(['success' => false, 'message' => 'Username already exists'], 400);
+                }
+            }
+
             if ($user_id) {
                 // Update existing user
                 if (!empty($password)) {
@@ -131,49 +143,38 @@ try {
                     $updateUser->execute([$username, $name, $email, ($status === 'Active' ? 1 : 0), $user_id]);
                 }
             } else {
-                // Create new user for existing doctor if missing
-                 $userCheck = $pdo->prepare("SELECT id FROM users WHERE username = ?");
-                 $userCheck->execute([$username]);
-                 if ($userCheck->fetch()) {
-                     json_response(['success' => false, 'message' => 'Username already exists'], 400);
-                 }
-                 
+                 // Create new user
                  $tempPass = !empty($password) ? password_hash($password, PASSWORD_DEFAULT) : password_hash('password123', PASSWORD_DEFAULT);
                  $insertUser = $pdo->prepare("INSERT INTO users (username, password, full_name, role, email, is_active, created_at) VALUES (?, ?, ?, 'doctor', ?, ?, NOW())");
                  $insertUser->execute([$username, $tempPass, $name, $email, ($status === 'Active' ? 1 : 0)]);
                  $user_id = $pdo->lastInsertId();
             }
-        } else {
-            // Creating new doctor
-            $userCheck = $pdo->prepare("SELECT id FROM users WHERE username = ?");
-            $userCheck->execute([$username]);
-            if ($userCheck->fetch()) {
-                 json_response(['success' => false, 'message' => 'Username already exists'], 400);
+
+            // Check if added_by column exists
+            $checkAddedBy = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'added_by'");
+            $addedByExists = $checkAddedBy->rowCount() > 0;
+
+            if ($id) {
+                $stmt = $pdo->prepare('UPDATE opd_doctors SET user_id=?, name=?, qualification=?, specialization=?, hospital=?, contact_no=?, phone=?, email=?, address=?, registration_no=?, status=?, updated_at=NOW() WHERE id=?');
+                $stmt->execute([$user_id, $name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $status, $id]);
+                $message = 'Doctor updated successfully';
+            } else {
+                if ($addedByExists) {
+                    $stmt = $pdo->prepare('INSERT INTO opd_doctors (user_id, name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, status, added_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
+                    $stmt->execute([$user_id, $name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $status, $added_by]);
+                } else {
+                    $stmt = $pdo->prepare('INSERT INTO opd_doctors (user_id, name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
+                    $stmt->execute([$user_id, $name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $status]);
+                }
+                $message = 'Doctor added successfully';
             }
             
-            $tempPass = !empty($password) ? password_hash($password, PASSWORD_DEFAULT) : password_hash('password123', PASSWORD_DEFAULT);
-            $insertUser = $pdo->prepare("INSERT INTO users (username, password, full_name, role, email, is_active, created_at) VALUES (?, ?, ?, 'doctor', ?, ?, NOW())");
-            $insertUser->execute([$username, $tempPass, $name, $email, ($status === 'Active' ? 1 : 0)]);
-            $user_id = $pdo->lastInsertId();
-        }
-
-        // Check if added_by column exists
-        $checkAddedBy = $pdo->query("SHOW COLUMNS FROM opd_doctors LIKE 'added_by'");
-        $addedByExists = $checkAddedBy->rowCount() > 0;
-
-        if ($id) {
-            $stmt = $pdo->prepare('UPDATE opd_doctors SET user_id=?, name=?, qualification=?, specialization=?, hospital=?, contact_no=?, phone=?, email=?, address=?, registration_no=?, status=?, updated_at=NOW() WHERE id=?');
-            $stmt->execute([$user_id, $name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $status, $id]);
-            json_response(['success' => true, 'message' => 'Doctor updated successfully']);
-        } else {
-            if ($addedByExists) {
-                $stmt = $pdo->prepare('INSERT INTO opd_doctors (user_id, name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, status, added_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
-                $stmt->execute([$user_id, $name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $status, $added_by]);
-            } else {
-                $stmt = $pdo->prepare('INSERT INTO opd_doctors (user_id, name, qualification, specialization, hospital, contact_no, phone, email, address, registration_no, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())');
-                $stmt->execute([$user_id, $name, $qualification, $specialization, $hospital, $contact_no, $phone, $email, $address, $registration_no, $status]);
-            }
-            json_response(['success' => true, 'message' => 'Doctor added successfully']);
+            $pdo->commit();
+            json_response(['success' => true, 'message' => $message]);
+            
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            json_response(['success' => false, 'message' => 'Error saving doctor: ' . $e->getMessage()], 500);
         }
     }
 
