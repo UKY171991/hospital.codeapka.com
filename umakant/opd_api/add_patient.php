@@ -17,10 +17,16 @@ try {
     $patientGender = $_POST['patientGender'] ?? '';
     $patientEmail = $_POST['patientEmail'] ?? '';
     $patientAddress = $_POST['patientAddress'] ?? '';
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
 
     // Validate required fields
     if (empty($patientName) || empty($patientPhone) || empty($patientAge) || empty($patientGender)) {
         json_response(['success' => false, 'message' => 'Missing required fields'], 400);
+    }
+    
+    if (empty($username)) {
+        json_response(['success' => false, 'message' => 'Username is required'], 400);
     }
 
     // Validate age is numeric
@@ -37,38 +43,65 @@ try {
     if ($checkStmt->rowCount() > 0) {
         json_response(['success' => false, 'message' => 'Patient with this phone number already exists'], 400);
     }
+    
+    // Check if username exists
+    $userCheck = $pdo->prepare("SELECT id FROM users WHERE username = ?");
+    $userCheck->execute([$username]);
+    if ($userCheck->fetch()) {
+         json_response(['success' => false, 'message' => 'Username already exists'], 400);
+    }
 
-    // Generate unique patient_id
-    $patientId = 'PAT-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid()), 0, 6));
+    // Ensure user_id column exists
+    $checkUserId = $pdo->query("SHOW COLUMNS FROM opd_patients LIKE 'user_id'");
+    if ($checkUserId->rowCount() == 0) {
+        $pdo->exec("ALTER TABLE opd_patients ADD COLUMN user_id INT NULL AFTER id");
+    }
 
-    // Normalize gender to lowercase
-    $genderNormalized = strtolower($patientGender);
+    $pdo->beginTransaction();
+    
+    try {
+        // Create User Account
+        $tempPass = !empty($password) ? password_hash($password, PASSWORD_DEFAULT) : password_hash('password123', PASSWORD_DEFAULT);
+        $insertUser = $pdo->prepare("INSERT INTO users (username, password, full_name, role, email, is_active, created_at) VALUES (?, ?, ?, 'patient', ?, 1, NOW())");
+        $insertUser->execute([$username, $tempPass, $patientName, $patientEmail]);
+        $user_id = $pdo->lastInsertId();
 
-    // Insert new patient
-    $insertStmt = $pdo->prepare("
-        INSERT INTO opd_patients (patient_id, name, phone, dob, gender, email, address, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
-    ");
+        // Generate unique patient_id
+        $patientId = 'PAT-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid()), 0, 6));
 
-    $result = $insertStmt->execute([
-        $patientId,
-        $patientName,
-        $patientPhone,
-        $dob,
-        $genderNormalized,
-        $patientEmail,
-        $patientAddress
-    ]);
+        // Normalize gender to lowercase
+        $genderNormalized = strtolower($patientGender);
 
-    if ($result) {
+        // Insert new patient
+        $insertStmt = $pdo->prepare("
+            INSERT INTO opd_patients (user_id, patient_id, name, phone, dob, gender, email, address, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        ");
+
+        $insertStmt->execute([
+            $user_id,
+            $patientId,
+            $patientName,
+            $patientPhone,
+            $dob,
+            $genderNormalized,
+            $patientEmail,
+            $patientAddress
+        ]);
+        
         $newPatientId = $pdo->lastInsertId();
+        
+        $pdo->commit();
+        
         json_response([
             'success' => true,
-            'message' => 'Patient added successfully',
+            'message' => 'Patient added successfully with login access',
             'data' => ['id' => $newPatientId, 'patient_id' => $patientId]
         ]);
-    } else {
-        json_response(['success' => false, 'message' => 'Failed to add patient'], 500);
+        
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        throw $e;
     }
 
 } catch (PDOException $e) {

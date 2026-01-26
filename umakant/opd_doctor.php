@@ -165,6 +165,28 @@ require_once 'inc/sidebar.php';
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label for="doctorUsername">
+                                    <i class="fas fa-user-circle mr-1"></i>
+                                    Username <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="doctorUsername" name="username" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="doctorPassword">
+                                    <i class="fas fa-lock mr-1"></i>
+                                    Password
+                                </label>
+                                <input type="password" class="form-control" id="doctorPassword" name="password">
+                                <small class="form-text text-muted">Leave blank to keep current password (for edit)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
                                 <label for="doctorSpecialization">
                                     <i class="fas fa-stethoscope mr-1"></i>
                                     Specialization

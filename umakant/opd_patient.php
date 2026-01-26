@@ -167,6 +167,21 @@ require_once 'inc/sidebar.php';
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label for="patientUsername">Username <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="patientUsername" name="username" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="patientPassword">Password</label>
+                                <input type="password" class="form-control" id="patientPassword" name="password">
+                                <small class="form-text text-muted">Leave blank to keep current (for edit)</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
                                 <label for="patientAge">Age <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" id="patientAge" name="patientAge" required>
                             </div>

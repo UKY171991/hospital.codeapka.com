@@ -56,12 +56,7 @@ $role = $_SESSION['role'] ?? 'user';
                 <p>Dashboard</p>
               </a>
             </li>
-            <li class="nav-item">
-              <a href="opd_users.php" class="nav-link <?php echo ($activePage == 'opd_users.php') ? 'active' : ''; ?>">
-                <i class="fas fa-users nav-icon"></i>
-                <p>Users</p>
-              </a>
-            </li>
+
             <li class="nav-item">
               <a href="opd_patient.php" class="nav-link <?php echo ($activePage == 'opd_patient.php') ? 'active' : ''; ?>">
                 <i class="fas fa-user-injured nav-icon"></i>

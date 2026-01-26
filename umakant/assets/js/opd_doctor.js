@@ -220,6 +220,8 @@ $(document).ready(function () {
 
                     $('#doctorForm #doctorId').val(doctor.id);
                     $('#doctorForm #doctorName').val(doctor.name);
+                    $('#doctorForm #doctorUsername').val(doctor.username || '');
+                    $('#doctorForm #doctorPassword').val('');
                     $('#doctorForm #doctorQualification').val(doctor.qualification);
                     $('#doctorForm #doctorSpecialization').val(doctor.specialization);
                     $('#doctorForm #doctorHospital').val(doctor.hospital);
@@ -228,7 +230,14 @@ $(document).ready(function () {
                     $('#doctorForm #doctorEmail').val(doctor.email);
                     $('#doctorForm #doctorRegistration').val(doctor.registration_no);
                     $('#doctorForm #doctorAddress').val(doctor.address);
-                    $('#doctorForm #doctorStatus').val(doctor.status || 'Active');
+                    // Handle status specifically - ensure it matches the select options
+                    let statusValue = doctor.status || 'Active';
+                    // Check if the value exists in the options, if not default to Active
+                    if ($('#doctorForm #doctorStatus option[value="' + statusValue + '"]').length === 0) {
+                        console.warn('Status value "' + statusValue + '" not found in options, defaulting to Active');
+                        statusValue = 'Active';
+                    }
+                    $('#doctorForm #doctorStatus').val(statusValue);
                     $('#modalTitle').text('Edit OPD Doctor');
                     $('#doctorModal').modal('show');
                 }
@@ -289,10 +298,12 @@ $(document).ready(function () {
                 success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
-                        // Force page reload to refresh the table
-                        setTimeout(function () {
-                            location.reload();
-                        }, 500);
+                        // Reload table and stats without page refresh
+                        if (opdDoctorTable) {
+                            opdDoctorTable.ajax.reload(null, false); // false = stay on current page
+                        }
+                        loadStats();
+                        $btn.prop('disabled', false);
                     } else {
                         toastr.error(response.message || 'Error updating status');
                         $btn.prop('disabled', false);
