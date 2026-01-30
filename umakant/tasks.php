@@ -1211,7 +1211,25 @@ function viewTask(id) {
                     setTimeout(() => {
                         videos.forEach((video, index) => {
                             new Plyr(`#player-${index}`, {
-                                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen']
+                                controls: [
+                                    'play-large', 
+                                    'rewind', 
+                                    'play', 
+                                    'fast-forward', 
+                                    'progress', 
+                                    'current-time', 
+                                    'duration', 
+                                    'mute', 
+                                    'volume', 
+                                    'captions', 
+                                    'settings', 
+                                    'pip', 
+                                    'airplay', 
+                                    'fullscreen'
+                                ],
+                                seekTime: 10, // Skip 10 seconds like YouTube
+                                keyboard: { focused: true, global: true },
+                                tooltips: { controls: true, seek: true }
                             });
                         });
                     }, 100);
