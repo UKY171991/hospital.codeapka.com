@@ -1195,7 +1195,7 @@ function viewTask(id) {
                         if (extension === 'mov') mimeType = 'video/mp4'; // Browsers often play mov as mp4
                         
                         videosHtml += `
-                            <div class="col-md-6 col-sm-12 mb-3" id="view-video-${index}">
+                            <div class="col-12 mb-3" id="view-video-${index}">
                                 <div class="card h-100">
                                     <div class="video-container">
                                         <video id="player-${index}" class="plyr-player" playsinline controls preload="metadata" crossorigin="anonymous">
