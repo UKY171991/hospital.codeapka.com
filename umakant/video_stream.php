@@ -1,12 +1,11 @@
 <?php
 // umakant/video_stream.php
-// Robust video streaming script with support for Range requests (seeking)
+// Robust video streaming script with strict HTTP compliance for Range Requests
 
 $file = $_GET['file'] ?? '';
 
-// Basic security: Allow alphanumeric, dots, dashes, underscores, spaces, parentheses
+// Sanitize filename: Allow alphanumeric, spaces, dots, dashes, underscores, parentheses
 $file = basename($file);
-// Remove any null bytes or directory traversal patterns
 $file = str_replace(array("\0", "..", "/", "\\"), "", $file);
 
 if (empty($file)) {
@@ -23,7 +22,7 @@ if (!file_exists($path)) {
 
 $fp = @fopen($path, 'rb');
 $size = filesize($path); // File size
-$length = $size;         // Content length
+$length = $size;         // Content length to send
 $start = 0;              // Start byte
 $end = $size - 1;        // End byte
 
@@ -35,9 +34,15 @@ $mime_types = [
     'ogg' => 'video/ogg',
     'ogv' => 'video/ogg',
     'mov' => 'video/mp4',
-    'avi' => 'video/x-msvideo'
+    'avi' => 'video/x-msvideo',
+    'mkv' => 'video/x-matroska'
 ];
 $type = $mime_types[$extension] ?? 'video/mp4';
+
+// Clean buffer
+while (ob_get_level()) {
+    ob_end_clean();
+}
 
 header("Content-Type: $type");
 header("Accept-Ranges: bytes");
@@ -47,18 +52,21 @@ if (isset($_SERVER['HTTP_RANGE'])) {
     $c_end = $end;
 
     list(, $range) = explode('=', $_SERVER['HTTP_RANGE'], 2);
+    
+    // Handle multiple ranges (not supported by this simple script)
     if (strpos($range, ',') !== false) {
         header('HTTP/1.1 416 Requested Range Not Satisfiable');
         header("Content-Range: bytes $start-$end/$size");
         exit;
     }
     
-    if ($range == '-') {
-        $c_start = $size - 1;
+    // Handle suffix range (e.g., bytes=-500)
+    if (substr($range, 0, 1) == '-') {
+        $c_start = $size - substr($range, 1);
     } else {
-        $range = explode('-', $range);
-        $c_start = $range[0];
-        $c_end = (isset($range[1]) && is_numeric($range[1])) ? $range[1] : $size - 1;
+        $range_parts = explode('-', $range);
+        $c_start = $range_parts[0];
+        $c_end = (isset($range_parts[1]) && is_numeric($range_parts[1])) ? $range_parts[1] : $size - 1;
     }
     
     $c_end = ($c_end > $end) ? $end : $c_end;
@@ -74,16 +82,14 @@ if (isset($_SERVER['HTTP_RANGE'])) {
     $length = $end - $start + 1;
     
     fseek($fp, $start);
-    header('HTTP/1.1 206 Partial Content');
+    http_response_code(206); // Partial Content
+    header("Content-Range: bytes $start-$end/$size");
+} else {
+    http_response_code(200); // OK
+    // Do NOT send Content-Range for 200 OK
 }
 
-header("Content-Range: bytes $start-$end/$size");
 header("Content-Length: " . $length);
-
-// Disable output buffering to ensure streaming works
-while (ob_get_level()) {
-    ob_end_clean();
-}
 
 $buffer = 1024 * 8;
 while (!feof($fp) && ($p = ftell($fp)) <= $end) {

@@ -1113,9 +1113,16 @@ function deleteTask(id) {
 }
 
 let currentViewTaskId = null;
+let currentPlayers = [];
 
 function viewTask(id) {
     currentViewTaskId = id;
+    
+    // Destroy previous players
+    if (currentPlayers.length > 0) {
+        currentPlayers.forEach(player => player.destroy());
+        currentPlayers = [];
+    }
     
     $.ajax({
         url: 'ajax/client_api.php',
@@ -1316,6 +1323,8 @@ function viewTask(id) {
                             player.on('error', event => {
                                 console.error('Plyr error:', event.detail);
                             });
+                            
+                            currentPlayers.push(player);
                         });
                     }, 200);
                 } else {
