@@ -464,6 +464,11 @@ require_once 'inc/sidebar.php';
                         <label for="taskNotesRich">Rich Text Notes</label>
                         <div id="taskNotesRich" style="height: 200px;"></div>
                     </div>
+
+                    <!-- Upload Progress Bar -->
+                    <div class="progress mt-3 d-none" id="uploadProgressContainer">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" id="uploadProgressBar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -996,10 +1001,32 @@ function saveTask() {
         formData.append('delete_videos', JSON.stringify(videosToDelete));
     }
 
+    const submitBtn = $('#taskModal .btn-primary');
+    const originalBtnText = submitBtn.html();
+
+    // Show progress bar if we have files to upload
+    if (selectedScreenshots.length > 0 || selectedVideos.length > 0) {
+        $('#uploadProgressContainer').removeClass('d-none');
+        $('#uploadProgressBar').css('width', '0%').text('0%');
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Uploading...');
+    } else {
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Saving...');
+    }
+
     $.ajax({
         url: 'ajax/client_api.php',
         type: 'POST',
         data: formData,
+        xhr: function() {
+            var xhr = new window.XMLHttpRequest();
+            xhr.upload.addEventListener("progress", function(evt) {
+                if (evt.lengthComputable) {
+                    var percentComplete = Math.round((evt.loaded / evt.total) * 100);
+                    $('#uploadProgressBar').css('width', percentComplete + '%').text(percentComplete + '%');
+                }
+            }, false);
+            return xhr;
+        },
         processData: false,
         contentType: false,
         cache: false,
@@ -1020,6 +1047,10 @@ function saveTask() {
         error: function(xhr, status, error) {
             console.error('Error saving task:', error);
             toastr.error('An error occurred while saving task');
+        },
+        complete: function() {
+            $('#uploadProgressContainer').addClass('d-none');
+            submitBtn.prop('disabled', false).html(originalBtnText);
         }
     });
 }
