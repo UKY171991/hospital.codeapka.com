@@ -3,6 +3,12 @@ require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 ?>
 
+<!-- Plyr CSS -->
+<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+<!-- Plyr JS -->
+<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+
+
 <style>
     /* Responsive styles for tasks page */
     @media (max-width: 768px) {
@@ -1182,12 +1188,14 @@ function viewTask(id) {
                     let videosHtml = '';
                     videos.forEach((video, index) => {
                         videosHtml += `
-                            <div class="col-md-3 col-sm-6 col-6 mb-2" id="view-video-${index}">
+                            <div class="col-md-6 col-sm-12 mb-3" id="view-video-${index}">
                                 <div class="card h-100">
-                                    <video class="card-img-top" style="height: 150px; object-fit: cover;" controls>
-                                        <source src="${video}" type="video/mp4">
-                                        Your browser does not support the video tag.
-                                    </video>
+                                    <div class="video-container">
+                                        <video id="player-${index}" class="plyr-player" playsinline controls>
+                                            <source src="${video}" type="video/mp4">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    </div>
                                     <div class="card-body p-2">
                                         <button type="button" class="btn btn-sm btn-danger btn-block" onclick="deleteSingleVideo(${id}, '${video}', ${index})">
                                             <i class="fas fa-trash"></i> Delete
@@ -1198,6 +1206,15 @@ function viewTask(id) {
                         `;
                     });
                     $('#viewTaskVideos').html(videosHtml);
+                    
+                    // Initialize Plyr for each video
+                    setTimeout(() => {
+                        videos.forEach((video, index) => {
+                            new Plyr(`#player-${index}`, {
+                                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen']
+                            });
+                        });
+                    }, 100);
                 } else {
                     $('#viewTaskVideos').html('<p class="text-muted col-12">No videos available</p>');
                 }
