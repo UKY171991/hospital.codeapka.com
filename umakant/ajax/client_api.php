@@ -73,6 +73,9 @@ try {
         case 'delete_single_screenshot':
             deleteSingleScreenshot();
             break;
+        case 'delete_single_video':
+            deleteSingleVideo();
+            break;
             
         default:
             throw new Exception('Invalid action specified');
@@ -141,6 +144,11 @@ function ensureTablesExist() {
     }
     try {
         $pdo->exec("ALTER TABLE `tasks` ADD COLUMN `screenshots` text DEFAULT NULL AFTER `website_urls`");
+    } catch (Exception $e) {
+        // Column already exists
+    }
+    try {
+        $pdo->exec("ALTER TABLE `tasks` ADD COLUMN `videos` text DEFAULT NULL AFTER `screenshots`");
     } catch (Exception $e) {
         // Column already exists
     }
@@ -634,9 +642,14 @@ function addTask() {
     if (isset($_FILES['screenshots'])) {
         $screenshots = handleScreenshotUploads($_FILES['screenshots']);
     }
+
+    $videos = [];
+    if (isset($_FILES['videos'])) {
+        $videos = handleVideoUploads($_FILES['videos']);
+    }
     
-    $sql = "INSERT INTO tasks (client_id, title, description, priority, status, due_date, website_urls, screenshots, notes, created_at)
-            VALUES (:client_id, :title, :description, :priority, :status, :due_date, :website_urls, :screenshots, :notes, NOW())";
+    $sql = "INSERT INTO tasks (client_id, title, description, priority, status, due_date, website_urls, screenshots, videos, notes, created_at)
+            VALUES (:client_id, :title, :description, :priority, :status, :due_date, :website_urls, :screenshots, :videos, :notes, NOW())";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -648,6 +661,7 @@ function addTask() {
         ':due_date' => $_POST['due_date'] ?: null,
         ':website_urls' => $_POST['website_urls'] ?? '',
         ':screenshots' => json_encode($screenshots),
+        ':videos' => json_encode($videos),
         ':notes' => $_POST['notes'] ?? ''
     ]);
     
@@ -661,8 +675,8 @@ function addTask() {
 function updateTask() {
     global $pdo;
     
-    // Get existing screenshots
-    $stmt = $pdo->prepare("SELECT screenshots FROM tasks WHERE id = :id");
+    // Get existing task data
+    $stmt = $pdo->prepare("SELECT screenshots, videos FROM tasks WHERE id = :id");
     $stmt->execute([':id' => $_POST['id']]);
     $existingTask = $stmt->fetch(PDO::FETCH_ASSOC);
     $existingScreenshots = json_decode($existingTask['screenshots'] ?? '[]', true);
@@ -672,10 +686,21 @@ function updateTask() {
     if (isset($_FILES['screenshots'])) {
         $newScreenshots = handleScreenshotUploads($_FILES['screenshots']);
     }
+
+    $newVideos = [];
+    if (isset($_FILES['videos'])) {
+        $newVideos = handleVideoUploads($_FILES['videos']);
+    }
     
+    // Get existing videos
+    $existingVideos = json_decode($existingTask['videos'] ?? '[]', true);
+
     // Merge existing and new screenshots
     $allScreenshots = array_merge($existingScreenshots, $newScreenshots);
     
+    // Merge existing and new videos
+    $allVideos = array_merge($existingVideos, $newVideos);
+
     // Handle screenshot deletions
     if (isset($_POST['delete_screenshots'])) {
         $deleteScreenshots = json_decode($_POST['delete_screenshots'], true);
@@ -692,11 +717,28 @@ function updateTask() {
         }
         $allScreenshots = array_values($allScreenshots); // Re-index array
     }
+
+    // Handle video deletions
+    if (isset($_POST['delete_videos'])) {
+        $deleteVideos = json_decode($_POST['delete_videos'], true);
+        foreach ($deleteVideos as $video) {
+            // Remove from array
+            $allVideos = array_filter($allVideos, function($v) use ($video) {
+                return $v !== $video;
+            });
+            // Delete file
+            $filePath = '../' . $video;
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+        }
+        $allVideos = array_values($allVideos); // Re-index array
+    }
     
     $sql = "UPDATE tasks 
             SET client_id = :client_id, title = :title, description = :description,
                 priority = :priority, status = :status, due_date = :due_date, 
-                website_urls = :website_urls, screenshots = :screenshots, notes = :notes, updated_at = NOW()
+                website_urls = :website_urls, screenshots = :screenshots, videos = :videos, notes = :notes, updated_at = NOW()
             WHERE id = :id";
     
     $stmt = $pdo->prepare($sql);
@@ -710,6 +752,7 @@ function updateTask() {
         ':due_date' => $_POST['due_date'] ?: null,
         ':website_urls' => $_POST['website_urls'] ?? '',
         ':screenshots' => json_encode($allScreenshots),
+        ':videos' => json_encode($allVideos),
         ':notes' => $_POST['notes'] ?? ''
     ]);
     
@@ -734,8 +777,8 @@ function deleteTask() {
     }
     
     try {
-        // Get task screenshots before deleting
-        $stmt = $pdo->prepare("SELECT screenshots FROM tasks WHERE id = :id");
+        // Get task screenshots and videos before deleting
+        $stmt = $pdo->prepare("SELECT screenshots, videos FROM tasks WHERE id = :id");
         $stmt->execute([':id' => $id]);
         $task = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -743,8 +786,15 @@ function deleteTask() {
             // Delete screenshot files
             $screenshots = json_decode($task['screenshots'] ?? '[]', true);
             foreach ($screenshots as $screenshot) {
-                // Handle both relative and absolute paths
                 $filePath = '../' . $screenshot;
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            }
+            // Delete video files
+            $videos = json_decode($task['videos'] ?? '[]', true);
+            foreach ($videos as $video) {
+                $filePath = '../' . $video;
                 if (file_exists($filePath)) {
                     unlink($filePath);
                 }
@@ -883,5 +933,125 @@ function handleScreenshotUploads($files) {
     }
     
     return $uploadedFiles;
+}
+
+function handleVideoUploads($files) {
+    $uploadedFiles = [];
+    $uploadDir = '../uploads/videos/';
+    
+    // Create directory if it doesn't exist
+    if (!file_exists($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+    
+    // Handle multiple file uploads
+    if (is_array($files['name'])) {
+        $fileCount = count($files['name']);
+        for ($i = 0; $i < $fileCount; $i++) {
+            if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                $fileName = time() . '_' . $i . '_' . basename($files['name'][$i]);
+                $targetPath = $uploadDir . $fileName;
+                
+                // Validate file type
+                $fileType = strtolower(pathinfo($targetPath, PATHINFO_EXTENSION));
+                $allowedTypes = ['mp4', 'webm', 'ogg', 'mov', 'avi'];
+                
+                if (in_array($fileType, $allowedTypes)) {
+                    if (move_uploaded_file($files['tmp_name'][$i], $targetPath)) {
+                        $uploadedFiles[] = 'uploads/videos/' . $fileName;
+                    }
+                }
+            }
+        }
+    } else {
+        // Single file upload
+        if ($files['error'] === UPLOAD_ERR_OK) {
+            $fileName = time() . '_' . basename($files['name']);
+            $targetPath = $uploadDir . $fileName;
+            
+            $fileType = strtolower(pathinfo($targetPath, PATHINFO_EXTENSION));
+            $allowedTypes = ['mp4', 'webm', 'ogg', 'mov', 'avi'];
+            
+            if (in_array($fileType, $allowedTypes)) {
+                if (move_uploaded_file($files['tmp_name'], $targetPath)) {
+                    $uploadedFiles[] = 'uploads/videos/' . $fileName;
+                }
+            }
+        }
+    }
+    
+    return $uploadedFiles;
+}
+
+function deleteSingleVideo() {
+    global $pdo;
+    
+    $taskId = intval($_POST['task_id'] ?? 0);
+    $video = $_POST['video'] ?? '';
+    
+    if ($taskId <= 0 || empty($video)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Invalid parameters'
+        ]);
+        return;
+    }
+    
+    try {
+        // Get current videos
+        $stmt = $pdo->prepare("SELECT videos FROM tasks WHERE id = :id");
+        $stmt->execute([':id' => $taskId]);
+        $task = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$task) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Task not found'
+            ]);
+            return;
+        }
+        
+        // Parse videos
+        $videos = json_decode($task['videos'] ?? '[]', true);
+        
+        // Check if video belongs to this task
+        if (!in_array($video, $videos)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Video not found in this task'
+            ]);
+            return;
+        }
+        
+        // Remove the video from array
+        $videos = array_filter($videos, function($v) use ($video) {
+            return $v !== $video;
+        });
+        $videos = array_values($videos); // Re-index array
+        
+        // Update database
+        $stmt = $pdo->prepare("UPDATE tasks SET videos = :videos, updated_at = NOW() WHERE id = :id");
+        $stmt->execute([
+            ':id' => $taskId,
+            ':videos' => json_encode($videos)
+        ]);
+        
+        // Delete the file
+        $filePath = '../' . $video;
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+        
+        echo json_encode([
+            'success' => true,
+            'message' => 'Video deleted successfully'
+        ]);
+        
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ]);
+    }
 }
 ?>

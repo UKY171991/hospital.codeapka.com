@@ -161,6 +161,28 @@ require_once 'inc/sidebar.php';
         display: flex;
         flex-direction: column;
     }
+
+    /* Drag and Drop styles */
+    .upload-area {
+        border: 2px dashed #007bff;
+        border-radius: 5px;
+        padding: 20px;
+        text-align: center;
+        background: #f8f9fa;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        margin-bottom: 10px;
+    }
+
+    .upload-area:hover, .upload-area.drag-over {
+        background: #e9ecef;
+    }
+
+    .upload-area i {
+        font-size: 2rem;
+        color: #007bff;
+        margin-bottom: 10px;
+    }
 </style>
 
 <!-- Content Wrapper -->
@@ -297,6 +319,17 @@ require_once 'inc/sidebar.php';
                 </div>
                 
                 <hr>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6 class="text-primary"><i class="fas fa-video mr-2"></i>Videos</h6>
+                        <div id="viewTaskVideos" class="row">
+                            <p class="text-muted col-12">No videos available</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
                 
                 <div class="row">
                     <div class="col-md-12">
@@ -399,10 +432,26 @@ require_once 'inc/sidebar.php';
 
                     <div class="form-group">
                         <label for="taskScreenshots">Screenshots</label>
-                        <input type="file" class="form-control-file" id="taskScreenshots" multiple accept="image/*">
+                        <div class="upload-area" id="screenshotUploadArea" onclick="$('#taskScreenshots').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Drag & Drop screenshots here or click to browse</p>
+                            <input type="file" class="form-control-file d-none" id="taskScreenshots" multiple accept="image/*">
+                        </div>
                         <small class="form-text text-muted">You can select multiple images (JPG, PNG, GIF, WEBP)</small>
                         <div id="screenshotPreview" class="mt-2"></div>
                         <div id="existingScreenshots" class="mt-2"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskVideos">Videos</label>
+                        <div class="upload-area" id="videoUploadArea" onclick="$('#taskVideos').click()">
+                            <i class="fas fa-video"></i>
+                            <p>Drag & Drop videos here or click to browse</p>
+                            <input type="file" class="form-control-file d-none" id="taskVideos" multiple accept="video/*">
+                        </div>
+                        <small class="form-text text-muted">You can select multiple videos (MP4, WebM, Ogg)</small>
+                        <div id="videoPreview" class="mt-2"></div>
+                        <div id="existingVideos" class="mt-2"></div>
                     </div>
 
                     <div class="form-group">
@@ -431,6 +480,10 @@ require_once 'inc/sidebar.php';
 let taskTable;
 
 let screenshotsToDelete = [];
+let videosToDelete = [];
+
+let selectedScreenshots = [];
+let selectedVideos = [];
 
 $(document).ready(function() {
     $('.select2').select2({
@@ -564,9 +617,109 @@ $(document).ready(function() {
 
     // Preview screenshots before upload
     $('#taskScreenshots').on('change', function(e) {
-        previewScreenshots(e.target.files);
+        handleFileSelection(e.target.files, 'screenshot');
     });
+
+    // Preview videos before upload
+    $('#taskVideos').on('change', function(e) {
+        handleFileSelection(e.target.files, 'video');
+    });
+
+    // Setup Drag and Drop
+    setupDragAndDrop('screenshotUploadArea', 'screenshot');
+    setupDragAndDrop('videoUploadArea', 'video');
 });
+
+function setupDragAndDrop(areaId, type) {
+    const area = $(`#${areaId}`);
+    
+    area.on('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).addClass('drag-over');
+    });
+
+    area.on('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).removeClass('drag-over');
+    });
+
+    area.on('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).removeClass('drag-over');
+        
+        const files = e.originalEvent.dataTransfer.files;
+        handleFileSelection(files, type);
+    });
+}
+
+function handleFileSelection(files, type) {
+    if (type === 'screenshot') {
+        Array.from(files).forEach(file => {
+            if (file.type.startsWith('image/')) {
+                selectedScreenshots.push(file);
+            }
+        });
+        renderPreview('screenshot');
+    } else {
+        Array.from(files).forEach(file => {
+            if (file.type.startsWith('video/')) {
+                selectedVideos.push(file);
+            }
+        });
+        renderPreview('video');
+    }
+}
+
+function renderPreview(type) {
+    const previewContainer = type === 'screenshot' ? $('#screenshotPreview') : $('#videoPreview');
+    const files = type === 'screenshot' ? selectedScreenshots : selectedVideos;
+    
+    previewContainer.empty();
+    if (files.length === 0) return;
+    
+    const row = $('<div class="row"></div>');
+    files.forEach((file, index) => {
+        const col = $(`<div class="col-md-3 col-sm-6 col-6 mb-2"></div>`);
+        const card = $(`<div class="card h-100"></div>`);
+        
+        if (type === 'screenshot') {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                card.prepend(`<img src="${e.target.result}" class="card-img-top" style="height: 100px; object-fit: cover;">`);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            card.prepend(`<div class="bg-dark d-flex align-items-center justify-content-center" style="height: 100px;"><i class="fas fa-video fa-2x text-white"></i></div>`);
+        }
+        
+        const cardBody = $(`
+            <div class="card-body p-2">
+                <small class="text-muted d-block text-truncate mb-1">${file.name}</small>
+                <button type="button" class="btn btn-xs btn-danger btn-block" onclick="removeSelectedFile(${index}, '${type}')">
+                    <i class="fas fa-times"></i> Remove
+                </button>
+            </div>
+        `);
+        
+        card.append(cardBody);
+        col.append(card);
+        row.append(col);
+    });
+    
+    previewContainer.append(row);
+}
+
+function removeSelectedFile(index, type) {
+    if (type === 'screenshot') {
+        selectedScreenshots.splice(index, 1);
+    } else {
+        selectedVideos.splice(index, 1);
+    }
+    renderPreview(type);
+}
 
 function loadClients() {
     $.ajax({
@@ -597,7 +750,14 @@ function openTaskModal() {
     $('#taskClient').val('').trigger('change');
     $('#screenshotPreview').empty();
     $('#existingScreenshots').empty();
+    $('#videoPreview').empty();
+    $('#existingVideos').empty();
+    
+    selectedScreenshots = [];
+    selectedVideos = [];
     screenshotsToDelete = [];
+    videosToDelete = [];
+    
     $('#taskModalTitle').text('Add Task');
     
     // Clear TinyMCE content
@@ -613,36 +773,39 @@ function openTaskModal() {
     $('#taskModal').modal('show');
 }
 
-function previewScreenshots(files) {
-    const preview = $('#screenshotPreview');
-    preview.empty();
+// function previewScreenshots(files) {
+//     const preview = $('#screenshotPreview');
+//     preview.empty();
     
-    if (files.length === 0) return;
+//     if (files.length === 0) return;
     
-    preview.append('<div class="row">');
+//     preview.append('<div class="row">');
     
-    Array.from(files).forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.append(`
-                <div class="col-md-3 col-sm-6 col-6 mb-2">
-                    <div class="card">
-                        <img src="${e.target.result}" class="card-img-top" style="height: 100px; object-fit: cover;">
-                        <div class="card-body p-2">
-                            <small class="text-muted d-block text-truncate">${file.name}</small>
-                        </div>
-                    </div>
-                </div>
-            `);
-        };
-        reader.readAsDataURL(file);
-    });
+//     Array.from(files).forEach((file, index) => {
+//         const reader = new FileReader();
+//         reader.onload = function(e) {
+//             preview.append(`
+//                 <div class="col-md-3 col-sm-6 col-6 mb-2">
+//                     <div class="card">
+//                         <img src="${e.target.result}" class="card-img-top" style="height: 100px; object-fit: cover;">
+//                         <div class="card-body p-2">
+//                             <small class="text-muted d-block text-truncate">${file.name}</small>
+//                         </div>
+//                     </div>
+//                 </div>
+//             `);
+//         };
+//         reader.readAsDataURL(file);
+//     });
     
-    preview.append('</div>');
-}
+//     preview.append('</div>');
+// }
 
 function editTask(id) {
+    selectedScreenshots = [];
+    selectedVideos = [];
     screenshotsToDelete = [];
+    videosToDelete = [];
     
     $.ajax({
         url: 'ajax/client_api.php',
@@ -671,10 +834,12 @@ function editTask(id) {
                     tinymce.get('taskNotesRich').setContent(data.notes || '');
                 }
                 
-                // Display existing screenshots
-                displayExistingScreenshots(data.screenshots);
+                // Display existing screenshots and videos
+                displayExistingFiles(data.screenshots, 'screenshot');
+                displayExistingFiles(data.videos, 'video');
                 
                 $('#screenshotPreview').empty();
+                $('#videoPreview').empty();
                 $('#taskModalTitle').text('Edit Task');
                 $('#taskModal').modal('show');
             }
@@ -686,45 +851,108 @@ function editTask(id) {
     });
 }
 
-function displayExistingScreenshots(screenshotsJson) {
-    const container = $('#existingScreenshots');
+function displayExistingFiles(filesJson, type) {
+    const container = type === 'screenshot' ? $('#existingScreenshots') : $('#existingVideos');
     container.empty();
     
-    if (!screenshotsJson) return;
+    if (!filesJson) return;
     
-    let screenshots = [];
+    let files = [];
     try {
-        screenshots = JSON.parse(screenshotsJson);
+        files = JSON.parse(filesJson);
     } catch (e) {
-        screenshots = [];
+        files = [];
     }
     
-    if (screenshots.length === 0) return;
+    if (files.length === 0) return;
     
-    container.append('<label>Existing Screenshots:</label><div class="row" id="existingScreenshotsRow"></div>');
-    const row = $('#existingScreenshotsRow');
+    const label = type === 'screenshot' ? 'Existing Screenshots:' : 'Existing Videos:';
+    container.append(`<label>${label}</label><div class="row" id="existing${type === 'screenshot' ? 'Screenshots' : 'Videos'}Row"></div>`);
+    const row = $(`#existing${type === 'screenshot' ? 'Screenshots' : 'Videos'}Row`);
     
-    screenshots.forEach((screenshot, index) => {
-        row.append(`
-            <div class="col-md-3 col-sm-6 col-6 mb-2" id="screenshot-${index}">
-                <div class="card">
-                    <img src="${screenshot}" class="card-img-top" style="height: 100px; object-fit: cover;">
+    files.forEach((file, index) => {
+        const fileId = `${type}-${index}`;
+        let col = `
+            <div class="col-md-3 col-sm-6 col-6 mb-2" id="${fileId}">
+                <div class="card h-100">
+        `;
+        
+        if (type === 'screenshot') {
+            col += `<img src="${file}" class="card-img-top" style="height: 100px; object-fit: cover;">`;
+        } else {
+            col += `
+                <video class="card-img-top" style="height: 100px; object-fit: cover;">
+                    <source src="${file}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="card-img-overlay d-flex align-items-center justify-content-center p-0" style="background: rgba(0,0,0,0.3);">
+                    <i class="fas fa-play text-white"></i>
+                </div>
+            `;
+        }
+        
+        col += `
                     <div class="card-body p-2">
-                        <button type="button" class="btn btn-sm btn-danger btn-block" onclick="removeScreenshot('${screenshot}', ${index})">
+                        <button type="button" class="btn btn-sm btn-danger btn-block" onclick="removeExistingFile('${file}', '${fileId}', '${type}')">
                             <i class="fas fa-trash"></i> Remove
                         </button>
                     </div>
                 </div>
             </div>
-        `);
+        `;
+        row.append(col);
     });
 }
 
-function removeScreenshot(screenshot, index) {
-    screenshotsToDelete.push(screenshot);
-    $(`#screenshot-${index}`).remove();
-    toastr.info('Screenshot will be deleted when you save');
+function removeExistingFile(filePath, elementId, type) {
+    if (type === 'screenshot') {
+        screenshotsToDelete.push(filePath);
+    } else {
+        videosToDelete.push(filePath);
+    }
+    $(`#${elementId}`).remove();
+    toastr.info(`${type === 'screenshot' ? 'Screenshot' : 'Video'} will be deleted when you save`);
 }
+
+// function displayExistingScreenshots(screenshotsJson) {
+//     const container = $('#existingScreenshots');
+//     container.empty();
+    
+//     if (!screenshotsJson) return;
+    
+//     let screenshots = [];
+//     try {
+//         screenshots = JSON.parse(screenshotsJson);
+//     } catch (e) {
+//         screenshots = [];
+//     }
+    
+//     if (screenshots.length === 0) return;
+    
+//     container.append('<label>Existing Screenshots:</label><div class="row" id="existingScreenshotsRow"></div>');
+//     const row = $('#existingScreenshotsRow');
+    
+//     screenshots.forEach((screenshot, index) => {
+//         row.append(`
+//             <div class="col-md-3 col-sm-6 col-6 mb-2" id="screenshot-${index}">
+//                 <div class="card">
+//                     <img src="${screenshot}" class="card-img-top" style="height: 100px; object-fit: cover;">
+//                     <div class="card-body p-2">
+//                         <button type="button" class="btn btn-sm btn-danger btn-block" onclick="removeScreenshot('${screenshot}', ${index})">
+//                             <i class="fas fa-trash"></i> Remove
+//                         </button>
+//                     </div>
+//                 </div>
+//             </div>
+//         `);
+//     });
+// }
+
+// function removeScreenshot(screenshot, index) {
+//     screenshotsToDelete.push(screenshot);
+//     $(`#screenshot-${index}`).remove();
+//     toastr.info('Screenshot will be deleted when you save');
+// }
 
 function saveTask() {
     // Update the hidden textarea with TinyMCE content before saving
@@ -749,14 +977,23 @@ function saveTask() {
     formData.append('notes', $('#taskNotes').val());
     
     // Add screenshots
-    const screenshotFiles = $('#taskScreenshots')[0].files;
-    for (let i = 0; i < screenshotFiles.length; i++) {
-        formData.append('screenshots[]', screenshotFiles[i]);
-    }
+    selectedScreenshots.forEach(file => {
+        formData.append('screenshots[]', file);
+    });
+    
+    // Add videos
+    selectedVideos.forEach(file => {
+        formData.append('videos[]', file);
+    });
     
     // Add screenshots to delete
     if (screenshotsToDelete.length > 0) {
         formData.append('delete_screenshots', JSON.stringify(screenshotsToDelete));
+    }
+
+    // Add videos to delete
+    if (videosToDelete.length > 0) {
+        formData.append('delete_videos', JSON.stringify(videosToDelete));
     }
 
     $.ajax({
@@ -788,7 +1025,7 @@ function saveTask() {
 }
 
 function deleteTask(id) {
-    if (!confirm('Are you sure you want to delete this task? All associated screenshots will also be deleted.')) {
+    if (!confirm('Are you sure you want to delete this task? All associated screenshots and videos will also be deleted.')) {
         return;
     }
 
@@ -878,12 +1115,13 @@ function viewTask(id) {
                     screenshots = [];
                 }
                 
+                
                 if (screenshots.length > 0) {
                     let screenshotsHtml = '';
                     screenshots.forEach((screenshot, index) => {
                         screenshotsHtml += `
                             <div class="col-md-3 col-sm-6 col-6 mb-2" id="view-screenshot-${index}">
-                                <div class="card">
+                                <div class="card h-100">
                                     <a href="${screenshot}" target="_blank">
                                         <img src="${screenshot}" class="card-img-top" style="height: 150px; object-fit: cover;">
                                     </a>
@@ -899,6 +1137,38 @@ function viewTask(id) {
                     $('#viewTaskScreenshots').html(screenshotsHtml);
                 } else {
                     $('#viewTaskScreenshots').html('<p class="text-muted col-12">No screenshots available</p>');
+                }
+
+                // Videos
+                let videos = [];
+                try {
+                    videos = JSON.parse(task.videos || '[]');
+                } catch (e) {
+                    videos = [];
+                }
+                
+                if (videos.length > 0) {
+                    let videosHtml = '';
+                    videos.forEach((video, index) => {
+                        videosHtml += `
+                            <div class="col-md-3 col-sm-6 col-6 mb-2" id="view-video-${index}">
+                                <div class="card h-100">
+                                    <video class="card-img-top" style="height: 150px; object-fit: cover;" controls>
+                                        <source src="${video}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <div class="card-body p-2">
+                                        <button type="button" class="btn btn-sm btn-danger btn-block" onclick="deleteSingleVideo(${id}, '${video}', ${index})">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    $('#viewTaskVideos').html(videosHtml);
+                } else {
+                    $('#viewTaskVideos').html('<p class="text-muted col-12">No videos available</p>');
                 }
                 
                 $('#viewTaskModal').modal('show');
@@ -959,6 +1229,48 @@ function deleteSingleScreenshot(taskId, screenshot, index) {
         error: function(xhr, status, error) {
             console.error('Error deleting screenshot:', error);
             toastr.error('An error occurred while deleting screenshot');
+        }
+    });
+}
+
+function deleteSingleVideo(taskId, video, index) {
+    if (!confirm('Are you sure you want to delete this video?')) {
+        return;
+    }
+    
+    $.ajax({
+        url: 'ajax/client_api.php',
+        type: 'POST',
+        data: { 
+            action: 'delete_single_video',
+            task_id: taskId,
+            video: video
+        },
+        cache: false,
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success) {
+                toastr.success('Video deleted successfully');
+                $(`#view-video-${index}`).fadeOut(300, function() {
+                    $(this).remove();
+                    
+                    // Check if there are any videos left
+                    if ($('#viewTaskVideos .col-md-3').length === 0) {
+                        $('#viewTaskVideos').html('<p class="text-muted col-12">No videos available</p>');
+                    }
+                });
+                
+                // Reload tasks table
+                setTimeout(function() {
+                    taskTable.ajax.reload(null, false);
+                }, 500);
+            } else {
+                toastr.error(response.message || 'Failed to delete video');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error deleting video:', error);
+            toastr.error('An error occurred while deleting video');
         }
     });
 }
