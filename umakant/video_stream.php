@@ -39,13 +39,16 @@ $mime_types = [
 ];
 $type = $mime_types[$extension] ?? 'video/mp4';
 
-// Clean buffer
+// Disable compression/buffering
+@ini_set('zlib.output_compression', 'Off');
 while (ob_get_level()) {
     ob_end_clean();
 }
 
 header("Content-Type: $type");
 header("Accept-Ranges: bytes");
+header("Cache-Control: public, max-age=3600"); // Allow caching
+header("Content-Transfer-Encoding: binary"); 
 
 if (isset($_SERVER['HTTP_RANGE'])) {
     $c_start = $start;
