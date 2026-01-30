@@ -30,6 +30,13 @@
     AddOutputFilterByType DEFLATE application/x-javascript
 </IfModule>
 
+</IfModule>
+
+# Disable compression for video files to allow seeking (Range requests)
+<IfModule mod_setenvif.c>
+    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|mp4|webm|ogv|mov|avi)$ no-gzip dont-vary
+</IfModule>
+
 # Security headers
 <IfModule mod_headers.c>
     Header set X-Content-Type-Options nosniff
