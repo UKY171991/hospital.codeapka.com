@@ -1198,7 +1198,7 @@ function viewTask(id) {
                             <div class="col-12 mb-3" id="view-video-${index}">
                                 <div class="card h-100">
                                     <div class="video-container">
-                                        <video id="player-${index}" class="plyr-player" playsinline controls preload="metadata" crossorigin="anonymous">
+                                        <video id="player-${index}" class="plyr-player" playsinline controls preload="metadata">
                                             <source src="${video}" type="${mimeType}">
                                             <a href="${video}" download>Download</a>
                                         </video>

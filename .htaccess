@@ -37,6 +37,11 @@
     SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|mp4|webm|ogv|mov|avi)$ no-gzip dont-vary
 </IfModule>
 
+<FilesMatch "\.(mp4|webm|ogv|mov|avi)$">
+    Header set Accept-Ranges bytes
+    SetEnv no-gzip 1
+</FilesMatch>
+
 # Security headers
 <IfModule mod_headers.c>
     Header set X-Content-Type-Options nosniff
