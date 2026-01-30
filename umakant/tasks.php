@@ -189,6 +189,29 @@ require_once 'inc/sidebar.php';
         color: #007bff;
         margin-bottom: 10px;
     }
+
+    /* Tube-Style Player Customization */
+    .plyr--video .plyr__control.plyr__tab-focus, 
+    .plyr--video .plyr__control:hover, 
+    .plyr--video .plyr__control[aria-expanded=true] {
+        background: #ff0000;
+        color: #fff;
+    }
+    .plyr--full-ui input[type=range] {
+        color: #ff0000;
+    }
+    .plyr__control--overlaid {
+        background: rgba(255, 0, 0, 0.8);
+    }
+    .plyr__control--overlaid:hover {
+        background: #ff0000;
+    }
+    .plyr--video .plyr__controls .plyr__control.plyr__tab-focus, 
+    .plyr--video .plyr__controls .plyr__control:hover, 
+    .plyr--video .plyr__controls .plyr__control[aria-expanded=true] {
+        background: #ff0000;
+        color: #fff;
+    }
 </style>
 
 <!-- Content Wrapper -->
@@ -1194,12 +1217,15 @@ function viewTask(id) {
                         if (extension === 'ogg' || extension === 'ogv') mimeType = 'video/ogg';
                         if (extension === 'mov') mimeType = 'video/mp4'; // Browsers often play mov as mp4
                         
+                        // Extract filename for the stream script
+                        const filename = video.split('/').pop();
+                        
                         videosHtml += `
                             <div class="col-12 mb-3" id="view-video-${index}">
                                 <div class="card h-100">
                                     <div class="video-container">
                                         <video id="player-${index}" class="plyr-player" playsinline controls preload="metadata">
-                                            <source src="${video}" type="${mimeType}">
+                                            <source src="video_stream.php?file=${filename}" type="${mimeType}">
                                             <a href="${video}" download>Download</a>
                                         </video>
                                     </div>
