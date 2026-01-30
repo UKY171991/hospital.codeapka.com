@@ -1232,7 +1232,7 @@ function viewTask(id) {
                                 <div class="card h-100">
                                     <div class="video-container">
                                         <video id="player-${index}" class="plyr-player" playsinline controls preload="metadata">
-                                            <source src="video_stream.php?file=${filename}&t=${new Date().getTime()}" type="${mimeType}">
+                                            <source src="${video}" type="${mimeType}">
                                             <a href="${video}" download>Download</a>
                                         </video>
                                     </div>
