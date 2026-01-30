@@ -1243,9 +1243,11 @@ function viewTask(id) {
                     // Initialize Plyr for each video
                     setTimeout(() => {
                         videos.forEach((video, index) => {
-                            new Plyr(`#player-${index}`, {
+                            const player = new Plyr(`#player-${index}`, {
+                                debug: false,
                                 controls: [
                                     'play-large', 
+                                    'restart',
                                     'rewind', 
                                     'play', 
                                     'fast-forward', 
@@ -1260,12 +1262,62 @@ function viewTask(id) {
                                     'airplay', 
                                     'fullscreen'
                                 ],
-                                seekTime: 10, // Skip 10 seconds like YouTube
+                                seekTime: 10,
                                 keyboard: { focused: true, global: true },
-                                tooltips: { controls: true, seek: true }
+                                tooltips: { controls: true, seek: true },
+                                i18n: {
+                                    restart: 'Restart',
+                                    rewind: 'Rewind {seektime}s',
+                                    play: 'Play',
+                                    pause: 'Pause',
+                                    fastForward: 'Forward {seektime}s',
+                                    seek: 'Seek',
+                                    seekLabel: '{currentTime} of {duration}',
+                                    played: 'Played',
+                                    buffered: 'Buffered',
+                                    currentTime: 'Current time',
+                                    duration: 'Duration',
+                                    volume: 'Volume',
+                                    mute: 'Mute',
+                                    unmute: 'Unmute',
+                                    enableCaptions: 'Enable captions',
+                                    disableCaptions: 'Disable captions',
+                                    download: 'Download',
+                                    enterFullscreen: 'Enter fullscreen',
+                                    exitFullscreen: 'Exit fullscreen',
+                                    frameTitle: 'Player for {title}',
+                                    captions: 'Captions',
+                                    settings: 'Settings',
+                                    pip: 'PIP',
+                                    menuBack: 'Go back to previous menu',
+                                    speed: 'Speed',
+                                    normal: 'Normal',
+                                    quality: 'Quality',
+                                    loop: 'Loop',
+                                    start: 'Start',
+                                    end: 'End',
+                                    all: 'All',
+                                    reset: 'Reset',
+                                    disabled: 'Disabled',
+                                    enabled: 'Enabled',
+                                    advertisement: 'Ad',
+                                    qualityBadge: {
+                                        2160: '4K',
+                                        1440: 'HD',
+                                        1080: 'HD',
+                                        720: 'HD',
+                                        576: 'SD',
+                                        480: 'SD',
+                                    },
+                                },
+                            });
+                            
+                            // Ensure error handling
+                            player.on('error', event => {
+                                console.error('Plyr error:', event.detail);
                             });
                         });
-                    }, 100);
+                    }, 200);
                 } else {
                     $('#viewTaskVideos').html('<p class="text-muted col-12">No videos available</p>');
                 }

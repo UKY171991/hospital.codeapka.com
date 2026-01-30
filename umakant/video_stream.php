@@ -1,41 +1,43 @@
 <?php
 // umakant/video_stream.php
-// Handles video streaming with Byte-Range support to fix seeking on servers without static file Range support
+// Robust video streaming script with support for Range requests (seeking)
 
 $file = $_GET['file'] ?? '';
 
-// Basic security sanitization
-$file = basename($file);
-
-// Clean up any path traversal attempts just in case basename isn't enough for some edge cases
-$file = str_replace(['..', '/', '\\'], '', $file);
+// Basic security: Allow only alphanumeric, dots, dashes, underscores
+$file = preg_replace('/[^a-zA-Z0-9._-]/', '', basename($file));
 
 if (empty($file)) {
-    header("HTTP/1.0 404 Not Found");
+    http_response_code(400);
     exit('File not specified.');
 }
 
-$filePath = 'uploads/videos/' . $file;
+$path = 'uploads/videos/' . $file;
 
-if (!file_exists($filePath)) {
-    header("HTTP/1.0 404 Not Found");
+if (!file_exists($path)) {
+    http_response_code(404);
     exit('File not found.');
 }
 
-$size = filesize($filePath);
-$length = $size;
-$start = 0;
-$end = $size - 1;
+$fp = @fopen($path, 'rb');
+$size = filesize($path); // File size
+$length = $size;         // Content length
+$start = 0;              // Start byte
+$end = $size - 1;        // End byte
 
-// Detect Mime Type
-$extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-$mimeType = 'video/mp4'; // Default
-if ($extension === 'webm') $mimeType = 'video/webm';
-if ($extension === 'ogg') $mimeType = 'video/ogg';
-if ($extension === 'mov') $mimeType = 'video/mp4';
-if ($extension === 'avi') $mimeType = 'video/x-msvideo';
+// Determine MIME type
+$extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+$mime_types = [
+    'mp4' => 'video/mp4',
+    'webm' => 'video/webm',
+    'ogg' => 'video/ogg',
+    'ogv' => 'video/ogg',
+    'mov' => 'video/mp4',
+    'avi' => 'video/x-msvideo'
+];
+$type = $mime_types[$extension] ?? 'video/mp4';
 
-header("Content-Type: $mimeType");
+header("Content-Type: $type");
 header("Accept-Ranges: bytes");
 
 if (isset($_SERVER['HTTP_RANGE'])) {
@@ -69,17 +71,17 @@ if (isset($_SERVER['HTTP_RANGE'])) {
     $end = $c_end;
     $length = $end - $start + 1;
     
+    fseek($fp, $start);
     header('HTTP/1.1 206 Partial Content');
 }
 
 header("Content-Range: bytes $start-$end/$size");
 header("Content-Length: " . $length);
 
-// Clear buffers to prevent memory issues
-if (ob_get_level()) ob_end_clean();
-
-$fp = fopen($filePath, 'rb');
-fseek($fp, $start);
+// Disable output buffering to ensure streaming works
+while (ob_get_level()) {
+    ob_end_clean();
+}
 
 $buffer = 1024 * 8;
 while (!feof($fp) && ($p = ftell($fp)) <= $end) {
