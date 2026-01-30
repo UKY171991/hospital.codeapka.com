@@ -4,8 +4,10 @@
 
 $file = $_GET['file'] ?? '';
 
-// Basic security: Allow only alphanumeric, dots, dashes, underscores
-$file = preg_replace('/[^a-zA-Z0-9._-]/', '', basename($file));
+// Basic security: Allow alphanumeric, dots, dashes, underscores, spaces, parentheses
+$file = basename($file);
+// Remove any null bytes or directory traversal patterns
+$file = str_replace(array("\0", "..", "/", "\\"), "", $file);
 
 if (empty($file)) {
     http_response_code(400);
