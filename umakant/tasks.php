@@ -1187,13 +1187,20 @@ function viewTask(id) {
                 if (videos.length > 0) {
                     let videosHtml = '';
                     videos.forEach((video, index) => {
+                        // Detect MIME type based on extension to help browser
+                        const extension = video.split('.').pop().toLowerCase();
+                        let mimeType = 'video/mp4'; // Default
+                        if (extension === 'webm') mimeType = 'video/webm';
+                        if (extension === 'ogg' || extension === 'ogv') mimeType = 'video/ogg';
+                        if (extension === 'mov') mimeType = 'video/mp4'; // Browsers often play mov as mp4
+                        
                         videosHtml += `
                             <div class="col-md-6 col-sm-12 mb-3" id="view-video-${index}">
                                 <div class="card h-100">
                                     <div class="video-container">
-                                        <video id="player-${index}" class="plyr-player" playsinline controls>
-                                            <source src="${video}" type="video/mp4">
-                                            Your browser does not support the video tag.
+                                        <video id="player-${index}" class="plyr-player" playsinline controls preload="metadata" crossorigin="anonymous">
+                                            <source src="${video}" type="${mimeType}">
+                                            <a href="${video}" download>Download</a>
                                         </video>
                                     </div>
                                     <div class="card-body p-2">
