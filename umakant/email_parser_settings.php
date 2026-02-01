@@ -5,6 +5,9 @@ require_once 'inc/sidebar.php';
 
 <style>
     /* Responsive styles for email parser settings */
+    h3#lastRun {
+        font-size: 20px;
+    }
     @media (max-width: 768px) {
         .content-wrapper {
             margin-left: 0;
