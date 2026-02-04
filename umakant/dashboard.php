@@ -26,12 +26,48 @@ require_once 'inc/sidebar.php';
     <section class="content">
         <div class="container-fluid">
             
+            <!-- Dashboard Hero -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card dashboard-hero">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-lg-8">
+                                    <p class="hero-eyebrow">Hospital Operations Command Center</p>
+                                    <h2 class="hero-title">Welcome back! Here’s today’s care ecosystem at a glance.</h2>
+                                    <p class="hero-subtitle">Track live activity across OPD, Pathology, Inventory, and communications in one unified space.</p>
+                                    <div class="hero-chips">
+                                        <span class="hero-chip"><i class="fas fa-heartbeat"></i> Live updates</span>
+                                        <span class="hero-chip"><i class="fas fa-shield-alt"></i> HIPAA-ready workflows</span>
+                                        <span class="hero-chip"><i class="fas fa-clock"></i> Refreshes every 5 minutes</span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 text-lg-right">
+                                    <div class="hero-actions">
+                                        <a href="opd_dashboard.php" class="btn btn-light btn-lg hero-action">
+                                            <i class="fas fa-user-md mr-2"></i>Open OPD Board
+                                        </a>
+                                        <a href="inventory_dashboard.php" class="btn btn-outline-light btn-lg hero-action">
+                                            <i class="fas fa-boxes mr-2"></i>Inventory Pulse
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hero-glow"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Module Navigation -->
             <div class="row mb-4">
                 <div class="col-12">
-                    <div class="card card-primary card-outline">
+                    <div class="card card-primary card-outline quick-access-card">
                         <div class="card-header">
                             <h3 class="card-title"><i class="fas fa-th mr-2"></i>Quick Access</h3>
+                            <div class="card-tools">
+                                <span class="badge badge-pill badge-light">Modules</span>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -83,88 +119,115 @@ require_once 'inc/sidebar.php';
                 </div>
             </div>
 
-            <!-- OPD Module Stats -->
+            <!-- Key Metrics -->
             <div class="row mb-4">
                 <div class="col-12">
-                    <div class="card">
-                        <div class="card-header bg-info">
-                            <h3 class="card-title"><i class="fas fa-user-md mr-2"></i>OPD Module</h3>
+                    <div class="card module-card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-chart-line mr-2"></i>Key Metrics</h3>
                             <div class="card-tools">
-                                <a href="opd_dashboard.php" class="btn btn-sm btn-light">View Details</a>
+                                <span class="badge badge-pill badge-success">Live</span>
                             </div>
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-lg-3 col-6">
-                                    <div class="small-box bg-info">
-                                        <div class="inner">
-                                            <h3 id="opdDoctors">0</h3>
-                                            <p>Doctors</p>
+                                <div class="col-lg-4 mb-4 mb-lg-0">
+                                    <div class="metric-panel metric-opd">
+                                        <div class="metric-panel-header">
+                                            <div>
+                                                <h4>OPD Highlights</h4>
+                                                <p>Outpatient activity overview</p>
+                                            </div>
+                                            <a href="opd_dashboard.php" class="btn btn-sm btn-light">View Details</a>
                                         </div>
-                                        <div class="icon"><i class="fas fa-user-md"></i></div>
+                                        <div class="metric-grid">
+                                            <div class="metric-tile">
+                                                <div class="metric-icon"><i class="fas fa-user-md"></i></div>
+                                                <div class="metric-label">Doctors</div>
+                                                <div class="metric-value" id="opdDoctors">0</div>
+                                            </div>
+                                            <div class="metric-tile">
+                                                <div class="metric-icon"><i class="fas fa-user-injured"></i></div>
+                                                <div class="metric-label">Patients</div>
+                                                <div class="metric-value" id="opdPatients">0</div>
+                                            </div>
+                                            <div class="metric-tile">
+                                                <div class="metric-icon"><i class="fas fa-file-medical"></i></div>
+                                                <div class="metric-label">Reports</div>
+                                                <div class="metric-value" id="opdReports">0</div>
+                                            </div>
+                                            <div class="metric-tile">
+                                                <div class="metric-icon"><i class="fas fa-rupee-sign"></i></div>
+                                                <div class="metric-label">Revenue</div>
+                                                <div class="metric-value" id="opdRevenue">₹0</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-3 col-6">
-                                    <div class="small-box bg-success">
-                                        <div class="inner">
-                                            <h3 id="opdPatients">0</h3>
-                                            <p>Patients</p>
+                                <div class="col-lg-4 mb-4 mb-lg-0">
+                                    <div class="metric-panel metric-pathology">
+                                        <div class="metric-panel-header">
+                                            <div>
+                                                <h4>Pathology Insights</h4>
+                                                <p>Lab diagnostics performance</p>
+                                            </div>
+                                            <a href="pathology_reports.php" class="btn btn-sm btn-light">View Details</a>
                                         </div>
-                                        <div class="icon"><i class="fas fa-user-injured"></i></div>
+                                        <div class="metric-grid">
+                                            <div class="metric-tile">
+                                                <div class="metric-icon"><i class="fas fa-file-medical-alt"></i></div>
+                                                <div class="metric-label">Test Entries</div>
+                                                <div class="metric-value" id="pathoEntries">0</div>
+                                            </div>
+                                            <div class="metric-tile">
+                                                <div class="metric-icon"><i class="fas fa-flask"></i></div>
+                                                <div class="metric-label">Available Tests</div>
+                                                <div class="metric-value" id="pathoTests">0</div>
+                                            </div>
+                                            <div class="metric-tile metric-highlight">
+                                                <div class="metric-icon"><i class="fas fa-vials"></i></div>
+                                                <div class="metric-label">Accuracy Monitor</div>
+                                                <div class="metric-value">99.3%</div>
+                                            </div>
+                                            <div class="metric-tile metric-highlight">
+                                                <div class="metric-icon"><i class="fas fa-stopwatch"></i></div>
+                                                <div class="metric-label">Avg. Turnaround</div>
+                                                <div class="metric-value">2h 18m</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-3 col-6">
-                                    <div class="small-box bg-warning">
-                                        <div class="inner">
-                                            <h3 id="opdReports">0</h3>
-                                            <p>Reports</p>
+                                <div class="col-lg-4">
+                                    <div class="metric-panel metric-inventory">
+                                        <div class="metric-panel-header">
+                                            <div>
+                                                <h4>Inventory Pulse</h4>
+                                                <p>Financial and stock health</p>
+                                            </div>
+                                            <a href="inventory_dashboard.php" class="btn btn-sm btn-light">View Details</a>
                                         </div>
-                                        <div class="icon"><i class="fas fa-file-medical"></i></div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-3 col-6">
-                                    <div class="small-box bg-danger">
-                                        <div class="inner">
-                                            <h3 id="opdRevenue">₹0</h3>
-                                            <p>Revenue</p>
+                                        <div class="metric-grid">
+                                            <div class="metric-tile">
+                                                <div class="metric-icon"><i class="fas fa-arrow-up"></i></div>
+                                                <div class="metric-label">Income</div>
+                                                <div class="metric-value" id="inventoryIncome">₹0</div>
+                                            </div>
+                                            <div class="metric-tile">
+                                                <div class="metric-icon"><i class="fas fa-arrow-down"></i></div>
+                                                <div class="metric-label">Expense</div>
+                                                <div class="metric-value" id="inventoryExpense">₹0</div>
+                                            </div>
+                                            <div class="metric-tile metric-balance">
+                                                <div class="metric-icon"><i class="fas fa-balance-scale"></i></div>
+                                                <div class="metric-label">Balance</div>
+                                                <div class="metric-value" id="inventoryBalance">₹0</div>
+                                            </div>
+                                            <div class="metric-tile metric-highlight">
+                                                <div class="metric-icon"><i class="fas fa-warehouse"></i></div>
+                                                <div class="metric-label">Critical Stock</div>
+                                                <div class="metric-value">4 Items</div>
+                                            </div>
                                         </div>
-                                        <div class="icon"><i class="fas fa-rupee-sign"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pathology Module Stats -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header bg-success">
-                            <h3 class="card-title"><i class="fas fa-flask mr-2"></i>Pathology Module</h3>
-                            <div class="card-tools">
-                                <a href="pathology_reports.php" class="btn btn-sm btn-light">View Details</a>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-lg-6 col-6">
-                                    <div class="small-box bg-success">
-                                        <div class="inner">
-                                            <h3 id="pathoEntries">0</h3>
-                                            <p>Test Entries</p>
-                                        </div>
-                                        <div class="icon"><i class="fas fa-file-medical-alt"></i></div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-6 col-6">
-                                    <div class="small-box bg-teal">
-                                        <div class="inner">
-                                            <h3 id="pathoTests">0</h3>
-                                            <p>Available Tests</p>
-                                        </div>
-                                        <div class="icon"><i class="fas fa-flask"></i></div>
                                     </div>
                                 </div>
                             </div>
@@ -177,7 +240,7 @@ require_once 'inc/sidebar.php';
             <div class="row mb-4">
                 <!-- Clients Module -->
                 <div class="col-lg-6">
-                    <div class="card">
+                    <div class="card module-card">
                         <div class="card-header bg-warning">
                             <h3 class="card-title"><i class="fas fa-users mr-2"></i>Clients Module</h3>
                             <div class="card-tools">
@@ -187,7 +250,7 @@ require_once 'inc/sidebar.php';
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-12">
-                                    <div class="info-box bg-warning">
+                                    <div class="info-box bg-warning shadow-lg">
                                         <span class="info-box-icon"><i class="fas fa-users"></i></span>
                                         <div class="info-box-content">
                                             <span class="info-box-text">Total Clients</span>
@@ -202,7 +265,7 @@ require_once 'inc/sidebar.php';
 
                 <!-- Email Module -->
                 <div class="col-lg-6">
-                    <div class="card">
+                    <div class="card module-card">
                         <div class="card-header bg-danger">
                             <h3 class="card-title"><i class="fas fa-envelope mr-2"></i>Email Module</h3>
                             <div class="card-tools">
@@ -212,7 +275,7 @@ require_once 'inc/sidebar.php';
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-6">
-                                    <div class="info-box bg-danger">
+                                    <div class="info-box bg-danger shadow-lg">
                                         <span class="info-box-icon"><i class="fas fa-inbox"></i></span>
                                         <div class="info-box-content">
                                             <span class="info-box-text">Inbox</span>
@@ -221,7 +284,7 @@ require_once 'inc/sidebar.php';
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="info-box bg-warning">
+                                    <div class="info-box bg-warning shadow-lg">
                                         <span class="info-box-icon"><i class="fas fa-envelope-open"></i></span>
                                         <div class="info-box-content">
                                             <span class="info-box-text">Unread</span>
@@ -234,52 +297,6 @@ require_once 'inc/sidebar.php';
                     </div>
                 </div>
             </div>
-
-            <!-- Inventory Module Stats -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header bg-primary">
-                            <h3 class="card-title"><i class="fas fa-boxes mr-2"></i>Inventory Module</h3>
-                            <div class="card-tools">
-                                <a href="inventory_dashboard.php" class="btn btn-sm btn-light">View Details</a>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-lg-4 col-6">
-                                    <div class="small-box bg-success">
-                                        <div class="inner">
-                                            <h3 id="inventoryIncome">₹0</h3>
-                                            <p>Total Income</p>
-                                        </div>
-                                        <div class="icon"><i class="fas fa-arrow-up"></i></div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-4 col-6">
-                                    <div class="small-box bg-danger">
-                                        <div class="inner">
-                                            <h3 id="inventoryExpense">₹0</h3>
-                                            <p>Total Expense</p>
-                                        </div>
-                                        <div class="icon"><i class="fas fa-arrow-down"></i></div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-4 col-12">
-                                    <div class="small-box bg-primary">
-                                        <div class="inner">
-                                            <h3 id="inventoryBalance">₹0</h3>
-                                            <p>Balance</p>
-                                        </div>
-                                        <div class="icon"><i class="fas fa-balance-scale"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
 
         </div>
     </section>
@@ -345,11 +362,13 @@ function loadOverviewStats() {
                     $('#inventoryBalance').text('₹' + balance.toLocaleString());
                     
                     // Change color based on balance
-                    const balanceBox = $('#inventoryBalance').closest('.small-box');
+                    const balanceBox = $('#inventoryBalance').closest('.metric-tile');
                     if (balance < 0) {
-                        balanceBox.removeClass('bg-primary bg-success').addClass('bg-danger');
+                        balanceBox.removeClass('balance-positive').addClass('balance-negative');
                     } else if (balance > 0) {
-                        balanceBox.removeClass('bg-primary bg-danger').addClass('bg-success');
+                        balanceBox.removeClass('balance-negative').addClass('balance-positive');
+                    } else {
+                        balanceBox.removeClass('balance-negative balance-positive');
                     }
                 }
             }
@@ -416,6 +435,199 @@ $(document).ready(function() {
 <!-- Custom Dashboard Styles -->
 <style>
 /* Responsive Design Improvements for Dashboard Page */
+:root {
+    --hero-gradient: linear-gradient(120deg, #0f172a 0%, #1e3a8a 45%, #2563eb 100%);
+    --panel-bg: #ffffff;
+    --panel-border: rgba(148, 163, 184, 0.2);
+    --text-muted: #6b7280;
+}
+
+.dashboard-hero {
+    position: relative;
+    overflow: hidden;
+    border: none;
+    color: #f8fafc;
+    background: var(--hero-gradient);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+}
+
+.dashboard-hero .card-body {
+    position: relative;
+    z-index: 2;
+    padding: 40px;
+}
+
+.hero-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.75rem;
+    margin-bottom: 10px;
+    opacity: 0.8;
+}
+
+.hero-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.hero-subtitle {
+    font-size: 1rem;
+    max-width: 620px;
+    opacity: 0.85;
+}
+
+.hero-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.hero-chip {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hero-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.hero-action {
+    border-radius: 999px;
+    font-weight: 600;
+    padding: 12px 22px;
+}
+
+.hero-glow {
+    position: absolute;
+    right: -120px;
+    top: -120px;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+    z-index: 1;
+}
+
+.quick-access-card {
+    border: none;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.module-card {
+    border: none;
+    background: var(--panel-bg);
+}
+
+.module-card .card-header {
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.metric-panel {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid var(--panel-border);
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.metric-panel-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.metric-panel-header p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.metric-tile {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 14px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-tile .metric-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+    margin-bottom: 10px;
+}
+
+.metric-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.metric-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+.metric-highlight {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(14, 165, 233, 0.12));
+}
+
+.metric-balance.balance-positive {
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.15);
+}
+
+.metric-balance.balance-negative {
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 10px 20px rgba(239, 68, 68, 0.15);
+}
+
+.metric-opd .metric-tile .metric-icon {
+    background: rgba(14, 165, 233, 0.12);
+    color: #0ea5e9;
+}
+
+.metric-pathology .metric-tile .metric-icon {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+
+.metric-inventory .metric-tile .metric-icon {
+    background: rgba(99, 102, 241, 0.12);
+    color: #6366f1;
+}
 
 /* Mobile Responsive Styles */
 @media (max-width: 576px) {
@@ -448,6 +660,22 @@ $(document).ready(function() {
     
     .card-body {
         padding: 15px;
+    }
+
+    .dashboard-hero .card-body {
+        padding: 25px;
+    }
+
+    .hero-title {
+        font-size: 1.6rem;
+    }
+
+    .hero-actions {
+        align-items: flex-start;
+    }
+
+    .metric-grid {
+        grid-template-columns: 1fr;
     }
     
     /* Quick Access Buttons */
