@@ -1,10 +1,11 @@
 <?php
+$pageSpecificCSS = '<link rel="stylesheet" href="assets/css/opd-theme.css?v=' . time() . '">';
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 ?>
 
 <!-- Content Wrapper -->
-<div class="content-wrapper">
+<div class="content-wrapper opd-page">
     <!-- Content Header -->
     <section class="content-header">
         <div class="container-fluid">
