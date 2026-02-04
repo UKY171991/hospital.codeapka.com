@@ -4,7 +4,7 @@ require_once 'inc/sidebar.php';
 ?>
 
 <!-- Content Wrapper -->
-<div class="content-wrapper">
+<div class="content-wrapper inventory-section">
     <!-- Content Header -->
     <section class="content-header">
         <div class="container-fluid">
@@ -73,6 +73,49 @@ require_once 'inc/sidebar.php';
             </div>
 
             <div class="row">
+                <div class="col-lg-3 col-sm-6">
+                    <div class="info-box bg-white">
+                        <span class="info-box-icon bg-danger"><i class="fas fa-rupee-sign"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Total Expense</span>
+                            <span class="info-box-number" id="expenseTotalAmount">₹0.00</span>
+                            <small class="text-muted" id="expenseRecordCount">0 records</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="info-box bg-white">
+                        <span class="info-box-icon bg-warning"><i class="fas fa-clock"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Pending Amount</span>
+                            <span class="info-box-number" id="expensePendingAmount">₹0.00</span>
+                            <small class="text-muted" id="expensePendingCount">0 pending</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="info-box bg-info">
+                        <span class="info-box-icon bg-info"><i class="fas fa-check-circle"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Successful</span>
+                            <span class="info-box-number" id="expenseSuccessCount">0</span>
+                            <small class="text-muted">Completed payments</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="info-box bg-white">
+                        <span class="info-box-icon bg-secondary"><i class="fas fa-times-circle"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Failed</span>
+                            <span class="info-box-number" id="expenseFailedCount">0</span>
+                            <small class="text-muted">Failed payments</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-12">
                     <div class="card">
                         <div class="card-header">
@@ -107,7 +150,9 @@ require_once 'inc/sidebar.php';
                                     </thead>
                                 <tbody id="expenseTableBody">
                                     <tr>
-                                        <td colspan="9" class="text-center">Loading...</td>
+                                        <td colspan="9" class="text-center">
+                                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading expense records...
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -255,6 +300,7 @@ $(document).ready(function() {
 function loadExpenseRecords() {
     const year = $('#filterYear').val();
     const month = $('#filterMonth').val();
+    $('#expenseTableBody').html('<tr><td colspan="9" class="text-center"><i class="fas fa-spinner fa-spin mr-2"></i>Loading expense records...</td></tr>');
 
     $.ajax({
         url: 'ajax/inventory_api.php',
@@ -270,11 +316,14 @@ function loadExpenseRecords() {
         success: function(response) {
             if (response && response.success) {
                 displayExpenseRecords(response.data);
+            } else {
+                displayExpenseRecords([]);
             }
         },
         error: function(xhr, status, error) {
             console.error('Error loading expenses:', error);
             toastr.error('Failed to load expense records');
+            displayExpenseRecords([]);
         }
     });
 }
@@ -289,7 +338,8 @@ function displayExpenseRecords(records) {
     tbody.empty();
 
     if (!records || records.length === 0) {
-        tbody.append('<tr><td colspan="9" class="text-center">No expense records found</td></tr>');
+        tbody.append('<tr><td colspan="9" class="text-center text-muted">No expense records found</td></tr>');
+        updateExpenseStats([]);
         return;
     }
 
@@ -305,10 +355,10 @@ function displayExpenseRecords(records) {
         // Default to 'Success' if payment_status is not set
         const paymentStatus = record.payment_status || 'Success';
         const statusBadge = paymentStatus === 'Success' ? 
-            '<span class="badge badge-success">Success</span>' : 
+            '<span class="badge badge-success"><i class="fas fa-check-circle mr-1"></i>Success</span>' : 
             paymentStatus === 'Pending' ? 
-            '<span class="badge badge-warning">Pending</span>' : 
-            '<span class="badge badge-danger">Failed</span>';
+            '<span class="badge badge-warning"><i class="fas fa-clock mr-1"></i>Pending</span>' : 
+            '<span class="badge badge-danger"><i class="fas fa-times-circle mr-1"></i>Failed</span>';
         
         const row = `
             <tr>
@@ -317,7 +367,7 @@ function displayExpenseRecords(records) {
                 <td>${record.category}</td>
                 <td>${record.description}</td>
                 <td>${record.vendor || '-'}</td>
-                <td>₹${parseFloat(record.amount).toFixed(2)}</td>
+                <td class="text-right font-weight-bold text-danger">${formatCurrency(record.amount)}</td>
                 <td>${record.payment_method}</td>
                 <td>${statusBadge}</td>
                 <td>
@@ -342,6 +392,7 @@ function displayExpenseRecords(records) {
         `;
         tbody.append(row);
     });
+    updateExpenseStats(records);
 
     // Initialize DataTable with fresh data
     expenseTable = $('#expenseTable').DataTable({
@@ -392,6 +443,43 @@ function displayExpenseRecords(records) {
                 previous: "Previous"
             }
         }
+    });
+}
+
+function updateExpenseStats(records) {
+    let totalAmount = 0;
+    let pendingAmount = 0;
+    let pendingCount = 0;
+    let successCount = 0;
+    let failedCount = 0;
+
+    records.forEach(function(record) {
+        const amount = parseFloat(record.amount || 0);
+        totalAmount += amount;
+        const status = record.payment_status || 'Success';
+        if (status === 'Pending') {
+            pendingAmount += amount;
+            pendingCount += 1;
+        } else if (status === 'Failed') {
+            failedCount += 1;
+        } else {
+            successCount += 1;
+        }
+    });
+
+    $('#expenseTotalAmount').text(formatCurrency(totalAmount));
+    $('#expensePendingAmount').text(formatCurrency(pendingAmount));
+    $('#expensePendingCount').text(pendingCount + ' pending');
+    $('#expenseSuccessCount').text(successCount);
+    $('#expenseFailedCount').text(failedCount);
+    $('#expenseRecordCount').text(records.length + ' records');
+}
+
+function formatCurrency(amount) {
+    const value = parseFloat(amount || 0);
+    return '₹' + value.toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
     });
 }
 
