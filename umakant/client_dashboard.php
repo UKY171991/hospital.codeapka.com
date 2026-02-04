@@ -172,6 +172,64 @@ require_once 'inc/sidebar.php';
             width: 100%;
         }
     }
+
+    .dashboard-actions .btn {
+        border-radius: 999px;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+    }
+
+    .dashboard-actions .btn i {
+        margin-right: 0.4rem;
+    }
+
+    .dashboard-meta {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .stat-meta {
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.85);
+    }
+
+    .stat-progress {
+        height: 6px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: rgba(255,255,255,0.2);
+        margin-top: 0.5rem;
+    }
+
+    .stat-progress .progress-bar {
+        background: rgba(255,255,255,0.85);
+    }
+
+    .quick-action-card .card-body {
+        padding: 1rem 1.5rem 1.5rem;
+    }
+
+    .quick-action-card .btn {
+        width: 100%;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+    }
+
+    .empty-state {
+        padding: 1.5rem;
+        text-align: center;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+        color: #adb5bd;
+    }
+
+    .dashboard-alert {
+        display: none;
+    }
     
     /* Improve table responsiveness */
     .table-responsive {
@@ -233,6 +291,24 @@ require_once 'inc/sidebar.php';
     <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-8">
+                    <div class="dashboard-meta">
+                        <span id="dashboardLastUpdated">Last updated: --</span>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-right dashboard-actions mt-2 mt-md-0">
+                    <button class="btn btn-outline-primary btn-sm mr-2" type="button" id="refreshDashboard">
+                        <i class="fas fa-sync-alt"></i>Refresh
+                    </button>
+                    <a href="clients.php" class="btn btn-primary btn-sm">
+                        <i class="fas fa-user-plus"></i>Add Client
+                    </a>
+                </div>
+            </div>
+
+            <div class="alert alert-warning dashboard-alert" role="alert" id="dashboardAlert"></div>
+
             <!-- Stats Row -->
             <div class="row">
                 <div class="col-lg-3 col-6">
@@ -240,6 +316,7 @@ require_once 'inc/sidebar.php';
                         <div class="inner">
                             <h3 id="totalClients">0</h3>
                             <p>Total Clients</p>
+                            <div class="stat-meta">Active accounts</div>
                         </div>
                         <div class="icon">
                             <i class="fas fa-users"></i>
@@ -255,6 +332,7 @@ require_once 'inc/sidebar.php';
                         <div class="inner">
                             <h3 id="totalTasks">0</h3>
                             <p>Total Tasks</p>
+                            <div class="stat-meta">Across all clients</div>
                         </div>
                         <div class="icon">
                             <i class="fas fa-tasks"></i>
@@ -270,6 +348,7 @@ require_once 'inc/sidebar.php';
                         <div class="inner">
                             <h3 id="pendingTasks">0</h3>
                             <p>Pending Tasks</p>
+                            <div class="stat-meta">Needs attention</div>
                         </div>
                         <div class="icon">
                             <i class="fas fa-clock"></i>
@@ -285,6 +364,10 @@ require_once 'inc/sidebar.php';
                         <div class="inner">
                             <h3 id="completedTasks">0</h3>
                             <p>Completed Tasks</p>
+                            <div class="stat-meta">Closed successfully</div>
+                            <div class="stat-progress">
+                                <div class="progress-bar" id="completionProgress" style="width: 0%"></div>
+                            </div>
                         </div>
                         <div class="icon">
                             <i class="fas fa-check-circle"></i>
@@ -292,6 +375,59 @@ require_once 'inc/sidebar.php';
                         <a href="tasks.php" class="small-box-footer">
                             View Details <i class="fas fa-arrow-circle-right"></i>
                         </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card quick-action-card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-bolt mr-2"></i>
+                                Quick Actions
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <a href="clients.php" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus"></i>Add New Client
+                            </a>
+                            <a href="tasks.php" class="btn btn-outline-success">
+                                <i class="fas fa-tasks"></i>Create Task
+                            </a>
+                            <a href="tasks.php" class="btn btn-outline-info mb-0">
+                                <i class="fas fa-list"></i>Review Tasks
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-chart-line mr-2"></i>
+                                Productivity Insights
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-sm-4 mb-3 mb-sm-0">
+                                    <h4 class="text-primary mb-1" id="activeTasks">0</h4>
+                                    <span class="text-muted">Active Tasks</span>
+                                </div>
+                                <div class="col-sm-4 mb-3 mb-sm-0">
+                                    <h4 class="text-success mb-1" id="completionRate">0%</h4>
+                                    <span class="text-muted">Completion Rate</span>
+                                </div>
+                                <div class="col-sm-4">
+                                    <h4 class="text-info mb-1" id="avgTasksPerClient">0</h4>
+                                    <span class="text-muted">Tasks per Client</span>
+                                </div>
+                            </div>
+                            <div class="mt-3 text-muted small">
+                                Keep momentum by closing pending tasks and creating follow-ups for high priority items.
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -407,9 +543,16 @@ $(document).ready(function() {
     loadDashboardStats();
     loadRecentClients();
     loadRecentTasks();
+
+    $('#refreshDashboard').on('click', function() {
+        loadDashboardStats();
+        loadRecentClients();
+        loadRecentTasks();
+    });
 });
 
 function loadDashboardStats() {
+    setDashboardAlert('');
     $.ajax({
         url: 'ajax/client_api.php',
         type: 'GET',
@@ -422,10 +565,28 @@ function loadDashboardStats() {
         success: function(response) {
             if (response && response.success) {
                 const data = response.data;
-                $('#totalClients').text(data.total_clients);
-                $('#totalTasks').text(data.total_tasks);
-                $('#pendingTasks').text(data.pending_tasks);
-                $('#completedTasks').text(data.completed_tasks);
+                const totalClients = Number(data.total_clients || 0);
+                const totalTasks = Number(data.total_tasks || 0);
+                const pendingTasks = Number(data.pending_tasks || 0);
+                const completedTasks = Number(data.completed_tasks || 0);
+                const inProgress = Number(data.task_status?.in_progress || 0);
+                const onHold = Number(data.task_status?.on_hold || 0);
+
+                $('#totalClients').text(totalClients);
+                $('#totalTasks').text(totalTasks);
+                $('#pendingTasks').text(pendingTasks);
+                $('#completedTasks').text(completedTasks);
+
+                const activeTasks = pendingTasks + inProgress + onHold;
+                const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+                const avgTasksPerClient = totalClients > 0 ? (totalTasks / totalClients).toFixed(1) : 0;
+
+                $('#activeTasks').text(activeTasks);
+                $('#completionRate').text(`${completionRate}%`);
+                $('#avgTasksPerClient').text(avgTasksPerClient);
+                $('#completionProgress').css('width', `${completionRate}%`);
+
+                updateDashboardTimestamp();
                 
                 // Create charts
                 createTaskStatusChart(data.task_status);
@@ -434,6 +595,7 @@ function loadDashboardStats() {
         },
         error: function(xhr, status, error) {
             console.error('Error loading dashboard stats:', error);
+            setDashboardAlert('Unable to load dashboard statistics. Please refresh.');
         }
     });
 }
@@ -582,7 +744,12 @@ function loadRecentClients() {
         success: function(response) {
             if (response && response.success) {
                 displayRecentClients(response.data);
+            } else {
+                displayRecentClients([]);
             }
+        },
+        error: function() {
+            displayRecentClients([]);
         }
     });
 }
@@ -592,7 +759,17 @@ function displayRecentClients(clients) {
     tbody.empty();
     
     if (!clients || clients.length === 0) {
-        tbody.append('<tr><td colspan="3" class="text-center">No clients found</td></tr>');
+        tbody.append(`
+            <tr>
+                <td colspan="3">
+                    <div class="empty-state">
+                        <i class="fas fa-user-plus"></i>
+                        <div>No recent clients yet.</div>
+                        <a href="clients.php" class="btn btn-sm btn-outline-primary mt-2">Add Client</a>
+                    </div>
+                </td>
+            </tr>
+        `);
         return;
     }
     
@@ -621,7 +798,12 @@ function loadRecentTasks() {
         success: function(response) {
             if (response && response.success) {
                 displayRecentTasks(response.data);
+            } else {
+                displayRecentTasks([]);
             }
+        },
+        error: function() {
+            displayRecentTasks([]);
         }
     });
 }
@@ -631,7 +813,17 @@ function displayRecentTasks(tasks) {
     tbody.empty();
     
     if (!tasks || tasks.length === 0) {
-        tbody.append('<tr><td colspan="3" class="text-center">No tasks found</td></tr>');
+        tbody.append(`
+            <tr>
+                <td colspan="3">
+                    <div class="empty-state">
+                        <i class="fas fa-tasks"></i>
+                        <div>No tasks available.</div>
+                        <a href="tasks.php" class="btn btn-sm btn-outline-success mt-2">Create Task</a>
+                    </div>
+                </td>
+            </tr>
+        `);
         return;
     }
     
@@ -652,6 +844,27 @@ function displayRecentTasks(tasks) {
                                     </tr>
         `);
     });
+}
+
+function updateDashboardTimestamp() {
+    const now = new Date();
+    const formatted = now.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    $('#dashboardLastUpdated').text(`Last updated: ${formatted}`);
+}
+
+function setDashboardAlert(message) {
+    const alert = $('#dashboardAlert');
+    if (message) {
+        alert.text(message).show();
+        return;
+    }
+    alert.hide();
 }
 </script>
 
