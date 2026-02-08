@@ -1,6 +1,17 @@
 <?php
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
+
+$pathoDir = __DIR__ . '/patho_api';
+$apiFiles = [];
+$docFiles = [];
+
+if (is_dir($pathoDir)) {
+    $apiFiles = glob($pathoDir . '/*.php') ?: [];
+    $docFiles = glob($pathoDir . '/*.html') ?: [];
+    sort($apiFiles, SORT_NATURAL | SORT_FLAG_CASE);
+    sort($docFiles, SORT_NATURAL | SORT_FLAG_CASE);
+}
 ?>
 
 <!-- Content Wrapper. Contains page content -->
@@ -114,6 +125,60 @@ require_once 'inc/sidebar.php';
                                     </a>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pathology API & Documentation -->
+            <div class="row mb-4">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <div class="card module-card">
+                        <div class="card-header bg-info">
+                            <h3 class="card-title"><i class="fas fa-plug mr-2"></i>Pathology API List</h3>
+                            <div class="card-tools">
+                                <span class="badge badge-light">patho_api</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <?php if (!empty($apiFiles)) : ?>
+                                <ul class="list-group">
+                                    <?php foreach ($apiFiles as $apiFile) : ?>
+                                        <?php $apiName = basename($apiFile); ?>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-code-branch text-info mr-2"></i><?php echo htmlspecialchars($apiName, ENT_QUOTES, 'UTF-8'); ?></span>
+                                            <a href="patho_api/<?php echo rawurlencode($apiName); ?>" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">Open</a>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else : ?>
+                                <p class="text-muted mb-0">No Pathology API endpoints found.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card module-card">
+                        <div class="card-header bg-success">
+                            <h3 class="card-title"><i class="fas fa-book mr-2"></i>Pathology Docs List</h3>
+                            <div class="card-tools">
+                                <span class="badge badge-light">Docs</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <?php if (!empty($docFiles)) : ?>
+                                <ul class="list-group">
+                                    <?php foreach ($docFiles as $docFile) : ?>
+                                        <?php $docName = basename($docFile); ?>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-file-alt text-success mr-2"></i><?php echo htmlspecialchars($docName, ENT_QUOTES, 'UTF-8'); ?></span>
+                                            <a href="patho_api/<?php echo rawurlencode($docName); ?>" class="btn btn-sm btn-outline-success" target="_blank" rel="noopener">View</a>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else : ?>
+                                <p class="text-muted mb-0">No Pathology documentation files found.</p>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
