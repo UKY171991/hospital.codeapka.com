@@ -60,11 +60,127 @@
       </div>
     </section>
 
+    <!-- Trust Strip -->
+    <section class="pricing-trust-strip py-4 border-bottom bg-white">
+      <div class="container">
+        <div class="row g-3 text-center">
+          <div class="col-6 col-lg-3">
+            <div class="trust-item">
+              <div class="trust-value">99.9%</div>
+              <div class="trust-label">Platform Uptime</div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="trust-item">
+              <div class="trust-value">24/7</div>
+              <div class="trust-label">Support Availability</div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="trust-item">
+              <div class="trust-value">Secure</div>
+              <div class="trust-label">Cloud Data Backup</div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="trust-item">
+              <div class="trust-value">Fast</div>
+              <div class="trust-label">Onboarding in Days</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Pricing Plans -->
     <section class="pricing-plans-section py-5 bg-light">
       <div class="container">
         <div class="container-fluid">
           <?php include __DIR__ . '/umakant/public_plans.php'; ?>
+        </div>
+      </div>
+    </section>
+
+    <!-- Included in Every Plan -->
+    <section class="pricing-includes py-5">
+      <div class="container">
+        <div class="text-center mb-4">
+          <h2 class="fw-bold mb-2">Everything You Need to Run a Modern Facility</h2>
+          <p class="text-muted mb-0">Every plan is built with the essentials required by clinics, hospitals, and pathology labs.</p>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6 col-lg-3">
+            <div class="include-card h-100">
+              <h3>Patient Records</h3>
+              <p>Maintain complete OPD/IPD records, visits, and treatment history in one place.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="include-card h-100">
+              <h3>Billing & Invoices</h3>
+              <p>Generate professional bills, manage payments, and track pending balances quickly.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="include-card h-100">
+              <h3>Reports & Insights</h3>
+              <p>Access dashboards and daily summaries to make data-driven decisions.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="include-card h-100">
+              <h3>Security First</h3>
+              <p>Role-based access and secure data handling to protect sensitive health information.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="pricing-faq-section py-5 bg-light">
+      <div class="container" style="max-width: 900px;">
+        <div class="text-center mb-4">
+          <h2 class="fw-bold mb-2">Frequently Asked Questions</h2>
+          <p class="text-muted mb-0">Clear answers to help you choose the right plan.</p>
+        </div>
+        <div class="accordion shadow-sm rounded-4 overflow-hidden" id="pricingFaqAccordion">
+          <div class="accordion-item border-0 border-bottom">
+            <h2 class="accordion-header" id="faqOneHeading">
+              <button class="accordion-button fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faqOne" aria-expanded="true" aria-controls="faqOne">
+                Is there any setup or onboarding fee?
+              </button>
+            </h2>
+            <div id="faqOne" class="accordion-collapse collapse show" aria-labelledby="faqOneHeading" data-bs-parent="#pricingFaqAccordion">
+              <div class="accordion-body text-muted">
+                No hidden charges. Our team will guide your initial setup and onboarding as part of your subscription.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item border-0 border-bottom">
+            <h2 class="accordion-header" id="faqTwoHeading">
+              <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faqTwo" aria-expanded="false" aria-controls="faqTwo">
+                Can I switch plans later?
+              </button>
+            </h2>
+            <div id="faqTwo" class="accordion-collapse collapse" aria-labelledby="faqTwoHeading" data-bs-parent="#pricingFaqAccordion">
+              <div class="accordion-body text-muted">
+                Yes. You can upgrade or change your plan as your requirements evolve, without losing your existing data.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="faqThreeHeading">
+              <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faqThree" aria-expanded="false" aria-controls="faqThree">
+                Do you provide support and training?
+              </button>
+            </h2>
+            <div id="faqThree" class="accordion-collapse collapse" aria-labelledby="faqThreeHeading" data-bs-parent="#pricingFaqAccordion">
+              <div class="accordion-body text-muted">
+                Absolutely. We offer product training, implementation guidance, and responsive support to your team.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -93,6 +209,7 @@
   <?php include_once __DIR__ . '/inc/footer.php'; ?>
 
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Simple fade-in on scroll
     const observer = new IntersectionObserver((entries) => {
@@ -137,6 +254,58 @@
     .hover-lift:hover {
       transform: translateY(-5px);
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    .pricing-trust-strip .trust-item {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 14px 12px;
+      height: 100%;
+    }
+    .trust-value {
+      font-weight: 800;
+      color: #1d4ed8;
+      font-size: 1.2rem;
+      line-height: 1.2;
+    }
+    .trust-label {
+      color: #6b7280;
+      font-size: 0.92rem;
+      margin-top: 2px;
+    }
+    .pricing-includes {
+      background: #fff;
+    }
+    .include-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 22px 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .include-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(30, 58, 138, 0.09);
+    }
+    .include-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+      color: #1f2937;
+      font-weight: 700;
+    }
+    .include-card p {
+      margin-bottom: 0;
+      color: #6b7280;
+      font-size: .95rem;
+    }
+    .pricing-faq-section .accordion-button:not(.collapsed) {
+      color: #1d4ed8;
+      background: #eef4ff;
+      box-shadow: none;
+    }
+    .pricing-faq-section .accordion-button:focus {
+      box-shadow: none;
+      border-color: #dbeafe;
     }
   </style>
 </body>
