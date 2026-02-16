@@ -172,35 +172,79 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (ob_get_level()) ob_end_clean();
         header('Content-Type: application/json');
 
+        // Increase execution time for scraping
+        set_time_limit(300);
+
         $category = $_POST['category'] ?? '';
         $city = $_POST['city'] ?? '';
         $country = $_POST['country'] ?? '';
+        $nextParams = $_POST['next_params'] ?? null;
         
-        $query = urlencode("$category $city $country");
-        $searchUrl = "https://html.duckduckgo.com/html/?q=$query";
+        $url = "https://html.duckduckgo.com/html/";
+        $postData = [];
+
+        if ($nextParams) {
+             $postData = $nextParams;
+        } else {
+             // Initial Request
+             $query = "$category $city $country";
+             $postData = ['q' => $query];
+        }
 
         // Function to make cURL request
-        function fetchUrl($url) {
+        function fetchUrl($url, $postData = []) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             // Rotate User Agents or use a standard one
             curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            
+            if (!empty($postData)) {
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+            }
+
             $output = curl_exec($ch);
             curl_close($ch);
             return $output;
         }
 
         // 1. Get Search Results
-        $html = fetchUrl($searchUrl);
+        $html = fetchUrl($url, $postData);
         
         $dom = new DOMDocument();
         @$dom->loadHTML($html);
         $xpath = new DOMXPath($dom);
         
+        // Extract Next Page Parameters
+        $nextPageParams = null;
+        $forms = $dom->getElementsByTagName('form');
+        foreach ($forms as $form) {
+            $action = $form->getAttribute('action');
+            // DuckDuckGo next page form usually posts to /html/ or similar
+            if (strpos($action, '/html/') !== false || $form->getAttribute('class') == 'nav-button') {
+                 $inputs = $form->getElementsByTagName('input');
+                 $tempParams = [];
+                 $hasS = false;
+                 foreach ($inputs as $input) {
+                     $name = $input->getAttribute('name');
+                     $value = $input->getAttribute('value');
+                     if ($name) {
+                         $tempParams[$name] = $value;
+                         if ($name === 's') $hasS = true;
+                     }
+                 }
+                 // Only consider it a next page form if it has 's' (start) parameter or 'next' logic
+                 if ($hasS) {
+                     $nextPageParams = $tempParams;
+                     break;
+                 }
+            }
+        }
+
         // Extract Links from DuckDuckGo HTML results
         // Class 'result__a' is common in DDG HTML, but structure changes.
         // Fallback: look for generic links that contain 'http' and are not DDG internal links.
@@ -226,7 +270,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if (filter_var($href, FILTER_VALIDATE_URL) && strpos($href, 'duckduckgo') === false && strpos($href, 'microsoft') === false) {
                 $links[] = $href;
             }
-            if (count($links) >= 5) break; // Limit to 5 results for speed
+            // Limit to 10 results per batch to keep execution time reasonable
+            if (count($links) >= 10) break;
         }
 
         $insertedCount = 0;
@@ -301,11 +346,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $insertedCount++;
         }
 
-        if ($insertedCount > 0) {
-            echo json_encode(['status' => 'success', 'message' => "Scraping complete. Found and inserted $insertedCount new records."]);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => "No new data found or search blocked. Try a different category/location."]);
-        }
+        echo json_encode([
+            'status' => 'success', 
+            'message' => "Batch complete.",
+            'count' => $insertedCount,
+            'next_params' => $nextPageParams
+        ]);
         exit;
     }
 
@@ -784,37 +830,79 @@ $(document).ready(function() {
     $('#scraperForm').on('submit', function(e) {
         e.preventDefault();
         var btn = $('#btnRunScraper');
-        var originalText = btn.html();
+        var originalText = 'Start Scraping'; // Hardcoded original text
         var category = $('input[name="scrape_category"]').val();
         var city = $('input[name="scrape_city"]').val();
         var country = $('input[name="scrape_country"]').val();
+        
+        var totalScraped = 0;
+        var targetScraped = 100;
 
-        btn.html('<i class="fas fa-cog fa-spin"></i> Scraping...').prop('disabled', true);
+        btn.html('<i class="fas fa-cog fa-spin"></i> Initializing...').prop('disabled', true);
 
-        $.ajax({
-            url: 'data_scraper.php',
-            type: 'POST',
-            dataType: 'json',
-            data: { 
+        function runScraper(nextParams = null) {
+            var data = { 
                 action: 'auto_scrape', 
                 category: category,
                 city: city,
                 country: country
-            },
-            success: function(response) {
-                if(response.status === 'success') {
-                    alert(response.message);
-                    location.reload(); 
-                } else {
-                    alert('Status: ' + response.message);
-                }
-                btn.html(originalText).prop('disabled', false);
-            },
-            error: function() {
-                alert('Scraping error or timeout. The server might be blocking requests.');
-                btn.html(originalText).prop('disabled', false);
+            };
+
+            if (nextParams) {
+                data.next_params = nextParams;
             }
-        });
+
+            $.ajax({
+                url: 'data_scraper.php',
+                type: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function(response) {
+                    if(response.status === 'success') {
+                        totalScraped += response.count;
+                        btn.html('<i class="fas fa-cog fa-spin"></i> Scraping... (' + totalScraped + '/' + targetScraped + ')');
+                        
+                        // Continue if target not reached and next page exists
+                        if (totalScraped < targetScraped && response.next_params) {
+                            // Small delay to be polite
+                            setTimeout(function() {
+                                runScraper(response.next_params);
+                            }, 1000);
+                        } else {
+                            // Finished
+                            btn.html('<i class="fas fa-check"></i> Done (' + totalScraped + ')').removeClass('btn-success').addClass('btn-primary');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        }
+                    } else {
+                         // Error or no more results
+                         // If we have some data, just finish
+                         if (totalScraped > 0) {
+                             location.reload();
+                         } else {
+                            btn.html('<i class="fas fa-exclamation-triangle"></i> No Data Found');
+                            // Alert removed as per request, just showing status on button
+                            setTimeout(function() {
+                                btn.html('<i class="fas fa-search-plus"></i> Start Scraping').prop('disabled', false).removeClass('btn-primary').addClass('btn-success');
+                            }, 3000);
+                         }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Scraping error:", error);
+                    // If we made some progress, reload to show it
+                    if (totalScraped > 0) {
+                        location.reload();
+                    } else {
+                        btn.html('<i class="fas fa-times"></i> Error').prop('disabled', false);
+                    }
+                }
+            });
+        }
+
+        // Start the process
+        runScraper();
     });
 });
 </script>
