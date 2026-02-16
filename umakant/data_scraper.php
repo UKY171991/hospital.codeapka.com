@@ -297,7 +297,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'booking.com', 'expedia', 'trip.com', 'agoda', 'airbnb',
             'cnet', 'techcrunch', 'forbes', 'bloomberg', 'businessinsider',
             'bbb.org', 'chamberofcommerce', 'manta', 'zoominfo', 
-            'gov', 'edu', 'mil' // Generally exclude government/education/military domains for business scraping unless targeted
+            'gov', 'edu', 'mil',
+            'medimap', 'vitals', 'ratemds', 'healthline', 'webmd', 'docdoc',
+            'clinic-directory', 'find-a-doctor', 'best-doctors'
+        ];
+
+        // Specific path segments that indicate a directory page, NOT a business homepage
+        $directoryPathSegments = [
+            '/specialties/', '/specialty/', '/category/', '/search/', '/find/', 
+            '/listing/', '/directory/', '/locations/', '/providers/', 
+            '/best-', '/top-', '/rankings/', '/reviews/', '/compare/'
         ];
 
         foreach ($nodes as $node) {
@@ -324,6 +333,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             }
             
+            // Check for Directory-like Path Segments (e.g., medimap.ca/specialties/...)
+            foreach ($directoryPathSegments as $segment) {
+                if (stripos($href, $segment) !== false) {
+                    $isExcluded = true;
+                    break;
+                }
+            }
+
             if (!$isExcluded) {
                 $links[] = $href;
             }
