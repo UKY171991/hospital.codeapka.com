@@ -274,10 +274,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 'q_param' => 'q',
                 'extra' => []
             ],
-            'yahoo' => [
-                'url' => 'https://search.yahoo.com/search',
+            'ecosia' => [
+                'url' => 'https://www.ecosia.org/search',
                 'method' => 'GET',
-                'q_param' => 'p',
+                'q_param' => 'q',
+                'extra' => []
+            ],
+            'bing' => [
+                'url' => 'https://www.bing.com/search',
+                'method' => 'GET',
+                'q_param' => 'q',
                 'extra' => []
             ]
         ];
@@ -288,9 +294,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($city) $queryParts[] = "$city";
         if ($country) $queryParts[] = "$country";
         $baseQuery = implode(' ', $queryParts);
-        $query = "$baseQuery -directory -list"; // Broad search
+        $query = "$baseQuery"; // Broad search without restrictions
 
         // Define Exclusion Lists
+
         $exclusionList = ['facebook.com', 'yelp.com', 'yellowpages', 'linkedin', 'instagram', 'twitter', 'youtube', 'pinterest', 'bbb.org', 'mapquest', 'tripadvisor', 'whitepages', 'superpages'];
         $directoryPathSegments = ['/directory', '/listing', '/business', '/profile', '/search', '/catalog'];
 
@@ -393,22 +400,59 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             @$dom->loadHTML($html);
             $xpath = new DOMXPath($dom);
             
-            // Extract Links
+            // Extract Links using DOM
             $nodes = $dom->getElementsByTagName('a'); 
-
+            $rawLinks = [];
             foreach ($nodes as $node) {
-                $href = $node->getAttribute('href');
-                // Basic cleanup
+                $rawLinks[] = $node->getAttribute('href');
+            }
+
+            // BACKUP: Regex Extraction (The "Nuclear" Option)
+            // If DOM fails or finds few links, scan raw HTML for anything looking like a URL
+            if (count($rawLinks) < 5) {
+                preg_match_all('/href=["\'](https?:\/\/[^"\']+)["\']/', $html, $matches);
+                if (!empty($matches[1])) {
+                    $rawLinks = array_merge($rawLinks, $matches[1]);
+                }
+                // Also look for unquoted links or weird formats
+                preg_match_all('/url\?q=(https?%3A%2F%2F[^&]+)/', $html, $matches); // Common in Google/others
+                if (!empty($matches[1])) {
+                     foreach($matches[1] as $m) $rawLinks[] = urldecode($m);
+                }
+            }
+
+            $rawLinks = array_unique($rawLinks);
+
+            foreach ($rawLinks as $href) {
+                // cleanup
+                $href = trim($href);
+                if (empty($href)) continue;
+
+                // Handle Engine-Specific Redirects/Formats
                 if ($activeEngine === 'ddg') {
                      if (strpos($href, 'uddg=') !== false) {
                         parse_str(parse_url($href, PHP_URL_QUERY), $vars);
                         if (isset($vars['uddg'])) $href = $vars['uddg'];
                      }
-                }
-                
-                // Allow relative
-                if (strpos($href, '/') === 0 && $activeEngine == 'ddg') {
-                    $href = "https://lite.duckduckgo.com" . $href;
+                      // Handle Relative Links in DDG Lite
+                     if (strpos($href, '/') === 0) {
+                        $href = "https://lite.duckduckgo.com" . $href;
+                     }
+                } elseif ($activeEngine === 'ask') {
+                    // Ask links often are absolute, but just in case
+                    if (strpos($href, '/') === 0) {
+                        $href = "https://www.ask.com" . $href;
+                    }
+                } elseif ($activeEngine === 'yahoo') {
+                    // Yahoo often wraps in .../RU=.../RK=...
+                    // Or /search/srpcache...
+                     if (strpos($href, 'RU=') !== false) {
+                         // extracting from RU= param is hard due to encoding, usually the visual link is better
+                         // but let's try strict regex for hidden destination
+                     }
+                     if (strpos($href, '/') === 0) {
+                        $href = "https://search.yahoo.com" . $href;
+                    }
                 }
 
                 if (!filter_var($href, FILTER_VALIDATE_URL)) continue;
@@ -419,6 +463,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                          $isExcluded = true; break;
                     }
                 }
+                // Also exclude Search Engine internal links
+                if (stripos($href, 'duckduckgo.com') !== false || stripos($href, 'ask.com') !== false || stripos($href, 'yahoo.com') !== false || stripos($href, 'google.com') !== false) {
+                    $isExcluded = true;
+                }
+
                 if (!$isExcluded && !in_array($href, $links)) {
                     $links[] = $href;
                 }
