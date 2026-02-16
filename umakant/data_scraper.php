@@ -474,18 +474,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($siteResp['code'] !== 200) continue;
             $siteHtml = $siteResp['content'];
 
-            // FOOTPRINT DISCOVERY (Mandatory Check)
-            // User requires finding sites using Elfsight.
-            // We check the actual source code now.
-            if (stripos($siteHtml, 'elfsight') === false && stripos($siteHtml, 'elfsight-app') === false && stripos($siteHtml, 'powered by elfsight') === false) {
-                 // Skip sites that don't have the footprint
-                 continue;
+            // FOOTPRINT DISCOVERY (Soft Check)
+            // We check for Elfsight, but we DO NOT BLOCK data if not found (because JS widgets are hidden).
+            // Instead, we mark it.
+            $hasElfsight = false;
+            if (stripos($siteHtml, 'elfsight') !== false || stripos($siteHtml, 'elfsight-app') !== false || stripos($siteHtml, 'powered by elfsight') !== false) {
+                 $hasElfsight = true;
             }
-
+            
             // Extract Data
             // Title as Business Name
             preg_match('/<title>(.*?)<\/title>/is', $siteHtml, $matches);
             $title = isset($matches[1]) ? trim(strip_tags($matches[1])) : $category . ' Business';
+            
+            if ($hasElfsight) {
+                // Tag it so the user knows
+                $category .= " [Elfsight]";
+            }
             
             // Text content for searching
             $textContent = strip_tags($siteHtml);
