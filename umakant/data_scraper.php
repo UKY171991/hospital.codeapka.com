@@ -224,17 +224,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $country = $_POST['country'] ?? '';
         $nextParams = $_POST['next_params'] ?? null;
         
-        // Use DuckDuckGo HTML via GET (more like a browser)
-        $url = "https://html.duckduckgo.com/html/";
+        // Use DuckDuckGo Lite - Better for scraping
+        $url = "https://lite.duckduckgo.com/lite/";
         $postData = [];
-        $method = 'POST'; // Default
+        $method = 'POST'; 
 
         if ($nextParams) {
-             // For pagination, DDG HTML uses POST usually
              $postData = $nextParams;
              $method = 'POST';
         } else {
-             // Initial Request via GET to resemble browser
+             // Initial Request
              $queryParts = [];
              if ($category) $queryParts[] = "$category";
              if ($city) $queryParts[] = "$city";
@@ -242,9 +241,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
              $baseQuery = implode(' ', $queryParts);
              $query = "$baseQuery -directory -list";
              
-             // Construct GET URL
-             $url .= "?q=" . urlencode($query) . "&kl=us-en";
-             $method = 'GET';
+             // Lite uses POST for search usually
+             $postData = ['q' => $query, 'kl' => 'us-en'];
+             $method = 'POST';
              
              $debugLog = [];
         }
@@ -302,8 +301,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Initial Fetch
         $response = fetchUrl($url, $postData, $method);
         
-        // Check initial connectivity
-        if ($response['code'] !== 200) {
+        // Check initial connectivity (Allow 2xx codes)
+        if ($response['code'] < 200 || $response['code'] >= 300) {
              $msg = "Connection Failed. HTTP Code: " . $response['code'];
              if ($response['error']) $msg .= " cURL Error: " . $response['error'];
              echo json_encode(['status' => 'error', 'message' => $msg]);
@@ -318,12 +317,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             @$dom->loadHTML($html);
             $xpath = new DOMXPath($dom);
             
-            // Extract Links
-            $nodes = $xpath->query("//a[@class='result__a']"); // Back to HTML structure
-            if ($nodes->length == 0) {
-                 // Fallback
-                 $nodes = $dom->getElementsByTagName('a');
-            }
+            $xpath = new DOMXPath($dom);
+            
+            // Extract Links - Generic for Lite version
+            $nodes = $dom->getElementsByTagName('a'); 
+            // Lite version is simple, just grab all valid links
 
             foreach ($nodes as $node) {
                 $href = $node->getAttribute('href');
@@ -386,8 +384,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
             if ($nextPageParams) {
-                // Fetch next page via POST usually for DDG HTML
-                $resp = fetchUrl("https://html.duckduckgo.com/html/", $nextPageParams, 'POST');
+                // Fetch next page via POST
+                $resp = fetchUrl("https://lite.duckduckgo.com/lite/", $nextPageParams, 'POST');
                 if ($resp['code'] === 200) {
                     $html = $resp['content'];
                     $fetchedPages++;
