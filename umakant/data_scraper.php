@@ -264,115 +264,94 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             return $output;
         }
 
-        // 1. Get Search Results
-        $html = fetchUrl($url, $postData);
-        
-        $dom = new DOMDocument();
-        @$dom->loadHTML($html);
-        $xpath = new DOMXPath($dom);
-        
-        // Extract Next Page Parameters
-        $nextPageParams = null;
-        $forms = $dom->getElementsByTagName('form');
-        foreach ($forms as $form) {
-            $action = $form->getAttribute('action');
-            // DuckDuckGo next page form usually posts to /html/ or similar
-            if (strpos($action, '/html/') !== false || $form->getAttribute('class') == 'nav-button') {
-                 $inputs = $form->getElementsByTagName('input');
-                 $tempParams = [];
-                 $hasS = false;
-                 foreach ($inputs as $input) {
-                     $name = $input->getAttribute('name');
-                     $value = $input->getAttribute('value');
-                     if ($name) {
-                         $tempParams[$name] = $value;
-                         if ($name === 's') $hasS = true;
-                     }
-                 }
-                 // Only consider it a next page form if it has 's' (start) parameter or 'next' logic
-                 if ($hasS) {
-                     $nextPageParams = $tempParams;
-                     break;
-                 }
-            }
-        }
-
-        // Extract Links from DuckDuckGo HTML results
-        // Class 'result__a' is common in DDG HTML, but structure changes.
-        // Fallback: look for generic links that contain 'http' and are not DDG internal links.
-        $links = [];
-        $nodes = $xpath->query("//a[@class='result__a']");
-        
         if ($nodes->length == 0) {
              // Fallback query if class name changed
              $nodes = $dom->getElementsByTagName('a');
         }
 
-        // List of domains to exclude (Directories, Social Media, Marketplaces, Job Boards, etc.)
-        $exclusionList = [
-            'duckduckgo', 'microsoft', 'google', 'yahoo', 'bing', 'search',
-            'facebook', 'twitter', 'instagram', 'linkedin', 'pinterest', 'youtube', 'tiktok',
-            'yelp', 'yellowpages', 'tripadvisor', 'foursquare', 'mapquest', 'waze',
-            'indiamart', 'justdial', 'sulekha', 'tradeindia', 'exportersindia',
-            'amazon', 'ebay', 'flipkart', 'etsy', 'shopify', 'walmart',
-            'wikipedia', 'wikimedia', 'archive.org',
-            'glassdoor', 'indeed', 'naukri', 'monster',
-            'proptiger', 'magicbricks', '99acres', 'housing.com',
-            'practo', 'lybrate', 'healthgrades', 'ratemds',
-            'zomato', 'swiggy', 'ubereats', 'doordash', 'grubhub',
-            'booking.com', 'expedia', 'trip.com', 'agoda', 'airbnb',
-            'cnet', 'techcrunch', 'forbes', 'bloomberg', 'businessinsider',
-            'bbb.org', 'chamberofcommerce', 'manta', 'zoominfo', 
-            'gov', 'edu', 'mil',
-            'medimap', 'vitals', 'ratemds', 'healthline', 'webmd', 'docdoc',
-            'clinic-directory', 'find-a-doctor', 'best-doctors'
-        ];
+        // Initialize loop variables
+        $links = [];
+        $fetchedPages = 0;
+        $maxPages = 30; // Increased limit to find more results
+        $html = fetchUrl($url, $postData);
+        
+        while ($fetchedPages < $maxPages) {
+            $dom = new DOMDocument();
+            @$dom->loadHTML($html);
+            $xpath = new DOMXPath($dom);
+            
+            // Extract Links
+            $nodes = $xpath->query("//a[@class='result__a']");
+            if ($nodes->length == 0) {
+                 $nodes = $dom->getElementsByTagName('a');
+            }
 
-        // Specific path segments that indicate a directory page, NOT a business homepage
-        $directoryPathSegments = [
-            '/specialties/', '/specialty/', '/category/', '/search/', '/find/', 
-            '/listing/', '/directory/', '/locations/', '/providers/', 
-            '/best-', '/top-', '/rankings/', '/reviews/', '/compare/'
-        ];
+            foreach ($nodes as $node) {
+                $href = $node->getAttribute('href');
+                if (strpos($href, 'uddg=') !== false) {
+                    parse_str(parse_url($href, PHP_URL_QUERY), $vars);
+                    if (isset($vars['uddg'])) {
+                        $href = $vars['uddg'];
+                    }
+                }
+                
+                if (!filter_var($href, FILTER_VALIDATE_URL)) continue;
 
-        foreach ($nodes as $node) {
-            $href = $node->getAttribute('href');
-            // Decode DDG redirection if present
-            if (strpos($href, 'uddg=') !== false) {
-                parse_str(parse_url($href, PHP_URL_QUERY), $vars);
-                if (isset($vars['uddg'])) {
-                    $href = $vars['uddg'];
+                $isExcluded = false;
+                foreach ($exclusionList as $excluded) {
+                    if (stripos($href, $excluded) !== false) {
+                        $isExcluded = true;
+                        break;
+                    }
+                }
+                foreach ($directoryPathSegments as $segment) {
+                    if (stripos($href, $segment) !== false) {
+                        $isExcluded = true;
+                        break;
+                    }
+                }
+
+                if (!$isExcluded && !in_array($href, $links)) {
+                    $links[] = $href;
                 }
             }
             
-            // Validate URL
-            if (!filter_var($href, FILTER_VALIDATE_URL)) {
-                continue;
-            }
-
-            // Check against Exclusion List
-            $isExcluded = false;
-            foreach ($exclusionList as $excluded) {
-                if (stripos($href, $excluded) !== false) {
-                    $isExcluded = true;
-                    break;
-                }
-            }
-            
-            // Check for Directory-like Path Segments (e.g., medimap.ca/specialties/...)
-            foreach ($directoryPathSegments as $segment) {
-                if (stripos($href, $segment) !== false) {
-                    $isExcluded = true;
-                    break;
-                }
-            }
-
-            if (!$isExcluded) {
-                $links[] = $href;
-            }
-
-            // Limit to 100 results per batch
+            // Break if we have enough links
             if (count($links) >= 100) break;
+
+            // Get Next Page Params
+            $nextPageParams = null;
+            $forms = $dom->getElementsByTagName('form');
+            foreach ($forms as $form) {
+                $action = $form->getAttribute('action');
+                if (strpos($action, '/html/') !== false || $form->getAttribute('class') == 'nav-button') {
+                     $inputs = $form->getElementsByTagName('input');
+                     $tempParams = [];
+                     $hasS = false;
+                     foreach ($inputs as $input) {
+                         $name = $input->getAttribute('name');
+                         $value = $input->getAttribute('value');
+                         if ($name) {
+                             $tempParams[$name] = $value;
+                             if ($name === 's') $hasS = true;
+                         }
+                     }
+                     if ($hasS) {
+                         $nextPageParams = $tempParams;
+                         break;
+                     }
+                }
+            }
+
+            if ($nextPageParams) {
+                // Fetch next page
+                $html = fetchUrl($url, $nextPageParams);
+                $fetchedPages++;
+                // Small random delay to be polite
+                usleep(rand(500000, 1500000)); 
+            } else {
+                break; // No more pages
+            }
         }
 
         $insertedCount = 0;
