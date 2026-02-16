@@ -40,6 +40,47 @@ if (isset($_GET['action']) && $_GET['action'] == 'export_csv') {
     exit();
 }
 
+// Handle AJAX Search Request
+if (isset($_GET['ajax_search'])) {
+    $search = $_GET['search'] ?? '';
+    $searchQuery = "";
+    $params = [];
+
+    if (!empty($search)) {
+        $searchQuery = "WHERE business_name LIKE ? OR business_category LIKE ? OR email_address LIKE ? OR city LIKE ? OR country LIKE ? OR website_url LIKE ?";
+        $params = array_fill(0, 6, "%$search%");
+    }
+    
+    $stmt = $pdo->prepare("SELECT * FROM data_scraper $searchQuery ORDER BY id DESC");
+    $stmt->execute($params);
+    $dataList = $stmt->fetchAll();
+    
+    $counter = 1;
+    if (count($dataList) > 0) {
+        foreach($dataList as $data) {
+            echo '<tr>';
+            echo '<td>' . $counter++ . '</td>';
+            echo '<td>' . htmlspecialchars($data['business_name']) . '</td>';
+            echo '<td>' . htmlspecialchars($data['business_category']) . '</td>';
+            echo '<td>' . htmlspecialchars($data['email_address']) . '</td>';
+            echo '<td>' . htmlspecialchars($data['city']) . ', ' . htmlspecialchars($data['country']) . '</td>';
+            echo '<td><a href="' . htmlspecialchars($data['website_url']) . '" target="_blank" title="' . htmlspecialchars($data['website_url']) . '"><i class="fas fa-link"></i> Link</a></td>';
+            echo '<td>';
+            echo '<a href="data_scraper.php?edit=' . $data['id'] . '" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a> ';
+            echo '<form method="POST" action="data_scraper.php" style="display:inline-block;" onsubmit="return confirm(\'Are you sure you want to delete this item?\');">';
+            echo '<input type="hidden" name="action" value="delete">';
+            echo '<input type="hidden" name="id" value="' . $data['id'] . '">';
+            echo '<button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>';
+            echo '</form>';
+            echo '</td>';
+            echo '</tr>';
+        }
+    } else {
+        echo '<tr><td colspan="7" class="text-center">No results found</td></tr>';
+    }
+    exit;
+}
+
 include 'inc/header.php';
 include 'inc/sidebar.php';
 
@@ -122,14 +163,8 @@ if (isset($_GET['edit'])) {
     $editData = $stmt->fetch();
 }
 
-// Fetch All Data (with Search)
-if (!empty($search)) {
-    // Re-use params from above
-    $stmt = $pdo->prepare("SELECT * FROM data_scraper $searchQuery ORDER BY id DESC");
-    $stmt->execute($params);
-} else {
-    $stmt = $pdo->query("SELECT * FROM data_scraper ORDER BY id DESC");
-}
+// Fetch All Data (Initial Load)
+$stmt = $pdo->query("SELECT * FROM data_scraper ORDER BY id DESC");
 $dataList = $stmt->fetchAll();
 
 ?>
@@ -211,15 +246,10 @@ $dataList = $stmt->fetchAll();
               <div class="card-header">
                 <h3 class="card-title">Scraper Data List</h3>
                 <div class="card-tools">
-                    <form action="data_scraper.php" method="GET" style="display:inline-block; margin-right: 10px;">
-                        <div class="input-group input-group-sm" style="width: 200px;">
-                            <input type="text" name="search" class="form-control float-right" placeholder="Search" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
-                            <div class="input-group-append">
-                                <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
-                            </div>
-                        </div>
-                    </form>
-                    <a href="data_scraper.php?action=export_csv&search=<?php echo urlencode($_GET['search'] ?? ''); ?>" class="btn btn-tool" title="Export to CSV">
+                    <div style="display:inline-block; margin-right: 10px;">
+                        <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search..." style="width: 200px;">
+                    </div>
+                    <a href="data_scraper.php?action=export_csv" id="exportBtn" class="btn btn-tool" title="Export to CSV">
                         <i class="fas fa-file-csv"></i> Export CSV
                     </a>
                 </div>
@@ -238,7 +268,7 @@ $dataList = $stmt->fetchAll();
                       <th>Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody id="scraperTableBody">
                     <?php 
                     $counter = 1;
                     foreach($dataList as $data): 
@@ -273,3 +303,30 @@ $dataList = $stmt->fetchAll();
 </div>
 
 <?php include 'inc/footer.php'; ?>
+
+<script>
+$(document).ready(function() {
+    $('#searchInput').on('keyup', function() {
+        var searchTerm = $(this).val();
+        
+        // Update Export Link
+        var exportUrl = 'data_scraper.php?action=export_csv&search=' + encodeURIComponent(searchTerm);
+        $('#exportBtn').attr('href', exportUrl);
+
+        $.ajax({
+            url: 'data_scraper.php',
+            type: 'GET',
+            data: { 
+                ajax_search: 1, 
+                search: searchTerm 
+            },
+            success: function(response) {
+                $('#scraperTableBody').html(response);
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error: " + status + " " + error);
+            }
+        });
+    });
+});
+</script>
