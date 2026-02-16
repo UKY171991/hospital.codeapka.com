@@ -328,8 +328,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // ENFORCE VALID DATA: 
             // 1. Must have a Business Name
-            // 2. Must have at least Email OR Mobile
-            if (empty($title) || (empty($email) && empty($mobile))) {
+            if (empty($title)) {
                 continue; 
             }
 
@@ -338,8 +337,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $webUrl,
                 $title,
                 $category,
-                $email,
-                $mobile,
+                $email, // Will be empty string if not found
+                $mobile, // Will be empty string if not found
                 ucfirst($extractedCity), 
                 $country
             ]);
