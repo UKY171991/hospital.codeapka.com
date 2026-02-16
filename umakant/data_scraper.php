@@ -212,9 +212,34 @@ if (isset($_GET['edit'])) {
     $editData = $stmt->fetch();
 }
 
-// Fetch All Data (Initial Load)
-$stmt = $pdo->query("SELECT * FROM data_scraper ORDER BY id DESC");
+// Pagination Configuration
+$limit = 20; // Entries per page
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+
+// Get Total Count
+$countSql = "SELECT COUNT(*) FROM data_scraper $searchQuery";
+$countStmt = $pdo->prepare($countSql);
+$countStmt->execute($params);
+$totalRecords = $countStmt->fetchColumn();
+$totalPages = ceil($totalRecords / $limit);
+
+// Get Paginated Data
+$sql = "SELECT * FROM data_scraper $searchQuery ORDER BY id DESC LIMIT :limit OFFSET :offset";
+$stmt = $pdo->prepare($sql);
+
+// Bind search params
+foreach ($params as $key => $val) {
+    $stmt->bindValue($key + 1, $val);
+}
+// Bind pagination params
+$stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+$stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+$stmt->execute();
 $dataList = $stmt->fetchAll();
+
+// Adjust counter for pagination
+$counter = $offset + 1;
 
 ?>
 
@@ -297,7 +322,7 @@ $dataList = $stmt->fetchAll();
           <div class="col-md-8">
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">Scraper Data List <span class="badge badge-info right"><?php echo count($dataList); ?></span></h3>
+                <h3 class="card-title">Scraper Data List <span class="badge badge-info right"><?php echo $totalRecords; ?></span></h3>
                 <div class="card-tools">
                     <div style="display:inline-block; margin-right: 10px;">
                         <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search..." style="width: 200px;">
@@ -332,7 +357,6 @@ $dataList = $stmt->fetchAll();
                   </thead>
                   <tbody id="scraperTableBody">
                     <?php 
-                    $counter = 1;
                     foreach($dataList as $data): 
                     ?>
                     <tr>
@@ -363,6 +387,35 @@ $dataList = $stmt->fetchAll();
                 </table>
               </div>
               <!-- /.card-body -->
+              <div class="card-footer clearfix" id="pagination-container">
+                <ul class="pagination pagination-sm m-0 float-right">
+                  <?php if($page > 1): ?>
+                    <li class="page-item"><a class="page-link" href="?page=<?php echo $page-1; ?>&search=<?php echo htmlspecialchars($search); ?>">&laquo;</a></li>
+                  <?php else: ?>
+                    <li class="page-item disabled"><a class="page-link" href="#">&laquo;</a></li>
+                  <?php endif; ?>
+
+                  <?php 
+                  // Simple Pagination Range
+                  $range = 2;
+                  for ($i = 1; $i <= $totalPages; $i++): 
+                    if ($i == 1 || $i == $totalPages || ($i >= $page - $range && $i <= $page + $range)):
+                  ?>
+                    <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
+                        <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo htmlspecialchars($search); ?>"><?php echo $i; ?></a>
+                    </li>
+                    <?php elseif ($i == $page - $range - 1 || $i == $page + $range + 1): ?>
+                        <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
+                    <?php endif; ?>
+                  <?php endfor; ?>
+
+                  <?php if($page < $totalPages): ?>
+                    <li class="page-item"><a class="page-link" href="?page=<?php echo $page+1; ?>&search=<?php echo htmlspecialchars($search); ?>">&raquo;</a></li>
+                  <?php else: ?>
+                    <li class="page-item disabled"><a class="page-link" href="#">&raquo;</a></li>
+                  <?php endif; ?>
+                </ul>
+              </div>
             </div>
           </div>
 
@@ -381,6 +434,13 @@ $(document).ready(function() {
         // Update Export Link
         var exportUrl = 'data_scraper.php?action=export_csv&search=' + encodeURIComponent(searchTerm);
         $('#exportBtn').attr('href', exportUrl);
+
+        // Hide pagination when searching
+        if(searchTerm.length > 0) {
+            $('#pagination-container').hide();
+        } else {
+            $('#pagination-container').show();
+        }
 
         $.ajax({
             url: 'data_scraper.php',
