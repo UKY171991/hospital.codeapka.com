@@ -510,7 +510,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'status' => 'success', 
             'message' => "Batch complete.",
             'count' => $insertedCount,
-            'next_params' => $nextPageParams
+            'next_params' => $nextPageParams,
+            'debug' => [
+                'fetched_pages' => $fetchedPages,
+                'links_found_raw' => count($links),
+                'query' => $query ?? 'pagination'
+            ]
         ]);
         exit;
     }
