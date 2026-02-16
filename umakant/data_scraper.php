@@ -238,8 +238,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
              if ($category) $queryParts[] = "$category";
              if ($city) $queryParts[] = "$city";
              if ($country) $queryParts[] = "$country";
+             // Base query
              $baseQuery = implode(' ', $queryParts);
-             $query = "$baseQuery -directory -list";
+             
+             // Add Elfsight Footprints as requested
+             $footprints = '("powered by elfsight" OR "elfsight-app" OR "elfsight")';
+             $query = "$baseQuery $footprints -directory -list";
              
              // Lite uses POST for search usually
              $postData = ['q' => $query, 'kl' => 'us-en'];
@@ -423,13 +427,53 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Text content for searching
             $textContent = strip_tags($siteHtml);
 
-            // Email (Refined Regex)
-            preg_match('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $textContent, $emailMatches);
-            $email = $emailMatches[0] ?? '';
+            // Email (Smart Extraction)
+            // specific regex to find all emails
+            preg_match_all('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $textContent, $allEmails);
+            $uniqueEmails = array_unique($allEmails[0] ?? []);
+            $email = '';
+            
+            // Prioritize non-generic emails
+            $genericPrefixes = ['info', 'contact', 'support', 'admin', 'hello', 'sales', 'inquiry', 'help', 'office'];
+            foreach ($uniqueEmails as $e) {
+                $prefix = explode('@', $e)[0];
+                if (!in_array(strtolower($prefix), $genericPrefixes)) {
+                    $email = $e; // Found a specific person/department
+                    break;
+                }
+            }
+            // Fallback to generic if no specific found
+            if (empty($email) && !empty($uniqueEmails)) {
+                 $email = reset($uniqueEmails);
+            }
 
             // Phone (Refined Regex - stricter length)
             preg_match('/(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/', $textContent, $phoneMatches);
             $mobile = $phoneMatches[0] ?? '';
+
+            // Heuristic Category Check
+            if (!empty($category)) {
+                $categoryWords = explode(' ', strtolower($category));
+                $foundCategoryMatch = false;
+                $searchContent = strtolower($title . ' ' . $textContent);
+                $stopWords = ['the', 'and', 'for', 'inc', 'llc', 'ltd', 'co', 'company'];
+                
+                foreach ($categoryWords as $word) {
+                    $word = trim($word);
+                    if (strlen($word) >= 3 && !in_array($word, $stopWords)) {
+                         // Use Word Boundary Check to avoid "Car" matching "Care"
+                         if (preg_match('/\b' . preg_quote($word, '/') . '\b/i', $searchContent)) {
+                             $foundCategoryMatch = true;
+                             break;
+                         }
+                    }
+                }
+                
+                // If we checked words and found none (valid words existed), skip.
+                // If category was only stop words or short words (unlikely), we might pass it or skip.
+                // Assuming valid category input:
+                if (!$foundCategoryMatch && count($categoryWords) > 0) continue;
+            }
 
             // City Extraction (If not provided)
             $extractedCity = $city;
