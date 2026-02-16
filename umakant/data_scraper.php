@@ -185,6 +185,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
+    // Handle Get All IDs for Bulk Check
+    if ($action === 'get_all_ids') {
+        if (ob_get_level()) ob_end_clean();
+        header('Content-Type: application/json');
+        
+        $stmt = $pdo->query("SELECT id FROM data_scraper ORDER BY id DESC");
+        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        echo json_encode(['ids' => $ids]);
+        exit;
+    }
+
     // Handle Auto Scraper
     if ($action === 'auto_scrape') {
         if (ob_get_level()) ob_end_clean();
@@ -739,8 +751,11 @@ $counter = $offset + 1;
                             <i class="fas fa-power-off"></i> Turn All Off
                         </button>
                     </form>
-                    <button type="button" class="btn btn-tool text-primary" id="btnTestAll" title="Test & Clean All Websites">
-                        <i class="fas fa-check-double"></i> Test & Clean All
+                    <button type="button" class="btn btn-tool text-primary" id="btnTestAll" title="Test Page">
+                        <i class="fas fa-check-double"></i> Test Page
+                    </button>
+                    <button type="button" class="btn btn-tool text-warning" id="btnCheckDb" title="Check Entire DB">
+                        <i class="fas fa-database"></i> Check All DB
                     </button>
                 </div>
               </div>
@@ -831,6 +846,29 @@ $counter = $offset + 1;
     </section>
 </div>
 
+<!-- Progress Modal -->
+<div class="modal fade" id="progressModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Checking Database...</h5>
+      </div>
+      <div class="modal-body">
+        <p id="progressText">Initializing...</p>
+        <div class="progress">
+          <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+        </div>
+        <div class="mt-2 text-muted text-sm">
+            <span id="deletedCount">0</span> deleted, <span id="validCount">0</span> valid
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" id="stopCheckBtn">Stop</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <?php include 'inc/footer.php'; ?>
 
 <script>
@@ -899,7 +937,7 @@ $(document).ready(function() {
         testWebsite(id, btn, row);
     });
 
-    // Test All URLs
+    // Test All URLs (Current Page)
     $('#btnTestAll').click(function() {
         if(!confirm('This will verify ALL websites on this page and DELETE any that are down/invalid. This process happens one by one. Continue?')) {
             return;
@@ -908,6 +946,79 @@ $(document).ready(function() {
         var buttons = $('.btn-test-url');
         processQueue(buttons, 0);
     });
+
+    // Test Entire Database logic
+    var stopCheck = false;
+    $('#stopCheckBtn').click(function(){ stopCheck = true; });
+
+    $('#btnCheckDb').click(function() {
+        if(!confirm('This will verify EVERY record in the database. It may take a long time. Invalid records will be DELETED. Continue?')) {
+            return;
+        }
+
+        $('#progressModal').modal('show');
+        $('#progressBar').css('width', '0%');
+        $('#deletedCount').text('0');
+        $('#validCount').text('0');
+        stopCheck = false;
+
+        // Fetch All IDs
+        $.ajax({
+            url: 'data_scraper.php',
+            type: 'POST',
+            data: { action: 'get_all_ids' },
+            dataType: 'json',
+            success: function(response) {
+                var ids = response.ids;
+                var total = ids.length;
+                processIdQueue(ids, 0, total, 0, 0);
+            },
+            error: function() {
+                alert('Error fetching IDs');
+                $('#progressModal').modal('hide');
+            }
+        });
+    });
+
+    function processIdQueue(ids, index, total, deleted, valid) {
+        if (stopCheck || index >= total) {
+            $('#progressModal').modal('hide');
+            alert('Process Completed! ' + deleted + ' records deleted, ' + valid + ' verified.');
+            location.reload();
+            return;
+        }
+
+        var id = ids[index];
+        var percent = Math.round(((index + 1) / total) * 100);
+        
+        $('#progressBar').css('width', percent + '%');
+        $('#progressText').text('Checking ' + (index + 1) + ' of ' + total);
+
+        $.ajax({
+            url: 'data_scraper.php',
+            type: 'POST',
+            dataType: 'json',
+            data: { 
+                action: 'validate_website', 
+                id: id
+            },
+            success: function(response) {
+                if (response.status === 'deleted') {
+                    deleted++;
+                    $('#deletedCount').text(deleted);
+                } else {
+                    valid++;
+                    $('#validCount').text(valid);
+                }
+                // Determine speed (optional delay to prevent server overload, though PHP is serial)
+                processIdQueue(ids, index + 1, total, deleted, valid);
+            },
+            error: function() {
+                // If checking fails (network error), skip.
+                processIdQueue(ids, index + 1, total, deleted, valid);
+            }
+        });
+    }
 
     function processQueue(buttons, index) {
         if (index >= buttons.length) {
