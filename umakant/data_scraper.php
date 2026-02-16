@@ -4,6 +4,16 @@
 include 'inc/connection.php';
 include 'inc/auth.php'; // Ensure user is logged in
 
+// Search Logic
+$search = $_GET['search'] ?? '';
+$searchQuery = "";
+$params = [];
+
+if (!empty($search)) {
+    $searchQuery = "WHERE business_name LIKE ? OR business_category LIKE ? OR email_address LIKE ? OR city LIKE ? OR country LIKE ? OR website_url LIKE ?";
+    $params = array_fill(0, 6, "%$search%");
+}
+
 // Handle CSV Export - MUST BE BEFORE ANY HTML OUTPUT
 if (isset($_GET['action']) && $_GET['action'] == 'export_csv') {
     // Clear any previous output
@@ -19,7 +29,9 @@ if (isset($_GET['action']) && $_GET['action'] == 'export_csv') {
     
     fputcsv($output, array('ID', 'Website URL', 'Business Name', 'Business Category', 'Email Address', 'City', 'Country', 'Created At'));
     
-    $stmt = $pdo->query("SELECT id, website_url, business_name, business_category, email_address, city, country, created_at FROM data_scraper ORDER BY id DESC");
+    $stmt = $pdo->prepare("SELECT id, website_url, business_name, business_category, email_address, city, country, created_at FROM data_scraper $searchQuery ORDER BY id DESC");
+    $stmt->execute($params);
+    
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         fputcsv($output, $row);
     }
@@ -110,8 +122,14 @@ if (isset($_GET['edit'])) {
     $editData = $stmt->fetch();
 }
 
-// Fetch All Data
-$stmt = $pdo->query("SELECT * FROM data_scraper ORDER BY id DESC");
+// Fetch All Data (with Search)
+if (!empty($search)) {
+    // Re-use params from above
+    $stmt = $pdo->prepare("SELECT * FROM data_scraper $searchQuery ORDER BY id DESC");
+    $stmt->execute($params);
+} else {
+    $stmt = $pdo->query("SELECT * FROM data_scraper ORDER BY id DESC");
+}
 $dataList = $stmt->fetchAll();
 
 ?>
@@ -193,7 +211,15 @@ $dataList = $stmt->fetchAll();
               <div class="card-header">
                 <h3 class="card-title">Scraper Data List</h3>
                 <div class="card-tools">
-                    <a href="data_scraper.php?action=export_csv" class="btn btn-tool" title="Export to CSV">
+                    <form action="data_scraper.php" method="GET" style="display:inline-block; margin-right: 10px;">
+                        <div class="input-group input-group-sm" style="width: 200px;">
+                            <input type="text" name="search" class="form-control float-right" placeholder="Search" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                    <a href="data_scraper.php?action=export_csv&search=<?php echo urlencode($_GET['search'] ?? ''); ?>" class="btn btn-tool" title="Export to CSV">
                         <i class="fas fa-file-csv"></i> Export CSV
                     </a>
                 </div>
