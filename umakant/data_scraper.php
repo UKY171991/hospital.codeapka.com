@@ -247,515 +247,176 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
-    // Handle Auto Scraper
+    // Handle Auto Scraper - REWRITTEN FOR MAXIMUM ROBUSTNESS
     if ($action === 'auto_scrape') {
         if (ob_get_level()) ob_end_clean();
         header('Content-Type: application/json');
+        set_time_limit(600); // 10 minutes max per batch to avoid timeouts
 
-        // Increase execution time for scraping (30 minutes for deep scraping)
-        set_time_limit(1800);
-
-        $category = $_POST['category'] ?? '';
+        $category = $_POST['category'] ?? 'Business';
         $city = $_POST['city'] ?? '';
         $country = $_POST['country'] ?? '';
-        $nextParams = $_POST['next_params'] ?? null;
         
-        // Multi-Engine Strategy
-        $searchEngines = [
-            'ddg' => [
-                'url' => 'https://html.duckduckgo.com/html/',
-                'method' => 'POST',
-                'q_param' => 'q',
-                'extra' => ['kl' => 'us-en']
-            ],
-            'ask' => [
-                'url' => 'https://www.ask.com/web',
-                'method' => 'GET',
-                'q_param' => 'q',
-                'extra' => []
-            ],
-            'ecosia' => [
-                'url' => 'https://www.ecosia.org/search',
-                'method' => 'GET',
-                'q_param' => 'q',
-                'extra' => []
-            ],
-            'bing' => [
-                'url' => 'https://www.bing.com/search',
-                'method' => 'GET',
-                'q_param' => 'q',
-                'extra' => []
-            ]
+        // --- 1. CONNECTIVITY CHECK ---
+        function test_connection() {
+            $ch = curl_init('https://www.google.com');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            $d = curl_exec($ch);
+            curl_close($ch);
+            return (bool)$d;
+        }
+        if (!test_connection()) {
+            echo json_encode(['status' => 'error', 'message' => 'Server Connectivity Error: Unable to reach Google. Check your server internet connection.']);
+            exit;
+        }
+
+        // --- 2. CONFIGURATION ---
+        $exclusionList = ['facebook.com', 'yelp.com', 'yellowpages', 'linkedin', 'instagram', 'twitter', 'youtube', 'pinterest', 'bbb.org', 'mapquest', 'tripadvisor', 'whitepages', 'superpages', 'google.com', 'bing.com', 'yahoo.com', 'duckduckgo.com', 'wikipedia.org'];
+        
+        // Search Engines to Rotation
+        $engines = [
+             'bing' => 'https://www.bing.com/search?q=',
+             'yahoo' => 'https://search.yahoo.com/search?p=',
+             'google' => 'https://www.google.com/search?num=50&q=',
+             'ddg' => 'https://lite.duckduckgo.com/lite/?q=' // Lite version
         ];
 
-        // Initial Search Setup
-        $queryParts = [];
-        if ($category) $queryParts[] = "$category";
-        if ($city) $queryParts[] = "$city";
-        if ($country) $queryParts[] = "$country";
-        $baseQuery = implode(' ', $queryParts);
-        $query = "$baseQuery"; // Broad search without restrictions
-
-        // Define Exclusion Lists
-
-        $exclusionList = ['facebook.com', 'yelp.com', 'yellowpages', 'linkedin', 'instagram', 'twitter', 'youtube', 'pinterest', 'bbb.org', 'mapquest', 'tripadvisor', 'whitepages', 'superpages'];
-        $directoryPathSegments = ['/directory', '/listing', '/business', '/profile', '/search', '/catalog'];
-
-        // Function to make cURL request
-        function fetchUrl($url, $data = [], $method = 'GET') {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 45);
-            
-            // Unique Cookie Jar per session to avoid blocks
-            static $cookieFile;
-            if (!$cookieFile) {
-                // Ensure unique file per session/request time
-                $cookieFile = sys_get_temp_dir() . '/ddg_cookies_' . time() . '_' . rand(1000,9999) . '.txt';
-            }
-            curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
-            curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
-            
-            // Random User Agents
-            $userAgents = [
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
-            ];
-            $randomAgent = $userAgents[array_rand($userAgents)];
-            
-            curl_setopt($ch, CURLOPT_USERAGENT, $randomAgent);
-            curl_setopt($ch, CURLOPT_REFERER, "https://duckduckgo.com/");
-            // Add identifying headers
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Accept-Language: en-US,en;q=0.9',
-                'Upgrade-Insecure-Requests: 1',
-                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
-            ]);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            
-            if ($method === 'POST' && !empty($data)) {
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-            }
-
-            $output = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $curlError = curl_error($ch);
-            curl_close($ch);
-
-            // Return array with info for debugging
-            return ['code' => $httpCode, 'content' => $output, 'error' => $curlError];
+        // Helper: Fetch URL Robustly
+        function fetch_content($url) {
+             $ch = curl_init();
+             curl_setopt($ch, CURLOPT_URL, $url);
+             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+             // Rotating User Agents
+             $agents = [
+                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                 'Mozilla/5.0 (X11; Linux x86_64) Firefox/122.0'
+             ];
+             curl_setopt($ch, CURLOPT_USERAGENT, $agents[array_rand($agents)]);
+             // Cookie Jar
+             $cookie = sys_get_temp_dir() . '/scraper_cookies.txt';
+             curl_setopt($ch, CURLOPT_COOKIEJAR, $cookie);
+             curl_setopt($ch, CURLOPT_COOKIEFILE, $cookie);
+             
+             $out = curl_exec($ch);
+             $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+             curl_close($ch);
+             return ['code' => $code, 'html' => $out];
         }
 
-        $links = [];
-        $fetchedPages = 0;
-        $maxPages = 200;
-        $targetLinks = 1000;
-        $searchPageTitle = 'Unknown';
+        // --- 3. HARVEST LINKS ---
+        $query = trim("$category $city $country");
+        $candidateLinks = [];
+        $debugTitles = [];
+
+        foreach ($engines as $name => $baseUrl) {
+            // Try 3 pages deep per engine
+            for ($page = 0; $page < 3; $page++) {
+                $searchUrl = $baseUrl . urlencode($query);
+                
+                // Pagination Headers
+                if ($name === 'bing') $searchUrl .= "&first=" . ($page * 10 + 1);
+                if ($name === 'yahoo') $searchUrl .= "&b=" . ($page * 10 + 1);
+                if ($name === 'google') $searchUrl .= "&start=" . ($page * 50);
+                
+                $resp = fetch_content($searchUrl);
+                
+                if ($resp['code'] == 200 && !empty($resp['html'])) {
+                    $html = $resp['html'];
+                    
+                    // Capture Title for Debug
+                    if ($page === 0) {
+                        preg_match('/<title>(.*?)<\/title>/is', $html, $m);
+                        $debugTitles[] = "$name: " . ($m[1] ?? 'No Title');
+                    }
+
+                    // REGEX EXTRACT LINKS (The "Nuclear" Option)
+                    // Finds everything starting with http/https inside href or just raw
+                    preg_match_all('/https?:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}(\/[^\s"\'<>]*)?/', $html, $matches);
+                    
+                    if (!empty($matches[0])) {
+                        foreach ($matches[0] as $link) {
+                            $link = trim($link, "\"' ");
+                            
+                            // Filter Exclusions
+                            foreach ($exclusionList as $ex) {
+                                if (stripos($link, $ex) !== false) continue 2;
+                            }
+                            // Filter Assets
+                            if (preg_match('/\.(jpg|png|gif|css|js|ico|svg)$/i', $link)) continue;
+                            
+                            $candidateLinks[] = $link;
+                        }
+                    }
+                }
+                usleep(500000); // 0.5s polite delay
+            }
+            
+            // If we have enough links, stop querying engines
+            if (count(array_unique($candidateLinks)) > 50) break;
+        }
+
+        $candidateLinks = array_unique($candidateLinks);
         
-        // Try Engines until we get data
-        $activeEngine = null;
-        $html = '';
-
-        foreach ($searchEngines as $engineName => $config) {
-            $postData = [];
-            $reqUrl = $config['url'];
-            
-            if ($config['method'] === 'GET') {
-                $params = array_merge([$config['q_param'] => $query], $config['extra']);
-                $reqUrl .= '?' . http_build_query($params);
-            } else {
-                $postData = array_merge([$config['q_param'] => $query], $config['extra']);
-            }
-
-            $response = fetchUrl($reqUrl, $postData, $config['method']);
-            
-            if ($response['code'] >= 200 && $response['code'] < 300 && !empty($response['content'])) {
-                $checkHtml = $response['content'];
-                // Verify we actually got results, not a captcha
-                if (stripos($checkHtml, 'captcha') === false && strlen($checkHtml) > 2000) {
-                     $html = $checkHtml;
-                     $activeEngine = $engineName;
-                     break; // Found a working engine!
-                }
-            }
-        }
-        
-        if (!$html) {
-             echo json_encode(['status' => 'error', 'message' => 'All search engines blocked/failed. Try again later.']);
-             exit;
+        if (empty($candidateLinks)) {
+            $msg = "No links found. Debug: " . implode(" | ", $debugTitles);
+            echo json_encode(['status' => 'success', 'message' => $msg, 'count' => 0]);
+            exit;
         }
 
-        // Parse Title for Debug
-        preg_match('/<title>(.*?)<\/title>/is', $html, $matches);
-        $searchPageTitle = ($activeEngine ? "[$activeEngine] " : "") . ($matches[1] ?? 'No Title');
-        
-        while ($fetchedPages < $maxPages) {
-            if (!$html) break;
-
-            $dom = new DOMDocument();
-            @$dom->loadHTML($html);
-            $xpath = new DOMXPath($dom);
-            
-            // Extract Links using DOM
-            $nodes = $dom->getElementsByTagName('a'); 
-            $rawLinks = [];
-            foreach ($nodes as $node) {
-                $rawLinks[] = $node->getAttribute('href');
-            }
-
-            // BACKUP: Regex Extraction (The "Nuclear" Option)
-            // If DOM fails or finds few links, scan raw HTML for anything looking like a URL
-            if (count($rawLinks) < 5) {
-                preg_match_all('/href=["\'](https?:\/\/[^"\']+)["\']/', $html, $matches);
-                if (!empty($matches[1])) {
-                    $rawLinks = array_merge($rawLinks, $matches[1]);
-                }
-                // Also look for unquoted links or weird formats
-                preg_match_all('/url\?q=(https?%3A%2F%2F[^&]+)/', $html, $matches); // Common in Google/others
-                if (!empty($matches[1])) {
-                     foreach($matches[1] as $m) $rawLinks[] = urldecode($m);
-                }
-            }
-
-            $rawLinks = array_unique($rawLinks);
-
-            foreach ($rawLinks as $href) {
-                // cleanup
-                $href = trim($href);
-                if (empty($href)) continue;
-
-                // Handle Engine-Specific Redirects/Formats
-                if ($activeEngine === 'ddg') {
-                     if (strpos($href, 'uddg=') !== false) {
-                        parse_str(parse_url($href, PHP_URL_QUERY), $vars);
-                        if (isset($vars['uddg'])) $href = $vars['uddg'];
-                     }
-                      // Handle Relative Links in DDG Lite
-                     if (strpos($href, '/') === 0) {
-                        $href = "https://lite.duckduckgo.com" . $href;
-                     }
-                } elseif ($activeEngine === 'ask') {
-                    // Ask links often are absolute, but just in case
-                    if (strpos($href, '/') === 0) {
-                        $href = "https://www.ask.com" . $href;
-                    }
-                } elseif ($activeEngine === 'yahoo') {
-                    // Yahoo often wraps in .../RU=.../RK=...
-                    // Or /search/srpcache...
-                     if (strpos($href, 'RU=') !== false) {
-                         // extracting from RU= param is hard due to encoding, usually the visual link is better
-                         // but let's try strict regex for hidden destination
-                     }
-                     if (strpos($href, '/') === 0) {
-                        $href = "https://search.yahoo.com" . $href;
-                    }
-                }
-
-                if (!filter_var($href, FILTER_VALIDATE_URL)) continue;
-
-                $isExcluded = false;
-                foreach ($exclusionList as $excluded) {
-                    if (stripos($href, $excluded) !== false) {
-                         $isExcluded = true; break;
-                    }
-                }
-                // Also exclude Search Engine internal links
-                if (stripos($href, 'duckduckgo.com') !== false || stripos($href, 'ask.com') !== false || stripos($href, 'yahoo.com') !== false || stripos($href, 'google.com') !== false) {
-                    $isExcluded = true;
-                }
-
-                if (!$isExcluded && !in_array($href, $links)) {
-                    $links[] = $href;
-                }
-            }
-            
-            if (count($links) >= $targetLinks) break;
-            
-            // PAGINATION LOGIC (Universal Blind Pagination)
-            // We MUST paginate because Page 1 is always directories (excluded).
-            // We blindly increment offsets/pages to dig deeper.
-            if ($fetchedPages >= $maxPages) break;
-            
-            $nextPageParams = null;
-            $nextUrl = '';
-
-            if ($activeEngine === 'ddg') {
-                // ... (Existing DDG Logic kept or simplified) ...
-                // DDG Lite uses POST forms usually, complex.
-                // If standard form parsing failed, we skip DDG pagination to avoid loops.
-                 $forms = $dom->getElementsByTagName('form');
-                 foreach ($forms as $form) {
-                    $action = $form->getAttribute('action');
-                    if (strpos($action, '/lite/') !== false || strpos($action, 'next') !== false) {
-                         $inputs = $form->getElementsByTagName('input');
-                         $tempParams = [];
-                         foreach ($inputs as $input) {
-                             $name = $input->getAttribute('name');
-                             $value = $input->getAttribute('value');
-                             if ($name) $tempParams[$name] = $value;
-                         }
-                         if (isset($tempParams['s']) || isset($tempParams['nextParams'])) {
-                             $nextPageParams = $tempParams;
-                             break;
-                         }
-                    }
-                }
-                if ($nextPageParams) {
-                    $resp = fetchUrl("https://lite.duckduckgo.com/lite/", $nextPageParams, 'POST');
-                    if ($resp['code'] == 200) { $html = $resp['content']; $fetchedPages++; }
-                    else break;
-                } else break;
-
-            } elseif ($activeEngine === 'yahoo') {
-                // Yahoo uses 'b' (1, 11, 21...)
-                $offset = 1 + ($fetchedPages * 10);
-                $nextUrl = "https://search.yahoo.com/search?p=" . urlencode($query) . "&b=$offset";
-                $resp = fetchUrl($nextUrl);
-                if ($resp['code'] == 200) { $html = $resp['content']; $fetchedPages++;}
-                else break;
-
-            } elseif ($activeEngine === 'bing') {
-                // Bing uses 'first' (1, 11, 21...)
-                $offset = 1 + ($fetchedPages * 10);
-                $nextUrl = "https://www.bing.com/search?q=" . urlencode($query) . "&first=$offset";
-                $resp = fetchUrl($nextUrl);
-                if ($resp['code'] == 200) { $html = $resp['content']; $fetchedPages++;}
-                else break;
-
-            } elseif ($activeEngine === 'ecosia') {
-                // Ecosia uses 'p' (0, 1, 2...)
-                $offset = $fetchedPages + 1; // Start at Page 1 (which is second page)
-                $nextUrl = "https://www.ecosia.org/search?q=" . urlencode($query) . "&p=$offset";
-                $resp = fetchUrl($nextUrl);
-                if ($resp['code'] == 200) { $html = $resp['content']; $fetchedPages++;}
-                else break;
-            } else {
-                 // Ask.com uses 'page' (1, 2, 3...)
-                 $offset = $fetchedPages + 1;
-                 $nextUrl = "https://www.ask.com/web?q=" . urlencode($query) . "&page=$offset";
-                 $resp = fetchUrl($nextUrl);
-                 if ($resp['code'] == 200) { $html = $resp['content']; $fetchedPages++;}
-                 else break;
-            }
-            
-            // Random Delay to be polite
-            usleep(rand(1500000, 3000000));
-        }
-
+        // --- 4. VISIT & EXTRACT DATA ---
         $insertedCount = 0;
+        $max_inserts = 100; // Limit per batch
 
-        // 2. Process each link
-        foreach ($links as $webUrl) {
-            // Check duplicate
-            $chk = $pdo->prepare("SELECT COUNT(*) FROM data_scraper WHERE website_url = ?");
-            $chk->execute([$webUrl]);
-            if ($chk->fetchColumn() > 0) continue;
+        foreach ($candidateLinks as $url) {
+            if ($insertedCount >= $max_inserts) break;
 
-            // Fetch Site Content
-            $siteResp = fetchUrl($webUrl);
+            // Check Duplicate
+            $chk = $pdo->prepare("SELECT id FROM data_scraper WHERE website_url = ? LIMIT 1");
+            $chk->execute([$url]);
+            if ($chk->fetch()) continue;
+
+            $siteResp = fetch_content($url);
             if ($siteResp['code'] !== 200) continue;
-            $siteHtml = $siteResp['content'];
+            
+            $html = $siteResp['html'];
+            $text = strip_tags($html);
+            
+            // Extract Info
+            preg_match('/<title>(.*?)<\/title>/is', $html, $m);
+            $title = isset($m[1]) ? trim($m[1]) : "$category Business";
+            if (strlen($title) > 100) $title = substr($title, 0, 97) . '...';
 
-            // FOOTPRINT DISCOVERY (Soft Check)
-            // We check for Elfsight, but we DO NOT BLOCK data if not found (because JS widgets are hidden).
-            // Instead, we mark it.
-            $hasElfsight = false;
-            if (stripos($siteHtml, 'elfsight') !== false || stripos($siteHtml, 'elfsight-app') !== false || stripos($siteHtml, 'powered by elfsight') !== false) {
-                 $hasElfsight = true;
-            }
-            
-            // Extract Data
-            // Title as Business Name
-            preg_match('/<title>(.*?)<\/title>/is', $siteHtml, $matches);
-            $title = isset($matches[1]) ? trim(strip_tags($matches[1])) : $category . ' Business';
-            
-            if ($hasElfsight) {
-                // Tag it so the user knows
-                $category .= " [Elfsight]";
-            }
-            
-            // Text content for searching
-            $textContent = strip_tags($siteHtml);
-
-            // Email (Smart Extraction)
-            // specific regex to find all emails
-            preg_match_all('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $textContent, $allEmails);
-            $uniqueEmails = array_unique($allEmails[0] ?? []);
             $email = '';
+            // Smart Email Regex
+            preg_match('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $text, $em);
+            if (!empty($em[0])) $email = $em[0];
+
+            $phone = '';
+            // Smart Phone Regex
+            preg_match('/(\+?1?[-.]?\s?\(?\d{3}\)?[-.]?\s?\d{3}[-.]?\s?\d{4})/', $text, $ph);
+            if (!empty($ph[0]) && strlen($ph[0]) > 9) $phone = trim($ph[0]);
             
-            // Prioritize non-generic emails
-            $genericPrefixes = ['info', 'contact', 'support', 'admin', 'hello', 'sales', 'inquiry', 'help', 'office'];
-            foreach ($uniqueEmails as $e) {
-                $prefix = explode('@', $e)[0];
-                if (!in_array(strtolower($prefix), $genericPrefixes)) {
-                    $email = $e; // Found a specific person/department
-                    break;
-                }
-            }
-            // Fallback to generic if no specific found
-            if (empty($email) && !empty($uniqueEmails)) {
-                 $email = reset($uniqueEmails);
-            }
+            // Elfsight Check (Tagging)
+            $catTag = $category;
+            if (stripos($html, 'elfsight') !== false) $catTag .= " [Elfsight]";
 
-            // Phone (Refined Regex - stricter length)
-            preg_match('/(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/', $textContent, $phoneMatches);
-            $mobile = $phoneMatches[0] ?? '';
-
-            // Heuristic Category Check
-            if (!empty($category)) {
-                $categoryWords = explode(' ', strtolower($category));
-                $foundCategoryMatch = false;
-                $searchContent = strtolower($title . ' ' . $textContent);
-                $stopWords = ['the', 'and', 'for', 'inc', 'llc', 'ltd', 'co', 'company'];
-                
-                foreach ($categoryWords as $word) {
-                    $word = trim($word);
-                    if (strlen($word) >= 3 && !in_array($word, $stopWords)) {
-                         // Use Word Boundary Check to avoid "Car" matching "Care"
-                         if (preg_match('/\b' . preg_quote($word, '/') . '\b/i', $searchContent)) {
-                             $foundCategoryMatch = true;
-                             break;
-                         }
-                    }
-                }
-                
-                // If we checked words and found none (valid words existed), skip.
-                // If category was only stop words or short words (unlikely), we might pass it or skip.
-                // Assuming valid category input:
-                // DISABLE STRICT CHECK: It causes "Done (0)" if static HTML doesn't match dynamic JS content.
-                // Rely on Search Engine relevance instead.
-                // if (!$foundCategoryMatch && count($categoryWords) > 0) continue;
-            }
-
-            // City Extraction (If not provided)
-            $extractedCity = $city;
-            
-            // If city is empty, try to find it in the content
-            if (empty($extractedCity)) {
-                
-                // 1. Try Schema.org JSON-LD (Best accuracy)
-                if (preg_match('/"addressLocality":\s*"([^"]+)"/i', $siteHtml, $schemaMatches)) {
-                    $extractedCity = trim($schemaMatches[1]);
-                }
-                // 2. Try Meta Tags (geo.placename, og:locality, business:contact_data:locality)
-                elseif (preg_match('/<meta\s+(?:name|property)="(:?geo\.placename|og:locality|business:contact_data:locality)"\s+content="([^"]+)"/i', $siteHtml, $metaMatches)) {
-                    $extractedCity = trim($metaMatches[2]);
-                }
-                // 3. Try Address Tag
-                elseif (preg_match('/<address[^>]*>(.*?)<\/address>/is', $siteHtml, $addrMatches)) {
-                    $addrText = strip_tags($addrMatches[1]);
-                     if (!empty($country)) {
-                         if (preg_match('/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*,\s*' . preg_quote($country, '/') . '/i', $addrText, $locMatches)) {
-                              $extractedCity = trim($locMatches[1]);
-                         }
-                     }
-                }
-                
-                // 4. Try Standard "City, Country" pattern in main text
-                if (empty($extractedCity) && !empty($country)) {
-                     // Matches "Toronto, Canada"
-                     if (preg_match('/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*,\s*' . preg_quote($country, '/') . '/i', $textContent, $locMatches)) {
-                          $extractedCity = trim($locMatches[1]);
-                     }
-                     // Matches "Toronto, ON, Canada"
-                     elseif (preg_match('/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*,\s*(?:[A-Z]{2,}|[A-Z][a-z]+)\s*,\s*' . preg_quote($country, '/') . '/i', $textContent, $locMatches)) {
-                          $extractedCity = trim($locMatches[1]);
-                     }
-                }
-            }
-            
-            // STRICT VALIDATION: If no specific city found, SKIP this record. 
-            // CHANGE: If we have a user-provided city, USE IT. Don't skip.
-            $extractedCity = trim($extractedCity);
-            if (empty($extractedCity) || strtolower($extractedCity) === 'unknown') {
-                if (!empty($city)) {
-                    $extractedCity = $city; // Fallback to search term
-                } else {
-                    // Only skip if we really have no idea where this is and user didn't provide city
-                    // continue; 
-                    // actually, let's keep it if we have country at least
-                    if (empty($country)) continue;
-                    $extractedCity = "Unknown";
-                }
-            }
-
-            // ENFORCE VALID DATA: 
-            // 1. Must have a Business Name
-            if (empty($title)) {
-                continue; 
-            }
-
-            // 2. Reject Garbage Titles (Error pages, Parked domains, Directories)
-            $garbageTitles = ['403 Forbidden', '404 Not Found', 'Access Denied', 'Domain For Sale', 'Parking', 'GoDaddy', 'Namecheap', 'Just a moment...', 'Attention Required!', 'Robot Check', 'Security Check', 'Human Verification', 'Yelp', 'Yellow Pages'];
-            $isGarbage = false;
-            foreach ($garbageTitles as $gt) {
-                if (stripos($title, $gt) !== false) {
-                   $isGarbage = true;
-                   break;
-                }
-            }
-            if ($isGarbage) continue;
-
-            // 3. Relaxed Contact Info Check
-            // If we have business name and URL, we take it. 
-            // Users prefer some data over no data.
-            // if (empty($email) && empty($mobile)) {
-            //    continue;
-            // }
-            // Only skip if we have absolutely nothing useful (e.g. no title somehow)
-            if (empty($title)) continue;
-
-            // DUPLICATE DATA CHECK
-            // Check against Name+City, Email, or Mobile to prevent duplicates
-            $dupConditions = ["(business_name = ? AND city = ?)"];
-            $dupParams = [$title, $extractedCity];
-
-            if (!empty($email)) {
-                $dupConditions[] = "email_address = ?";
-                $dupParams[] = $email;
-            }
-            
-            if (!empty($mobile)) {
-                $dupConditions[] = "mobile_number = ?";
-                $dupParams[] = $mobile;
-            }
-
-            $dupSql = "SELECT COUNT(*) FROM data_scraper WHERE " . implode(' OR ', $dupConditions);
-            $dupStmt = $pdo->prepare($dupSql);
-            $dupStmt->execute($dupParams);
-            
-            if ($dupStmt->fetchColumn() > 0) {
-                continue; // Skip Duplicate
-            }
-
+            // INSERT
             $stmt = $pdo->prepare("INSERT INTO data_scraper (website_url, business_name, business_category, email_address, mobile_number, city, country) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([
-                $webUrl,
-                $title,
-                $category,
-                $email, // Will be empty string if not found
-                $mobile, // Will be empty string if not found
-                ucfirst($extractedCity), 
-                $country
-            ]);
+            $stmt->execute([$url, $title, $catTag, $email, $phone, $city, $country]);
             $insertedCount++;
         }
 
+        $msg = $insertedCount > 0 ? "Scraped $insertedCount records." : "Found " . count($candidateLinks) . " links but 0 valid interactions. Debug: " . implode(" | ", $debugTitles);
+        
         echo json_encode([
-            'status' => 'success', 
-            'message' => "Batch complete.",
-            'count' => $insertedCount,
-            'next_params' => $nextPageParams,
-            'debug' => [
-                'fetched_pages' => $fetchedPages,
-                'links_found_raw' => count($links),
-                'query' => $query ?? 'pagination',
-                'last_search_title' => $searchPageTitle ?? 'N/A'
-            ]
+            'status' => 'success',
+            'message' => $msg,
+            'count' => $insertedCount
         ]);
         exit;
     }
