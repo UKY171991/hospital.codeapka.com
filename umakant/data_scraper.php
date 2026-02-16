@@ -112,6 +112,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
+    // Handle Turn All OFF
+    if ($action === 'turn_all_off') {
+        $stmt = $pdo->prepare("UPDATE data_scraper SET status = 0");
+        if ($stmt->execute()) {
+             $message = '<div class="alert alert-success">All statuses turned off!</div>';
+        } else {
+             $message = '<div class="alert alert-danger">Error turning off statuses!</div>';
+        }
+    }
+
     if ($action === 'create') {
         // Check for duplicates
         $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM data_scraper WHERE website_url = ? OR email_address = ?");
@@ -182,6 +192,9 @@ try {
     $checkStatusCol = $pdo->query("SHOW COLUMNS FROM data_scraper LIKE 'status'");
     if ($checkStatusCol->rowCount() == 0) {
         $pdo->exec("ALTER TABLE data_scraper ADD COLUMN status TINYINT(1) DEFAULT 0 AFTER country");
+    } else {
+        // Ensure default is 0 for existing column
+        $pdo->exec("ALTER TABLE data_scraper MODIFY COLUMN status TINYINT(1) DEFAULT 0");
     }
 } catch (PDOException $e) {
     echo "Error creating table: " . $e->getMessage();
@@ -292,6 +305,12 @@ $dataList = $stmt->fetchAll();
                     <a href="data_scraper.php?action=export_csv" id="exportBtn" class="btn btn-tool" title="Export to CSV">
                         <i class="fas fa-file-csv"></i> Export CSV
                     </a>
+                    <form method="POST" action="data_scraper.php" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to turn ALL statuses OFF?');">
+                        <input type="hidden" name="action" value="turn_all_off">
+                        <button type="submit" class="btn btn-tool text-danger" title="Turn All Off">
+                            <i class="fas fa-power-off"></i> Turn All Off
+                        </button>
+                    </form>
                 </div>
               </div>
               <!-- /.card-header -->
