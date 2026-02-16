@@ -290,6 +290,59 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $baseQuery = implode(' ', $queryParts);
         $query = "$baseQuery -directory -list"; // Broad search
 
+        // Define Exclusion Lists
+        $exclusionList = ['facebook.com', 'yelp.com', 'yellowpages', 'linkedin', 'instagram', 'twitter', 'youtube', 'pinterest', 'bbb.org', 'mapquest', 'tripadvisor', 'whitepages', 'superpages'];
+        $directoryPathSegments = ['/directory', '/listing', '/business', '/profile', '/search', '/catalog'];
+
+        // Function to make cURL request
+        function fetchUrl($url, $data = [], $method = 'GET') {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 45);
+            
+            // Unique Cookie Jar per session to avoid blocks
+            static $cookieFile;
+            if (!$cookieFile) {
+                // Ensure unique file per session/request time
+                $cookieFile = sys_get_temp_dir() . '/ddg_cookies_' . time() . '_' . rand(1000,9999) . '.txt';
+            }
+            curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
+            curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
+            
+            // Random User Agents
+            $userAgents = [
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
+            ];
+            $randomAgent = $userAgents[array_rand($userAgents)];
+            
+            curl_setopt($ch, CURLOPT_USERAGENT, $randomAgent);
+            curl_setopt($ch, CURLOPT_REFERER, "https://duckduckgo.com/");
+            // Add identifying headers
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Accept-Language: en-US,en;q=0.9',
+                'Upgrade-Insecure-Requests: 1',
+                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
+            ]);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            
+            if ($method === 'POST' && !empty($data)) {
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+            }
+
+            $output = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+
+            // Return array with info for debugging
+            return ['code' => $httpCode, 'content' => $output, 'error' => $curlError];
+        }
+
         $links = [];
         $fetchedPages = 0;
         $maxPages = 200;
