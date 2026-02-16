@@ -9,7 +9,7 @@
 // --------------------------------------------------------------------------
 
 // Include system headers (assumes $pdo and session are initialized here)
-// If not, we fall back to local config (commented out for safety)
+require_once 'inc/connection.php';
 include 'inc/header.php'; 
 include 'inc/sidebar.php';
 
