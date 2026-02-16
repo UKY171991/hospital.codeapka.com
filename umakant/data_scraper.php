@@ -260,20 +260,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // City Extraction (If not provided)
             $extractedCity = $city;
+            
+            // If city is empty, try to find it in the content
             if (empty($extractedCity) && !empty($country)) {
-                // Look for patterns like "Toronto, Canada" or "Toronto, ON, Canada"
-                // This is a naive heuristic: grab the word(s) before the country name.
-                // Limit to 2 words before comma to avoid grabbing sentences.
-                if (preg_match('/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*,\s*(?:[A-Z]{2,}\s*,\s*)?' . preg_quote($country, '/') . '/i', $textContent, $locMatches)) {
-                    $extractedCity = trim($locMatches[1]);
+                // 1. Look for "City, Country" pattern
+                // Matches "Toronto, Canada"
+                if (preg_match('/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*,\s*' . preg_quote($country, '/') . '/i', $textContent, $locMatches)) {
+                     $extractedCity = trim($locMatches[1]);
+                }
+                
+                // 2. Look for "City, State/Province, Country" pattern
+                // Matches "Toronto, ON, Canada" or "NY, USA"
+                elseif (preg_match('/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*,\s*(?:[A-Z]{2,}|[A-Z][a-z]+)\s*,\s*' . preg_quote($country, '/') . '/i', $textContent, $locMatches)) {
+                     $extractedCity = trim($locMatches[1]);
                 }
             }
-            // Fallback: Check for common address keywords
+            
+            // Final Fallback: If no city found, use Country as city or "Unknown"
             if (empty($extractedCity)) {
-                 // Try to find a standard address block "City, State Zip"
-                 if (preg_match('/([A-Z][a-z]+)\s*,\s*[A-Z]{2}\s*\d{5}/', $textContent, $addrMatches)) {
-                     $extractedCity = $addrMatches[1];
-                 }
+                $extractedCity = "Unknown";
             }
 
             // ENFORCE VALID DATA: 
@@ -290,7 +295,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $category,
                 $email,
                 $mobile,
-                $extractedCity, // Use extracted city or input city
+                ucfirst($extractedCity), 
                 $country
             ]);
             $insertedCount++;
