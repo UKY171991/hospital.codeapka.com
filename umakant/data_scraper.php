@@ -167,6 +167,121 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
+    // Handle Auto Scraper
+    if ($action === 'auto_scrape') {
+        if (ob_get_level()) ob_end_clean();
+        header('Content-Type: application/json');
+
+        $category = $_POST['category'] ?? '';
+        $city = $_POST['city'] ?? '';
+        $country = $_POST['country'] ?? '';
+        
+        $query = urlencode("$category $city $country");
+        $searchUrl = "https://html.duckduckgo.com/html/?q=$query";
+
+        // Function to make cURL request
+        function fetchUrl($url) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            // Rotate User Agents or use a standard one
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $output = curl_exec($ch);
+            curl_close($ch);
+            return $output;
+        }
+
+        // 1. Get Search Results
+        $html = fetchUrl($searchUrl);
+        
+        $dom = new DOMDocument();
+        @$dom->loadHTML($html);
+        $xpath = new DOMXPath($dom);
+        
+        // Extract Links from DuckDuckGo HTML results
+        // Class 'result__a' is common in DDG HTML, but structure changes.
+        // Fallback: look for generic links that contain 'http' and are not DDG internal links.
+        $links = [];
+        $nodes = $xpath->query("//a[@class='result__a']");
+        
+        if ($nodes->length == 0) {
+             // Fallback query if class name changed
+             $nodes = $dom->getElementsByTagName('a');
+        }
+
+        foreach ($nodes as $node) {
+            $href = $node->getAttribute('href');
+            // Decode DDG redirection if present
+            if (strpos($href, 'uddg=') !== false) {
+                parse_str(parse_url($href, PHP_URL_QUERY), $vars);
+                if (isset($vars['uddg'])) {
+                    $href = $vars['uddg'];
+                }
+            }
+            
+            // Filter invalid or internal links
+            if (filter_var($href, FILTER_VALIDATE_URL) && strpos($href, 'duckduckgo') === false && strpos($href, 'microsoft') === false) {
+                $links[] = $href;
+            }
+            if (count($links) >= 5) break; // Limit to 5 results for speed
+        }
+
+        $insertedCount = 0;
+
+        // 2. Process each link
+        foreach ($links as $webUrl) {
+            // Check duplicate
+            $chk = $pdo->prepare("SELECT COUNT(*) FROM data_scraper WHERE website_url = ?");
+            $chk->execute([$webUrl]);
+            if ($chk->fetchColumn() > 0) continue;
+
+            // Fetch Site Content
+            $siteHtml = fetchUrl($webUrl);
+            if (!$siteHtml) continue;
+
+            // Extract Data
+            // Title as Business Name
+            preg_match('/<title>(.*?)<\/title>/is', $siteHtml, $matches);
+            $title = isset($matches[1]) ? trim(strip_tags($matches[1])) : $category . ' Business';
+            
+            // Email (Regex)
+            preg_match('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $siteHtml, $emailMatches);
+            $email = $emailMatches[0] ?? '';
+
+            // Phone (Regex - Basic)
+            preg_match('/(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/', $siteHtml, $phoneMatches);
+            $mobile = $phoneMatches[0] ?? '';
+
+            // Basic validation
+            if (empty($email) && empty($mobile)) {
+                // If no contact info found, skip insertion to keep data high quality? OR insert anyway?
+                // Inserting anyway so user sees we found the site.
+            }
+
+            $stmt = $pdo->prepare("INSERT INTO data_scraper (website_url, business_name, business_category, email_address, mobile_number, city, country) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $webUrl,
+                $title,
+                $category,
+                $email,
+                $mobile,
+                $city,
+                $country
+            ]);
+            $insertedCount++;
+        }
+
+        if ($insertedCount > 0) {
+            echo json_encode(['status' => 'success', 'message' => "Scraping complete. Found and inserted $insertedCount new records."]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => "No new data found or search blocked. Try a different category/location."]);
+        }
+        exit;
+    }
+
     if ($action === 'create') {
         // Check for duplicates
         $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM data_scraper WHERE website_url = ? OR email_address = ?");
@@ -307,6 +422,41 @@ $counter = $offset + 1;
         <div class="row">
           <!-- Form Column -->
           <div class="col-md-4">
+            
+            <!-- Auto Scraper Card -->
+            <div class="card card-success">
+              <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-robot"></i> Auto Scraper Bot</h3>
+              </div>
+              <div class="card-body">
+                <form id="scraperForm">
+                    <div class="form-group">
+                        <label>Business Category</label>
+                        <input type="text" class="form-control" name="scrape_category" placeholder="e.g. Dentist, Plumber" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                             <div class="form-group">
+                                <label>City</label>
+                                <input type="text" class="form-control" name="scrape_city" placeholder="e.g. Toronto" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label>Country</label>
+                                <input type="text" class="form-control" name="scrape_country" placeholder="e.g. Canada" required>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-block" id="btnRunScraper">
+                        <i class="fas fa-search-plus"></i> Start Scraping
+                    </button>
+                    <p class="text-muted text-sm mt-2"><i class="fas fa-info-circle"></i> This adds data automatically to the list.</p>
+                </form>
+              </div>
+            </div>
+            <!-- /.card -->
+
             <div class="card card-<?php echo $editData ? 'warning' : 'primary'; ?>">
               <div class="card-header">
                 <h3 class="card-title"><?php echo $editData ? 'Edit Data' : 'Add New Data'; ?></h3>
@@ -603,5 +753,41 @@ $(document).ready(function() {
             }
         });
     }
+    // Auto Scraper Handler
+    $('#scraperForm').on('submit', function(e) {
+        e.preventDefault();
+        var btn = $('#btnRunScraper');
+        var originalText = btn.html();
+        var category = $('input[name="scrape_category"]').val();
+        var city = $('input[name="scrape_city"]').val();
+        var country = $('input[name="scrape_country"]').val();
+
+        btn.html('<i class="fas fa-cog fa-spin"></i> Scraping...').prop('disabled', true);
+
+        $.ajax({
+            url: 'data_scraper.php',
+            type: 'POST',
+            dataType: 'json',
+            data: { 
+                action: 'auto_scrape', 
+                category: category,
+                city: city,
+                country: country
+            },
+            success: function(response) {
+                if(response.status === 'success') {
+                    alert(response.message);
+                    location.reload(); 
+                } else {
+                    alert('Status: ' + response.message);
+                }
+                btn.html(originalText).prop('disabled', false);
+            },
+            error: function() {
+                alert('Scraping error or timeout. The server might be blocking requests.');
+                btn.html(originalText).prop('disabled', false);
+            }
+        });
+    });
 });
 </script>
