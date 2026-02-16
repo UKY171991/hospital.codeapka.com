@@ -361,8 +361,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $forms = $dom->getElementsByTagName('form');
             foreach ($forms as $form) {
                 $action = $form->getAttribute('action');
-                // DuckDuckGo next page usually has 'next' in class or action, or input name 's' (start)
-                if (strpos($action, '/html/') !== false || $form->getAttribute('class') == 'nav-button' || strpos($action, 'next') !== false) {
+                // Support both HTML and Lite versions
+                if (strpos($action, '/html/') !== false || strpos($action, '/lite/') !== false || $form->getAttribute('class') == 'nav-button' || strpos($action, 'next') !== false) {
                      $inputs = $form->getElementsByTagName('input');
                      $tempParams = [];
                      $hasS = false;
@@ -372,10 +372,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                          $value = $input->getAttribute('value');
                          if ($name) {
                              $tempParams[$name] = $value;
+                             // 's' is start index, 'nextParams' sometimes used
                              if ($name === 's' || $name === 'nextParams') $hasS = true; 
-                             if ($value === 'Next') $hasNext = true;
+                             // Check submit button value
+                             if (stripos($value, 'Next') !== false || stripos($value, 'More') !== false) $hasNext = true;
                          }
                      }
+                     // Lite version relies on 's' param and 'Next' button
                      if ($hasS || $hasNext) {
                          $nextPageParams = $tempParams;
                          break;
@@ -497,11 +500,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             if ($isGarbage) continue;
 
-            // 3. Must have at least ONE contact method (Email OR Mobile)
-            // Users typically don't want data without contact info
-            if (empty($email) && empty($mobile)) {
-                continue;
-            }
+            // 3. Relaxed Contact Info Check
+            // If we have business name and URL, we take it. 
+            // Users prefer some data over no data.
+            // if (empty($email) && empty($mobile)) {
+            //    continue;
+            // }
+            // Only skip if we have absolutely nothing useful (e.g. no title somehow)
+            if (empty($title)) continue;
 
             // DUPLICATE DATA CHECK
             // Check against Name+City, Email, or Mobile to prevent duplicates
