@@ -260,108 +260,78 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $country = $_POST['country'] ?? '';
         $nextParams = $_POST['next_params'] ?? null;
         
-        // Use DuckDuckGo Lite - Better for scraping
-        $url = "https://lite.duckduckgo.com/lite/";
-        $postData = [];
-        $method = 'GET'; 
+        // Multi-Engine Strategy
+        $searchEngines = [
+            'ddg' => [
+                'url' => 'https://html.duckduckgo.com/html/',
+                'method' => 'POST',
+                'q_param' => 'q',
+                'extra' => ['kl' => 'us-en']
+            ],
+            'ask' => [
+                'url' => 'https://www.ask.com/web',
+                'method' => 'GET',
+                'q_param' => 'q',
+                'extra' => []
+            ],
+            'yahoo' => [
+                'url' => 'https://search.yahoo.com/search',
+                'method' => 'GET',
+                'q_param' => 'p',
+                'extra' => []
+            ]
+        ];
 
-        if ($nextParams) {
-             $postData = $nextParams;
-             $method = 'POST'; // Pagination often uses POST in Lite form
-        } else {
-             // Initial Request via GET (Standard)
-             $queryParts = [];
-             if ($category) $queryParts[] = "$category";
-             if ($city) $queryParts[] = "$city";
-             if ($country) $queryParts[] = "$country";
-             // Base query
-             $baseQuery = implode(' ', $queryParts);
-             
-             // BROAD SEARCH STRATEGY:
-             // We search for the business broadly, then filter for 'elfsight' in the content.
-             // This prevents "Done (0)" caused by the search engine not indexing the footprint.
-             $query = "$baseQuery -directory -list";
-             
-             // GET params
-             $url .= "?q=" . urlencode($query) . "&kl=us-en";
-             $method = 'GET';
-             
-             $debugLog = [];
-        }
+        // Initial Search Setup
+        $queryParts = [];
+        if ($category) $queryParts[] = "$category";
+        if ($city) $queryParts[] = "$city";
+        if ($country) $queryParts[] = "$country";
+        $baseQuery = implode(' ', $queryParts);
+        $query = "$baseQuery -directory -list"; // Broad search
 
-        // Define Exclusion Lists (Critical to prevent crashes)
-        $exclusionList = ['facebook.com', 'yelp.com', 'yellowpages', 'linkedin', 'instagram', 'twitter', 'youtube', 'pinterest', 'bbb.org', 'mapquest', 'tripadvisor', 'whitepages', 'superpages'];
-        $directoryPathSegments = ['/directory', '/listing', '/business', '/profile', '/search', '/catalog'];
-
-        // Function to make cURL request
-        function fetchUrl($url, $data = [], $method = 'GET') {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 45);
-            
-            // Unique Cookie Jar per session to avoid blocks
-            static $cookieFile;
-            if (!$cookieFile) {
-                // Ensure unique file per session/request time
-                $cookieFile = sys_get_temp_dir() . '/ddg_cookies_' . time() . '_' . rand(1000,9999) . '.txt';
-            }
-            curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
-            curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
-            
-            // Random User Agents
-            $userAgents = [
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
-            ];
-            $randomAgent = $userAgents[array_rand($userAgents)];
-            
-            curl_setopt($ch, CURLOPT_USERAGENT, $randomAgent);
-            curl_setopt($ch, CURLOPT_REFERER, "https://duckduckgo.com/");
-            // Add identifying headers
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Accept-Language: en-US,en;q=0.9',
-                'Upgrade-Insecure-Requests: 1',
-                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
-            ]);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            
-            if ($method === 'POST' && !empty($data)) {
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-            }
-
-            $output = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $curlError = curl_error($ch);
-            curl_close($ch);
-
-            // Return array with info for debugging
-            return ['code' => $httpCode, 'content' => $output, 'error' => $curlError];
-        }
-
-        // Initialize loop variables
         $links = [];
         $fetchedPages = 0;
-        $maxPages = 200; // Increase depth heavily since we need to filter many sites
-        $targetLinks = 1000; // Gather plenty of candidates
+        $maxPages = 200;
+        $targetLinks = 1000;
         $searchPageTitle = 'Unknown';
         
-        // Initial Fetch
-        $response = fetchUrl($url, $postData, $method);
+        // Try Engines until we get data
+        $activeEngine = null;
+        $html = '';
+
+        foreach ($searchEngines as $engineName => $config) {
+            $postData = [];
+            $reqUrl = $config['url'];
+            
+            if ($config['method'] === 'GET') {
+                $params = array_merge([$config['q_param'] => $query], $config['extra']);
+                $reqUrl .= '?' . http_build_query($params);
+            } else {
+                $postData = array_merge([$config['q_param'] => $query], $config['extra']);
+            }
+
+            $response = fetchUrl($reqUrl, $postData, $config['method']);
+            
+            if ($response['code'] >= 200 && $response['code'] < 300 && !empty($response['content'])) {
+                $checkHtml = $response['content'];
+                // Verify we actually got results, not a captcha
+                if (stripos($checkHtml, 'captcha') === false && strlen($checkHtml) > 2000) {
+                     $html = $checkHtml;
+                     $activeEngine = $engineName;
+                     break; // Found a working engine!
+                }
+            }
+        }
         
-        // Check initial connectivity (Allow 2xx codes)
-        if ($response['code'] < 200 || $response['code'] >= 300) {
-             $msg = "Connection Failed. HTTP Code: " . $response['code'];
-             if ($response['error']) $msg .= " cURL Error: " . $response['error'];
-             echo json_encode(['status' => 'error', 'message' => $msg]);
+        if (!$html) {
+             echo json_encode(['status' => 'error', 'message' => 'All search engines blocked/failed. Try again later.']);
              exit;
         }
-        $html = $response['content'];
+
+        // Parse Title for Debug
         preg_match('/<title>(.*?)<\/title>/is', $html, $matches);
-        $searchPageTitle = $matches[1] ?? 'No Title';
+        $searchPageTitle = ($activeEngine ? "[$activeEngine] " : "") . ($matches[1] ?? 'No Title');
         
         while ($fetchedPages < $maxPages) {
             if (!$html) break;
@@ -370,27 +340,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             @$dom->loadHTML($html);
             $xpath = new DOMXPath($dom);
             
-            $xpath = new DOMXPath($dom);
-            
-            // Extract Links - Generic for Lite version
+            // Extract Links - Generic for All Engines
             $nodes = $dom->getElementsByTagName('a'); 
-            // Lite version is simple, just grab all valid links
 
             foreach ($nodes as $node) {
                 $href = $node->getAttribute('href');
                 
-                // Handle Relative Links in Lite
-                if (strpos($href, '/') === 0) {
-                    $href = "https://lite.duckduckgo.com" . $href;
+                // Cleanup Href based on Engine
+                if ($activeEngine === 'ddg') {
+                     if (strpos($href, 'uddg=') !== false) {
+                        parse_str(parse_url($href, PHP_URL_QUERY), $vars);
+                        if (isset($vars['uddg'])) $href = $vars['uddg'];
+                    }
+                } elseif ($activeEngine === 'yahoo') {
+                     // Yahoo links often wrapped in RU=...
+                     if (strpos($href, 'RU=') !== false) {
+                         // Extract simple URL if possible, or just let filter logic handle it
+                         // usually scraping the 'href' directly works for title links
+                     }
                 }
 
-                if (strpos($href, 'uddg=') !== false) {
-                    parse_str(parse_url($href, PHP_URL_QUERY), $vars);
-                    if (isset($vars['uddg'])) {
-                        $href = $vars['uddg'];
-                    }
-                }
-                
                 if (!filter_var($href, FILTER_VALIDATE_URL)) continue;
 
                 $isExcluded = false;
