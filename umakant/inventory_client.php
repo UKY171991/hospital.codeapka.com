@@ -4,7 +4,7 @@ require_once 'inc/sidebar.php';
 ?>
 
 <!-- Content Wrapper -->
-<div class="content-wrapper">
+<div class="content-wrapper inventory-section">
     <!-- Content Header -->
     <section class="content-header">
         <div class="container-fluid">
@@ -26,6 +26,49 @@ require_once 'inc/sidebar.php';
     <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
+            <div class="row mb-3">
+                <div class="col-lg-3 col-sm-6">
+                    <div class="info-box bg-white">
+                        <span class="info-box-icon bg-primary"><i class="fas fa-users"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Total Clients</span>
+                            <span class="info-box-number" id="clientTotalCount">0</span>
+                            <small class="text-muted">All clients</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="info-box bg-white">
+                        <span class="info-box-icon bg-success"><i class="fas fa-user-check"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Active</span>
+                            <span class="info-box-number" id="clientActiveCount">0</span>
+                            <small class="text-muted">Active clients</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="info-box bg-white">
+                        <span class="info-box-icon bg-secondary"><i class="fas fa-user-times"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Inactive</span>
+                            <span class="info-box-number" id="clientInactiveCount">0</span>
+                            <small class="text-muted">Inactive clients</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="info-box bg-white">
+                        <span class="info-box-icon bg-success"><i class="fab fa-whatsapp"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">WhatsApp Ready</span>
+                            <span class="info-box-number" id="clientWhatsappCount">0</span>
+                            <small class="text-muted">With phone numbers</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col-md-12">
                     <div class="card">
@@ -58,7 +101,9 @@ require_once 'inc/sidebar.php';
                                     </thead>
                                 <tbody id="clientTableBody">
                                     <tr>
-                                        <td colspan="6" class="text-center">Loading...</td>
+                                        <td colspan="6" class="text-center">
+                                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading clients...
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -684,6 +729,8 @@ function loadClients() {
         success: function(response) {
             if (response && response.success) {
                 displayClients(response.data);
+            } else {
+                displayClients([]);
             }
         }
     });
@@ -694,7 +741,8 @@ function displayClients(clients) {
     tbody.empty();
 
     if (!clients || clients.length === 0) {
-        tbody.append('<tr><td colspan="6" class="text-center">No clients found</td></tr>');
+        tbody.append('<tr><td colspan="6" class="text-center text-muted">No clients found</td></tr>');
+        updateClientStats([]);
         return;
     }
 
@@ -749,6 +797,7 @@ function displayClients(clients) {
         `;
         tbody.append(row);
     });
+    updateClientStats(clients);
 
     // Initialize DataTable
     if ($.fn.DataTable.isDataTable('#clientTable')) {
@@ -800,6 +849,18 @@ function displayClients(clients) {
             }
         }
     });
+}
+
+function updateClientStats(clients) {
+    const totalCount = clients.length;
+    const activeCount = clients.filter(client => client.status === 'Active').length;
+    const inactiveCount = totalCount - activeCount;
+    const whatsappCount = clients.filter(client => client.phone && client.phone !== '-').length;
+
+    $('#clientTotalCount').text(totalCount);
+    $('#clientActiveCount').text(activeCount);
+    $('#clientInactiveCount').text(inactiveCount);
+    $('#clientWhatsappCount').text(whatsappCount);
 }
 
 function openClientModal() {

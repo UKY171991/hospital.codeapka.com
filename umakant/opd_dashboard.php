@@ -1,10 +1,11 @@
 <?php
+$pageSpecificCSS = '<link rel="stylesheet" href="assets/css/opd-theme.css?v=' . time() . '">';
 require_once 'inc/header.php';
 require_once 'inc/sidebar.php';
 ?>
 
 <!-- Content Wrapper -->
-<div class="content-wrapper">
+<div class="content-wrapper opd-page">
     <!-- Content Header -->
     <section class="content-header">
         <div class="container-fluid">
@@ -310,129 +311,5 @@ require_once 'inc/sidebar.php';
 
 <!-- Page specific JavaScript -->
 <script src="assets/js/opd_dashboard.js?v=<?php echo time(); ?>"></script>
-
-<style>
-.small-box {
-    position: relative;
-    display: block;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
-    border-radius: 0.25rem;
-}
-
-.small-box > .inner {
-    padding: 10px;
-}
-
-.small-box .icon {
-    transition: all .3s linear;
-    position: absolute;
-    top: -10px;
-    right: 10px;
-    z-index: 0;
-    font-size: 90px;
-    color: rgba(0,0,0,0.15);
-}
-
-.small-box-footer {
-    display: block;
-    padding: 3px 0;
-    color: rgba(255,255,255,0.8);
-    text-align: center;
-    text-decoration: none;
-    background: rgba(0,0,0,0.1);
-}
-
-.small-box-footer:hover {
-    color: #fff;
-    background: rgba(0,0,0,0.15);
-}
-
-.info-box {
-    box-shadow: 0 0 1px rgba(0,0,0,0.125), 0 1px 3px rgba(0,0,0,0.2);
-    border-radius: 0.25rem;
-    display: flex;
-    margin-bottom: 1rem;
-    min-height: 80px;
-    padding: 0.5rem;
-    position: relative;
-}
-
-.info-box-icon {
-    border-radius: 0.25rem;
-    align-items: center;
-    display: flex;
-    font-size: 1.875rem;
-    justify-content: center;
-    text-align: center;
-    width: 70px;
-}
-
-.info-box-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    line-height: 1.8;
-    flex: 1;
-    padding: 0 10px;
-}
-
-.info-box-text {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.info-box-number {
-    display: block;
-    font-weight: 700;
-}
-
-.btn-app {
-    border-radius: 3px;
-    position: relative;
-    padding: 15px 5px;
-    margin: 0;
-    min-width: 80px;
-    height: 60px;
-    text-align: center;
-    color: #666;
-    border: 1px solid #ddd;
-    background-color: #f4f4f4;
-    font-size: 12px;
-}
-
-.btn-app:hover {
-    background: #f4f4f4;
-    color: #444;
-    border-color: #aaa;
-}
-
-.btn-app > .fa,
-.btn-app > .fas,
-.btn-app > .far,
-.btn-app > .fab,
-.btn-app > .ion {
-    font-size: 20px;
-    display: block;
-}
-
-.card {
-    box-shadow: 0 0 1px rgba(0,0,0,0.125), 0 1px 3px rgba(0,0,0,0.2);
-    margin-bottom: 1rem;
-}
-
-.card-header {
-    background-color: transparent;
-    border-bottom: 1px solid rgba(0,0,0,0.125);
-    padding: 0.75rem 1.25rem;
-    position: relative;
-}
-
-.table-valign-middle tbody > tr > td {
-    vertical-align: middle;
-}
-</style>
 
 <?php require_once 'inc/footer.php'; ?>

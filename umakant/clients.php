@@ -155,6 +155,48 @@ require_once 'inc/sidebar.php';
             margin-bottom: 0;
         }
     }
+
+    .client-summary .info-box {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .client-summary .info-box-icon {
+        border-radius: 0.75rem 0 0 0.75rem;
+    }
+
+    .client-summary .info-box-content {
+        padding: 0.75rem 1rem;
+    }
+
+    .client-summary .info-box-text {
+        font-weight: 600;
+    }
+
+    .summary-meta {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .filter-toolbar {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .empty-table-state {
+        padding: 2rem;
+        text-align: center;
+        color: #6c757d;
+    }
+
+    .empty-table-state i {
+        font-size: 1.75rem;
+        color: #adb5bd;
+        margin-bottom: 0.5rem;
+    }
 </style>
 
 <!-- Content Wrapper -->
@@ -180,6 +222,49 @@ require_once 'inc/sidebar.php';
     <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
+            <div class="row client-summary">
+                <div class="col-lg-3 col-md-6">
+                    <div class="info-box bg-info">
+                        <span class="info-box-icon"><i class="fas fa-users"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Total Clients</span>
+                            <span class="info-box-number" id="clientsTotal">0</span>
+                            <div class="summary-meta" id="clientsUpdated">Updated just now</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="info-box bg-warning">
+                        <span class="info-box-icon"><i class="fas fa-hourglass-half"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Pending Tasks</span>
+                            <span class="info-box-number" id="pendingTasksTotal">0</span>
+                            <div class="summary-meta">Across all clients</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="info-box bg-success">
+                        <span class="info-box-icon"><i class="fas fa-check-circle"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Completed Tasks</span>
+                            <span class="info-box-number" id="completedTasksTotal">0</span>
+                            <div class="summary-meta">Closed successfully</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="info-box bg-primary">
+                        <span class="info-box-icon"><i class="fas fa-user-check"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Active Clients</span>
+                            <span class="info-box-number" id="activeClientsTotal">0</span>
+                            <div class="summary-meta">With open tasks</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col-md-12">
                     <div class="card">
@@ -188,7 +273,14 @@ require_once 'inc/sidebar.php';
                                 <i class="fas fa-list mr-2"></i>
                                 All Clients
                             </h3>
-                            <div class="card-tools">
+                            <div class="card-tools filter-toolbar">
+                                <div class="custom-control custom-switch mr-2">
+                                    <input type="checkbox" class="custom-control-input" id="pendingOnlyToggle">
+                                    <label class="custom-control-label" for="pendingOnlyToggle">Pending only</label>
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="refreshClients" title="Refresh">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
                                 <button type="button" class="btn btn-primary btn-sm" onclick="openClientModal()">
                                     <i class="fas fa-plus"></i> Add Client
                                 </button>
@@ -404,6 +496,7 @@ require_once 'inc/sidebar.php';
 
 <script>
 let clientTable;
+let pendingFilterEnabled = false;
 
 $(document).ready(function() {
     loadClients();
@@ -411,6 +504,17 @@ $(document).ready(function() {
     $('#clientForm').on('submit', function(e) {
         e.preventDefault();
         saveClient();
+    });
+
+    $('#pendingOnlyToggle').on('change', function() {
+        pendingFilterEnabled = $(this).is(':checked');
+        if (clientTable) {
+            clientTable.draw();
+        }
+    });
+
+    $('#refreshClients').on('click', function() {
+        loadClients();
     });
 });
 
@@ -473,7 +577,18 @@ function displayClients(clients) {
     tbody.empty();
 
     if (!clients || clients.length === 0) {
-        tbody.append('<tr><td colspan="9" class="text-center">No clients found</td></tr>');
+        tbody.append(`
+            <tr>
+                <td colspan="9">
+                    <div class="empty-table-state">
+                        <i class="fas fa-user-plus"></i>
+                        <div>No clients found yet.</div>
+                        <button class="btn btn-sm btn-outline-primary mt-2" onclick="openClientModal()">Add your first client</button>
+                    </div>
+                </td>
+            </tr>
+        `);
+        updateClientSummary([], []);
         return;
     }
 
@@ -542,6 +657,32 @@ function displayClients(clients) {
             { responsivePriority: 9, targets: 5 }  // City is lowest priority
         ]
     });
+
+    updateClientSummary(clients, allTasks);
+}
+
+$.fn.dataTable.ext.search.push(function(settings, data) {
+    if (!pendingFilterEnabled) {
+        return true;
+    }
+    const pendingValue = parseInt($(data[6]).text() || data[6], 10);
+    return pendingValue > 0;
+});
+
+function updateClientSummary(clients, tasks) {
+    const totalClients = clients.length;
+    const pendingTasks = tasks.filter(task => task.status === 'Pending' || task.status === 'In Progress').length;
+    const completedTasks = tasks.filter(task => task.status === 'Completed').length;
+    const activeClients = clients.filter(client => client.pendingCount > 0).length;
+
+    $('#clientsTotal').text(totalClients);
+    $('#pendingTasksTotal').text(pendingTasks);
+    $('#completedTasksTotal').text(completedTasks);
+    $('#activeClientsTotal').text(activeClients);
+
+    const now = new Date();
+    const formatted = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    $('#clientsUpdated').text(`Updated at ${formatted}`);
 }
 
 function openClientModal() {

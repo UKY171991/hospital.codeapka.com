@@ -4,7 +4,7 @@ require_once 'inc/sidebar.php';
 ?>
 
 <!-- Content Wrapper -->
-<div class="content-wrapper">
+<div class="content-wrapper inventory-section">
     <!-- Content Header -->
     <section class="content-header">
         <div class="container-fluid">
@@ -64,6 +64,46 @@ require_once 'inc/sidebar.php';
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-lg-8">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+                            <div class="mb-3 mb-md-0">
+                                <h5 class="mb-1">Inventory Overview</h5>
+                                <p class="text-muted mb-0" id="dashboardPeriodSummary">Showing full year overview.</p>
+                            </div>
+                            <div class="btn-group flex-wrap">
+                                <a href="inventory_income.php" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-plus mr-1"></i>Add Income
+                                </a>
+                                <a href="inventory_expense.php" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-minus mr-1"></i>Add Expense
+                                </a>
+                                <a href="inventory_client.php" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-user-plus mr-1"></i>Add Client
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mt-3 mt-lg-0">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <small class="text-muted d-block">Last refresh</small>
+                                    <strong id="dashboardLastUpdated">Just now</strong>
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="refreshDashboard">
+                                    <i class="fas fa-sync-alt mr-1"></i>Refresh
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-2">Data updates based on selected filters.</small>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -272,7 +312,9 @@ require_once 'inc/sidebar.php';
                                     </thead>
                                 <tbody id="recentTransactionsBody">
                                     <tr>
-                                        <td colspan="6" class="text-center">Loading...</td>
+                                        <td colspan="6" class="text-center">
+                                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading transactions...
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -300,6 +342,10 @@ $(document).ready(function() {
         $('#filterMonth').val('');
         loadDashboardData();
     });
+
+    $('#refreshDashboard').click(function() {
+        loadDashboardData();
+    });
 });
 
 function loadDashboardData() {
@@ -310,10 +356,13 @@ function loadDashboardData() {
     if (month) {
         const monthName = $("#filterMonth option:selected").text();
         $('#monthStatsTitle').text(monthName + ' ' + year);
+        $('#dashboardPeriodSummary').text('Showing ' + monthName + ' ' + year + ' performance.');
     } else {
         $('#monthStatsTitle').text('Monthly Average (' + year + ')');
+        $('#dashboardPeriodSummary').text('Showing full year overview for ' + year + '.');
     }
     $('#yearStatsTitle').text('Full Year ' + year);
+    $('#dashboardLastUpdated').text(new Date().toLocaleString());
 
     // Load summary statistics
     $.ajax({
@@ -404,25 +453,25 @@ function displayRecentTransactions(transactions) {
     transactions.forEach(function(trans) {
         const isIncome = trans.type === 'income';
         const typeClass = isIncome ? 'badge-success' : 'badge-danger';
-        const typeIcon = isIncome ? 'fa-arrow-down' : 'fa-arrow-up'; // Income comes in (down into account?), Expense goes out. Or Up/Down for increase/decrease. 
-        // Let's use standard: Income = Arrow Up (Green), Expense = Arrow Down (Red)? Or just badges.
-        // Actually usually Income is Green/Up, Expense is Red/Down.
+        const typeIcon = isIncome ? 'fa-arrow-up' : 'fa-arrow-down';
         
         const dateObj = new Date(trans.date);
         const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         
         const clientName = trans.client_name ? `<span class="text-dark font-weight-bold">${trans.client_name}</span>` : '<span class="text-muted font-italic">N/A</span>';
+        const description = trans.description ? trans.description : '—';
+        const category = trans.category ? trans.category : 'General';
 
         const row = `
             <tr>
                 <td class="align-middle">${dateStr}</td>
                 <td class="align-middle text-center">
                     <span class="badge ${typeClass} px-3 py-2" style="font-size: 0.85rem; border-radius: 20px;">
-                        ${trans.type.toUpperCase()}
+                        <i class="fas ${typeIcon} mr-1"></i>${trans.type.toUpperCase()}
                     </span>
                 </td>
-                <td class="align-middle font-weight-bold text-secondary">${trans.category}</td>
-                <td class="align-middle text-muted small" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${trans.description}</td>
+                <td class="align-middle font-weight-bold text-secondary">${category}</td>
+                <td class="align-middle text-muted small" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${description}</td>
                 <td class="align-middle">${clientName}</td>
                 <td class="align-middle font-weight-bold ${isIncome ? 'text-success' : 'text-danger'}">
                     ${isIncome ? '+' : '-'} ₹${formatNumber(trans.amount)}
@@ -922,6 +971,19 @@ function formatNumber(num) {
 
 .card-header.bg-success {
     background: linear-gradient(45deg, #28a745, #1e7e34) !important;
+}
+
+.inventory-section #dashboardPeriodSummary {
+    font-size: 0.95rem;
+}
+
+.inventory-section .btn-group .btn {
+    border-radius: 20px;
+    margin-right: 6px;
+}
+
+.inventory-section .btn-group .btn:last-child {
+    margin-right: 0;
 }
 </style>
 
