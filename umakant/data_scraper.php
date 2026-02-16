@@ -277,8 +277,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
              // Base query
              $baseQuery = implode(' ', $queryParts);
              
-             // SIMPLIFIED QUERY
-             $query = "$baseQuery elfsight -directory -list";
+             // BROAD SEARCH STRATEGY:
+             // We search for the business broadly, then filter for 'elfsight' in the content.
+             // This prevents "Done (0)" caused by the search engine not indexing the footprint.
+             $query = "$baseQuery -directory -list";
              
              // GET params
              $url .= "?q=" . urlencode($query) . "&kl=us-en";
@@ -343,8 +345,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Initialize loop variables
         $links = [];
         $fetchedPages = 0;
-        $maxPages = 150; // Increased limit to ensure 100 VALID inserted records
-        $targetLinks = 500; // Gather more candidates to account for duplicates/invalid sites 
+        $maxPages = 200; // Increase depth heavily since we need to filter many sites
+        $targetLinks = 1000; // Gather plenty of candidates
+        $searchPageTitle = 'Unknown';
         
         // Initial Fetch
         $response = fetchUrl($url, $postData, $method);
@@ -470,6 +473,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $siteResp = fetchUrl($webUrl);
             if ($siteResp['code'] !== 200) continue;
             $siteHtml = $siteResp['content'];
+
+            // FOOTPRINT DISCOVERY (Mandatory Check)
+            // User requires finding sites using Elfsight.
+            // We check the actual source code now.
+            if (stripos($siteHtml, 'elfsight') === false && stripos($siteHtml, 'elfsight-app') === false && stripos($siteHtml, 'powered by elfsight') === false) {
+                 // Skip sites that don't have the footprint
+                 continue;
+            }
 
             // Extract Data
             // Title as Business Name
