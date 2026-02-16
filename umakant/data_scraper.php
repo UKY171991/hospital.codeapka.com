@@ -224,91 +224,106 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $country = $_POST['country'] ?? '';
         $nextParams = $_POST['next_params'] ?? null;
         
-        // Use DuckDuckGo Lite - Faster and less complex HTML structure
-        $url = "https://lite.duckduckgo.com/lite/";
+        // Use DuckDuckGo HTML via GET (more like a browser)
+        $url = "https://html.duckduckgo.com/html/";
         $postData = [];
+        $method = 'POST'; // Default
 
         if ($nextParams) {
+             // For pagination, DDG HTML uses POST usually
              $postData = $nextParams;
+             $method = 'POST';
         } else {
-             // Initial Request
-             // Build query parts - REMOVE QUOTES for broader search
+             // Initial Request via GET to resemble browser
              $queryParts = [];
              if ($category) $queryParts[] = "$category";
              if ($city) $queryParts[] = "$city";
              if ($country) $queryParts[] = "$country";
-             
-             // Base query
              $baseQuery = implode(' ', $queryParts);
-             
-             // Add exclusions - Minimum exclusions
              $query = "$baseQuery -directory -list";
              
-             $postData = ['q' => $query, 'kl' => 'us-en']; 
+             // Construct GET URL
+             $url .= "?q=" . urlencode($query) . "&kl=us-en";
+             $method = 'GET';
              
-             // Check if we have previous debug info
              $debugLog = [];
         }
 
         // Function to make cURL request
-        function fetchUrl($url, $postData = []) {
+        function fetchUrl($url, $data = [], $method = 'GET') {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 45);
             
-            // Random User Agents to avoid blocking
+            // Cookie Jar setup
+            $cookieFile = sys_get_temp_dir() . '/ddg_cookies.txt';
+            curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
+            curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
+            
+            // Random User Agents
             $userAgents = [
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
-                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36'
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
             ];
             $randomAgent = $userAgents[array_rand($userAgents)];
             
             curl_setopt($ch, CURLOPT_USERAGENT, $randomAgent);
             curl_setopt($ch, CURLOPT_REFERER, "https://duckduckgo.com/");
+            // Add identifying headers
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Accept-Language: en-US,en;q=0.9',
+                'Upgrade-Insecure-Requests: 1',
+                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
+            ]);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             
-            if (!empty($postData)) {
+            if ($method === 'POST' && !empty($data)) {
                 curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
             }
 
             $output = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
             curl_close($ch);
 
-            // Strict HTTP Check (Only 200 OK)
-            if ($httpCode !== 200) {
-                return false;
-            }
-
-            return $output;
+            // Return array with info for debugging
+            return ['code' => $httpCode, 'content' => $output, 'error' => $curlError];
         }
 
         // Initialize loop variables
         $links = [];
         $fetchedPages = 0;
-        $maxPages = 30; // Increased limit to find more results
-        $html = fetchUrl($url, $postData);
+        $maxPages = 20; 
         
-        // Check if initial fetch worked
-        if (!$html) {
-             echo json_encode(['status' => 'error', 'message' => 'Failed to connect to search engine. Please try again or check network.']);
+        // Initial Fetch
+        $response = fetchUrl($url, $postData, $method);
+        
+        // Check initial connectivity
+        if ($response['code'] !== 200) {
+             $msg = "Connection Failed. HTTP Code: " . $response['code'];
+             if ($response['error']) $msg .= " cURL Error: " . $response['error'];
+             echo json_encode(['status' => 'error', 'message' => $msg]);
              exit;
         }
+        $html = $response['content'];
         
         while ($fetchedPages < $maxPages) {
-            if (!$html) break; // Network error or blocked
+            if (!$html) break;
 
             $dom = new DOMDocument();
             @$dom->loadHTML($html);
             $xpath = new DOMXPath($dom);
             
-            // Extract Links - Generic for Lite version
-            $nodes = $dom->getElementsByTagName('a');
+            // Extract Links
+            $nodes = $xpath->query("//a[@class='result__a']"); // Back to HTML structure
+            if ($nodes->length == 0) {
+                 // Fallback
+                 $nodes = $dom->getElementsByTagName('a');
+            }
 
             foreach ($nodes as $node) {
                 $href = $node->getAttribute('href');
@@ -371,11 +386,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
             if ($nextPageParams) {
-                // Fetch next page
-                $html = fetchUrl($url, $nextPageParams);
-                $fetchedPages++;
-                // Small random delay to be polite
-                usleep(rand(500000, 1500000)); 
+                // Fetch next page via POST usually for DDG HTML
+                $resp = fetchUrl("https://html.duckduckgo.com/html/", $nextPageParams, 'POST');
+                if ($resp['code'] === 200) {
+                    $html = $resp['content'];
+                    $fetchedPages++;
+                    usleep(rand(1000000, 2000000)); 
+                } else {
+                    break;
+                }
             } else {
                 break; // No more pages
             }
@@ -391,8 +410,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($chk->fetchColumn() > 0) continue;
 
             // Fetch Site Content
-            $siteHtml = fetchUrl($webUrl);
-            if (!$siteHtml) continue;
+            $siteResp = fetchUrl($webUrl);
+            if ($siteResp['code'] !== 200) continue;
+            $siteHtml = $siteResp['content'];
 
             // Extract Data
             // Title as Business Name
@@ -630,6 +650,7 @@ $limit = 20; // Entries per page
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
+// Get Total Count
 // Get Total Count
 $countSql = "SELECT COUNT(*) FROM data_scraper $searchQuery";
 $countStmt = $pdo->prepare($countSql);
@@ -1217,7 +1238,7 @@ $(document).ready(function() {
                          if (totalScraped > 0) {
                              location.reload();
                          } else {
-                            var errMsg = 'No Data Found';
+                            var errMsg = response.message || 'No Data Found';
                             if (response.debug) {
                                 errMsg += '\nChecked ' + response.debug.fetched_pages + ' pages.';
                                 errMsg += '\nFound ' + response.debug.links_found_raw + ' raw links.';
