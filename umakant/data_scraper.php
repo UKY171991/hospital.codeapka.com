@@ -256,7 +256,7 @@ $dataList = $stmt->fetchAll();
           <div class="col-md-8">
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">Scraper Data List</h3>
+                <h3 class="card-title">Scraper Data List <span class="badge badge-info right"><?php echo count($dataList); ?></span></h3>
                 <div class="card-tools">
                     <div style="display:inline-block; margin-right: 10px;">
                         <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search..." style="width: 200px;">
@@ -267,8 +267,9 @@ $dataList = $stmt->fetchAll();
                 </div>
               </div>
               <!-- /.card-header -->
-              <div class="card-body p-0">
-                <table class="table table-striped">
+              <!-- /.card-header -->
+              <div class="card-body p-0 table-responsive" style="max-height: 600px;">
+                <table class="table table-striped table-head-fixed text-nowrap">
                   <thead>
                     <tr>
                       <th style="width: 10px">#</th>
