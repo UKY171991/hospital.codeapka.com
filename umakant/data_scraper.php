@@ -224,7 +224,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $country = $_POST['country'] ?? '';
         $nextParams = $_POST['next_params'] ?? null;
         
-        $url = "https://html.duckduckgo.com/html/";
+        // Use DuckDuckGo Lite - Faster and less complex HTML structure
+        $url = "https://lite.duckduckgo.com/lite/";
         $postData = [];
 
         if ($nextParams) {
@@ -243,7 +244,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
              // Add exclusions - Minimum exclusions
              $query = "$baseQuery -directory -list";
              
-             $postData = ['q' => $query, 'kl' => 'us-en']; // Force region if needed, or remove 'kl'
+             $postData = ['q' => $query, 'kl' => 'us-en']; 
              
              // Check if we have previous debug info
              $debugLog = [];
@@ -256,8 +257,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-            // Rotate User Agents or use a standard one
-            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+            
+            // Random User Agents to avoid blocking
+            $userAgents = [
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
+                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36'
+            ];
+            $randomAgent = $userAgents[array_rand($userAgents)];
+            
+            curl_setopt($ch, CURLOPT_USERAGENT, $randomAgent);
+            curl_setopt($ch, CURLOPT_REFERER, "https://duckduckgo.com/");
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             
             if (!empty($postData)) {
@@ -296,11 +307,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             @$dom->loadHTML($html);
             $xpath = new DOMXPath($dom);
             
-            // Extract Links
-            $nodes = $xpath->query("//a[@class='result__a']");
-            if ($nodes->length == 0) {
-                 $nodes = $dom->getElementsByTagName('a');
-            }
+            // Extract Links - Generic for Lite version
+            $nodes = $dom->getElementsByTagName('a');
 
             foreach ($nodes as $node) {
                 $href = $node->getAttribute('href');
