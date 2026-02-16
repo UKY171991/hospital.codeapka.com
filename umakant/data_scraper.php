@@ -475,45 +475,75 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             
             if (count($links) >= $targetLinks) break;
             
-            // PAGINATION LOGIC
-            // Only perform deep pagination for DuckDuckGo (Primary) for now.
-            // Backup engines (Ask/Yahoo) are strictly for fallback "Page 1" results to ensure data.
-            if ($activeEngine !== 'ddg') {
-                break; 
-            }
-
-            // Get Next Page logic for DDG
+            // PAGINATION LOGIC (Universal Blind Pagination)
+            // We MUST paginate because Page 1 is always directories (excluded).
+            // We blindly increment offsets/pages to dig deeper.
+            if ($fetchedPages >= $maxPages) break;
+            
             $nextPageParams = null;
-            $forms = $dom->getElementsByTagName('form');
-            foreach ($forms as $form) {
-                $action = $form->getAttribute('action');
-                if (strpos($action, '/lite/') !== false || strpos($action, 'next') !== false) {
-                     $inputs = $form->getElementsByTagName('input');
-                     $tempParams = [];
-                     foreach ($inputs as $input) {
-                         $name = $input->getAttribute('name');
-                         $value = $input->getAttribute('value');
-                         if ($name) $tempParams[$name] = $value;
-                     }
-                     if (isset($tempParams['s']) || isset($tempParams['nextParams'])) {
-                         $nextPageParams = $tempParams;
-                         break;
-                     }
-                }
-            }
+            $nextUrl = '';
 
-            if ($nextPageParams) {
-                $resp = fetchUrl("https://lite.duckduckgo.com/lite/", $nextPageParams, 'POST');
-                if ($resp['code'] === 200) {
-                    $html = $resp['content'];
-                    $fetchedPages++;
-                    usleep(rand(1000000, 2000000));
-                } else {
-                    break;
+            if ($activeEngine === 'ddg') {
+                // ... (Existing DDG Logic kept or simplified) ...
+                // DDG Lite uses POST forms usually, complex.
+                // If standard form parsing failed, we skip DDG pagination to avoid loops.
+                 $forms = $dom->getElementsByTagName('form');
+                 foreach ($forms as $form) {
+                    $action = $form->getAttribute('action');
+                    if (strpos($action, '/lite/') !== false || strpos($action, 'next') !== false) {
+                         $inputs = $form->getElementsByTagName('input');
+                         $tempParams = [];
+                         foreach ($inputs as $input) {
+                             $name = $input->getAttribute('name');
+                             $value = $input->getAttribute('value');
+                             if ($name) $tempParams[$name] = $value;
+                         }
+                         if (isset($tempParams['s']) || isset($tempParams['nextParams'])) {
+                             $nextPageParams = $tempParams;
+                             break;
+                         }
+                    }
                 }
+                if ($nextPageParams) {
+                    $resp = fetchUrl("https://lite.duckduckgo.com/lite/", $nextPageParams, 'POST');
+                    if ($resp['code'] == 200) { $html = $resp['content']; $fetchedPages++; }
+                    else break;
+                } else break;
+
+            } elseif ($activeEngine === 'yahoo') {
+                // Yahoo uses 'b' (1, 11, 21...)
+                $offset = 1 + ($fetchedPages * 10);
+                $nextUrl = "https://search.yahoo.com/search?p=" . urlencode($query) . "&b=$offset";
+                $resp = fetchUrl($nextUrl);
+                if ($resp['code'] == 200) { $html = $resp['content']; $fetchedPages++;}
+                else break;
+
+            } elseif ($activeEngine === 'bing') {
+                // Bing uses 'first' (1, 11, 21...)
+                $offset = 1 + ($fetchedPages * 10);
+                $nextUrl = "https://www.bing.com/search?q=" . urlencode($query) . "&first=$offset";
+                $resp = fetchUrl($nextUrl);
+                if ($resp['code'] == 200) { $html = $resp['content']; $fetchedPages++;}
+                else break;
+
+            } elseif ($activeEngine === 'ecosia') {
+                // Ecosia uses 'p' (0, 1, 2...)
+                $offset = $fetchedPages + 1; // Start at Page 1 (which is second page)
+                $nextUrl = "https://www.ecosia.org/search?q=" . urlencode($query) . "&p=$offset";
+                $resp = fetchUrl($nextUrl);
+                if ($resp['code'] == 200) { $html = $resp['content']; $fetchedPages++;}
+                else break;
             } else {
-                break;
+                 // Ask.com uses 'page' (1, 2, 3...)
+                 $offset = $fetchedPages + 1;
+                 $nextUrl = "https://www.ask.com/web?q=" . urlencode($query) . "&page=$offset";
+                 $resp = fetchUrl($nextUrl);
+                 if ($resp['code'] == 200) { $html = $resp['content']; $fetchedPages++;}
+                 else break;
             }
+            
+            // Random Delay to be polite
+            usleep(rand(1500000, 3000000));
         }
 
         $insertedCount = 0;
