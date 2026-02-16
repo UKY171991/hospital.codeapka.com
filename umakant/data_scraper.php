@@ -23,6 +23,24 @@ try {
     echo "Error creating table: " . $e->getMessage();
 }
 
+
+// Handle CSV Export
+if (isset($_GET['action']) && $_GET['action'] == 'export_csv') {
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="scraper_data_' . date('Y-m-d') . '.csv"');
+    
+    $output = fopen('php://output', 'w');
+    fputcsv($output, array('ID', 'Website URL', 'Business Name', 'Business Category', 'Email Address', 'City', 'Country', 'Created At'));
+    
+    $stmt = $pdo->query("SELECT id, website_url, business_name, business_category, email_address, city, country, created_at FROM data_scraper ORDER BY id DESC");
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        fputcsv($output, $row);
+    }
+    
+    fclose($output);
+    exit();
+}
+
 // Handle Form Submissions
 $message = '';
 $editData = null;
@@ -166,6 +184,11 @@ $dataList = $stmt->fetchAll();
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">Scraper Data List</h3>
+                <div class="card-tools">
+                    <a href="data_scraper.php?action=export_csv" class="btn btn-tool" title="Export to CSV">
+                        <i class="fas fa-file-csv"></i> Export CSV
+                    </a>
+                </div>
               </div>
               <!-- /.card-header -->
               <div class="card-body p-0">
