@@ -88,6 +88,20 @@ if (isset($_GET['ajax_search'])) {
     exit;
 }
 
+// Handle Single Record Fetch for Edit Modal
+if (isset($_GET['edit']) && isset($_GET['ajax_fetch_one'])) {
+    if (ob_get_level()) ob_end_clean();
+    header('Content-Type: application/json');
+    
+    $id = $_GET['edit'];
+    $stmt = $pdo->prepare("SELECT * FROM data_scraper WHERE id=?");
+    $stmt->execute([$id]);
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    echo json_encode($data);
+    exit;
+}
+
 
 // Handle Form Submissions & AJAX
 $message = '';
@@ -640,101 +654,8 @@ $counter = $offset + 1;
     <section class="content">
       <div class="container-fluid">
         <div class="row">
-          <!-- Form Column -->
-          <div class="col-md-4">
-            
-            <!-- Auto Scraper Card -->
-            <div class="card card-success">
-              <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-robot"></i> Auto Scraper Bot</h3>
-              </div>
-              <div class="card-body">
-                <form id="scraperForm">
-                    <div class="form-group">
-                        <label>Business Category</label>
-                        <input type="text" class="form-control" name="scrape_category" placeholder="e.g. Dentist, Plumber" required>
-                    </div>
-                    <div class="row">
-                        <div class="col-6">
-                             <div class="form-group">
-                                <label>City (Optional)</label>
-                                <input type="text" class="form-control" name="scrape_city" placeholder="e.g. Toronto">
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label>Country</label>
-                                <input type="text" class="form-control" name="scrape_country" placeholder="e.g. Canada" required>
-                            </div>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-success btn-block" id="btnRunScraper">
-                        <i class="fas fa-search-plus"></i> Start Scraping
-                    </button>
-                    <p class="text-muted text-sm mt-2"><i class="fas fa-info-circle"></i> This adds data automatically to the list.</p>
-                </form>
-              </div>
-            </div>
-            <!-- /.card -->
-
-            <div class="card card-<?php echo $editData ? 'warning' : 'primary'; ?>">
-              <div class="card-header">
-                <h3 class="card-title"><?php echo $editData ? 'Edit Data' : 'Add New Data'; ?></h3>
-              </div>
-              <!-- /.card-header -->
-              <!-- form start -->
-              <form role="form" method="POST" action="data_scraper.php">
-                <input type="hidden" name="action" value="<?php echo $editData ? 'update' : 'create'; ?>">
-                <?php if($editData): ?>
-                    <input type="hidden" name="id" value="<?php echo $editData['id']; ?>">
-                <?php endif; ?>
-                
-                <div class="card-body">
-                  <?php echo $message; ?>
-                  
-                  <div class="form-group">
-                    <label for="website_url">Website URL</label>
-                    <input type="url" class="form-control" id="website_url" name="website_url" placeholder="Enter Website URL" value="<?php echo $editData['website_url'] ?? ''; ?>" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="business_name">Business Name</label>
-                    <input type="text" class="form-control" id="business_name" name="business_name" placeholder="Enter Business Name" value="<?php echo $editData['business_name'] ?? ''; ?>" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="business_category">Business Category</label>
-                    <input type="text" class="form-control" id="business_category" name="business_category" placeholder="Enter Business Category" value="<?php echo $editData['business_category'] ?? ''; ?>" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="email_address">Email Address</label>
-                    <input type="email" class="form-control" id="email_address" name="email_address" placeholder="Enter Email Address" value="<?php echo $editData['email_address'] ?? ''; ?>" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="mobile_number">Mobile Number</label>
-                    <input type="text" class="form-control" id="mobile_number" name="mobile_number" placeholder="Enter Mobile Number" value="<?php echo $editData['mobile_number'] ?? ''; ?>" required>
-                  </div>
-                   <div class="form-group">
-                    <label for="city">City</label>
-                    <input type="text" class="form-control" id="city" name="city" placeholder="Enter City" value="<?php echo $editData['city'] ?? ''; ?>" required>
-                  </div>
-                   <div class="form-group">
-                    <label for="country">Country</label>
-                    <input type="text" class="form-control" id="country" name="country" placeholder="Enter Country" value="<?php echo $editData['country'] ?? ''; ?>" required>
-                  </div>
-                </div>
-                <!-- /.card-body -->
-
-                <div class="card-footer">
-                  <button type="submit" class="btn btn-primary"><?php echo $editData ? 'Update' : 'Submit'; ?></button>
-                  <?php if($editData): ?>
-                    <a href="data_scraper.php" class="btn btn-secondary">Cancel</a>
-                  <?php endif; ?>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          <!-- Table Column -->
-          <div class="col-md-8">
+          <!-- Table Column - Full Width -->
+          <div class="col-md-12">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">Scraper Data List <span class="badge badge-info right"><?php echo $totalRecords; ?></span></h3>
@@ -742,6 +663,14 @@ $counter = $offset + 1;
                     <div style="display:inline-block; margin-right: 10px;">
                         <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search..." style="width: 200px;">
                     </div>
+                    
+                    <button type="button" class="btn btn-tool text-success" data-toggle="modal" data-target="#autoScraperModal" title="Auto Scraper Bot">
+                        <i class="fas fa-robot"></i> Auto Scraper
+                    </button>
+                    <button type="button" class="btn btn-tool text-primary" data-toggle="modal" data-target="#addEditModal" id="btnAddData" title="Add New Data">
+                        <i class="fas fa-plus"></i> Add New
+                    </button>
+                    
                     <a href="data_scraper.php?action=export_csv" id="exportBtn" class="btn btn-tool" title="Export to CSV">
                         <i class="fas fa-file-csv"></i> Export CSV
                     </a>
@@ -796,7 +725,7 @@ $counter = $offset + 1;
                       </td>
                       <td class="action-buttons-cell" data-id="<?php echo $data['id']; ?>">
                         <button type="button" class="btn btn-sm btn-info btn-test-url" title="Test URL"><i class="fas fa-stethoscope"></i></button>
-                        <a href="data_scraper.php?edit=<?php echo $data['id']; ?>" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                        <button type="button" class="btn btn-sm btn-warning btn-edit-item" data-id="<?php echo $data['id']; ?>"><i class="fas fa-edit"></i></button>
                         <form method="POST" action="data_scraper.php" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this item?');">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?php echo $data['id']; ?>">
@@ -844,6 +773,98 @@ $counter = $offset + 1;
         </div>
       </div>
     </section>
+</div>
+
+<!-- Auto Scraper Modal -->
+<div class="modal fade" id="autoScraperModal" tabindex="-1" role="dialog" aria-labelledby="autoScraperModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-success">
+        <h5 class="modal-title" id="autoScraperModalLabel"><i class="fas fa-robot"></i> Auto Scraper Bot</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+         <form id="scraperForm">
+            <div class="form-group">
+                <label>Business Category</label>
+                <input type="text" class="form-control" name="scrape_category" placeholder="e.g. Dentist, Plumber" required>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                     <div class="form-group">
+                        <label>City (Optional)</label>
+                        <input type="text" class="form-control" name="scrape_city" placeholder="e.g. Toronto">
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" class="form-control" name="scrape_country" placeholder="e.g. Canada" required>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success btn-block" id="btnRunScraper">
+                <i class="fas fa-search-plus"></i> Start Scraping
+            </button>
+            <p class="text-muted text-sm mt-2"><i class="fas fa-info-circle"></i> This adds data automatically to the list.</p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Data Modal -->
+<div class="modal fade" id="addEditModal" tabindex="-1" role="dialog" aria-labelledby="addEditModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h5 class="modal-title" id="addEditModalLabel">Add New Data</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form role="form" method="POST" action="data_scraper.php" id="addEditForm">
+        <div class="modal-body">
+            <input type="hidden" name="action" value="create">
+            
+            <div class="form-group">
+            <label for="website_url">Website URL</label>
+            <input type="url" class="form-control" id="website_url" name="website_url" placeholder="Enter Website URL" required>
+            </div>
+            <div class="form-group">
+            <label for="business_name">Business Name</label>
+            <input type="text" class="form-control" id="business_name" name="business_name" placeholder="Enter Business Name" required>
+            </div>
+            <div class="form-group">
+            <label for="business_category">Business Category</label>
+            <input type="text" class="form-control" id="business_category" name="business_category" placeholder="Enter Business Category" required>
+            </div>
+            <div class="form-group">
+            <label for="email_address">Email Address</label>
+            <input type="email" class="form-control" id="email_address" name="email_address" placeholder="Enter Email Address" required>
+            </div>
+            <div class="form-group">
+            <label for="mobile_number">Mobile Number</label>
+            <input type="text" class="form-control" id="mobile_number" name="mobile_number" placeholder="Enter Mobile Number" required>
+            </div>
+            <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" class="form-control" id="city" name="city" placeholder="Enter City" required>
+            </div>
+            <div class="form-group">
+            <label for="country">Country</label>
+            <input type="text" class="form-control" id="country" name="country" placeholder="Enter Country" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <!-- Progress Modal -->
@@ -901,7 +922,57 @@ $(document).ready(function() {
                 console.error("AJAX Error: " + status + " " + error);
             }
         });
+    }); 
+
+    // Handle Edit Button Click (Open Modal & Populate)
+    $(document).on('click', '.btn-edit-item', function(e) {
+        e.preventDefault();
+        var data = $(this).data('json'); // Assumes we will add data-json attribute
+        
+        // If data isn't in attribute, fetch it (preferred for larger datasets)
+        // But for simplicity, let's parse the row or just use an AJAX fetch
+        var id = $(this).data('id');
+        
+        // Reset form
+        $('#addEditForm')[0].reset();
+        $('input[name="action"]').val('update');
+        $('#addEditModalLabel').text('Edit Data');
+        
+        // Set ID
+        if ($('input[name="id"]').length === 0) {
+             $('#addEditForm').append('<input type="hidden" name="id" value="'+id+'">');
+        } else {
+             $('input[name="id"]').val(id);
+        }
+
+        // Fetch details via AJAX to populate form
+        $.ajax({
+             url: 'data_scraper.php',
+             type: 'GET',
+             data: { edit: id, ajax_fetch_one: 1 }, // Need to implement ajax_fetch_one in PHP
+             dataType: 'json',
+             success: function(record) {
+                 if(record) {
+                     $('#website_url').val(record.website_url);
+                     $('#business_name').val(record.business_name);
+                     $('#business_category').val(record.business_category);
+                     $('#email_address').val(record.email_address);
+                     $('#mobile_number').val(record.mobile_number);
+                     $('#city').val(record.city);
+                     $('#country').val(record.country);
+                     $('#addEditModal').modal('show');
+                 }
+             }
+        });
     });
+
+    $('#btnAddData').click(function() {
+        $('#addEditForm')[0].reset();
+        $('input[name="action"]').val('create');
+        $('#addEditModalLabel').text('Add New Data');
+        $('input[name="id"]').remove(); // Remove ID input if exists
+    });
+
 
     // Handle Status Toggle
     $(document).on('change', '.status-toggle', function() {
