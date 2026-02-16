@@ -202,8 +202,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (ob_get_level()) ob_end_clean();
         header('Content-Type: application/json');
 
-        // Increase execution time for scraping
-        set_time_limit(300);
+        // Increase execution time for scraping (15 minutes for 100 records)
+        set_time_limit(900);
 
         $category = $_POST['category'] ?? '';
         $city = $_POST['city'] ?? '';
@@ -357,8 +357,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $links[] = $href;
             }
 
-            // Limit to 10 results per batch to keep execution time reasonable
-            if (count($links) >= 10) break;
+            // Limit to 100 results per batch
+            if (count($links) >= 100) break;
         }
 
         $insertedCount = 0;
