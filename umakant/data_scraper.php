@@ -231,9 +231,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
              $postData = $nextParams;
         } else {
              // Initial Request
-             // Enhance query to avoid directories and find actual websites
-             $query = "\"$category\" \"$city\" \"$country\" -directory -list -best -top10 -wikipedia site:.com OR site:.org OR site:.net";
-             $postData = ['q' => $query];
+             // Build query parts
+             $queryParts = [];
+             if ($category) $queryParts[] = "\"$category\"";
+             if ($city) $queryParts[] = "\"$city\"";
+             if ($country) $queryParts[] = "\"$country\"";
+             
+             // Base query
+             $baseQuery = implode(' ', $queryParts);
+             
+             // Add exclusions - less aggressive to ensure we get results
+             // We filter heavily in PHP anyway
+             $query = "$baseQuery -directory -list -wikipedia";
+             
+             $postData = ['q' => $query, 'kl' => 'us-en']; // Force region if needed, or remove 'kl'
+             
+             // Check if we have previous debug info
+             $debugLog = [];
         }
 
         // Function to make cURL request
