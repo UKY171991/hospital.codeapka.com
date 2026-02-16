@@ -67,6 +67,12 @@ if (isset($_GET['ajax_search'])) {
             echo '<td>' . htmlspecialchars($data['city']) . ', ' . htmlspecialchars($data['country']) . '</td>';
             echo '<td><a href="' . htmlspecialchars($data['website_url']) . '" target="_blank" title="' . htmlspecialchars($data['website_url']) . '"><i class="fas fa-link"></i> Link</a></td>';
             echo '<td>';
+            echo '<div class="custom-control custom-switch">';
+            echo '<input type="checkbox" class="custom-control-input status-toggle" id="customSwitch' . $data['id'] . '" data-id="' . $data['id'] . '" ' . ($data['status'] == 1 ? 'checked' : '') . '>';
+            echo '<label class="custom-control-label" for="customSwitch' . $data['id'] . '"></label>';
+            echo '</div>';
+            echo '</td>';
+            echo '<td>';
             echo '<a href="data_scraper.php?edit=' . $data['id'] . '" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a> ';
             echo '<form method="POST" action="data_scraper.php" style="display:inline-block;" onsubmit="return confirm(\'Are you sure you want to delete this item?\');">';
             echo '<input type="hidden" name="action" value="delete">';
@@ -104,6 +110,12 @@ try {
     $checkCol = $pdo->query("SHOW COLUMNS FROM data_scraper LIKE 'mobile_number'");
     if ($checkCol->rowCount() == 0) {
         $pdo->exec("ALTER TABLE data_scraper ADD COLUMN mobile_number VARCHAR(50) AFTER email_address");
+    }
+
+    // Add status column if it doesn't exist
+    $checkStatusCol = $pdo->query("SHOW COLUMNS FROM data_scraper LIKE 'status'");
+    if ($checkStatusCol->rowCount() == 0) {
+        $pdo->exec("ALTER TABLE data_scraper ADD COLUMN status TINYINT(1) DEFAULT 1 AFTER country");
     }
 } catch (PDOException $e) {
     echo "Error creating table: " . $e->getMessage();
@@ -160,6 +172,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
              $message = '<div class="alert alert-danger">Error Deleting Data!</div>';
         }
+    } elseif ($action === 'toggle_status') {
+        $id = $_POST['id'];
+        $status = $_POST['status'];
+        $stmt = $pdo->prepare("UPDATE data_scraper SET status=? WHERE id=?");
+        if ($stmt->execute([$status, $id])) {
+            echo 'success';
+        } else {
+            echo 'error';
+        }
+        exit;
     }
 }
 
@@ -279,6 +301,7 @@ $dataList = $stmt->fetchAll();
                       <th>Mobile</th>
                       <th>City/Country</th>
                       <th>Website</th>
+                      <th>Status</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -295,6 +318,12 @@ $dataList = $stmt->fetchAll();
                       <td><?php echo htmlspecialchars($data['mobile_number']); ?></td>
                       <td><?php echo htmlspecialchars($data['city']) . ', ' . htmlspecialchars($data['country']); ?></td>
                       <td><a href="<?php echo htmlspecialchars($data['website_url']); ?>" target="_blank" title="<?php echo htmlspecialchars($data['website_url']); ?>"><i class="fas fa-link"></i> Link</a></td>
+                      <td>
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input status-toggle" id="customSwitch<?php echo $data['id']; ?>" data-id="<?php echo $data['id']; ?>" <?php echo ($data['status'] == 1 ? 'checked' : ''); ?>>
+                            <label class="custom-control-label" for="customSwitch<?php echo $data['id']; ?>"></label>
+                        </div>
+                      </td>
                       <td>
                         <a href="data_scraper.php?edit=<?php echo $data['id']; ?>" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
                         <form method="POST" action="data_scraper.php" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this item?');">
@@ -340,6 +369,31 @@ $(document).ready(function() {
             },
             error: function(xhr, status, error) {
                 console.error("AJAX Error: " + status + " " + error);
+            }
+        });
+    });
+
+    // Handle Status Toggle
+    $(document).on('change', '.status-toggle', function() {
+        var id = $(this).data('id');
+        var status = $(this).is(':checked') ? 1 : 0;
+        
+        $.ajax({
+            url: 'data_scraper.php',
+            type: 'POST',
+            data: { 
+                action: 'toggle_status', 
+                id: id,
+                status: status
+            },
+            success: function(response) {
+                if(response !== 'success') {
+                    alert('Error updating status');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error: " + status + " " + error);
+                alert('Connection error');
             }
         });
     });
