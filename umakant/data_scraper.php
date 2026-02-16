@@ -1202,8 +1202,18 @@ $(document).ready(function() {
                          if (totalScraped > 0) {
                              location.reload();
                          } else {
+                            var errMsg = 'No Data Found';
+                            if (response.debug) {
+                                errMsg += '\nChecked ' + response.debug.fetched_pages + ' pages.';
+                                errMsg += '\nFound ' + response.debug.links_found_raw + ' raw links.';
+                                if (response.debug.links_found_raw > 0) {
+                                    errMsg += '\n(Links were likely filtered out due to quality checks)';
+                                }
+                            }
+                            
+                            alert(errMsg);
+                            
                             btn.html('<i class="fas fa-exclamation-triangle"></i> No Data Found');
-                            // Alert removed as per request, just showing status on button
                             setTimeout(function() {
                                 btn.html('<i class="fas fa-search-plus"></i> Start Scraping').prop('disabled', false).removeClass('btn-primary').addClass('btn-success');
                             }, 3000);
