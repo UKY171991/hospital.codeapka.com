@@ -336,7 +336,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Initialize loop variables
         $links = [];
         $fetchedPages = 0;
-        $maxPages = 50; // Increased limit to ensure 100 records can be found 
+        $maxPages = 150; // Increased limit to ensure 100 VALID inserted records
+        $targetLinks = 500; // Gather more candidates to account for duplicates/invalid sites 
         
         // Initial Fetch
         $response = fetchUrl($url, $postData, $method);
@@ -394,7 +395,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             
             // Break if we have enough links
-            if (count($links) >= 100) break;
+            if (count($links) >= $targetLinks) break;
 
             // Get Next Page Params
             $nextPageParams = null;
