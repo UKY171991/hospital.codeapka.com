@@ -30,20 +30,40 @@ $editData = null;
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $action = $_POST['action'] ?? '';
 
+
     if ($action === 'create') {
-        $stmt = $pdo->prepare("INSERT INTO data_scraper (website_url, business_name, business_category, email_address, city, country) VALUES (?, ?, ?, ?, ?, ?)");
-        if ($stmt->execute([$_POST['website_url'], $_POST['business_name'], $_POST['business_category'], $_POST['email_address'], $_POST['city'], $_POST['country']])) {
-            $message = '<div class="alert alert-success">Data Added Successfully!</div>';
+        // Check for duplicates
+        $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM data_scraper WHERE website_url = ? OR email_address = ?");
+        $checkStmt->execute([$_POST['website_url'], $_POST['email_address']]);
+        $exists = $checkStmt->fetchColumn();
+
+        if ($exists > 0) {
+            $message = '<div class="alert alert-warning">Duplicate Entry! Website URL or Email Address already exists.</div>';
         } else {
-            $message = '<div class="alert alert-danger">Error Adding Data!</div>';
+            $stmt = $pdo->prepare("INSERT INTO data_scraper (website_url, business_name, business_category, email_address, city, country) VALUES (?, ?, ?, ?, ?, ?)");
+            if ($stmt->execute([$_POST['website_url'], $_POST['business_name'], $_POST['business_category'], $_POST['email_address'], $_POST['city'], $_POST['country']])) {
+                $message = '<div class="alert alert-success">Data Added Successfully!</div>';
+            } else {
+                $message = '<div class="alert alert-danger">Error Adding Data!</div>';
+            }
         }
     } elseif ($action === 'update') {
         $id = $_POST['id'];
-        $stmt = $pdo->prepare("UPDATE data_scraper SET website_url=?, business_name=?, business_category=?, email_address=?, city=?, country=? WHERE id=?");
-        if ($stmt->execute([$_POST['website_url'], $_POST['business_name'], $_POST['business_category'], $_POST['email_address'], $_POST['city'], $_POST['country'], $id])) {
-            $message = '<div class="alert alert-success">Data Updated Successfully!</div>';
+        
+        // Check for duplicates (excluding current record)
+        $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM data_scraper WHERE (website_url = ? OR email_address = ?) AND id != ?");
+        $checkStmt->execute([$_POST['website_url'], $_POST['email_address'], $id]);
+        $exists = $checkStmt->fetchColumn();
+
+        if ($exists > 0) {
+            $message = '<div class="alert alert-warning">Duplicate Entry! Website URL or Email Address already exists.</div>';
         } else {
-            $message = '<div class="alert alert-danger">Error Updating Data!</div>';
+            $stmt = $pdo->prepare("UPDATE data_scraper SET website_url=?, business_name=?, business_category=?, email_address=?, city=?, country=? WHERE id=?");
+            if ($stmt->execute([$_POST['website_url'], $_POST['business_name'], $_POST['business_category'], $_POST['email_address'], $_POST['city'], $_POST['country'], $id])) {
+                $message = '<div class="alert alert-success">Data Updated Successfully!</div>';
+            } else {
+                $message = '<div class="alert alert-danger">Error Updating Data!</div>';
+            }
         }
     } elseif ($action === 'delete') {
         $id = $_POST['id'];
