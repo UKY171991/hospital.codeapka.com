@@ -300,7 +300,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Initialize loop variables
         $links = [];
         $fetchedPages = 0;
-        $maxPages = 20; 
+        $maxPages = 50; // Increased limit to ensure 100 records can be found 
         
         // Initial Fetch
         $response = fetchUrl($url, $postData, $method);
@@ -472,7 +472,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // If we checked words and found none (valid words existed), skip.
                 // If category was only stop words or short words (unlikely), we might pass it or skip.
                 // Assuming valid category input:
-                if (!$foundCategoryMatch && count($categoryWords) > 0) continue;
+                // DISABLE STRICT CHECK: It causes "Done (0)" if static HTML doesn't match dynamic JS content.
+                // Rely on Search Engine relevance instead.
+                // if (!$foundCategoryMatch && count($categoryWords) > 0) continue;
             }
 
             // City Extraction (If not provided)
