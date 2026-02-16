@@ -252,8 +252,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (ob_get_level()) ob_end_clean();
         header('Content-Type: application/json');
 
-        // Increase execution time for scraping (15 minutes for 100 records)
-        set_time_limit(900);
+        // Increase execution time for scraping (30 minutes for deep scraping)
+        set_time_limit(1800);
 
         $category = $_POST['category'] ?? '';
         $city = $_POST['city'] ?? '';
