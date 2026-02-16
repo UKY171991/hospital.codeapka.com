@@ -147,18 +147,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Check URL availability via cURL
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_NOBODY, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Get body
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15); // Increased timeout slightly for GET
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3');
-        curl_exec($ch);
+        $html = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
         curl_close($ch);
 
         if ($httpCode >= 200 && $httpCode < 400) {
-            echo json_encode(['status' => 'valid', 'message' => 'Website is up (' . $httpCode . ')']);
+            // Further Check: Garbage Title / Parked Domain
+            preg_match('/<title>(.*?)<\/title>/is', $html, $matches);
+            $title = isset($matches[1]) ? trim(strip_tags($matches[1])) : '';
+            
+            $garbageTitles = ['403 Forbidden', '404 Not Found', 'Access Denied', 'Domain For Sale', 'Parking', 'GoDaddy', 'Namecheap', 'Just a moment...', 'Attention Required!', 'Robot Check', 'Security Check', 'Human Verification', 'Yelp', 'Yellow Pages'];
+            $isGarbage = false;
+            foreach ($garbageTitles as $gt) {
+                if (stripos($title, $gt) !== false) {
+                   $isGarbage = true;
+                   break;
+                }
+            }
+
+            if ($isGarbage) {
+                // Garbage content -> Delete
+                $pdo->prepare("DELETE FROM data_scraper WHERE id=?")->execute([$id]);
+                echo json_encode(['status' => 'deleted', 'message' => 'Invalid Content: ' . $title]);
+            } else {
+                echo json_encode(['status' => 'valid', 'message' => 'Website is up (' . $httpCode . ')']);
+            }
         } else {
             // Website down or unreachable -> Delete
             $pdo->prepare("DELETE FROM data_scraper WHERE id=?")->execute([$id]);
@@ -208,7 +226,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
             $output = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
+
+            // Strict HTTP Check (Only 200 OK)
+            if ($httpCode !== 200) {
+                return false;
+            }
+
             return $output;
         }
 
@@ -351,6 +376,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // 1. Must have a Business Name
             if (empty($title)) {
                 continue; 
+            }
+
+            // 2. Reject Garbage Titles (Error pages, Parked domains, Directories)
+            $garbageTitles = ['403 Forbidden', '404 Not Found', 'Access Denied', 'Domain For Sale', 'Parking', 'GoDaddy', 'Namecheap', 'Just a moment...', 'Attention Required!', 'Robot Check', 'Security Check', 'Human Verification', 'Yelp', 'Yellow Pages'];
+            $isGarbage = false;
+            foreach ($garbageTitles as $gt) {
+                if (stripos($title, $gt) !== false) {
+                   $isGarbage = true;
+                   break;
+                }
+            }
+            if ($isGarbage) continue;
+
+            // 3. Must have at least ONE contact method (Email OR Mobile)
+            // Users typically don't want data without contact info
+            if (empty($email) && empty($mobile)) {
+                continue;
             }
 
             // DUPLICATE DATA CHECK
