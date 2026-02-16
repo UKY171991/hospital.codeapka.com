@@ -340,24 +340,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             @$dom->loadHTML($html);
             $xpath = new DOMXPath($dom);
             
-            // Extract Links - Generic for All Engines
+            // Extract Links
             $nodes = $dom->getElementsByTagName('a'); 
 
             foreach ($nodes as $node) {
                 $href = $node->getAttribute('href');
-                
-                // Cleanup Href based on Engine
+                // Basic cleanup
                 if ($activeEngine === 'ddg') {
                      if (strpos($href, 'uddg=') !== false) {
                         parse_str(parse_url($href, PHP_URL_QUERY), $vars);
                         if (isset($vars['uddg'])) $href = $vars['uddg'];
-                    }
-                } elseif ($activeEngine === 'yahoo') {
-                     // Yahoo links often wrapped in RU=...
-                     if (strpos($href, 'RU=') !== false) {
-                         // Extract simple URL if possible, or just let filter logic handle it
-                         // usually scraping the 'href' directly works for title links
                      }
+                }
+                
+                // Allow relative
+                if (strpos($href, '/') === 0 && $activeEngine == 'ddg') {
+                    $href = "https://lite.duckduckgo.com" . $href;
                 }
 
                 if (!filter_var($href, FILTER_VALIDATE_URL)) continue;
@@ -365,49 +363,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $isExcluded = false;
                 foreach ($exclusionList as $excluded) {
                     if (stripos($href, $excluded) !== false) {
-                        $isExcluded = true;
-                        break;
+                         $isExcluded = true; break;
                     }
                 }
-                foreach ($directoryPathSegments as $segment) {
-                    if (stripos($href, $segment) !== false) {
-                        $isExcluded = true;
-                        break;
-                    }
-                }
-
                 if (!$isExcluded && !in_array($href, $links)) {
                     $links[] = $href;
                 }
             }
             
-            // Break if we have enough links
             if (count($links) >= $targetLinks) break;
+            
+            // PAGINATION LOGIC
+            // Only perform deep pagination for DuckDuckGo (Primary) for now.
+            // Backup engines (Ask/Yahoo) are strictly for fallback "Page 1" results to ensure data.
+            if ($activeEngine !== 'ddg') {
+                break; 
+            }
 
-            // Get Next Page Params
+            // Get Next Page logic for DDG
             $nextPageParams = null;
             $forms = $dom->getElementsByTagName('form');
             foreach ($forms as $form) {
                 $action = $form->getAttribute('action');
-                // Support both HTML and Lite versions
-                if (strpos($action, '/html/') !== false || strpos($action, '/lite/') !== false || $form->getAttribute('class') == 'nav-button' || strpos($action, 'next') !== false) {
+                if (strpos($action, '/lite/') !== false || strpos($action, 'next') !== false) {
                      $inputs = $form->getElementsByTagName('input');
                      $tempParams = [];
-                     $hasS = false;
-                     $hasNext = false;
                      foreach ($inputs as $input) {
                          $name = $input->getAttribute('name');
                          $value = $input->getAttribute('value');
-                         if ($name) {
-                             $tempParams[$name] = $value;
-                             // 's' is start index, 'nextParams' sometimes used
-                             if ($name === 's' || $name === 'nextParams') $hasS = true; 
-                             // Check submit button value
-                             if (stripos($value, 'Next') !== false || stripos($value, 'More') !== false) $hasNext = true;
-                         }
+                         if ($name) $tempParams[$name] = $value;
                      }
-                     // Lite version relies on 's' param and 'Next' button
-                     if ($hasS || $hasNext) {
+                     if (isset($tempParams['s']) || isset($tempParams['nextParams'])) {
                          $nextPageParams = $tempParams;
                          break;
                      }
@@ -415,17 +401,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
             if ($nextPageParams) {
-                // Fetch next page via POST
                 $resp = fetchUrl("https://lite.duckduckgo.com/lite/", $nextPageParams, 'POST');
                 if ($resp['code'] === 200) {
                     $html = $resp['content'];
                     $fetchedPages++;
-                    usleep(rand(1000000, 2000000)); 
+                    usleep(rand(1000000, 2000000));
                 } else {
                     break;
                 }
             } else {
-                break; // No more pages
+                break;
             }
         }
 
