@@ -264,18 +264,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             return $output;
         }
 
-        if ($nodes->length == 0) {
-             // Fallback query if class name changed
-             $nodes = $dom->getElementsByTagName('a');
-        }
-
         // Initialize loop variables
         $links = [];
         $fetchedPages = 0;
         $maxPages = 30; // Increased limit to find more results
         $html = fetchUrl($url, $postData);
         
+        // Check if initial fetch worked
+        if (!$html) {
+             echo json_encode(['status' => 'error', 'message' => 'Failed to connect to search engine. Please try again or check network.']);
+             exit;
+        }
+        
         while ($fetchedPages < $maxPages) {
+            if (!$html) break; // Network error or blocked
+
             $dom = new DOMDocument();
             @$dom->loadHTML($html);
             $xpath = new DOMXPath($dom);
@@ -324,19 +327,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $forms = $dom->getElementsByTagName('form');
             foreach ($forms as $form) {
                 $action = $form->getAttribute('action');
-                if (strpos($action, '/html/') !== false || $form->getAttribute('class') == 'nav-button') {
+                // DuckDuckGo next page usually has 'next' in class or action, or input name 's' (start)
+                if (strpos($action, '/html/') !== false || $form->getAttribute('class') == 'nav-button' || strpos($action, 'next') !== false) {
                      $inputs = $form->getElementsByTagName('input');
                      $tempParams = [];
                      $hasS = false;
+                     $hasNext = false;
                      foreach ($inputs as $input) {
                          $name = $input->getAttribute('name');
                          $value = $input->getAttribute('value');
                          if ($name) {
                              $tempParams[$name] = $value;
-                             if ($name === 's') $hasS = true;
+                             if ($name === 's' || $name === 'nextParams') $hasS = true; 
+                             if ($value === 'Next') $hasNext = true;
                          }
                      }
-                     if ($hasS) {
+                     if ($hasS || $hasNext) {
                          $nextPageParams = $tempParams;
                          break;
                      }
