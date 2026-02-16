@@ -3,6 +3,31 @@
 // Full CRUD functionality for Data Scraper
 include 'inc/connection.php';
 include 'inc/auth.php'; // Ensure user is logged in
+
+// Handle CSV Export - MUST BE BEFORE ANY HTML OUTPUT
+if (isset($_GET['action']) && $_GET['action'] == 'export_csv') {
+    // Clear any previous output
+    if (ob_get_level()) ob_end_clean();
+    
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="scraper_data_' . date('Y-m-d') . '.csv"');
+    
+    $output = fopen('php://output', 'w');
+    
+    // Add BOM for Excel UTF-8 compatibility
+    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+    
+    fputcsv($output, array('ID', 'Website URL', 'Business Name', 'Business Category', 'Email Address', 'City', 'Country', 'Created At'));
+    
+    $stmt = $pdo->query("SELECT id, website_url, business_name, business_category, email_address, city, country, created_at FROM data_scraper ORDER BY id DESC");
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        fputcsv($output, $row);
+    }
+    
+    fclose($output);
+    exit();
+}
+
 include 'inc/header.php';
 include 'inc/sidebar.php';
 
@@ -23,23 +48,6 @@ try {
     echo "Error creating table: " . $e->getMessage();
 }
 
-
-// Handle CSV Export
-if (isset($_GET['action']) && $_GET['action'] == 'export_csv') {
-    header('Content-Type: text/csv');
-    header('Content-Disposition: attachment; filename="scraper_data_' . date('Y-m-d') . '.csv"');
-    
-    $output = fopen('php://output', 'w');
-    fputcsv($output, array('ID', 'Website URL', 'Business Name', 'Business Category', 'Email Address', 'City', 'Country', 'Created At'));
-    
-    $stmt = $pdo->query("SELECT id, website_url, business_name, business_category, email_address, city, country, created_at FROM data_scraper ORDER BY id DESC");
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        fputcsv($output, $row);
-    }
-    
-    fclose($output);
-    exit();
-}
 
 // Handle Form Submissions
 $message = '';
