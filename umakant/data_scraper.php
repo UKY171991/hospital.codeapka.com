@@ -74,11 +74,7 @@ if (isset($_GET['ajax_search'])) {
             echo '</td>';
             echo '<td>';
             echo '<a href="data_scraper.php?edit=' . $data['id'] . '" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a> ';
-            echo '<form method="POST" action="data_scraper.php" style="display:inline-block;" onsubmit="return confirm(\'Are you sure you want to delete this item?\');">';
-            echo '<input type="hidden" name="action" value="delete">';
-            echo '<input type="hidden" name="id" value="' . $data['id'] . '">';
-            echo '<button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>';
-            echo '</form>';
+            echo '<button type="button" class="btn btn-sm btn-danger btn-delete-item" data-id="' . $data['id'] . '"><i class="fas fa-trash"></i></button>';
             echo '</td>';
             echo '</tr>';
         }
@@ -824,11 +820,7 @@ $counter = $offset + 1;
                       <td class="action-buttons-cell" data-id="<?php echo $data['id']; ?>">
                         <button type="button" class="btn btn-sm btn-info btn-test-url" title="Test URL"><i class="fas fa-stethoscope"></i></button>
                         <button type="button" class="btn btn-sm btn-warning btn-edit-item" data-id="<?php echo $data['id']; ?>"><i class="fas fa-edit"></i></button>
-                        <form method="POST" action="data_scraper.php" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this item?');">
-                            <input type="hidden" name="action" value="delete">
-                            <input type="hidden" name="id" value="<?php echo $data['id']; ?>">
-                            <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-                        </form>
+                        <button type="button" class="btn btn-sm btn-danger btn-delete-item" data-id="<?php echo $data['id']; ?>"><i class="fas fa-trash"></i></button>
                       </td>
                     </tr>
                     <?php endforeach; ?>
