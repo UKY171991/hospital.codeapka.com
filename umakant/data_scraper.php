@@ -307,23 +307,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $extractedCity = $city;
             
             // If city is empty, try to find it in the content
-            if (empty($extractedCity) && !empty($country)) {
-                // 1. Look for "City, Country" pattern
-                // Matches "Toronto, Canada"
-                if (preg_match('/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*,\s*' . preg_quote($country, '/') . '/i', $textContent, $locMatches)) {
-                     $extractedCity = trim($locMatches[1]);
-                }
+            if (empty($extractedCity)) {
                 
-                // 2. Look for "City, State/Province, Country" pattern
-                // Matches "Toronto, ON, Canada" or "NY, USA"
-                elseif (preg_match('/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*,\s*(?:[A-Z]{2,}|[A-Z][a-z]+)\s*,\s*' . preg_quote($country, '/') . '/i', $textContent, $locMatches)) {
-                     $extractedCity = trim($locMatches[1]);
+                // 1. Try Schema.org JSON-LD (Better accuracy)
+                if (preg_match('/"addressLocality":\s*"([^"]+)"/i', $siteHtml, $schemaMatches)) {
+                    $extractedCity = trim($schemaMatches[1]);
+                }
+                // 2. Try Standard "City, Country" pattern in text
+                elseif (!empty($country)) {
+                     // Matches "Toronto, Canada"
+                     if (preg_match('/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*,\s*' . preg_quote($country, '/') . '/i', $textContent, $locMatches)) {
+                          $extractedCity = trim($locMatches[1]);
+                     }
+                     // Matches "Toronto, ON, Canada"
+                     elseif (preg_match('/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*,\s*(?:[A-Z]{2,}|[A-Z][a-z]+)\s*,\s*' . preg_quote($country, '/') . '/i', $textContent, $locMatches)) {
+                          $extractedCity = trim($locMatches[1]);
+                     }
                 }
             }
             
-            // Final Fallback: If no city found, use Country as city or "Unknown"
-            if (empty($extractedCity)) {
-                $extractedCity = "Unknown";
+            // STRICT VALIDATION: If no specific city found, SKIP this record. 
+            // Do not insert "Unknown".
+            if (empty($extractedCity) || strtolower($extractedCity) === 'unknown') {
+                continue;
             }
 
             // ENFORCE VALID DATA: 
