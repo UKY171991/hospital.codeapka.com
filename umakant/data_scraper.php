@@ -247,18 +247,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             preg_match('/<title>(.*?)<\/title>/is', $siteHtml, $matches);
             $title = isset($matches[1]) ? trim(strip_tags($matches[1])) : $category . ' Business';
             
-            // Email (Regex)
-            preg_match('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $siteHtml, $emailMatches);
+            // Text content for searching
+            $textContent = strip_tags($siteHtml);
+
+            // Email (Refined Regex)
+            preg_match('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $textContent, $emailMatches);
             $email = $emailMatches[0] ?? '';
 
-            // Phone (Regex - Basic)
-            preg_match('/(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/', $siteHtml, $phoneMatches);
+            // Phone (Refined Regex - stricter length)
+            preg_match('/(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/', $textContent, $phoneMatches);
             $mobile = $phoneMatches[0] ?? '';
 
-            // Basic validation
-            if (empty($email) && empty($mobile)) {
-                // If no contact info found, skip insertion to keep data high quality? OR insert anyway?
-                // Inserting anyway so user sees we found the site.
+            // City Extraction (If not provided)
+            $extractedCity = $city;
+            if (empty($extractedCity) && !empty($country)) {
+                // Look for patterns like "Toronto, Canada" or "Toronto, ON, Canada"
+                // This is a naive heuristic: grab the word(s) before the country name.
+                // Limit to 2 words before comma to avoid grabbing sentences.
+                if (preg_match('/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*,\s*(?:[A-Z]{2,}\s*,\s*)?' . preg_quote($country, '/') . '/i', $textContent, $locMatches)) {
+                    $extractedCity = trim($locMatches[1]);
+                }
+            }
+            // Fallback: Check for common address keywords
+            if (empty($extractedCity)) {
+                 // Try to find a standard address block "City, State Zip"
+                 if (preg_match('/([A-Z][a-z]+)\s*,\s*[A-Z]{2}\s*\d{5}/', $textContent, $addrMatches)) {
+                     $extractedCity = $addrMatches[1];
+                 }
+            }
+
+            // ENFORCE VALID DATA: 
+            // 1. Must have a Business Name
+            // 2. Must have at least Email OR Mobile
+            if (empty($title) || (empty($email) && empty($mobile))) {
+                continue; 
             }
 
             $stmt = $pdo->prepare("INSERT INTO data_scraper (website_url, business_name, business_category, email_address, mobile_number, city, country) VALUES (?, ?, ?, ?, ?, ?, ?)");
@@ -268,7 +290,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $category,
                 $email,
                 $mobile,
-                $city,
+                $extractedCity, // Use extracted city or input city
                 $country
             ]);
             $insertedCount++;
