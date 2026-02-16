@@ -437,8 +437,8 @@ $counter = $offset + 1;
                     <div class="row">
                         <div class="col-6">
                              <div class="form-group">
-                                <label>City</label>
-                                <input type="text" class="form-control" name="scrape_city" placeholder="e.g. Toronto" required>
+                                <label>City (Optional)</label>
+                                <input type="text" class="form-control" name="scrape_city" placeholder="e.g. Toronto">
                             </div>
                         </div>
                         <div class="col-6">
