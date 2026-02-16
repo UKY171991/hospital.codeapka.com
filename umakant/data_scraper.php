@@ -231,18 +231,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
              $postData = $nextParams;
         } else {
              // Initial Request
-             // Build query parts
+             // Build query parts - REMOVE QUOTES for broader search
              $queryParts = [];
-             if ($category) $queryParts[] = "\"$category\"";
-             if ($city) $queryParts[] = "\"$city\"";
-             if ($country) $queryParts[] = "\"$country\"";
+             if ($category) $queryParts[] = "$category";
+             if ($city) $queryParts[] = "$city";
+             if ($country) $queryParts[] = "$country";
              
              // Base query
              $baseQuery = implode(' ', $queryParts);
              
-             // Add exclusions - less aggressive to ensure we get results
-             // We filter heavily in PHP anyway
-             $query = "$baseQuery -directory -list -wikipedia";
+             // Add exclusions - Minimum exclusions
+             $query = "$baseQuery -directory -list";
              
              $postData = ['q' => $query, 'kl' => 'us-en']; // Force region if needed, or remove 'kl'
              
@@ -441,10 +440,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             
             // STRICT VALIDATION: If no specific city found, SKIP this record. 
-            // We only accept records where we can identify the city.
+            // CHANGE: If we have a user-provided city, USE IT. Don't skip.
             $extractedCity = trim($extractedCity);
             if (empty($extractedCity) || strtolower($extractedCity) === 'unknown') {
-                continue;
+                if (!empty($city)) {
+                    $extractedCity = $city; // Fallback to search term
+                } else {
+                    // Only skip if we really have no idea where this is and user didn't provide city
+                    // continue; 
+                    // actually, let's keep it if we have country at least
+                    if (empty($country)) continue;
+                    $extractedCity = "Unknown";
+                }
             }
 
             // ENFORCE VALID DATA: 
