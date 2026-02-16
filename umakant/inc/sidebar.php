@@ -40,7 +40,12 @@ $role = $_SESSION['role'] ?? 'user';
             <p>Dashboard Main</p>
           </a>
         </li>
-
+        <li class="nav-item">
+          <a href="data_scraper.php" class="nav-link <?php echo ($activePage == 'data_scraper.php') ? 'active' : ''; ?>">
+            <i class="nav-icon fas fa-database"></i>
+            <p>Data Scraper</p>
+          </a>
+        </li>
         <?php
         // Inventory menu pages
         $inventoryPages = ['inventory_dashboard.php', 'inventory_income.php', 'inventory_expense.php', 'inventory_client.php', 'email_parser_settings.php'];
@@ -427,12 +432,7 @@ $role = $_SESSION['role'] ?? 'user';
 
 
 
-        <li class="nav-item">
-          <a href="data_scraper.php" class="nav-link <?php echo ($activePage == 'data_scraper.php') ? 'active' : ''; ?>">
-            <i class="nav-icon fas fa-database"></i>
-            <p>Data Scraper</p>
-          </a>
-        </li>
+
   <!-- Admins menu removed -->
 
   <!-- Logout moved to top navbar for easier access -->
