@@ -205,7 +205,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
              $postData = $nextParams;
         } else {
              // Initial Request
-             $query = "$category $city $country";
+             // Enhance query to avoid directories and find actual websites
+             $query = "\"$category\" \"$city\" \"$country\" -directory -list -best -top10 -wikipedia site:.com OR site:.org OR site:.net";
              $postData = ['q' => $query];
         }
 
@@ -281,6 +282,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
              $nodes = $dom->getElementsByTagName('a');
         }
 
+        // List of domains to exclude (Directories, Social Media, Marketplaces, Job Boards, etc.)
+        $exclusionList = [
+            'duckduckgo', 'microsoft', 'google', 'yahoo', 'bing', 'search',
+            'facebook', 'twitter', 'instagram', 'linkedin', 'pinterest', 'youtube', 'tiktok',
+            'yelp', 'yellowpages', 'tripadvisor', 'foursquare', 'mapquest', 'waze',
+            'indiamart', 'justdial', 'sulekha', 'tradeindia', 'exportersindia',
+            'amazon', 'ebay', 'flipkart', 'etsy', 'shopify', 'walmart',
+            'wikipedia', 'wikimedia', 'archive.org',
+            'glassdoor', 'indeed', 'naukri', 'monster',
+            'proptiger', 'magicbricks', '99acres', 'housing.com',
+            'practo', 'lybrate', 'healthgrades', 'ratemds',
+            'zomato', 'swiggy', 'ubereats', 'doordash', 'grubhub',
+            'booking.com', 'expedia', 'trip.com', 'agoda', 'airbnb',
+            'cnet', 'techcrunch', 'forbes', 'bloomberg', 'businessinsider',
+            'bbb.org', 'chamberofcommerce', 'manta', 'zoominfo', 
+            'gov', 'edu', 'mil' // Generally exclude government/education/military domains for business scraping unless targeted
+        ];
+
         foreach ($nodes as $node) {
             $href = $node->getAttribute('href');
             // Decode DDG redirection if present
@@ -291,10 +310,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             }
             
-            // Filter invalid or internal links
-            if (filter_var($href, FILTER_VALIDATE_URL) && strpos($href, 'duckduckgo') === false && strpos($href, 'microsoft') === false) {
+            // Validate URL
+            if (!filter_var($href, FILTER_VALIDATE_URL)) {
+                continue;
+            }
+
+            // Check against Exclusion List
+            $isExcluded = false;
+            foreach ($exclusionList as $excluded) {
+                if (stripos($href, $excluded) !== false) {
+                    $isExcluded = true;
+                    break;
+                }
+            }
+            
+            if (!$isExcluded) {
                 $links[] = $href;
             }
+
             // Limit to 10 results per batch to keep execution time reasonable
             if (count($links) >= 10) break;
         }
