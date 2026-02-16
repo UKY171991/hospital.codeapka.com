@@ -353,6 +353,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 continue; 
             }
 
+            // DUPLICATE DATA CHECK
+            // Check against Name+City, Email, or Mobile to prevent duplicates
+            $dupConditions = ["(business_name = ? AND city = ?)"];
+            $dupParams = [$title, $extractedCity];
+
+            if (!empty($email)) {
+                $dupConditions[] = "email_address = ?";
+                $dupParams[] = $email;
+            }
+            
+            if (!empty($mobile)) {
+                $dupConditions[] = "mobile_number = ?";
+                $dupParams[] = $mobile;
+            }
+
+            $dupSql = "SELECT COUNT(*) FROM data_scraper WHERE " . implode(' OR ', $dupConditions);
+            $dupStmt = $pdo->prepare($dupSql);
+            $dupStmt->execute($dupParams);
+            
+            if ($dupStmt->fetchColumn() > 0) {
+                continue; // Skip Duplicate
+            }
+
             $stmt = $pdo->prepare("INSERT INTO data_scraper (website_url, business_name, business_category, email_address, mobile_number, city, country) VALUES (?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $webUrl,
