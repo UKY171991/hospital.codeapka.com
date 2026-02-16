@@ -88,47 +88,29 @@ if (isset($_GET['ajax_search'])) {
     exit;
 }
 
-include 'inc/header.php';
-include 'inc/sidebar.php';
 
-// Database table setup (auto-create if not exists)
-try {
-    $pdo->exec("CREATE TABLE IF NOT EXISTS data_scraper (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        website_url VARCHAR(255),
-        business_name VARCHAR(255),
-        business_category VARCHAR(255),
-        email_address VARCHAR(255),
-        mobile_number VARCHAR(50),
-        city VARCHAR(255),
-        country VARCHAR(255),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )");
-    
-    // Add mobile_number column if it doesn't exist (for existing tables)
-    $checkCol = $pdo->query("SHOW COLUMNS FROM data_scraper LIKE 'mobile_number'");
-    if ($checkCol->rowCount() == 0) {
-        $pdo->exec("ALTER TABLE data_scraper ADD COLUMN mobile_number VARCHAR(50) AFTER email_address");
-    }
-
-    // Add status column if it doesn't exist
-    $checkStatusCol = $pdo->query("SHOW COLUMNS FROM data_scraper LIKE 'status'");
-    if ($checkStatusCol->rowCount() == 0) {
-        $pdo->exec("ALTER TABLE data_scraper ADD COLUMN status TINYINT(1) DEFAULT 1 AFTER country");
-    }
-} catch (PDOException $e) {
-    echo "Error creating table: " . $e->getMessage();
-}
-
-
-// Handle Form Submissions
+// Handle Form Submissions & AJAX
 $message = '';
 $editData = null;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $action = $_POST['action'] ?? '';
 
+    // Handle AJAX Status Toggle - MUST EXIT
+    if ($action === 'toggle_status') {
+        // Clear buffer just in case
+        if (ob_get_level()) ob_end_clean();
+        
+        $id = $_POST['id'];
+        $status = $_POST['status'];
+        $stmt = $pdo->prepare("UPDATE data_scraper SET status=? WHERE id=?");
+        if ($stmt->execute([$status, $id])) {
+            echo 'success';
+        } else {
+            echo 'error';
+        }
+        exit;
+    }
 
     if ($action === 'create') {
         // Check for duplicates
@@ -172,18 +154,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
              $message = '<div class="alert alert-danger">Error Deleting Data!</div>';
         }
-    } elseif ($action === 'toggle_status') {
-        $id = $_POST['id'];
-        $status = $_POST['status'];
-        $stmt = $pdo->prepare("UPDATE data_scraper SET status=? WHERE id=?");
-        if ($stmt->execute([$status, $id])) {
-            echo 'success';
-        } else {
-            echo 'error';
-        }
-        exit;
     }
 }
+
+// Database table setup (auto-create if not exists)
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS data_scraper (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        website_url VARCHAR(255),
+        business_name VARCHAR(255),
+        business_category VARCHAR(255),
+        email_address VARCHAR(255),
+        mobile_number VARCHAR(50),
+        city VARCHAR(255),
+        country VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )");
+    
+    // Add mobile_number column if it doesn't exist (for existing tables)
+    $checkCol = $pdo->query("SHOW COLUMNS FROM data_scraper LIKE 'mobile_number'");
+    if ($checkCol->rowCount() == 0) {
+        $pdo->exec("ALTER TABLE data_scraper ADD COLUMN mobile_number VARCHAR(50) AFTER email_address");
+    }
+
+    // Add status column if it doesn't exist - DEFAULT 0 (Unchecked)
+    $checkStatusCol = $pdo->query("SHOW COLUMNS FROM data_scraper LIKE 'status'");
+    if ($checkStatusCol->rowCount() == 0) {
+        $pdo->exec("ALTER TABLE data_scraper ADD COLUMN status TINYINT(1) DEFAULT 0 AFTER country");
+    }
+} catch (PDOException $e) {
+    echo "Error creating table: " . $e->getMessage();
+}
+
+
+include 'inc/header.php';
+include 'inc/sidebar.php';
 
 // Fetch Data for Edit
 if (isset($_GET['edit'])) {
