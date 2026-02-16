@@ -122,6 +122,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
+    // Handle Website Validation
+    if ($action === 'validate_website') {
+        // Clear buffer
+        if (ob_get_level()) ob_end_clean();
+        header('Content-Type: application/json');
+
+        $id = $_POST['id'];
+        $stmt = $pdo->prepare("SELECT website_url FROM data_scraper WHERE id=?");
+        $stmt->execute([$id]);
+        $url = $stmt->fetchColumn();
+
+        if (!$url) {
+            echo json_encode(['status' => 'error', 'message' => 'Not found']);
+            exit;
+        }
+
+        // Validate URL format
+        if (filter_var($url, FILTER_VALIDATE_URL) === FALSE) {
+             $pdo->prepare("DELETE FROM data_scraper WHERE id=?")->execute([$id]);
+             echo json_encode(['status' => 'deleted', 'message' => 'Invalid URL format']);
+             exit;
+        }
+
+        // Check URL availability via cURL
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_NOBODY, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3');
+        curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($httpCode >= 200 && $httpCode < 400) {
+            echo json_encode(['status' => 'valid', 'message' => 'Website is up (' . $httpCode . ')']);
+        } else {
+            // Website down or unreachable -> Delete
+            $pdo->prepare("DELETE FROM data_scraper WHERE id=?")->execute([$id]);
+            echo json_encode(['status' => 'deleted', 'message' => 'Website down (' . $httpCode . ')']);
+        }
+        exit;
+    }
+
     if ($action === 'create') {
         // Check for duplicates
         $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM data_scraper WHERE website_url = ? OR email_address = ?");
@@ -336,6 +381,9 @@ $counter = $offset + 1;
                             <i class="fas fa-power-off"></i> Turn All Off
                         </button>
                     </form>
+                    <button type="button" class="btn btn-tool text-primary" id="btnTestAll" title="Test & Clean All Websites">
+                        <i class="fas fa-check-double"></i> Test & Clean All
+                    </button>
                 </div>
               </div>
               <!-- /.card-header -->
@@ -373,7 +421,8 @@ $counter = $offset + 1;
                             <label class="custom-control-label" for="customSwitch<?php echo $data['id']; ?>"></label>
                         </div>
                       </td>
-                      <td>
+                      <td class="action-buttons-cell" data-id="<?php echo $data['id']; ?>">
+                        <button type="button" class="btn btn-sm btn-info btn-test-url" title="Test URL"><i class="fas fa-stethoscope"></i></button>
                         <a href="data_scraper.php?edit=<?php echo $data['id']; ?>" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
                         <form method="POST" action="data_scraper.php" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this item?');">
                             <input type="hidden" name="action" value="delete">
@@ -482,5 +531,77 @@ $(document).ready(function() {
             }
         });
     });
+
+    // Test One URL
+    $(document).on('click', '.btn-test-url', function() {
+        var btn = $(this);
+        var row = btn.closest('tr');
+        var id = row.find('.status-toggle').data('id'); // Get ID from toggle
+        
+        testWebsite(id, btn, row);
+    });
+
+    // Test All URLs
+    $('#btnTestAll').click(function() {
+        if(!confirm('This will verify ALL websites on this page and DELETE any that are down/invalid. This process happens one by one. Continue?')) {
+            return;
+        }
+
+        var buttons = $('.btn-test-url');
+        processQueue(buttons, 0);
+    });
+
+    function processQueue(buttons, index) {
+        if (index >= buttons.length) {
+            alert('All websites checked!');
+            return;
+        }
+
+        var btn = $(buttons[index]);
+        var row = btn.closest('tr');
+        var id = row.find('.status-toggle').data('id');
+
+        // Scroll to row
+        $('html, body').animate({
+            scrollTop: row.offset().top - 100
+        }, 200);
+
+        testWebsite(id, btn, row, function() {
+            processQueue(buttons, index + 1);
+        });
+    }
+
+    function testWebsite(id, btn, row, callback) {
+        var originalIcon = btn.html();
+        btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+
+        $.ajax({
+            url: 'data_scraper.php',
+            type: 'POST',
+            dataType: 'json',
+            data: { 
+                action: 'validate_website', 
+                id: id
+            },
+            success: function(response) {
+                if (response.status === 'valid') {
+                    btn.html('<i class="fas fa-check"></i>').removeClass('btn-info').addClass('btn-success');
+                    setTimeout(function() {
+                        btn.html(originalIcon).removeClass('btn-success').addClass('btn-info').prop('disabled', false);
+                    }, 2000);
+                } else if (response.status === 'deleted') {
+                    row.fadeOut(500, function() { $(this).remove(); });
+                } else {
+                    btn.html('<i class="fas fa-exclamation"></i>').removeClass('btn-info').addClass('btn-secondary');
+                    alert(response.message);
+                }
+                if (callback) callback();
+            },
+            error: function() {
+                btn.html('<i class="fas fa-times"></i>').removeClass('btn-info').addClass('btn-danger');
+                if (callback) callback();
+            }
+        });
+    }
 });
 </script>
