@@ -232,6 +232,88 @@ if (isset($_POST['action'])) {
         echo json_encode(['status' => 'success', 'data' => $row]);
         exit;
     }
+
+    // --- ACTION: TEST ROW (VERIFY & UPDATE/DELETE) ---
+    if ($action === 'test_row') {
+        $id = $_POST['id'];
+        $stmt = $pdo->prepare("SELECT * FROM data_scraper WHERE id = ?");
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            echo json_encode(['status' => 'error', 'message' => 'Row not found']);
+            exit;
+        }
+
+        $url = $row['website_url'];
+        // Validation: Ensure URL has protocol
+        if (strpos($url, 'http') !== 0) {
+            $url = 'http://' . $url;
+        }
+
+        $res = fetch_url($url);
+
+        // 1. Dead URL -> Delete
+        if ($res['code'] < 200 || $res['code'] >= 400) {
+            $pdo->prepare("DELETE FROM data_scraper WHERE id = ?")->execute([$id]);
+            echo json_encode(['status' => 'warning', 'message' => "URL Unreachable (Code {$res['code']}). Row Deleted."]);
+            exit;
+        }
+
+        // 2. Re-mine data
+        $mined = mine_data($res['content']);
+
+        // 3. No Data Found -> Delete
+        if (empty($mined['title']) && empty($mined['email']) && empty($mined['phone'])) {
+             $pdo->prepare("DELETE FROM data_scraper WHERE id = ?")->execute([$id]);
+             echo json_encode(['status' => 'warning', 'message' => "Page active but no valid business data found. Row Deleted."]);
+             exit;
+        }
+
+        // 4. Update if Data Changed
+        $updateFields = [];
+        $params = [];
+        $changes = [];
+
+        if (!empty($mined['title']) && $mined['title'] !== $row['business_name']) {
+            $updateFields[] = "business_name = ?";
+            $params[] = $mined['title'];
+            $changes[] = "Name";
+        }
+        if (!empty($mined['email']) && $mined['email'] !== $row['email_address']) {
+            $updateFields[] = "email_address = ?";
+            $params[] = $mined['email'];
+            $changes[] = "Email";
+        }
+        if (!empty($mined['phone']) && $mined['phone'] !== $row['mobile_number']) {
+            // Only update phone if new one is found; strict length check roughly
+            if(strlen($mined['phone']) > 6) {
+                $updateFields[] = "mobile_number = ?";
+                $params[] = $mined['phone'];
+                $changes[] = "Phone";
+            }
+        }
+        
+        // Check for Elfsight tag update
+        if (isset($mined['elfsight']) && $mined['elfsight']) {
+             if (strpos($row['business_category'], 'Elfsight') === false) {
+                 $updateFields[] = "business_category = ?";
+                 $params[] = $row['business_category'] . ' [Elfsight]';
+                 $changes[] = "Category (Elfsight)";
+             }
+        }
+
+        if (!empty($updateFields)) {
+            $params[] = $id;
+            $sql = "UPDATE data_scraper SET " . implode(', ', $updateFields) . " WHERE id = ?";
+            $pdo->prepare($sql)->execute($params);
+            $msg = "Updated: " . implode(', ', $changes);
+            echo json_encode(['status' => 'success', 'message' => $msg]);
+        } else {
+            echo json_encode(['status' => 'success', 'message' => "Verified: Data is up to date."]);
+        }
+        exit;
+    }
 }
 ?>
 
@@ -305,8 +387,9 @@ if (isset($_POST['action'])) {
                                     <td>{$row['city']}</td>
                                     <td>{$row['city']}</td>
                                     <td>
-                                        <button class='btn btn-sm btn-info' onclick='viewRow({$row['id']})'><i class='fas fa-eye'></i></button>
-                                        <button class='btn btn-sm btn-danger' onclick='deleteRow({$row['id']})'><i class='fas fa-trash'></i></button>
+                                        <button class='btn btn-sm btn-info' onclick='viewRow({$row['id']})' title='View'><i class='fas fa-eye'></i></button>
+                                        <button class='btn btn-sm btn-warning' onclick='testRow({$row['id']})' title='Test & Verify'><i class='fas fa-sync-alt'></i></button>
+                                        <button class='btn btn-sm btn-danger' onclick='deleteRow({$row['id']})' title='Delete'><i class='fas fa-trash'></i></button>
                                     </td>
                                 </tr>";
                             }
@@ -389,6 +472,34 @@ if (isset($_POST['action'])) {
                 alert("Failed to fetch details.");
             }
         }, 'json');
+    }
+
+    function testRow(id) {
+        var btn = $(event.target).closest('button');
+        var originalIcon = btn.html();
+        btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+        
+        updateStatus("Testing ID " + id + "...");
+        
+        $.post('data_scraper.php', { action: 'test_row', id: id }, function(resp) {
+            btn.html(originalIcon).prop('disabled', false);
+            if(resp.status === 'success') {
+                alert(resp.message);
+                updateStatus("ID " + id + ": " + resp.message);
+                if(resp.message.indexOf('Updated') !== -1) location.reload();
+            } else if (resp.status === 'warning') {
+                alert(resp.message);
+                updateStatus("ID " + id + " Deleted.");
+                location.reload(); // Row deleted
+            } else {
+                alert("Error: " + resp.message);
+                updateStatus("Error testing ID " + id);
+            }
+        }, 'json').fail(function() {
+            btn.html(originalIcon).prop('disabled', false);
+            alert("Verification Request Failed");
+            updateStatus("Network Error");
+        });
     }
 </script>
 
