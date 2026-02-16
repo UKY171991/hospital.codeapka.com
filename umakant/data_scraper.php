@@ -275,11 +275,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
              if ($city) $queryParts[] = "$city";
              if ($country) $queryParts[] = "$country";
              // Base query
+             // Base query
              $baseQuery = implode(' ', $queryParts);
              
-             // Add Elfsight Footprints as requested
-             $footprints = '("powered by elfsight" OR "elfsight-app" OR "elfsight")';
-             $query = "$baseQuery $footprints -directory -list";
+             // SIMPLIFIED QUERY: Complex OR operators often fail in Lite.
+             // Just using "elfsight" is effective enough.
+             $query = "$baseQuery elfsight -directory -list";
              
              // Lite uses POST for search usually
              $postData = ['q' => $query, 'kl' => 'us-en'];
@@ -287,6 +288,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
              
              $debugLog = [];
         }
+
+        // Define Exclusion Lists (Critical to prevent crashes)
+        $exclusionList = ['facebook.com', 'yelp.com', 'yellowpages', 'linkedin', 'instagram', 'twitter', 'youtube', 'pinterest', 'bbb.org', 'mapquest', 'tripadvisor', 'whitepages', 'superpages'];
+        $directoryPathSegments = ['/directory', '/listing', '/business', '/profile', '/search', '/catalog'];
 
         // Function to make cURL request
         function fetchUrl($url, $data = [], $method = 'GET') {
