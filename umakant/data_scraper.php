@@ -213,9 +213,12 @@ $dataList = $stmt->fetchAll();
                     </tr>
                   </thead>
                   <tbody>
-                    <?php foreach($dataList as $data): ?>
+                    <?php 
+                    $counter = 1;
+                    foreach($dataList as $data): 
+                    ?>
                     <tr>
-                      <td><?php echo $data['id']; ?></td>
+                      <td><?php echo $counter++; ?></td>
                       <td><?php echo htmlspecialchars($data['business_name']); ?></td>
                       <td><?php echo htmlspecialchars($data['business_category']); ?></td>
                       <td><?php echo htmlspecialchars($data['email_address']); ?></td>
