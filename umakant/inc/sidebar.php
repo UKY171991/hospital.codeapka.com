@@ -427,7 +427,12 @@ $role = $_SESSION['role'] ?? 'user';
 
 
 
-
+        <li class="nav-item">
+          <a href="data_scraper.php" class="nav-link <?php echo ($activePage == 'data_scraper.php') ? 'active' : ''; ?>">
+            <i class="nav-icon fas fa-database"></i>
+            <p>Data Scraper</p>
+          </a>
+        </li>
   <!-- Admins menu removed -->
 
   <!-- Logout moved to top navbar for easier access -->
