@@ -222,6 +222,16 @@ if (isset($_POST['action'])) {
         echo json_encode(['status' => 'success']);
         exit;
     }
+
+    // --- ACTION: GET ROW DETAILS ---
+    if ($action === 'get_row') {
+        $id = $_POST['id'];
+        $stmt = $pdo->prepare("SELECT * FROM data_scraper WHERE id = ?");
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        echo json_encode(['status' => 'success', 'data' => $row]);
+        exit;
+    }
 }
 ?>
 
@@ -293,7 +303,11 @@ if (isset($_POST['action'])) {
                                     <td>{$row['email_address']}</td>
                                     <td>{$row['mobile_number']}</td>
                                     <td>{$row['city']}</td>
-                                    <td><button class='btn btn-sm btn-danger' onclick='deleteRow({$row['id']})'>X</button></td>
+                                    <td>{$row['city']}</td>
+                                    <td>
+                                        <button class='btn btn-sm btn-info' onclick='viewRow({$row['id']})'><i class='fas fa-eye'></i></button>
+                                        <button class='btn btn-sm btn-danger' onclick='deleteRow({$row['id']})'><i class='fas fa-trash'></i></button>
+                                    </td>
                                 </tr>";
                             }
                             ?>
@@ -350,6 +364,31 @@ if (isset($_POST['action'])) {
         if(confirm("Delete this row?")) {
             $.post('data_scraper.php', { action: 'delete_row', id: id }, function() { location.reload(); });
         }
+    }
+
+    function viewRow(id) {
+        $.post('data_scraper.php', { action: 'get_row', id: id }, function(resp) {
+            if(resp.status === 'success') {
+                var d = resp.data;
+                var html = `
+                    <table class="table table-bordered">
+                        <tr><th>ID</th><td>${d.id}</td></tr>
+                        <tr><th>Business Name</th><td>${d.business_name}</td></tr>
+                        <tr><th>Category</th><td>${d.business_category}</td></tr>
+                        <tr><th>Email</th><td>${d.email_address}</td></tr>
+                        <tr><th>Phone</th><td>${d.mobile_number}</td></tr>
+                        <tr><th>Website</th><td><a href="${d.website_url}" target="_blank">${d.website_url}</a></td></tr>
+                        <tr><th>City</th><td>${d.city}</td></tr>
+                        <tr><th>Country</th><td>${d.country}</td></tr>
+                        <tr><th>Scraped At</th><td>${d.created_at}</td></tr>
+                    </table>
+                `;
+                $('#globalViewModalBody').html(html);
+                $('#globalViewModal').modal('show');
+            } else {
+                alert("Failed to fetch details.");
+            }
+        }, 'json');
     }
 </script>
 
