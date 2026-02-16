@@ -10,8 +10,8 @@ $searchQuery = "";
 $params = [];
 
 if (!empty($search)) {
-    $searchQuery = "WHERE business_name LIKE ? OR business_category LIKE ? OR email_address LIKE ? OR city LIKE ? OR country LIKE ? OR website_url LIKE ?";
-    $params = array_fill(0, 6, "%$search%");
+    $searchQuery = "WHERE business_name LIKE ? OR business_category LIKE ? OR email_address LIKE ? OR mobile_number LIKE ? OR city LIKE ? OR country LIKE ? OR website_url LIKE ?";
+    $params = array_fill(0, 7, "%$search%");
 }
 
 // Handle CSV Export - MUST BE BEFORE ANY HTML OUTPUT
@@ -27,9 +27,9 @@ if (isset($_GET['action']) && $_GET['action'] == 'export_csv') {
     // Add BOM for Excel UTF-8 compatibility
     fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
     
-    fputcsv($output, array('ID', 'Website URL', 'Business Name', 'Business Category', 'Email Address', 'City', 'Country', 'Created At'));
+    fputcsv($output, array('ID', 'Website URL', 'Business Name', 'Business Category', 'Email Address', 'Mobile Number', 'City', 'Country', 'Created At'));
     
-    $stmt = $pdo->prepare("SELECT id, website_url, business_name, business_category, email_address, city, country, created_at FROM data_scraper $searchQuery ORDER BY id DESC");
+    $stmt = $pdo->prepare("SELECT id, website_url, business_name, business_category, email_address, mobile_number, city, country, created_at FROM data_scraper $searchQuery ORDER BY id DESC");
     $stmt->execute($params);
     
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -47,8 +47,8 @@ if (isset($_GET['ajax_search'])) {
     $params = [];
 
     if (!empty($search)) {
-        $searchQuery = "WHERE business_name LIKE ? OR business_category LIKE ? OR email_address LIKE ? OR city LIKE ? OR country LIKE ? OR website_url LIKE ?";
-        $params = array_fill(0, 6, "%$search%");
+        $searchQuery = "WHERE business_name LIKE ? OR business_category LIKE ? OR email_address LIKE ? OR mobile_number LIKE ? OR city LIKE ? OR country LIKE ? OR website_url LIKE ?";
+        $params = array_fill(0, 7, "%$search%");
     }
     
     $stmt = $pdo->prepare("SELECT * FROM data_scraper $searchQuery ORDER BY id DESC");
@@ -63,6 +63,7 @@ if (isset($_GET['ajax_search'])) {
             echo '<td>' . htmlspecialchars($data['business_name']) . '</td>';
             echo '<td>' . htmlspecialchars($data['business_category']) . '</td>';
             echo '<td>' . htmlspecialchars($data['email_address']) . '</td>';
+            echo '<td>' . htmlspecialchars($data['mobile_number']) . '</td>';
             echo '<td>' . htmlspecialchars($data['city']) . ', ' . htmlspecialchars($data['country']) . '</td>';
             echo '<td><a href="' . htmlspecialchars($data['website_url']) . '" target="_blank" title="' . htmlspecialchars($data['website_url']) . '"><i class="fas fa-link"></i> Link</a></td>';
             echo '<td>';
@@ -92,11 +93,18 @@ try {
         business_name VARCHAR(255),
         business_category VARCHAR(255),
         email_address VARCHAR(255),
+        mobile_number VARCHAR(50),
         city VARCHAR(255),
         country VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )");
+    
+    // Add mobile_number column if it doesn't exist (for existing tables)
+    $checkCol = $pdo->query("SHOW COLUMNS FROM data_scraper LIKE 'mobile_number'");
+    if ($checkCol->rowCount() == 0) {
+        $pdo->exec("ALTER TABLE data_scraper ADD COLUMN mobile_number VARCHAR(50) AFTER email_address");
+    }
 } catch (PDOException $e) {
     echo "Error creating table: " . $e->getMessage();
 }
@@ -119,8 +127,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($exists > 0) {
             $message = '<div class="alert alert-warning">Duplicate Entry! Website URL or Email Address already exists.</div>';
         } else {
-            $stmt = $pdo->prepare("INSERT INTO data_scraper (website_url, business_name, business_category, email_address, city, country) VALUES (?, ?, ?, ?, ?, ?)");
-            if ($stmt->execute([$_POST['website_url'], $_POST['business_name'], $_POST['business_category'], $_POST['email_address'], $_POST['city'], $_POST['country']])) {
+            $stmt = $pdo->prepare("INSERT INTO data_scraper (website_url, business_name, business_category, email_address, mobile_number, city, country) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            if ($stmt->execute([$_POST['website_url'], $_POST['business_name'], $_POST['business_category'], $_POST['email_address'], $_POST['mobile_number'], $_POST['city'], $_POST['country']])) {
                 $message = '<div class="alert alert-success">Data Added Successfully!</div>';
             } else {
                 $message = '<div class="alert alert-danger">Error Adding Data!</div>';
@@ -137,8 +145,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($exists > 0) {
             $message = '<div class="alert alert-warning">Duplicate Entry! Website URL or Email Address already exists.</div>';
         } else {
-            $stmt = $pdo->prepare("UPDATE data_scraper SET website_url=?, business_name=?, business_category=?, email_address=?, city=?, country=? WHERE id=?");
-            if ($stmt->execute([$_POST['website_url'], $_POST['business_name'], $_POST['business_category'], $_POST['email_address'], $_POST['city'], $_POST['country'], $id])) {
+            $stmt = $pdo->prepare("UPDATE data_scraper SET website_url=?, business_name=?, business_category=?, email_address=?, mobile_number=?, city=?, country=? WHERE id=?");
+            if ($stmt->execute([$_POST['website_url'], $_POST['business_name'], $_POST['business_category'], $_POST['email_address'], $_POST['mobile_number'], $_POST['city'], $_POST['country'], $id])) {
                 $message = '<div class="alert alert-success">Data Updated Successfully!</div>';
             } else {
                 $message = '<div class="alert alert-danger">Error Updating Data!</div>';
@@ -219,6 +227,10 @@ $dataList = $stmt->fetchAll();
                     <label for="email_address">Email Address</label>
                     <input type="email" class="form-control" id="email_address" name="email_address" placeholder="Enter Email Address" value="<?php echo $editData['email_address'] ?? ''; ?>" required>
                   </div>
+                  <div class="form-group">
+                    <label for="mobile_number">Mobile Number</label>
+                    <input type="text" class="form-control" id="mobile_number" name="mobile_number" placeholder="Enter Mobile Number" value="<?php echo $editData['mobile_number'] ?? ''; ?>" required>
+                  </div>
                    <div class="form-group">
                     <label for="city">City</label>
                     <input type="text" class="form-control" id="city" name="city" placeholder="Enter City" value="<?php echo $editData['city'] ?? ''; ?>" required>
@@ -263,6 +275,7 @@ $dataList = $stmt->fetchAll();
                       <th>Business Name</th>
                       <th>Category</th>
                       <th>Email</th>
+                      <th>Mobile</th>
                       <th>City/Country</th>
                       <th>Website</th>
                       <th>Actions</th>
@@ -278,6 +291,7 @@ $dataList = $stmt->fetchAll();
                       <td><?php echo htmlspecialchars($data['business_name']); ?></td>
                       <td><?php echo htmlspecialchars($data['business_category']); ?></td>
                       <td><?php echo htmlspecialchars($data['email_address']); ?></td>
+                      <td><?php echo htmlspecialchars($data['mobile_number']); ?></td>
                       <td><?php echo htmlspecialchars($data['city']) . ', ' . htmlspecialchars($data['country']); ?></td>
                       <td><a href="<?php echo htmlspecialchars($data['website_url']); ?>" target="_blank" title="<?php echo htmlspecialchars($data['website_url']); ?>"><i class="fas fa-link"></i> Link</a></td>
                       <td>
