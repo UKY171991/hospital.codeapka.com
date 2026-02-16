@@ -309,12 +309,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // If city is empty, try to find it in the content
             if (empty($extractedCity)) {
                 
-                // 1. Try Schema.org JSON-LD (Better accuracy)
+                // 1. Try Schema.org JSON-LD (Best accuracy)
                 if (preg_match('/"addressLocality":\s*"([^"]+)"/i', $siteHtml, $schemaMatches)) {
                     $extractedCity = trim($schemaMatches[1]);
                 }
-                // 2. Try Standard "City, Country" pattern in text
-                elseif (!empty($country)) {
+                // 2. Try Meta Tags (geo.placename, og:locality, business:contact_data:locality)
+                elseif (preg_match('/<meta\s+(?:name|property)="(:?geo\.placename|og:locality|business:contact_data:locality)"\s+content="([^"]+)"/i', $siteHtml, $metaMatches)) {
+                    $extractedCity = trim($metaMatches[2]);
+                }
+                // 3. Try Address Tag
+                elseif (preg_match('/<address[^>]*>(.*?)<\/address>/is', $siteHtml, $addrMatches)) {
+                    $addrText = strip_tags($addrMatches[1]);
+                     if (!empty($country)) {
+                         if (preg_match('/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*,\s*' . preg_quote($country, '/') . '/i', $addrText, $locMatches)) {
+                              $extractedCity = trim($locMatches[1]);
+                         }
+                     }
+                }
+                
+                // 4. Try Standard "City, Country" pattern in main text
+                if (empty($extractedCity) && !empty($country)) {
                      // Matches "Toronto, Canada"
                      if (preg_match('/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s*,\s*' . preg_quote($country, '/') . '/i', $textContent, $locMatches)) {
                           $extractedCity = trim($locMatches[1]);
@@ -327,7 +341,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             
             // STRICT VALIDATION: If no specific city found, SKIP this record. 
-            // Do not insert "Unknown".
+            // We only accept records where we can identify the city.
+            $extractedCity = trim($extractedCity);
             if (empty($extractedCity) || strtolower($extractedCity) === 'unknown') {
                 continue;
             }
