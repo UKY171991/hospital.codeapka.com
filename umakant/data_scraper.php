@@ -263,28 +263,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Use DuckDuckGo Lite - Better for scraping
         $url = "https://lite.duckduckgo.com/lite/";
         $postData = [];
-        $method = 'POST'; 
+        $method = 'GET'; 
 
         if ($nextParams) {
              $postData = $nextParams;
-             $method = 'POST';
+             $method = 'POST'; // Pagination often uses POST in Lite form
         } else {
-             // Initial Request
+             // Initial Request via GET (Standard)
              $queryParts = [];
              if ($category) $queryParts[] = "$category";
              if ($city) $queryParts[] = "$city";
              if ($country) $queryParts[] = "$country";
              // Base query
-             // Base query
              $baseQuery = implode(' ', $queryParts);
              
-             // SIMPLIFIED QUERY: Complex OR operators often fail in Lite.
-             // Just using "elfsight" is effective enough.
+             // SIMPLIFIED QUERY
              $query = "$baseQuery elfsight -directory -list";
              
-             // Lite uses POST for search usually
-             $postData = ['q' => $query, 'kl' => 'us-en'];
-             $method = 'POST';
+             // GET params
+             $url .= "?q=" . urlencode($query) . "&kl=us-en";
+             $method = 'GET';
              
              $debugLog = [];
         }
@@ -301,8 +299,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 45);
             
-            // Cookie Jar setup
-            $cookieFile = sys_get_temp_dir() . '/ddg_cookies.txt';
+            // Unique Cookie Jar per session to avoid blocks
+            static $cookieFile;
+            if (!$cookieFile) {
+                // Ensure unique file per session/request time
+                $cookieFile = sys_get_temp_dir() . '/ddg_cookies_' . time() . '_' . rand(1000,9999) . '.txt';
+            }
             curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
             curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
             
@@ -355,6 +357,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
              exit;
         }
         $html = $response['content'];
+        preg_match('/<title>(.*?)<\/title>/is', $html, $matches);
+        $searchPageTitle = $matches[1] ?? 'No Title';
         
         while ($fetchedPages < $maxPages) {
             if (!$html) break;
@@ -371,6 +375,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             foreach ($nodes as $node) {
                 $href = $node->getAttribute('href');
+                
+                // Handle Relative Links in Lite
+                if (strpos($href, '/') === 0) {
+                    $href = "https://lite.duckduckgo.com" . $href;
+                }
+
                 if (strpos($href, 'uddg=') !== false) {
                     parse_str(parse_url($href, PHP_URL_QUERY), $vars);
                     if (isset($vars['uddg'])) {
@@ -641,7 +651,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'debug' => [
                 'fetched_pages' => $fetchedPages,
                 'links_found_raw' => count($links),
-                'query' => $query ?? 'pagination'
+                'query' => $query ?? 'pagination',
+                'last_search_title' => $searchPageTitle ?? 'N/A'
             ]
         ]);
         exit;
