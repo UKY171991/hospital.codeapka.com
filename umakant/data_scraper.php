@@ -185,7 +185,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $pdo->prepare("DELETE FROM data_scraper WHERE id=?")->execute([$id]);
                 echo json_encode(['status' => 'deleted', 'message' => 'Invalid Content: ' . $title]);
             } else {
-                echo json_encode(['status' => 'valid', 'message' => 'Website is up (' . $httpCode . ')']);
+                // Content is valid, let's ENHANCE the data (Correct Mobile/Email)
+                $updateFields = [];
+                $updateParams = [];
+                
+                $textContent = strip_tags($html);
+                
+                // Extract Mobile
+                preg_match('/(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/', $textContent, $phoneMatches);
+                $mobile = $phoneMatches[0] ?? '';
+                if (!empty($mobile)) {
+                    $updateFields[] = "mobile_number = ?";
+                    $updateParams[] = trim($mobile);
+                }
+                
+                // Extract Email (Smart)
+                preg_match_all('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $textContent, $allEmails);
+                $uniqueEmails = array_unique($allEmails[0] ?? []);
+                $email = '';
+                $genericPrefixes = ['info', 'contact', 'support', 'admin', 'hello', 'sales'];
+                foreach ($uniqueEmails as $e) {
+                    $prefix = explode('@', $e)[0];
+                    if (!in_array(strtolower($prefix), $genericPrefixes)) {
+                        $email = $e; 
+                        break;
+                    }
+                }
+                if (empty($email) && !empty($uniqueEmails)) $email = reset($uniqueEmails);
+                
+                if (!empty($email)) {
+                    $updateFields[] = "email_address = ?";
+                    $updateParams[] = $email;
+                }
+                
+                // Perform Update if we found new data
+                if (!empty($updateFields)) {
+                    $sql = "UPDATE data_scraper SET " . implode(', ', $updateFields) . " WHERE id = ?";
+                    $updateParams[] = $id;
+                    $pdo->prepare($sql)->execute($updateParams);
+                }
+
+                echo json_encode(['status' => 'valid', 'message' => 'Website is up (' . $httpCode . ') & Data Updated']);
             }
         } else {
             // Website down or unreachable -> Delete
